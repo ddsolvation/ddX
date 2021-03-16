@@ -1,0 +1,79 @@
+
+      888      888  .d8888b.   .d88888b.   .d8888b.  888b     d888  .d88888b. 
+      888      888 d88P  Y88b d88P" "Y88b d88P  Y88b 8888b   d8888 d88P" "Y88b
+      888      888 888    888 888     888 Y88b.      88888b.d88888 888     888
+  .d88888  .d88888 888        888     888  "Y888b.   888Y88888P888 888     888
+ d88" 888 d88" 888 888        888     888     "Y88b. 888 Y888P 888 888     888
+ 888  888 888  888 888    888 888     888       "888 888  Y8P  888 888     888
+ Y88b 888 Y88b 888 Y88b  d88P Y88b. .d88P Y88b  d88P 888   "   888 Y88b. .d88P
+  "Y88888  "Y88888  "Y8888P"   "Y88888P"   "Y8888P"  888       888  "Y88888P" 
+                                                                              
+ An implementation of COSMO using a domain decomposition linear scaling strategy.
+
+ Parameters:
+   number of grid points:                               110
+   number of spheres:                                    24
+   lmax for the spherical harmonics basis:                6
+   convergence threshold:                           0.1D-06
+   regularization parameter (eta):                    0.200
+   dielectric constant:                             78.3553
+
+ Compute forces.
+
+
+  iter=   1 residual norm:     0.1349D-02
+  iter=   2 residual norm:     0.5037D-03
+  iter=   3 residual norm:     0.2907D-03
+  iter=   4 residual norm:     0.1684D-03
+  iter=   5 residual norm:     0.1027D-03
+  iter=   6 residual norm:     0.1958D-04
+  iter=   7 residual norm:     0.4829D-05
+  iter=   8 residual norm:     0.1558D-05
+  iter=   9 residual norm:     0.3273D-06
+  iter=  10 residual norm:     0.9311D-07
+ 
+ solution time of ddCOSMO direct equations L \sigma =    0.014 secs.
+ 
+ ddcosmo electrostatic solvation energy (kcal/mol):     -1.203523
+ 
+  iter=   1 residual norm:     0.1019D-01
+  iter=   2 residual norm:     0.2213D-02
+  iter=   3 residual norm:     0.8890D-03
+  iter=   4 residual norm:     0.2852D-03
+  iter=   5 residual norm:     0.1461D-03
+  iter=   6 residual norm:     0.7238D-04
+  iter=   7 residual norm:     0.2104D-04
+  iter=   8 residual norm:     0.4292D-05
+  iter=   9 residual norm:     0.4899D-06
+  iter=  10 residual norm:     0.1563D-06
+  iter=  11 residual norm:     0.7463D-07
+ 
+ solution time of ddCOSMO adjoint equations L^* \sigma =    0.013 secs.
+ 
+ the computation of the ddCOSMO part of the forces took    0.006 seconds.
+ ddCOSMO forces (atomic units):
+  atom               x               y               z
+     1      0.00001211     -0.00001838     -0.00000003
+     2      0.00000993     -0.00000103     -0.00000004
+     3     -0.00004459      0.00007835      0.00000004
+     4      0.00017001     -0.00001274     -0.00000007
+     5     -0.00012037      0.00000553      0.00000003
+     6     -0.00001004     -0.00003968      0.00000003
+     7     -0.00002664     -0.00008447     -0.00000002
+     8      0.00002394      0.00009173     -0.00000003
+     9     -0.00011734      0.00002429      0.00000005
+    10     -0.00003517      0.00000501      0.00000004
+    11      0.00007793     -0.00000159     -0.00000007
+    12     -0.00008673     -0.00000363      0.00000006
+    13      0.00002753      0.00008505      0.00000005
+    14      0.00003435     -0.00008569      0.00000002
+    15      0.00002649      0.00000531     -0.00000002
+    16      0.00009661     -0.00001830      0.00000350
+    17      0.00009669     -0.00001834     -0.00000353
+    18      0.00002699      0.00000106      0.00000001
+    19     -0.00003164     -0.00005207     -0.00000089
+    20     -0.00003162     -0.00005216      0.00000085
+    21      0.00002746     -0.00012356      0.00000001
+    22     -0.00000525      0.00008862      0.00000153
+    23     -0.00000527      0.00008864     -0.00000150
+    24     -0.00011540      0.00003804     -0.00000002
