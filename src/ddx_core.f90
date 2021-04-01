@@ -409,8 +409,8 @@ contains
 !! @param[in] iprint: Level of printing debug info.
 !! @param[in] se: Shift of characteristic function. -1 for interior, 0 for
 !!      centered and 1 for outer regularization
-!! @param[in] eta: Regularization parameter
-!! @param[in] eps: Relative dielectric permittivity
+!! @param[in] eta: Regularization parameter. 0 < eta <= 1.
+!! @param[in] eps: Relative dielectric permittivity. eps > 1.
 !! @param[in] kappa: Debye-H\"{u}ckel parameter
 !! @param[in] itersolver: Iterative solver to be used. 1 for Jacobi iterative
 !!      solver. Other solvers might be added later.
@@ -540,14 +540,14 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     end if
     ddx_data % se = se
     ! Regularization parameter
-    if ((eta .lt. zero) .or. (eta .gt. one)) then
+    if ((eta .le. zero) .or. (eta .gt. one)) then
         write(*, "(A)") "ddinit: wrong value of a parameter `eta`"
         info = -17
         return
     end if
     ddx_data % eta = eta
     ! Relative dielectric permittivity
-    if (eps .lt. zero) then
+    if (eps .le. one) then
         write(*, "(A)") "ddinit: wrong value of a parameter `eps`"
         info = -18
         return
@@ -2384,155 +2384,6 @@ end subroutine polleg
 !! @param[in] p: Maximal degree of polynomials to compute. `p` >= 0
 !! @param[out] vplm: Values of associated Legendre polynomials. Dimension is
 !!      `(p+1)**2`
-!! @param[out] work: Temporary workspace of a size (p+1)
-subroutine polleg_work_old(ctheta, stheta, p, vplm, work)
-    ! Inputs
-    real(dp), intent(in) :: ctheta, stheta
-    integer, intent(in) :: p
-    ! Outputs
-    real(dp), intent(out) :: vplm((p+1)**2)
-    ! Temporary workspace
-    real(dp), intent(out) :: work(p+1)
-    ! Local variables
-    integer :: m, ind, l, ind2, vplm_ind
-    real(dp) :: fact, pmm, pmm1, pmmo, pll, fm, fl
-    ! Init aux factors
-    fact = one
-    pmm = one
-    work(1) = ctheta
-    fm = two * ctheta
-    do m = 1, p
-        work(m+1) = work(m) + fm
-    end do
-    ! This loop goes over non-negative upper index of P_l^m, namely m, and
-    ! defines value for all l from m to p. Polynomials P_l^m are defined only
-    ! for l >= |m|. Only positive values of m are filled. Here we
-    ! define at first P_m^m, then P_{m+1}^m and then all remaining P_l^m for
-    ! l from m+2 to p.
-    do m = 0, p
-        ! index of P_m^m
-        ind = (m+1) * (m+1)
-        ! Store P_m^m
-        vplm(ind) = pmm
-        if (m .eq. p) then
-            return
-        end if
-        fm = dble(m)
-        ! index of P_{m+1}^m
-        ind2 = ind + 2*m + 2
-        ! P_{m+1}^m
-        pmm1 = work(m+1) * pmm
-        vplm(ind2) = pmm1
-        ! Save value P_m^m for recursion
-        pmmo = pmm
-        ! Fill values of P_l^m
-        do l = m+2, p
-            ind2 = ind2 + 2*l
-            ! pmm corresponds to P_{l-2}^m
-            ! pmm1 corresponds to P_{l-1}^m
-            fl = dble(l)
-            ! Compute P_l^m
-            pll = work(l)*pmm1 - (fl+fm-1)*pmm
-            pll = pll / (fl-fm)
-            ! Store P_l^m
-            !vplm(l*l + l + m + 1) = pll
-            vplm(ind2) = pll
-            ! Save P_{l-1}^m and P_l^m for recursion
-            pmm = pmm1
-            pmm1 = pll
-        end do
-        ! Value of P_{m+1}^{m+1}
-        pmm = -pmmo * fact * stheta
-        fact = fact + two
-    end do
-end subroutine polleg_work_old
-
-subroutine polleg_work2(ctheta, stheta, p, vplm, work)
-    ! Inputs
-    real(dp), intent(in) :: ctheta, stheta
-    integer, intent(in) :: p
-    ! Outputs
-    real(dp), intent(out) :: vplm((p+1)**2)
-    ! Temporary workspace
-    real(dp), intent(out) :: work(p+1)
-    ! Local variables
-    integer :: indlm1, l, indl, m, ind
-    real(dp) :: tmp, plm2, plm1, plm, ctantheta, fml
-    ! Easy cases
-    select case (p)
-        case (0)
-            vplm(1) = one
-            return
-        case (1)
-            vplm(1) = one
-            vplm(3) = ctheta
-            vplm(4) = -stheta
-            return
-    end select
-    ! Now p >= 2
-    vplm(1) = one
-    vplm(3) = ctheta
-    vplm(4) = -stheta
-    ctantheta = ctheta / stheta
-    ! Prepare scalars (2*m+2)*ctantheta
-    !select case (p)
-    !    case (2)
-    !        work(1) = two * ctantheta
-    work(1) = two * ctantheta
-    select case (p)
-        case (2)
-        case (3)
-            work(2) = two * work(1)
-        case (4)
-            work(2) = two * work(1)
-            work(3) = three * work(1)
-        case (5)
-            work(2) = two * work(1)
-            work(3) = three * work(1)
-            work(4) = four * work(1)
-        case (6:)
-            work(2) = two * work(1)
-            work(3) = three * work(1)
-            work(4) = four * work(1)
-            do m = 4, p-5, 4
-                work(m+1:m+4) = work(m-3:m) + work(4)
-            end do
-            select case (p-m)
-                case (2)
-                    work(p-1) = work(p-2) + work(1)
-                case (3)
-                    work(p-2:p-1) = work(p-4:p-3) + work(2)
-                case (4)
-                    work(p-3:p-1) = work(p-6:p-4) + work(3)
-            end select
-    end select
-    ! Index of P_{l-1}^{l-1} for the next loop
-    indlm1 = 4
-    do l = 2, p
-        ! index of P_l^l is (l+1)**2
-        indl = indlm1 + 2*l + 1
-        tmp = dble(2*l-1) * vplm(indlm1)
-        ! P_l^l
-        plm2 = - tmp * stheta
-        ! P_l^{l-1}
-        plm1 = tmp * ctheta
-        vplm(indl) = plm2
-        vplm(indl-1) = plm1
-        !ind = indl-2
-        fml = - two * dble(l)
-        do m = l-2, 0, -1
-            fml = fml - two*dble(m+1)
-            ! P_l^m
-            tmp = work(m+1)*plm1 + plm2
-            plm = tmp / fml
-            plm2 = plm1
-            plm1 = plm
-            vplm(indl+m-l) = plm
-        end do
-        indlm1 = indl
-    end do
-end subroutine polleg_work2
-
 subroutine polleg_work(ctheta, stheta, p, vplm, work)
     ! Inputs
     real(dp), intent(in) :: ctheta, stheta
@@ -3985,17 +3836,18 @@ end subroutine fmm_p2m_work
 !! @param[in] src_m: Multipole coefficients. Dimension is `(p+1)**2`
 !! @param[in] beta: Scalar multiplier for `v`
 !! @param[inout] v: Value of induced potential
-subroutine fmm_m2p(c, r, p, vscales_rel, alpha, src_m, beta, v)
+subroutine fmm_m2p(c, src_r, p, vscales_rel, alpha, src_m, beta, dst_v)
     ! Inputs
-    real(dp), intent(in) :: c(3), r, vscales_rel((p+1)*(p+1)), alpha, &
+    real(dp), intent(in) :: c(3), src_r, vscales_rel((p+1)*(p+1)), alpha, &
         & src_m((p+1)*(p+1)), beta
     integer, intent(in) :: p
     ! Output
-    real(dp), intent(inout) :: v
+    real(dp), intent(inout) :: dst_v
     ! Temporary workspace
     real(dp) :: work((p+1)*(p+1)+3*p)
     ! Call corresponding work routine
-    call fmm_m2p_work(c, r, p, vscales_rel, alpha, src_m, beta, v, work)
+    call fmm_m2p_work(c, src_r, p, vscales_rel, alpha, src_m, beta, dst_v, &
+        & work)
 end subroutine fmm_m2p
 
 !> Accumulate potential, induced by multipole spherical harmonics
@@ -4184,23 +4036,24 @@ subroutine fmm_m2p_work(c, src_r, p, vscales_rel, alpha, src_m, &
         dst_v = dst_v + alpha*rcoef*tmp
     ! Case of x(1:2) = 0 and x(3) != 0
     else
-    ! TODO: Add proper check for this routine, I am leaving here stop
-    ! instruction to indicate that it is not tested
-        stop "fmm_m2p_work untested branch"
         ! In this case Y_l^m = 0 for m != 0, so only case m = 0 is taken into
-        ! account. Y_l^m = ctheta^m in this case where ctheta is either +1 or
-        ! -1. So, we copy sign(ctheta) into rcoef.
-        rcoef = sign(rcoef, c(3))
-        ! Init t and proceed with accumulation of a potential
-        t = alpha
+        ! account. Y_l^0 = ctheta^l in this case where ctheta is either +1 or
+        ! -1. So, we copy sign(ctheta) into rcoef. But before that we
+        ! initialize alpha/r factor for l=0 case without taking possible sign
+        ! into account.
+        t = alpha * rcoef
+        if (c(3) .lt. zero) then
+            rcoef = -rcoef
+        end if
+        ! Proceed with accumulation of a potential
         indl = 1
         do l = 0, p
             ! Index of Y_l^0
             indl = indl + 2*l
-            ! Update t
-            t = t * rcoef
             ! Add 4*pi/(2*l+1)*rcoef^{l+1}*Y_l^0 contribution
             dst_v = dst_v + t*src_m(indl)*vscales_rel(indl)
+            ! Update t
+            t = t * rcoef
         end do
     end if
 end subroutine fmm_m2p_work
@@ -4503,37 +4356,38 @@ subroutine fmm_m2p_adj_work(c, src_q, dst_r, p, vscales_rel, beta, dst_m, work)
         end if
     ! Case of x(1:2) = 0 and x(3) != 0
     else
-    ! TODO: Add proper check for this routine, I am leaving here stop
-    ! instruction to indicate that it is not tested
-        stop "fmm_m2p_adj_work untested branch"
         ! In this case Y_l^m = 0 for m != 0, so only case m = 0 is taken into
-        ! account. Y_l^m = ctheta^m in this case where ctheta is either +1 or
-        ! -1. So, we copy sign(ctheta) into rcoef.
-        rcoef = sign(rcoef, c(3))
-        ! Init t and proceed with accumulation of a potential
-        t = src_q
+        ! account. Y_l^0 = ctheta^l in this case where ctheta is either +1 or
+        ! -1. So, we copy sign(ctheta) into rcoef. But before that we
+        ! initialize alpha/r factor for l=0 case without taking possible sign
+        ! into account.
+        t = src_q * rcoef
+        if (c(3) .lt. zero) then
+            rcoef = -rcoef
+        end if
+        ! Proceed with accumulation of a potential
         indl = 1
         if (beta .eq. zero) then
             do l = 0, p
                 ! Index of Y_l^0
                 indl = indl + 2*l
-                ! Update t
-                t = t * rcoef
                 ! Add 4*pi/(2*l+1)*rcoef^{l+1}*Y_l^0 contribution
                 dst_m(indl) = t * vscales_rel(indl)
                 dst_m(indl-l:indl-1) = zero
                 dst_m(indl+1:indl+l) = zero
+                ! Update t
+                t = t * rcoef
             end do
         else
             do l = 0, p
                 ! Index of Y_l^0
                 indl = indl + 2*l
-                ! Update t
-                t = t * rcoef
                 ! Add 4*pi/(2*l+1)*rcoef^{l+1}*Y_l^0 contribution
                 dst_m(indl) = beta*dst_m(indl) + t*vscales_rel(indl)
                 dst_m(indl-l:indl-1) = beta * dst_m(indl-l:indl-1)
                 dst_m(indl+1:indl+l) = beta * dst_m(indl+1:indl+l)
+                ! Update t
+                t = t * rcoef
             end do
         end if
     end if
@@ -4589,75 +4443,6 @@ subroutine fmm_m2p_mat(c, r, p, vscales, mat)
         mat(ind-n:ind+n) = t / vscales(ind)**2 * vylm(ind-n:ind+n)
     end do
 end subroutine fmm_m2p_mat
-
-!> Accumulate a local expansion induced by a particle of a given charge
-!!
-!! Computes the following sums:
-!! \f[
-!!      \forall \ell=0, \ldots, p, \quad \forall m=-\ell, \ldots, \ell : \quad
-!!      M_\ell^m = \beta M_\ell^m + \frac{q \|c\|^\ell}{r^{\ell+1}}
-!!      Y_\ell^m \left( \frac{c}{\|c\|} \right),
-!! \f]
-!! where \f$ M \f$ is a vector of coefficients of output harmonics of
-!! a degree up to \f$ p \f$ inclusively with a convergence radius \f$ r \f$
-!! located at the origin, \f$ \beta \f$ is a scaling factor, \f$ q \f$ and \f$
-!! c \f$ are a charge and coordinates of a particle.
-!!
-!! Based on normalized real spherical harmonics \f$ Y_\ell^m \f$, scaled by \f$
-!! r^{\ell+1} \f$. It means corresponding coefficients are simply scaled by an
-!! additional factor \f$ r^{-\ell-1} \f$.
-!!
-!! @param[in] c: Radius-vector from the particle to the center of harmonics
-!! @param[in] src_q: Charge of the source particle
-!! @param[in] dst_r: Radius of output local spherical harmonics
-!! @param[in] p: Maximal degree of output local spherical harmonics
-!! @param[in] vscales: Normalization constants for spherical harmonics
-!! @param[in] beta: Scaling factor for `dst_l`
-!! @param[inout] dst_l: Local coefficients
-!!
-!! @sa fmm_l2p
-subroutine fmm_p2l(c, src_q, dst_r, p, vscales, beta, dst_l)
-    ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
-    integer, intent(in) :: p
-    ! Output
-    real(dp), intent(inout) :: dst_l((p+1)**2)
-    ! Local variables
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
-    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), t, rcoef
-    integer :: n, ind
-    ! Get radius and values of spherical harmonics
-    call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
-        & vcos, vsin)
-    ! Local expansion represents potential from the outside of the sphere of
-    ! the given radius `dst_r`. In case `rho=zero` source particle is inside of
-    ! the sphere no matter what radius `r` is, so we just ignore such a case.
-    if (rho .eq. zero) then
-        if (beta .eq. zero) then
-            dst_l = zero
-        else
-            dst_l = beta * dst_l
-        end if
-        return
-    end if
-    rcoef = dst_r / rho
-    t = src_q / rho
-    ! Ignore input `m` in case of zero scaling factor
-    if (beta .eq. zero) then
-        do n = 0, p
-            ind = n*n + n + 1
-            dst_l(ind-n:ind+n) = t * vylm(ind-n:ind+n)
-            t = t * rcoef
-        end do
-    ! Update `m` otherwise
-    else
-        do n = 0, p
-            ind = n*n + n + 1
-            dst_l(ind-n:ind+n) = beta*dst_l(ind-n:ind+n) + t*vylm(ind-n:ind+n)
-            t = t * rcoef
-        end do
-    end if
-end subroutine fmm_p2l
 
 !> Accumulate potential, induced by local spherical harmonics
 !!
