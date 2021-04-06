@@ -13,9 +13,9 @@ program test_ddx_core
 use ddx_core
 implicit none
 
-character(len=255) :: testname
+character(len=255) :: testname, p_string
 integer :: argc
-integer :: p=10, i, j
+integer :: p=30, i, j
 
 integer, parameter :: nx=13, nrand=10
 real(dp) :: x(3, nx)
@@ -33,7 +33,9 @@ else
         case ('all')
         case ('init')
         case ('polleg')
+        case ('ylmbas')
         case ('m2p')
+        case ('m2p_m2l')
         case ('m2p_adj')
         case ('l2p')
         case ('l2p_adj')
@@ -50,6 +52,11 @@ else
         case default
             stop "Wrong testname value"
     end select
+    ! Read maximal degree p
+    if (argc .gt. 1) then
+        call get_command_argument(2, p_string)
+        read(p_string, "(I3)") p
+    end if
 end if
 
 ! Set points x
@@ -79,11 +86,27 @@ if ((testname .eq. 'all') .or. (testname .eq. 'polleg')) then
     end do
 end if
 
+! Check ylmbas (spherical harmonics)
+if ((testname .eq. 'all') .or. (testname .eq. 'ylmbas')) then
+    do i = 0, 2*p
+        call check_ylmbas(i)
+    end do
+end if
+
 ! Check M2P
 if ((testname .eq. 'all') .or. (testname .eq. 'm2p')) then
     do i = 1, size(alpha)
         do j = 0, p
             call check_m2p(j, alpha(i))
+        end do
+    end do
+end if
+
+! Check M2P against M2L with pl=0
+if ((testname .eq. 'all') .or. (testname .eq. 'm2p_m2l')) then
+    do i = 1, size(alpha)
+        do j = 0, p
+            call check_m2p_m2l(j, alpha(i))
         end do
     end do
 end if
@@ -772,11 +795,46 @@ subroutine check_polleg(p)
         call polleg_baseline(ctheta, stheta, p, vplm)
         call polleg(ctheta, stheta, p, vplm2)
         err = dnrm2((p+1)**2, vplm-vplm2, 1) / dnrm2((p+1)**2, vplm, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. 2d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
 end subroutine check_polleg
+
+! Check spherical harmonics
+subroutine check_ylmbas(p)
+    ! Input
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: c(3), rho, ctheta, stheta, cphi, sphi, vplm((p+1)**2), &
+        & vylm((p+1)**2), vylm2((p+1)**2), vcos(p+1), vsin(p+1), err, &
+        & vscales((p+1)**2), v4pi2lp1(p+1), vscales_rel((p+1)**2), &
+        & threshold
+    logical :: ok
+    integer :: i, j
+    real(dp), external :: dnrm2
+    ! Set scaling factors
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    ! Print header
+    print "(/,A)", repeat("=", 40)
+    print "(A)", "Check ylmbas"
+    print "(A,I0)", " p=", p
+    print "(A)", repeat("=", 40)
+    print "(A)", "  i | ok | err(i)"
+    print "(A)", repeat("=", 40)
+    threshold = dble((p+2)**2) * 2d-16
+    ! Check against baseline
+    do i = 2, nx
+        c = x(:, i)
+        call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
+        call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm2, &
+            & vplm, vcos, vsin)
+        err = dnrm2((p+1)**2, vylm-vylm2, 1) / dnrm2((p+1)**2, vylm, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+    end do
+end subroutine check_ylmbas
 
 ! Check M2P
 subroutine check_m2p(p, alpha)
@@ -786,12 +844,12 @@ subroutine check_m2p(p, alpha)
     ! Local variables
     real(dp) :: y(3, nx), r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
         & vscales_rel((p+1)**2), src_m((p+1)**2, nrand), dst_v(nrand), &
-        & dst_v2(nrand), err
+        & dst_v2(nrand), err, threshold
     logical :: ok
     integer :: i, j, iseed(4)
     real(dp), external :: dnrm2
     ! Copy templated points with a proper multiplier
-    y = 10d0 * alpha * x
+    y = alpha / sqrt(13d-2) * x
     r = abs(alpha)
     ! Compute special FMM constants
     call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
@@ -807,6 +865,7 @@ subroutine check_m2p(p, alpha)
     print "(A)", repeat("=", 40)
     print "(A)", "  i | ok | err(i)"
     print "(A)", repeat("=", 40)
+    threshold = dble(p+3) * 3d-16
     ! Check against the baseline, i=1 is ignored since it y(:,1)=zero
     do i = 2, nx
         c = y(:, i)
@@ -827,7 +886,7 @@ subroutine check_m2p(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
@@ -838,7 +897,7 @@ subroutine check_m2p(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
@@ -847,18 +906,17 @@ subroutine check_m2p(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         do j = 1, nrand
-            call fmm_m2p_baseline(c, r, p, vscales, zero, src_m(:, j), -pt5, &
-                & dst_v(j))
+            dst_v(j) = -pt5 * dst_v(j)
             call fmm_m2p(c, r, p, vscales_rel, zero, src_m(:, j), -pt5, &
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
@@ -869,12 +927,117 @@ subroutine check_m2p(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 3d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
 end subroutine check_m2p
+
+! Check M2P by M2L with pl=0
+subroutine check_m2p_m2l(p, alpha)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: alpha
+    ! Local variables
+    real(dp) :: y(3, nx), r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
+        & vscales_rel((p+1)**2), src_m((p+1)**2, nrand), dst_v(nrand), &
+        & dst_v2(nrand), err, &
+        & vcnk((2*p+1)*(p+1)), &
+        & m2l_ztranslate_coef(p+1, 1, 1), &
+        & m2l_ztranslate_adj_coef(1, 1, p+1)
+    logical :: ok
+    integer :: i, j, iseed(4)
+    real(dp), external :: dnrm2
+    ! Copy templated points with a proper multiplier
+    y = alpha / sqrt(13d-2) * x
+    r = abs(alpha)
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    call fmm_constants(p, p, 0, vcnk, m2l_ztranslate_coef, &
+        & m2l_ztranslate_adj_coef)
+    ! Init random seed
+    iseed = (/0, 0, 0, 1/)
+    ! Generate src_m randomly
+    call dlarnv(3, iseed, nrand*((p+1)**2), src_m)
+    ! Print header
+    print "(/,A)", repeat("=", 40)
+    print "(A)", "Check M2P by M2L with pl=0"
+    print "(A,I0)", " p=", p
+    print "(A,ES24.16E3)", " alpha=", alpha
+    print "(A)", repeat("=", 40)
+    print "(A)", "  i | ok | err(i)"
+    print "(A)", repeat("=", 40)
+    ! Check against the baseline, i=1 is ignored since it y(:,1)=zero
+    do i = 2, nx
+        c = y(:, i)
+        ! Check alpha=beta=zero
+        do j = 1, nrand
+            call fmm_m2p(c, r, p, vscales_rel, zero, src_m(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v2, 1)
+        ok = err .eq. zero
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        !if (.not. ok) stop 1
+        ! Check alpha=one, beta=zero
+        do j = 1, nrand
+            call fmm_m2l_rotation(-c, r, r, p, 0, vscales, &
+                & m2l_ztranslate_coef, vscales_rel(1), src_m(:, j), zero, &
+                & dst_v(j))
+            call fmm_m2p(c, r, p, vscales_rel, one, src_m(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. 2d-15
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        !if (.not. ok) stop 1
+        ! Check alpha!={zero,one}, beta=zero
+        do j = 1, nrand
+            call fmm_m2l_rotation(-c, r, r, p, 0, vscales, &
+                & m2l_ztranslate_coef, -three*vscales_rel(1), src_m(:, j), &
+                & zero, dst_v(j))
+            call fmm_m2p(c, r, p, vscales_rel, -three, src_m(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. 2d-15
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        !if (.not. ok) stop 1
+        ! Check alpha=zero, beta=one
+        do j = 1, nrand
+            call fmm_m2p(c, r, p, vscales_rel, zero, src_m(:, j), one, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. 2d-15
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        !if (.not. ok) stop 1
+        ! Check alpha=zero, beta!={zero,one}
+        do j = 1, nrand
+            dst_v(j) = -pt5 * dst_v(j)
+            call fmm_m2p(c, r, p, vscales_rel, zero, src_m(:, j), -pt5, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. 2d-15
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        !if (.not. ok) stop 1
+        ! Check alpha!={zero,one}, beta!={zero,one}
+        do j = 1, nrand
+            call fmm_m2l_rotation(-c, r, r, p, 0, vscales, &
+                & m2l_ztranslate_coef, -three*vscales_rel(1), src_m(:, j), &
+                & pt5, dst_v(j))
+            call fmm_m2p(c, r, p, vscales_rel, -three, src_m(:, j), pt5, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. 3d-15
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        !if (.not. ok) stop 1
+    end do
+    print "(A)", repeat("=", 40)
+end subroutine check_m2p_m2l
 
 ! Check adjoint M2P
 subroutine check_m2p_adj(p, alpha)
@@ -883,12 +1046,13 @@ subroutine check_m2p_adj(p, alpha)
     real(dp), intent(in) :: alpha
     ! Local variables
     real(dp) :: y(3, nx), r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
-        & vscales_rel((p+1)**2), dst_m((p+1)**2), dst_m2((p+1)**2), err
+        & vscales_rel((p+1)**2), dst_m((p+1)**2), dst_m2((p+1)**2), err, &
+        & threshold
     logical :: ok
     integer :: i
     real(dp), external :: dnrm2
     ! Copy templated points with a proper multiplier
-    y = 10d0 * alpha * x
+    y = alpha / sqrt(13d-2) * x
     r = abs(alpha)
     ! Compute special FMM constants
     call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
@@ -900,6 +1064,7 @@ subroutine check_m2p_adj(p, alpha)
     print "(A)", repeat("=", 40)
     print "(A)", "  i | ok | err(i)"
     print "(A)", repeat("=", 40)
+    threshold = dble(p+3) * 3d-16
     ! Check against the baseline, i=1 is ignored since it y(:,1)=zero
     do i = 2, nx
         c = y(:, i)
@@ -913,34 +1078,34 @@ subroutine check_m2p_adj(p, alpha)
         call fmm_m2p_adj_baseline(c, one, r, p, vscales, zero, dst_m)
         call fmm_m2p_adj(c, one, r, p, vscales_rel, zero, dst_m2)
         err = dnrm2((p+1)**2, dst_m-dst_m2, 1) / dnrm2((p+1)**2, dst_m, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check src_q!={zero,one}, beta=zero
         call fmm_m2p_adj_baseline(c, -three, r, p, vscales, zero, dst_m)
         call fmm_m2p_adj(c, -three, r, p, vscales_rel, zero, dst_m2)
         err = dnrm2((p+1)**2, dst_m-dst_m2, 1) / dnrm2((p+1)**2, dst_m, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
         call fmm_m2p_adj(c, zero, r, p, vscales_rel, one, dst_m2)
         err = dnrm2((p+1)**2, dst_m-dst_m2, 1) / dnrm2((p+1)**2, dst_m, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         call fmm_m2p_adj_baseline(c, zero, r, p, vscales, -pt5, dst_m)
         call fmm_m2p_adj(c, zero, r, p, vscales_rel, -pt5, dst_m2)
         err = dnrm2((p+1)**2, dst_m-dst_m2, 1) / dnrm2((p+1)**2, dst_m, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
         call fmm_m2p_adj_baseline(c, -three, r, p, vscales, pt5, dst_m)
         call fmm_m2p_adj(c, -three, r, p, vscales_rel, pt5, dst_m2)
         err = dnrm2((p+1)**2, dst_m-dst_m2, 1) / dnrm2((p+1)**2, dst_m, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
@@ -955,12 +1120,12 @@ subroutine check_l2p(p, alpha)
     ! Local variables
     real(dp) :: y(3, nx), r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
         & vscales_rel((p+1)**2), src_l((p+1)**2, nrand), dst_v(nrand), &
-        & dst_v2(nrand), err
+        & dst_v2(nrand), err, threshold
     logical :: ok
     integer :: i, j, iseed(4)
     real(dp), external :: dnrm2
     ! Copy templated points with a proper multiplier
-    y = alpha * x
+    y = 1.25d0 * alpha * x
     r = abs(alpha)
     ! Compute special FMM constants
     call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
@@ -976,6 +1141,7 @@ subroutine check_l2p(p, alpha)
     print "(A)", repeat("=", 40)
     print "(A)", "  i | ok | err(i)"
     print "(A)", repeat("=", 40)
+    threshold = dble(p+1) * 2d-16
     ! Check against the baseline
     do i = 1, nx
         c = y(:, i)
@@ -996,7 +1162,7 @@ subroutine check_l2p(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
@@ -1007,7 +1173,7 @@ subroutine check_l2p(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
@@ -1016,7 +1182,7 @@ subroutine check_l2p(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
@@ -1027,7 +1193,7 @@ subroutine check_l2p(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
@@ -1038,7 +1204,7 @@ subroutine check_l2p(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
@@ -1052,12 +1218,13 @@ subroutine check_l2p_adj(p, alpha)
     real(dp), intent(in) :: alpha
     ! Local variables
     real(dp) :: y(3, nx), r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
-        & vscales_rel((p+1)**2), dst_l((p+1)**2), dst_l2((p+1)**2), err
+        & vscales_rel((p+1)**2), dst_l((p+1)**2), dst_l2((p+1)**2), err, &
+        & threshold
     logical :: ok
     integer :: i
     real(dp), external :: dnrm2
     ! Copy templated points with a proper multiplier
-    y = alpha * x
+    y = 1.25d0 * alpha * x
     r = abs(alpha)
     ! Compute special FMM constants
     call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
@@ -1069,6 +1236,7 @@ subroutine check_l2p_adj(p, alpha)
     print "(A)", repeat("=", 40)
     print "(A)", "  i | ok | err(i)"
     print "(A)", repeat("=", 40)
+    threshold = dble(p+2) * 2d-16
     ! Check against the baseline
     do i = 1, nx
         c = y(:, i)
@@ -1080,30 +1248,30 @@ subroutine check_l2p_adj(p, alpha)
         call fmm_l2p_adj_baseline(c, one, r, p, vscales, zero, dst_l)
         call fmm_l2p_adj(c, one, r, p, vscales_rel, zero, dst_l2)
         err = dnrm2((p+1)**2, dst_l-dst_l2, 1) / dnrm2((p+1)**2, dst_l, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         call fmm_l2p_adj_baseline(c, -three, r, p, vscales, zero, dst_l)
         call fmm_l2p_adj(c, -three, r, p, vscales_rel, zero, dst_l2)
         err = dnrm2((p+1)**2, dst_l-dst_l2, 1) / dnrm2((p+1)**2, dst_l, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         call fmm_l2p_adj(c, zero, r, p, vscales_rel, one, dst_l2)
         err = dnrm2((p+1)**2, dst_l-dst_l2, 1) / dnrm2((p+1)**2, dst_l, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         call fmm_l2p_adj_baseline(c, zero, r, p, vscales, -pt5, dst_l)
         call fmm_l2p_adj(c, zero, r, p, vscales_rel, -pt5, dst_l2)
         err = dnrm2((p+1)**2, dst_l-dst_l2, 1) / dnrm2((p+1)**2, dst_l, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         call fmm_l2p_adj_baseline(c, -three, r, p, vscales, pt5, dst_l)
         call fmm_l2p_adj(c, -three, r, p, vscales_rel, pt5, dst_l2)
         err = dnrm2((p+1)**2, dst_l-dst_l2, 1) / dnrm2((p+1)**2, dst_l, 1)
-        ok = err .lt. 1d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
@@ -1122,7 +1290,7 @@ subroutine check_m2m(p, alpha)
         & m2l_ztranslate_coef(p+1, 1, 1), &
         & m2l_ztranslate_adj_coef(1, 1, p+1), &
         & src_m((p+1)**2, nrand), dst_m((p+1)**2, nrand), &
-        & dst_m2((p+1)**2, nrand), err
+        & dst_m2((p+1)**2, nrand), err, threshold
     logical :: ok
     integer :: i, j, iseed(4), ndst_m
     real(dp), external :: dnrm2
@@ -1146,6 +1314,7 @@ subroutine check_m2m(p, alpha)
     print "(A)", repeat("=", 40)
     print "(A)", "  i | ok | err(i)"
     print "(A)", repeat("=", 40)
+    threshold = (p+3) * 4d-16
     ! Check against baseline implementation
     do i = 1, nx
         c = y(:, i)
@@ -1168,7 +1337,7 @@ subroutine check_m2m(p, alpha)
                 & src_m(:, j), zero, dst_m2(:, j))
         end do
         err = dnrm2(ndst_m, dst_m-dst_m2, 1) / dnrm2(ndst_m, dst_m, 1)
-        ok = err .le. 2d-15
+        ok = err .le. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         ! Check alpha!={zero,one}, beta=zero
         do j = 1, nrand
@@ -1176,7 +1345,7 @@ subroutine check_m2m(p, alpha)
                 & src_m(:, j), zero, dst_m2(:, j))
         end do
         err = dnrm2(ndst_m, three*dst_m+dst_m2, 1) / dnrm2(ndst_m, dst_m, 1)
-        ok = err .le. 5d-15
+        ok = err .le. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta=one
@@ -1186,7 +1355,7 @@ subroutine check_m2m(p, alpha)
                 & src_m(:, j), one, dst_m2(:, j))
         end do
         err = dnrm2(ndst_m, dst_m-dst_m2, 1) / dnrm2(ndst_m, dst_m, 1)
-        ok = err .le. 2d-15
+        ok = err .le. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
@@ -1197,7 +1366,7 @@ subroutine check_m2m(p, alpha)
         end do
         err = dnrm2((p+1)**2, pt5*dst_m+dst_m2, 1) / &
             & dnrm2((p+1)**2, dst_m, 1) / four
-        ok = err .le. 2d-15
+        ok = err .le. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
@@ -1208,7 +1377,7 @@ subroutine check_m2m(p, alpha)
         end do
         err = dnrm2((p+1)**2, two*dst_m+dst_m2, 1) / &
             & dnrm2((p+1)**2, dst_m, 1) / four
-        ok = err .le. 2d-15
+        ok = err .le. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
     end do
@@ -1455,7 +1624,7 @@ subroutine check_m2l(pm, pl, alpha)
     integer :: i, j, iseed(4), nsrc_m, ndst_l
     real(dp), external :: dnrm2
     ! Copy templated points with a proper multiplier
-    y = 10d0 * alpha * x
+    y = 3d0 * alpha / sqrt(13d-2) * x
     r = abs(alpha)
     ! Compute special FMM constants
     call ylmscale(pm+pl, vscales, v4pi2lp1, vscales_rel)
@@ -1479,7 +1648,8 @@ subroutine check_m2l(pm, pl, alpha)
     ! Check against the baseline, i=1 is ignored since it y(:,1)=zero
     do i = 2, nx
         c = y(:, i)
-        dst_r = dnrm2(3, c, 1) - two*r
+        !dst_r = dnrm2(3, c, 1) - two*r
+        dst_r = r
         ! Check alpha=beta=zero
         do j = 1, nrand
             call fmm_m2l_rotation(c, r, dst_r, pm, pl, vscales, &
@@ -1557,12 +1727,12 @@ subroutine check_m2l_adj(pm, pl, alpha)
         & m2l_ztranslate_coef(pm+1, pl+1, pl+1), &
         & m2l_ztranslate_adj_coef(pl+1, pl+1, pm+1), &
         & src_m((pm+1)**2, nrand), src_m2((pm+1)**2, nrand), &
-        & dst_l((pl+1)**2, nrand), err, tmp(nrand, nrand)
+        & dst_l((pl+1)**2, nrand), err, tmp(nrand, nrand), threshold
     logical :: ok
     integer :: i, j, iseed(4), nsrc_m, ndst_l
     real(dp), external :: dnrm2
     ! Copy templated points with a proper multiplier
-    y = alpha * x
+    y = 3d0 * alpha / sqrt(13d-2) * x
     r = abs(alpha)
     ! Compute special FMM constants
     call ylmscale(pm+pl, vscales, v4pi2lp1, vscales_rel)
@@ -1583,10 +1753,12 @@ subroutine check_m2l_adj(pm, pl, alpha)
     print "(A)", repeat("=", 40)
     print "(A)", "  i | ok | err(i)"
     print "(A)", repeat("=", 40)
+    threshold = (pm+pl+3) * 4d-16
     ! Check against the baseline, i=1 is ignored since it y(:,1)=zero
     do i = 2, nx
         c = y(:, i)
-        dst_r = r + dnrm2(3, y(:, i), 1)
+        !dst_r = r + dnrm2(3, y(:, i), 1)
+        dst_r = r
         do j = 1, nrand
             call fmm_m2l_rotation(c, r, dst_r, pm, pl, vscales, &
                 & m2l_ztranslate_coef, one, src_m(:, j), zero, dst_l(:, j))
@@ -1600,7 +1772,7 @@ subroutine check_m2l_adj(pm, pl, alpha)
         call dgemm('T', 'N', nrand, nrand, (pm+1)**2, -one, src_m2, &
             & (pm+1)**2, src_m, (pm+1)**2, one, tmp, nrand)
         err = dnrm2(nrand*nrand, tmp, 1) / err
-        ok = err .lt. 2d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
@@ -2395,7 +2567,7 @@ subroutine fmm_m2p_baseline(c, src_r, p, vscales, alpha, src_m, beta, dst_v)
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Local variables
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
+    real(dp) :: rho, vcos(p+1), vsin(p+1)
     real(dp) :: vylm((p+1)**2), vplm((p+1)**2), rcoef, t, tmp
     integer :: n, ind
     ! Scale output
@@ -2410,10 +2582,10 @@ subroutine fmm_m2p_baseline(c, src_r, p, vscales, alpha, src_m, beta, dst_v)
         return
     end if
     ! Get radius and values of spherical harmonics
-    call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
-        & vcos, vsin)
+    call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
     ! In case of a singularity (rho=zero) induced potential is infinite and is
     ! not taken into account.
+    rho = dnrm2(3, c, 1)
     if (rho .eq. zero) then
         return
     end if
@@ -2450,14 +2622,14 @@ subroutine fmm_m2p_adj_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
     if (src_q .eq. zero) then
         return
     end if
-    ! Get radius and values of spherical harmonics
-    call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
-        & vcos, vsin)
     ! In case of a singularity (rho=zero) induced potential is infinite and is
     ! not taken into account.
+    rho = dnrm2(3, c, 1)
     if (rho .eq. zero) then
         return
     end if
+    ! Get radius and values of spherical harmonics
+    call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
     ! Compute actual induced potentials
     rcoef = dst_r / rho
     t = src_q
@@ -2476,15 +2648,13 @@ subroutine fmm_p2l_baseline(c, src_q, dst_r, p, vscales, beta, dst_l)
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)**2)
     ! Local variables
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
+    real(dp) :: rho, vcos(p+1), vsin(p+1)
     real(dp) :: vylm((p+1)**2), vplm((p+1)**2), t, rcoef
     integer :: n, ind
-    ! Get radius and values of spherical harmonics
-    call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
-        & vcos, vsin)
     ! Local expansion represents potential from the outside of the sphere of
     ! the given radius `dst_r`. In case `rho=zero` source particle is inside of
     ! the sphere no matter what radius `r` is, so we just ignore such a case.
+    rho = dnrm2(3, c, 1)
     if (rho .eq. zero) then
         if (beta .eq. zero) then
             dst_l = zero
@@ -2493,6 +2663,8 @@ subroutine fmm_p2l_baseline(c, src_q, dst_r, p, vscales, beta, dst_l)
         end if
         return
     end if
+    ! Get radius and values of spherical harmonics
+    call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
     rcoef = dst_r / rho
     t = src_q / rho
     ! Ignore input `m` in case of zero scaling factor
@@ -2535,15 +2707,15 @@ subroutine fmm_l2p_baseline(c, src_r, p, vscales, alpha, src_l, beta, dst_v)
     if (alpha .eq. zero) then
         return
     end if
-    ! Get radius and values of spherical harmonics
-    call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
-        & vcos, vsin)
     ! In case `rho=zero` values of spherical harmonics make no sense and only
     ! spherical harmonic of degree 0 shall be taken into account
+    rho = dnrm2(3, c, 1)
     if (rho .eq. zero) then
         dst_v = dst_v + alpha*src_l(1)/vscales(1)
     ! Compute the actual induced potential otherwise
     else
+        ! Get radius and values of spherical harmonics
+        call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
         rcoef = rho / src_r
         t = alpha
         do n = 0, p
@@ -2577,15 +2749,15 @@ subroutine fmm_l2p_adj_baseline(c, src_q, dst_r, p, vscales, beta, dst_l)
     if (src_q .eq. zero) then
         return
     end if
-    ! Get radius and values of spherical harmonics
-    call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
-        & vcos, vsin)
     ! In case `rho=zero` values of spherical harmonics make no sense and only
     ! spherical harmonic of degree 0 shall be taken into account
+    rho = dnrm2(3, c, 1)
     if (rho .eq. zero) then
         dst_l(1) = dst_l(1) + src_q/vscales(1)
     ! Compute the actual induced potential otherwise
     else
+        ! Get radius and values of spherical harmonics
+        call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
         rcoef = rho / dst_r
         t = src_q
         do n = 0, p
@@ -2627,6 +2799,7 @@ subroutine polleg_baseline(ctheta, stheta, p, vplm)
         ! index of P_m^m
         ind = (m+1) * (m+1)
         ! Store P_m^m
+        !print *, "l=", m, "z=", pmm
         vplm(ind) = pmm
         if (m .eq. p) then
             return
@@ -2660,6 +2833,40 @@ subroutine polleg_baseline(ctheta, stheta, p, vplm)
         fact = fact + two
     end do
 end subroutine polleg_baseline
+
+subroutine ylmbas_baseline(x, p, vscales, vylm, vplm, vcos, vsin)
+    integer, intent(in) :: p
+    real(dp), dimension(3), intent(in) :: x
+    real(dp), dimension((p+1)**2), intent(in) :: vscales
+    real(dp), dimension((p+1)**2), intent(out) :: vylm, vplm
+    real(dp), dimension(p+1), intent(out) :: vcos, vsin
+    integer :: l, m, ind
+    real(dp) :: y(3), cthe, sthe, cphi, sphi, plm
+    real(dp), external :: dnrm2
+    y = x / dnrm2(3, x, 1)
+    cthe = y(3)
+    sthe = dnrm2(2, y, 1)
+    if (sthe .ne. zero) then
+        cphi = y(1) / sthe
+        sphi = y(2) / sthe
+        call trgev(cphi, sphi, p, vcos, vsin)
+    else
+        cphi = one
+        sphi = zero
+        vcos = one
+        vsin = zero
+    endif
+    call polleg_baseline(cthe, sthe, p, vplm)
+    do l = 0, p
+        ind = l**2 + l + 1
+        vylm(ind) = vscales(ind) * vplm(ind)
+        do m = 1, l
+            plm = vplm(ind+m) * vscales(ind+m)
+            vylm(ind+m) = plm * vcos(m+1)
+            vylm(ind-m) = plm * vsin(m+1)
+        enddo
+    enddo
+end subroutine ylmbas_baseline
 
 ! M2M baseline translation (p^4 operations)
 ! Baseline in terms of operation count: p^4

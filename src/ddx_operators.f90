@@ -1133,7 +1133,7 @@ subroutine gradr_fmm(ddx_data, fx)
     real(dp) :: tlow, thigh
     real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
     real(dp), external :: ddot, dnrm2
-    real(dp) :: work((ddx_data % lmax+2)**2+3*(ddx_data % lmax+1))
+    real(dp) :: work(ddx_data % lmax+1)
     !real(dp) :: l2g(ddx_data % ngrid, ddx_data % nsph)
     zx_coord_transform = 0
     zx_coord_transform(3, 2) = 1

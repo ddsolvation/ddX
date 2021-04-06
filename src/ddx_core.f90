@@ -2394,7 +2394,7 @@ subroutine polleg_work(ctheta, stheta, p, vplm, work)
     real(dp), intent(out) :: work(p+1)
     ! Local variables
     integer :: m, l, indlm1, indlm2, indl
-    real(dp) :: tmp, tmp1, tmp2, tmp3, tmp4, tmp5, fl
+    real(dp) :: tmp, tmp1, tmp2, tmp3, tmp4, tmp5, fl, pl2m, pl1m, plm, pmm
     ! Easy cases
     select case (p)
         case (0)
@@ -2433,58 +2433,38 @@ subroutine polleg_work(ctheta, stheta, p, vplm, work)
             return
     end select
     ! Now p >= 4
-    ! At first take into account l=0..3
-    vplm(1) = one
-    vplm(3) = ctheta
-    vplm(4) = -stheta
-    tmp1 = three * stheta
-    tmp2 = ctheta * ctheta
-    vplm(7) = 1.5d0*tmp2 - pt5
-    vplm(8) = -tmp1 * ctheta
-    vplm(9) = tmp1 * stheta
-    tmp3 = 2.5d0 * tmp2 - pt5
-    vplm(13) = tmp3*ctheta - ctheta
-    vplm(14) = -tmp1 * tmp3
-    tmp4 = -5d0 * stheta
-    vplm(15) = tmp4 * vplm(8)
-    vplm(16) = tmp4 * vplm(9)
-    ! Set indexes of P_3^0 and P_2^0
-    indl = 13
-    indlm1 = 7
-    ! Precompute constants
-    tmp = -stheta * pt5
-    do m = 1, p-2
-        work(m) = tmp / dble(m)
+    ! Precompute temporary values
+    do l = 1, p
+        work(l) = dble(2*l-1) * ctheta
     end do
-    ! Loop over l >= 4
-    do l = 4, p
-        ! Index of P_{l-2}^0
-        indlm2 = indlm1
-        ! Index of P_{l-1}^0
-        indlm1 = indl
-        ! Index of P_l^0
-        indl = indl + 2*l
-        fl = dble(l)
-        tmp1 = two*fl - one
-        tmp2 = fl-1
-        tmp3 = tmp1 * ctheta
-        ! Set P_l^0
-        vplm(indl) = tmp3*vplm(indlm1) - tmp2*vplm(indlm2)
-        vplm(indl) = vplm(indl) / fl
-        tmp4 = two * tmp2
-        tmp5 = fl*fl - fl
-        ! Set P_l^m for m=1..l-2
-        do m = 1, l-2
-            tmp4 = tmp4 + two
-            tmp5 = tmp5 + tmp4
-            vplm(indl+m) = work(m) * (vplm(indlm1+m+1) + &
-                & tmp5*vplm(indlm1+m-1))
+    ! Save P_m^m for the inital loop m=0 which is P_0^0 now
+    pmm = one
+    ! Case m < p
+    do m = 0, p-1
+        ! P_{l-2}^m which is P_m^m now
+        pl2m = pmm
+        ! P_m^m
+        vplm((m+1)**2) = pmm
+        ! Temporary to reduce number of operations
+        tmp1 = dble(2*m+1) * pmm
+        ! Update P_m^m for the next iteration
+        pmm = -stheta * tmp1
+        ! P_{l-1}^m which is P_{m+1}^m now
+        pl1m = ctheta * tmp1
+        ! P_{m+1}^m
+        vplm((m+1)*(m+3)) = pl1m
+        ! P_l^m for l>m+1
+        do l = m+2, p
+            plm = work(l)*pl1m - dble(l+m-1)*pl2m
+            plm = plm / dble(l-m)
+            vplm(l*l+l+1+m) = plm
+            ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+            pl2m = pl1m
+            pl1m = plm
         end do
-        ! m = l-1
-        vplm(indl+l-1) = tmp3 * vplm(indlm1+l-1)
-        ! m = l
-        vplm(indl+l) = -stheta * tmp1 * vplm(indlm1+l-1)
     end do
+    ! Case m=p requires only to store P_m^m
+    vplm((p+1)**2) = pmm
 end subroutine polleg_work
 
 !> Convert input cartesian coordinate into spherical coordinate
@@ -3357,7 +3337,7 @@ subroutine adjrhs( ddx_data, isph, xi, vlm, basloc, vplm, vcos, vsin )
       integer :: ij, jsph, ig, l, ind, m
       real(dp)  :: vji(3), vvji, tji, sji(3), xji, oji, fac, ffac, t
       real(dp) :: rho, ctheta, stheta, cphi, sphi
-      real(dp) :: work((ddx_data % lmax+1)*(ddx_data % lmax+1)+3*ddx_data % lmax)
+      real(dp) :: work(ddx_data % lmax+1)
 !      
 !-----------------------------------------------------------------------------------
 !
@@ -3473,7 +3453,7 @@ subroutine calcv( ddx_data, first, isph, pot, sigma, basloc, vplm, vcos, vsin )
       real(dp)  :: vij(3), sij(3)
       real(dp)  :: vvij, tij, xij, oij, stslm, stslm2, stslm3, &
           & thigh, rho, ctheta, stheta, cphi, sphi
-      real(dp) :: work((ddx_data % lmax+1)*(ddx_data % lmax+1)+3*ddx_data % lmax)
+      real(dp) :: work(ddx_data % lmax+1)
 !
 !------------------------------------------------------------------------
       thigh = one + pt5*(ddx_data % se + one)*ddx_data % eta
@@ -3844,7 +3824,7 @@ subroutine fmm_m2p(c, src_r, p, vscales_rel, alpha, src_m, beta, dst_v)
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Temporary workspace
-    real(dp) :: work((p+1)*(p+1)+3*p)
+    real(dp) :: work(p+1)
     ! Call corresponding work routine
     call fmm_m2p_work(c, src_r, p, vscales_rel, alpha, src_m, beta, dst_v, &
         & work)
@@ -3878,7 +3858,7 @@ end subroutine fmm_m2p
 !! @param[in] src_m: Multipole coefficients. Dimension is `(p+1)**2`
 !! @param[in] beta: Scalar multiplier for `v`
 !! @param[inout] v: Value of induced potential
-!! @param[out] work: Temporary workspace of size (p+1)*(p+1)+3*p
+!! @param[out] work: Temporary workspace of size (p+1)
 subroutine fmm_m2p_work(c, src_r, p, vscales_rel, alpha, src_m, &
         & beta, dst_v, work)
     ! Inputs
@@ -3888,13 +3868,11 @@ subroutine fmm_m2p_work(c, src_r, p, vscales_rel, alpha, src_m, &
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Workspace
-    real(dp), intent(out), target :: work((p+1)*(p+1)+3*p)
+    real(dp), intent(out), target :: work(p+1)
     ! Local variables
     real(dp) :: rho, ctheta, stheta, cphi, sphi, rcoef, t, tmp, tmp1, tmp2, &
-        & tmp3, tmp4, tmp5, fl, max12, ssq12
-    integer :: vplm1, vplm2, vcos1, vcos2, vsin1, vsin2, vminv1, vminv2, &
-        & l, m, indl, indlm1, indlm2
-    real(dp), pointer :: vplm(:), vcos(:), vsin(:), vminv(:)
+        & tmp3, fl, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
+    integer :: l, m, indl
     ! Scale output
     if (beta .eq. zero) then
         dst_v = zero
@@ -3961,79 +3939,71 @@ subroutine fmm_m2p_work(c, src_r, p, vscales_rel, alpha, src_m, &
                 dst_v = dst_v + alpha*rcoef*(tmp+rcoef*tmp2)
                 return
         end select
-        ! Mark first and last elements of all work subarrays
-        vplm1 = 1
-        vplm2 = (p+1)**2
-        vplm => work(vplm1:vplm2)
-        vcos1 = vplm2 + 1
-        vcos2 = vcos1 + p
-        vcos => work(vcos1:vcos2)
-        vsin1 = vcos2 + 1
-        vsin2 = vsin1 + p
-        vsin => work(vsin1:vsin2)
-        vminv1 = vsin2 + 1
-        vminv2 = vminv1 + p-3
-        vminv => work(vminv1:vminv2)
-        ! Evaluate cos(m*phi) and sin(m*phi) arrays
-        call trgev(cphi, sphi, p, vcos, vsin)
-        ! Prepare -stheta*pt5/m
-        tmp2 = -stheta * pt5
-        do m = 1, p-2
-            vminv(m) = tmp2 / dble(m)
+        ! Now p>1
+        ! Precompute alpha*rcoef^{l+1}
+        work(1) = alpha * rcoef
+        do l = 1, p
+            work(l+1) = rcoef * work(l)
         end do
-        ! Construct spherical harmonics
-        ! l = 0
-        vplm(1) = one
-        tmp = src_m(1) * vscales_rel(1)
-        ! l = 1
-        vplm(3) = ctheta
-        vplm(4) = -stheta
-        tmp2 = ctheta * src_m(3) * vscales_rel(3)
-        tmp2 = tmp2 - stheta*vscales_rel(4)*(sphi*src_m(2)+cphi*src_m(4))
-        tmp = tmp + rcoef*tmp2
-        t = rcoef
-        indl = 3
-        indlm1 = 1
+        ! Case m = 0
+        ! P_{l-2}^m which is P_0^0 now
+        pl2m = one
+        dst_v = dst_v + work(1)*src_m(1)*vscales_rel(1)
+        ! Update P_m^m for the next iteration
+        pmm = -stheta
+        ! P_{l-1}^m which is P_{m+1}^m now
+        pl1m = ctheta
+        ylm = pl1m * vscales_rel(3)
+        dst_v = dst_v + work(2)*src_m(3)*ylm
+        ! P_l^m for l>m+1
         do l = 2, p
-            t = t * rcoef
-            ! Offset of a P_{l-2}^0 harmonic
-            indlm2 = indlm1
-            ! Offset of a P_{l-1}^0 harmonic
-            indlm1 = indl
-            ! Offset of a P_l^0 harmonic
-            indl = indl + 2*l
-            ! Some temp constants
-            fl = dble(l)
-            tmp1 = two*fl - one
-            tmp2 = fl - one
-            tmp3 = tmp1 * ctheta
-            tmp4 = two * tmp2
-            tmp5 = fl*fl - fl
-            ! Y_l^0
-            vplm(indl) = tmp3*vplm(indlm1) - tmp2*vplm(indlm2)
-            vplm(indl) = vplm(indl) / fl
-            tmp2 = vscales_rel(indl) * vplm(indl) * src_m(indl)
-            ! Y_l^m for m=1..l-2
-            do m = 1, l-2
-                tmp4 = tmp4 + two
-                tmp5 = tmp5 + tmp4
-                ! P_l^m
-                vplm(indl+m) = vminv(m) * (vplm(indlm1+m+1) + &
-                    & tmp5*vplm(indlm1+m-1))
-                tmp2 = tmp2 + vplm(indl+m)*(vcos(m+1)*src_m(indl+m)+ &
-                    & vsin(m+1)*src_m(indl-m))*vscales_rel(indl+m)
-            end do
-            ! m = l-1
-            vplm(indl+l-1) = tmp3 * vplm(indlm1+l-1)
-            tmp2 = tmp2 + vplm(indl+l-1)*(vcos(l)*src_m(indl+l-1)+ &
-                & vsin(l)*src_m(indl-l+1))*vscales_rel(indl+l-1)
-            ! m = l
-            vplm(indl+l) = -stheta * tmp1 * vplm(indlm1+l-1)
-            tmp2 = tmp2 + vplm(indl+l)*(vcos(l+1)*src_m(indl+l)+ &
-                & vsin(l+1)*src_m(indl-l))*vscales_rel(indl+l)
-            tmp = tmp + t*tmp2
+            plm = dble(2*l-1)*ctheta*pl1m - dble(l-1)*pl2m
+            plm = plm / dble(l)
+            ylm = plm * vscales_rel(l*l+l+1)
+            dst_v = dst_v + work(l+1)*src_m(l*l+l+1)*ylm
+            ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+            pl2m = pl1m
+            pl1m = plm
         end do
-        dst_v = dst_v + alpha*rcoef*tmp
+        ! Prepare cos(m*phi) and sin(m*phi) for m=1
+        cmphi = cphi
+        smphi = sphi
+        ! Case 0<m<p
+        do m = 1, p-1
+            ! P_{l-2}^m which is P_m^m now
+            pl2m = pmm
+            ylm = pmm * vscales_rel((m+1)**2)
+            tmp1 = cmphi*src_m((m+1)**2) + smphi*src_m(m*m+1)
+            dst_v = dst_v + work(m+1)*ylm*tmp1
+            ! Temporary to reduce number of operations
+            tmp1 = dble(2*m+1) * pmm
+            ! Update P_m^m for the next iteration
+            pmm = -stheta * tmp1
+            ! P_{l-1}^m which is P_{m+1}^m now
+            pl1m = ctheta * tmp1
+            ylm = pl1m * vscales_rel((m+1)*(m+3))
+            tmp1 = cmphi*src_m((m+1)*(m+3)) + smphi*src_m((m+1)*(m+2)+1-m)
+            dst_v = dst_v + work(m+2)*ylm*tmp1
+            ! P_l^m for l>m+1
+            do l = m+2, p
+                plm = dble(2*l-1)*ctheta*pl1m - dble(l+m-1)*pl2m
+                plm = plm / dble(l-m)
+                ylm = plm * vscales_rel(l*l+l+1+m)
+                tmp1 = cmphi*src_m(l*l+l+1+m) + smphi*src_m(l*l+l+1-m)
+                dst_v = dst_v + work(l+1)*ylm*tmp1
+                ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+                pl2m = pl1m
+                pl1m = plm
+            end do
+            ! Update cos(m*phi) and sin(m*phi) for the next iteration
+            tmp1 = cmphi
+            cmphi = cmphi*cphi - smphi*sphi
+            smphi = tmp1*sphi + smphi*cphi
+        end do
+        ! Case m=p requires only to use P_m^m
+        ylm = pmm * vscales_rel((p+1)**2)
+        tmp1 = cmphi*src_m((p+1)**2) + smphi*src_m(p*p+1)
+        dst_v = dst_v + work(p+1)*ylm*tmp1
     ! Case of x(1:2) = 0 and x(3) != 0
     else
         ! In this case Y_l^m = 0 for m != 0, so only case m = 0 is taken into
@@ -4090,7 +4060,7 @@ subroutine fmm_m2p_adj(c, src_q, dst_r, p, vscales_rel, beta, dst_m)
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)**2)
     ! Workspace
-    real(dp) :: work((p+1)*(p+1)+3*p)
+    real(dp) :: work(p+1)
     ! Call corresponding work routine
     call fmm_m2p_adj_work(c, src_q, dst_r, p, vscales_rel, beta, dst_m, work)
 end subroutine fmm_m2p_adj
@@ -4128,13 +4098,11 @@ subroutine fmm_m2p_adj_work(c, src_q, dst_r, p, vscales_rel, beta, dst_m, work)
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)**2)
     ! Workspace
-    real(dp), intent(out), target :: work((p+1)*(p+1)+3*p)
+    real(dp), intent(out), target :: work(p+1)
     ! Local variables
     real(dp) :: rho, ctheta, stheta, cphi, sphi, rcoef, t, tmp, tmp1, tmp2, &
-        & tmp3, tmp4, tmp5, fl, max12, ssq12
-    integer :: vplm1, vplm2, vcos1, vcos2, vsin1, vsin2, vminv1, vminv2, &
-        & l, m, indl, indlm1, indlm2
-    real(dp), pointer :: vplm(:), vcos(:), vsin(:), vminv(:)
+        & tmp3, fl, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
+    integer :: l, m, indl
     ! In case src_q is zero just scale output properly
     if (src_q .eq. zero) then
         ! Zero init output if beta is also zero
@@ -4220,139 +4188,143 @@ subroutine fmm_m2p_adj_work(c, src_q, dst_r, p, vscales_rel, beta, dst_m, work)
                 end if
                 return
         end select
-        ! Mark first and last elements of all work subarrays
-        vplm1 = 1
-        vplm2 = (p+1)**2
-        vplm => work(vplm1:vplm2)
-        vcos1 = vplm2 + 1
-        vcos2 = vcos1 + p
-        vcos => work(vcos1:vcos2)
-        vsin1 = vcos2 + 1
-        vsin2 = vsin1 + p
-        vsin => work(vsin1:vsin2)
-        vminv1 = vsin2 + 1
-        vminv2 = vminv1 + p-3
-        vminv => work(vminv1:vminv2)
-        ! Evaluate cos(m*phi) and sin(m*phi) arrays
-        call trgev(cphi, sphi, p, vcos, vsin)
-        ! Prepare -stheta*pt5/m
-        tmp2 = -stheta * pt5
-        do m = 1, p-2
-            vminv(m) = tmp2 / dble(m)
+        ! Now p>1
+        ! Precompute src_q*rcoef^{l+1}
+        work(1) = src_q * rcoef
+        do l = 1, p
+            work(l+1) = rcoef * work(l)
         end do
         ! Overwrite output
         if (beta .eq. zero) then
-            ! Construct spherical harmonics
-            ! l = 0
-            vplm(1) = one
-            dst_m(1) = t * vscales_rel(1)
-            ! l = 1
-            t = t * rcoef
-            vplm(3) = ctheta
-            vplm(4) = -stheta
-            tmp = t * vscales_rel(4) * vplm(4)
-            dst_m(2) = tmp * sphi
-            dst_m(3) = t * vscales_rel(3) * ctheta
-            dst_m(4) = tmp * cphi
-            indl = 3
-            indlm1 = 1
+            ! Case m = 0
+            ! P_{l-2}^m which is P_0^0 now
+            pl2m = one
+            dst_m(1) = work(1) * vscales_rel(1)
+            ! Update P_m^m for the next iteration
+            pmm = -stheta
+            ! P_{l-1}^m which is P_{m+1}^m now
+            pl1m = ctheta
+            ylm = pl1m * vscales_rel(3)
+            dst_m(3) = work(2) * ylm
+            ! P_l^m for l>m+1
             do l = 2, p
-                t = t * rcoef
-                ! Offset of a P_{l-2}^0 harmonic
-                indlm2 = indlm1
-                ! Offset of a P_{l-1}^0 harmonic
-                indlm1 = indl
-                ! Offset of a P_l^0 harmonic
-                indl = indl + 2*l
-                ! Some temp constants
-                fl = dble(l)
-                tmp1 = two*fl - one
-                tmp2 = fl - one
-                tmp3 = tmp1 * ctheta
-                tmp4 = two * tmp2
-                tmp5 = fl*fl - fl
-                ! P_l^0
-                vplm(indl) = tmp3*vplm(indlm1) - tmp2*vplm(indlm2)
-                vplm(indl) = vplm(indl) / fl
-                dst_m(indl) = t * vscales_rel(indl) * vplm(indl)
-                ! P_l^m for m=1..l-2
-                do m = 1, l-2
-                    tmp4 = tmp4 + two
-                    tmp5 = tmp5 + tmp4
-                    ! P_l^m
-                    vplm(indl+m) = vminv(m) * (vplm(indlm1+m+1) + &
-                        & tmp5*vplm(indlm1+m-1))
-                    tmp = t * vplm(indl+m) * vscales_rel(indl+m)
-                    dst_m(indl+m) = tmp * vcos(m+1)
-                    dst_m(indl-m) = tmp * vsin(m+1)
-                end do
-                ! m = l-1
-                vplm(indl+l-1) = tmp3 * vplm(indlm1+l-1)
-                tmp = t * vplm(indl+l-1) * vscales_rel(indl+l-1)
-                dst_m(indl+l-1) = tmp * vcos(l)
-                dst_m(indl-l+1) = tmp * vsin(l)
-                ! m = l
-                vplm(indl+l) = -stheta * tmp1 * vplm(indlm1+l-1)
-                tmp = t * vplm(indl+l) * vscales_rel(indl+l)
-                dst_m(indl+l) = tmp * vcos(l+1)
-                dst_m(indl-l) = tmp * vsin(l+1)
+                plm = dble(2*l-1)*ctheta*pl1m - dble(l-1)*pl2m
+                plm = plm / dble(l)
+                ylm = plm * vscales_rel(l*l+l+1)
+                dst_m(l*l+l+1) = work(l+1) * ylm
+                ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+                pl2m = pl1m
+                pl1m = plm
             end do
+            ! Prepare cos(m*phi) and sin(m*phi) for m=1
+            cmphi = cphi
+            smphi = sphi
+            ! Case 0<m<p
+            do m = 1, p-1
+                ! P_{l-2}^m which is P_m^m now
+                pl2m = pmm
+                ylm = pmm * vscales_rel((m+1)**2)
+                ylm = work(m+1) * ylm
+                dst_m((m+1)**2) = cmphi * ylm
+                dst_m(m*m+1) = smphi * ylm
+                ! Temporary to reduce number of operations
+                tmp1 = dble(2*m+1) * pmm
+                ! Update P_m^m for the next iteration
+                pmm = -stheta * tmp1
+                ! P_{l-1}^m which is P_{m+1}^m now
+                pl1m = ctheta * tmp1
+                ylm = pl1m * vscales_rel((m+1)*(m+3))
+                ylm = work(m+2) * ylm
+                dst_m((m+1)*(m+3)) = cmphi * ylm
+                dst_m((m+1)*(m+2)+1-m) = smphi * ylm
+                ! P_l^m for l>m+1
+                do l = m+2, p
+                    plm = dble(2*l-1)*ctheta*pl1m - dble(l+m-1)*pl2m
+                    plm = plm / dble(l-m)
+                    ylm = plm * vscales_rel(l*l+l+1+m)
+                    ylm = work(l+1) * ylm
+                    dst_m(l*l+l+1+m) = cmphi * ylm
+                    dst_m(l*l+l+1-m) = smphi * ylm
+                    ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+                    pl2m = pl1m
+                    pl1m = plm
+                end do
+                ! Update cos(m*phi) and sin(m*phi) for the next iteration
+                tmp1 = cmphi
+                cmphi = cmphi*cphi - smphi*sphi
+                smphi = tmp1*sphi + smphi*cphi
+            end do
+            ! Case m=p requires only to use P_m^m
+            ylm = pmm * vscales_rel((p+1)**2)
+            ylm = work(p+1) * ylm
+            dst_m((p+1)**2) = cmphi * ylm
+            dst_m(p*p+1) = smphi * ylm
+        ! Update output
         else
-            ! Construct spherical harmonics
-            ! l = 0
-            vplm(1) = one
-            dst_m(1) = beta*dst_m(1) + t*vscales_rel(1)
-            ! l = 1
-            t = t * rcoef
-            vplm(3) = ctheta
-            vplm(4) = -stheta
-            tmp = t * vscales_rel(4) * vplm(4)
-            dst_m(2) = beta*dst_m(2) + tmp*sphi
-            dst_m(3) = beta*dst_m(3) + t*vscales_rel(3)*ctheta
-            dst_m(4) = beta*dst_m(4) + tmp*cphi
-            indl = 3
-            indlm1 = 1
+            ! Case m = 0
+            ! P_{l-2}^m which is P_0^0 now
+            pl2m = one
+            dst_m(1) = beta*dst_m(1) + work(1)*vscales_rel(1)
+            ! Update P_m^m for the next iteration
+            pmm = -stheta
+            ! P_{l-1}^m which is P_{m+1}^m now
+            pl1m = ctheta
+            ylm = pl1m * vscales_rel(3)
+            dst_m(3) = beta*dst_m(3) + work(2)*ylm
+            ! P_l^m for l>m+1
             do l = 2, p
-                t = t * rcoef
-                ! Offset of a P_{l-2}^0 harmonic
-                indlm2 = indlm1
-                ! Offset of a P_{l-1}^0 harmonic
-                indlm1 = indl
-                ! Offset of a P_l^0 harmonic
-                indl = indl + 2*l
-                ! Some temp constants
-                fl = dble(l)
-                tmp1 = two*fl - one
-                tmp2 = fl - one
-                tmp3 = tmp1 * ctheta
-                tmp4 = two * tmp2
-                tmp5 = fl*fl - fl
-                ! Y_l^0
-                vplm(indl) = tmp3*vplm(indlm1) - tmp2*vplm(indlm2)
-                vplm(indl) = vplm(indl) / fl
-                dst_m(indl) = beta*dst_m(indl) + t*vscales_rel(indl)*vplm(indl)
-                ! Y_l^m for m=1..l-2
-                do m = 1, l-2
-                    tmp4 = tmp4 + two
-                    tmp5 = tmp5 + tmp4
-                    ! P_l^m
-                    vplm(indl+m) = vminv(m) * (vplm(indlm1+m+1) + &
-                        & tmp5*vplm(indlm1+m-1))
-                    tmp = t * vplm(indl+m) * vscales_rel(indl+m)
-                    dst_m(indl+m) = beta*dst_m(indl+m) + tmp*vcos(m+1)
-                    dst_m(indl-m) = beta*dst_m(indl-m) + tmp*vsin(m+1)
-                end do
-                ! m = l-1
-                vplm(indl+l-1) = tmp3 * vplm(indlm1+l-1)
-                tmp = t * vplm(indl+l-1) * vscales_rel(indl+l-1)
-                dst_m(indl+l-1) = beta*dst_m(indl+l-1) + tmp*vcos(l)
-                dst_m(indl-l+1) = beta*dst_m(indl-l+1) + tmp*vsin(l)
-                ! m = l
-                vplm(indl+l) = -stheta * tmp1 * vplm(indlm1+l-1)
-                tmp = t * vplm(indl+l) * vscales_rel(indl+l)
-                dst_m(indl+l) = beta*dst_m(indl+l) + tmp*vcos(l+1)
-                dst_m(indl-l) = beta*dst_m(indl-l) + tmp*vsin(l+1)
+                plm = dble(2*l-1)*ctheta*pl1m - dble(l-1)*pl2m
+                plm = plm / dble(l)
+                ylm = plm * vscales_rel(l*l+l+1)
+                dst_m(l*l+l+1) = beta*dst_m(l*l+l+1) + work(l+1)*ylm
+                ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+                pl2m = pl1m
+                pl1m = plm
             end do
+            ! Prepare cos(m*phi) and sin(m*phi) for m=1
+            cmphi = cphi
+            smphi = sphi
+            ! Case 0<m<p
+            do m = 1, p-1
+                ! P_{l-2}^m which is P_m^m now
+                pl2m = pmm
+                ylm = pmm * vscales_rel((m+1)**2)
+                ylm = work(m+1) * ylm
+                dst_m((m+1)**2) = beta*dst_m((m+1)**2) + cmphi*ylm
+                dst_m(m*m+1) = beta*dst_m(m*m+1) + smphi*ylm
+                ! Temporary to reduce number of operations
+                tmp1 = dble(2*m+1) * pmm
+                ! Update P_m^m for the next iteration
+                pmm = -stheta * tmp1
+                ! P_{l-1}^m which is P_{m+1}^m now
+                pl1m = ctheta * tmp1
+                ylm = pl1m * vscales_rel((m+1)*(m+3))
+                ylm = work(m+2) * ylm
+                dst_m((m+1)*(m+3)) = beta*dst_m((m+1)*(m+3)) + cmphi*ylm
+                dst_m((m+1)*(m+2)+1-m) = beta*dst_m((m+1)*(m+2)+1-m) + &
+                    & smphi*ylm
+                ! P_l^m for l>m+1
+                do l = m+2, p
+                    plm = dble(2*l-1)*ctheta*pl1m - dble(l+m-1)*pl2m
+                    plm = plm / dble(l-m)
+                    ylm = plm * vscales_rel(l*l+l+1+m)
+                    ylm = work(l+1) * ylm
+                    dst_m(l*l+l+1+m) = beta*dst_m(l*l+l+1+m) + cmphi*ylm
+                    dst_m(l*l+l+1-m) = beta*dst_m(l*l+l+1-m) + smphi*ylm
+                    ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+                    pl2m = pl1m
+                    pl1m = plm
+                end do
+                ! Update cos(m*phi) and sin(m*phi) for the next iteration
+                tmp1 = cmphi
+                cmphi = cmphi*cphi - smphi*sphi
+                smphi = tmp1*sphi + smphi*cphi
+            end do
+            ! Case m=p requires only to use P_m^m
+            ylm = pmm * vscales_rel((p+1)**2)
+            ylm = work(p+1) * ylm
+            dst_m((p+1)**2) = beta*dst_m((p+1)**2) + cmphi*ylm
+            dst_m(p*p+1) = beta*dst_m(p*p+1) + smphi*ylm
         end if
     ! Case of x(1:2) = 0 and x(3) != 0
     else
@@ -4477,7 +4449,7 @@ subroutine fmm_l2p(c, src_r, p, vscales, alpha, src_l, beta, dst_v)
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Workspace
-    real(dp) :: work((p+1)*(p+1)+3*p)
+    real(dp) :: work(p+1)
     ! Call corresponding work routine
     call fmm_l2p_work(c, src_r, p, vscales, alpha, src_l, beta, dst_v, work)
 end subroutine fmm_l2p
@@ -4507,7 +4479,7 @@ end subroutine fmm_l2p
 !! @param[in] src_l: Local coefficients. Dimension is `(p+1)**2`
 !! @param[in] beta: Scalar multiplier for `dst_v`
 !! @param[inout] dst_v: Value of induced potential
-!! @param[out] work: Temporary workspace of a size (p+1)**2+3*p
+!! @param[out] work: Temporary workspace of a size (p+1)
 subroutine fmm_l2p_work(c, src_r, p, vscales_rel, alpha, src_l, beta, dst_v, &
         & work)
     ! Inputs
@@ -4517,13 +4489,11 @@ subroutine fmm_l2p_work(c, src_r, p, vscales_rel, alpha, src_l, beta, dst_v, &
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Workspace
-    real(dp), intent(out), target :: work((p+1)*(p+1)+3*p)
+    real(dp), intent(out), target :: work(p+1)
     ! Local variables
     real(dp) :: rho, ctheta, stheta, cphi, sphi, rcoef, t, tmp, tmp1, tmp2, &
-        & tmp3, tmp4, tmp5, fl, max12, ssq12
-    integer :: vplm1, vplm2, vcos1, vcos2, vsin1, vsin2, vminv1, vminv2, &
-        & l, m, indl, indlm1, indlm2
-    real(dp), pointer :: vplm(:), vcos(:), vsin(:), vminv(:)
+        & tmp3, fl, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
+    integer :: l, m, indl
     ! Scale output
     if (beta .eq. zero) then
         dst_v = zero
@@ -4591,79 +4561,71 @@ subroutine fmm_l2p_work(c, src_r, p, vscales_rel, alpha, src_l, beta, dst_v, &
                 dst_v = dst_v + alpha*(tmp+rcoef*tmp2)
                 return
         end select
-        ! Mark first and last elements of all work subarrays
-        vplm1 = 1
-        vplm2 = (p+1)**2
-        vplm => work(vplm1:vplm2)
-        vcos1 = vplm2 + 1
-        vcos2 = vcos1 + p
-        vcos => work(vcos1:vcos2)
-        vsin1 = vcos2 + 1
-        vsin2 = vsin1 + p
-        vsin => work(vsin1:vsin2)
-        vminv1 = vsin2 + 1
-        vminv2 = vminv1 + p-3
-        vminv => work(vminv1:vminv2)
-        ! Evaluate cos(m*phi) and sin(m*phi) arrays
-        call trgev(cphi, sphi, p, vcos, vsin)
-        ! Prepare -stheta*pt5/m
-        tmp2 = -stheta * pt5
-        do m = 1, p-2
-            vminv(m) = tmp2 / dble(m)
+        ! Now p>1
+        ! Precompute alpha*rcoef^l
+        work(1) = alpha
+        do l = 1, p
+            work(l+1) = rcoef * work(l)
         end do
-        ! Construct spherical harmonics
-        ! l = 0
-        vplm(1) = one
-        tmp = src_l(1) * vscales_rel(1)
-        ! l = 1
-        vplm(3) = ctheta
-        vplm(4) = -stheta
-        tmp2 = ctheta * src_l(3) * vscales_rel(3)
-        tmp2 = tmp2 - stheta*vscales_rel(4)*(sphi*src_l(2)+cphi*src_l(4))
-        tmp = tmp + rcoef*tmp2
-        t = rcoef
-        indl = 3
-        indlm1 = 1
+        ! Case m = 0
+        ! P_{l-2}^m which is P_0^0 now
+        pl2m = one
+        dst_v = dst_v + work(1)*src_l(1)*vscales_rel(1)
+        ! Update P_m^m for the next iteration
+        pmm = -stheta
+        ! P_{l-1}^m which is P_{m+1}^m now
+        pl1m = ctheta
+        ylm = pl1m * vscales_rel(3)
+        dst_v = dst_v + work(2)*src_l(3)*ylm
+        ! P_l^m for l>m+1
         do l = 2, p
-            t = t * rcoef
-            ! Offset of a P_{l-2}^0 harmonic
-            indlm2 = indlm1
-            ! Offset of a P_{l-1}^0 harmonic
-            indlm1 = indl
-            ! Offset of a P_l^0 harmonic
-            indl = indl + 2*l
-            ! Some temp constants
-            fl = dble(l)
-            tmp1 = two*fl - one
-            tmp2 = fl - one
-            tmp3 = tmp1 * ctheta
-            tmp4 = two * tmp2
-            tmp5 = fl*fl - fl
-            ! Y_l^0
-            vplm(indl) = tmp3*vplm(indlm1) - tmp2*vplm(indlm2)
-            vplm(indl) = vplm(indl) / fl
-            tmp2 = vscales_rel(indl) * vplm(indl) * src_l(indl)
-            ! Y_l^m for m=1..l-2
-            do m = 1, l-2
-                tmp4 = tmp4 + two
-                tmp5 = tmp5 + tmp4
-                ! P_l^m
-                vplm(indl+m) = vminv(m) * (vplm(indlm1+m+1) + &
-                    & tmp5*vplm(indlm1+m-1))
-                tmp2 = tmp2 + vplm(indl+m)*(vcos(m+1)*src_l(indl+m)+ &
-                    & vsin(m+1)*src_l(indl-m))*vscales_rel(indl+m)
-            end do
-            ! m = l-1
-            vplm(indl+l-1) = tmp3 * vplm(indlm1+l-1)
-            tmp2 = tmp2 + vplm(indl+l-1)*(vcos(l)*src_l(indl+l-1)+ &
-                & vsin(l)*src_l(indl-l+1))*vscales_rel(indl+l-1)
-            ! m = l
-            vplm(indl+l) = -stheta * tmp1 * vplm(indlm1+l-1)
-            tmp2 = tmp2 + vplm(indl+l)*(vcos(l+1)*src_l(indl+l)+ &
-                & vsin(l+1)*src_l(indl-l))*vscales_rel(indl+l)
-            tmp = tmp + t*tmp2
+            plm = dble(2*l-1)*ctheta*pl1m - dble(l-1)*pl2m
+            plm = plm / dble(l)
+            ylm = plm * vscales_rel(l*l+l+1)
+            dst_v = dst_v + work(l+1)*src_l(l*l+l+1)*ylm
+            ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+            pl2m = pl1m
+            pl1m = plm
         end do
-        dst_v = dst_v + alpha*tmp
+        ! Prepare cos(m*phi) and sin(m*phi) for m=1
+        cmphi = cphi
+        smphi = sphi
+        ! Case 0<m<p
+        do m = 1, p-1
+            ! P_{l-2}^m which is P_m^m now
+            pl2m = pmm
+            ylm = pmm * vscales_rel((m+1)**2)
+            tmp1 = cmphi*src_l((m+1)**2) + smphi*src_l(m*m+1)
+            dst_v = dst_v + work(m+1)*ylm*tmp1
+            ! Temporary to reduce number of operations
+            tmp1 = dble(2*m+1) * pmm
+            ! Update P_m^m for the next iteration
+            pmm = -stheta * tmp1
+            ! P_{l-1}^m which is P_{m+1}^m now
+            pl1m = ctheta * tmp1
+            ylm = pl1m * vscales_rel((m+1)*(m+3))
+            tmp1 = cmphi*src_l((m+1)*(m+3)) + smphi*src_l((m+1)*(m+2)+1-m)
+            dst_v = dst_v + work(m+2)*ylm*tmp1
+            ! P_l^m for l>m+1
+            do l = m+2, p
+                plm = dble(2*l-1)*ctheta*pl1m - dble(l+m-1)*pl2m
+                plm = plm / dble(l-m)
+                ylm = plm * vscales_rel(l*l+l+1+m)
+                tmp1 = cmphi*src_l(l*l+l+1+m) + smphi*src_l(l*l+l+1-m)
+                dst_v = dst_v + work(l+1)*ylm*tmp1
+                ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+                pl2m = pl1m
+                pl1m = plm
+            end do
+            ! Update cos(m*phi) and sin(m*phi) for the next iteration
+            tmp1 = cmphi
+            cmphi = cmphi*cphi - smphi*sphi
+            smphi = tmp1*sphi + smphi*cphi
+        end do
+        ! Case m=p requires only to use P_m^m
+        ylm = pmm * vscales_rel((p+1)**2)
+        tmp1 = cmphi*src_l((p+1)**2) + smphi*src_l(p*p+1)
+        dst_v = dst_v + work(p+1)*ylm*tmp1
     ! Case of x(1:2) = 0 and x(3) != 0
     else
         ! In this case Y_l^m = 0 for m != 0, so only case m = 0 is taken into
@@ -4715,7 +4677,7 @@ subroutine fmm_l2p_adj(c, src_q, dst_r, p, vscales_rel, beta, dst_l)
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)**2)
     ! Workspace
-    real(dp) :: work((p+1)*(p+1)+3*p)
+    real(dp) :: work(p+1)
     ! Call corresponding work routine
     call fmm_l2p_adj_work(c, src_q, dst_r, p, vscales_rel, beta, dst_l, work)
 end subroutine fmm_l2p_adj
@@ -4744,7 +4706,7 @@ end subroutine fmm_l2p_adj
 !!      \f$ Y_\ell^m \f$. Dimension is `(p+1)**2`
 !! @param[in] beta: Scalar multiplier for `dst_l`
 !! @param[inout] dst_l: Local coefficients. Dimension is `(p+1)**2`
-!! @param[out] work: Temporary workspace of a size (p+1)**2+3*p
+!! @param[out] work: Temporary workspace of a size (p+1)
 subroutine fmm_l2p_adj_work(c, src_q, dst_r, p, vscales_rel, beta, dst_l, work)
     ! Inputs
     real(dp), intent(in) :: c(3), src_q, dst_r, vscales_rel((p+1)*(p+1)), beta
@@ -4752,13 +4714,11 @@ subroutine fmm_l2p_adj_work(c, src_q, dst_r, p, vscales_rel, beta, dst_l, work)
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)**2)
     ! Workspace
-    real(dp), intent(out), target :: work((p+1)*(p+1)+3*p)
+    real(dp), intent(out), target :: work(p+1)
     ! Local variables
     real(dp) :: rho, ctheta, stheta, cphi, sphi, rcoef, t, tmp, tmp1, tmp2, &
-        & tmp3, tmp4, tmp5, fl, max12, ssq12
-    integer :: vplm1, vplm2, vcos1, vcos2, vsin1, vsin2, vminv1, vminv2, &
-        & l, m, indl, indlm1, indlm2
-    real(dp), pointer :: vplm(:), vcos(:), vsin(:), vminv(:)
+        & tmp3, fl, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
+    integer :: l, m, indl
     ! In case src_q is zero just scale output properly
     if (src_q .eq. zero) then
         ! Zero init output if beta is also zero
@@ -4844,139 +4804,143 @@ subroutine fmm_l2p_adj_work(c, src_q, dst_r, p, vscales_rel, beta, dst_l, work)
                 end if
                 return
         end select
-        ! Mark first and last elements of all work subarrays
-        vplm1 = 1
-        vplm2 = (p+1)**2
-        vplm => work(vplm1:vplm2)
-        vcos1 = vplm2 + 1
-        vcos2 = vcos1 + p
-        vcos => work(vcos1:vcos2)
-        vsin1 = vcos2 + 1
-        vsin2 = vsin1 + p
-        vsin => work(vsin1:vsin2)
-        vminv1 = vsin2 + 1
-        vminv2 = vminv1 + p-3
-        vminv => work(vminv1:vminv2)
-        ! Evaluate cos(m*phi) and sin(m*phi) arrays
-        call trgev(cphi, sphi, p, vcos, vsin)
-        ! Prepare -stheta*pt5/m
-        tmp2 = -stheta * pt5
-        do m = 1, p-2
-            vminv(m) = tmp2 / dble(m)
+        ! Now p>1
+        ! Precompute src_q*rcoef^l
+        work(1) = src_q
+        do l = 1, p
+            work(l+1) = rcoef * work(l)
         end do
         ! Overwrite output
         if (beta .eq. zero) then
-            ! Construct spherical harmonics
-            ! l = 0
-            vplm(1) = one
-            dst_l(1) = src_q * vscales_rel(1)
-            ! l = 1
-            vplm(3) = ctheta
-            vplm(4) = -stheta
-            t = src_q * rcoef
-            tmp = -t * vscales_rel(4) * stheta
-            dst_l(2) = tmp * sphi
-            dst_l(3) = t * vscales_rel(3) * ctheta
-            dst_l(4) = tmp * cphi
-            indl = 3
-            indlm1 = 1
+            ! Case m = 0
+            ! P_{l-2}^m which is P_0^0 now
+            pl2m = one
+            dst_l(1) = work(1) * vscales_rel(1)
+            ! Update P_m^m for the next iteration
+            pmm = -stheta
+            ! P_{l-1}^m which is P_{m+1}^m now
+            pl1m = ctheta
+            ylm = pl1m * vscales_rel(3)
+            dst_l(3) = work(2) * ylm
+            ! P_l^m for l>m+1
             do l = 2, p
-                t = t * rcoef
-                ! Offset of a P_{l-2}^0 harmonic
-                indlm2 = indlm1
-                ! Offset of a P_{l-1}^0 harmonic
-                indlm1 = indl
-                ! Offset of a P_l^0 harmonic
-                indl = indl + 2*l
-                ! Some temp constants
-                fl = dble(l)
-                tmp1 = two*fl - one
-                tmp2 = fl - one
-                tmp3 = tmp1 * ctheta
-                tmp4 = two * tmp2
-                tmp5 = fl*fl - fl
-                ! P_l^0
-                vplm(indl) = tmp3*vplm(indlm1) - tmp2*vplm(indlm2)
-                vplm(indl) = vplm(indl) / fl
-                dst_l(indl) = t * vscales_rel(indl) * vplm(indl)
-                ! P_l^m for m=1..l-2
-                do m = 1, l-2
-                    tmp4 = tmp4 + two
-                    tmp5 = tmp5 + tmp4
-                    ! P_l^m
-                    vplm(indl+m) = vminv(m) * (vplm(indlm1+m+1) + &
-                        & tmp5*vplm(indlm1+m-1))
-                    tmp = t * vplm(indl+m) * vscales_rel(indl+m)
-                    dst_l(indl+m) = tmp * vcos(m+1)
-                    dst_l(indl-m) = tmp * vsin(m+1)
-                end do
-                ! m = l-1
-                vplm(indl+l-1) = tmp3 * vplm(indlm1+l-1)
-                tmp = t * vplm(indl+l-1) * vscales_rel(indl+l-1)
-                dst_l(indl+l-1) = tmp * vcos(l)
-                dst_l(indl-l+1) = tmp * vsin(l)
-                ! m = l
-                vplm(indl+l) = -stheta * tmp1 * vplm(indlm1+l-1)
-                tmp = t * vplm(indl+l) * vscales_rel(indl+l)
-                dst_l(indl+l) = tmp * vcos(l+1)
-                dst_l(indl-l) = tmp * vsin(l+1)
+                plm = dble(2*l-1)*ctheta*pl1m - dble(l-1)*pl2m
+                plm = plm / dble(l)
+                ylm = plm * vscales_rel(l*l+l+1)
+                dst_l(l*l+l+1) = work(l+1) * ylm
+                ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+                pl2m = pl1m
+                pl1m = plm
             end do
+            ! Prepare cos(m*phi) and sin(m*phi) for m=1
+            cmphi = cphi
+            smphi = sphi
+            ! Case 0<m<p
+            do m = 1, p-1
+                ! P_{l-2}^m which is P_m^m now
+                pl2m = pmm
+                ylm = pmm * vscales_rel((m+1)**2)
+                ylm = work(m+1) * ylm
+                dst_l((m+1)**2) = cmphi * ylm
+                dst_l(m*m+1) = smphi * ylm
+                ! Temporary to reduce number of operations
+                tmp1 = dble(2*m+1) * pmm
+                ! Update P_m^m for the next iteration
+                pmm = -stheta * tmp1
+                ! P_{l-1}^m which is P_{m+1}^m now
+                pl1m = ctheta * tmp1
+                ylm = pl1m * vscales_rel((m+1)*(m+3))
+                ylm = work(m+2) * ylm
+                dst_l((m+1)*(m+3)) = cmphi * ylm
+                dst_l((m+1)*(m+2)+1-m) = smphi * ylm
+                ! P_l^m for l>m+1
+                do l = m+2, p
+                    plm = dble(2*l-1)*ctheta*pl1m - dble(l+m-1)*pl2m
+                    plm = plm / dble(l-m)
+                    ylm = plm * vscales_rel(l*l+l+1+m)
+                    ylm = work(l+1) * ylm
+                    dst_l(l*l+l+1+m) = cmphi * ylm
+                    dst_l(l*l+l+1-m) = smphi * ylm
+                    ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+                    pl2m = pl1m
+                    pl1m = plm
+                end do
+                ! Update cos(m*phi) and sin(m*phi) for the next iteration
+                tmp1 = cmphi
+                cmphi = cmphi*cphi - smphi*sphi
+                smphi = tmp1*sphi + smphi*cphi
+            end do
+            ! Case m=p requires only to use P_m^m
+            ylm = pmm * vscales_rel((p+1)**2)
+            ylm = work(p+1) * ylm
+            dst_l((p+1)**2) = cmphi * ylm
+            dst_l(p*p+1) = smphi * ylm
+        ! Update output
         else
-            ! Construct spherical harmonics
-            ! l = 0
-            vplm(1) = one
-            dst_l(1) = beta*dst_l(1) + src_q*vscales_rel(1)
-            ! l = 1
-            vplm(3) = ctheta
-            vplm(4) = -stheta
-            t = src_q * rcoef
-            tmp = -t * vscales_rel(4) * stheta
-            dst_l(2) = beta*dst_l(2) + tmp*sphi
-            dst_l(3) = beta*dst_l(3) + t*vscales_rel(3)*ctheta
-            dst_l(4) = beta*dst_l(4) + tmp*cphi
-            indl = 3
-            indlm1 = 1
+            ! Case m = 0
+            ! P_{l-2}^m which is P_0^0 now
+            pl2m = one
+            dst_l(1) = beta*dst_l(1) + work(1)*vscales_rel(1)
+            ! Update P_m^m for the next iteration
+            pmm = -stheta
+            ! P_{l-1}^m which is P_{m+1}^m now
+            pl1m = ctheta
+            ylm = pl1m * vscales_rel(3)
+            dst_l(3) = beta*dst_l(3) + work(2)*ylm
+            ! P_l^m for l>m+1
             do l = 2, p
-                t = t * rcoef
-                ! Offset of a P_{l-2}^0 harmonic
-                indlm2 = indlm1
-                ! Offset of a P_{l-1}^0 harmonic
-                indlm1 = indl
-                ! Offset of a P_l^0 harmonic
-                indl = indl + 2*l
-                ! Some temp constants
-                fl = dble(l)
-                tmp1 = two*fl - one
-                tmp2 = fl - one
-                tmp3 = tmp1 * ctheta
-                tmp4 = two * tmp2
-                tmp5 = fl*fl - fl
-                ! P_l^0
-                vplm(indl) = tmp3*vplm(indlm1) - tmp2*vplm(indlm2)
-                vplm(indl) = vplm(indl) / fl
-                dst_l(indl) = beta*dst_l(indl) + t*vscales_rel(indl)*vplm(indl)
-                ! P_l^m for m=1..l-2
-                do m = 1, l-2
-                    tmp4 = tmp4 + two
-                    tmp5 = tmp5 + tmp4
-                    ! P_l^m
-                    vplm(indl+m) = vminv(m) * (vplm(indlm1+m+1) + &
-                        & tmp5*vplm(indlm1+m-1))
-                    tmp = t * vplm(indl+m) * vscales_rel(indl+m)
-                    dst_l(indl+m) = beta*dst_l(indl+m) + tmp*vcos(m+1)
-                    dst_l(indl-m) = beta*dst_l(indl-m) + tmp*vsin(m+1)
-                end do
-                ! m = l-1
-                vplm(indl+l-1) = tmp3 * vplm(indlm1+l-1)
-                tmp = t * vplm(indl+l-1) * vscales_rel(indl+l-1)
-                dst_l(indl+l-1) = beta*dst_l(indl+l-1) + tmp*vcos(l)
-                dst_l(indl-l+1) = beta*dst_l(indl-l+1) + tmp*vsin(l)
-                ! m = l
-                vplm(indl+l) = -stheta * tmp1 * vplm(indlm1+l-1)
-                tmp = t * vplm(indl+l) * vscales_rel(indl+l)
-                dst_l(indl+l) = beta*dst_l(indl+l) + tmp*vcos(l+1)
-                dst_l(indl-l) = beta*dst_l(indl-l) + tmp*vsin(l+1)
+                plm = dble(2*l-1)*ctheta*pl1m - dble(l-1)*pl2m
+                plm = plm / dble(l)
+                ylm = plm * vscales_rel(l*l+l+1)
+                dst_l(l*l+l+1) = beta*dst_l(l*l+l+1) + work(l+1)*ylm
+                ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+                pl2m = pl1m
+                pl1m = plm
             end do
+            ! Prepare cos(m*phi) and sin(m*phi) for m=1
+            cmphi = cphi
+            smphi = sphi
+            ! Case 0<m<p
+            do m = 1, p-1
+                ! P_{l-2}^m which is P_m^m now
+                pl2m = pmm
+                ylm = pmm * vscales_rel((m+1)**2)
+                ylm = work(m+1) * ylm
+                dst_l((m+1)**2) = beta*dst_l((m+1)**2) + cmphi*ylm
+                dst_l(m*m+1) = beta*dst_l(m*m+1) + smphi*ylm
+                ! Temporary to reduce number of operations
+                tmp1 = dble(2*m+1) * pmm
+                ! Update P_m^m for the next iteration
+                pmm = -stheta * tmp1
+                ! P_{l-1}^m which is P_{m+1}^m now
+                pl1m = ctheta * tmp1
+                ylm = pl1m * vscales_rel((m+1)*(m+3))
+                ylm = work(m+2) * ylm
+                dst_l((m+1)*(m+3)) = beta*dst_l((m+1)*(m+3)) + cmphi*ylm
+                dst_l((m+1)*(m+2)+1-m) = beta*dst_l((m+1)*(m+2)+1-m) + &
+                    & smphi*ylm
+                ! P_l^m for l>m+1
+                do l = m+2, p
+                    plm = dble(2*l-1)*ctheta*pl1m - dble(l+m-1)*pl2m
+                    plm = plm / dble(l-m)
+                    ylm = plm * vscales_rel(l*l+l+1+m)
+                    ylm = work(l+1) * ylm
+                    dst_l(l*l+l+1+m) = beta*dst_l(l*l+l+1+m) + cmphi*ylm
+                    dst_l(l*l+l+1-m) = beta*dst_l(l*l+l+1-m) + smphi*ylm
+                    ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+                    pl2m = pl1m
+                    pl1m = plm
+                end do
+                ! Update cos(m*phi) and sin(m*phi) for the next iteration
+                tmp1 = cmphi
+                cmphi = cmphi*cphi - smphi*sphi
+                smphi = tmp1*sphi + smphi*cphi
+            end do
+            ! Case m=p requires only to use P_m^m
+            ylm = pmm * vscales_rel((p+1)**2)
+            ylm = work(p+1) * ylm
+            dst_l((p+1)**2) = beta*dst_l((p+1)**2) + cmphi*ylm
+            dst_l(p*p+1) = beta*dst_l(p*p+1) + smphi*ylm
         end if
     ! Case of x(1:2) = 0 and x(3) != 0
     else
@@ -10555,7 +10519,7 @@ subroutine tree_m2p(ddx_data, p, alpha, sph_m, beta, grid_v)
     integer :: isph, inode, jnear, jnode, jsph, igrid
     real(dp) :: c(3)
     ! Temporary workspace
-    real(dp) :: work((p+1)*(p+1)+3*p)
+    real(dp) :: work(p+1)
     ! Init output
     if (beta .eq. zero) then
         grid_v = zero
@@ -10595,7 +10559,7 @@ subroutine tree_m2p_adj(ddx_data, p, alpha, grid_v, beta, sph_m)
     ! Output
     real(dp), intent(inout) :: sph_m((p+1)**2, ddx_data % nsph)
     ! Temporary workspace
-    real(dp) :: work((p+1)*(p+1)+3*p)
+    real(dp) :: work(p+1)
     ! Local variables
     integer :: isph, inode, jnear, jnode, jsph, igrid
     real(dp) :: c(3)
