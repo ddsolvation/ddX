@@ -1,5 +1,14 @@
 # Download and Installation  {#label_download_and_install}
 
+**Build python:**
+```
+setup.py test
+```
+**Test python:**
+```
+./run_ddx.py
+```
+
 **Download the ddX source code** at: 
 ``` markdown
 > git clone git@github.com:ACoM-Computational-Mathematics/ddX.git
@@ -32,8 +41,3 @@ Copy the link shown by pwd and add /index.html in a web browser
 cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_C_COMPILER=/usr/local/bin/gcc-11 ..
 ```
 **NOTE**: Replace g++-11 and gcc-11 with the compilers you desire
-
-2. Disactivate OpenMP-support:
-``` markdown 
-cmake -D OPENMP=OFF ..
-```
