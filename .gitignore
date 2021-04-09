@@ -1,2 +1,16 @@
 *~
 .*.swp
+*.swo
+
+/build
+*.pyc
+*.o
+__pycache__/
+/pyddx.*.so
+/pyddx.*.dylib
+/dist
+*.egg-info
+/.eggs
+
+.pytest_cache
+.coverage

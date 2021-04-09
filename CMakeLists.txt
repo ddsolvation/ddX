@@ -40,15 +40,6 @@ message(STATUS "Configuring ddX ${VERSION}")
 # CXX compiler is only needed to properly find Intel MKL
 project(ddX VERSION ${VERSION} LANGUAGES Fortran CXX)
 
-# Add flag in case of Intel compiler to avoid fast inaccurate math
-if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-    add_compile_options(-fp-model=precise)
-    message(STATUS "Extending Intel compiler flags by \"-fp-model=precise\"")
-endif()
-
-# Extend path for additional cmake modules
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-
 # If ddX is a subproject, append ddx_ prefix to all targets.
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(ddx_is_subproject false)
@@ -57,6 +48,15 @@ else()
     set(ddx_is_subproject true)
     set(ddx_ "ddx_")
 endif()
+
+# Add flag in case of Intel compiler to avoid fast inaccurate math
+if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+    add_compile_options(-fp-model=precise)
+    message(STATUS "Extending Intel compiler flags by \"-fp-model=precise\"")
+endif()
+
+# Extend path for additional cmake modules
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 #add_compile_options(-qopenmp -i8 -DINT64)
 #add_compile_options(-g -debug extended -traceback -check all -fp-stack-check)
@@ -79,6 +79,28 @@ endif()
 
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
+find_package(OpenMP REQUIRED)
+
+###############################################################################
+##                          BUILDS FOR PYTHON                                ##
+###############################################################################
+if (PYTHON)
+    message(STATUS "Switching to python-only build.")
+    find_package(pybind11 CONFIG PATHS "${PYBIND11_DIR}")
+    if (NOT pybind11_FOUND)
+        message(FATAL_ERROR "Pybind11 not found. Please install it.")
+    endif()
+    include(src/define_sources.cmake)
+    list(TRANSFORM SRC_PYDDX PREPEND src/)
+    pybind11_add_module(pyddx ${SRC_PYDDX})
+    target_compile_definitions(pyddx PRIVATE VERSION_INFO=${VERSION})
+    target_link_libraries(pyddx PUBLIC
+        ${BLAS_LIBRARIES}
+        ${LAPACK_LIBRARIES}
+        OpenMP::OpenMP_Fortran
+    )
+    return()  # Ignore the rest of the file
+endif()
 
 ###############################################################################
 ##                           DEFINE OPTIONS                                  ##
@@ -87,11 +109,6 @@ find_package(LAPACK REQUIRED)
 # Options for build type for a convenient ccmake use
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
     None Debug Release RelWithDebInfo MinSizeRel)
-
-# Check if OpenMP support is required
-# Currently, OpenMP is a must as we rely on function omp_get_wtime(), please do
-# not turn it off
-option(OPENMP "Enable OpenMP support" ON)
 
 # Build tests
 option(TESTS "Generate testing binaries" ON)
@@ -105,15 +122,6 @@ option(COVERAGE "Generate code coverage report" OFF)
 ###############################################################################
 ##                               CHECK OPTIONS                               ##
 ###############################################################################
-
-# Check OpenMP support
-if(NOT OPENMP)
-    message(FATAL_ERROR "Although OPENMP is an option, is must be ON in the \
-    current release")
-endif()
-if(NOT TARGET OpenMP::OpenMP_Fortran AND OPENMP)
-    find_package(OpenMP REQUIRED)
-endif()
 
 # Check if need to build documentation
 if(DOCS)
@@ -276,12 +284,12 @@ install(
     DIRECTORY "${PROJECT_BINARY_DIR}/src/"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ddX"
     #TODO change behaviour for different os's.
-    FILES_MATCHING REGEX "\\.(mod)$"
+    FILES_MATCHING REGEX "\\.(mod|h)$"
 )
 
 #add include dirs to target ddx
 target_include_directories(ddx INTERFACE
-  	$<INSTALL_INTERFACE:include/ddX>  # <prefix>/include/mylib
+    $<INSTALL_INTERFACE:include/ddX>  # <prefix>/include/mylib
 )
 
 
@@ -311,4 +319,3 @@ install(
           #"${CMAKE_CURRENT_BINARY_DIR}/ddXConfigVersion.cmake"
     DESTINATION "${install_configdir}"
 )
-

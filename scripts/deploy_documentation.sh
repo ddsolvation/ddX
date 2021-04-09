@@ -36,6 +36,6 @@ if [ -z "$haschanges" ]; then
     exit 0
 else
     git commit -m "Documentation build from $head"
-    git push -f origin gh-pages
+    git push origin gh-pages
     git checkout $head
 fi
