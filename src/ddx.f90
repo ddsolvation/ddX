@@ -13,6 +13,7 @@ module ddx
 use ddx_core
 use ddx_operators
 use ddx_solvers
+use ddx_lpb
 implicit none
 
 contains
@@ -44,7 +45,7 @@ subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
             call ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
         ! LPB model
         case (3)
-            stop "LPB model is not yet fully supported"
+            call ddlpb(ddx_data, phi_cav, gradphi_cav, psi, esolv)
         ! Error case
         case default
             stop "Non-supported model"

@@ -20,11 +20,11 @@ implicit none
 logical :: first_out_iter
 logical :: do_diag
 integer :: matAB
+integer :: lmax0
 !!
 !! Hardcoded values
 !!
-integer, parameter :: lmax0 = 6
-integer, parameter :: nbasis0 = 49
+integer :: nbasis0
 real(dp),  parameter :: epsp = 1.0d0
 !!
 !! Taken from Chaoyu's MATLAB code
@@ -37,6 +37,7 @@ real(dp), allocatable :: coefvec(:,:,:), Pchi(:,:,:), &
 !! DI_ri        : Derivative of Bessel' function of first kind
 !! SK_ri        : Bessel' function of second kind
 !! DK_ri        : Derivative of Bessel' function of second kind
+!! termimat     : i'_l(r_j)/i_l(r_j)
 !! NOTE: Tolerance and n_iter_gmres can be given by the user
 !! tol_gmres    : Tolerance of GMRES iteration
 !! n_iter_gmres : Maximum number of GMRES itertation
@@ -44,7 +45,6 @@ real(dp), allocatable :: coefvec(:,:,:), Pchi(:,:,:), &
 real(dp), allocatable :: SI_ri(:,:), DI_ri(:,:), SK_ri(:,:), &
                               & DK_ri(:,:), termimat(:,:)
 real(dp)              :: tol_gmres, n_iter_gmres
-
 contains
   !!
   !! ddLPB calculation happens here
@@ -54,25 +54,19 @@ contains
   !!                      Use of psi unknown
   !! @param[in] gradphi : Gradient of phi
   !!
-  !! @param[out] sigma  : Solution of ddLPB
   !! @param[out] esolv  : Electrostatic solvation energy
   !!
-  subroutine ddlpb(ddx_data, phi, psi, gradphi, sigma, esolv, charge, ndiis, niter, iconv)
+  subroutine ddlpb(ddx_data, phi, gradphi, psi, esolv)
   ! main ddLPB
   implicit none
   type(ddx_type), intent(in)  :: ddx_data
   logical                         :: converged = .false.
   integer                         :: iteration = 1
-  integer, intent(in)             :: ndiis
-  integer, intent(in)             :: niter
-  integer, intent(in)             :: iconv
   real(dp), intent(inout)    :: esolv
   real(dp)                   :: inc, old_esolv
-  real(dp), intent(inout)    :: sigma(ddx_data % nbasis,ddx_data % nsph)
   real(dp), intent(in)       :: phi(ddx_data % ncav), &
                                         & gradphi(3,ddx_data % ncav)
   real(dp), intent(in)       :: psi(ddx_data % nbasis, ddx_data % nsph)
-  real(dp), intent(in)       :: charge(ddx_data % nsph)
   !!
   !! Xr         : Reaction potential solution (Laplace equation)
   !! Xe         : Extended potential solution (HSP equation)
@@ -93,15 +87,19 @@ contains
   !! hnorm  : External routine from matvec.f90. Used for Jacobi solver
   !!          h^-1/2 norm of the increment on each sphere
   !! ok     : Boolean to check convergence of solver
-  !! tol    : Tolerance for Jacobi solver
   !! n_iter : Number of iterative steps
   real(dp), allocatable :: g(:,:), f(:,:), g0(:), f0(:), phi_grid(:, :)
   integer                    :: isph
   integer                    :: i
   logical                    :: ok = .false.
-  real(dp)              :: tol
   integer                    :: n_iter
   integer                    :: its
+  ! lmax0 set to minimum of 6 or given lmax.
+  ! nbasis0 set to minimum of 49 or given (lmax+1)^2.
+  ! Previous implementation had hard coded value 6 and 49.
+  lmax0 = MIN(6, ddx_data % lmax)
+  nbasis0 = MIN(49, ddx_data % nbasis)
+  
   !
   ! Allocate Bessel's functions of the first kind and the second kind
   ! and their derivatives
@@ -173,9 +171,7 @@ contains
 
   rhs_r = rhs_r_init
   rhs_e = rhs_e_init
-
-  tol = 10.0d0**(-iconv)
-
+  
   first_out_iter = .true.
 
   do while (.not.converged)
@@ -183,7 +179,7 @@ contains
     !! Solve the ddCOSMO step
     !! A X_r = RHS_r (= G_X+G_0) 
     !! NOTE: Number of iterative steps can be user provided
-    n_iter = 200
+    n_iter = ddx_data % maxiter
     !! Call Jacobi solver
     !! @param[in]      nsph*nylm : Size of matrix
     !! @param[in]      iprint    : Flag for printing
@@ -201,8 +197,8 @@ contains
     !! @param[in]      ldm1x     : External subroutine to apply invert diagonal
     !!                             matrix to vector, i.e., L^{-1}x_r, comes from matvec.f90
     !! @param[in]      hnorm     : User defined norm, comes from matvec.f90
-    call jacobi_diis(ddx_data, ddx_data % n, ddx_data % iprint, ndiis, 4, tol, &
-                     & rhs_r, Xr, n_iter, ok, lx, ldm1x, hnorm)
+    call jacobi_diis(ddx_data, ddx_data % n, ddx_data % iprint, ddx_data % ndiis, &
+                     & 4, ddx_data % tol, rhs_r, Xr, n_iter, ok, lx, ldm1x, hnorm)
     call convert_ddcosmo(ddx_data, 1, Xr)
     ! call print_ddvector('xr',xr)
   
@@ -222,13 +218,13 @@ contains
     !! esolv = pt5*sprod(nsph*nylm,xr,psi)
     esolv = zero
     do isph = 1, ddx_data % nsph
-      esolv = esolv + pt5*charge(isph)*Xr(1,isph)*(one/(two*sqrt(pi)))
+      esolv = esolv + pt5*ddx_data % charge(isph)*Xr(1,isph)*(one/(two*sqrt(pi)))
     end do
 
     !! Check for convergence
     inc = abs(esolv - old_esolv)/abs(esolv)
     old_esolv = esolv
-    if ((iteration.gt.1) .and. (inc.lt.tol)) then
+    if ((iteration.gt.1) .and. (inc.lt.ddx_data % tol)) then
       write(6,*) 'Reach tolerance.'
       converged = .true.
     end if
@@ -448,11 +444,16 @@ contains
   integer :: i
   ! allocate workspaces
   allocate( pot(ddx_data % ngrid), vplm(ddx_data % nbasis), basloc(ddx_data % nbasis), &
-            & vcos(ddx_data % lmax+1), vsin(ddx_data % lmax+1) , stat=istatus )
+            & vcos(ddx_data % lmax+1), vsin(ddx_data % lmax+1), stat=istatus )
   if ( istatus.ne.0 ) then
     write(*,*) 'Bx: allocation failed !'
     stop
   endif
+  
+  if (ddx_data % iprint .ge. 5) then
+      call prtsph('X', ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, &
+          & x)
+  end if
 
   y = zero
   do isph = 1, ddx_data % nsph
@@ -466,7 +467,11 @@ contains
     ! Add action of diagonal block
     y(:,isph) = y(:,isph) + x(:,isph)
   end do
-
+  
+  if (ddx_data % iprint .ge. 5) then
+      call prtsph('Bx (off-diagonal)', ddx_data % nbasis, ddx_data % lmax, &
+          & ddx_data % nsph, 0, y)
+  end if
   deallocate( pot, basloc, vplm, vcos, vsin , stat=istatus )
   if ( istatus.ne.0 ) then
     write(*,*) 'matABx: allocation failed !'
@@ -549,8 +554,8 @@ contains
   !! @param[in]      matABx        : Subroutine A*x. Named matabx in file
   !! @param[in, out] info          : Flag after solve. 0 means within tolerance
   !!                                 1 means max number of iteration
-  call gmresr(ddx_data, .false., ddx_data % nsph*ddx_data % nbasis, gmj, gmm, rhs, Xe, work, tol_gmres,'rel', &
-      & n_iter_gmres, r_norm, matABx, info)
+  call gmresr(ddx_data, .false., ddx_data % nsph*ddx_data % nbasis, gmj, gmm, & 
+             & rhs, Xe, work, tol_gmres,'rel', n_iter_gmres, r_norm, matABx, info)
 
   deallocate(work)
   endsubroutine lpb_hsp
@@ -706,7 +711,7 @@ contains
       stop
     end if
   end if
-
+  
   ! Compute P_chi matrix, Eq.(87)
   ! TODO: probably has to be declared somewhere
   ! and i have to recover mkpmat 
@@ -806,7 +811,7 @@ contains
   end do
 
   rhs_cosmo = rhs_cosmo_init - rhs_plus
-  rhs_hsp = rhs_hsp_init - rhs_plus 
+  rhs_hsp = rhs_hsp_init - rhs_plus
 
   return
   end subroutine update_rhs  
@@ -814,16 +819,15 @@ contains
   !
   ! Computation of P_chi
   ! @param[in]  isph : Sphere number
-  ! @param[out] pmat : Matrix of size nylm X (lmax0+1)^2, Fixed lmax0
+  ! @param[out] pmat : Matrix of size nbasis X (lmax0+1)^2, Fixed lmax0
   !
-  subroutine mkpmat(ddx_data, isph, pmat )
+  subroutine mkpmat(ddx_data, isph, pmat)
   implicit none
   type(ddx_type), intent(in)  :: ddx_data
   integer,  intent(in) :: isph
   real(dp), dimension(ddx_data % nbasis, (lmax0+1)**2), intent(inout) :: pmat
   integer :: l, m, ind, l0, m0, ind0, its, nbasis0
   real(dp)  :: f, f0
-
   pmat(:,:) = zero
   do its = 1, ddx_data % ngrid
     if (ddx_data % ui(its,isph).ne.0) then
