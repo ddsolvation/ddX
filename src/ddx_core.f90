@@ -39,6 +39,22 @@ integer, parameter :: ng0(nllg) = (/ 6, 14, 26, 38, 50, 74, 86, 110, 146, &
     & 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202, 1454, 1730, &
     & 2030, 2354, 2702, 3074, 3470, 3890, 4334, 4802, 5294, 5810 /)
 
+subroutine closest_supported_lebedev_grid(ngrid)
+    integer, intent(inout) :: ngrid
+    integer :: igrid
+    ! Get nearest number of Lebedev grid points
+    igrid = 0
+    inear = 100000
+    do i = 1, nllg
+        jnear = abs(ng0(i)-ngrid)
+        if (jnear .lt. inear) then
+            inear = jnear
+            igrid = i
+        end if
+    end do
+    ngrid = ng0(igrid)
+end
+
 !> Main ddX type that stores all required information
 type ddx_type
     !!!!!!!!!!!! Parameters
@@ -435,14 +451,14 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & itersolver, tol, maxiter, ndiis, nproc, ddx_data, info)
     ! Inputs
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
-        & fmm_precompute, iprint, itersolver, maxiter, ndiis
+        & fmm_precompute, iprint, itersolver, maxiter, ndiis, ngrid
     real(dp), intent(in):: charge(nsph), x(nsph), y(nsph), z(nsph), &
         & rvdw(nsph), se, eta, eps, kappa, tol
     ! Output
     type(ddx_type), target, intent(out) :: ddx_data
     integer, intent(out) :: info
     ! Inouts
-    integer, intent(inout) :: ngrid, nproc
+    integer, intent(inout) :: nproc
     ! Local variables
     integer :: istatus, i, indi, j, ii, inear, jnear, igrid, jgrid, isph, &
         & jsph, lnl, l, indl, ithread, k, n, indjn
@@ -504,13 +520,20 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     ddx_data % nbasis = (lmax+1)**2
     ! Total number of modeling degrees of freedom
     ddx_data % n = nsph * ddx_data % nbasis
-    ! Number of Lebedev grid points
-    if (ngrid .lt. 0) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `ngrid`"
+    ! Check number of Lebedev grid points
+    igrid = 0
+    do i = 1, nllg
+        if (ng0(i) .eq. ngrid)
+            igrid = i
+            exit
+        endif
+    enddo
+    if igrid .eq. 0
+        write(*, "(A)") "ddinit: Unsupported value for parameter `ngrid`."
         info = -9
         return
     end if
-    ! Actual value of ngrid will be calculated later
+    ddx_data % ngrid = ngrid
     ! Check if forces are needed
     if ((force .lt. 0) .or. (force .gt. 1)) then
         write(*, "(A)") "ddinit: wrong value of a parameter `force`"
@@ -667,19 +690,6 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     ddx_data % vgrid_nbasis = (ddx_data % vgrid_dmax+1) ** 2
     ddx_data % nfact = 2*ddx_data % dmax+1
     ddx_data % nscales = (ddx_data % dmax+1) ** 2
-    ! Get nearest number of Lebedev grid points
-    igrid = 0
-    inear = 100000
-    do i = 1, nllg
-        jnear = abs(ng0(i)-ngrid)
-        if (jnear .lt. inear) then
-            inear = jnear
-            igrid = i
-        end if
-    end do
-    ! Update inout parameter `ngrid` also
-    ngrid = ng0(igrid)
-    ddx_data % ngrid = ngrid
     !! Now all constants are initialized, continue with memory allocations
     ! Allocate space for scaling factors of spherical harmonics
     allocate(ddx_data % vscales(ddx_data % nscales), stat=istatus)
@@ -1591,6 +1601,10 @@ subroutine ddfromfile(fname, ddx_data, info)
     y = y * tobohr
     z = z * tobohr
     rvdw = rvdw * tobohr
+
+    ! adjust ngrid
+    closest_supported_lebedev_grid(ngrid)
+
     !! Initialize ddx_data object
     call ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
         & pm, pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
