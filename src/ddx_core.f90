@@ -39,6 +39,10 @@ integer, parameter :: ng0(nllg) = (/ 6, 14, 26, 38, 50, 74, 86, 110, 146, &
     & 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202, 1454, 1730, &
     & 2030, 2354, 2702, 3074, 3470, 3890, 4334, 4802, 5294, 5810 /)
 
+!> Adjust a guess for the number of Lebedev grid point to the clost supported grid.
+!!
+!! @param[inout] ngrid: Approximate number of Lebedev grid points on input and
+!!      actual number of grid points on exit. `ngrid` >= 0
 subroutine closest_supported_lebedev_grid(ngrid)
     integer, intent(inout) :: ngrid
     integer :: igrid
@@ -410,8 +414,7 @@ contains
 !! @param[in] rvdw: Van-der-Waals radii of atoms. Dimension is `(n)`
 !! @param[in] model: Choose model: 1 for COSMO, 2 for PCM and 3 for LPB
 !! @param[in] lmax: Maximal degree of modeling spherical harmonics. `lmax` >= 0
-!! @param[inout] ngrid: Approximate number of Lebedev grid points on input and
-!!      actual number of grid points on exit. `ngrid` >= 0
+!! @param[in] ngrid: Number of Lebedev grid points `ngrid` >= 0
 !! @param[in] force: 1 if forces are required and 0 otherwise
 !! @param[in] fmm: 1 to use FMM acceleration and 0 otherwise
 !! @param[in] pm: Maximal degree of multipole spherical harmonics. Ignored in
