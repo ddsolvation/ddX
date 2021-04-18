@@ -39,26 +39,6 @@ integer, parameter :: ng0(nllg) = (/ 6, 14, 26, 38, 50, 74, 86, 110, 146, &
     & 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202, 1454, 1730, &
     & 2030, 2354, 2702, 3074, 3470, 3890, 4334, 4802, 5294, 5810 /)
 
-!> Adjust a guess for the number of Lebedev grid point to the clost supported grid.
-!!
-!! @param[inout] ngrid: Approximate number of Lebedev grid points on input and
-!!      actual number of grid points on exit. `ngrid` >= 0
-subroutine closest_supported_lebedev_grid(ngrid)
-    integer, intent(inout) :: ngrid
-    integer :: igrid
-    ! Get nearest number of Lebedev grid points
-    igrid = 0
-    inear = 100000
-    do i = 1, nllg
-        jnear = abs(ng0(i)-ngrid)
-        if (jnear .lt. inear) then
-            inear = jnear
-            igrid = i
-        end if
-    end do
-    ngrid = ng0(igrid)
-end
-
 !> Main ddX type that stores all required information
 type ddx_type
     !!!!!!!!!!!! Parameters
@@ -404,6 +384,27 @@ end type ddx_type
 
 contains
 
+!> Adjust a guess for the number of Lebedev grid point to the clost supported grid.
+!!
+!! @param[inout] ngrid: Approximate number of Lebedev grid points on input and
+!!      actual number of grid points on exit. `ngrid` >= 0
+subroutine closest_supported_lebedev_grid(ngrid)
+    integer, intent(inout) :: ngrid
+    integer :: igrid, i, inear, jnear
+    ! Get nearest number of Lebedev grid points
+    igrid = 0
+    inear = 100000
+    do i = 1, nllg
+        jnear = abs(ng0(i) - ngrid)
+        if (jnear .lt. inear) then
+            inear = jnear
+            igrid = i
+        end if
+    end do
+    ngrid = ng0(igrid)
+end
+
+
 !> Initialize ddX input with a full set of parameters
 !!
 !! @param[in] nsph: Number of atoms. n > 0.
@@ -526,12 +527,12 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     ! Check number of Lebedev grid points
     igrid = 0
     do i = 1, nllg
-        if (ng0(i) .eq. ngrid)
+        if (ng0(i) .eq. ngrid) then
             igrid = i
             exit
-        endif
+        end if
     enddo
-    if igrid .eq. 0
+    if (igrid .eq. 0) then
         write(*, "(A)") "ddinit: Unsupported value for parameter `ngrid`."
         info = -9
         return
@@ -1606,7 +1607,7 @@ subroutine ddfromfile(fname, ddx_data, info)
     rvdw = rvdw * tobohr
 
     ! adjust ngrid
-    closest_supported_lebedev_grid(ngrid)
+    call closest_supported_lebedev_grid(ngrid)
 
     !! Initialize ddx_data object
     call ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
