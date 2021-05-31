@@ -380,6 +380,10 @@ type ddx_type
     !> Temporary workspace for grid values of each sphere. Dimension is
     !!      (ngrid, nsph).
     real(dp), allocatable :: tmp_grid(:, :)
+    !> Flag if there were an error
+    logical :: error_flag
+    !> Last error message
+    character(len=255) :: error_message
 end type ddx_type
 
 contains
@@ -404,6 +408,13 @@ subroutine closest_supported_lebedev_grid(ngrid)
     ngrid = ng0(igrid)
 end
 
+!> Print error message and exit with provided error code
+subroutine error(code, message)
+    integer, intent(in) :: code
+    character(len=*), intent(in) :: message
+    write(0, "(A,A)") "ERROR: ", message
+    stop code
+end subroutine
 
 !> Initialize ddX input with a full set of parameters
 !!
@@ -449,7 +460,8 @@ end
 !! @param[out] info: flag of succesfull exit
 !!      = 0: Succesfull exit
 !!      < 0: If info=-i then i-th argument had an illegal value
-!!      > 0: Allocation of a buffer for the output ddx_data failed
+!!      = 1: Allocation of one of buffers failed
+!!      = 2: Deallocation of a temporary buffer failed
 subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, fmm_precompute, iprint, se, eta, eps, kappa, &
         & itersolver, tol, maxiter, ndiis, nproc, ddx_data, info)
@@ -484,10 +496,13 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & p_zi(:, :, :)
     ! Reset info
     info = 0
+    ddx_data % error_flag = .false.
+    ddx_data % error_message = ""
     !!! Check input parameters
     ! Number of atoms
     if (nsph .le. 0) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `nsph`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter `nsph`"
         info = -1
         return
     end if
@@ -496,7 +511,9 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     allocate(ddx_data % charge(nsph), ddx_data % csph(3, nsph), &
         & ddx_data % rsph(nsph), stat=istatus)
     if (istatus .ne. 0) then
-        write(*, "(A)") "ddinit: allocation (charge, csph, rsph) failed!"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `charge`, `csph` and `rsph` " // &
+            & "allocations failed!"
         info = 1
         return
     end if
@@ -508,14 +525,16 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     ddx_data % rsph = rvdw
     ! Model, 1=COSMO, 2=PCM, 3=LPB
     if ((model .lt. 1) .or. (model .gt. 3)) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `model`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter `model`"
         info = -7
         return
     end if
     ddx_data % model = model
     ! Degree of modeling spherical harmonics
     if (lmax .lt. 0) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `lmax`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter `lmax`"
         info = -8
         return
     end if
@@ -533,84 +552,99 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         end if
     enddo
     if (igrid .eq. 0) then
-        write(*, "(A)") "ddinit: Unsupported value for parameter `ngrid`."
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: Unsupported value for " // &
+            & "parameter `ngrid`."
         info = -9
         return
     end if
     ddx_data % ngrid = ngrid
     ! Check if forces are needed
     if ((force .lt. 0) .or. (force .gt. 1)) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `force`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter `force`"
         info = -10
         return
     end if
     ddx_data % force = force
     ! Check if FMM-acceleration is needed
     if ((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `fmm`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter `fmm`"
         info = -11
         return
     end if
     ddx_data % fmm = fmm
     ! Printing flag
     if (iprint .lt. 0) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `iprint`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter " // &
+            & "`iprint`"
         info = -15
         return
     end if
     ddx_data % iprint = iprint
     ! Shift of a regularization
     if ((se .lt. -one) .or. (se .gt. one)) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `se`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter `se`"
         info = -16
         return
     end if
     ddx_data % se = se
     ! Regularization parameter
     if ((eta .le. zero) .or. (eta .gt. one)) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `eta`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter `eta`"
         info = -17
         return
     end if
     ddx_data % eta = eta
     ! Relative dielectric permittivity
     if (eps .le. one) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `eps`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter `eps`"
         info = -18
         return
     end if
     ddx_data % eps = eps
     ! Debye-H\"{u}ckel parameter (only used in ddLPB)
     if ((model .eq. 3) .and. (kappa .lt. zero)) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `kappa`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter `kappa`"
         info = -19
         return
     end if
     ddx_data % kappa = kappa
     ! Iterative solver, 1=Jacobi
     if (itersolver .ne. 1) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `tol`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter `tol`"
         info = -20
         return
     end if
     ddx_data % itersolver = itersolver
     ! Relative threshold for an iterative solver
     if ((tol .lt. 1d-14) .or. (tol .gt. one)) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `tol`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter `tol`"
         info = -21
         return
     end if
     ddx_data % tol = tol
     ! Maximum number of iterations
     if (maxiter .le. 0) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `maxiter`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter " // &
+            & "`maxiter`"
         info = -22
         return
     end if
     ddx_data % maxiter = maxiter
     ! Number of DIIS extrapolation points (ndiis=25 works)
     if (ndiis .lt. 0) then
-        write(*, "(A)") "ddinit: wrong value of a parameter `ndiis`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of a parameter `ndiis`"
         info = -23
         return
     end if
@@ -620,7 +654,8 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     ! nproc=0 means it is up to ddX to decide on parallelism which will set
     ! it to nproc=1
     if (nproc .ne. 1 .and. nproc .ne. 0) then
-        write(*, "(A)") "ddinit: wrong value of parameter `nproc`"
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: wrong value of parameter `nproc`"
         info = -24
         return
     end if
@@ -633,7 +668,9 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         ! far-field interactions are to be computed, only near-field
         ! interactions are taken into account.
         if (pm .lt. -1) then
-            write(*, "(A)") "ddinit: wrong value of a parameter `pm`"
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: wrong value of a " // &
+                & "parameter `pm`"
             info = -12
             return
         end if
@@ -641,7 +678,9 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         ! far-field interactions are to be computed, only near-field
         ! interactions are taken into account.
         if (pl .lt. -1) then
-            write(*, "(A)") "ddinit: wrong value of a parameter `pl`"
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: wrong value of a " // &
+                & "parameter `pl`"
             info = -13
             return
         end if
@@ -657,8 +696,9 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         ! Whether FMM translation matrices are to be computed. This might
         ! require lots of RAM.
         if ((fmm_precompute .lt. 0) .or. (fmm_precompute .gt. 1)) then
-            write(*, "(A)") &
-                & "ddinit: wrong value of a parameter `fmm_precompute`"
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: wrong value of a " // &
+                & "parameter `fmm_precompute`"
             info = -14
             return
         end if
@@ -698,30 +738,34 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     ! Allocate space for scaling factors of spherical harmonics
     allocate(ddx_data % vscales(ddx_data % nscales), stat=istatus)
     if (istatus .ne. 0) then
-        !write(*, *) "ddinit: [2] allocation failed!"
-        info = 2
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `vscales` allocation failed"
+        info = 1
         return
     end if
     p_vscales => ddx_data % vscales
     allocate(ddx_data % v4pi2lp1(ddx_data % dmax+1), stat=istatus)
     if (istatus .ne. 0) then
-        !write(*, *) "ddinit: [2] allocation failed!"
-        info = 2
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `v4pi2lp1` allocation failed"
+        info = 1
         return
     end if
     p_v4pi2lp1 => ddx_data % v4pi2lp1
     allocate(ddx_data % vscales_rel(ddx_data % nscales), stat=istatus)
     if (istatus .ne. 0) then
-        !write(*, *) "ddinit: [2] allocation failed!"
-        info = 2
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `vscales_rel` allocation failed"
+        info = 1
         return
     end if
     p_vscales_rel => ddx_data % vscales_rel
     ! Allocate square roots of factorials
     allocate(ddx_data % vfact(ddx_data % nfact), stat=istatus)
     if (istatus .ne. 0) then
-        !write(*, *) "ddinit: [3] allocation failed!"
-        info = 3
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `vfact` allocation failed"
+        info = 1
         return
     end if
     p_vfact => ddx_data % vfact
@@ -729,8 +773,10 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     allocate(ddx_data % cgrid(3, ddx_data % ngrid), &
         & ddx_data % wgrid(ddx_data % ngrid), stat=istatus)
     if (istatus .ne. 0) then
-        !write(*, *) "ddinit: [4] allocation failed!"
-        info = 4
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `cgrid` and `wgrid` " // &
+            & "allocations failed"
+        info = 1
         return
     end if
     p_cgrid => ddx_data % cgrid
@@ -738,8 +784,9 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     ! Allocate temporary arrays for spherical coordinates
     allocate(sphcoo(5, ddx_data % nproc), stat=istatus)
     if (istatus .ne. 0) then
-        !write(*, *) "ddinit: [5] allocation failed!"
-        info = 5
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `sphcoo` allocation failed"
+        info = 1
         return
     end if
     ! Allocate temporary arrays for associated Legendre polynomials and
@@ -749,8 +796,10 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & ddx_data % tmp_vsin(ddx_data % vgrid_dmax+1, ddx_data % nproc), &
         & stat=istatus)
     if (istatus .ne. 0) then
-        !write(*, *) "ddinit: [5] allocation failed!"
-        info = 5
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `tmp_vplm`, `tmp_vcos` and " // &
+            & "`tmp_vsin` allocations failed"
+        info = 1
         return
     end if
     p_tmp_vplm => ddx_data % tmp_vplm
@@ -763,8 +812,10 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & ddx_data % l2grid(ddx_data % vgrid_nbasis, ddx_data % ngrid), &
         & stat=istatus)
     if (istatus .ne. 0) then
-        !write(*, *) "ddinit: [6] allocation failed!"
-        info = 6
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `vgrid`, `wgrid` and " // &
+            & "`l2grid` allocations failed"
+        info = 1
         return
     end if
     p_vgrid => ddx_data % vgrid
@@ -774,8 +825,9 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     allocate(ddx_data % fi(ddx_data % ngrid, ddx_data % nsph), &
         & ddx_data % ui(ddx_data % ngrid, ddx_data % nsph), stat=istatus)
     if (istatus .ne. 0) then
-        !write(*, *) 'ddinit : [9] allocation failed !'
-        info = 9
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `fi` and `ui` allocations failed"
+        info = 1
         return
     end if
     ddx_data % fi = zero
@@ -787,8 +839,9 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         allocate(ddx_data % zi(3, ddx_data % ngrid, ddx_data % nsph), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) 'ddinit : [10] allocation failed !'
-            info = 10
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `zi` allocation failed"
+            info = 1
             return
         endif
         ddx_data % zi = zero
@@ -824,8 +877,9 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     nngmax = 1
     allocate(ddx_data % inl(nsph+1), ddx_data % nl(nsph*nngmax), stat=istatus)
     if (istatus .ne. 0) then
-        !write(*, *) 'ddinit : [8] allocation failed !'
-        info = 8
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `inl` and `nl` allocations failed"
+        info = 1
         return
     end if
     i = 1
@@ -850,30 +904,38 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
                     if (i .gt. nsph*nngmax) then
                         allocate(tmp_nl(nsph*nngmax), stat=istatus)
                         if (istatus .ne. 0) then
-                            !write(*, *) 'ddinit : [8] allocation failed!'
-                            info = 8
+                            ddx_data % error_flag = .true.
+                            ddx_data % error_message = "ddinit: `tmp_nl` " // &
+                                & "allocation failed"
+                            info = 1
                             return
                         end if
                         tmp_nl(1:nsph*nngmax) = ddx_data % nl(1:nsph*nngmax)
                         deallocate(ddx_data % nl, stat=istatus)
                         if (istatus .ne. 0) then
-                            ! write(*, *) 'ddinit : [8] deallocation failed!'
-                            info = 8
+                            ddx_data % error_flag = .true.
+                            ddx_data % error_message = "ddinit: `nl` " // &
+                                & "deallocation failed"
+                            info = 2
                             return
                         end if
                         nngmax = nngmax + 10
                         allocate(ddx_data % nl(nsph*nngmax), stat=istatus)
                         if (istatus .ne. 0) then
-                            !write(*, *) 'ddinit : [8] allocation failed!'
-                            info = 8
+                            ddx_data % error_flag = .true.
+                            ddx_data % error_message = "ddinit: `nl` " // &
+                                & "allocation failed"
+                            info = 1
                             return
                         end if
                         ddx_data % nl(1:nsph*(nngmax-10)) = &
                             & tmp_nl(1:nsph*(nngmax-10))
                         deallocate(tmp_nl, stat=istatus)
                         if (istatus .ne. 0) then
-                            ! write(*, *) 'ddinit : [8] deallocation failed!'
-                            info = 8
+                            ddx_data % error_flag = .true.
+                            ddx_data % error_message = "ddinit: `tmp_nl` " // &
+                                & "deallocation failed"
+                            info = 2
                             return
                         end if
                     end if
@@ -925,8 +987,9 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     ! Build cavity array. At first get total count for each sphere
     allocate(ddx_data % ncav_sph(nsph), stat=istatus)
     if (istatus .ne. 0) then
-        !write(*,*)'ddinit : [11] allocation failed!'
-        info = 11
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `ncav_sph` allocation failed"
+        info = 1
         return
     endif
     do isph = 1, nsph
@@ -944,8 +1007,10 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     allocate(ddx_data % ccav(3, ddx_data % ncav), ddx_data % icav_ia(nsph+1), &
         & ddx_data % icav_ja(ddx_data % ncav), stat=istatus)
     if (istatus .ne. 0) then
-        !write(*,*)'ddinit : [11] allocation failed!'
-        info = 11
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `ccav`, `icav_ia` and " // &
+            & "`icav_ja` allocations failed"
+        info = 1
         return
     endif
     ! Get actual cavity coordinates and indexes in CSR format
@@ -972,8 +1037,9 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         allocate(ddx_data % rx_prc(ddx_data % nbasis, ddx_data % nbasis, nsph), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            !write(*,*)'ddinit : [12] allocation failed!'
-            info = 12
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `rx_prc` allocation failed"
+            info = 1
             return
         endif
         call mkprec(ddx_data)
@@ -992,57 +1058,66 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         ! Allocate space for a cluster tree
         allocate(ddx_data % order(nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*,*)'ddinit : [13] allocation failed!'
-            info = 13
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `order` allocation failed"
+            info = 1
             return
         endif
         ddx_data % nclusters = 2*nsph - 1
         allocate(ddx_data % cluster(2, ddx_data % nclusters), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*,*)'ddinit : [14] allocation failed!'
-            info = 14
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `cluster` allocation failed"
+            info = 1
             return
         endif
         allocate(ddx_data % children(2, ddx_data % nclusters), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*,*)'ddinit : [15] allocation failed!'
-            info = 15
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `children` allocation failed"
+            info = 1
             return
         endif
         allocate(ddx_data % parent(ddx_data % nclusters), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*,*)'ddinit : [16] allocation failed!'
-            info = 16
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `parent` allocation failed"
+            info = 1
             return
         endif
         allocate(ddx_data % cnode(3, ddx_data % nclusters), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*,*)'ddinit : [17] allocation failed!'
-            info = 17
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `cnode` allocation failed"
+            info = 1
             return
         endif
         allocate(ddx_data % rnode(ddx_data % nclusters), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*,*)'ddinit : [18] allocation failed!'
-            info = 18
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `rnode` allocation failed"
+            info = 1
             return
         endif
         allocate(ddx_data % snode(ddx_data % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*,*)'ddinit : [19] allocation failed!'
-            info = 19
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `snode` allocation failed"
+            info = 1
             return
         endif
         allocate(ddx_data % nfar(ddx_data % nclusters), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*,*)'ddinit : [20] allocation failed!'
-            info = 20
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `nfar` allocation failed"
+            info = 1
             return
         endif
         allocate(ddx_data % nnear(ddx_data % nclusters), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*,*)'ddinit : [21] allocation failed!'
-            info = 21
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `nnear` allocation failed"
+            info = 1
             return
         endif
         ! Get the tree
@@ -1056,42 +1131,46 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         lwork = 1
         allocate(work(3, lwork), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Could not allocate space for workspace"
-            !write(*, *) "Attempted size is", lwork*24, " bytes"
-            !write(*,*)'ddinit : [22] allocation failed!'
-            info = 22
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `work` allocation failed"
+            info = 1
             return
         end if
         do while (iwork .le. jwork)
             allocate(tmp_work(3, lwork), stat=istatus)
             if (istatus .ne. 0) then
-                !write(*, *) "Could not allocate space for workspace"
-                !write(*, *) "Attempted size is", lwork*24, " bytes"
-                !write(*,*)'ddinit : [23] allocation failed!'
-                info = 23
+                ddx_data % error_flag = .true.
+                ddx_data % error_message = "ddinit: `tmp_work` " // &
+                    & "allocation failed"
+                info = 1
                 return
             end if
             tmp_work = work
             deallocate(work, stat=istatus)
             if (istatus .ne. 0) then
-                !write(*, *) "Error in deallocation of workspace"
-                info = 24
+                ddx_data % error_flag = .true.
+                ddx_data % error_message = "ddinit: `work` " // &
+                    & "deallocation failed"
+                info = 2
                 return
             end if
             old_lwork = lwork
             lwork = old_lwork + 1000*nsph
             allocate(work(3, lwork), stat=istatus)
             if (istatus .ne. 0) then
-                !write(*, *) "Could not allocate space for workspace"
-                !write(*, *) "Attempted size is", lwork*24, " bytes"
-                info = 25
+                ddx_data % error_flag = .true.
+                ddx_data % error_message = "ddinit: `work` " // &
+                    & "allocation failed"
+                info = 1
                 return
             end if
             work(:, 1:old_lwork) = tmp_work
             deallocate(tmp_work, stat=istatus)
             if (istatus .ne. 0) then
-                !write(*, *) "Error in deallocation of workspace"
-                info = 26
+                ddx_data % error_flag = .true.
+                ddx_data % error_message = "ddinit: `tmp_work` " // &
+                    & "deallocation failed"
+                info = 2
                 return
             end if
             call tree_get_farnear_work(ddx_data % nclusters, &
@@ -1103,20 +1182,24 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         allocate(ddx_data % sfar(ddx_data % nclusters+1), &
             & ddx_data % snear(ddx_data % nclusters+1), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation"
-            info = 27
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `sfar` and `snear` " // &
+                & "allocations failed"
+            info = 1
             return
         end if
         allocate(ddx_data % far(ddx_data % nnfar), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation"
-            info = 28
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `far` allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % near(ddx_data % nnnear), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation"
-            info = 29
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `near` allocation failed"
+            info = 1
             return
         end if
         call tree_get_farnear(jwork, lwork, work, ddx_data % nclusters, &
@@ -1125,16 +1208,18 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             & ddx_data % near)
         deallocate(work, stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in deallocation of workspace"
-            info = 30
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `work` deallocation failed"
+            info = 2
             return
         end if
         ! Allocate square roots of combinatorial numbers C_n^k
         allocate(ddx_data % vcnk((2*ddx_data % dmax+1)*(ddx_data % dmax+1)), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "ddinit: [3] allocation failed!"
-            info = 3
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `vcnk` allocation failed"
+            info = 1
             return
         end if
         p_vcnk => ddx_data % vcnk
@@ -1143,8 +1228,10 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             & (ddx_data % pm+1), (ddx_data % pl+1), (ddx_data % pl+1)), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "ddinit: [3] allocation failed!"
-            info = 3
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `m2l_ztranslate_coef` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         p_m2l_ztranslate_coef => ddx_data % m2l_ztranslate_coef
@@ -1153,8 +1240,10 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             & (ddx_data % pl+1), (ddx_data % pl+1), (ddx_data % pm+1)), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "ddinit: [3] allocation failed!"
-            info = 3
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `m2l_ztranslate_adj_coef`" // &
+                & " allocation failed"
+            info = 1
             return
         end if
         p_m2l_ztranslate_adj_coef => ddx_data % m2l_ztranslate_adj_coef
@@ -1163,48 +1252,64 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             & p_vcnk, p_m2l_ztranslate_coef, p_m2l_ztranslate_adj_coef)
         allocate(ddx_data % tmp_sph(ddx_data % nbasis, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of a temporary"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `tmp_sph` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
-        allocate(ddx_data % tmp_sph2(ddx_data % grad_nbasis, nsph), stat=istatus)
+        allocate(ddx_data % tmp_sph2(ddx_data % grad_nbasis, nsph), &
+            & stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of a temporary"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `tmp_sph2` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % tmp_sph_grad(ddx_data % grad_nbasis, 3, nsph), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of a temporary"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `tmp_sph_grad` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
-        allocate(ddx_data % tmp_sph_l((ddx_data % pl+1)**2, nsph), stat=istatus)
+        allocate(ddx_data % tmp_sph_l((ddx_data % pl+1)**2, nsph), &
+            & stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of a temporary"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `tmp_sph_l` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % tmp_sph_l_grad((ddx_data % pl+1)**2, 3, nsph), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of a temporary"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `tmp_sph_l_grad` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % tmp_node_m((ddx_data % pm+1)**2, &
             & ddx_data % nclusters), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of a temporary"
-            info = 30
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `tmp_node_m` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % tmp_node_l((ddx_data % pl+1)**2, &
             & ddx_data % nclusters), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of a temporary"
-            info = 30
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `tmp_node_l` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         if (fmm_precompute .eq. 1) then
@@ -1221,48 +1326,60 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
                 & ddx_data % m2m_ztranslate_mat_size, ddx_data % nclusters), &
                 & stat=istatus)
             if (istatus .ne. 0) then
-                !write(*, *) "Error in allocation of M2M matrices"
-                info = 31
+                ddx_data % error_flag = .true.
+                ddx_data % error_message = "ddinit: `m2m_ztranslate_mat` " // &
+                    & "allocation failed"
+                info = 1
                 return
             end if
             allocate(ddx_data % m2m_reflect_mat( &
                 & ddx_data % m2m_reflect_mat_size, ddx_data % nclusters), &
                 & stat=istatus)
             if (istatus .ne. 0) then
-                !write(*, *) "Error in allocation of M2M matrices"
-                info = 32
+                ddx_data % error_flag = .true.
+                ddx_data % error_message = "ddinit: `m2m_reflect_mat` " // &
+                    & "allocation failed"
+                info = 1
                 return
             end if
             allocate(ddx_data % l2l_ztranslate_mat( &
                 & ddx_data % l2l_ztranslate_mat_size, ddx_data % nclusters), &
                 & stat=istatus)
             if (istatus .ne. 0) then
-                !write(*, *) "Error in allocation of L2L matrices"
-                info = 33
+                ddx_data % error_flag = .true.
+                ddx_data % error_message = "ddinit: `l2l_ztranslate_mat` " // &
+                    & "allocation failed"
+                info = 1
                 return
             end if
             allocate(ddx_data % l2l_reflect_mat( &
                 & ddx_data % l2l_reflect_mat_size, ddx_data % nclusters), &
                 & stat=istatus)
             if (istatus .ne. 0) then
-                !write(*, *) "Error in allocation of L2L matrices"
-                info = 34
+                ddx_data % error_flag = .true.
+                ddx_data % error_message = "ddinit: `l2l_reflect_mat` " // &
+                    & "allocation failed"
+                info = 1
                 return
             end if
             allocate(ddx_data % m2l_ztranslate_mat( &
                 & ddx_data % m2l_ztranslate_mat_size, ddx_data % nnfar), &
                 & stat=istatus)
             if (istatus .ne. 0) then
-                !write(*, *) "Error in allocation of M2L matrices"
-                info = 35
+                ddx_data % error_flag = .true.
+                ddx_data % error_message = "ddinit: `m2l_ztranslate_mat` " // &
+                    & "allocation failed"
+                info = 1
                 return
             end if
             allocate(ddx_data % m2l_reflect_mat( &
                 & ddx_data % m2l_reflect_mat_size, ddx_data % nnfar), &
                 & stat=istatus)
             if (istatus .ne. 0) then
-                !write(*, *) "Error in allocation of M2L matrices"
-                info = 36
+                ddx_data % error_flag = .true.
+                ddx_data % error_message = "ddinit: `m2l_reflect_mat` " // &
+                    & "allocation failed"
+                info = 1
                 return
             end if
             ! Precompute M2M, L2L and M2L matrices
@@ -1279,8 +1396,10 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             allocate(ddx_data % m2p_mat(ddx_data % m2p_nbasis, &
                 & ddx_data % nnear_m2p), stat=istatus)
             if (istatus .ne. 0) then
-                !write(*, *) "Error in allocation of M2P matrices"
-                info = 37
+                ddx_data % error_flag = .true.
+                ddx_data % error_message = "ddinit: `m2p_mat` " // &
+                    & "allocation failed"
+                info = 1
                 return
             end if
             ! Precompute M2P matrices
@@ -1292,118 +1411,156 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     if (model .eq. 1) then
         allocate(ddx_data % phi_grid(ddx_data % ngrid, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `phi_grid` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % phi(ddx_data % nbasis, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `phi` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % xs(ddx_data % nbasis, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `xs` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % s(ddx_data % nbasis, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `s` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % sgrid(ddx_data % ngrid, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `sgrid` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % zeta(ddx_data % ncav), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `zeta` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
     ! PCM model
     else if (model .eq. 2) then
         allocate(ddx_data % phi_grid(ddx_data % ngrid, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `phi_grid` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % phi(ddx_data % nbasis, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `phi` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % phiinf(ddx_data % nbasis, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `phiinf` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % phieps(ddx_data % nbasis, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `phieps` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % xs(ddx_data % nbasis, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `xs` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % s(ddx_data % nbasis, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `s` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % sgrid(ddx_data % ngrid, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `sgrid` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % y(ddx_data % nbasis, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `y` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % ygrid(ddx_data % ngrid, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `ygrid` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % g(ddx_data % nbasis, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `g` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % q(ddx_data % nbasis, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `q` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % qgrid(ddx_data % ngrid, nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `qgrid` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
         allocate(ddx_data % zeta(ddx_data % ncav), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
+            ddx_data % error_flag = .true.
+            ddx_data % error_message = "ddinit: `zeta` " // &
+                & "allocation failed"
+            info = 1
             return
         end if
     ! LPB model
@@ -1411,8 +1568,10 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     end if
     allocate(ddx_data % tmp_grid(ddx_data % ngrid, nsph), stat=istatus)
     if (istatus .ne. 0) then
-        !write(*, *) "Error in allocation of a temporary"
-        info = 38
+        ddx_data % error_flag = .true.
+        ddx_data % error_message = "ddinit: `tmp_grid` " // &
+            & "allocation failed"
+        info = 1
         return
     end if
     !! Debug outputs

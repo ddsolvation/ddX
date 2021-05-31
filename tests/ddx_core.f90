@@ -246,7 +246,7 @@ contains
 
 subroutine check_ddinit_args()
     ! Example of correct args
-    integer :: n=1, model=1, lmax=0, ngrid=1000, force=1, fmm=1, pm=0, pl=0, &
+    integer :: n=1, model=1, lmax=0, ngrid=1202, force=1, fmm=1, pm=0, pl=0, &
         & fmm_precompute=0, iprint=0, itersolver=1, maxiter=10, ndiis=10, &
         & nproc=1
     real(dp) :: charge(10), x(10), y(10), z(10), rvdw(10), se=zero, eta=1d-1, &
@@ -266,14 +266,16 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "correct test failed"
+    if (info .ne. 0) call error(-1, "correct test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check different correct inputs with different n <= 10 (hardcoded value)
     do i = 1, 10
         call ddinit(i, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
             & pm, pl, fmm_precompute, iprint, se, eta, eps, kappa, &
             & itersolver, tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "nsph"
+        if (info .ne. 0) call error(-1, "`nsph` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect input nsph <= 0
@@ -281,20 +283,23 @@ subroutine check_ddinit_args()
     call ddinit(i, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -1) stop "nsph"
+    if (info .ne. -1) call error(-1, "`nsph` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(i, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -1) stop "nsph"
+    if (info .ne. -1) call error(-1, "`nsph` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check all possible models (1, 2, 3) with other correct inputs
     do i = 1, 3
         call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
             & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
             & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "model"
+        if (info .ne. 0) call error(-1, "`model` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect models
@@ -302,20 +307,23 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -7) stop "model"
+    if (info .ne. -7) call error(-1, "`model` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 4
     call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -7) stop "model"
+    if (info .ne. -7) call error(-1, "`model` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct lmax >= 0
     do i = 0, 6
         call ddinit(n, charge, x, y, z, rvdw, model, i, ngrid, force, fmm, &
             & pm, pl, fmm_precompute, iprint, se, eta, eps, kappa, &
             & itersolver, tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "lmax"
+        if (info .ne. 0) call error(-1, "`lmax` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect lmax < 0
@@ -323,15 +331,17 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, model, i, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -8) stop "lmax"
+    if (info .ne. -8) call error(-1, "`lmax` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct ngrid >= 0
-    do i = 0, 1000, 100
-        j = i
+    do i = 1, nllg
+        j = ng0(i)
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, j, force, fmm, pm, &
             & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
             & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "ngrid"
+        if (info .ne. 0) call error(-1, "`ngrid` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect ngrid < 0
@@ -339,14 +349,16 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, i, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -9) stop "ngrid"
+    if (info .ne. -9) call error(-1, "`ngrid` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct force (0, 1)
     do i = 0, 1
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
             & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
             & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "force"
+        if (info .ne. 0) call error(-1, "`force` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect force
@@ -354,20 +366,23 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -10) stop "force"
+    if (info .ne. -10) call error(-1, "`force` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -10) stop "force"
+    if (info .ne. -10) call error(-1, "`force` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct fmm (0, 1)
     do i = 0, 1
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, i, &
             & pm, pl, fmm_precompute, iprint, se, eta, eps, kappa, &
             & itersolver, tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "fmm"
+        if (info .ne. 0) call error(-1, "`fmm` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect fmm
@@ -375,13 +390,15 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -11) stop "fmm"
+    if (info .ne. -11) call error(-1, "`fmm` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -11) stop "fmm"
+    if (info .ne. -11) call error(-1, "`fmm` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct pm (ignored if fmm=0)
     j = 0
@@ -389,7 +406,8 @@ subroutine check_ddinit_args()
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & i, pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
             & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "pm"
+        if (info .ne. 0) call error(-1, "`pm` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check correct pm (fmm=1)
@@ -398,14 +416,16 @@ subroutine check_ddinit_args()
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & i, pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
             & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "pm"
+        if (info .ne. 0) call error(-1, "`pm` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
         & i, pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
         & tol, maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "pm"
+    if (info .ne. 0) call error(-1, "`pm` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect pm (fmm=1)
     j = 1
@@ -413,7 +433,8 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, i, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -12) stop "pm"
+    if (info .ne. -12) call error(-1, "`pm` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct pl (ignored if fmm=0)
     j = 0
@@ -421,7 +442,8 @@ subroutine check_ddinit_args()
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & pm, i, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
             & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "pl"
+        if (info .ne. 0) call error(-1, "`pl` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check correct pl (fmm=1)
@@ -430,14 +452,16 @@ subroutine check_ddinit_args()
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & pm, i, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
             & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "pl"
+        if (info .ne. 0) call error(-1, "`pl` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
         & pm, i, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
         & tol, maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "pl"
+    if (info .ne. 0) call error(-1, "`pl` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect pl (fmm=1)
     j = 1
@@ -445,7 +469,8 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, pm, &
         & i, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -13) stop "pl"
+    if (info .ne. -13) call error(-1, "`pl` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct fmm_precompute (fmm=1)
     j = 1
@@ -453,7 +478,8 @@ subroutine check_ddinit_args()
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & pm, pl, i, iprint, se, eta, eps, kappa, itersolver, tol, &
             & maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "fmm_precompute"
+        if (info .ne. 0) call error(-1, "`fmm_precompute` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check correct fmm_precompute (ignored if fmm=0)
@@ -462,7 +488,8 @@ subroutine check_ddinit_args()
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & pm, pl, i, iprint, se, eta, eps, kappa, itersolver, tol, &
             & maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "fmm_precompute"
+        if (info .ne. 0) call error(-1, "`fmm_precompute` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect fmm_precompute
@@ -470,20 +497,23 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, i, iprint, se, eta, eps, kappa, itersolver, tol, maxiter, &
         & ndiis, nproc, ddx_data, info)
-    if (info .ne. -14) stop "fmm_precompute"
+    if (info .ne. -14) call error(-1, "`fmm_precompute` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, i, iprint, se, eta, eps, kappa, itersolver, tol, maxiter, &
         & ndiis, nproc, ddx_data, info)
-    if (info .ne. -14) stop "fmm_precompute"
+    if (info .ne. -14) call error(-1, "`fmm_precompute` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct iprint >= 0
     do i = 0, 10
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
             & pm, pl, fmm_precompute, i, se, eta, eps, kappa, itersolver, &
             & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "iprint"
+        if (info .ne. 0) call error(-1, "`iprint` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect iprint
@@ -491,109 +521,126 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, i, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -15) stop "iprint"
+    if (info .ne. -15) call error(-1, "`iprint` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct se (interval [-1,1])
     tmp = -one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, tmp, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "se"
+    if (info .ne. 0) call error(-1, "`se` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = zero
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, tmp, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "se"
+    if (info .ne. 0) call error(-1, "`se` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, tmp, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "se"
+    if (info .ne. 0) call error(-1, "`se` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect se
     tmp = 1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, tmp, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -16) stop "se"
+    if (info .ne. -16) call error(-1, "`se` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, tmp, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -16) stop "se"
+    if (info .ne. -16) call error(-1, "`se` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct eta (semi-interval (0,1])
     tmp = pt5
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, tmp, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "eta"
+    if (info .ne. 0) call error(-1, "`eta` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, tmp, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "eta"
+    if (info .ne. 0) call error(-1, "`eta` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect eta
     tmp = zero
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, tmp, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -17) stop "eta"
+    if (info .ne. -17) call error(-1, "`eta` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = 1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, tmp, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -17) stop "eta"
+    if (info .ne. -17) call error(-1, "`eta` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, tmp, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -17) stop "eta"
+    if (info .ne. -17) call error(-1, "`eta` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct eps
     tmp = 1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, tmp, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "eps"
+    if (info .ne. 0) call error(-1, "`eps` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = dble(1000)
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, tmp, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "eps"
+    if (info .ne. 0) call error(-1, "`eps` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect eps
     tmp = zero
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, tmp, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -18) stop "eps"
+    if (info .ne. -18) call error(-1, "`eps` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = pt5
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, tmp, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -18) stop "eps"
+    if (info .ne. -18) call error(-1, "`eps` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, tmp, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -18) stop "eps"
+    if (info .ne. -18) call error(-1, "`eps` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, tmp, kappa, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -18) stop "eps"
+    if (info .ne. -18) call error(-1, "`eps` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct kappa
     tmp = 1d-2
@@ -601,14 +648,16 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, tmp, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "kappa"
+    if (info .ne. 0) call error(-1, "`kappa` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2 ! not referenced in case of COSMO and PCM models
     do j = 1, 2
         call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
             & pl, fmm_precompute, iprint, se, eta, eps, tmp, itersolver, tol, &
             & maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "kappa"
+        if (info .ne. 0) call error(-1, "`kappa` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect kappa
@@ -617,155 +666,179 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, tmp, itersolver, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -19) stop "kappa"
+    if (info .ne. -19) call error(-1, "`kappa` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct itersolver
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, i, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "itersolver"
+    if (info .ne. 0) call error(-1, "`itersolver` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect itersolver
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, i, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -20) stop "itersolver"
+    if (info .ne. -20) call error(-1, "`itersolver` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, i, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -20) stop "itersolver"
+    if (info .ne. -20) call error(-1, "`itersolver` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, i, tol, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -20) stop "itersolver"
+    if (info .ne. -20) call error(-1, "`itersolver` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct tol
     tmp = 1d-14
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "tol"
+    if (info .ne. 0) call error(-1, "`tol` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = 1d-7
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "tol"
+    if (info .ne. 0) call error(-1, "`tol` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "tol"
+    if (info .ne. 0) call error(-1, "`tol` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect tol
     tmp = 9d-15
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -21) stop "tol"
+    if (info .ne. -21) call error(-1, "`tol` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = zero
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -21) stop "tol"
+    if (info .ne. -21) call error(-1, "`tol` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -21) stop "tol"
+    if (info .ne. -21) call error(-1, "`tol` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = 1.1d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
         & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -21) stop "tol"
+    if (info .ne. -21) call error(-1, "`tol` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct maxiter
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & i, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "maxiter"
+    if (info .ne. 0) call error(-1, "`maxiter` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1000000
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & i, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "maxiter"
+    if (info .ne. 0) call error(-1, "`maxiter` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect maxiter
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & i, ndiis, nproc, ddx_data, info)
-    if (info .ne. -22) stop "maxiter"
+    if (info .ne. -22) call error(-1, "`maxiter` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & i, ndiis, nproc, ddx_data, info)
-    if (info .ne. -22) stop "maxiter"
+    if (info .ne. -22) call error(-1, "`maxiter` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct ndiis
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, i, nproc, ddx_data, info)
-    if (info .ne. 0) stop "ndiis"
+    if (info .ne. 0) call error(-1, "`ndiis` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, i, nproc, ddx_data, info)
-    if (info .ne. 0) stop "ndiis"
+    if (info .ne. 0) call error(-1, "`ndiis` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1000
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, i, nproc, ddx_data, info)
-    if (info .ne. 0) stop "ndiis"
+    if (info .ne. 0) call error(-1, "`ndiis` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect ndiis
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, i, nproc, ddx_data, info)
-    if (info .ne. -23) stop "ndiis"
+    if (info .ne. -23) call error(-1, "`ndiis` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct nproc
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, i, ddx_data, info)
-    if (info .ne. 0) stop "nproc"
+    if (info .ne. 0) call error(-1, "`nproc` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, i, ddx_data, info)
-    if (info .ne. 0) stop "nproc"
+    if (info .ne. 0) call error(-1, "`nproc` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect nproc
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, i, ddx_data, info)
-    if (info .ne. -24) stop "nproc"
+    if (info .ne. -24) call error(-1, "`nproc` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
         & maxiter, ndiis, i, ddx_data, info)
-    if (info .ne. -24) stop "nproc"
+    if (info .ne. -24) call error(-1, "`nproc` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
 end subroutine check_ddinit_args
 
@@ -993,7 +1066,7 @@ subroutine check_m2p_m2l(p, alpha)
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. 2d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
-        !if (.not. ok) stop 1
+        if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
         do j = 1, nrand
             call fmm_m2l_rotation(-c, r, r, p, 0, vscales, &
@@ -1005,7 +1078,7 @@ subroutine check_m2p_m2l(p, alpha)
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. 2d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
-        !if (.not. ok) stop 1
+        if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
         do j = 1, nrand
             call fmm_m2p(c, r, p, vscales_rel, zero, src_m(:, j), one, &
@@ -1014,7 +1087,7 @@ subroutine check_m2p_m2l(p, alpha)
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. 2d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
-        !if (.not. ok) stop 1
+        if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         do j = 1, nrand
             dst_v(j) = -pt5 * dst_v(j)
@@ -1024,7 +1097,7 @@ subroutine check_m2p_m2l(p, alpha)
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. 2d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
-        !if (.not. ok) stop 1
+        if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
         do j = 1, nrand
             call fmm_m2l_rotation(-c, r, r, p, 0, vscales, &
@@ -1036,7 +1109,7 @@ subroutine check_m2p_m2l(p, alpha)
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. 3d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
-        !if (.not. ok) stop 1
+        if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
 end subroutine check_m2p_m2l
