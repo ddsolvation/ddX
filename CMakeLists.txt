@@ -207,3 +207,59 @@ if(DOCS)
 endif()
 
 
+#-------------------------------------------------------------------------------
+# Install rules.
+# GNU Filesystem Conventions
+include( GNUInstallDirs )
+set( install_configdir "${CMAKE_INSTALL_LIBDIR}/ddX" )
+
+# Install library and add to <package>Targets.cmake
+install(
+    TARGETS ddx
+    EXPORT ddXTargets
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+)
+
+# Install header files
+install(
+    # / copies contents, not directory itself
+    DIRECTORY "${PROJECT_BINARY_DIR}/src/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ddX"
+    #TODO change behaviour for different os's.
+    FILES_MATCHING REGEX "\\.(mod)$"
+)
+
+#add include dirs to target ddx
+target_include_directories(ddx INTERFACE
+  	$<INSTALL_INTERFACE:include/ddX>  # <prefix>/include/mylib
+)
+
+
+# Install <package>Targets.cmake
+install(
+    EXPORT ddXTargets
+    DESTINATION "${install_configdir}"
+)
+
+# Also export <package>Targets.cmake in build directory
+export(
+    EXPORT ddXTargets
+    FILE "ddXTargets.cmake"
+)
+
+# Install <package>Config.cmake and <package>ConfigVersion.cmake,
+# to enable find_package( <package> ).
+include( CMakePackageConfigHelpers )
+configure_package_config_file(
+    "ddXConfig.cmake.in"
+    "ddXConfig.cmake"
+    INSTALL_DESTINATION "${install_configdir}"
+)
+
+install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/ddXConfig.cmake"
+          #"${CMAKE_CURRENT_BINARY_DIR}/ddXConfigVersion.cmake"
+    DESTINATION "${install_configdir}"
+)
+

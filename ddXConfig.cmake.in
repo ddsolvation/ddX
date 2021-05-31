@@ -1,0 +1,8 @@
+set(use_openmp "@OPENMP@")
+
+include(CMakeFindDependencyMacro)
+if(use_openmp)
+    find_dependency(OpenMP)
+endif()
+
+include( "${CMAKE_CURRENT_LIST_DIR}/ddXTargets.cmake" )

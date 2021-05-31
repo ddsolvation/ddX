@@ -1,0 +1,40 @@
+name: Build, Test, Install (Ubuntu)
+
+on: [push,pull_request]
+
+jobs:
+  build:
+    name: Build, Test, Install (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+      with:
+        path: repo
+
+    - name: create build dir
+      shell: cmake -P {0}
+      run: |
+        file(MAKE_DIRECTORY repo/build)
+    
+    - name: build, test and install
+      run: |
+        cd repo/build
+        cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran-10" -DCMAKE_INSTALL_PREFIX="/tmp/libddx" .. 
+        make
+        make test
+        make install
+
+    - name: test installation
+      run: |
+        mkdir /tmp/test
+        cd repo
+        mv ./cmake/testddXinstall.cmake /tmp/test/CMakeLists.txt
+        cp ./tests/ddx_core.f90 /tmp/test/dd_core.f90
+        cd /tmp/test
+        mkdir build
+        cd build
+        cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran-10" -DddX_DIR="/tmp/libddx/lib/ddX" ..
+        make
+
+        
