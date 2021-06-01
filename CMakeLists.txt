@@ -164,13 +164,14 @@ function(ddx_add_test src)
     endif()
     # If no arguments were provided, add test without parameters
     if(${ARGC} EQUAL 1)
-        add_test(NAME ${logical} COMMAND ${exec})
+        add_test(NAME ${logical} COMMAND $<TARGET_FILE:${logical}>)
         message(STATUS "Adding 1 test: ${path}/${exec}")
     # If only one test with arguments must be added
     elseif(${ARGC} EQUAL 2)
         # Convert arguments from string to list
         string(REPLACE " " ";" param ${ARGV1})
-        add_test(NAME ${logical} COMMAND ${exec} ${param})
+        string(REPLACE "\n" ";" param "${param}")
+        add_test(NAME ${logical} COMMAND $<TARGET_FILE:${logical}> ${param})
         message(STATUS "Adding 1 test: ${path}/${exec}")
     # Add multiple tests and add indexing for better readability of output
     else()
@@ -180,7 +181,9 @@ function(ddx_add_test src)
         foreach(i RANGE 1 ${ntests})
             # Convert arguments from string to list
             string(REPLACE " " ";" param ${ARGV${i}})
-            add_test(NAME ${logical}_${i} COMMAND ${exec} ${param})
+            string(REPLACE "\n" ";" param "${param}")
+            add_test(NAME ${logical}_${i} COMMAND $<TARGET_FILE:${logical}>
+                ${param})
         endforeach()
     endif()
 endfunction(ddx_add_test)
