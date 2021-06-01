@@ -24,7 +24,7 @@ jobs:
         cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran-10" -DCMAKE_INSTALL_PREFIX="/tmp/libddx" -DCMAKE_BUILD_TYPE=Release ..
         make
         # Only ddx_driver tests are executed
-        ctest -R ddx_driver
+        ctest -R ddx_driver -VV
         make install
 
     - name: test installation
