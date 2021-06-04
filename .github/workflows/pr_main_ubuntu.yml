@@ -1,0 +1,42 @@
+name: Large testing on PR into the main branch (Ubuntu)
+
+on:
+    # Trigger the workflow on pull request for the main branch
+    pull_request:
+        branches:
+            - main
+
+jobs:
+  build:
+    name: Build, Test, Install (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+      with:
+        path: repo
+
+    - name: create build dir
+      run: cmake -E make_directory repo/build
+    
+    - name: build, test and install
+      run: |
+        cd repo/build
+        cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran-10" -DCMAKE_INSTALL_PREFIX="/tmp/libddx" -DCMAKE_BUILD_TYPE=Release ..
+        make
+        make test
+        make install
+
+    - name: test installation
+      run: |
+        mkdir /tmp/test
+        cd repo
+        mv ./cmake/testddXinstall.cmake /tmp/test/CMakeLists.txt
+        cp ./tests/ddx_core.f90 /tmp/test/dd_core.f90
+        cd /tmp/test
+        mkdir build
+        cd build
+        cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran-10" -DddX_DIR="/tmp/libddx/lib/ddX" ..
+        make
+
+        
