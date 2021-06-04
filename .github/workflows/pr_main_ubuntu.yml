@@ -21,7 +21,7 @@ jobs:
     
     - name: build, test and install
       run: |
-        cmake -E chdir repo/build
+        cd repo/build
         cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran-10" -DCMAKE_INSTALL_PREFIX="/tmp/libddx" -DCMAKE_BUILD_TYPE=Release ..
         make
         make test
