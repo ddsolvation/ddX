@@ -17,7 +17,7 @@ jobs:
         path: repo
 
     - name: create build dir
-      run: cmake -E mkdir repo/build
+      run: cmake -E make_directory repo/build
     
     - name: build, test and install
       run: |
