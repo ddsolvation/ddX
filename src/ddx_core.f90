@@ -413,7 +413,8 @@ subroutine error(code, message)
     integer, intent(in) :: code
     character(len=*), intent(in) :: message
     write(0, "(A,A)") "ERROR: ", message
-    stop code
+    write(0, "(A,A)") "CODE: ", code
+    stop -1
 end subroutine
 
 !> Initialize ddX input with a full set of parameters
@@ -2306,14 +2307,13 @@ end subroutine ptcart
 !!
 !! @param[in] label : Label to print
 !! @param[in] vector: Vector to print
-
 subroutine print_ddvector(ddx_data, label, vector)
-    implicit none
+    ! Inputs
     type(ddx_type), intent(in)  :: ddx_data
     character(len=*) :: label
     real(dp) :: vector(ddx_data % nbasis, ddx_data % nsph)
+    ! Local variables
     integer :: isph, lm
-  
     write(6,*) label
     do isph = 1, ddx_data % nsph
       do lm = 1, ddx_data % nbasis
@@ -2366,12 +2366,27 @@ subroutine ylmscale(p, vscales, v4pi2lp1, vscales_rel)
     end do
 end subroutine ylmscale
 
+!> Compute FMM-related constants
+!!
+!! @param[in] dmax: Maximal degree of spherical harmonics to be evaluated.
+!!      `dmax` >= 0
+!! @param[in] pm: Maximal degree of the multipole expansion. `pm` >= 0.
+!! @param[in] pl: Maximal degree of the local expansion. `pl` >= 0.
+!! @param[out] vcnk: Array of squre roots of combinatorial factors C_n^k.
+!!      Dimension is `(2*dmax+1)*(dmax+1)`.
+!! @param[out] m2l_ztranslate_coef: Constants for M2L translation over OZ axis.
+!!      Dimension is `(pm+1, pl+1, pl+1)`.
+!! @param[out] m2l_ztranslate_coef: Constants for adjoint M2L translation over
+!!      OZ axis. Dimension is `(pl+1, pl+1, pm+1)`.
 subroutine fmm_constants(dmax, pm, pl, vcnk, m2l_ztranslate_coef, &
         & m2l_ztranslate_adj_coef)
+    ! Inputs
     integer, intent(in) :: dmax, pm, pl
+    ! Outputs
     real(dp), intent(out) :: vcnk((2*dmax+1)*(dmax+1)), &
         & m2l_ztranslate_coef(pm+1, pl+1, pl+1), &
         & m2l_ztranslate_adj_coef(pl+1, pl+1, pm+1)
+    ! Local variables
     integer :: i, indi, j, k, n, indjn
     real(dp) :: tmp1
     ! Compute combinatorial numbers C_n^k for n=0..dmax
@@ -2429,8 +2444,8 @@ end subroutine fmm_constants
 !!      is `(p+1)`
 subroutine trgev(cphi, sphi, p, vcos, vsin)
     ! Inputs
-    real(dp), intent(in) :: cphi, sphi
     integer, intent(in) :: p
+    real(dp), intent(in) :: cphi, sphi
     ! Output
     real(dp), intent(out) :: vcos(p+1), vsin(p+1)
     ! Local variables
@@ -2533,8 +2548,8 @@ end subroutine trgev
 !!      `(p+1)**2`
 subroutine polleg(ctheta, stheta, p, vplm)
     ! Inputs
-    real(dp), intent(in) :: ctheta, stheta
     integer, intent(in) :: p
+    real(dp), intent(in) :: ctheta, stheta
     ! Outputs
     real(dp), intent(out) :: vplm((p+1)**2)
     ! Temporary workspace
@@ -2563,8 +2578,8 @@ end subroutine polleg
 !!      `(p+1)**2`
 subroutine polleg_work(ctheta, stheta, p, vplm, work)
     ! Inputs
-    real(dp), intent(in) :: ctheta, stheta
     integer, intent(in) :: p
+    real(dp), intent(in) :: ctheta, stheta
     ! Outputs
     real(dp), intent(out) :: vplm((p+1)**2)
     ! Temporary workspace
@@ -2730,8 +2745,8 @@ end subroutine carttosph
 subroutine ylmbas(x, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
         & vcos, vsin)
     ! Inputs
-    real(dp), intent(in) :: x(3)
     integer, intent(in) :: p
+    real(dp), intent(in) :: x(3)
     real(dp), intent(in) :: vscales((p+1)**2)
     ! Outputs
     real(dp), intent(out) :: rho, ctheta, stheta, cphi, sphi
@@ -2881,8 +2896,8 @@ end subroutine ylmbas
 !!      `(p+1)`
 subroutine ylmbas2(x, sphcoo, p, vscales, vylm, vplm, vcos, vsin)
     ! Inputs
-    real(dp), intent(in) :: x(3)
     integer, intent(in) :: p
+    real(dp), intent(in) :: x(3)
     real(dp), intent(in) :: vscales((p+1)**2)
     ! Outputs
     real(dp), intent(out) :: sphcoo(5)
@@ -3857,8 +3872,8 @@ endsubroutine mkprec
 !! @sa fmm_m2p
 subroutine fmm_p2m(c, src_q, dst_r, p, vscales, beta, dst_m)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)**2)
     ! Workspace
@@ -3896,8 +3911,8 @@ end subroutine fmm_p2m
 !! @sa fmm_m2p
 subroutine fmm_p2m_work(c, src_q, dst_r, p, vscales, beta, dst_m, work)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)**2)
     ! Workspace
@@ -3995,9 +4010,9 @@ end subroutine fmm_p2m_work
 !! @param[inout] v: Value of induced potential
 subroutine fmm_m2p(c, src_r, p, vscales_rel, alpha, src_m, beta, dst_v)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, vscales_rel((p+1)*(p+1)), alpha, &
         & src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Temporary workspace
@@ -4039,9 +4054,9 @@ end subroutine fmm_m2p
 subroutine fmm_m2p_work(c, src_r, p, vscales_rel, alpha, src_m, &
         & beta, dst_v, work)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, vscales_rel((p+1)*(p+1)), alpha, &
         & src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Workspace
@@ -4232,8 +4247,8 @@ end subroutine fmm_m2p_work
 !! @param[inout] dst_m: Multipole coefficients. Dimension is `(p+1)**2`
 subroutine fmm_m2p_adj(c, src_q, dst_r, p, vscales_rel, beta, dst_m)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales_rel((p+1)*(p+1)), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales_rel((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)**2)
     ! Workspace
@@ -4270,8 +4285,8 @@ end subroutine fmm_m2p_adj
 !! @param[out] work: Temporary workspace of a size ((p+1)*(p+1)+3*p)
 subroutine fmm_m2p_adj_work(c, src_q, dst_r, p, vscales_rel, beta, dst_m, work)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales_rel((p+1)*(p+1)), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales_rel((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)**2)
     ! Workspace
@@ -4567,8 +4582,8 @@ end subroutine fmm_m2p_adj_work
 !! @param[inout] mat: Values of potentials induced by each spherical harmonic
 subroutine fmm_m2p_mat(c, r, p, vscales, mat)
     ! Inputs
-    real(dp), intent(in) :: c(3), r, vscales((p+1)**2)
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), r, vscales((p+1)**2)
     ! Output
     real(dp), intent(out) :: mat((p+1)**2)
     ! Local variables
@@ -4620,9 +4635,9 @@ end subroutine fmm_m2p_mat
 !! @param[inout] dst_v: Value of induced potential
 subroutine fmm_l2p(c, src_r, p, vscales, alpha, src_l, beta, dst_v)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, vscales((p+1)*(p+1)), alpha, &
         & src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Workspace
@@ -4660,9 +4675,9 @@ end subroutine fmm_l2p
 subroutine fmm_l2p_work(c, src_r, p, vscales_rel, alpha, src_l, beta, dst_v, &
         & work)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, vscales_rel((p+1)*(p+1)), alpha, &
         & src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Workspace
@@ -4849,8 +4864,8 @@ end subroutine fmm_l2p_work
 !! @param[inout] dst_l: Local coefficients. Dimension is `(p+1)**2`
 subroutine fmm_l2p_adj(c, src_q, dst_r, p, vscales_rel, beta, dst_l)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales_rel((p+1)*(p+1)), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales_rel((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)**2)
     ! Workspace
@@ -4886,8 +4901,8 @@ end subroutine fmm_l2p_adj
 !! @param[out] work: Temporary workspace of a size (p+1)
 subroutine fmm_l2p_adj_work(c, src_q, dst_r, p, vscales_rel, beta, dst_l, work)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales_rel((p+1)*(p+1)), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales_rel((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)**2)
     ! Workspace
@@ -6807,9 +6822,9 @@ end subroutine fmm_sph_rotate_oxz_work
 subroutine fmm_m2m_ztranslate(z, src_r, dst_r, p, vscales, vcnk, alpha, &
         & src_m, beta, dst_m)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: z, src_r, dst_r, vscales((p+1)*(p+1)), &
         & vcnk((2*p+1)*(p+1)), alpha, src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     ! Temporary workspace
@@ -6845,9 +6860,9 @@ end subroutine fmm_m2m_ztranslate
 subroutine fmm_m2m_ztranslate_work(z, src_r, dst_r, p, vscales, vcnk, alpha, &
         & src_m, beta, dst_m, work)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: z, src_r, dst_r, vscales((p+1)*(p+1)), &
         & vcnk((2*p+1)*(p+1)), alpha, src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     ! Temporary workspace
@@ -7018,9 +7033,9 @@ end subroutine fmm_m2m_ztranslate_work
 subroutine fmm_m2m_ztranslate_adj(z, src_r, dst_r, p, vscales, vcnk, &
         & alpha, src_m, beta, dst_m)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: z, src_r, dst_r, vscales((p+1)*(p+1)), &
         & vcnk((2*p+1)*(p+1)), alpha, src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     ! Temporary workspace
@@ -7056,9 +7071,9 @@ end subroutine fmm_m2m_ztranslate_adj
 subroutine fmm_m2m_ztranslate_adj_work(z, src_r, dst_r, p, vscales, vcnk, &
         & alpha, src_m, beta, dst_m, work)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: z, src_r, dst_r, vscales((p+1)*(p+1)), &
         & vcnk((2*p+1)*(p+1)), alpha, src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     ! Temporary workspace
@@ -7213,8 +7228,8 @@ end subroutine fmm_m2m_ztranslate_adj_work
 !! @param[in] mat: Translation matrix for spherical harmonics
 subroutine fmm_m2m_ztranslate_get_mat(z, src_r, dst_r, p, vscales, vfact, mat)
     ! Inputs
-    real(dp), intent(in) :: z, src_r, dst_r, vscales((p+1)*(p+1)), vfact(2*p+1)
     integer, intent(in) :: p
+    real(dp), intent(in) :: z, src_r, dst_r, vscales((p+1)*(p+1)), vfact(2*p+1)
     ! Output
     real(dp), intent(out) :: mat((p+1)*(p+2)*(p+3)/6)
     ! Local variables
@@ -7409,8 +7424,8 @@ end subroutine fmm_m2m_ztranslate_use_mat_adj
 !! @param[inout] dst_m: Multipole expansion in new harmonics
 subroutine fmm_m2m_scale(src_r, dst_r, p, alpha, src_m, beta, dst_m)
     ! Inputs
-    real(dp), intent(in) :: src_r, dst_r, alpha, src_m((p+1)*(p+1)), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: src_r, dst_r, alpha, src_m((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     ! Local variables
@@ -7455,8 +7470,8 @@ end subroutine fmm_m2m_scale
 !! @param[inout] dst_m: Multipole expansion in new harmonics
 subroutine fmm_m2m_scale_adj(src_r, dst_r, p, alpha, src_m, beta, dst_m)
     ! Inputs
-    real(dp), intent(in) :: src_r, dst_r, alpha, src_m((p+1)*(p+1)), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: src_r, dst_r, alpha, src_m((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     ! Local variables
@@ -7507,9 +7522,9 @@ end subroutine fmm_m2m_scale_adj
 subroutine fmm_m2m_rotation(c, src_r, dst_r, p, vscales, vcnk, alpha, &
         & src_m, beta, dst_m)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1)), &
         & vcnk((2*p+1)*(p+1)), alpha, src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     ! Temporary workspace
@@ -7548,9 +7563,9 @@ end subroutine fmm_m2m_rotation
 subroutine fmm_m2m_rotation_work(c, src_r, dst_r, p, vscales, vcnk, alpha, &
         & src_m, beta, dst_m, work)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1)), &
         & vcnk((2*p+1)*(p+1)), alpha, src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     ! Temporary workspace
@@ -7623,9 +7638,9 @@ end subroutine fmm_m2m_rotation_work
 subroutine fmm_m2m_rotation_adj(c, src_r, dst_r, p, vscales, vcnk, alpha, &
         & src_m, beta, dst_m)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1)), &
         & vcnk((2*p+1)*(p+1)), alpha, src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     ! Temporary workspace
@@ -7662,9 +7677,9 @@ end subroutine fmm_m2m_rotation_adj
 subroutine fmm_m2m_rotation_adj_work(c, src_r, dst_r, p, vscales, vcnk, &
         & alpha, src_m, beta, dst_m, work)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1)), &
         & vcnk((2*p+1)*(p+1)), alpha, src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     ! Temporary workspace
@@ -7780,9 +7795,9 @@ end subroutine coord_reflect_get_mat
 subroutine fmm_m2m_reflection_get_mat(c, src_r, dst_r, p, vscales, vfact, &
         & transform_mat, ztranslate_mat)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1)), &
         & vfact(2*p+1)
-    integer, intent(in) :: p
     ! Outputs
     real(dp), intent(out) :: transform_mat((p+1)*(2*p+1)*(2*p+3)/3)
     real(dp), intent(out) :: ztranslate_mat((p+1)*(p+2)*(p+3)/6)
@@ -7819,11 +7834,11 @@ end subroutine fmm_m2m_reflection_get_mat
 subroutine fmm_m2m_reflection_use_mat(c, src_r, dst_r, p, transform_mat, &
         & ztranslate_mat, alpha, src_m, beta, dst_m)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, &
         & transform_mat((p+1)*(2*p+1)*(2*p+3)/3), &
         & ztranslate_mat((p+1)*(p+2)*(p+3)/6), &
         & alpha, src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     ! Local variables
@@ -7862,11 +7877,11 @@ end subroutine fmm_m2m_reflection_use_mat
 subroutine fmm_m2m_reflection_use_mat_adj(c, src_r, dst_r, p, transform_mat, &
         & ztranslate_mat, alpha, src_m, beta, dst_m)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, &
         & transform_mat((p+1)*(2*p+1)*(2*p+3)/3), &
         & ztranslate_mat((p+1)*(p+2)*(p+3)/6), &
         & alpha, src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     ! Local variables
@@ -7915,9 +7930,9 @@ end subroutine fmm_m2m_reflection_use_mat_adj
 subroutine fmm_l2l_ztranslate(z, src_r, dst_r, p, vscales, vfact, alpha, &
         & src_l, beta, dst_l)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: z, src_r, dst_r, vscales((p+1)*(p+1)), &
         & vfact(2*p+1), alpha, src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Temporary workspace
@@ -7953,9 +7968,9 @@ end subroutine fmm_l2l_ztranslate
 subroutine fmm_l2l_ztranslate_work(z, src_r, dst_r, p, vscales, vfact, alpha, &
         & src_l, beta, dst_l, work)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: z, src_r, dst_r, vscales((p+1)*(p+1)), &
         & vfact(2*p+1), alpha, src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Temporary workspace
@@ -8047,9 +8062,9 @@ end subroutine fmm_l2l_ztranslate_work
 subroutine fmm_l2l_ztranslate_adj(z, src_r, dst_r, p, vscales, vfact, &
         & alpha, src_l, beta, dst_l)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: z, src_r, dst_r, vscales((p+1)*(p+1)), &
         & vfact(2*p+1), alpha, src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Temporary workspace
@@ -8085,9 +8100,9 @@ end subroutine fmm_l2l_ztranslate_adj
 subroutine fmm_l2l_ztranslate_adj_work(z, src_r, dst_r, p, vscales, vfact, &
         & alpha, src_l, beta, dst_l, work)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: z, src_r, dst_r, vscales((p+1)*(p+1)), &
         & vfact(2*p+1), alpha, src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Temporary workspace
@@ -8169,8 +8184,8 @@ end subroutine fmm_l2l_ztranslate_adj_work
 !! @param[in] mat: Translation matrix for spherical harmonics
 subroutine fmm_l2l_ztranslate_get_mat(z, src_r, dst_r, p, vscales, vfact, mat)
     ! Inputs
-    real(dp), intent(in) :: z, src_r, dst_r, vscales((p+1)*(p+1)), vfact(2*p+1)
     integer, intent(in) :: p
+    real(dp), intent(in) :: z, src_r, dst_r, vscales((p+1)*(p+1)), vfact(2*p+1)
     ! Output
     real(dp), intent(out) :: mat((p+1)*(p+2)*(p+3)/6)
     ! Local variables
@@ -8361,8 +8376,8 @@ end subroutine fmm_l2l_ztranslate_use_mat_adj
 !! @param[inout] dst_l: Multipole expansion in new harmonics
 subroutine fmm_l2l_scale(src_r, dst_r, p, alpha, src_l, beta, dst_l)
     ! Inputs
-    real(dp), intent(in) :: src_r, dst_r, alpha, src_l((p+1)*(p+1)), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: src_r, dst_r, alpha, src_l((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Local variables
@@ -8406,8 +8421,8 @@ end subroutine fmm_l2l_scale
 !! @param[inout] dst_l: Multipole expansion in new harmonics
 subroutine fmm_l2l_scale_adj(src_r, dst_r, p, alpha, src_l, beta, dst_l)
     ! Inputs
-    real(dp), intent(in) :: src_r, dst_r, alpha, src_l((p+1)*(p+1)), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: src_r, dst_r, alpha, src_l((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Local variables
@@ -8458,9 +8473,9 @@ end subroutine fmm_l2l_scale_adj
 subroutine fmm_l2l_rotation(c, src_r, dst_r, p, vscales, vfact, alpha, &
         & src_l, beta, dst_l)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1)), &
         & vfact(2*p+1), alpha, src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Temporary workspace
@@ -8499,9 +8514,9 @@ end subroutine fmm_l2l_rotation
 subroutine fmm_l2l_rotation_work(c, src_r, dst_r, p, vscales, vfact, alpha, &
         & src_l, beta, dst_l, work)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1)), &
         & vfact(2*p+1), alpha, src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Temporary workspace
@@ -8576,9 +8591,9 @@ end subroutine fmm_l2l_rotation_work
 subroutine fmm_l2l_rotation_adj(c, src_r, dst_r, p, vscales, vfact, &
         & alpha, src_l, beta, dst_l)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1)), &
         & vfact(2*p+1), alpha, src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Temporary workspace
@@ -8617,9 +8632,9 @@ end subroutine fmm_l2l_rotation_adj
 subroutine fmm_l2l_rotation_adj_work(c, src_r, dst_r, p, vscales, vfact, &
         & alpha, src_l, beta, dst_l, work)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1)), &
         & vfact(2*p+1), alpha, src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Temporary workspace
@@ -8679,9 +8694,9 @@ end subroutine fmm_l2l_rotation_adj_work
 subroutine fmm_l2l_reflection_get_mat(c, src_r, dst_r, p, vscales, vfact, &
         & transform_mat, ztranslate_mat)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1)), &
         & vfact(2*p+1)
-    integer, intent(in) :: p
     ! Outputs
     real(dp), intent(out) :: transform_mat((p+1)*(2*p+1)*(2*p+3)/6)
     real(dp), intent(out) :: ztranslate_mat((p+1)*(p+2)*(p+3)/6)
@@ -8718,11 +8733,11 @@ end subroutine fmm_l2l_reflection_get_mat
 subroutine fmm_l2l_reflection_use_mat(c, src_r, dst_r, p, transform_mat, &
         & ztranslate_mat, alpha, src_l, beta, dst_l)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, &
         & transform_mat((p+1)*(2*p+1)*(2*p+3)/3), &
         & ztranslate_mat((p+1)*(p+2)*(p+3)/6), &
         & alpha, src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Local variables
@@ -8761,11 +8776,11 @@ end subroutine fmm_l2l_reflection_use_mat
 subroutine fmm_l2l_reflection_use_mat_adj(c, src_r, dst_r, p, transform_mat, &
         & ztranslate_mat, alpha, src_l, beta, dst_l)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, &
         & transform_mat((p+1)*(2*p+1)*(2*p+3)/3), &
         & ztranslate_mat((p+1)*(p+2)*(p+3)/6), &
         & alpha, src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Local variables
@@ -8815,10 +8830,10 @@ end subroutine fmm_l2l_reflection_use_mat_adj
 subroutine fmm_m2l_ztranslate(z, src_r, dst_r, pm, pl, vscales, &
         & m2l_ztranslate_coef, alpha, src_m, beta, dst_l)
     ! Inputs
+    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: z, src_r, dst_r, vscales((pm+pl+1)*(pm+pl+1)), &
         & m2l_ztranslate_coef(pm+1, pl+1, pl+1), alpha, src_m((pm+1)*(pm+1)), &
         & beta
-    integer, intent(in) :: pm, pl
     ! Output
     real(dp), intent(inout) :: dst_l((pl+1)*(pl+1))
     ! Temporary workspace
@@ -8855,10 +8870,10 @@ end subroutine fmm_m2l_ztranslate
 subroutine fmm_m2l_ztranslate_work(z, src_r, dst_r, pm, pl, vscales, &
         & m2l_ztranslate_coef, alpha, src_m, beta, dst_l, work)
     ! Inputs
+    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: z, src_r, dst_r, vscales((pm+pl+1)*(pm+pl+1)), &
         & m2l_ztranslate_coef(pm+1, pl+1, pl+1), alpha, src_m((pm+1)*(pm+1)), &
         & beta
-    integer, intent(in) :: pm, pl
     ! Output
     real(dp), intent(inout) :: dst_l((pl+1)*(pl+1))
     ! Temporary workspace
@@ -9010,10 +9025,10 @@ end subroutine fmm_m2l_ztranslate_work
 subroutine fmm_m2l_ztranslate_adj(z, src_r, dst_r, pl, pm, vscales, &
         & m2l_ztranslate_adj_coef, alpha, src_l, beta, dst_m)
     ! Inputs
+    integer, intent(in) :: pl, pm
     real(dp), intent(in) :: z, src_r, dst_r, vscales((pm+pl+1)*(pm+pl+1)), &
         & m2l_ztranslate_adj_coef(pl+1, pl+1, pm+1), alpha, &
         & src_l((pl+1)*(pl+1)), beta
-    integer, intent(in) :: pl, pm
     ! Output
     real(dp), intent(inout) :: dst_m((pm+1)*(pm+1))
     ! Temporary workspace
@@ -9049,10 +9064,10 @@ end subroutine fmm_m2l_ztranslate_adj
 subroutine fmm_m2l_ztranslate_adj_work(z, src_r, dst_r, pl, pm, vscales, &
         & m2l_ztranslate_adj_coef, alpha, src_l, beta, dst_m, work)
     ! Inputs
+    integer, intent(in) :: pl, pm
     real(dp), intent(in) :: z, src_r, dst_r, vscales((pm+pl+1)*(pm+pl+1)), &
         & m2l_ztranslate_adj_coef(pl+1, pl+1, pm+1), alpha, &
         & src_l((pl+1)*(pl+1)), beta
-    integer, intent(in) :: pl, pm
     ! Output
     real(dp), intent(inout) :: dst_m((pm+1)*(pm+1))
     ! Temporary workspace
@@ -9199,9 +9214,9 @@ end subroutine fmm_m2l_ztranslate_adj_work
 subroutine fmm_m2l_ztranslate_get_mat(z, src_r, dst_r, pm, pl, vscales, &
         & vfact, mat)
     ! Inputs
+    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: z, src_r, dst_r, vscales((pm+pl+1)*(pm+pl+1)), &
         & vfact(2*(pm+pl)+1)
-    integer, intent(in) :: pm, pl
     ! Output
     real(dp), intent(out) :: mat((min(pm,pl)+1) * (min(pm,pl)+2) &
         & * (3*max(pm,pl)+3-min(pm,pl)) / 6)
@@ -9390,9 +9405,9 @@ end subroutine fmm_m2l_ztranslate_use_mat_adj
 subroutine fmm_m2l_reflection_get_mat(c, src_r, dst_r, pm, pl, vscales, &
         & vfact, transform_mat, ztranslate_mat)
     ! Inputs
+    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((pm+pl+1)**2), &
         & vfact(2*(pm+pl)+1)
-    integer, intent(in) :: pm, pl
     ! Outputs
     real(dp), intent(out) :: transform_mat((max(pm,pl)+1)*(2*max(pm,pl)+1)* &
         & (2*max(pm,pl)+3)/3)
@@ -9431,9 +9446,9 @@ end subroutine fmm_m2l_reflection_get_mat
 subroutine fmm_m2l_reflection_use_mat(c, src_r, dst_r, pm, pl, transform_mat, &
         & ztranslate_mat, alpha, src_m, beta, dst_l)
     ! Inputs
+    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: c(3), src_r, dst_r, alpha, src_m((pm+1)*(pm+1)), &
         & beta
-    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: &
         & transform_mat((max(pm,pl)+1)*(2*max(pm,pl)+1)*(2*max(pm,pl)+3)/3), &
         & ztranslate_mat((min(pm,pl)+1)*(min(pm,pl)+2)* &
@@ -9475,9 +9490,9 @@ end subroutine fmm_m2l_reflection_use_mat
 subroutine fmm_m2l_reflection_use_mat_adj(c, src_r, dst_r, pl, pm, &
         & transform_mat, ztranslate_mat, alpha, src_l, beta, dst_m)
     ! Inputs
+    integer, intent(in) :: pl, pm
     real(dp), intent(in) :: c(3), src_r, dst_r, alpha, src_l((pl+1)*(pl+1)), &
         & beta
-    integer, intent(in) :: pl, pm
     real(dp), intent(in) :: &
         & transform_mat((max(pm,pl)+1)*(2*max(pm,pl)+1)*(2*max(pm,pl)+3)/3), &
         & ztranslate_mat((min(pm,pl)+1)*(min(pm,pl)+2)* &
@@ -9532,10 +9547,10 @@ end subroutine fmm_m2l_reflection_use_mat_adj
 subroutine fmm_m2l_rotation(c, src_r, dst_r, pm, pl, vscales, &
         & m2l_ztranslate_coef, alpha, src_m, beta, dst_l)
     ! Inputs
+    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((pm+pl+1)**2), &
         & m2l_ztranslate_coef(pm+1, pl+1, pl+1), alpha, src_m((pm+1)*(pm+1)), &
         & beta
-    integer, intent(in) :: pm, pl
     ! Output
     real(dp), intent(inout) :: dst_l((pl+1)*(pl+1))
     ! Temporary workspace
@@ -9576,10 +9591,10 @@ end subroutine fmm_m2l_rotation
 subroutine fmm_m2l_rotation_work(c, src_r, dst_r, pm, pl, vscales, &
         & m2l_ztranslate_coef, alpha, src_m, beta, dst_l, work)
     ! Inputs
+    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((pm+pl+1)**2), &
         & m2l_ztranslate_coef(pm+1, pl+1, pl+1), alpha, src_m((pm+1)*(pm+1)), &
         & beta
-    integer, intent(in) :: pm, pl
     ! Output
     real(dp), intent(inout) :: dst_l((pl+1)*(pl+1))
     ! Temporary workspace
@@ -9657,10 +9672,10 @@ end subroutine fmm_m2l_rotation_work
 subroutine fmm_m2l_rotation_adj(c, src_r, dst_r, pl, pm, vscales, &
         & m2l_ztranslate_adj_coef, alpha, src_l, beta, dst_m)
     ! Inputs
+    integer, intent(in) :: pl, pm
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((pm+pl+1)**2), &
         & m2l_ztranslate_adj_coef(pl+1, pl+1, pm+1), alpha, &
         & src_l((pl+1)*(pl+1)), beta
-    integer, intent(in) :: pl, pm
     ! Output
     real(dp), intent(inout) :: dst_m((pm+1)*(pm+1))
     ! Temporary workspace
@@ -9701,10 +9716,10 @@ end subroutine fmm_m2l_rotation_adj
 subroutine fmm_m2l_rotation_adj_work(c, src_r, dst_r, pl, pm, vscales, &
         & m2l_ztranslate_adj_coef, alpha, src_l, beta, dst_m, work)
     ! Inputs
+    integer, intent(in) :: pl, pm
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((pm+pl+1)**2), &
         & m2l_ztranslate_adj_coef(pl+1, pl+1, pm+1), alpha, &
         & src_l((pl+1)*(pl+1)), beta
-    integer, intent(in) :: pl, pm
     ! Output
     real(dp), intent(inout) :: dst_m((pm+1)*(pm+1))
     ! Temporary workspace
