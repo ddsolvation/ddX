@@ -26,3 +26,5 @@ ddx_add_test("ddx_driver.f90"
 add_test(NAME driver_cosmo COMMAND ddx_driver
     "${CMAKE_SOURCE_DIR}/tests/Input_cosmo.txt")
 
+ddx_add_test("m2l.f90")
+

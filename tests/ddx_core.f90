@@ -179,6 +179,7 @@ end if
 if ((testname .eq. 'all') .or. (testname .eq. 'm2l')) then
     do i = 1, size(alpha)
         do j = 0, p
+        !do j = 1, 1
             call check_m2l(j, j, alpha(i))
         end do
         do j = 1, p
@@ -1389,7 +1390,7 @@ subroutine check_m2m(p, alpha)
     print "(A)", repeat("=", 40)
     print "(A)", "  i | ok | err(i)"
     print "(A)", repeat("=", 40)
-    threshold = (p+3) * 4d-16
+    threshold = (p+3) * 1d-15
     ! Check against baseline implementation
     do i = 1, nx
         c = y(:, i)
@@ -1577,7 +1578,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), zero, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 3d-15
+        ok = err .le. 1d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
@@ -1586,7 +1587,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), zero, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, three*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 8d-15
+        ok = err .le. 1d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta=one
@@ -1596,7 +1597,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), one, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 2d-15
+        ok = err .le. 1d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
@@ -1606,7 +1607,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), -pt5, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, pt5*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 2d-15
+        ok = err .le. 1d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
@@ -1616,7 +1617,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), pt5, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, two*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 8d-15
+        ok = err .le. 1d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
     end do
@@ -1675,7 +1676,7 @@ subroutine check_l2l_adj(p, alpha)
         call dgemm('T', 'N', nrand, nrand, (p+1)**2, -one, src_l2, (p+1)**2, &
             & src_l, (p+1)**2, one, tmp, nrand)
         err = dnrm2(nrand*nrand, tmp, 1) / err
-        ok = err .lt. 8d-15
+        ok = err .lt. 1d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
@@ -1746,7 +1747,12 @@ subroutine check_m2l(pm, pl, alpha)
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
         ok = err .le. 1d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
-        if(.not. ok) stop 1
+        !if(.not. ok) stop 1
+        if (.not. ok) then
+            print *, src_m
+            print *, dst_l2
+            stop 1
+        end if
         ! Check alpha!={zero,one}, beta=zero
         do j = 1, nrand
             call fmm_m2l_rotation(c, r, dst_r, pm, pl, vscales, &

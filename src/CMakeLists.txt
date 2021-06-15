@@ -8,6 +8,10 @@
 # @date 2020-02-17
 
 set(SRC
+    "ddx_definitions.f90"
+    "ddx_parameters.f90"
+    "ddx_constants.f90"
+    "ddx_harmonics.f90"
     "ddx_core.f90"
     "ddx_operators.f90"
     "ddx_solvers.f90"
