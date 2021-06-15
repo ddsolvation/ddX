@@ -60,25 +60,14 @@ subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
             ddx_data % tmp_node_m(2:, inode) = zero
         end do
         ! M2M, M2L and L2L translations
-        if(ddx_data % fmm_precompute .eq. 1) then
-            call tree_m2m_reflection_use_mat(ddx_data, ddx_data % tmp_node_m)
-            call tree_m2l_reflection_use_mat(ddx_data, ddx_data % tmp_node_m, &
-                & ddx_data % tmp_node_l)
-            call tree_l2l_reflection_use_mat(ddx_data, ddx_data % tmp_node_l)
-            call tree_l2p(ddx_data, one, ddx_data % tmp_node_l, zero, &
-                & ddx_data % tmp_grid)
-            call tree_m2p_use_mat(ddx_data, ddx_data % lmax, one, &
-                & ddx_data % tmp_sph, one, ddx_data % tmp_grid)
-        else
-            call tree_m2m_rotation(ddx_data, ddx_data % tmp_node_m)
-            call tree_m2l_rotation(ddx_data, ddx_data % tmp_node_m, &
-                & ddx_data % tmp_node_l)
-            call tree_l2l_rotation(ddx_data, ddx_data % tmp_node_l)
-            call tree_l2p(ddx_data, one, ddx_data % tmp_node_l, zero, &
-                & ddx_data % tmp_grid)
-            call tree_m2p(ddx_data, ddx_data % lmax, one, ddx_data % tmp_sph, &
-                & one, ddx_data % tmp_grid)
-        end if
+        call tree_m2m_rotation(ddx_data, ddx_data % tmp_node_m)
+        call tree_m2l_rotation(ddx_data, ddx_data % tmp_node_m, &
+            & ddx_data % tmp_node_l)
+        call tree_l2l_rotation(ddx_data, ddx_data % tmp_node_l)
+        call tree_l2p(ddx_data, one, ddx_data % tmp_node_l, zero, &
+            & ddx_data % tmp_grid)
+        call tree_m2p(ddx_data, ddx_data % lmax, one, ddx_data % tmp_sph, &
+            & one, ddx_data % tmp_grid)
         ! Potential from each sphere to its own grid points
         call dgemm('T', 'N', ddx_data % ngrid, ddx_data % nsph, &
             & ddx_data % nbasis, one, ddx_data % l2grid, &
@@ -419,25 +408,14 @@ subroutine dx_fmm(ddx_data, do_diag, x, y)
         end do
     end if
     ! Do FMM operations
-    if(ddx_data % fmm_precompute .eq. 1) then
-        call tree_m2m_reflection_use_mat(ddx_data, ddx_data % tmp_node_m)
-        call tree_m2l_reflection_use_mat(ddx_data, ddx_data % tmp_node_m, &
-            & ddx_data % tmp_node_l)
-        call tree_l2l_reflection_use_mat(ddx_data, ddx_data % tmp_node_l)
-        call tree_l2p(ddx_data, one, ddx_data % tmp_node_l, zero, &
-            & ddx_data % tmp_grid)
-        call tree_m2p_use_mat(ddx_data, ddx_data % lmax, one, &
-            & ddx_data % tmp_sph, one, ddx_data % tmp_grid)
-    else
-        call tree_m2m_rotation(ddx_data, ddx_data % tmp_node_m)
-        call tree_m2l_rotation(ddx_data, ddx_data % tmp_node_m, &
-            & ddx_data % tmp_node_l)
-        call tree_l2l_rotation(ddx_data, ddx_data % tmp_node_l)
-        call tree_l2p(ddx_data, one, ddx_data % tmp_node_l, zero, &
-            & ddx_data % tmp_grid)
-        call tree_m2p(ddx_data, ddx_data % lmax, one, ddx_data % tmp_sph, one, &
-            & ddx_data % tmp_grid)
-    end if
+    call tree_m2m_rotation(ddx_data, ddx_data % tmp_node_m)
+    call tree_m2l_rotation(ddx_data, ddx_data % tmp_node_m, &
+        & ddx_data % tmp_node_l)
+    call tree_l2l_rotation(ddx_data, ddx_data % tmp_node_l)
+    call tree_l2p(ddx_data, one, ddx_data % tmp_node_l, zero, &
+        & ddx_data % tmp_grid)
+    call tree_m2p(ddx_data, ddx_data % lmax, one, ddx_data % tmp_sph, one, &
+        & ddx_data % tmp_grid)
     ! Apply diagonal contribution if needed
     if(do_diag .eq. 1) then
         call dgemm('T', 'N', ddx_data % ngrid, ddx_data % nsph, &
@@ -570,25 +548,14 @@ subroutine dstarx_fmm(ddx_data, do_diag, x, y)
     ! Multiply by characteristic function
     ddx_data % tmp_grid = ddx_data % tmp_grid * ddx_data % ui
     ! Do FMM operations adjointly
-    if(ddx_data % fmm_precompute .eq. 1) then
-        call tree_m2p_use_mat_adj(ddx_data, ddx_data % lmax, one, &
-            & ddx_data % tmp_grid, zero, y)
-        call tree_l2p_adj(ddx_data, one, ddx_data % tmp_grid, zero, &
-            & ddx_data % tmp_node_l)
-        call tree_l2l_reflection_use_mat_adj(ddx_data, ddx_data % tmp_node_l)
-        call tree_m2l_reflection_use_mat_adj(ddx_data, ddx_data % tmp_node_l, &
-            & ddx_data % tmp_node_m)
-        call tree_m2m_reflection_use_mat_adj(ddx_data, ddx_data % tmp_node_m)
-    else
-        call tree_m2p_adj(ddx_data, ddx_data % lmax, one, ddx_data % tmp_grid, &
-            & zero, y)
-        call tree_l2p_adj(ddx_data, one, ddx_data % tmp_grid, zero, &
-            & ddx_data % tmp_node_l)
-        call tree_l2l_rotation_adj(ddx_data, ddx_data % tmp_node_l)
-        call tree_m2l_rotation_adj(ddx_data, ddx_data % tmp_node_l, &
-            & ddx_data % tmp_node_m)
-        call tree_m2m_rotation_adj(ddx_data, ddx_data % tmp_node_m)
-    end if
+    call tree_m2p_adj(ddx_data, ddx_data % lmax, one, ddx_data % tmp_grid, &
+        & zero, y)
+    call tree_l2p_adj(ddx_data, one, ddx_data % tmp_grid, zero, &
+        & ddx_data % tmp_node_l)
+    call tree_l2l_rotation_adj(ddx_data, ddx_data % tmp_node_l)
+    call tree_m2l_rotation_adj(ddx_data, ddx_data % tmp_node_l, &
+        & ddx_data % tmp_node_m)
+    call tree_m2m_rotation_adj(ddx_data, ddx_data % tmp_node_m)
     ! Adjointly move tree multipole harmonics into output
     if(ddx_data % lmax .lt. ddx_data % pm) then
         do isph = 1, ddx_data % nsph
@@ -1172,25 +1139,14 @@ subroutine gradr_fmm(ddx_data, fx)
     end do
     ! Adjoint FMM with output tmp_sph2(:, :) which stores coefficients of
     ! harmonics of degree up to lmax+1
-    if (ddx_data % fmm_precompute .eq. 1) then
-        call tree_m2p_use_mat_adj(ddx_data, ddx_data % lmax+1, one, &
-            & ddx_data % tmp_grid, zero, ddx_data % tmp_sph2)
-        call tree_l2p_adj(ddx_data, one, ddx_data % tmp_grid, zero, &
-            & ddx_data % tmp_node_l)
-        call tree_l2l_reflection_use_mat_adj(ddx_data, ddx_data % tmp_node_l)
-        call tree_m2l_reflection_use_mat_adj(ddx_data, ddx_data % tmp_node_l, &
-            & ddx_data % tmp_node_m)
-        call tree_m2m_reflection_use_mat_adj(ddx_data, ddx_data % tmp_node_m)
-    else
-        call tree_m2p_adj(ddx_data, ddx_data % lmax+1, one, ddx_data % tmp_grid, &
-            & zero, ddx_data % tmp_sph2)
-        call tree_l2p_adj(ddx_data, one, ddx_data % tmp_grid, zero, &
-            & ddx_data % tmp_node_l)
-        call tree_l2l_rotation_adj(ddx_data, ddx_data % tmp_node_l)
-        call tree_m2l_rotation_adj(ddx_data, ddx_data % tmp_node_l, &
-            & ddx_data % tmp_node_m)
-        call tree_m2m_rotation_adj(ddx_data, ddx_data % tmp_node_m)
-    end if
+    call tree_m2p_adj(ddx_data, ddx_data % lmax+1, one, ddx_data % tmp_grid, &
+        & zero, ddx_data % tmp_sph2)
+    call tree_l2p_adj(ddx_data, one, ddx_data % tmp_grid, zero, &
+        & ddx_data % tmp_node_l)
+    call tree_l2l_rotation_adj(ddx_data, ddx_data % tmp_node_l)
+    call tree_m2l_rotation_adj(ddx_data, ddx_data % tmp_node_l, &
+        & ddx_data % tmp_node_m)
+    call tree_m2m_rotation_adj(ddx_data, ddx_data % tmp_node_m)
     ! Properly load adjoint multipole harmonics into tmp_sph2 that holds
     ! harmonics of a degree up to lmax+1
     if(ddx_data % lmax+1 .lt. ddx_data % pm) then
@@ -1234,25 +1190,14 @@ subroutine gradr_fmm(ddx_data, fx)
         end do
     end if
     ! Perform direct FMM matvec to all external grid points
-    if (ddx_data % fmm_precompute .eq. 1) then
-        call tree_m2m_reflection_use_mat(ddx_data, ddx_data % tmp_node_m)
-        call tree_m2l_reflection_use_mat(ddx_data, ddx_data % tmp_node_m, &
-            & ddx_data % tmp_node_l)
-        call tree_l2l_reflection_use_mat(ddx_data, ddx_data % tmp_node_l)
-        call tree_l2p(ddx_data, one, ddx_data % tmp_node_l, zero, &
-            & ddx_data % tmp_grid)
-        call tree_m2p_use_mat(ddx_data, ddx_data % lmax, one, &
-            & ddx_data % tmp_sph, one, ddx_data % tmp_grid)
-    else
-        call tree_m2m_rotation(ddx_data, ddx_data % tmp_node_m)
-        call tree_m2l_rotation(ddx_data, ddx_data % tmp_node_m, &
-            & ddx_data % tmp_node_l)
-        call tree_l2l_rotation(ddx_data, ddx_data % tmp_node_l)
-        call tree_l2p(ddx_data, one, ddx_data % tmp_node_l, zero, &
-            & ddx_data % tmp_grid)
-        call tree_m2p(ddx_data, ddx_data % lmax, one, ddx_data % tmp_sph, one, &
-            & ddx_data % tmp_grid)
-    end if
+    call tree_m2m_rotation(ddx_data, ddx_data % tmp_node_m)
+    call tree_m2l_rotation(ddx_data, ddx_data % tmp_node_m, &
+        & ddx_data % tmp_node_l)
+    call tree_l2l_rotation(ddx_data, ddx_data % tmp_node_l)
+    call tree_l2p(ddx_data, one, ddx_data % tmp_node_l, zero, &
+        & ddx_data % tmp_grid)
+    call tree_m2p(ddx_data, ddx_data % lmax, one, ddx_data % tmp_sph, one, &
+        & ddx_data % tmp_grid)
     !! Compute gradients of L2L if pl > 0
     if (ddx_data % pl .gt. 0) then
         call tree_grad_l2l(ddx_data, ddx_data % tmp_node_l, &

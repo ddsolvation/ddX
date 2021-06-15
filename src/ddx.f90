@@ -170,17 +170,10 @@ subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
                     & ddx_data % rsph(isph)
             end do
             ! M2M, M2L and L2L translations
-            if(ddx_data % fmm_precompute .eq. 1) then
-                call tree_m2m_reflection_use_mat(ddx_data, ddx_data % tmp_node_m)
-                call tree_m2l_reflection_use_mat(ddx_data, ddx_data % tmp_node_m, &
-                    & ddx_data % tmp_node_l)
-                call tree_l2l_reflection_use_mat(ddx_data, ddx_data % tmp_node_l)
-            else
-                call tree_m2m_rotation(ddx_data, ddx_data % tmp_node_m)
-                call tree_m2l_rotation(ddx_data, ddx_data % tmp_node_m, &
-                    & ddx_data % tmp_node_l)
-                call tree_l2l_rotation(ddx_data, ddx_data % tmp_node_l)
-            end if
+            call tree_m2m_rotation(ddx_data, ddx_data % tmp_node_m)
+            call tree_m2l_rotation(ddx_data, ddx_data % tmp_node_m, &
+                & ddx_data % tmp_node_l)
+            call tree_l2l_rotation(ddx_data, ddx_data % tmp_node_l)
             ! Now compute near-field FMM gradients
             ! Cycle over all spheres
             icav = 0
@@ -390,17 +383,10 @@ subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
                     & ddx_data % rsph(isph)
             end do
             ! M2M, M2L and L2L translations
-            if(ddx_data % fmm_precompute .eq. 1) then
-                call tree_m2m_reflection_use_mat(ddx_data, ddx_data % tmp_node_m)
-                call tree_m2l_reflection_use_mat(ddx_data, ddx_data % tmp_node_m, &
-                    & ddx_data % tmp_node_l)
-                call tree_l2l_reflection_use_mat(ddx_data, ddx_data % tmp_node_l)
-            else
-                call tree_m2m_rotation(ddx_data, ddx_data % tmp_node_m)
-                call tree_m2l_rotation(ddx_data, ddx_data % tmp_node_m, &
-                    & ddx_data % tmp_node_l)
-                call tree_l2l_rotation(ddx_data, ddx_data % tmp_node_l)
-            end if
+            call tree_m2m_rotation(ddx_data, ddx_data % tmp_node_m)
+            call tree_m2l_rotation(ddx_data, ddx_data % tmp_node_m, &
+                & ddx_data % tmp_node_l)
+            call tree_l2l_rotation(ddx_data, ddx_data % tmp_node_l)
             ! Now compute near-field FMM gradients
             ! Cycle over all spheres
             icav = 0
