@@ -97,7 +97,9 @@ type ddx_constants_type
     !! vwgrid(:, igrid) = vgrid(:, igrid) * wgrid(igrid)
     !! Dimension of this array is (vgrid_nbasis, ngrid).
     real(dp), allocatable :: vwgrid(:, :)
-    !> Values of L2P at grid points. Dimension is (vgrid_nbasis, ngrid).
+    !> Number of L2P harmonics evaluated at Lebedev grid points
+    integer :: l2grid_nbasis
+    !> Values of L2P at grid points. Dimension is (l2grid_nbasis, ngrid).
     real(dp), allocatable :: l2grid(:, :)
     !> Upper limit on a number of neighbours per sphere. This value is just an
     !!      upper bound that is not guaranteed to be the actual maximum.
@@ -236,6 +238,7 @@ subroutine constants_init(params, constants, info)
         constants % m2p_lmax = -1
         constants % m2p_nbasis = -1
         constants % grad_nbasis = -1
+        constants % l2grid_nbasis = -1
     else
         ! If forces are required then we need the M2P of a degree lmax+1 for
         ! the near-field analytical gradients
@@ -252,6 +255,7 @@ subroutine constants_init(params, constants, info)
         end if
         constants % vgrid_dmax = max(params % pl, params % lmax)
         constants % m2p_nbasis = (constants % m2p_lmax+1) ** 2
+        constants % l2grid_nbasis = (params % pl+1) ** 2
     end if
     ! Compute sizes of vgrid, vfact and vscales
     constants % vgrid_nbasis = (constants % vgrid_dmax+1) ** 2
@@ -356,12 +360,11 @@ subroutine constants_init(params, constants, info)
     ! harmonics and L2P at Lebedev grid points
     allocate(constants % vgrid(constants % vgrid_nbasis, params % ngrid), &
         & constants % vwgrid(constants % vgrid_nbasis, params % ngrid), &
-        & constants % l2grid(constants % vgrid_nbasis, params % ngrid), &
         & stat=info)
     if (info .ne. 0) then
         constants % error_flag = 1
         constants % error_message = "constants_init: `vgrid`, `wgrid` and" // &
-            & " `l2grid` allocations failed"
+            & " allocations failed"
         info = 1
         return
     end if
@@ -382,13 +385,17 @@ subroutine constants_init(params, constants, info)
             & constants % vgrid(:, igrid), vplm, vcos, vsin)
         constants % vwgrid(:, igrid) = constants % wgrid(igrid) * &
             & constants % vgrid(:, igrid)
-        do l = 0, params % pl
-            indl = l*l + l + 1
-            constants % l2grid(indl-l:indl+l, igrid) = &
-                & constants % vgrid(indl-l:indl+l, igrid) / &
-                & constants % vscales(indl)**2
-        end do
     end do
+    if (params % fmm .eq. 1) then
+        do igrid = 1, params % ngrid
+            do l = 0, params % pl
+                indl = l*l + l + 1
+                constants % l2grid(indl-l:indl+l, igrid) = &
+                    & constants % vgrid(indl-l:indl+l, igrid) / &
+                    & constants % vscales(indl)**2
+            end do
+        end do
+    end if
     deallocate(vplm, vcos, vsin, stat=info)
     if (info .ne. 0) then
         constants % error_flag = 1
@@ -402,8 +409,6 @@ subroutine constants_init(params, constants, info)
     constants % error_message = ""
     ! Generate geometry-related constants
     call constants_geometry_init(params, constants, info)
-    ! Even if the geometry was not properly initialised, constants obejct is in
-    ! error state with corresponding error message.
 end subroutine constants_init
 
 !> Initialize geometry-related constants like list of neighbouring spheres
@@ -425,8 +430,9 @@ subroutine constants_geometry_init(params, constants, info)
     integer, intent(out) :: info
     !! Local variables
     real(dp) :: swthr, v(3), maxv, ssqv, vv, r, t
-    integer :: nngmax, i, lnl, isph, jsph, inear, igrid
-    integer, allocatable :: tmp_nl(:)
+    integer :: nngmax, i, lnl, isph, jsph, inear, igrid, iwork, jwork, lwork, &
+        & old_lwork
+    integer, allocatable :: tmp_nl(:), work(:, :), tmp_work(:, :)
     !! The code
     ! Upper bound of switch region. Defines intersection criterion for spheres
     swthr = one + (params % se+one)*params % eta/two
@@ -611,23 +617,189 @@ subroutine constants_geometry_init(params, constants, info)
             i = i + 1
         end do
     end do
-    ! RX_PRC
-    ! ORDER
-    ! NCLUSTERS
-    ! CLUSTER
-    ! CHILDREN
-    ! PARENT
-    ! CNODE
-    ! SNODE
-    ! NNFAR
-    ! NNNEAR
-    ! NFAR
-    ! NNEAR
-    ! FAR
-    ! NEAR
-    ! SFAR
-    ! SNEAR
-    ! NNEAR_M2P
+    ! Compute diagonal preconditioner for PCM equations
+    call mkprec(params % lmax, constants % nbasis, params % nsph, &
+        & params % ngrid, params % eps, constants % ui, &
+        & constants % wgrid, constants % vgrid, constants % vgrid_nbasis, &
+        & constants % rx_prc, info, constants % error_message)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        return
+    end if
+    ! Prepare FMM structures if needed
+    if (params % fmm .eq. 1) then
+        ! Allocate space for a cluster tree
+        allocate(constants % order(params % nsph), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `order` " &
+                & // "allocation failed"
+            info = 1
+            return
+        end if
+        constants % nclusters = 2*params % nsph - 1
+        allocate(constants % cluster(2, constants % nclusters), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `cluster` " &
+                & // "allocation failed"
+            info = 1
+            return
+        end if
+        allocate(constants % children(2, constants % nclusters), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: " // &
+                & "`children` allocation failed"
+            info = 1
+            return
+        endif
+        allocate(constants % parent(constants % nclusters), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `parent` " &
+                & // "allocation failed"
+            info = 1
+            return
+        endif
+        allocate(constants % cnode(3, constants % nclusters), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `cnode` " &
+                & // "allocation failed"
+            info = 1
+            return
+        endif
+        allocate(constants % rnode(constants % nclusters), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `rnode` " &
+                & // "allocation failed"
+            info = 1
+            return
+        endif
+        allocate(constants % snode(params % nsph), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `snode` " &
+                & // "allocation failed"
+            info = 1
+            return
+        endif
+        allocate(constants % nfar(constants % nclusters), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `nfar` " &
+                & // "allocation failed"
+            info = 1
+            return
+        endif
+        allocate(constants % nnear(constants % nclusters), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `nnear` " &
+                & // "allocation failed"
+            info = 1
+            return
+        endif
+        ! Get the tree
+        call tree_rib_build(params % nsph, params % csph, params % rsph, &
+            & constants % order, constants % cluster, constants % children, &
+            & constants % parent, constants % cnode, constants % rnode, &
+            & constants % snode)
+        ! Get number of far and near admissible pairs
+        iwork = 0
+        jwork = 1
+        lwork = 1
+        allocate(work(3, lwork), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `work` " &
+                & // "allocation failed"
+            info = 1
+            return
+        end if
+        do while (iwork .le. jwork)
+            allocate(tmp_work(3, lwork), stat=info)
+            if (info .ne. 0) then
+                constants % error_flag = 1
+                constants % error_message = "constants_geometry_init: " // &
+                    & "`tmp_work` allocation failed"
+                info = 1
+                return
+            end if
+            tmp_work = work
+            deallocate(work, stat=info)
+            if (info .ne. 0) then
+                constants % error_flag = 1
+                constants % error_message = "constants_geometry_init: " // &
+                    & "`work` deallocation failed"
+                info = 1
+                return
+            end if
+            old_lwork = lwork
+            lwork = old_lwork + 1000*params % nsph
+            allocate(work(3, lwork), stat=info)
+            if (info .ne. 0) then
+                constants % error_flag = 1
+                constants % error_message = "constants_geometry_init: " // &
+                    & "`work` allocation failed"
+                info = 1
+                return
+            end if
+            work(:, 1:old_lwork) = tmp_work
+            deallocate(tmp_work, stat=info)
+            if (info .ne. 0) then
+                constants % error_flag = 1
+                constants % error_message = "constants_geometry_init: " // &
+                    & "`tmp_work` deallocation failed"
+                info = 1
+                return
+            end if
+            call tree_get_farnear_work(constants % nclusters, &
+                & constants % children, constants % cnode, &
+                & constants % rnode, lwork, iwork, jwork, work, &
+                & constants % nnfar, constants % nfar, constants % nnnear, &
+                & constants % nnear)
+        end do
+        allocate(constants % sfar(constants % nclusters+1), &
+            & constants % snear(constants % nclusters+1), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `sfar` " // &
+                & "and `snear` allocations failed"
+            info = 1
+            return
+        end if
+        allocate(constants % far(constants % nnfar), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `far` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
+        allocate(constants % near(constants % nnnear), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `near` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
+        call tree_get_farnear(jwork, lwork, work, constants % nclusters, &
+            & constants % nnfar, constants % nfar, constants % sfar, &
+            & constants % far, constants % nnnear, constants % nnear, &
+            & constants % snear, constants % near)
+        deallocate(work, stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `work` " // &
+                & "deallocation failed"
+            info = 1
+            return
+        end if
+    end if
 end subroutine constants_geometry_init
 
 !> Update geometry-related constants like list of neighbouring spheres
@@ -794,7 +966,6 @@ subroutine mkprec(lmax, nbasis, nsph, ngrid, eps, ui, wgrid, vgrid, &
             do l1 = 0, lmax
                 ind1 = l1*l1 + l1 + 1
                 do m1 = -l1, l1
-                    ! TODO check l2grid
                     f1 = f * vgrid(ind1+m1, igrid) / (two*dble(l1) + one)
                     do lm = 1, nbasis
                         rx_prc(lm, ind1+m1, isph) = &
@@ -837,6 +1008,373 @@ subroutine mkprec(lmax, nbasis, nsph, ngrid, eps, ui, wgrid, vgrid, &
     ! Cleanup error message if there were no error
     error_message = ""
 end subroutine mkprec
+
+!> Build a recursive inertial binary tree
+!!
+!! Uses inertial bisection in a recursive manner until each leaf node has only
+!! one input sphere inside. Number of tree nodes is always 2*nsph-1.
+!!
+!!
+!! @param[in] nsph: Number of input spheres
+!! @param[in] csph: Centers of input spheres
+!! @param[in] rsph: Radii of input spheres
+!! @param[out] order: Ordering of input spheres to make spheres of one cluster
+!!      contiguous.
+!! @param[out] cluster: Indexes in `order` array of the first and the last
+!!      spheres of each cluster
+!! @param[out] children: Indexes of the first and the last children nodes. If
+!!      both indexes are equal this means there is only 1 child node and if
+!!      value of the first child node is 0, there are no children nodes.
+!! @param[out] parent: Parent of each cluster. Value 0 means there is no parent
+!!      node which corresponds to the root node (with index 1).
+!! @param[out] cnode: Center of a bounding sphere of each node
+!! @param[out] rnode: Radius of a bounding sphere of each node
+!! @param[out] snode: Array of leaf nodes containing input spheres
+subroutine tree_rib_build(nsph, csph, rsph, order, cluster, children, parent, &
+        & cnode, rnode, snode)
+    ! Inputs
+    integer, intent(in) :: nsph
+    real(dp), intent(in) :: csph(3, nsph), rsph(nsph)
+    ! Outputs
+    integer, intent(out) :: order(nsph), cluster(2, 2*nsph-1), &
+        & children(2, 2*nsph-1), parent(2*nsph-1), snode(nsph)
+    real(dp), intent(out) :: cnode(3, 2*nsph-1), rnode(2*nsph-1)
+    ! Local variables
+    integer :: nclusters, i, j, n, s, e, div
+    real(dp) :: r, r1, r2, c(3), c1(3), c2(3), d, maxc, ssqc
+    !! At first construct the tree
+    nclusters = 2*nsph - 1
+    ! Init the root node
+    cluster(1, 1) = 1
+    cluster(2, 1) = nsph
+    parent(1) = 0
+    ! Index of the first unassigned node
+    j = 2
+    ! Init spheres ordering
+    do i = 1, nsph
+        order(i) = i
+    end do
+    ! Divide nodes until a single spheres
+    do i = 1, nclusters
+        ! The first sphere in i-th node
+        s = cluster(1, i)
+        ! The last sphere in i-th node
+        e = cluster(2, i)
+        ! Number of spheres in i-th node
+        n = e - s + 1
+        ! Divide only if there are 2 or more spheres
+        if (n .gt. 1) then
+            ! Use inertial bisection to reorder spheres and cut into 2 halfs
+            call tree_rib_node_bisect(nsph, csph, n, order(s:e), div)
+            ! Assign the first half to the j-th node
+            cluster(1, j) = s
+            cluster(2, j) = s + div - 1
+            ! Assign the second half to the (j+1)-th node
+            cluster(1, j+1) = s + div
+            cluster(2, j+1) = e
+            ! Update list of children of i-th node
+            children(1, i) = j
+            children(2, i) = j + 1
+            ! Set parents of new j-th and (j+1)-th node
+            parent(j) = i
+            parent(j+1) = i
+            ! Shift index of the first unassigned node
+            j = j + 2
+        ! Set information for a leaf node
+        else
+            ! No children nodes
+            children(:, i) = 0
+            ! i-th node contains sphere ind(s)
+            snode(order(s)) = i
+        end if
+    end do
+    !! Compute bounding spheres of each node of the tree
+    ! Bottom-to-top pass over all nodes of the tree
+    do i = nclusters, 1, -1
+        ! In case of a leaf node just use corresponding input sphere as a
+        ! bounding sphere of the node
+        if (children(1, i) .eq. 0) then
+            ! Get correct index of the corresponding input sphere
+            j = order(cluster(1, i))
+            ! Get corresponding center and radius
+            cnode(:, i) = csph(:, j)
+            rnode(i) = rsph(j)
+        ! In case of a non-leaf node get minimal sphere that contains bounding
+        ! spheres of children nodes
+        else
+            ! The first child
+            j = children(1, i)
+            c1 = cnode(:, j)
+            r1 = rnode(j)
+            ! The second child
+            j = children(2, i)
+            c2 = cnode(:, j)
+            r2 = rnode(j)
+            ! Distance between centers of bounding spheres of children nodes
+            c = c1 - c2
+            ! Compute distance by scale and sum of scaled squares
+            maxc = max(abs(c(1)), abs(c(2)), abs(c(3)))
+            if (maxc .eq. zero) then
+                d = zero
+            else
+                d = (c(1)/maxc)**2 + (c(2)/maxc)**2 + (c(3)/maxc)**2
+                d = maxc * sqrt(d)
+            end if
+            ! If sphere #2 is completely inside sphere #1 use the first sphere
+            if (r1 .ge. (r2+d)) then
+                c = c1
+                r = r1
+            ! If sphere #1 is completely inside sphere #2 use the second sphere
+            else if(r2 .ge. (r1+d)) then
+                c = c2
+                r = r2
+            ! Otherwise use special formula to find a minimal sphere
+            else
+                r = (r1+r2+d) / 2
+                c = c2 + c/d*(r-r2)
+            end if
+            ! Assign computed bounding sphere
+            cnode(:, i) = c
+            rnode(i) = r
+        end if
+    end do
+end subroutine tree_rib_build
+
+!> Divide given cluster of spheres into two subclusters by inertial bisection
+!!
+!! @param[in] nsph: Number of all input spheres
+!! @param[in] csph: Centers of all input spheres
+!! @param[in] n: Number of spheres in a given cluster
+!! @param[inout] order: Indexes of spheres in a given cluster. On exit, indexes
+!!      `order(1:div)` correspond to the first subcluster and indexes
+!!      `order(div+1:n)` correspond to the second subcluster.
+!! @param[out] div: Break point of `order` array between two clusters.
+subroutine tree_rib_node_bisect(nsph, csph, n, order, div)
+    ! Inputs
+    integer, intent(in) :: nsph, n
+    real(dp), intent(in) :: csph(3, nsph)
+    ! Outputs
+    integer, intent(inout) :: order(n)
+    integer, intent(out) :: div
+    ! Local variables
+    real(dp) :: c(3), tmp_csph(3, n), s(3)
+    real(dp), allocatable :: work(:)
+    external :: dgesvd
+    integer :: i, l, r, lwork, info, tmp_order(n), istat
+    ! Get average coordinate
+    c = zero
+    do i = 1, n
+        c = c + csph(:, order(i))
+    end do
+    c = c / n
+    ! Get coordinates minus average in a contiguous array
+    do i = 1, n
+        tmp_csph(:, i) = csph(:, order(i)) - c
+    end do
+    !! Find right singular vectors
+    ! Get proper size of temporary workspace
+    lwork = -1
+    call dgesvd('N', 'O', 3, n, tmp_csph, 3, s, tmp_csph, 3, tmp_csph, 3, &
+        & s, lwork, info)
+    lwork = s(1)
+    allocate(work(lwork), stat=istat)
+    if (istat .ne. 0) stop "allocation failed"
+    ! Get right singular vectors
+    call dgesvd('N', 'O', 3, n, tmp_csph, 3, s, tmp_csph, 3, tmp_csph, 3, &
+        & work, lwork, info)
+    if (info .ne. 0) stop "dgesvd did not converge"
+    deallocate(work, stat=istat)
+    if (istat .ne. 0) stop "deallocation failed"
+    !! Sort spheres by sign of the above scalar product, which is equal to
+    !! the leading right singular vector scaled by the leading singular value.
+    !! However, we only care about sign, so we take into account only the
+    !! leading right singular vector.
+    ! First empty index from the left
+    l = 1
+    ! First empty index from the right
+    r = n
+    ! Cycle over values of the singular vector
+    do i = 1, n
+        ! Positive scalar products are moved to the beginning of `order`
+        if (tmp_csph(1, i) .ge. zero) then
+            tmp_order(l) = order(i)
+            l = l + 1
+        ! Negative scalar products are moved to the end of `order`
+        else
+            tmp_order(r) = order(i)
+            r = r - 1
+        end if
+    end do
+    ! Set divider and update order
+    div = r
+    order = tmp_order
+end subroutine tree_rib_node_bisect
+
+!> Find near and far admissible pairs of tree nodes and store it in work array
+!!
+!! @param[in] n: number of nodes
+!! @param[in] children: first and last children of each cluster. Value 0 means
+!!      no children (leaf node).
+!! @param[in] cnode: center of bounding sphere of each cluster (node) of tree
+!! @param[in] rnode: radius of bounding sphere of each cluster (node) of tree
+!! @param[in] lwork: size of work array in dimension 2
+!! @param[inout] iwork: index of current pair of nodes that needs to be checked
+!!      for admissibility. Must be 0 for the first call of this subroutine. If
+!!      on exit iwork is less or equal to jwork, that means lwork was too
+!!      small, please reallocate work array and copy all the values into new
+!!      array and then run procedure again.
+!! @param[inout] jwork: amount of stored possible admissible pairs of nodes.
+!!      Please read iwork comments.
+!! @param[inout] work: all the far and near pairs will be stored here
+!! @param[out] nnfar: total amount of far admissible pairs. valid only if iwork
+!!      is greater than jwork on exit.
+!! @param[out] nfar: amount of far admissible pairs for each node. valid only
+!!      if iwork is greater than jwork on exit.
+!! @param[out] nnnear: total amount of near admissible pairs. valid only if
+!!      iwork is greater than jwork on exit
+!! @param[out] nnear: amount of near admissible pairs for each node. valid only
+!!      if iwork is greater than jwork on exit
+subroutine tree_get_farnear_work(n, children, cnode, rnode, lwork, iwork, &
+        & jwork, work, nnfar, nfar, nnnear, nnear)
+    ! Inputs
+    integer, intent(in) :: n, children(2, n), lwork
+    real(dp), intent(in) :: cnode(3, n), rnode(n)
+    ! Outputs
+    integer, intent(inout) :: iwork, jwork, work(3, lwork)
+    integer, intent(out) :: nnfar, nfar(n), nnnear, nnear(n)
+    ! Local variables
+    integer :: j(2), npairs, k1, k2
+    real(dp) :: c(3), r, d, dmax, dssq
+    ! iwork is current temporary item in work array to process
+    if (iwork .eq. 0) then
+        work(1, 1) = 1
+        work(2, 1) = 1
+        iwork = 1
+        jwork = 1
+    end if
+    ! jwork is total amount of temporary items in work array
+    do while (iwork .le. jwork)
+        j = work(1:2, iwork)
+        c = cnode(:, j(1)) - cnode(:, j(2))
+        r = rnode(j(1)) + rnode(j(2)) + max(rnode(j(1)), rnode(j(2)))
+        !r = rnode(j(1)) + rnode(j(2))
+        dmax = max(abs(c(1)), abs(c(2)), abs(c(3)))
+        dssq = (c(1)/dmax)**2 + (c(2)/dmax)**2 + (c(3)/dmax)**2
+        d = dmax * sqrt(dssq)
+        !d = sqrt(c(1)**2 + c(2)**2 + c(3)**2)
+        ! If node has no children then assume itself for purpose of finding
+        ! far-field and near-filed interactions with children nodes of another
+        ! node
+        npairs = max(1, children(2, j(1))-children(1, j(1))+1) * &
+            & max(1, children(2, j(2))-children(1, j(2))+1)
+        if (d .ge. r) then
+            ! Mark as far admissible pair
+            !write(*,*) "FAR:", j
+            work(3, iwork) = 1
+        else if (npairs .eq. 1) then
+            ! Mark as near admissible pair if both nodes are leaves
+            !write(*,*) "NEAR:", j
+            work(3, iwork) = 2
+        else if (jwork+npairs .gt. lwork) then
+            ! Exit procedure, since work array was too small
+            !write(*,*) "SMALL LWORK"
+            return
+        else
+            ! Mark as non-admissible pair and check all pairs of children nodes
+            ! or pairs of one node (if it is a leaf node) with children of
+            ! another node
+            work(3, iwork) = 0
+            if (children(1, j(1)) .eq. 0) then
+                k1 = j(1)
+                do k2 = children(1, j(2)), children(2, j(2))
+                    jwork = jwork + 1
+                    work(1, jwork) = k1
+                    work(2, jwork) = k2
+                end do
+            else if(children(1, j(2)) .eq. 0) then
+                k2 = j(2)
+                do k1 = children(1, j(1)), children(2, j(1))
+                    jwork = jwork + 1
+                    work(1, jwork) = k1
+                    work(2, jwork) = k2
+                end do
+            else
+                do k1 = children(1, j(1)), children(2, j(1))
+                    do k2 = children(1, j(2)), children(2, j(2))
+                        jwork = jwork + 1
+                        work(1, jwork) = k1
+                        work(2, jwork) = k2
+                    end do
+                end do
+            end if
+            !write(*,*) "NON:", j
+        end if
+        iwork = iwork + 1
+    end do
+    nfar = 0
+    nnear = 0
+    do iwork = 1, jwork
+        if (work(3, iwork) .eq. 1) then
+            nfar(work(1, iwork)) = nfar(work(1, iwork)) + 1
+        else if (work(3, iwork) .eq. 2) then
+            nnear(work(1, iwork)) = nnear(work(1, iwork)) + 1
+        end if
+    end do
+    iwork = jwork + 1
+    nnfar = sum(nfar)
+    nnnear = sum(nnear)
+end subroutine tree_get_farnear_work
+
+! Get near and far admissible pairs from work array of tree_get_farnear_work
+! Works only for binary tree
+subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
+        & nnnear, nnear, snear, near)
+! Parameters:
+!   jwork: Total number of checked pairs in work array
+!   lwork: Total length of work array
+!   work: Work array itself
+!   n: Number of nodes
+!   nnfar: Total number of all far-field interactions
+!   nfar: Number of far-field interactions of each node
+!   sfar: Index in far array of first far-field node for each node
+!   far: Indexes of far-field nodes
+!   nnnear: Total number of all near-field interactions
+!   nnear: Number of near-field interactions of each node
+!   snear: Index in near array of first near-field node for each node
+!   near: Indexes of near-field nodes
+    integer, intent(in) :: jwork, lwork, work(3, lwork), n, nnfar, nnnear
+    integer, intent(in) :: nfar(n), nnear(n)
+    integer, intent(out) :: sfar(n+1), far(nnfar), snear(n+1), near(nnnear)
+    integer :: i, j
+    integer :: cfar(n+1), cnear(n+1)
+    sfar(1) = 1
+    snear(1) = 1
+    do i = 2, n+1
+        sfar(i) = sfar(i-1) + nfar(i-1)
+        snear(i) = snear(i-1) + nnear(i-1)
+    end do
+    cfar = sfar
+    cnear = snear
+    do i = 1, jwork
+        if (work(3, i) .eq. 1) then
+            ! Far
+            j = work(1, i)
+            if ((j .gt. n) .or. (j .le. 0)) then
+                write(*,*) "ALARM", j
+            end if
+            far(cfar(j)) = work(2, i)
+            cfar(j) = cfar(j) + 1
+        else if (work(3, i) .eq. 2) then
+            ! Near
+            j = work(1, i)
+            if ((j .gt. n) .or. (j .le. 0)) then
+                write(*,*) "ALARM", j
+            end if
+            near(cnear(j)) = work(2, i)
+            cnear(j) = cnear(j) + 1
+        end if
+    end do
+end subroutine tree_get_farnear
 
 end module ddx_constants
 
