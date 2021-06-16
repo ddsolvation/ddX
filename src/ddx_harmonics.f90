@@ -23,6 +23,111 @@ implicit none
 
 contains
 
+!> Compute scaling factors of real normalized spherical harmonics
+!!
+!! Output values of scaling factors of \f$ Y_\ell^m \f$ harmonics are filled
+!! only for non-negative \f$ m \f$ since scaling factor of \f$ Y_\ell^{-m} \f$
+!! is the same as scaling factor of \f$ Y_\ell^m \f$.
+!!
+!! @param[in] p: Maximal degree of spherical harmonics. `p` >= 0
+!! @param[out] vscales: Array of scaling factors. Dimension is `(p+1)**2`
+!! @param[out] vscales: Array of values 4pi/(2l+1). Dimension is `p+1`
+!! @param[out] vscales_rel: Array of relative scaling factors.
+!!      Dimension is `(p+1)**2`.
+subroutine ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    ! Input
+    integer, intent(in) :: p
+    ! Output
+    real(dp), intent(out) :: vscales((p+1)**2), v4pi2lp1(p+1), &
+        & vscales_rel((p+1)**2)
+    ! Local variables
+    real(dp) :: tmp, twolp1
+    integer :: l, ind, m
+    twolp1 = one
+    do l = 0, p
+        ! m = 0
+        ind = l*l + l + 1
+        tmp = fourpi / twolp1
+        v4pi2lp1(l+1) = tmp
+        tmp = sqrt(tmp)
+        vscales_rel(ind) = tmp
+        vscales(ind) = one / tmp
+        twolp1 = twolp1 + two
+        tmp = vscales(ind) * sqrt2
+        ! m != 0
+        do m = 1, l
+            tmp = -tmp / sqrt(dble((l-m+1)*(l+m)))
+            vscales(ind+m) = tmp
+            vscales(ind-m) = tmp
+            vscales_rel(ind+m) = tmp * v4pi2lp1(l+1)
+            vscales_rel(ind-m) = vscales_rel(ind+m)
+        end do
+    end do
+end subroutine ylmscale
+
+!> Compute FMM-related constants
+!!
+!! @param[in] dmax: Maximal degree of spherical harmonics to be evaluated.
+!!      `dmax` >= 0
+!! @param[in] pm: Maximal degree of the multipole expansion. `pm` >= 0.
+!! @param[in] pl: Maximal degree of the local expansion. `pl` >= 0.
+!! @param[out] vcnk: Array of squre roots of combinatorial factors C_n^k.
+!!      Dimension is `(2*dmax+1)*(dmax+1)`.
+!! @param[out] m2l_ztranslate_coef: Constants for M2L translation over OZ axis.
+!!      Dimension is `(pm+1, pl+1, pl+1)`.
+!! @param[out] m2l_ztranslate_coef: Constants for adjoint M2L translation over
+!!      OZ axis. Dimension is `(pl+1, pl+1, pm+1)`.
+subroutine fmm_constants(dmax, pm, pl, vcnk, m2l_ztranslate_coef, &
+        & m2l_ztranslate_adj_coef)
+    ! Inputs
+    integer, intent(in) :: dmax, pm, pl
+    ! Outputs
+    real(dp), intent(out) :: vcnk((2*dmax+1)*(dmax+1)), &
+        & m2l_ztranslate_coef(pm+1, pl+1, pl+1), &
+        & m2l_ztranslate_adj_coef(pl+1, pl+1, pm+1)
+    ! Local variables
+    integer :: i, indi, j, k, n, indjn
+    real(dp) :: tmp1
+    ! Compute combinatorial numbers C_n^k for n=0..dmax
+    ! C_0^0 = 1
+    vcnk(1) = one
+    do i = 2, 2*dmax+1
+        ! Offset to the C_{i-2}^{i-2}, next item to be stored is C_{i-1}^0
+        indi = (i-1) * i / 2
+        ! C_{i-1}^0 = 1
+        vcnk(indi+1) = one
+        ! C_{i-1}^{i-1} = 1
+        vcnk(indi+i) = one
+        ! C_{i-1}^{j-1} = C_{i-2}^{j-1} + C_{i-2}^{j-2}
+        ! Offset to C_{i-3}^{i-3} is indi-i+1
+        do j = 2, i-1
+            vcnk(indi+j) = vcnk(indi-i+j+1) + vcnk(indi-i+j)
+        end do
+    end do
+    ! Get square roots of C_n^k. sqrt(one) is one, so no need to update C_n^0
+    ! and C_n^n
+    do i = 3, 2*dmax+1
+        indi = (i-1) * i / 2
+        do j = 2, i-1
+            vcnk(indi+j) = sqrt(vcnk(indi+j))
+        end do
+    end do
+    ! Fill in m2l_ztranslate_coef and m2l_ztranslate_adj_coef
+    do j = 0, pl
+        do k = 0, j
+            tmp1 = one
+            do n = k, pm
+                indjn = (j+n)*(j+n+1)/2 + 1
+                m2l_ztranslate_coef(n-k+1, k+1, j-k+1) = &
+                    & tmp1 * vcnk(indjn+j-k) * vcnk(indjn+j+k)
+                m2l_ztranslate_adj_coef(j-k+1, k+1, n-k+1) = &
+                    & m2l_ztranslate_coef(n-k+1, k+1, j-k+1)
+                tmp1 = -tmp1
+            end do
+        end do
+    end do
+end subroutine fmm_constants
+
 !> Convert input cartesian coordinate into spherical coordinate
 !!
 !! Output coordinate \f$ (\rho, \theta, \phi) \f$ is presented by \f$ (\rho,

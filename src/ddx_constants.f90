@@ -219,7 +219,8 @@ subroutine constants_init(params, constants, info)
     ! Check if params are OK
     if (params % error_flag .eq. 1) then
         constants % error_flag = 1
-        constants % error_message = "params is in error state"
+        constants % error_message = "constants_init: `params` is in " // &
+            & "error state"
         info = -1
         return
     end if
@@ -260,21 +261,24 @@ subroutine constants_init(params, constants, info)
     allocate(constants % vscales(constants % nscales), stat=info)
     if (info .ne. 0) then
         constants % error_flag = 1
-        constants % error_message = "`vscales` allocation failed"
+        constants % error_message = "constants_init: `vscales` allocation " &
+            & // "failed"
         info = 1
         return
     end if
     allocate(constants % v4pi2lp1(constants % dmax+1), stat=info)
     if (info .ne. 0) then
         constants % error_flag = 1
-        constants % error_message = "`v4pi2lp1` allocation failed"
+        constants % error_message = "constants_init: `v4pi2lp1` allocation " &
+            & // "failed"
         info = 1
         return
     end if
     allocate(constants % vscales_rel(constants % nscales), stat=info)
     if (info .ne. 0) then
         constants % error_flag = 1
-        constants % error_message = "`vscales_rel` allocation failed"
+        constants % error_message = "constants_init: `vscales_rel` " // &
+            & "allocation failed"
         info = 1
         return
     end if
@@ -285,7 +289,7 @@ subroutine constants_init(params, constants, info)
     allocate(constants % vfact(constants % nfact), stat=info)
     if (info .ne. 0) then
         constants % error_flag = 1
-        constants % error_message = "`vfact` allocation failed"
+        constants % error_message = "constants_init: `vfact` allocation failed"
         info = 1
         return
     end if
@@ -303,7 +307,8 @@ subroutine constants_init(params, constants, info)
         allocate(constants % vcnk(alloc_size), stat=info)
         if (info .ne. 0) then
             constants % error_flag = 1
-            constants % error_message = "`vcnk` allocation failed"
+            constants % error_message = "constants_init: `vcnk` allocation " &
+                & // "failed"
             info = 1
             return
         end if
@@ -313,8 +318,8 @@ subroutine constants_init(params, constants, info)
             & stat=info)
         if (info .ne. 0) then
             constants % error_flag = 1
-            constants % error_message = "`m2l_ztranslate_coef` " // &
-                & "allocation failed"
+            constants % error_message = "constants_init: " // &
+                & "`m2l_ztranslate_coef` allocation failed"
             info = 1
             return
         end if
@@ -324,8 +329,8 @@ subroutine constants_init(params, constants, info)
             & stat=info)
         if (info .ne. 0) then
             constants % error_flag = 1
-            constants % error_message = "`m2l_ztranslate_adj_coef` " // &
-                & "allocation failed"
+            constants % error_message = "constants_init: " // &
+                & "`m2l_ztranslate_adj_coef` allocation failed"
             info = 1
             return
         end if
@@ -340,7 +345,7 @@ subroutine constants_init(params, constants, info)
         & constants % wgrid(params % ngrid), stat=info)
     if (info .ne. 0) then
         constants % error_flag = 1
-        constants % error_message = "`cgrid` and `wgrid` " // &
+        constants % error_message = "constants_init: `cgrid` and `wgrid` " // &
             & "allocations failed"
         info = 1
         return
@@ -355,8 +360,8 @@ subroutine constants_init(params, constants, info)
         & stat=info)
     if (info .ne. 0) then
         constants % error_flag = 1
-        constants % error_message = "`vgrid`, `wgrid` and " // &
-            & "`l2grid` allocations failed"
+        constants % error_message = "constants_init: `vgrid`, `wgrid` and" // &
+            & " `l2grid` allocations failed"
         info = 1
         return
     end if
@@ -364,7 +369,7 @@ subroutine constants_init(params, constants, info)
         & vsin(constants % vgrid_dmax+1), stat=info)
     if (info .ne. 0) then
         constants % error_flag = 1
-        constants % error_message = "`vplm`, `vcos` and " // &
+        constants % error_message = "constants_init: `vplm`, `vcos` and " // &
             & "`vsin` allocations failed"
         info = 1
         return
@@ -387,7 +392,7 @@ subroutine constants_init(params, constants, info)
     deallocate(vplm, vcos, vsin, stat=info)
     if (info .ne. 0) then
         constants % error_flag = 1
-        constants % error_message = "`vplm`, `vcos` and " // &
+        constants % error_message = "constants_init: `vplm`, `vcos` and " // &
             & "`vsin` deallocations failed"
         info = 1
         return
@@ -397,15 +402,8 @@ subroutine constants_init(params, constants, info)
     constants % error_message = ""
     ! Generate geometry-related constants
     call constants_geometry_init(params, constants, info)
-    if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "error in constants_geometry_init:" // &
-            & constants % error_message
-        ! The only possible error is related to allocation-deallocation, so
-        ! output info is 1
-        info = 1
-        return
-    end if
+    ! Even if the geometry was not properly initialised, constants obejct is in
+    ! error state with corresponding error message.
 end subroutine constants_init
 
 !> Initialize geometry-related constants like list of neighbouring spheres
@@ -760,110 +758,85 @@ real(dp) function dfsw(t, se, eta)
     endif
 end function dfsw
 
-!> Compute scaling factors of real normalized spherical harmonics
+!> Compute preconditioner
 !!
-!! Output values of scaling factors of \f$ Y_\ell^m \f$ harmonics are filled
-!! only for non-negative \f$ m \f$ since scaling factor of \f$ Y_\ell^{-m} \f$
-!! is the same as scaling factor of \f$ Y_\ell^m \f$.
-!!
-!! @param[in] p: Maximal degree of spherical harmonics. `p` >= 0
-!! @param[out] vscales: Array of scaling factors. Dimension is `(p+1)**2`
-!! @param[out] vscales: Array of values 4pi/(2l+1). Dimension is `p+1`
-!! @param[out] vscales_rel: Array of relative scaling factors.
-!!      Dimension is `(p+1)**2`.
-subroutine ylmscale(p, vscales, v4pi2lp1, vscales_rel)
-    ! Input
-    integer, intent(in) :: p
-    ! Output
-    real(dp), intent(out) :: vscales((p+1)**2), v4pi2lp1(p+1), &
-        & vscales_rel((p+1)**2)
-    ! Local variables
-    real(dp) :: tmp, twolp1
-    integer :: l, ind, m
-    twolp1 = one
-    do l = 0, p
-        ! m = 0
-        ind = l*l + l + 1
-        tmp = fourpi / twolp1
-        v4pi2lp1(l+1) = tmp
-        tmp = sqrt(tmp)
-        vscales_rel(ind) = tmp
-        vscales(ind) = one / tmp
-        twolp1 = twolp1 + two
-        tmp = vscales(ind) * sqrt2
-        ! m != 0
-        do m = 1, l
-            tmp = -tmp / sqrt(dble((l-m+1)*(l+m)))
-            vscales(ind+m) = tmp
-            vscales(ind-m) = tmp
-            vscales_rel(ind+m) = tmp * v4pi2lp1(l+1)
-            vscales_rel(ind-m) = vscales_rel(ind+m)
-        end do
-    end do
-end subroutine ylmscale
-
-!> Compute FMM-related constants
-!!
-!! @param[in] dmax: Maximal degree of spherical harmonics to be evaluated.
-!!      `dmax` >= 0
-!! @param[in] pm: Maximal degree of the multipole expansion. `pm` >= 0.
-!! @param[in] pl: Maximal degree of the local expansion. `pl` >= 0.
-!! @param[out] vcnk: Array of squre roots of combinatorial factors C_n^k.
-!!      Dimension is `(2*dmax+1)*(dmax+1)`.
-!! @param[out] m2l_ztranslate_coef: Constants for M2L translation over OZ axis.
-!!      Dimension is `(pm+1, pl+1, pl+1)`.
-!! @param[out] m2l_ztranslate_coef: Constants for adjoint M2L translation over
-!!      OZ axis. Dimension is `(pl+1, pl+1, pm+1)`.
-subroutine fmm_constants(dmax, pm, pl, vcnk, m2l_ztranslate_coef, &
-        & m2l_ztranslate_adj_coef)
-    ! Inputs
-    integer, intent(in) :: dmax, pm, pl
-    ! Outputs
-    real(dp), intent(out) :: vcnk((2*dmax+1)*(dmax+1)), &
-        & m2l_ztranslate_coef(pm+1, pl+1, pl+1), &
-        & m2l_ztranslate_adj_coef(pl+1, pl+1, pm+1)
-    ! Local variables
-    integer :: i, indi, j, k, n, indjn
-    real(dp) :: tmp1
-    ! Compute combinatorial numbers C_n^k for n=0..dmax
-    ! C_0^0 = 1
-    vcnk(1) = one
-    do i = 2, 2*dmax+1
-        ! Offset to the C_{i-2}^{i-2}, next item to be stored is C_{i-1}^0
-        indi = (i-1) * i / 2
-        ! C_{i-1}^0 = 1
-        vcnk(indi+1) = one
-        ! C_{i-1}^{i-1} = 1
-        vcnk(indi+i) = one
-        ! C_{i-1}^{j-1} = C_{i-2}^{j-1} + C_{i-2}^{j-2}
-        ! Offset to C_{i-3}^{i-3} is indi-i+1
-        do j = 2, i-1
-            vcnk(indi+j) = vcnk(indi-i+j+1) + vcnk(indi-i+j)
-        end do
-    end do
-    ! Get square roots of C_n^k. sqrt(one) is one, so no need to update C_n^0
-    ! and C_n^n
-    do i = 3, 2*dmax+1
-        indi = (i-1) * i / 2
-        do j = 2, i-1
-            vcnk(indi+j) = sqrt(vcnk(indi+j))
-        end do
-    end do
-    ! Fill in m2l_ztranslate_coef and m2l_ztranslate_adj_coef
-    do j = 0, pl
-        do k = 0, j
-            tmp1 = one
-            do n = k, pm
-                indjn = (j+n)*(j+n+1)/2 + 1
-                m2l_ztranslate_coef(n-k+1, k+1, j-k+1) = &
-                    & tmp1 * vcnk(indjn+j-k) * vcnk(indjn+j+k)
-                m2l_ztranslate_adj_coef(j-k+1, k+1, n-k+1) = &
-                    & m2l_ztranslate_coef(n-k+1, k+1, j-k+1)
-                tmp1 = -tmp1
+!! assemble the diagonal blocks of the reps matrix
+!! then invert them to build the preconditioner
+subroutine mkprec(lmax, nbasis, nsph, ngrid, eps, ui, wgrid, vgrid, &
+        & vgrid_nbasis, rx_prc, info, error_message)
+    !! Inputs
+    integer, intent(in) :: lmax, nbasis, nsph, ngrid, vgrid_nbasis
+    real(dp), intent(in) :: eps, ui(ngrid, nsph), wgrid(ngrid), &
+        & vgrid(vgrid_nbasis, ngrid)
+    !! Output
+    real(dp), intent(out) :: rx_prc(nbasis, nbasis, nsph)
+    integer, intent(out) :: info
+    character(len=255), intent(out) :: error_message
+    !! Local variables
+    integer :: isph, lm, ind, l1, m1, ind1, igrid
+    real(dp)  :: f, f1
+    integer, allocatable :: ipiv(:)
+    real(dp),  allocatable :: work(:)
+    external :: dgetrf, dgetri
+    ! Allocation of temporaries
+    allocate(ipiv(nbasis), work(nbasis**2), stat=info)
+    if (info .ne. 0) then
+        error_message = "mkprec: `ipiv` and `work` allocation failed"
+        info = 1
+        return
+    endif
+    ! Init
+    rx_prc = zero
+    ! Off-diagonal part
+    do isph = 1, nsph
+        do igrid = 1, ngrid
+            f = twopi * ui(igrid, isph) * wgrid(igrid)
+            do l1 = 0, lmax
+                ind1 = l1*l1 + l1 + 1
+                do m1 = -l1, l1
+                    ! TODO check l2grid
+                    f1 = f * vgrid(ind1+m1, igrid) / (two*dble(l1) + one)
+                    do lm = 1, nbasis
+                        rx_prc(lm, ind1+m1, isph) = &
+                            & rx_prc(lm, ind1+m1, isph) + f1*vgrid(lm, igrid)
+                    end do
+                end do
             end do
         end do
     end do
-end subroutine fmm_constants
+    ! add diagonal
+    f = twopi * (eps+one) / (eps-one)
+    do isph = 1, nsph
+        do lm = 1, nbasis
+            rx_prc(lm, lm, isph) = rx_prc(lm, lm, isph) + f
+        end do
+    end do
+    ! invert the blocks
+    do isph = 1, nsph
+        call dgetrf(nbasis, nbasis, rx_prc(:, :, isph), nbasis, ipiv, info)
+        if (info .ne. 0) then 
+            error_message = "mkprec: dgetrf failed"
+            info = 1
+            return
+        end if
+        call dgetri(nbasis, rx_prc(:, :, isph), nbasis, ipiv, work, &
+            & nbasis**2, info)
+        if (info .ne. 0) then 
+            error_message = "mkprec: dgetri failed"
+            info = 1
+            return
+        end if
+    end do
+    ! Cleanup temporaries
+    deallocate(work, ipiv, stat=info)
+    if (info .ne. 0) then
+        error_message = "mkprec: `ipiv` and `work` deallocation failed"
+        info = 1
+        return
+    end if
+    ! Cleanup error message if there were no error
+    error_message = ""
+end subroutine mkprec
 
 end module ddx_constants
 

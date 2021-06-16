@@ -184,7 +184,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Model, 1=COSMO, 2=PCM, 3=LPB
     if ((model .lt. 1) .or. (model .gt. 3)) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `model`"
+        params % error_message = "params_init: invalid value of `model`"
         info = -1
         return
     end if
@@ -192,7 +192,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Check if forces are needed
     if ((force .lt. 0) .or. (force .gt. 1)) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `force`"
+        params % error_message = "params_init: invalid value of `force`"
         info = -1
         return
     end if
@@ -200,7 +200,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Relative dielectric permittivity
     if (eps .le. one) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `eps`"
+        params % error_message = "params_init: invalid value of `eps`"
         info = -1
         return
     end if
@@ -208,7 +208,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Debye-H\"{u}ckel parameter (only used in ddLPB)
     if ((model .eq. 3) .and. (kappa .lt. zero)) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `kappa`"
+        params % error_message = "params_init: invalid value of `kappa`"
         info = -1
         return
     end if
@@ -216,7 +216,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Regularization parameter
     if ((eta .le. zero) .or. (eta .gt. one)) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `eta`"
+        params % error_message = "params_init: invalid value of `eta`"
         info = -1
         return
     end if
@@ -224,7 +224,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Shift of a regularization
     if ((se .lt. -one) .or. (se .gt. one)) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `se`"
+        params % error_message = "params_init: invalid value of `se`"
         info = -1
         return
     end if
@@ -232,7 +232,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Degree of modeling spherical harmonics
     if (lmax .lt. 0) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `lmax`"
+        params % error_message = "params_init: invalid value of `lmax`"
         info = -1
         return
     end if
@@ -247,7 +247,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     end do
     if (igrid .eq. 0) then
         params % error_flag = 1
-        params % error_message = "Unsupported value of `ngrid`"
+        params % error_message = "params_init: Unsupported value of `ngrid`"
         info = -1
         return
     end if
@@ -255,7 +255,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Iterative solver: 1=Jacobi
     if (itersolver .ne. 1) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `itersolver`"
+        params % error_message = "params_init: invalid value of `itersolver`"
         info = -1
         return
     end if
@@ -263,7 +263,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Relative threshold for an iterative solver
     if ((tol .lt. 1d-14) .or. (tol .gt. one)) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `tol`"
+        params % error_message = "params_init: invalid value of `tol`"
         info = -1
         return
     end if
@@ -271,7 +271,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Maximum number of iterations
     if (maxiter .le. 0) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `maxiter`"
+        params % error_message = "params_init: invalid value of `maxiter`"
         info = -1
         return
     end if
@@ -279,7 +279,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Number of DIIS extrapolation points (ndiis=25 works)
     if (ndiis .lt. 0) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `ndiis`"
+        params % error_message = "params_init: invalid value of `ndiis`"
         info = -1
         return
     end if
@@ -287,7 +287,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Check if FMM-acceleration is needed
     if ((fmm .lt. 0) .or. (fmm .gt. 1)) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `fmm`"
+        params % error_message = "params_init: invalid value of `fmm`"
         info = -1
         return
     end if
@@ -299,7 +299,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         ! interactions are taken into account.
         if (pm .lt. -1) then
             params % error_flag = 1
-            params % error_message = "Wrong value of `pm`"
+            params % error_message = "params_init: invalid value of `pm`"
             info = -1
             return
         end if
@@ -308,7 +308,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         ! interactions are taken into account.
         if (pl .lt. -1) then
             params % error_flag = 1
-            params % error_message = "Wrong value of `pl`"
+            params % error_message = "params_init: invalid value of `pl`"
             info = -1
             return
         end if
@@ -332,7 +332,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! available.
     if (nproc .ne. 1 .and. nproc .ne. 0) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `nproc`"
+        params % error_message = "params_init: invalid value of `nproc`"
         info = -1
         return
     end if
@@ -341,7 +341,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Number of atoms
     if (nsph .le. 0) then
         params % error_flag = 1
-        params % error_message = "Wrong value of `nsph`"
+        params % error_message = "params_init: invalid value of `nsph`"
         info = -1
         return
     end if
@@ -351,7 +351,8 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & params % rsph(nsph), stat=info)
     if (info .ne. 0) then
         params % error_flag = 1
-        params % error_message = "Allocation failed"
+        params % error_message = "params_init: `charge`, `csph` and `rsph` " &
+            & // "allocations failed"
         info = 1
         return
     end if
@@ -379,7 +380,7 @@ subroutine params_deinit(params, info)
     ! Check if input params is in proper state
     if (params % error_flag .eq. 1) then
         params % error_flag = 1
-        params % error_message = "params is in error state"
+        params % error_message = "params_deinit: `params` is in error state"
         info = -1
         return
     end if
@@ -387,19 +388,19 @@ subroutine params_deinit(params, info)
     deallocate(params % charge, stat=info)
     if (info .ne. 0) then
         params % error_flag = 1
-        params % error_message = "Deallocation failed"
+        params % error_message = "params_deinit: `charge` deallocation failed"
         info = 1
     end if
     deallocate(params % csph, stat=info)
     if (info .ne. 0) then
         params % error_flag = 1
-        params % error_message = "Deallocation failed"
+        params % error_message = "params_deinit: `csph` deallocation failed"
         info = 1
     end if
     deallocate(params % rsph, stat=info)
     if (info .ne. 0) then
         params % error_flag = 1
-        params % error_message = "Deallocation failed"
+        params % error_message = "params_deinit: `rsph` deallocation failed"
         info = 1
     end if
     info = 0

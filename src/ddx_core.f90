@@ -1037,7 +1037,15 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             info = 1
             return
         endif
-        call mkprec(ddx_data)
+        call mkprec(ddx_data % lmax, ddx_data % nbasis, ddx_data % nsph, &
+            & ddx_data % ngrid, ddx_data % eps, ddx_data % ui, &
+            & ddx_data % wgrid, ddx_data % vgrid, ddx_data % vgrid_nbasis, &
+            & ddx_data % rx_prc, info, ddx_data % error_message)
+        if (info .ne. 0) then
+            ddx_data % error_flag = .true.
+            stop -1
+            return
+        end if
     end if
     ! Again some debug output
     1100  format(t3,i8,3f14.6)
@@ -3033,72 +3041,6 @@ subroutine ddmkzeta( ddx_data, s, zeta)
        zeta = pt5*((ddx_data % eps-one)/ddx_data % eps)*zeta
        return
 end subroutine ddmkzeta
-
-!> Compute preconditioner
-!!
-!! assemble the diagonal blocks of the reps matrix
-!! then invert them to build the preconditioner
-subroutine mkprec(ddx_data)
-    ! Inouts
-    type(ddx_type), intent(inout) :: ddx_data
-    integer :: isph, lm, ind, l1, m1, ind1, its, istatus
-    real(dp)  :: f, f1
-    integer, allocatable :: ipiv(:)
-    real(dp),  allocatable :: work(:)
-    external :: dgetrf, dgetri
-    ! Allocation of temporaries
-    allocate(ipiv(ddx_data % nbasis),work(ddx_data % nbasis**2),stat=istatus)
-    if (istatus.ne.0) then
-        write(*,*) 'mkprec : allocation failed !'
-        stop
-    endif
-    ! Init
-    ddx_data % rx_prc = zero
-    ! Off-diagonal part
-    do isph = 1, ddx_data % nsph
-        do its = 1, ddx_data % ngrid
-            f = twopi* ddx_data % ui(its,isph) * ddx_data % wgrid(its)
-            do l1 = 0, ddx_data % lmax
-                ind1 = l1*l1 + l1 + 1
-                do m1 = -l1, l1
-                    f1 = f*ddx_data % vgrid(ind1 + m1,its)/(two*dble(l1) + one)
-                    do lm = 1, ddx_data % nbasis
-                        ddx_data % rx_prc(lm,ind1 + m1,isph) = ddx_data % rx_prc(lm,ind1 + m1,isph) + &
-                            & f1*ddx_data % vgrid(lm,its)
-                    end do
-                end do
-            end do
-        end do
-    end do
-    ! add diagonal
-    f = twopi*(ddx_data % eps + one)/(ddx_data % eps - one)
-    do isph = 1, ddx_data % nsph
-        do lm = 1, ddx_data % nbasis
-            ddx_data % rx_prc(lm,lm,isph) = ddx_data % rx_prc(lm,lm,isph) + f
-        end do
-    end do
-    ! invert the blocks
-    do isph = 1, ddx_data % nsph
-        call dgetrf(ddx_data % nbasis, ddx_data % nbasis, &
-            & ddx_data % rx_prc(:,:,isph), ddx_data % nbasis, ipiv, istatus)
-        if (istatus.ne.0) then 
-            write(6,*) 'lu failed in mkprc'
-            stop
-        end if
-        call dgetri(ddx_data % nbasis, ddx_data % rx_prc(:,:,isph), &
-            & ddx_data % nbasis, ipiv, work, ddx_data % nbasis**2, istatus)
-        if (istatus.ne.0) then 
-            write(6,*) 'inversion failed in mkprc'
-            stop
-        end if
-    end do
-    ! Cleanup temporaries
-    deallocate(work, ipiv, stat=istatus)
-    if (istatus.ne.0) then
-        write(*,*) 'mkprec : deallocation failed !'
-        stop
-    end if
-endsubroutine mkprec
 
 !> Build a recursive inertial binary tree
 !!
