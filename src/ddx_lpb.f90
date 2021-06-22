@@ -60,7 +60,7 @@ contains
   subroutine ddlpb(ddx_data, phi, psi, gradphi, sigma, esolv, charge, ndiis, niter, iconv)
   ! main ddLPB
   implicit none
-  type(ddx_type), intent(in)  :: ddx_data
+  type(ddx_type), intent(inout)  :: ddx_data
   logical                         :: converged = .false.
   integer                         :: iteration = 1
   integer, intent(in)             :: ndiis
@@ -135,7 +135,9 @@ contains
   !! @param[in]  phi : Boundary conditions (This is psi_0 Eq.(20) QSM19.SISC)
   !! @param[out] g   : Boundary conditions on solute-solvent boundary gamma_j_e
   !!
-  call wghpot(ddx_data, phi, phi_grid, g)
+  !call wghpot(ddx_data, phi, phi_grid, g)
+  call wghpot(ddx_data % ncav, phi, ddx_data % nsph, ddx_data % ngrid, &
+      & ddx_data % ui, phi_grid, g)
   !!
   !! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
   !!
@@ -201,7 +203,8 @@ contains
     !! @param[in]      ldm1x     : External subroutine to apply invert diagonal
     !!                             matrix to vector, i.e., L^{-1}x_r, comes from matvec.f90
     !! @param[in]      hnorm     : User defined norm, comes from matvec.f90
-    call jacobi_diis(ddx_data, ddx_data % n, ddx_data % iprint, ndiis, 4, tol, &
+    call jacobi_diis(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, ddx_data % n, ddx_data % iprint, ndiis, 4, tol, &
                      & rhs_r, Xr, n_iter, ok, lx, ldm1x, hnorm)
     call convert_ddcosmo(ddx_data, 1, Xr)
     ! call print_ddvector('xr',xr)

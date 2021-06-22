@@ -387,6 +387,16 @@ subroutine constants_init(params, constants, info)
             & constants % vgrid(:, igrid)
     end do
     if (params % fmm .eq. 1) then
+        allocate(constants % l2grid( &
+            & constants % l2grid_nbasis, params % ngrid), &
+            & stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_init: `l2grid` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
         do igrid = 1, params % ngrid
             do l = 0, params % pl
                 indl = l*l + l + 1
@@ -426,7 +436,7 @@ subroutine constants_geometry_init(params, constants, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     !! Outputs
-    type(ddx_constants_type), intent(out) :: constants
+    type(ddx_constants_type), intent(inout) :: constants
     integer, intent(out) :: info
     !! Local variables
     real(dp) :: swthr, v(3), maxv, ssqv, vv, r, t
@@ -610,7 +620,8 @@ subroutine constants_geometry_init(params, constants, info)
             if (constants % ui(igrid, isph) .eq. zero) cycle
             ! Store coordinates
             constants % ccav(:, i) = params % csph(:, isph) + &
-                & params % rsph(isph)*constants % cgrid(:, igrid)
+                & params % rsph(isph)* &
+                & constants % cgrid(:, igrid)
             ! Store index
             constants % icav_ja(i) = igrid
             ! Advance cavity array index
@@ -618,13 +629,25 @@ subroutine constants_geometry_init(params, constants, info)
         end do
     end do
     ! Compute diagonal preconditioner for PCM equations
-    call mkprec(params % lmax, constants % nbasis, params % nsph, &
-        & params % ngrid, params % eps, constants % ui, &
-        & constants % wgrid, constants % vgrid, constants % vgrid_nbasis, &
-        & constants % rx_prc, info, constants % error_message)
-    if (info .ne. 0) then
-        constants % error_flag = 1
-        return
+    if (params % model .eq. 2) then
+        allocate(constants % rx_prc( &
+            & constants % nbasis, constants % nbasis, params % nsph), &
+            & stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `rx_prc` " &
+                & // "allocation failed"
+            info = 1
+            return
+        endif
+        call mkprec(params % lmax, constants % nbasis, params % nsph, &
+            & params % ngrid, params % eps, constants % ui, &
+            & constants % wgrid, constants % vgrid, constants % vgrid_nbasis, &
+            & constants % rx_prc, info, constants % error_message)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            return
+        end if
     end if
     ! Prepare FMM structures if needed
     if (params % fmm .eq. 1) then

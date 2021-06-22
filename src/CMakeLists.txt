@@ -11,6 +11,7 @@ set(SRC
     "ddx_definitions.f90"
     "ddx_parameters.f90"
     "ddx_constants.f90"
+    "ddx_workspace.f90"
     "ddx_harmonics.f90"
     "ddx_core.f90"
     "ddx_operators.f90"

@@ -17,6 +17,7 @@ implicit none
 contains
 
 !---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
 ! Purpose : Jacobi/DIIS solver
 !
 ! variables:
@@ -58,13 +59,16 @@ contains
 !              format: real(dp) function u_norm(n,x)
 !
 !---------------------------------------------------------------------------------------------
-subroutine jacobi_diis(ddx_data, n, lprint, diis_max, norm, tol, rhs, x, n_iter, &
+subroutine jacobi_diis(params, constants, workspace, n, lprint, diis_max, norm, tol, rhs, x, n_iter, &
         & ok, matvec, dm1vec, u_norm)
     ! Inputs
-      type(ddx_type), intent(in)       :: ddx_data
+      type(ddx_params_type), intent(in) :: params
+      type(ddx_constants_type), intent(in) :: constants
       integer,               intent(in)    :: n, diis_max, norm, lprint
       real(dp),                intent(in)    :: tol
       real(dp),  dimension(n), intent(in)    :: rhs
+    !! Temporaries
+    type(ddx_workspace_type), intent(inout) :: workspace
       ! Outputs
       real(dp),  dimension(n), intent(inout) :: x
       integer,               intent(inout) :: n_iter
@@ -121,13 +125,13 @@ subroutine jacobi_diis(ddx_data, n, lprint, diis_max, norm, tol, rhs, x, n_iter,
       do it = 1, n_iter
 !
 !       y = rhs - O x
-        call matvec(ddx_data, x, y )
+        call matvec(params, constants, workspace, x, y )
         !call prtsph("matvec", ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, y)
         y = rhs - y
         !call prtsph("matvec y", ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, y)
 !
 !       x_new = D^-1 y
-        call dm1vec(ddx_data, y, x_new)
+        call dm1vec(params, constants, workspace, y, x_new)
         !call prtsph("matvec D^-1 y", ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, x_new)
 !
 !       DIIS extrapolation
@@ -173,8 +177,8 @@ subroutine jacobi_diis(ddx_data, n, lprint, diis_max, norm, tol, rhs, x, n_iter,
           max_norm_diff = -1.d0
 !
 !         compute norm
-          rms_norm_diff = u_norm(ddx_data, x )
-          rms_norm = u_norm(ddx_data, x_new )
+          rms_norm_diff = u_norm(params % lmax, constants % nbasis, params % nsph, x )
+          rms_norm = u_norm(params % lmax, constants % nbasis, params % nsph, x_new )
 !
 !         check norm
           ok = (rms_norm_diff .lt. tol*rms_norm)

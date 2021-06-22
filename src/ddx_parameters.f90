@@ -22,6 +22,8 @@ implicit none
 
 !> Type to check and store user input parameters
 type ddx_params_type
+    !> Printing flag TODO: maybe remove it?
+    integer :: iprint
     !> Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
     integer :: model
     !> Whether computing analytical forces will be required (1) or not (0).
@@ -181,6 +183,8 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     !! Local variables
     integer :: igrid, i
     !! The code
+    ! Set iprint to zero immediately
+    params % iprint = 0
     ! Model, 1=COSMO, 2=PCM, 3=LPB
     if ((model .lt. 1) .or. (model .gt. 3)) then
         params % error_flag = 1

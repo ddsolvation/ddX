@@ -78,7 +78,8 @@ subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
     real(dp), external :: ddot, dnrm2
     external :: dgemm
     ! Unwrap sparsely stored potential at cavity points and multiply by ui
-    call wghpot(ddx_data, phi_cav, ddx_data % phi_grid, ddx_data % tmp_grid)
+    call wghpot(ddx_data % ncav, phi_cav, ddx_data % nsph, ddx_data % ngrid, &
+        & ddx_data % ui, ddx_data % phi_grid, ddx_data % tmp_grid)
     ! Integrate against spherical harmonics and Lebedev weights to get Phi
     call dgemm('N', 'N', ddx_data % nbasis, ddx_data % nsph, ddx_data % ngrid, &
         & one, ddx_data % vwgrid, ddx_data % vgrid_nbasis, ddx_data % tmp_grid, &
@@ -87,7 +88,8 @@ subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
     niter = ddx_data % maxiter
     ddx_data % xs = zero
     call cpu_time(start_time)
-    call jacobi_diis(ddx_data, ddx_data % n, ddx_data % iprint, ddx_data % ndiis, &
+    call jacobi_diis(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, ddx_data % n, ddx_data % iprint, ddx_data % ndiis, &
         & 4, ddx_data % tol, ddx_data % phi, ddx_data % xs, niter, ok, lx, &
         & ldm1x, hnorm)
     call cpu_time(finish_time)
@@ -104,7 +106,8 @@ subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
         niter = ddx_data % maxiter
         ddx_data % s = zero
         call cpu_time(start_time)
-        call jacobi_diis(ddx_data, ddx_data % n, ddx_data % iprint, &
+        call jacobi_diis(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, ddx_data % n, ddx_data % iprint, &
             & ddx_data % ndiis, 4, ddx_data % tol, psi, ddx_data % s, niter, ok, &
             & lstarx, ldm1x, hnorm)
         call cpu_time(finish_time)
@@ -125,11 +128,11 @@ subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
         if (istatus.ne.0) write(6,*) 'ddpcm forces allocation failed'
         force = zero
         do isph = 1, ddx_data % nsph
-            call fdoka(ddx_data, isph, ddx_data % xs, ddx_data % sgrid(:, isph), &
+            call fdoka(ddx_data % params, ddx_data % constants, isph, ddx_data % xs, ddx_data % sgrid(:, isph), &
                 & basloc, dbsloc, vplm, vcos, vsin, force(:,isph))
-            call fdokb(ddx_data, isph, ddx_data % xs, ddx_data % sgrid, basloc, &
+            call fdokb(ddx_data % params, ddx_data % constants, isph, ddx_data % xs, ddx_data % sgrid, basloc, &
                 & dbsloc, vplm, vcos, vsin, force(:, isph))
-            call fdoga(ddx_data, isph, ddx_data % sgrid, ddx_data % phi_grid, &
+            call fdoga(ddx_data % params, ddx_data % constants, isph, ddx_data % sgrid, ddx_data % phi_grid, &
                 & force(:, isph))
         end do
         force = -pt5 * force
@@ -170,10 +173,10 @@ subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
                     & ddx_data % rsph(isph)
             end do
             ! M2M, M2L and L2L translations
-            call tree_m2m_rotation(ddx_data, ddx_data % tmp_node_m)
-            call tree_m2l_rotation(ddx_data, ddx_data % tmp_node_m, &
+            call tree_m2m_rotation(ddx_data % params, ddx_data % constants, ddx_data % tmp_node_m)
+            call tree_m2l_rotation(ddx_data % params, ddx_data % constants, ddx_data % tmp_node_m, &
                 & ddx_data % tmp_node_l)
-            call tree_l2l_rotation(ddx_data, ddx_data % tmp_node_l)
+            call tree_l2l_rotation(ddx_data % params, ddx_data % constants, ddx_data % tmp_node_l)
             ! Now compute near-field FMM gradients
             ! Cycle over all spheres
             icav = 0
@@ -254,20 +257,22 @@ subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
     double precision, external :: ddot, dnrm2
     external :: dgemm
     ! Unwrap sparsely stored potential at cavity points and multiply by ui
-    call wghpot(ddx_data, phi_cav, ddx_data % phi_grid, ddx_data % tmp_grid)
+    call wghpot(ddx_data % ncav, phi_cav, ddx_data % nsph, ddx_data % ngrid, &
+        & ddx_data % ui, ddx_data % phi_grid, ddx_data % tmp_grid)
     ! Integrate against spherical harmonics and Lebedev weights to get Phi
     call dgemm('N', 'N', ddx_data % nbasis, ddx_data % nsph, ddx_data % ngrid, &
         & one, ddx_data % vwgrid, ddx_data % vgrid_nbasis, ddx_data % tmp_grid, &
         & ddx_data % ngrid, zero, ddx_data % phi, ddx_data % nbasis)
     ! Compute Phi_infty
-    call rinfx(ddx_data, ddx_data % phi, ddx_data % phiinf)
+    call rinfx(ddx_data % params, ddx_data % constants, ddx_data % workspace, ddx_data % phi, ddx_data % phiinf)
     ! Set initial guess on Phi_epsilon as Phi
     ddx_data % phieps = ddx_data % phi
     ! Maximum number of iterations for an iterative solver
     niter = ddx_data % maxiter
     ! Solve ddPCM system R_eps Phi_epsilon = Phi_infty
     call cpu_time(start_time)
-    call jacobi_diis(ddx_data, ddx_data % n, ddx_data % iprint, ddx_data % ndiis, &
+    call jacobi_diis(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, ddx_data % n, ddx_data % iprint, ddx_data % ndiis, &
         & 4, ddx_data % tol, ddx_data % phiinf, ddx_data % phieps, niter, ok, &
         & rx, apply_repsx_prec, hnorm)
     call cpu_time(finish_time)
@@ -280,7 +285,8 @@ subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
     niter = ddx_data % maxiter
     ddx_data % xs = zero
     call cpu_time(start_time)
-    call jacobi_diis(ddx_data, ddx_data % n, ddx_data % iprint, ddx_data % ndiis, &
+    call jacobi_diis(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, ddx_data % n, ddx_data % iprint, ddx_data % ndiis, &
         & 4, ddx_data % tol, ddx_data % phieps, ddx_data % xs, niter, ok, lx, &
         & ldm1x, hnorm)
     call cpu_time(finish_time)
@@ -297,7 +303,8 @@ subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
         niter = ddx_data % maxiter
         ddx_data % s = zero
         call cpu_time(start_time)
-        call jacobi_diis(ddx_data, ddx_data % n, ddx_data % iprint, &
+        call jacobi_diis(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, ddx_data % n, ddx_data % iprint, &
             & ddx_data % ndiis, 4, ddx_data % tol, psi, ddx_data % s, niter, ok, &
             & lstarx, ldm1x, hnorm)
         call cpu_time(finish_time)
@@ -310,7 +317,8 @@ subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
         niter = ddx_data % maxiter
         ddx_data % y = zero
         call cpu_time(start_time)
-        call jacobi_diis(ddx_data, ddx_data % n, ddx_data % iprint, &
+        call jacobi_diis(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, ddx_data % n, ddx_data % iprint, &
             & ddx_data % ndiis, 4, ddx_data % tol, ddx_data % s, ddx_data % y, &
             & niter, ok, rstarx, apply_rstarepsx_prec, hnorm)
         call cpu_time(finish_time)
@@ -336,13 +344,14 @@ subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
             & vplm(ddx_data % nbasis), basloc(ddx_data % nbasis), &
             & dbsloc(3, ddx_data % nbasis), fx(3, ddx_data % nsph), stat=istatus)
         if (istatus.ne.0) write(6,*) 'ddpcm forces allocation failed'
-        call gradr(ddx_data, force)
+        call gradr(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, ddx_data % g, ddx_data % ygrid, force)
         do isph = 1, ddx_data % nsph
-            call fdoka(ddx_data, isph, ddx_data % xs, ddx_data % sgrid(:, isph), &
+            call fdoka(ddx_data % params, ddx_data % constants, isph, ddx_data % xs, ddx_data % sgrid(:, isph), &
                 & basloc, dbsloc, vplm, vcos, vsin, force(:,isph)) 
-            call fdokb(ddx_data, isph, ddx_data % xs, ddx_data % sgrid, basloc, &
+            call fdokb(ddx_data % params, ddx_data % constants, isph, ddx_data % xs, ddx_data % sgrid, basloc, &
                 & dbsloc, vplm, vcos, vsin, force(:, isph))
-            call fdoga(ddx_data, isph, ddx_data % qgrid, ddx_data % phi_grid, &
+            call fdoga(ddx_data % params, ddx_data % constants, isph, ddx_data % qgrid, ddx_data % phi_grid, &
                 & force(:, isph)) 
         end do
         force = -pt5 * force
@@ -383,10 +392,10 @@ subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
                     & ddx_data % rsph(isph)
             end do
             ! M2M, M2L and L2L translations
-            call tree_m2m_rotation(ddx_data, ddx_data % tmp_node_m)
-            call tree_m2l_rotation(ddx_data, ddx_data % tmp_node_m, &
+            call tree_m2m_rotation(ddx_data % params, ddx_data % constants, ddx_data % tmp_node_m)
+            call tree_m2l_rotation(ddx_data % params, ddx_data % constants, ddx_data % tmp_node_m, &
                 & ddx_data % tmp_node_l)
-            call tree_l2l_rotation(ddx_data, ddx_data % tmp_node_l)
+            call tree_l2l_rotation(ddx_data % params, ddx_data % constants, ddx_data % tmp_node_l)
             ! Now compute near-field FMM gradients
             ! Cycle over all spheres
             icav = 0
