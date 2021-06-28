@@ -45,7 +45,7 @@ contains
 !              In output, the solution
 !
 !   n_iter   : integer, in input, the maximum number of iterations. In output,
-!              the number of iterations needed to converge.
+!              the number of iterations needed to converge or -1 if the process did not converge
 !
 !   ok       : logical, output, T if the solver converged, false otherwise.
 !
@@ -211,7 +211,11 @@ subroutine jacobi_diis(params, constants, workspace, n, lprint, diis_max, norm, 
       enddo
 !
 !     record number of Jacobi iterations
-      n_iter = it
+    if (ok) then
+        n_iter = it
+    else
+        n_iter = -1
+    end if
 !
       return
 !

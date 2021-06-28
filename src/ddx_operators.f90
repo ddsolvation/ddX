@@ -161,30 +161,18 @@ subroutine lx(params, constants, workspace, x, y)
         write(*,*) 'lx: allocation failed !'
         stop
     end if
-    ! Debug printing
-    if (params % iprint .ge. 5) then
-        call prtsph('X', constants % nbasis, params % lmax, params % nsph, 0, &
-            & x)
-    end if
     ! Initialize
     y = zero
-    ! !!$omp parallel do default(shared) private(isph,pot,basloc,vplm,vcos,vsin) &
-    ! !!$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Compute NEGATIVE action of off-digonal blocks
         call calcv(params, constants, .false., isph, pot, x, basloc, vplm, &
             & vcos, vsin)
-        call intrhs(params % iprint, params % ngrid, params % lmax, &
-            & constants % vwgrid, constants % vgrid_nbasis, isph, pot, &
+        call intrhs(1, constants % nbasis, params % ngrid, &
+            & constants % vwgrid, constants % vgrid_nbasis, pot, &
             & y(:, isph))
         ! Action of off-diagonal blocks
         y(:, isph) = -y(:, isph)
     end do
-    ! Debug printing
-    if (params % iprint .ge. 5) then
-        call prtsph('LX (off diagonal)', constants % nbasis, params % lmax, &
-            & params % nsph, 0, y)
-    end if
     ! Deallocate workspaces
     deallocate(pot, basloc, vplm, vcos, vsin , stat=istatus)
     if (istatus .ne. 0) then
@@ -216,10 +204,6 @@ subroutine lstarx(params, constants, workspace, x, y)
         write(*, *) 'lstarx: allocation failed!'
         stop
     endif
-    if (params % iprint .ge. 5) then
-        call prtsph('X', constants % nbasis, params % lmax, params % nsph, 0, &
-            & x)
-    end if
     ! Initilize
     y = zero
     ! !!$omp parallel do default(shared) private(isph,ig)
@@ -241,10 +225,6 @@ subroutine lstarx(params, constants, workspace, x, y)
         call adjrhs(params, constants, isph, xi, y(:, isph), basloc, vplm, vcos, vsin)
         y(:, isph) = - y(:, isph)
     end do
-    if (params % iprint .ge. 5) then
-        call prtsph('L*X (off-diagonal)', constants % nbasis, params % lmax, &
-            & params % nsph, 0, y)
-    end if
     ! Deallocate workspaces
     deallocate( xi, basloc, vplm, vcos, vsin , stat=istatus )
     if ( istatus.ne.0 ) then
@@ -372,8 +352,8 @@ subroutine dx_dense(params, constants, workspace, do_diag, x, y)
             end if
         end do
         ! now integrate the potential to get its modal representation
-        call intrhs(params % iprint, params % ngrid, params % lmax, &
-            & constants % vwgrid, constants % vgrid_nbasis, isph, vts, y(:,isph))
+        call intrhs(1, constants % nbasis, params % ngrid, &
+            & constants % vwgrid, constants % vgrid_nbasis, vts, y(:,isph))
     end do
     ! Clean up temporary data
     deallocate(vts,vplm,basloc,vcos,vsin,stat=istatus)

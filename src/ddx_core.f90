@@ -957,11 +957,6 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             end if
         enddo
     enddo
-    ! Debug printing
-    if (iprint .ge. 4) then
-        call ptcart('fi', ngrid, nsph, 0, ddx_data % fi)
-        call ptcart('ui', ngrid, nsph, 0, ddx_data % ui)
-    end if
     ! Build cavity array. At first get total count for each sphere
     allocate(ddx_data % ncav_sph(nsph), stat=istatus)
     if (istatus .ne. 0) then
@@ -1029,15 +1024,6 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             stop -1
             return
         end if
-    end if
-    ! Again some debug output
-    1100  format(t3,i8,3f14.6)
-    if (iprint .ge. 4) then
-        write(6, *) '   external cavity points:'
-        do ii = 1, ddx_data % ncav
-            write(6,1100) ii, ddx_data % ccav(:, ii)
-        end do
-        write(6, *)
     end if
     !! Prepare FMM structures if needed
     if (fmm .eq. 1) then
@@ -1467,25 +1453,11 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         info = 1
         return
     end if
-    !! Debug outputs
-    ! Some format data that I will throw away as soon as this code works
-    1000 format(t3,'neighbours of sphere ',i6)
-    1010 format(t5,12i6)
-    ! Debug printing
-    if (iprint .ge. 4) then
-        write(*, "(A)") '    inl:'
-        write(*, "(10i6)") ddx_data % inl(1:nsph+1)
-        write(*,*)
-        do isph = 1, ddx_data % nsph
-            write(6,1000) isph
-            write(6,1010) ddx_data % nl(ddx_data % inl(isph): &
-                & ddx_data % inl(isph+1)-1)
-        end do
-        write(6,*)
-    end if
+    ! Lower level API
     call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & itersolver, tol, maxiter, ndiis, fmm, pm, pl, nproc, nsph, charge, &
-        & ddx_data % csph, ddx_data % rsph, ddx_data % params, info)
+        & ddx_data % csph, ddx_data % rsph, print_func_default, &
+        & ddx_data % params, info)
     if (info .ne. 0) then
         print *, ddx_data % params % error_message
     end if
@@ -2371,36 +2343,25 @@ end subroutine ylmbas2
 !! Integrate by Lebedev spherical quadrature. This function can be simply
 !! substituted by a matrix-vector product.
 !!
-!! TODO: use dgemv. Loop of this cycle can be easily substituted by a dgemm.
-!!
-!! @param[in] ngrid: Number of Lebedev grid points. `ngrid` > 0
-!! @param[in] p: Maximal degree of spherical harmonics. `p` >= 0
+!! @param[in] nsph: Number of spheres. `nsph` >= 0.
+!! @param[in] nbasis: Number of spherical harmonics. `nbasis` >= 0.
+!! @param[in] ngrid: Number of Lebedev grid points. `ngrid` >= 0.
 !! @param[in] vwgrid: Values of spherical harmonics at Lebedev grid points,
-!!      multiplied by weights of grid points. Dimension is ((p+1)**2, ngrid)
-!! @param[in] isph: Index of given sphere. Used for debug purpose.
-!! @param[in] x: Input values at grid points of the sphere. Dimension is
-!!      (ngrid)
-!! @param[out] xlm: Output spherical harmonics. Dimension is ((p+1)**2)
-subroutine intrhs(iprint, ngrid, p, vwgrid, ldvwgrid, isph, x, xlm)
-    ! Inputs
-    integer, intent(in) :: iprint, ngrid, p, ldvwgrid, isph
+!!      multiplied by weights of grid points. Dimension is (ldvwgrid, ngrid).
+!! @param[in] ldvwgrid: Leading dimension of `vwgrid`.
+!! @param[in] x_grid: Input values at grid points of the sphere. Dimension is
+!!      (ngrid, nsph).
+!! @param[out] x_lm: Output spherical harmonics. Dimension is (nbasis, nsph).
+subroutine intrhs(nsph, nbasis, ngrid, vwgrid, ldvwgrid, x_grid, x_lm)
+    !! Inputs
+    integer, intent(in) :: nsph, nbasis, ngrid, ldvwgrid
     real(dp), intent(in) :: vwgrid(ldvwgrid, ngrid)
-    real(dp), intent(in) :: x(ngrid)
-    ! Output
-    real(dp), intent(out) :: xlm((p+1)**2)
-    ! Local variables
-    integer :: igrid
-    ! Initialize
-    xlm = zero
-    ! Accumulate over integration points
-    do igrid = 1, ngrid
-        xlm = xlm + vwgrid(:(p+1)**2,igrid)*x(igrid)
-    end do
-    ! Printing (these functions are not implemented yet)
-    if (iprint .ge. 5) then
-        call ptcart('pot', ngrid, 1, isph, x)
-        call prtsph('vlm', (p+1)**2, p, 1, isph, xlm)
-    end if
+    real(dp), intent(in) :: x_grid(ngrid, nsph)
+    !! Output
+    real(dp), intent(out) :: x_lm(nbasis, nsph)
+    !! Just call a single dgemm to do the job
+    call dgemm('N', 'N', nbasis, nsph, ngrid, one, vwgrid, ldvwgrid, x_grid, &
+        & ngrid, zero, x_lm, nbasis)
 end subroutine intrhs
 
 !> Compute first derivatives of spherical harmonics

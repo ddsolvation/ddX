@@ -35,7 +35,7 @@ call mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
 call cpu_time(finish_time)
 write(*, "(A,ES11.4E2,A)") "mkrhs time:", finish_time-start_time, " seconds"
 call cpu_time(start_time)
-call ddsolve(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
+call ddsolve(ddx_data, phi_cav, gradphi_cav, psi, esolv, force, info)
 call cpu_time(finish_time)
 write(*, "(A,ES11.4E2,A)") "ddsolve time:", finish_time-start_time, " seconds"
 write(*, "(A,ES25.16E3)") "ddsolve esolv:", esolv

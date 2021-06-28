@@ -22,6 +22,12 @@ type ddx_workspace_type
     !> Temporary workspace for associated legendre polynomials. Dimension is
     !!      (vgrid_nbasis, nproc).
     real(dp), allocatable :: tmp_vplm(:, :)
+    !> Temporary workspace for spherical harmomincs. Dimension is
+    !!      (vgrid_nbasis, nproc).
+    real(dp), allocatable :: tmp_vylm(:, :)
+    !> Temporary workspace for derivatives of spherical harmomincs. Dimension is
+    !!      (3, vgrid_nbasis, nproc).
+    real(dp), allocatable :: tmp_vdylm(:, :, :)
     !> Temporary workspace for an array of cosinuses of a dimension
     !!      (vgrid_dmax+1, nproc).
     real(dp), allocatable :: tmp_vcos(:, :)
@@ -53,6 +59,11 @@ type ddx_workspace_type
     !> Temporary workspace for grid values of each sphere. Dimension is
     !!      (ngrid, nsph).
     real(dp), allocatable :: tmp_grid(:, :)
+    !> Temporary workspace for grid values of each sphere. Dimension is
+    !!      (ngrid, nsph).
+    real(dp), allocatable :: tmp_grid2(:, :)
+    !> Temporary electric field in cavity points. Dimension is (3, ncav).
+    real(dp), allocatable :: tmp_efld(:, :)
     !> Flag if there were an error
     integer :: error_flag
     !> Last error message
@@ -78,6 +89,16 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_vplm`, `tmp_vcos` " &
             & // "and `tmp_vsin` allocations failed"
+        info = 1
+        return
+    end if
+    allocate(workspace % tmp_vylm(constants % vgrid_nbasis, params % nproc), &
+        & workspace % tmp_vdylm(3, constants % vgrid_nbasis, params % nproc), &
+        & stat=info)
+    if (info .ne. 0) then
+        workspace % error_flag = 1
+        workspace % error_message = "workspace_init: `tmp_vylm` " &
+            & // "and `tmp_vdylm` allocations failed"
         info = 1
         return
     end if
@@ -153,6 +174,23 @@ subroutine workspace_init(params, constants, workspace, info)
     if (info .ne. 0) then
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_grid` " // &
+            & "allocation failed"
+        info = 1
+        return
+    end if
+    allocate(workspace % tmp_grid2(params % ngrid, params % nsph), &
+        & stat=info)
+    if (info .ne. 0) then
+        workspace % error_flag = 1
+        workspace % error_message = "workspace_init: `tmp_grid2` " // &
+            & "allocation failed"
+        info = 1
+        return
+    end if
+    allocate(workspace % tmp_efld(3, constants % ncav), stat=info)
+    if (info .ne. 0) then
+        workspace % error_flag = 1
+        workspace % error_message = "workspace_init: `tmp_efld` " // &
             & "allocation failed"
         info = 1
         return

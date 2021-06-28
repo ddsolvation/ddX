@@ -20,10 +20,14 @@ use ddx_definitions
 ! Disable implicit types
 implicit none
 
+interface
+    subroutine print_func_interface(string)
+        character(len=255), intent(in) :: string
+    end subroutine
+end interface
+
 !> Type to check and store user input parameters
 type ddx_params_type
-    !> Printing flag TODO: maybe remove it?
-    integer :: iprint
     !> Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
     integer :: model
     !> Whether computing analytical forces will be required (1) or not (0).
@@ -73,10 +77,13 @@ type ddx_params_type
     real(dp), allocatable :: csph(:, :)
     !> Array of radii of atoms of a dimension (nsph).
     real(dp), allocatable :: rsph(:)
-    !> Error state. 0 in case of no error or 1 if there were errors.
-    integer :: error_flag
+    !> Error state. 0 in case of no error or 1 if there were errors or if the
+    !! object is not initialised.
+    integer :: error_flag = 1
     !> Last error message
     character(len=255) :: error_message
+    !> Error printing function
+    procedure(print_func_interface), pointer, nopass :: print_func
 end type ddx_params_type
 
 contains
@@ -118,6 +125,7 @@ contains
 !! @param[in] charge: Charges of atoms. Dimension is `(nsph)`.
 !! @param[in] csph: Coordinates of atoms. Dimension is `(3, nsph)`.
 !! @param[in] rsph: Van-der-Waals radii of atoms. Dimension is `(nsph)`.
+!! @param[in] print_func: Function to print errors.
 !! @param[out] params: Object containing all inputs.
 !! @param[out] info: flag of succesfull exit
 !!      = 0: Succesfull exit
@@ -126,7 +134,7 @@ contains
 !!      = 1: Allocation of memory to copy geometry data failed.
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & itersolver, tol, maxiter, ndiis, fmm, pm, pl, nproc, nsph, charge, &
-        & csph, rsph, params, info)
+        & csph, rsph, print_func, params, info)
     !! Inputs
     ! Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
     integer, intent(in) :: model
@@ -177,18 +185,19 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     real(dp), intent(in) :: csph(3, nsph)
     ! Array of radii of atoms of a dimension (nsph).
     real(dp), intent(in) :: rsph(nsph)
+    ! Error printing function
+    procedure(print_func_interface) :: print_func
     !! Outputs
     type(ddx_params_type), intent(out) :: params
     integer, intent(out) :: info
     !! Local variables
     integer :: igrid, i
     !! The code
-    ! Set iprint to zero immediately
-    params % iprint = 0
     ! Model, 1=COSMO, 2=PCM, 3=LPB
     if ((model .lt. 1) .or. (model .gt. 3)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `model`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -197,6 +206,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((force .lt. 0) .or. (force .gt. 1)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `force`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -205,6 +215,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (eps .le. one) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `eps`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -213,6 +224,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((model .eq. 3) .and. (kappa .lt. zero)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `kappa`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -221,6 +233,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((eta .le. zero) .or. (eta .gt. one)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `eta`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -229,6 +242,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((se .lt. -one) .or. (se .gt. one)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `se`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -237,6 +251,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (lmax .lt. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `lmax`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -252,6 +267,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (igrid .eq. 0) then
         params % error_flag = 1
         params % error_message = "params_init: Unsupported value of `ngrid`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -260,6 +276,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (itersolver .ne. 1) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `itersolver`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -268,6 +285,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((tol .lt. 1d-14) .or. (tol .gt. one)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `tol`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -276,6 +294,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (maxiter .le. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `maxiter`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -284,6 +303,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (ndiis .lt. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `ndiis`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -292,6 +312,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((fmm .lt. 0) .or. (fmm .gt. 1)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `fmm`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -304,6 +325,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         if (pm .lt. -1) then
             params % error_flag = 1
             params % error_message = "params_init: invalid value of `pm`"
+            call print_func(params % error_message)
             info = -1
             return
         end if
@@ -313,6 +335,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         if (pl .lt. -1) then
             params % error_flag = 1
             params % error_message = "params_init: invalid value of `pl`"
+            call print_func(params % error_message)
             info = -1
             return
         end if
@@ -337,6 +360,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (nproc .ne. 1 .and. nproc .ne. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `nproc`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -346,6 +370,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (nsph .le. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `nsph`"
+        call print_func(params % error_message)
         info = -1
         return
     end if
@@ -357,17 +382,49 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         params % error_flag = 1
         params % error_message = "params_init: `charge`, `csph` and `rsph` " &
             & // "allocations failed"
+        call print_func(params % error_message)
         info = 1
         return
     end if
     params % charge = charge
     params % csph = csph
     params % rsph = rsph
+    ! Set print function for errors
+    params % print_func => print_func
     ! Clear error state
     params % error_flag = 0
     params % error_message = ""
-    info = 0
 end subroutine params_init
+
+!> Print header with parameters
+subroutine params_print(params)
+    !! Input
+    type(ddx_params_type), intent(in) :: params
+    !! Local variables
+    character(len=255) :: string
+    !! The code
+    if (params % error_flag .ne. 0) then
+        call params % print_func("Parameters are not initialised or in " // &
+            & "error state")
+    else
+        write(string, "(A)") "DDX parameters object"
+        call params % print_func(string)
+        write(string, "(A,A)") "Model: ", trim(model_str(params % model))
+        call params % print_func(string)
+        write(string, "(A,L1)") "Forces: ", params % force .eq. 1
+        call params % print_func(string)
+        write(string, "(A,ES23.16E3)") "Eps: ", params % eps
+        call params % print_func(string)
+        call params % print_func(string)
+        call params % print_func(string)
+        call params % print_func(string)
+        call params % print_func(string)
+        call params % print_func(string)
+        call params % print_func(string)
+        call params % print_func(string)
+        call params % print_func(string)
+    end if
+end subroutine params_print
 
 !> Free memory used by parameters
 !! @param[inout] params: Object containing all inputs
@@ -440,6 +497,13 @@ subroutine error(code, message)
     write(0, "(A,A)") "ERROR: ", message
     write(0, "(A,A)") "CODE: ", code
     stop -1
+end subroutine
+
+
+!> Default printing function
+subroutine print_func_default(string)
+    character(len=255), intent(in) :: string
+    print "(A)", string
 end subroutine
 
 end module ddx_parameters

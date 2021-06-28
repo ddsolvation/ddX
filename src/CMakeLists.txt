@@ -16,8 +16,10 @@ set(SRC
     "ddx_core.f90"
     "ddx_operators.f90"
     "ddx_solvers.f90"
-    "ddx.f90"
+    "ddx_cosmo.f90"
+    "ddx_pcm.f90"
     "ddx_lpb.f90"
+    "ddx.f90"
     "bessel.f90"
     "llgnew.f")
 

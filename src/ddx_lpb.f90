@@ -162,12 +162,12 @@ contains
     !! @param[in]  isph : Sphere number, used for output
     !! @param[in]  g    : Intermediate right side g
     !! @param[out] g0   : Integrated right side Eq.(77) in QSM19.SISC
-    call intrhs(ddx_data % iprint, ddx_data % ngrid, &
-                ddx_data % lmax, ddx_data % vwgrid, ddx_data % vgrid_nbasis, &
-                & isph, g(:,isph), g0)
-    call intrhs(ddx_data % iprint, ddx_data % ngrid, &
-                ddx_data % lmax, ddx_data % vwgrid, ddx_data % vgrid_nbasis, &
-                & isph,f(:,isph),f0)
+    call intrhs(1, ddx_data % nbasis, ddx_data % ngrid, &
+                ddx_data % vwgrid, ddx_data % vgrid_nbasis, &
+                & g(:,isph), g0)
+    call intrhs(1, ddx_data % nbasis, ddx_data % ngrid, &
+                ddx_data % vwgrid, ddx_data % vgrid_nbasis, &
+                & f(:,isph),f0)
     !! rhs 
     rhs_r_init(:,isph) = g0 + f0
     rhs_e_init(:,isph) = f0
@@ -461,9 +461,9 @@ contains
   do isph = 1, ddx_data % nsph
     call calcv2_lpb(ddx_data, isph, pot, x, basloc, vplm, vcos, vsin )
     ! intrhs comes from ddCOSMO
-    call intrhs(ddx_data % iprint, ddx_data % ngrid, &
-                ddx_data % lmax, ddx_data % vwgrid, ddx_data % vgrid_nbasis, &
-                & isph, pot, y(:,isph) )
+    call intrhs(1, ddx_data % nbasis, ddx_data % ngrid, &
+                ddx_data % vwgrid, ddx_data % vgrid_nbasis, &
+                & pot, y(:,isph) )
     ! Action of off-diagonal blocks
     y(:,isph) = - y(:,isph)
     ! Add action of diagonal block
