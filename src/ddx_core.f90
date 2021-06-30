@@ -29,274 +29,7 @@ type ddx_type
     type(ddx_params_type) :: params
     type(ddx_constants_type) :: constants
     type(ddx_workspace_type) :: workspace
-    !!!!!!!!!!!! Parameters
-    !> Model to use 1 for cosmo, 2 for pcm, 3 for lpb.
-    integer :: model
-    !> Verbosity level. 0 for no output, 1 for ... Larger value means more
-    !!      output.
-    integer :: iprint
-    !> Number of OpenMP threads to be used. Currently, only nproc=1 is
-    !!      supported as ddX is sequential right now.
-    integer :: nproc
-    !> Number of atoms in the molecule.
-    integer :: nsph
-    !> Charges of atoms of a dimension (nsph).
-    real(dp), allocatable :: charge(:)
-    !> Centers of atoms of a dimension (3, nsph).
-    real(dp), allocatable :: csph(:, :)
-    !> Array of radii of atoms of a dimension (nsph).
-    real(dp), allocatable :: rsph(:)
-    !> Dielectric permittivity inside cavity.
-    real(dp) :: epsin
-    !> Dielectric permittivity outside cavity.
-    real(dp) :: epsout
-    !> Relative dielectric permittivity.
-    real(dp) :: eps
-    !> Debye H\"{u}ckel parameter. Referenced only in LPB model (model=3)
-    real(dp) :: kappa
-    !> Shift of a characteristic function. -1 for interior, 0 for centered and
-    !!      1 for outer regularization.
-    real(dp) :: se
-    !> Regularization parameter.
-    real(dp) :: eta
-    !> Iterative solver to be used. 1 for Jacobi/DIIS.
-    !!
-    !! Other solvers might be added later.
-    integer :: itersolver
-    !> Relative threshold for an iterative solvers.
-    real(dp) :: tol
-    !> Maximum number of iterations for an iterative solver.
-    integer :: maxiter
-    !> Number of extrapolation points for Jacobi/DIIS solver. Referenced only
-    !!      if Jacobi solver is used.
-    integer :: ndiis
-    !> Maximal degree of modeling spherical harmonics.
-    integer :: lmax
-    !> Number modeling spherical harmonics per sphere.
-    integer :: nbasis
-    !> Total number of modeling degrees of freedom.
-    !!
-    !! This is equal to `nsph*nbasis`.
-    integer :: n
-    !> Number of Lebedev grid points on each sphere.
-    integer :: ngrid
-    !> Whether to compute (1) or not (0) analytical forces.
-    integer :: force
-    !> Enable (1) or disable (0) use of FMM techniques.
-    integer :: fmm
-    !> Maximum degree of spherical harmonics for M (multipole) expansion.
-    !!
-    !! If this value is -1 then no far-field FMM interactions are performed.
-    integer :: pm
-    !> Maximum degree of spherical harmonics for L (local) expansion.
-    !!
-    !! If this value is -1 then no far-field FMM interactions are performed.
-    integer :: pl
-    !> Flag if FMM transfer matrices have to be precomputed
-    integer :: fmm_precompute
-    !!!!!!!!!!!!!! Constants, initialized by ddinit
-    !> Maximal degree of used real normalized spherical harmonics.
-    !!
-    !! For example, if FMM is
-    !! used, its M2L operation requires computing spherical harmonics of all
-    !! degrees up to `pm+pl`. If `force=1` then this parameter might be
-    !! increased by 1 because certain implementations of analytical gradients
-    !! might rely on spherical harmonics of +1 degree.
-    integer :: dmax
-    !> Total number of used real spherical harmonics and a size of `vscales`.
-    integer :: nscales
-    !> Scales of real normalized spherical harmonics of degree up to dmax.
-    !!
-    !! This array has a dimension (nscales).
-    real(dp), allocatable :: vscales(:)
-    !> Array of values 4pi/(2l+1), dimension is (dmax+1). Referenced only if
-    !!      fmm=1, but allocated and computed in any case.
-    real(dp), allocatable :: v4pi2lp1(:)
-    !> Relative scales of real normalized spherical harmonics.
-    !!
-    !! Each values is multiplied by a corresponding 4pi/(2l+1). Dimension of
-    !! this array is (nscales). Referenced only if fmm=1, but allocated and
-    !! computed in any case.
-    real(dp), allocatable :: vscales_rel(:)
-    !> Number of precomputed square roots of factorials.
-    !!
-    !! Just like with `dmax` parameter, number of used factorials is either
-    !! `2*lmax+1` or `2*(pm+pl)+1` depending on whether FMM is used or not.
-    integer :: nfact
-    !> Array of square roots of factorials of a dimension (nfact).
-    real(dp), allocatable :: vfact(:)
-    !> Array of square roots of combinatorial numbers C_n^k.
-    !!
-    !! Dimension of this array is ((2*dmax+1)*(dmax+1)). Allocated, computed
-    !! and referenced only if fmm=1.
-    real(dp), allocatable :: vcnk(:)
-    !> Array of common M2L coefficients for any OZ translation.
-    !!
-    !! This array has a dimension (pm+1, pl+1, pl+1). Allocated, computed and
-    !! referenced only if fmm=1.
-    real(dp), allocatable :: m2l_ztranslate_coef(:, :, :)
-    !> Array of common M2L coefficients for any adjoint OZ translation.
-    !!
-    !! Dimension of this array is (pl+1, pl+1, pm+1). It is allocated, computed
-    !! and referenced only if fmm=1.
-    real(dp), allocatable :: m2l_ztranslate_adj_coef(:, :, :)
-    !> Coordinates of Lebedev quadrature points of a dimension (3, ngrid).
-    real(dp), allocatable :: cgrid(:, :)
-    !> Weights of Lebedev quadrature points of a dimension (ngrid).
-    real(dp), allocatable :: wgrid(:)
-    !> Maximal degree of spherical harmonics evaluated at Lebedev grid points.
-    !!
-    !! Although we use spherical harmonics of degree up to `dmax`, only
-    !! spherical harmonics of degree up to `lmax` and `pl` are evaluated
-    !! at Lebedev grid points. In the case `force=1` this degrees might be
-    !! increased by 1 depending on implementation of gradients.
-    integer :: vgrid_dmax
-    !> Number of spherical harmonics evaluated at Lebedev grid points.
-    integer :: vgrid_nbasis
-    !> Values of spherical harmonics at Lebedev grid points.
-    !!
-    !! Dimensions of this array are (vgrid_nbasis, ngrid)
-    real(dp), allocatable :: vgrid(:, :)
-    !> Weighted values of spherical harmonics at Lebedev grid points.
-    !!
-    !! vwgrid(:, igrid) = vgrid(:, igrid) * wgrid(igrid)
-    !! Dimension of this array is (vgrid_nbasis, ngrid).
-    real(dp), allocatable :: vwgrid(:, :)
-    !> Number of L2P harmonics evaluated at Lebedev grid points
-    integer :: l2grid_nbasis
-    !> Values of L2P at grid points. Dimension is (l2grid_nbasis, ngrid).
-    real(dp), allocatable :: l2grid(:, :)
-    !> Upper limit on a number of neighbours per sphere. This value is just an
-    !!      upper bound that is not guaranteed to be the actual maximum.
-    integer :: nngmax
-    !> List of intersecting spheres in a CSR format. Dimension is (nsph+1).
-    integer, allocatable :: inl(:)
-    !> List of intersecting spheres in a CSR format. Dimension is
-    !!      (nsph*nngmax).
-    integer, allocatable :: nl(:)
-    !> Values of a characteristic function f at all grid points of all spheres.
-    !!      Dimension is (ngrid, npsh).
-    real(dp), allocatable :: fi(:, :)
-    !> Values of a characteristic function U at all grid points of all spheres.
-    !!      Dimension is (ngrid, nsph).
-    real(dp), allocatable :: ui(:, :)
-    !> Derivative of the characteristic function U at all grid points of all
-    !!      spheres. Dimension is (3, ngrid, nsph).
-    real(dp), allocatable :: zi(:, :, :)
-    !> Number of external Lebedev grid points on a molecular surface.
-    integer :: ncav
-    !> Number of external Lebedev grid points on each sphere.
-    integer, allocatable :: ncav_sph(:)
-    !> Coordinates of external Lebedev grid points. Dimension is (3, ncav).
-    real(dp), allocatable :: ccav(:, :)
-    !> Row indexes in CSR format of all cavity points. Dimension is (nsph+1).
-    integer, allocatable :: icav_ia(:)
-    !> Column indexes in CSR format of all cavity points. Dimension is (ncav).
-    integer, allocatable :: icav_ja(:)
-    !> Preconditioner for an operator R_eps. Allocated and computed only for
-    !!      the PCM model (model=3). Dimension is (nbasis, nbasis, nsph).
-    real(dp), allocatable :: rx_prc(:, :, :)
-    !! Cluster tree information that is allocated and computed only if fmm=1.
-    !> Reordering of spheres for better locality. This array has a dimension
-    !!      (nsph) and is allocated/used only if fmm=1.
-    integer, allocatable :: order(:)
-    !> Number of clusters. Defined only if fmm=1.
-    integer :: nclusters
-    !> The first and the last spheres of each node. Dimension of this array is
-    !!      (2, nclusters) and it is allocated/used only if fmm=1.
-    integer, allocatable :: cluster(:, :)
-    !> Children of each cluster. Dimension is (2, nclusters). Allocated and
-    !!      used only if fmm=1.
-    integer, allocatable :: children(:, :)
-    !> Parent of each cluster. Dimension is (nclusters). Allocated and used
-    !!      only if fmm=1.
-    integer, allocatable :: parent(:)
-    !> Center of bounding sphere of each cluster. Dimension is (3, nclusters).
-    !!      This array is allocated and used only if fmm=1.
-    real(dp), allocatable :: cnode(:, :)
-    !> Radius of bounding sphere of each cluster. Dimension is (nclusters).
-    !!      This array is allocated and used only if fmm=1.
-    real(dp), allocatable :: rnode(:)
-    !> Which leaf node contains only given input sphere. Dimension is (nsph).
-    !!      This array is allocated and used only if fmm=1.
-    integer, allocatable :: snode(:)
-    !> Total number of far admissible pairs. Defined only if fmm=1.
-    integer :: nnfar
-    !> Total number of near admissible pairs. Defined only if fmm=1.
-    integer :: nnnear
-    !> Number of admissible far pairs for each node. Dimension is (nclusters).
-    !!      This array is allocated and used only if fmm=1.
-    integer, allocatable :: nfar(:)
-    !> Number of admissible near pairs for each node. Dimension is (nclusters).
-    !!      This array is allocated and used only if fmm=1.
-    integer, allocatable :: nnear(:)
-    !> Arrays of admissible far pairs. Dimension is (nnfar). This array is
-    !!      allocated and used only if fmm=1.
-    integer, allocatable :: far(:)
-    !> Arrays of admissible near pairs. Dimension is (nnnear). This array is
-    !!      allocated and used only if fmm=1.
-    integer, allocatable :: near(:)
-    !> Index of the first element of array of all admissible far pairs stored
-    !!      in the array `far`. Dimension is (nclusters+1). This array is
-    !!      allocated and used only if fmm=1.
-    integer, allocatable :: sfar(:)
-    !> Index of the first element of array of all admissible near pairs stored
-    !!      in the array `near`. Dimension is (nclusters+1). This array is
-    !!      allocated and used only if fmm=1.
-    integer, allocatable :: snear(:)
-    !! Reflection matrices for M2M, M2L and L2L operations. Allocated and used
-    !! only if fmm=1 and fmm_precompute=1
-    !> Size of each M2M reflection matrix. Defined only if fmm=1 and
-    !!      fmm_precompute=1.
-    integer :: m2m_reflect_mat_size
-    !> Array of M2M reflection matrices. Dimension is (m2m_reflect_mat_size,
-    !!      nclusters). Allocated and used only if fmm=1 and fmm_precompue=1.
-    real(dp), allocatable :: m2m_reflect_mat(:, :)
-    !> Size of each M2M OZ translation matrix. Defined only if fmm=1 and
-    !!      fmm_precompute=1.
-    integer :: m2m_ztranslate_mat_size
-    !> Array of M2M OZ translation matrices. Dimension is
-    !!      (m2m_ztranslate_mat_size, nclusters). Allocated and used if fmm=1
-    !!      and fmm_precompute=1.
-    real(dp), allocatable :: m2m_ztranslate_mat(:, :)
-    !> Size of each L2L reflection matrix. Defined only if fmm=1 and
-    !!      fmm_precompute=1.
-    integer :: l2l_reflect_mat_size
-    !> Array of L2L reflection matrices. Dimension is (l2l_reflect_mat_size,
-    !!      nclusters). Allocated and used if fmm=1 and fmm_precompute=1.
-    real(dp), allocatable :: l2l_reflect_mat(:, :)
-    !> Size of each L2L OZ translation matrix. Defined only if fmm=1 and
-    !!      fmm_precompute=1.
-    integer :: l2l_ztranslate_mat_size
-    !> Array of L2L OZ translation matrices. Dimension is
-    !!      (l2l_ztranslate_mat_size, nclusters). Allocated and used only if
-    !!      fmm=1 and fmm_precompute=1.
-    real(dp), allocatable :: l2l_ztranslate_mat(:, :)
-    !> Size of each M2L reflection matrix. Defined only if fmm=1 and
-    !!      fmm_precompute=1.
-    integer :: m2l_reflect_mat_size
-    !> Array of M2L reflection matrices. Dimension is (m2l_reflect_mat_size,
-    !!      nclusters). Allocated and used if fmm=1 and fmm_precompute=1.
-    real(dp), allocatable :: m2l_reflect_mat(:, :)
-    !> Size of each M2L OZ translation matrix. Defined only if fmm=1 and
-    !!      fmm_precompute=1.
-    integer :: m2l_ztranslate_mat_size
-    !> Array of M2L OZ translation matrices. Dimension is
-    !!      (m2l_ztranslate_mat_size, nclusters). Allocated and used only if
-    !!      fmm=1 and fmm_precompute=1.
-    real(dp), allocatable :: m2l_ztranslate_mat(:, :)
-    !> Number of near-field M2P interactions with cavity points. Defined only
-    !!      if fmm=1.
-    integer :: nnear_m2p
-    !> Maximal degree of near-field M2P spherical harmonics. Defined only if
-    !!      fmm=1.
-    integer :: m2p_lmax
-    !> Number of spherical harmonics used for near-field M2P. Defined only if
-    !!      fmm=1.
-    integer :: m2p_nbasis
-    !> Near-field M2P matrices of a dimension (m2p_nbasis, nnear_m2p).
-    !!      Allocated and used only if fmm=1 and fmm_precompute=1.
-    real(dp), allocatable :: m2p_mat(:, :)
+    !! High-level entities to be stored and accessed by users
     !> Potential at all grid points. Dimension is (ngrid, nsph). Allocated
     !!      and used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: phi_grid(:, :)
@@ -332,46 +65,8 @@ type ddx_type
     real(dp), allocatable :: qgrid(:, :)
     !> Zeta intermediate for forces. Dimension is (ncav)
     real(dp), allocatable :: zeta(:)
-    !> Temporary workspace for associated legendre polynomials. Dimension is
-    !!      (vgrid_nbasis, nproc).
-    real(dp), allocatable :: tmp_vplm(:, :)
-    !> Temporary workspace for an array of cosinuses of a dimension
-    !!      (vgrid_dmax+1, nproc).
-    real(dp), allocatable :: tmp_vcos(:, :)
-    !> Temporary workspace for an array of sinuses of a dimension
-    !!      (vgrid_dmax+1, nproc).
-    real(dp), allocatable :: tmp_vsin(:, :)
-    !> Temporary workspace for multipole coefficients of a degree up to lmax
-    !!      of each sphere. Dimension is (nbasis, nsph).
-    real(dp), allocatable :: tmp_sph(:, :)
-    !> Number of spherical harmonics of degree up to lmax+1 used for
-    !!      computation of forces (gradients). Allocated and used only if
-    !!      fmm=1.
-    integer :: grad_nbasis
-    !> Temporary workspace for multipole coefficients of a degree up to lmax+1
-    !!      of each sphere. Dimension is (grad_nbasis, nsph). Allocated and
-    !!      used only if fmm=1.
-    real(dp), allocatable :: tmp_sph2(:, :)
-    !> Temporary workspace for a gradient of M2M of harmonics of a degree up to
-    !!      lmax+1 of each sphere. Dimension is ((grad_nbasis, 3, nsph).
-    real(dp), allocatable :: tmp_sph_grad(:, :, :)
-    !> Temporary workspace for local coefficients of a degree up to pl
-    !!      of each sphere. Dimension is ((pl+1)**2, nsph).
-    real(dp), allocatable :: tmp_sph_l(:, :)
-    !> Temporary workspace for a gradient of L2L of harmonics of a degree up to
-    !!      pl of each sphere. Dimension is ((pl+1)**2, 3, nsph).
-    real(dp), allocatable :: tmp_sph_l_grad(:, :, :)
-    !> Temporary workspace for multipole coefficients of each node. Dimension
-    !!      is ((pm+1)**2, nsph)
-    real(dp), allocatable :: tmp_node_m(:, :)
-    !> Temporary workspace for local coefficients of each node. Dimension is
-    !!      ((pl+1)**2, nsph)
-    real(dp), allocatable :: tmp_node_l(:, :)
-    !> Temporary workspace for grid values of each sphere. Dimension is
-    !!      (ngrid, nsph).
-    real(dp), allocatable :: tmp_grid(:, :)
     !> Flag if there were an error
-    logical :: error_flag
+    integer :: error_flag
     !> Last error message
     character(len=255) :: error_message
 end type ddx_type
@@ -397,9 +92,6 @@ contains
 !! @param[in] pl: Maximal degree of local spherical harmonics. Ignored in
 !!      the case `fmm=0`. Value -1 means no far-field FMM interactions are
 !!      computed. `pl` >= -1.
-!! @param[in] fmm_precompute: 1 to precompute FMM matrices, 0 to compute them
-!!      on demand.
-!! @param[in] iprint: Level of printing debug info.
 !! @param[in] se: Shift of characteristic function. -1 for interior, 0 for
 !!      centered and 1 for outer regularization
 !! @param[in] eta: Regularization parameter. 0 < eta <= 1.
@@ -425,11 +117,11 @@ contains
 !!      = 1: Allocation of one of buffers failed
 !!      = 2: Deallocation of a temporary buffer failed
 subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
-        & fmm, pm, pl, fmm_precompute, iprint, se, eta, eps, kappa, &
+        & fmm, pm, pl, se, eta, eps, kappa, &
         & itersolver, tol, maxiter, ndiis, nproc, ddx_data, info)
     ! Inputs
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
-        & fmm_precompute, iprint, itersolver, maxiter, ndiis, ngrid
+        & itersolver, maxiter, ndiis, ngrid
     real(dp), intent(in):: charge(nsph), x(nsph), y(nsph), z(nsph), &
         & rvdw(nsph), se, eta, eps, kappa, tol
     ! Output
@@ -443,894 +135,77 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     real(dp) :: v(3), maxv, ssqv, vv, t, swthr, fac, r, start_time, &
         & finish_time, tmp1
     real(dp) :: rho, ctheta, stheta, cphi, sphi
-    real(dp), allocatable :: sphcoo(:, :)
+    real(dp), allocatable :: sphcoo(:, :), csph(:, :)
     double precision, external :: dnrm2
     integer :: iwork, jwork, lwork, old_lwork, nngmax
     integer, allocatable :: work(:, :), tmp_work(:, :), tmp_nl(:)
     logical :: use_omp
-    ! Pointers for OMP, that can not use fields of a derived type in a depend
-    ! clause. This is done to compute all the ddx_data fields in a parallel way
-    real(dp), pointer :: p_vscales(:), p_v4pi2lp1(:), p_vscales_rel(:), &
-        & p_vfact(:), p_vcnk(:), p_m2l_ztranslate_coef(:, :, :), &
-        & p_m2l_ztranslate_adj_coef(:, :, :), p_cgrid(:, :), p_wgrid(:), &
-        & p_vgrid(:, :), p_vwgrid(:, :), p_l2grid(:, :), p_tmp_vplm(:, :), &
-        & p_tmp_vcos(:, :), p_tmp_vsin(:, :), p_fi(:, :), p_ui(:, :), &
-        & p_zi(:, :, :)
-    ! Reset info
-    info = 0
-    ddx_data % error_flag = .false.
-    ddx_data % error_message = ""
-    !!! Check input parameters
-    ! Number of atoms
-    if (nsph .le. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter `nsph`"
-        info = -1
-        return
-    end if
-    ddx_data % nsph = nsph
-    ! Allocation of charge, csph and rsph
-    allocate(ddx_data % charge(nsph), ddx_data % csph(3, nsph), &
-        & ddx_data % rsph(nsph), stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `charge`, `csph` and `rsph` " // &
-            & "allocations failed!"
-        info = 1
-        return
-    end if
-    ! No checks for NaNs and Infs in input coordinates
-    ddx_data % charge = charge
-    ddx_data % csph(1, :) = x
-    ddx_data % csph(2, :) = y
-    ddx_data % csph(3, :) = z
-    ddx_data % rsph = rvdw
-    ! Model, 1=COSMO, 2=PCM, 3=LPB
-    if ((model .lt. 1) .or. (model .gt. 3)) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter `model`"
-        info = -7
-        return
-    end if
-    ddx_data % model = model
-    ! Degree of modeling spherical harmonics
-    if (lmax .lt. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter `lmax`"
-        info = -8
-        return
-    end if
-    ddx_data % lmax = lmax
-    ! Total number of modeling spherical harmonics
-    ddx_data % nbasis = (lmax+1)**2
-    ! Total number of modeling degrees of freedom
-    ddx_data % n = nsph * ddx_data % nbasis
-    ! Check number of Lebedev grid points
-    igrid = 0
-    do i = 1, nllg
-        if (ng0(i) .eq. ngrid) then
-            igrid = i
-            exit
-        end if
-    enddo
-    if (igrid .eq. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: Unsupported value for " // &
-            & "parameter `ngrid`."
-        info = -9
-        return
-    end if
-    ddx_data % ngrid = ngrid
-    ! Check if forces are needed
-    if ((force .lt. 0) .or. (force .gt. 1)) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter `force`"
-        info = -10
-        return
-    end if
-    ddx_data % force = force
-    ! Check if FMM-acceleration is needed
-    if ((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter `fmm`"
-        info = -11
-        return
-    end if
-    ddx_data % fmm = fmm
-    ! Printing flag
-    if (iprint .lt. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter " // &
-            & "`iprint`"
-        info = -15
-        return
-    end if
-    ddx_data % iprint = iprint
-    ! Shift of a regularization
-    if ((se .lt. -one) .or. (se .gt. one)) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter `se`"
-        info = -16
-        return
-    end if
-    ddx_data % se = se
-    ! Regularization parameter
-    if ((eta .le. zero) .or. (eta .gt. one)) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter `eta`"
-        info = -17
-        return
-    end if
-    ddx_data % eta = eta
-    ! Relative dielectric permittivity
-    if (eps .le. one) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter `eps`"
-        info = -18
-        return
-    end if
-    ddx_data % eps = eps
-    ! Debye-H\"{u}ckel parameter (only used in ddLPB)
-    if ((model .eq. 3) .and. (kappa .lt. zero)) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter `kappa`"
-        info = -19
-        return
-    end if
-    ddx_data % kappa = kappa
-    ! Iterative solver, 1=Jacobi
-    if (itersolver .ne. 1) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter `tol`"
-        info = -20
-        return
-    end if
-    ddx_data % itersolver = itersolver
-    ! Relative threshold for an iterative solver
-    if ((tol .lt. 1d-14) .or. (tol .gt. one)) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter `tol`"
-        info = -21
-        return
-    end if
-    ddx_data % tol = tol
-    ! Maximum number of iterations
-    if (maxiter .le. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter " // &
-            & "`maxiter`"
-        info = -22
-        return
-    end if
-    ddx_data % maxiter = maxiter
-    ! Number of DIIS extrapolation points (ndiis=25 works)
-    if (ndiis .lt. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of a parameter `ndiis`"
-        info = -23
-        return
-    end if
-    ddx_data % ndiis = ndiis
-    ! Number of OpenMP threads to be used
-    ! As of now only sequential version with nproc=1 is supported, providing
-    ! nproc=0 means it is up to ddX to decide on parallelism which will set
-    ! it to nproc=1
-    if (nproc .ne. 1 .and. nproc .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: wrong value of parameter `nproc`"
-        info = -24
-        return
-    end if
-    ! Only 1 thread is used (due to disabled OpenMP)
-    nproc = 1
-    ddx_data % nproc = nproc
-    ! Set FMM parameters if FMM is needed
-    if (ddx_data % fmm .eq. 1) then
-        ! Maximal degree of multipole spherical harmonics. Value -1 means no 
-        ! far-field interactions are to be computed, only near-field
-        ! interactions are taken into account.
-        if (pm .lt. -1) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: wrong value of a " // &
-                & "parameter `pm`"
-            info = -12
-            return
-        end if
-        ! Maximal degree of local spherical harmonics. Value -1 means no 
-        ! far-field interactions are to be computed, only near-field
-        ! interactions are taken into account.
-        if (pl .lt. -1) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: wrong value of a " // &
-                & "parameter `pl`"
-            info = -13
-            return
-        end if
-        ! If far-field interactions are to be ignored
-        if ((pl .eq. -1) .or. (pm .eq. -1)) then
-            ddx_data % pm = -1
-            ddx_data % pl = -1
-        ! If far-field interactions are to be taken into account
-        else
-            ddx_data % pm = pm
-            ddx_data % pl = pl
-        end if
-        ! Whether FMM translation matrices are to be computed. This might
-        ! require lots of RAM.
-        if ((fmm_precompute .lt. 0) .or. (fmm_precompute .gt. 1)) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: wrong value of a " // &
-                & "parameter `fmm_precompute`"
-            info = -14
-            return
-        end if
-        ddx_data % fmm_precompute = fmm_precompute
-    else
-        ! These values are ignored if fmm flag is 0
-        ddx_data % pm = -2
-        ddx_data % pl = -2
-        ddx_data % fmm_precompute = -1
-    end if
-    !!! Generate constants and auxiliary arrays
-    ! Compute sizes of auxiliary arrays for `fmm=0`
-    if (ddx_data % fmm .eq. 0) then
-        ddx_data % dmax = ddx_data % lmax
-        ddx_data % vgrid_dmax = ddx_data % lmax
-        ddx_data % l2grid_nbasis = -1
-    ! Compute sizes of arrays if `fmm=1`
-    else
-        ! If forces are required then we need M2P of degree lmax+1 for
-        ! near-field analytical gradients
-        if (force .eq. 1) then
-            ddx_data % dmax = max(ddx_data % pm+ddx_data % pl, &
-                & ddx_data % lmax+1)
-            ddx_data % m2p_lmax = ddx_data % lmax + 1
-        else
-            ddx_data % dmax = max(ddx_data % pm+ddx_data % pl, ddx_data % lmax)
-            ddx_data % m2p_lmax = ddx_data % lmax
-        end if
-        ddx_data % vgrid_dmax = max(ddx_data % pl, ddx_data % lmax)
-        ddx_data % m2p_nbasis = (ddx_data % m2p_lmax+1) ** 2
-        ddx_data % grad_nbasis = (ddx_data % lmax+2) ** 2
-        ddx_data % l2grid_nbasis = (ddx_data % pl+1) ** 2
-    end if
-    ! Compute sizes of vgrid, vfact and vscales that are used for both 
-    ddx_data % vgrid_nbasis = (ddx_data % vgrid_dmax+1) ** 2
-    ddx_data % nfact = 2*ddx_data % dmax+1
-    ddx_data % nscales = (ddx_data % dmax+1) ** 2
-    !! Now all constants are initialized, continue with memory allocations
-    ! Allocate space for scaling factors of spherical harmonics
-    allocate(ddx_data % vscales(ddx_data % nscales), stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `vscales` allocation failed"
-        info = 1
-        return
-    end if
-    p_vscales => ddx_data % vscales
-    allocate(ddx_data % v4pi2lp1(ddx_data % dmax+1), stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `v4pi2lp1` allocation failed"
-        info = 1
-        return
-    end if
-    p_v4pi2lp1 => ddx_data % v4pi2lp1
-    allocate(ddx_data % vscales_rel(ddx_data % nscales), stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `vscales_rel` allocation failed"
-        info = 1
-        return
-    end if
-    p_vscales_rel => ddx_data % vscales_rel
-    ! Allocate square roots of factorials
-    allocate(ddx_data % vfact(ddx_data % nfact), stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `vfact` allocation failed"
-        info = 1
-        return
-    end if
-    p_vfact => ddx_data % vfact
-    ! Allocate space for Lebedev grid coordinates and weights
-    allocate(ddx_data % cgrid(3, ddx_data % ngrid), &
-        & ddx_data % wgrid(ddx_data % ngrid), stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `cgrid` and `wgrid` " // &
-            & "allocations failed"
-        info = 1
-        return
-    end if
-    p_cgrid => ddx_data % cgrid
-    p_wgrid => ddx_data % wgrid
-    ! Allocate temporary arrays for spherical coordinates
-    allocate(sphcoo(5, ddx_data % nproc), stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `sphcoo` allocation failed"
-        info = 1
-        return
-    end if
-    ! Allocate temporary arrays for associated Legendre polynomials and
-    ! arrays of cosinuses and sinuses
-    allocate(ddx_data % tmp_vplm(ddx_data % vgrid_nbasis, ddx_data % nproc), &
-        & ddx_data % tmp_vcos(ddx_data % vgrid_dmax+1, ddx_data % nproc), &
-        & ddx_data % tmp_vsin(ddx_data % vgrid_dmax+1, ddx_data % nproc), &
-        & stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `tmp_vplm`, `tmp_vcos` and " // &
-            & "`tmp_vsin` allocations failed"
-        info = 1
-        return
-    end if
-    p_tmp_vplm => ddx_data % tmp_vplm
-    p_tmp_vcos => ddx_data % tmp_vcos
-    p_tmp_vsin => ddx_data % tmp_vsin
-    ! Allocate space for values of non-weighted and weighted spherical
-    ! harmonics at Lebedev grid points
-    allocate(ddx_data % vgrid(ddx_data % vgrid_nbasis, ddx_data % ngrid), &
-        & ddx_data % vwgrid(ddx_data % vgrid_nbasis, ddx_data % ngrid), &
-        & stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `vgrid`, `wgrid` and " // &
-            & "allocations failed"
-        info = 1
-        return
-    end if
-    p_vgrid => ddx_data % vgrid
-    p_vwgrid => ddx_data % vwgrid
-    if (fmm .eq. 1) then
-        allocate( &
-            & ddx_data % l2grid(ddx_data % l2grid_nbasis, ddx_data % ngrid), &
-            & stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `l2grid` allocation failed"
-            info = 1
-            return
-        end if
-        p_l2grid => ddx_data % l2grid
-    end if
-    ! Allocate space for characteristic functions fi and ui
-    allocate(ddx_data % fi(ddx_data % ngrid, ddx_data % nsph), &
-        & ddx_data % ui(ddx_data % ngrid, ddx_data % nsph), stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `fi` and `ui` allocations failed"
-        info = 1
-        return
-    end if
-    ddx_data % fi = zero
-    ddx_data % ui = zero
-    p_fi => ddx_data % fi
-    p_ui => ddx_data % ui
-    ! Allocate space for force-related arrays
-    if (force .eq. 1) then
-        allocate(ddx_data % zi(3, ddx_data % ngrid, ddx_data % nsph), &
-            & stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `zi` allocation failed"
-            info = 1
-            return
-        endif
-        ddx_data % zi = zero
-        p_zi => ddx_data % zi
-    end if
-    ! Compute scaling factors of spherical harmonics
-    call ylmscale(ddx_data % dmax, p_vscales, p_v4pi2lp1, p_vscales_rel)
-    ! Compute square roots of factorials
-    p_vfact(1) = 1
-    do i = 2, ddx_data % nfact
-        p_vfact(i) = p_vfact(i-1) * sqrt(dble(i-1))
-    end do
-    ! Get weights and coordinates of Lebedev grid points
-    call llgrid(ddx_data % ngrid, p_wgrid, p_cgrid)
-    ! Compute non-weighted and weighted spherical harmonics and the single
-    ! layer operator at Lebedev grid points
-    ithread = 1
-    do igrid = 1, ddx_data % ngrid
-        call ylmbas2(p_cgrid(:, igrid), sphcoo(:, ithread), &
-            & ddx_data % vgrid_dmax, p_vscales, &
-            & p_vgrid(:, igrid), p_tmp_vplm(:, ithread), &
-            & p_tmp_vcos(:, ithread), p_tmp_vsin(:, ithread))
-        p_vwgrid(:, igrid) = p_wgrid(igrid) * p_vgrid(:, igrid)
-    end do
-    if (fmm .eq. 1) then
-        do igrid = 1, ddx_data % ngrid
-            do l = 0, ddx_data % pl
-                indl = l*l + l + 1
-                p_l2grid(indl-l:indl+l, igrid) = &
-                    & p_vgrid(indl-l:indl+l, igrid) / p_vscales(indl)**2
-            end do
-        end do
-    end if
-    ! Upper bound of switch region. Defines intersection criterion for spheres
-    swthr = one + (ddx_data % se+one)*ddx_data % eta/two
-    ! Build list of neighbours in CSR format
-    nngmax = 1
-    allocate(ddx_data % inl(nsph+1), ddx_data % nl(nsph*nngmax), stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `inl` and `nl` allocations failed"
-        info = 1
-        return
-    end if
-    i = 1
-    lnl = 0
-    do isph = 1, ddx_data % nsph
-        ddx_data % inl(isph) = lnl + 1
-        do jsph = 1, ddx_data % nsph
-            if (isph .ne. jsph) then
-                v = ddx_data % csph(:, isph)-ddx_data % csph(:, jsph)
-                maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
-                ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
-                vv = maxv * sqrt(ssqv)
-                ! Take regularization parameter into account with respect to
-                ! shift se. It is described properly by the upper bound of a
-                ! switch region `swthr`.
-                r = rvdw(isph) + swthr*rvdw(jsph)
-                if (vv .le. r) then
-                    ddx_data % nl(i) = jsph
-                    i  = i + 1
-                    lnl = lnl + 1
-                    ! Extend ddx_data % nl if needed
-                    if (i .gt. nsph*nngmax) then
-                        allocate(tmp_nl(nsph*nngmax), stat=istatus)
-                        if (istatus .ne. 0) then
-                            ddx_data % error_flag = .true.
-                            ddx_data % error_message = "ddinit: `tmp_nl` " // &
-                                & "allocation failed"
-                            info = 1
-                            return
-                        end if
-                        tmp_nl(1:nsph*nngmax) = ddx_data % nl(1:nsph*nngmax)
-                        deallocate(ddx_data % nl, stat=istatus)
-                        if (istatus .ne. 0) then
-                            ddx_data % error_flag = .true.
-                            ddx_data % error_message = "ddinit: `nl` " // &
-                                & "deallocation failed"
-                            info = 2
-                            return
-                        end if
-                        nngmax = nngmax + 10
-                        allocate(ddx_data % nl(nsph*nngmax), stat=istatus)
-                        if (istatus .ne. 0) then
-                            ddx_data % error_flag = .true.
-                            ddx_data % error_message = "ddinit: `nl` " // &
-                                & "allocation failed"
-                            info = 1
-                            return
-                        end if
-                        ddx_data % nl(1:nsph*(nngmax-10)) = &
-                            & tmp_nl(1:nsph*(nngmax-10))
-                        deallocate(tmp_nl, stat=istatus)
-                        if (istatus .ne. 0) then
-                            ddx_data % error_flag = .true.
-                            ddx_data % error_message = "ddinit: `tmp_nl` " // &
-                                & "deallocation failed"
-                            info = 2
-                            return
-                        end if
-                    end if
-                end if
-            end if
-        end do
-    end do
-    ddx_data % inl(nsph+1) = lnl+1
-    ddx_data % nngmax = nngmax
-    ! Build arrays fi, ui, zi
-    do isph = 1, ddx_data % nsph
-        do igrid = 1, ddx_data % ngrid
-            ! Loop over neighbours of i-th sphere
-            do inear = ddx_data % inl(isph), ddx_data % inl(isph+1)-1
-                ! Neighbour's index
-                jsph = ddx_data % nl(inear)
-                ! Compute t_n^ij
-                v = ddx_data % csph(:, isph) - ddx_data % csph(:, jsph) + &
-                    & rvdw(isph)*ddx_data % cgrid(:, igrid)
-                maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
-                ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
-                vv = maxv * sqrt(ssqv)
-                t = vv / ddx_data % rsph(jsph)
-                ! Accumulate characteristic function \chi(t_n^ij)
-                ddx_data % fi(igrid, isph) = ddx_data % fi(igrid, isph) + &
-                    & fsw(t, ddx_data % se, ddx_data % eta)
-                ! Check if gradients are required
-                if (ddx_data % force .eq. 1) then
-                    ! Check if t_n^ij belongs to switch region
-                    if ((t .lt. swthr) .and. (t .gt. swthr-ddx_data % eta)) then
-                        ! Accumulate gradient of characteristic function \chi
-                        fac = dfsw(t, ddx_data % se, ddx_data % eta) / rvdw(jsph)
-                        ddx_data % zi(:, igrid, isph) = &
-                            & ddx_data % zi(:, igrid, isph) + fac/vv*v
-                    end if
-                end if
-            enddo
-            ! Compute characteristic function of a molecular surface ui
-            if (ddx_data % fi(igrid, isph) .le. one) then
-                ddx_data % ui(igrid, isph) = one - ddx_data % fi(igrid, isph)
-            end if
-        enddo
-    enddo
-    ! Build cavity array. At first get total count for each sphere
-    allocate(ddx_data % ncav_sph(nsph), stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `ncav_sph` allocation failed"
-        info = 1
-        return
-    endif
-    do isph = 1, nsph
-        ddx_data % ncav_sph(isph) = 0
-        ! Loop over integration points
-        do i = 1, ngrid
-            ! Positive contribution from integration point
-            if (ddx_data % ui(i, isph) .gt. zero) then
-                ddx_data % ncav_sph(isph) = ddx_data % ncav_sph(isph) + 1
-            end if
-        end do
-    end do
-    ddx_data % ncav = sum(ddx_data % ncav_sph)
-    ! Allocate cavity array and CSR format for indexes of cavities
-    allocate(ddx_data % ccav(3, ddx_data % ncav), ddx_data % icav_ia(nsph+1), &
-        & ddx_data % icav_ja(ddx_data % ncav), stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `ccav`, `icav_ia` and " // &
-            & "`icav_ja` allocations failed"
-        info = 1
-        return
-    endif
-    ! Get actual cavity coordinates and indexes in CSR format
-    ddx_data % icav_ia(1) = 1
-    i = 1
-    do isph = 1, nsph
-        ddx_data % icav_ia(isph+1) = ddx_data % icav_ia(isph) + &
-            & ddx_data % ncav_sph(isph)
-        ! Loop over integration points
-        do igrid = 1, ngrid
-            ! Ignore zero contribution
-            if (ddx_data % ui(igrid, isph) .eq. zero) cycle
-            ! Store coordinates
-            ddx_data % ccav(:, i) = ddx_data % csph(:, isph) + &
-                & rvdw(isph)*ddx_data % cgrid(:, igrid)
-            ! Store index
-            ddx_data % icav_ja(i) = igrid
-            ! Advance cavity array index
-            i = i + 1
-        end do
-    end do
-    ! Create preconditioner for PCM
-    if (model .eq. 2) then
-        allocate(ddx_data % rx_prc(ddx_data % nbasis, ddx_data % nbasis, nsph), &
-            & stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `rx_prc` allocation failed"
-            info = 1
-            return
-        endif
-        call mkprec(ddx_data % lmax, ddx_data % nbasis, ddx_data % nsph, &
-            & ddx_data % ngrid, ddx_data % eps, ddx_data % ui, &
-            & ddx_data % wgrid, ddx_data % vgrid, ddx_data % vgrid_nbasis, &
-            & ddx_data % rx_prc, info, ddx_data % error_message)
-        if (info .ne. 0) then
-            ddx_data % error_flag = .true.
-            stop -1
-            return
-        end if
-    end if
-    !! Prepare FMM structures if needed
-    if (fmm .eq. 1) then
-        ! Allocate space for a cluster tree
-        allocate(ddx_data % order(nsph), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `order` allocation failed"
-            info = 1
-            return
-        endif
-        ddx_data % nclusters = 2*nsph - 1
-        allocate(ddx_data % cluster(2, ddx_data % nclusters), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `cluster` allocation failed"
-            info = 1
-            return
-        endif
-        allocate(ddx_data % children(2, ddx_data % nclusters), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `children` allocation failed"
-            info = 1
-            return
-        endif
-        allocate(ddx_data % parent(ddx_data % nclusters), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `parent` allocation failed"
-            info = 1
-            return
-        endif
-        allocate(ddx_data % cnode(3, ddx_data % nclusters), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `cnode` allocation failed"
-            info = 1
-            return
-        endif
-        allocate(ddx_data % rnode(ddx_data % nclusters), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `rnode` allocation failed"
-            info = 1
-            return
-        endif
-        allocate(ddx_data % snode(ddx_data % nsph), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `snode` allocation failed"
-            info = 1
-            return
-        endif
-        allocate(ddx_data % nfar(ddx_data % nclusters), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `nfar` allocation failed"
-            info = 1
-            return
-        endif
-        allocate(ddx_data % nnear(ddx_data % nclusters), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `nnear` allocation failed"
-            info = 1
-            return
-        endif
-        ! Get the tree
-        call tree_rib_build(nsph, ddx_data % csph, ddx_data % rsph, &
-            & ddx_data % order, ddx_data % cluster, ddx_data % children, &
-            & ddx_data % parent, ddx_data % cnode, ddx_data % rnode, &
-            & ddx_data % snode)
-        ! Get number of far and near admissible pairs
-        iwork = 0
-        jwork = 1
-        lwork = 1
-        allocate(work(3, lwork), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `work` allocation failed"
-            info = 1
-            return
-        end if
-        do while (iwork .le. jwork)
-            allocate(tmp_work(3, lwork), stat=istatus)
-            if (istatus .ne. 0) then
-                ddx_data % error_flag = .true.
-                ddx_data % error_message = "ddinit: `tmp_work` " // &
-                    & "allocation failed"
-                info = 1
-                return
-            end if
-            tmp_work = work
-            deallocate(work, stat=istatus)
-            if (istatus .ne. 0) then
-                ddx_data % error_flag = .true.
-                ddx_data % error_message = "ddinit: `work` " // &
-                    & "deallocation failed"
-                info = 2
-                return
-            end if
-            old_lwork = lwork
-            lwork = old_lwork + 1000*nsph
-            allocate(work(3, lwork), stat=istatus)
-            if (istatus .ne. 0) then
-                ddx_data % error_flag = .true.
-                ddx_data % error_message = "ddinit: `work` " // &
-                    & "allocation failed"
-                info = 1
-                return
-            end if
-            work(:, 1:old_lwork) = tmp_work
-            deallocate(tmp_work, stat=istatus)
-            if (istatus .ne. 0) then
-                ddx_data % error_flag = .true.
-                ddx_data % error_message = "ddinit: `tmp_work` " // &
-                    & "deallocation failed"
-                info = 2
-                return
-            end if
-            call tree_get_farnear_work(ddx_data % nclusters, &
-                & ddx_data % children, ddx_data % cnode, &
-                & ddx_data % rnode, lwork, iwork, jwork, work, &
-                & ddx_data % nnfar, ddx_data % nfar, ddx_data % nnnear, &
-                & ddx_data % nnear)
-        end do
-        allocate(ddx_data % sfar(ddx_data % nclusters+1), &
-            & ddx_data % snear(ddx_data % nclusters+1), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `sfar` and `snear` " // &
-                & "allocations failed"
-            info = 1
-            return
-        end if
-        allocate(ddx_data % far(ddx_data % nnfar), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `far` allocation failed"
-            info = 1
-            return
-        end if
-        allocate(ddx_data % near(ddx_data % nnnear), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `near` allocation failed"
-            info = 1
-            return
-        end if
-        call tree_get_farnear(jwork, lwork, work, ddx_data % nclusters, &
-            & ddx_data % nnfar, ddx_data % nfar, ddx_data % sfar, ddx_data % far, &
-            & ddx_data % nnnear, ddx_data % nnear, ddx_data % snear, &
-            & ddx_data % near)
-        deallocate(work, stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `work` deallocation failed"
-            info = 2
-            return
-        end if
-        ! Allocate square roots of combinatorial numbers C_n^k
-        allocate(ddx_data % vcnk((2*ddx_data % dmax+1)*(ddx_data % dmax+1)), &
-            & stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `vcnk` allocation failed"
-            info = 1
-            return
-        end if
-        p_vcnk => ddx_data % vcnk
-        ! Allocate space for M2L OZ translation coefficients
-        allocate(ddx_data % m2l_ztranslate_coef(&
-            & (ddx_data % pm+1), (ddx_data % pl+1), (ddx_data % pl+1)), &
-            & stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `m2l_ztranslate_coef` " // &
-                & "allocation failed"
-            info = 1
-            return
-        end if
-        p_m2l_ztranslate_coef => ddx_data % m2l_ztranslate_coef
-        ! Allocate space for adjoint M2L OZ translation coefficients
-        allocate(ddx_data % m2l_ztranslate_adj_coef(&
-            & (ddx_data % pl+1), (ddx_data % pl+1), (ddx_data % pm+1)), &
-            & stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `m2l_ztranslate_adj_coef`" // &
-                & " allocation failed"
-            info = 1
-            return
-        end if
-        p_m2l_ztranslate_adj_coef => ddx_data % m2l_ztranslate_adj_coef
-        ! Compute combinatorial numbers C_n^k and M2L OZ translate coefficients
-        call fmm_constants(ddx_data % dmax, ddx_data % pm, ddx_data % pl, &
-            & p_vcnk, p_m2l_ztranslate_coef, p_m2l_ztranslate_adj_coef)
-        allocate(ddx_data % tmp_sph(ddx_data % nbasis, nsph), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `tmp_sph` " // &
-                & "allocation failed"
-            info = 1
-            return
-        end if
-        allocate(ddx_data % tmp_sph2(ddx_data % grad_nbasis, nsph), &
-            & stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `tmp_sph2` " // &
-                & "allocation failed"
-            info = 1
-            return
-        end if
-        allocate(ddx_data % tmp_sph_grad(ddx_data % grad_nbasis, 3, nsph), &
-            & stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `tmp_sph_grad` " // &
-                & "allocation failed"
-            info = 1
-            return
-        end if
-        allocate(ddx_data % tmp_sph_l((ddx_data % pl+1)**2, nsph), &
-            & stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `tmp_sph_l` " // &
-                & "allocation failed"
-            info = 1
-            return
-        end if
-        allocate(ddx_data % tmp_sph_l_grad((ddx_data % pl+1)**2, 3, nsph), &
-            & stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `tmp_sph_l_grad` " // &
-                & "allocation failed"
-            info = 1
-            return
-        end if
-        allocate(ddx_data % tmp_node_m((ddx_data % pm+1)**2, &
-            & ddx_data % nclusters), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `tmp_node_m` " // &
-                & "allocation failed"
-            info = 1
-            return
-        end if
-        allocate(ddx_data % tmp_node_l((ddx_data % pl+1)**2, &
-            & ddx_data % nclusters), stat=istatus)
-        if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
-            ddx_data % error_message = "ddinit: `tmp_node_l` " // &
-                & "allocation failed"
-            info = 1
-            return
-        end if
-    end if
+    ! Init underlying objects
+    allocate(csph(3, nsph))
+    csph(1, :) = x
+    csph(2, :) = y
+    csph(3, :) = z
+    call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
+        & itersolver, tol, maxiter, ndiis, fmm, pm, pl, nproc, nsph, charge, &
+        & csph, rvdw, print_func_default, &
+        & ddx_data % params, info)
+    if (info .ne. 0) return
+    call constants_init(ddx_data % params, ddx_data % constants, info)
+    if (info .ne. 0) return
+    call workspace_init(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, info)
+    if (info .ne. 0) return
     !! Per-model allocations
     ! COSMO model
     if (model .eq. 1) then
-        allocate(ddx_data % phi_grid(ddx_data % ngrid, nsph), stat=istatus)
+        allocate(ddx_data % phi_grid(ddx_data % params % ngrid, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `phi_grid` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % phi(ddx_data % nbasis, nsph), stat=istatus)
+        allocate(ddx_data % phi(ddx_data % constants % nbasis, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `phi` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % xs(ddx_data % nbasis, nsph), stat=istatus)
+        allocate(ddx_data % xs(ddx_data % constants % nbasis, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `xs` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % s(ddx_data % nbasis, nsph), stat=istatus)
+        allocate(ddx_data % s(ddx_data % constants % nbasis, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `s` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % sgrid(ddx_data % ngrid, nsph), stat=istatus)
+        allocate(ddx_data % sgrid(ddx_data % params % ngrid, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `sgrid` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % zeta(ddx_data % ncav), stat=istatus)
+        allocate(ddx_data % zeta(ddx_data % constants % ncav), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `zeta` " // &
                 & "allocation failed"
             info = 1
@@ -1338,105 +213,117 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         end if
     ! PCM model
     else if (model .eq. 2) then
-        allocate(ddx_data % phi_grid(ddx_data % ngrid, nsph), stat=istatus)
+        allocate(ddx_data % phi_grid(ddx_data % params % ngrid, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `phi_grid` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % phi(ddx_data % nbasis, nsph), stat=istatus)
+        allocate(ddx_data % phi(ddx_data % constants % nbasis, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `phi` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % phiinf(ddx_data % nbasis, nsph), stat=istatus)
+        allocate(ddx_data % phiinf(ddx_data % constants % nbasis, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `phiinf` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % phieps(ddx_data % nbasis, nsph), stat=istatus)
+        allocate(ddx_data % phieps(ddx_data % constants % nbasis, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `phieps` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % xs(ddx_data % nbasis, nsph), stat=istatus)
+        allocate(ddx_data % xs(ddx_data % constants % nbasis, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `xs` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % s(ddx_data % nbasis, nsph), stat=istatus)
+        allocate(ddx_data % s(ddx_data % constants % nbasis, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `s` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % sgrid(ddx_data % ngrid, nsph), stat=istatus)
+        allocate(ddx_data % sgrid(ddx_data % params % ngrid, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `sgrid` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % y(ddx_data % nbasis, nsph), stat=istatus)
+        allocate(ddx_data % y(ddx_data % constants % nbasis, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `y` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % ygrid(ddx_data % ngrid, nsph), stat=istatus)
+        allocate(ddx_data % ygrid(ddx_data % params % ngrid, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `ygrid` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % g(ddx_data % nbasis, nsph), stat=istatus)
+        allocate(ddx_data % g(ddx_data % constants % nbasis, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `g` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % q(ddx_data % nbasis, nsph), stat=istatus)
+        allocate(ddx_data % q(ddx_data % constants % nbasis, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `q` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % qgrid(ddx_data % ngrid, nsph), stat=istatus)
+        allocate(ddx_data % qgrid(ddx_data % params % ngrid, &
+            & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `qgrid` " // &
                 & "allocation failed"
             info = 1
             return
         end if
-        allocate(ddx_data % zeta(ddx_data % ncav), stat=istatus)
+        allocate(ddx_data % zeta(ddx_data % constants % ncav), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = .true.
+            ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `zeta` " // &
                 & "allocation failed"
             info = 1
@@ -1444,31 +331,6 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         end if
     ! LPB model
     else if (model .eq. 3) then
-    end if
-    allocate(ddx_data % tmp_grid(ddx_data % ngrid, nsph), stat=istatus)
-    if (istatus .ne. 0) then
-        ddx_data % error_flag = .true.
-        ddx_data % error_message = "ddinit: `tmp_grid` " // &
-            & "allocation failed"
-        info = 1
-        return
-    end if
-    ! Lower level API
-    call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & itersolver, tol, maxiter, ndiis, fmm, pm, pl, nproc, nsph, charge, &
-        & ddx_data % csph, ddx_data % rsph, print_func_default, &
-        & ddx_data % params, info)
-    if (info .ne. 0) then
-        print *, ddx_data % params % error_message
-    end if
-    call constants_init(ddx_data % params, ddx_data % constants, info)
-    if (info .ne. 0) then
-        print *, ddx_data % constants % error_message
-    end if
-    call workspace_init(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, info)
-    if (info .ne. 0) then
-        print *, ddx_data % workspace % error_message
     end if
 end subroutine ddinit
 
@@ -1480,15 +342,15 @@ end subroutine ddinit
 !!      = 0: Succesfull exit
 !!      < 0: If info=-i then i-th argument had an illegal value
 !!      > 0: Allocation of a buffer for the output ddx_data failed
-subroutine ddfromfile(fname, ddx_data, info)
+subroutine ddfromfile(fname, ddx_data, iprint, info)
     ! Input
     character(len=*), intent(in) :: fname
     ! Outputs
     type(ddx_type), intent(out) :: ddx_data
-    integer, intent(out) :: info
+    integer, intent(out) :: iprint, info
     ! Local variables
-    integer :: iprint, nproc, model, lmax, ngrid, force, fmm, pm, pl, &
-        & fmm_precompute, nsph, i, itersolver, maxiter, ndiis, istatus
+    integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
+        & nsph, i, itersolver, maxiter, ndiis, istatus
     real(dp) :: eps, se, eta, kappa, tol
     real(dp), allocatable :: charge(:), x(:), y(:), z(:), rvdw(:)
     !! Read all the parameters from the file
@@ -1613,13 +475,6 @@ subroutine ddfromfile(fname, ddx_data, info)
             & ": `pl` must be a non-negative integer value."
         stop 1
     end if
-    ! Whether to precompute (1) or obtain on demand (0) the FMM translations
-    read(100, *) fmm_precompute
-    if((fmm_precompute .lt. 0) .or. (fmm_precompute .gt. 1)) then
-        write(*, "(3A)") "Error on the 18th line of a config file ", fname, &
-            & ": `fmm_precompute` must be an integer value of a value 0 or 1."
-        stop 1
-    end if
     ! Number of input spheres
     read(100, *) nsph
     if(nsph .le. 0) then
@@ -1650,7 +505,7 @@ subroutine ddfromfile(fname, ddx_data, info)
 
     !! Initialize ddx_data object
     call ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
-        & pm, pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
+        & pm, pl, se, eta, eps, kappa, itersolver, &
         & tol, maxiter, ndiis, nproc, ddx_data, info)
     !! Clean local temporary data
     deallocate(charge, x, y, z, rvdw, stat=istatus)
@@ -1669,349 +524,6 @@ subroutine ddfree(ddx_data)
     type(ddx_type), intent(inout) :: ddx_data
     ! Local variables
     integer :: istatus
-    if (allocated(ddx_data % charge)) then
-        deallocate(ddx_data % charge, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [1] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % csph)) then
-        deallocate(ddx_data % csph, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [1] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % rsph)) then
-        deallocate(ddx_data % rsph, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [2] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % vscales)) then
-        deallocate(ddx_data % vscales, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [3] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % v4pi2lp1)) then
-        deallocate(ddx_data % v4pi2lp1, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [3] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % vscales_rel)) then
-        deallocate(ddx_data % vscales_rel, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [3] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % vfact)) then
-        deallocate(ddx_data % vfact, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [4] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % vcnk)) then
-        deallocate(ddx_data % vcnk, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [4] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % m2l_ztranslate_coef)) then
-        deallocate(ddx_data % m2l_ztranslate_coef, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [4] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % m2l_ztranslate_adj_coef)) then
-        deallocate(ddx_data % m2l_ztranslate_adj_coef, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [4] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % cgrid)) then
-        deallocate(ddx_data % cgrid, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [5] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % wgrid)) then
-        deallocate(ddx_data % wgrid, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [6] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % vgrid)) then
-        deallocate(ddx_data % vgrid, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [7] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % vwgrid)) then
-        deallocate(ddx_data % vwgrid, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [8] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % l2grid)) then
-        deallocate(ddx_data % l2grid, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [8+] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % inl)) then
-        deallocate(ddx_data % inl, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [9] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % nl)) then
-        deallocate(ddx_data % nl, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [10] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % fi)) then
-        deallocate(ddx_data % fi, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [11] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % ui)) then
-        deallocate(ddx_data % ui, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [12] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % zi)) then
-        deallocate(ddx_data % zi, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [13] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % ncav_sph)) then
-        deallocate(ddx_data % ncav_sph, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [14] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % icav_ia)) then
-        deallocate(ddx_data % icav_ia, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [14] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % icav_ja)) then
-        deallocate(ddx_data % icav_ja, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [14] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % ccav)) then
-        deallocate(ddx_data % ccav, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [14] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % rx_prc)) then
-        deallocate(ddx_data % rx_prc, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [15] deallocation failed!"
-            stop 1
-        end if
-    end if
-    if (allocated(ddx_data % order)) then
-        deallocate(ddx_data % order, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [16] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % cluster)) then
-        deallocate(ddx_data % cluster, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [17] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % children)) then
-        deallocate(ddx_data % children, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [18] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % parent)) then
-        deallocate(ddx_data % parent, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [19] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % cnode)) then
-        deallocate(ddx_data % cnode, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [20] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % rnode)) then
-        deallocate(ddx_data % rnode, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [21] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % snode)) then
-        deallocate(ddx_data % snode, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [22] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % nfar)) then
-        deallocate(ddx_data % nfar, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [23] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % nnear)) then
-        deallocate(ddx_data % nnear, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [24] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % sfar)) then
-        deallocate(ddx_data % sfar, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [25] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % snear)) then
-        deallocate(ddx_data % snear, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [26] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % far)) then
-        deallocate(ddx_data % far, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [27] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % near)) then
-        deallocate(ddx_data % near, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [28] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % tmp_sph)) then
-        deallocate(ddx_data % tmp_sph, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [28] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % tmp_node_m)) then
-        deallocate(ddx_data % tmp_node_m, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [28] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % tmp_node_l)) then
-        deallocate(ddx_data % tmp_node_l, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [28] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % tmp_grid)) then
-        deallocate(ddx_data % tmp_grid, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [28] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % m2m_ztranslate_mat)) then
-        deallocate(ddx_data % m2m_ztranslate_mat, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [29] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % m2m_reflect_mat)) then
-        deallocate(ddx_data % m2m_reflect_mat, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [30] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % l2l_ztranslate_mat)) then
-        deallocate(ddx_data % l2l_ztranslate_mat, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [31] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % l2l_reflect_mat)) then
-        deallocate(ddx_data % l2l_reflect_mat, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [32] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % m2l_ztranslate_mat)) then
-        deallocate(ddx_data % m2l_ztranslate_mat, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [33] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % m2l_reflect_mat)) then
-        deallocate(ddx_data % m2l_reflect_mat, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [34] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % m2p_mat)) then
-        deallocate(ddx_data % m2p_mat, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [35] deallocation failed!"
-            stop 1
-        endif
-    end if
     if (allocated(ddx_data % phi)) then
         deallocate(ddx_data % phi, stat=istatus)
         if (istatus .ne. 0) then
@@ -2063,13 +575,6 @@ subroutine ddfree(ddx_data)
     end if
     if (allocated(ddx_data % g)) then
         deallocate(ddx_data % g, stat=istatus)
-        if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
-            stop 1
-        endif
-    end if
-    if (allocated(ddx_data % tmp_grid)) then
-        deallocate(ddx_data % tmp_grid, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "ddfree: [36] deallocation failed!"
             stop 1
@@ -2190,12 +695,12 @@ subroutine print_ddvector(ddx_data, label, vector)
     ! Inputs
     type(ddx_type), intent(in)  :: ddx_data
     character(len=*) :: label
-    real(dp) :: vector(ddx_data % nbasis, ddx_data % nsph)
+    real(dp) :: vector(ddx_data % constants % nbasis, ddx_data % params % nsph)
     ! Local variables
     integer :: isph, lm
     write(6,*) label
-    do isph = 1, ddx_data % nsph
-      do lm = 1, ddx_data % nbasis
+    do isph = 1, ddx_data % params % nsph
+      do lm = 1, ddx_data % constants % nbasis
         write(6,'(F15.8)') vector(lm,isph)
       end do
     end do
@@ -2942,17 +1447,17 @@ end subroutine calcv
 subroutine ddmkxi( ddx_data, s, xi)
 !
     type(ddx_type) :: ddx_data
-       real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(in)    :: s
-       real(dp), dimension(ddx_data % ncav),      intent(inout) :: xi
+       real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in)    :: s
+       real(dp), dimension(ddx_data % constants % ncav),      intent(inout) :: xi
 !
        integer :: its, isph, ii
 !
        ii = 0
-       do isph = 1, ddx_data % nsph
-         do its = 1, ddx_data % ngrid
-           if (ddx_data % ui(its,isph) .gt. zero) then
+       do isph = 1, ddx_data % params % nsph
+         do its = 1, ddx_data % params % ngrid
+           if (ddx_data % constants % ui(its,isph) .gt. zero) then
              ii     = ii + 1
-             xi(ii) = ddx_data % ui(its,isph)*dot_product(ddx_data % vwgrid(:,its),s(:,isph))
+             xi(ii) = ddx_data % constants % ui(its,isph)*dot_product(ddx_data %constants %  vwgrid(:,its),s(:,isph))
            end if
          end do
        end do
@@ -2972,23 +1477,23 @@ end subroutine ddmkxi
 subroutine ddmkzeta( ddx_data, s, zeta)
 !
     type(ddx_type) :: ddx_data
-       real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(in)    :: s
-       real(dp), dimension(ddx_data % ncav),      intent(inout) :: zeta
+       real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in)    :: s
+       real(dp), dimension(ddx_data % constants % ncav),      intent(inout) :: zeta
 !
        integer :: its, isph, ii
 !
        ii = 0
-       do isph = 1, ddx_data % nsph
-         do its = 1, ddx_data % ngrid
-           if (ddx_data % ui(its,isph) .gt. zero) then
+       do isph = 1, ddx_data % params % nsph
+         do its = 1, ddx_data % params % ngrid
+           if (ddx_data % constants % ui(its,isph) .gt. zero) then
              ii     = ii + 1
-             zeta(ii) = ddx_data % ui(its,isph)* &
-                 & dot_product(ddx_data % vwgrid(:,its),s(:,isph))
+             zeta(ii) = ddx_data % constants % ui(its,isph)* &
+                 & dot_product(ddx_data % constants % vwgrid(:,its),s(:,isph))
            end if
          end do
        end do
 !
-       zeta = pt5*((ddx_data % eps-one)/ddx_data % eps)*zeta
+       zeta = pt5*((ddx_data % params % eps-one)/ddx_data % params % eps)*zeta
        return
 end subroutine ddmkzeta
 

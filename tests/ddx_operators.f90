@@ -43,7 +43,7 @@ do i = 1, size(alpha)
     csph = alpha(i) * gcsph
     rsph = abs(alpha(i)) * grsph
     call ddinit(nsph, charge, csph(1, :), csph(2, :), csph(3, :), rsph, 2, &
-        lmax, ngrid, force, 0, -1, -1, -1, 0, se, eta, eps, kappa, &
+        lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
         & itersolver, tol, maxiter, ndiis, nproc, ddx_data, info)
     if(info .ne. 0) stop 1
     call check_dx(ddx_data, lmax, lmax, iprint, 1d-4)
@@ -65,24 +65,24 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
     type(ddx_type) :: ddx_data_fmm
     integer :: info, irand, iseed(4)=(/0, 0, 0, 1/), do_diag
     integer, parameter :: nrand=10
-    real(dp) :: x(ddx_data % nbasis, ddx_data % nsph, nrand), &
-        & y(ddx_data % nbasis, ddx_data % nsph, nrand), &
-        & z(ddx_data % nbasis, ddx_data % nsph, nrand), &
+    real(dp) :: x(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
+        & y(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
+        & z(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
         & xx(nrand, nrand), yy(nrand, nrand), full_norm, diff_norm, &
-        & forces(3, ddx_data % nsph), forces2(3, ddx_data % nsph)
+        & forces(3, ddx_data % params % nsph), forces2(3, ddx_data % params % nsph)
     real(dp), external :: dnrm2
     ! Init FMM-related ddx_data
-    call ddinit(ddx_data % nsph, ddx_data % charge, ddx_data % csph(1, :), &
-        & ddx_data % csph(2, :), ddx_data % csph(3, :), ddx_data % rsph, &
-        & ddx_data % model, ddx_data % lmax, ddx_data % ngrid, ddx_data % force, &
-        & 1, pm, pl, 0, ddx_data % iprint, ddx_data % se, ddx_data % eta, &
-        & ddx_data % eps, ddx_data % kappa, ddx_data % itersolver, &
-        & ddx_data % tol, ddx_data % maxiter, ddx_data % ndiis, ddx_data % nproc, &
+    call ddinit(ddx_data % params % nsph, ddx_data % params % charge, ddx_data % params % csph(1, :), &
+        & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
+        & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
+        & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
+        & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % itersolver, &
+        & ddx_data % params % tol, ddx_data % params % maxiter, ddx_data % params % ndiis, ddx_data % params % nproc, &
         & ddx_data_fmm, info)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.
     ! Get random x
-    call dlarnv(2, iseed, ddx_data % n * nrand, x)
+    call dlarnv(2, iseed, ddx_data % constants % n * nrand, x)
     write(*, *) "pm=", pm, "pl=", pl
     do do_diag = 0, 1
         write(*, *) "do_diag=", do_diag
@@ -91,27 +91,27 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
             call dx(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, do_diag, x(:, :, irand), y(:, :, irand))
         end do
-        full_norm = dnrm2(ddx_data % n * nrand, y, 1)
+        full_norm = dnrm2(ddx_data % constants % n * nrand, y, 1)
         do irand = 1, nrand
             call dx(ddx_data_fmm % params, ddx_data_fmm % constants, &
                 & ddx_data_fmm % workspace, do_diag, x(:, :, irand), z(:, :, irand))
         end do
-        diff_norm = dnrm2(ddx_data % n * nrand, y-z, 1)
+        diff_norm = dnrm2(ddx_data % constants % n * nrand, y-z, 1)
         write(*, *) "dx_dense vs dx_fmm(no precompute) rel.error=", diff_norm/full_norm
         ! Check dense adjoint operator dstarx
         do irand = 1, nrand
             call dstarx(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, do_diag, x(:, :, irand), y(:, :, irand))
         end do
-        call dgemm('T', 'N', nrand, nrand, ddx_data % n, one, y, ddx_data % n, &
-            & y, ddx_data % n, zero, xx, nrand)
+        call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, y, ddx_data % constants % n, &
+            & y, ddx_data % constants % n, zero, xx, nrand)
         full_norm = dnrm2(nrand**2, xx, 1)
         do irand = 1, nrand
             call dx(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, do_diag, y(:, :, irand), z(:, :, irand))
         end do
-        call dgemm('T', 'N', nrand, nrand, ddx_data % n, one, z, ddx_data % n, &
-            & x, ddx_data % n, zero, yy, nrand)
+        call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, z, ddx_data % constants % n, &
+            & x, ddx_data % constants % n, zero, yy, nrand)
         diff_norm = dnrm2(nrand**2, xx-yy, 1)
         write(*, *) "dstarx_dense vs dx_dense rel.error=", diff_norm/full_norm
         ! Check FMM adjoint operator dstarx (without precomputed FMM matrices)
@@ -119,15 +119,15 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
             call dstarx(ddx_data_fmm % params, ddx_data_fmm % constants, &
                 & ddx_data_fmm % workspace, do_diag, x(:, :, irand), y(:, :, irand))
         end do
-        call dgemm('T', 'N', nrand, nrand, ddx_data % n, one, y, ddx_data % n, &
-            & y, ddx_data % n, zero, xx, nrand)
+        call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, y, ddx_data % constants % n, &
+            & y, ddx_data % constants % n, zero, xx, nrand)
         full_norm = dnrm2(nrand**2, xx, 1)
         do irand = 1, nrand
             call dx(ddx_data_fmm % params, ddx_data_fmm % constants, &
                 & ddx_data_fmm % workspace, do_diag, y(:, :, irand), z(:, :, irand))
         end do
-        call dgemm('T', 'N', nrand, nrand, ddx_data % n, one, z, ddx_data % n, &
-            & x, ddx_data % n, zero, yy, nrand)
+        call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, z, ddx_data % constants % n, &
+            & x, ddx_data % constants % n, zero, yy, nrand)
         diff_norm = dnrm2(nrand**2, xx-yy, 1)
         write(*, *) "dstarx_fmm vs dx_fmm (no precompute) rel.error=", diff_norm/full_norm
     end do
@@ -144,32 +144,32 @@ subroutine check_gradr(ddx_data, pm, pl, iprint, threshold)
     type(ddx_type) :: ddx_data_fmm
     integer :: info, irand, iseed(4)=(/0, 0, 0, 1/), do_diag
     integer, parameter :: nrand=10
-    real(dp) :: x(ddx_data % nbasis, ddx_data % nsph, nrand), &
-        & y(ddx_data % nbasis, ddx_data % nsph, nrand), &
-        & z(ddx_data % nbasis, ddx_data % nsph, nrand), &
+    real(dp) :: x(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
+        & y(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
+        & z(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
         & xx(nrand, nrand), yy(nrand, nrand), full_norm, diff_norm, &
-        & forces(3, ddx_data % nsph), forces2(3, ddx_data % nsph)
+        & forces(3, ddx_data % params % nsph), forces2(3, ddx_data % params % nsph)
     real(dp), external :: dnrm2
     ! Init FMM-related ddx_data
-    call ddinit(ddx_data % nsph, ddx_data % charge, ddx_data % csph(1, :), &
-        & ddx_data % csph(2, :), ddx_data % csph(3, :), ddx_data % rsph, &
-        & ddx_data % model, ddx_data % lmax, ddx_data % ngrid, ddx_data % force, &
-        & 1, pm, pl, 0, ddx_data % iprint, ddx_data % se, ddx_data % eta, &
-        & ddx_data % eps, ddx_data % kappa, ddx_data % itersolver, &
-        & ddx_data % tol, ddx_data % maxiter, ddx_data % ndiis, ddx_data % nproc, &
+    call ddinit(ddx_data % params % nsph, ddx_data % params % charge, ddx_data % params % csph(1, :), &
+        & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
+        & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
+        & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
+        & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % itersolver, &
+        & ddx_data % params % tol, ddx_data % params % maxiter, ddx_data % params % ndiis, ddx_data % params % nproc, &
         & ddx_data_fmm, info)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.
     ! Get random ygrid and g
-    call dlarnv(2, iseed, ddx_data % ngrid * ddx_data % nsph, ddx_data % ygrid)
-    call dlarnv(2, iseed, ddx_data % n, ddx_data % g)
+    call dlarnv(2, iseed, ddx_data % params % ngrid * ddx_data % params % nsph, ddx_data % ygrid)
+    call dlarnv(2, iseed, ddx_data % constants % n, ddx_data % g)
     ! Check gradr
     call gradr_dense(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, ddx_data % g, ddx_data % ygrid, forces)
-    full_norm = dnrm2(3*ddx_data % nsph, forces, 1)
+    full_norm = dnrm2(3*ddx_data % params % nsph, forces, 1)
     call gradr_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
         & ddx_data_fmm % workspace, ddx_data % g, ddx_data % ygrid, forces2)
-    diff_norm = dnrm2(3*ddx_data % nsph, forces-forces2, 1)
+    diff_norm = dnrm2(3*ddx_data % params % nsph, forces-forces2, 1)
     write(*, *) "gradr dense vs fmm rel.error=", diff_norm / full_norm
     call ddfree(ddx_data_fmm)
 end subroutine check_gradr

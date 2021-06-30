@@ -68,11 +68,11 @@ contains
   integer, intent(in)             :: iconv
   real(dp), intent(inout)    :: esolv
   real(dp)                   :: inc, old_esolv
-  real(dp), intent(inout)    :: sigma(ddx_data % nbasis,ddx_data % nsph)
-  real(dp), intent(in)       :: phi(ddx_data % ncav), &
-                                        & gradphi(3,ddx_data % ncav)
-  real(dp), intent(in)       :: psi(ddx_data % nbasis, ddx_data % nsph)
-  real(dp), intent(in)       :: charge(ddx_data % nsph)
+  real(dp), intent(inout)    :: sigma(ddx_data % constants % nbasis, ddx_data % params % nsph)
+  real(dp), intent(in)       :: phi(ddx_data % constants % ncav), &
+                                        & gradphi(3,ddx_data % constants % ncav)
+  real(dp), intent(in)       :: psi(ddx_data % constants % nbasis, ddx_data % params % nsph)
+  real(dp), intent(in)       :: charge(ddx_data % params % nsph)
   !!
   !! Xr         : Reaction potential solution (Laplace equation)
   !! Xe         : Extended potential solution (HSP equation)
@@ -108,16 +108,16 @@ contains
   !
   call ddlpb_init(ddx_data)
 
-  allocate(g(ddx_data % ngrid,ddx_data % nsph),&
-           & f(ddx_data % ngrid, ddx_data % nsph), &
-           & phi_grid(ddx_data % ngrid, ddx_data % nsph))
-  allocate(g0(ddx_data % nbasis),f0(ddx_data % nbasis))
-  allocate(rhs_r(ddx_data % nbasis, ddx_data % nsph),&
-           & rhs_e(ddx_data % nbasis, ddx_data % nsph))
-  allocate(rhs_r_init(ddx_data % nbasis, ddx_data % nsph),&
-           & rhs_e_init(ddx_data % nbasis, ddx_data % nsph))
-  allocate(Xr(ddx_data % nbasis, ddx_data % nsph),&
-           & Xe(ddx_data % nbasis, ddx_data % nsph))
+  allocate(g(ddx_data % params % ngrid,ddx_data % params % nsph),&
+           & f(ddx_data % params % ngrid, ddx_data % params % nsph), &
+           & phi_grid(ddx_data % params % ngrid, ddx_data % params % nsph))
+  allocate(g0(ddx_data % constants % nbasis),f0(ddx_data % constants % nbasis))
+  allocate(rhs_r(ddx_data % constants % nbasis, ddx_data % params % nsph),&
+           & rhs_e(ddx_data % constants % nbasis, ddx_data % params % nsph))
+  allocate(rhs_r_init(ddx_data % constants % nbasis, ddx_data % params % nsph),&
+           & rhs_e_init(ddx_data % constants % nbasis, ddx_data % params % nsph))
+  allocate(Xr(ddx_data % constants % nbasis, ddx_data % params % nsph),&
+           & Xe(ddx_data % constants % nbasis, ddx_data % params % nsph))
 
   !do i = 1, ncav
   !  write(6,'(3F15.8)') phi(i), gradphi(:,i)
@@ -136,8 +136,8 @@ contains
   !! @param[out] g   : Boundary conditions on solute-solvent boundary gamma_j_e
   !!
   !call wghpot(ddx_data, phi, phi_grid, g)
-  call wghpot(ddx_data % ncav, phi, ddx_data % nsph, ddx_data % ngrid, &
-      & ddx_data % ui, phi_grid, g)
+  call wghpot(ddx_data % constants % ncav, phi, ddx_data % params % nsph, ddx_data % params % ngrid, &
+      & ddx_data % constants % ui, phi_grid, g)
   !!
   !! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
   !!
@@ -157,16 +157,16 @@ contains
   !! rhs_r_init: g0+f0
   !! rhs_e_init: f0
   !!
-  do isph = 1, ddx_data % nsph
+  do isph = 1, ddx_data % params % nsph
     !! intrhs is a subroutine in dd_operators
     !! @param[in]  isph : Sphere number, used for output
     !! @param[in]  g    : Intermediate right side g
     !! @param[out] g0   : Integrated right side Eq.(77) in QSM19.SISC
-    call intrhs(1, ddx_data % nbasis, ddx_data % ngrid, &
-                ddx_data % vwgrid, ddx_data % vgrid_nbasis, &
+    call intrhs(1, ddx_data % constants % nbasis, ddx_data % params % ngrid, &
+                ddx_data % constants % vwgrid, ddx_data % constants % vgrid_nbasis, &
                 & g(:,isph), g0)
-    call intrhs(1, ddx_data % nbasis, ddx_data % ngrid, &
-                ddx_data % vwgrid, ddx_data % vgrid_nbasis, &
+    call intrhs(1, ddx_data % constants % nbasis, ddx_data % params % ngrid, &
+                ddx_data % constants % vwgrid, ddx_data % constants % vgrid_nbasis, &
                 & f(:,isph),f0)
     !! rhs 
     rhs_r_init(:,isph) = g0 + f0
@@ -204,7 +204,7 @@ contains
     !!                             matrix to vector, i.e., L^{-1}x_r, comes from matvec.f90
     !! @param[in]      hnorm     : User defined norm, comes from matvec.f90
     call jacobi_diis(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, ddx_data % n, ddx_data % iprint, ndiis, 4, tol, &
+        & ddx_data % workspace, ddx_data % constants % n, 0, ndiis, 4, tol, &
                      & rhs_r, Xr, n_iter, ok, lx, ldm1x, hnorm)
     call convert_ddcosmo(ddx_data, 1, Xr)
     ! call print_ddvector('xr',xr)
@@ -217,14 +217,14 @@ contains
     !! Update the RHS
     !! / RHS_r \ = / g + f \ - / c1 c2 \ / X_r \
     !! \ RHS_e /   \ f     /   \ c1 c2 / \ X_e /
-    call update_rhs(ddx_data, rhs_r_init, rhs_e_init, rhs_r, rhs_e, Xr, Xe)
+    call update_rhs(ddx_data % params, ddx_data % constants, rhs_r_init, rhs_e_init, rhs_r, rhs_e, Xr, Xe)
     ! call print_ddvector('rhs_r',rhs_r)
     ! call print_ddvector('rhs_e',rhs_e)
 
     !! Compute energy
     !! esolv = pt5*sprod(nsph*nylm,xr,psi)
     esolv = zero
-    do isph = 1, ddx_data % nsph
+    do isph = 1, ddx_data % params % nsph
       esolv = esolv + pt5*charge(isph)*Xr(1,isph)*(one/(two*sqrt(pi)))
     end do
 
@@ -258,20 +258,20 @@ contains
   implicit none
   type(ddx_type), intent(in)  :: ddx_data
   integer                         :: istatus, isph, NM
-  allocate(SI_ri(0:ddx_data % lmax, ddx_data % nsph),&
-           & DI_ri(0:ddx_data % lmax, ddx_data % nsph),&
-           & SK_ri(0:ddx_data % lmax, ddx_data % nsph), &
-           & DK_ri(0:ddx_data % lmax, ddx_data % nsph), &
-           & termimat(0:ddx_data % lmax, ddx_data % nsph), stat=istatus)
+  allocate(SI_ri(0:ddx_data % params % lmax, ddx_data % params % nsph),&
+           & DI_ri(0:ddx_data % params % lmax, ddx_data % params % nsph),&
+           & SK_ri(0:ddx_data % params % lmax, ddx_data % params % nsph), &
+           & DK_ri(0:ddx_data % params % lmax, ddx_data % params % nsph), &
+           & termimat(0:ddx_data % params % lmax, ddx_data % params % nsph), stat=istatus)
   if (istatus.ne.0) then
     write(*,*)'ddinit : [1] allocation failed !'
     stop
   end if
-  do isph = 1, ddx_data % nsph
-    call SPHI_bessel(ddx_data % lmax,ddx_data % rsph(isph)*ddx_data % kappa,&
+  do isph = 1, ddx_data % params % nsph
+    call SPHI_bessel(ddx_data % params % lmax,ddx_data % params % rsph(isph)*ddx_data % params % kappa,&
                      & NM,SI_ri(:,isph), &
                      & DI_ri(:,isph))
-    call SPHK_bessel(ddx_data % lmax,ddx_data % rsph(isph)*ddx_data % kappa,&
+    call SPHK_bessel(ddx_data % params % lmax,ddx_data % params % rsph(isph)*ddx_data % params % kappa,&
                      & NM,SK_ri(:,isph), &
                      & DK_ri(:,isph))
   end do
@@ -287,8 +287,8 @@ contains
   use bessel
   implicit none
   type(ddx_type), intent(in)  :: ddx_data
-  real(dp), dimension(3, ddx_data % ncav),       intent(in)  :: gradphi
-  real(dp), dimension(ddx_data % ngrid, ddx_data % nsph),    intent(out) :: f
+  real(dp), dimension(3, ddx_data % constants % ncav),       intent(in)  :: gradphi
+  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph),    intent(out) :: f
 
   integer :: isph, ig, ic, ind, ind0, jg, l, m, jsph
   real(dp) :: nderphi, sumSijn, rijn, coef_Ylm, sumSijn_pre, termi, &
@@ -298,28 +298,33 @@ contains
   real(dp), allocatable :: SK_rijn(:), DK_rijn(:)
 
   integer :: l0, m0, NM, kep, istatus
-  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph) :: c0
-  real(dp), dimension(0:ddx_data % lmax, ddx_data % nsph) :: coef_bessel
+  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph) :: c0
+  real(dp), dimension(0:ddx_data % params % lmax, ddx_data % params % nsph) :: coef_bessel
   real(dp), allocatable :: vplm(:), basloc(:), vcos(:), vsin(:)
 
   ! initialize
-  allocate(vplm(ddx_data % nbasis),basloc(ddx_data % nbasis),vcos(ddx_data % lmax+1),vsin(ddx_data % lmax+1))
+  allocate(vplm(ddx_data % constants % nbasis), &
+      & basloc(ddx_data % constants % nbasis), &
+      & vcos(ddx_data % params % lmax+1), &
+      & vsin(ddx_data % params % lmax+1))
   allocate(SK_rijn(0:lmax0),DK_rijn(0:lmax0))
   ic = 0 ; f(:,:)=0.d0
   !
   ! Compute c0 Eq.(98) QSM19.SISC
   !
-  do isph = 1, ddx_data % nsph
-    do ig = 1, ddx_data % ngrid
-      if ( ddx_data % ui(ig,isph).ne.zero ) then
+  do isph = 1, ddx_data % params % nsph
+    do ig = 1, ddx_data % params % ngrid
+      if ( ddx_data % constants % ui(ig,isph).ne.zero ) then
         ic = ic + 1
-        nderphi = dot_product( gradphi(:,ic),ddx_data % cgrid(:,ig) )
-        c0(:, isph) = c0(:,isph) + ddx_data % wgrid(ig)*ddx_data % ui(ig,isph)*nderphi*ddx_data % vgrid(:,ig)
+        nderphi = dot_product( gradphi(:,ic),ddx_data % constants % cgrid(:,ig) )
+        c0(:, isph) = c0(:,isph) + ddx_data % constants % wgrid(ig)* &
+            & ddx_data % constants % ui(ig,isph)*nderphi* &
+            & ddx_data % constants % vgrid(:,ig)
       end if
     end do
   end do
 
-  allocate (coefY(ddx_data % ncav, nbasis0, ddx_data % nsph), stat = istatus)
+  allocate (coefY(ddx_data % constants % ncav, nbasis0, ddx_data % params % nsph), stat = istatus)
   ! memuse = memuse + ncav*nbasis0*nsph
   ! memmax = max(memmax,memuse)
   if ( istatus .ne. 0 ) then
@@ -334,35 +339,35 @@ contains
   ! we use the formulas given in the book, Mathematical Methods for 
   ! Physicsts, Arfken and Weber.
   !
-  do jsph = 1, ddx_data % nsph
+  do jsph = 1, ddx_data % params % nsph
     do l0 = 0, lmax0
       ! Case: kappa > tol_inf
       if (max(DI_ri(l0,jsph), SI_ri(l0,jsph)).gt.tol_inf) then
-        termi = ddx_data % kappa
+        termi = ddx_data % params % kappa
       ! Case: kappa < tol_zero
       !       One can ignore the other terms (including the second
       !       term given below) as kappa is so small the
       !       contributions are negligible
       else if (min(DI_ri(l0,jsph), SI_ri(l0,jsph)).lt.tol_zero) then
-        termi = l0/ddx_data % rsph(jsph) + &
-            & (l0 + one)*(ddx_data % kappa**2*ddx_data % rsph(jsph))/((two*l0 + one) * &
+        termi = l0/ddx_data % params % rsph(jsph) + &
+            & (l0 + one)*(ddx_data % params % kappa**2*ddx_data % params % rsph(jsph))/((two*l0 + one) * &
             & (two*l0 + three))
       ! Case: kappa is of normal size.
       ! NOTE: We notice a factor of kappa. The reason being while computing
       !       DI_ri the argument is kappa*r. Hence a factor of kappa.
       else
-        termi = DI_ri(l0,jsph)/SI_ri(l0,jsph)*ddx_data % kappa
+        termi = DI_ri(l0,jsph)/SI_ri(l0,jsph)*ddx_data % params % kappa
       end if
       !write(*,*) SI_ri(l0,jsph), termi
 
       ! Similar calculation for SK_ri to SI_ri
       if (SK_ri(l0,jsph).gt.tol_inf) then
-        termk = - (l0 + one)/ddx_data % rsph(jsph) - &
-            & l0*(ddx_data % kappa**2*ddx_data % rsph(jsph))/((two*l0 - one)*(two*l0 + one))
+        termk = - (l0 + one)/ddx_data % params % rsph(jsph) - &
+            & l0*(ddx_data % params % kappa**2*ddx_data % params % rsph(jsph))/((two*l0 - one)*(two*l0 + one))
       else if (SK_ri(l0,jsph).lt.tol_zero) then
-        termk = -ddx_data % kappa
+        termk = -ddx_data % params % kappa
       else
-        termk = DK_ri(l0,jsph)/SK_ri(l0,jsph)*ddx_data % kappa
+        termk = DK_ri(l0,jsph)/SK_ri(l0,jsph)*ddx_data % params % kappa
       end if
 
       !write(*,*) SK_ri(l0,jsph), termk
@@ -376,24 +381,27 @@ contains
   ! Computation of F0 using above terms
   ! (?) Use of kep not known (?)
   kep = 0
-  do isph = 1, ddx_data % nsph
-    do ig = 1, ddx_data % ngrid
-      if (ddx_data % ui(ig,isph).gt.zero) then
+  do isph = 1, ddx_data % params % nsph
+    do ig = 1, ddx_data % params % ngrid
+      if (ddx_data % constants % ui(ig,isph).gt.zero) then
         kep = kep + 1
         sumSijn = zero
         ! Loop to compute Sijn
-        do jsph = 1, ddx_data % nsph
+        do jsph = 1, ddx_data % params % nsph
           ! (?) Use of sumSijn_pre (?)
           sumSijn_pre = sumSijn
-          vij  = ddx_data % csph(:,isph) + ddx_data % rsph(isph)*ddx_data % cgrid(:,ig) - ddx_data % csph(:,jsph)
+          vij  = ddx_data % params % csph(:,isph) + &
+              & ddx_data % params % rsph(isph)* &
+              & ddx_data % constants % cgrid(:,ig) - &
+              & ddx_data % params % csph(:,jsph)
           rijn = sqrt(dot_product(vij,vij))
           sijn = vij/rijn
           
           ! Compute Bessel function of 2nd kind for the coordinates
           ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-          call SPHK_bessel(lmax0,rijn*ddx_data % kappa,NM,SK_rijn,DK_rijn)
+          call SPHK_bessel(lmax0,rijn*ddx_data % params % kappa,NM,SK_rijn,DK_rijn)
           call ylmbas(sijn , rho, ctheta, stheta, cphi, &
-                      & sphi, ddx_data % lmax, ddx_data % vscales, &
+                      & sphi, ddx_data % params % lmax, ddx_data % constants % vscales, &
                       & basloc, vplm, vcos, vsin)
 
           do l0 = 0,lmax0
@@ -403,9 +411,9 @@ contains
             if (SK_ri(l0,jsph).gt.tol_inf) then
             ! Uses approximation of SK_ri in double factorial terms when argument
             ! is greater than l0
-              term = (ddx_data % rsph(jsph)/rijn)**(l0+1)
+              term = (ddx_data % params % rsph(jsph)/rijn)**(l0+1)
             else if (SK_ri(l0,jsph).lt.tol_zero) then
-              term = (ddx_data % rsph(jsph)/rijn)*exp(-ddx_data % kappa*(rijn-ddx_data % rsph(jsph)))
+              term = (ddx_data % params % rsph(jsph)/rijn)*exp(-ddx_data % params % kappa*(rijn-ddx_data % params % rsph(jsph)))
             else
               term = SK_rijn(l0)/SK_ri(l0,jsph)
             end if
@@ -423,7 +431,7 @@ contains
         ! Here Intermediate value of F_0 is computed Eq. (99)
         ! Mutilplication with Y_lm and weights will happen afterwards
         !write(6,*) sumSijn, epsp, eps, ddx_data % ui(ig,isph)
-        f(ig,isph) = -(epsp/ddx_data % eps)*ddx_data % ui(ig,isph) * sumSijn
+        f(ig,isph) = -(epsp/ddx_data % params % eps)*ddx_data % constants % ui(ig,isph) * sumSijn
       end if
     end do
   end do 
@@ -444,25 +452,25 @@ contains
   implicit none 
   type(ddx_type), intent(in)  :: ddx_data
   integer, intent(in) :: n
-  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(in) :: x
-  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(inout) :: y
+  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in) :: x
+  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(inout) :: y
   integer :: isph, istatus
   real(dp), allocatable :: pot(:), vplm(:), basloc(:), vcos(:), vsin(:)
   integer :: i
   ! allocate workspaces
-  allocate( pot(ddx_data % ngrid), vplm(ddx_data % nbasis), basloc(ddx_data % nbasis), &
-            & vcos(ddx_data % lmax+1), vsin(ddx_data % lmax+1) , stat=istatus )
+  allocate( pot(ddx_data % params % ngrid), vplm(ddx_data % constants % nbasis), basloc(ddx_data % constants % nbasis), &
+            & vcos(ddx_data % params % lmax+1), vsin(ddx_data % params % lmax+1) , stat=istatus )
   if ( istatus.ne.0 ) then
     write(*,*) 'Bx: allocation failed !'
     stop
   endif
 
   y = zero
-  do isph = 1, ddx_data % nsph
-    call calcv2_lpb(ddx_data, isph, pot, x, basloc, vplm, vcos, vsin )
+  do isph = 1, ddx_data % params % nsph
+    call calcv2_lpb(ddx_data % params, ddx_data % constants, isph, pot, x, basloc, vplm, vcos, vsin )
     ! intrhs comes from ddCOSMO
-    call intrhs(1, ddx_data % nbasis, ddx_data % ngrid, &
-                ddx_data % vwgrid, ddx_data % vgrid_nbasis, &
+    call intrhs(1, ddx_data % constants % nbasis, ddx_data % params % ngrid, &
+                ddx_data % constants % vwgrid, ddx_data % constants % vgrid_nbasis, &
                 & pot, y(:,isph) )
     ! Action of off-diagonal blocks
     y(:,isph) = - y(:,isph)
@@ -488,11 +496,11 @@ contains
   type(ddx_type), intent(in)  :: ddx_data
   integer :: isph, l, m, ind
   integer, intent(in) :: direction
-  real(dp), intent(inout) :: vector(ddx_data % nbasis, ddx_data % nsph)
+  real(dp), intent(inout) :: vector(ddx_data % constants % nbasis, ddx_data % params % nsph)
   real(dp) :: fac
   
-  do isph = 1, ddx_data % nsph
-    do l = 0, ddx_data % lmax
+  do isph = 1, ddx_data % params % nsph
+    do l = 0, ddx_data % params % lmax
       ind = l*l + l + 1
       fac = four*pi/(two*dble(l) + one) 
       if (direction.eq.-1) fac = one/fac
@@ -513,14 +521,14 @@ contains
   subroutine lpb_hsp(ddx_data, rhs, Xe)
   implicit none
   type(ddx_type), intent(in)  :: ddx_data
-  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(in) :: rhs
-  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(inout) :: Xe
+  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in) :: rhs
+  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(inout) :: Xe
   integer :: isph, istatus, n_iter, info, c1, c2, cr
   real(dp) :: tol, r_norm
   real(dp), allocatable :: work(:,:)
   integer, parameter  :: gmm = 20, gmj = 25
   
-  allocate(work(ddx_data % nsph*ddx_data % nbasis, 0:2*gmj + gmm + 2 - 1),stat=istatus)
+  allocate(work(ddx_data % constants % n, 0:2*gmj + gmm + 2 - 1),stat=istatus)
   if (istatus.ne.0) then
     write(*,*) ' LPB-HSP: failed allocation for GMRES'
     stop
@@ -552,7 +560,7 @@ contains
   !! @param[in]      matABx        : Subroutine A*x. Named matabx in file
   !! @param[in, out] info          : Flag after solve. 0 means within tolerance
   !!                                 1 means max number of iteration
-  call gmresr(ddx_data, .false., ddx_data % nsph*ddx_data % nbasis, gmj, gmm, rhs, Xe, work, tol_gmres,'rel', &
+  call gmresr(ddx_data, .false., ddx_data % constants % n, gmj, gmm, rhs, Xe, work, tol_gmres,'rel', &
       & n_iter_gmres, r_norm, matABx, info)
 
   deallocate(work)
@@ -568,42 +576,43 @@ contains
   ! @param[in, out] vcos   : Used to compute spherical harmonic
   ! @param[in, out] vsin   : Used to compute spherical harmonic
   !
-  subroutine calcv2_lpb (ddx_data, isph, pot, x, basloc, vplm, vcos, vsin )
-  type(ddx_type), intent(in) :: ddx_data
+  subroutine calcv2_lpb (params, constants, isph, pot, x, basloc, vplm, vcos, vsin )
+  type(ddx_params_type), intent(in)  :: params
+  type(ddx_constants_type), intent(in)  :: constants
   integer, intent(in) :: isph
-  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(in) :: x
-  real(dp), dimension(ddx_data % ngrid), intent(inout) :: pot
-  real(dp), dimension(ddx_data % nbasis), intent(inout) :: basloc
-  real(dp), dimension(ddx_data % nbasis), intent(inout) :: vplm
-  real(dp), dimension(ddx_data % lmax+1), intent(inout) :: vcos
-  real(dp), dimension(ddx_data % lmax+1), intent(inout) :: vsin
-  real(dp), dimension(ddx_data % nbasis) :: fac_cosmo, fac_hsp
+  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+  real(dp), dimension(params % ngrid), intent(inout) :: pot
+  real(dp), dimension(constants % nbasis), intent(inout) :: basloc
+  real(dp), dimension(constants % nbasis), intent(inout) :: vplm
+  real(dp), dimension(params % lmax+1), intent(inout) :: vcos
+  real(dp), dimension(params % lmax+1), intent(inout) :: vsin
+  real(dp), dimension(constants % nbasis) :: fac_cosmo, fac_hsp
   integer :: its, ij, jsph
   real(dp) :: rho, ctheta, stheta, cphi, sphi
   real(dp) :: vij(3), sij(3)
   real(dp) :: vvij, tij, xij, oij
 
   pot = zero
-  do its = 1, ddx_data % ngrid
-    if (ddx_data % ui(its,isph).lt.one) then
-      do ij = ddx_data % inl(isph), ddx_data % inl(isph+1)-1
-        jsph = ddx_data % nl(ij)
+  do its = 1, params % ngrid
+    if (constants % ui(its,isph).lt.one) then
+      do ij = constants % inl(isph), constants % inl(isph+1)-1
+        jsph = constants % nl(ij)
 
         ! compute geometrical variables
-        vij  = ddx_data % csph(:,isph) + ddx_data % rsph(isph)*ddx_data % cgrid(:,its) - ddx_data % csph(:,jsph)
+        vij  = params % csph(:,isph) + params % rsph(isph)*constants % cgrid(:,its) - params % csph(:,jsph)
         vvij = sqrt(dot_product(vij,vij))
-        tij  = vvij/ddx_data % rsph(jsph) 
+        tij  = vvij/params % rsph(jsph) 
 
         if ( tij.lt.one ) then
           sij = vij/vvij
           call ylmbas(sij, rho, ctheta, stheta, cphi, &
-                      & sphi, ddx_data % lmax, &
-                      & ddx_data % vscales, basloc, &
+                      & sphi, params % lmax, &
+                      & constants % vscales, basloc, &
                       & vplm, vcos, vsin)
-          call inthsp(ddx_data, vvij, ddx_data % rsph(jsph), jsph, basloc, fac_hsp)
-          xij = fsw(tij, ddx_data % se, ddx_data % eta)
-          if (ddx_data % fi(its,isph).gt.one) then
-            oij = xij/ddx_data % fi(its, isph)
+          call inthsp(params, constants, vvij, params % rsph(jsph), jsph, basloc, fac_hsp)
+          xij = fsw(tij, params % se, params % eta)
+          if (constants % fi(its,isph).gt.one) then
+            oij = xij/constants % fi(its, isph)
           else
             oij = xij
           end if
@@ -624,15 +633,16 @@ contains
   ! @param[out] fac_hsp : Return bessel function ratio multiplied by 
   !                       the spherical harmonic Y_l'm'. Array of size nylm
   !
-  subroutine inthsp(ddx_data, rijn, ri, isph, basloc, fac_hsp)
+  subroutine inthsp(params, constants, rijn, ri, isph, basloc, fac_hsp)
   use bessel
   implicit none
-  type(ddx_type), intent(in)  :: ddx_data
+  type(ddx_params_type), intent(in)  :: params
+  type(ddx_constants_type), intent(in)  :: constants
   integer, intent(in) :: isph
   real(dp), intent(in) :: rijn, ri
-  real(dp), dimension(ddx_data % nbasis), intent(in) :: basloc
-  real(dp), dimension(ddx_data % nbasis), intent(inout) :: fac_hsp
-  real(dp), dimension(0:ddx_data % lmax) :: SI_rijn, DI_rijn
+  real(dp), dimension(constants % nbasis), intent(in) :: basloc
+  real(dp), dimension(constants % nbasis), intent(inout) :: fac_hsp
+  real(dp), dimension(0:params % lmax) :: SI_rijn, DI_rijn
   integer :: l, m, ind, NM
 
   SI_rijn = 0
@@ -640,9 +650,9 @@ contains
   fac_hsp = 0
 
   ! Computation of modified spherical Bessel function values      
-  call SPHI_bessel(ddx_data % lmax,rijn*ddx_data % kappa,NM,SI_rijn,DI_rijn)
+  call SPHI_bessel(params % lmax,rijn*params % kappa,NM,SI_rijn,DI_rijn)
   
-  do l = 0, ddx_data % lmax
+  do l = 0, params % lmax
     do  m = -l, l
       ind = l*l + l + 1 + m
       if ((SI_rijn(l).lt.zero) .or. (SI_ri(l,isph).lt.tol_zero) &
@@ -658,14 +668,15 @@ contains
   endsubroutine inthsp
 
 
-  subroutine intcosmo(ddx_data, tij, basloc, fac_cosmo)
+  subroutine intcosmo(params, constants, tij, basloc, fac_cosmo)
   implicit none
-  type(ddx_type), intent(in)  :: ddx_data
+  type(ddx_params_type), intent(in)  :: params
+  type(ddx_constants_type), intent(in)  :: constants
   real(dp),  intent(in) :: tij
-  real(dp), dimension(ddx_data % nbasis), intent(in) :: basloc
-  real(dp), dimension(ddx_data % nbasis), intent(inout) :: fac_cosmo
+  real(dp), dimension(constants % nbasis), intent(in) :: basloc
+  real(dp), dimension(constants % nbasis), intent(inout) :: fac_cosmo
   integer :: l, m, ind
-  do l = 0, ddx_data % lmax
+  do l = 0, params % lmax
     do  m = -l, l
         ind = l*l + l + 1 + m
         fac_cosmo(ind) = tij**l*basloc(ind)
@@ -682,28 +693,29 @@ contains
   ! @param[in] Xr             : X_r^(k-1)
   ! @param[in] Xe             : X_e^(k-1)
   !
-  subroutine update_rhs(ddx_data, rhs_cosmo_init, rhs_hsp_init, rhs_cosmo, & 
+  subroutine update_rhs(params, constants, rhs_cosmo_init, rhs_hsp_init, rhs_cosmo, & 
       & rhs_hsp, Xr, Xe)
   use bessel
   implicit none
-  type(ddx_type), intent(in)  :: ddx_data
-  real(dp), dimension(ddx_data % nbasis,ddx_data % nsph), intent(in) :: rhs_cosmo_init, &
+  type(ddx_params_type), intent(in)  :: params
+  type(ddx_constants_type), intent(in)  :: constants
+  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: rhs_cosmo_init, &
       & rhs_hsp_init
-  real(dp), dimension(ddx_data % nbasis,ddx_data % nsph), intent(inout) :: rhs_cosmo, rhs_hsp
-  real(dp), dimension(ddx_data % nbasis,ddx_data % nsph) :: rhs_plus
-  real(dp), dimension(ddx_data % nbasis,ddx_data % nsph), intent(in) :: Xr, Xe
+  real(dp), dimension(constants % nbasis, params % nsph), intent(inout) :: rhs_cosmo, rhs_hsp
+  real(dp), dimension(constants % nbasis, params % nsph) :: rhs_plus
+  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xr, Xe
   integer :: isph, jsph, ig, kep, ind, l1,m1, ind1, ind0, count, istatus
   real(dp), dimension(3) :: vij
-  real(dp), dimension(ddx_data % nbasis,ddx_data % nsph) :: diff_re
-  real(dp), dimension(nbasis0,ddx_data % nsph) :: diff0
-  real(dp), dimension(ddx_data % nbasis,ddx_data % nbasis,ddx_data % nsph) :: smat
-  real(dp), dimension(ddx_data % ncav) :: diff_ep
+  real(dp), dimension(constants % nbasis, params % nsph) :: diff_re
+  real(dp), dimension(nbasis0, params % nsph) :: diff0
+  real(dp), dimension(constants % nbasis, constants % nbasis, params % nsph) :: smat
+  real(dp), dimension(constants % ncav) :: diff_ep
   real(dp) :: Qval, rijn, val
   integer :: c0, cr, c_qmat, c_init, c_ep0, c_ep1 !, nbasis_appro
       
   if (first_out_iter) then
-    allocate(coefvec(ddx_data % ngrid, ddx_data % nbasis, ddx_data % nsph), &
-            Pchi(ddx_data % nbasis, nbasis0, ddx_data % nsph), stat = istatus)
+    allocate(coefvec(params % ngrid, constants % nbasis, params % nsph), &
+            Pchi(constants % nbasis, nbasis0, params % nsph), stat = istatus)
     if (istatus.ne.0) then
       write(*,*)'update_rhs : [1] allocation failed!'
       stop
@@ -714,8 +726,8 @@ contains
   ! TODO: probably has to be declared somewhere
   ! and i have to recover mkpmat 
   if (first_out_iter) then      
-    do jsph = 1, ddx_data % nsph
-      call mkpmat(ddx_data, jsph, Pchi(:,:,jsph))
+    do jsph = 1, params % nsph
+      call mkpmat(params, constants, jsph, Pchi(:,:,jsph))
     end do    
   end if 
       
@@ -723,11 +735,11 @@ contains
   ! TODO: remove all the precomputations
   ! or, if they are really necessary, do them in a separate subroutine
   if (first_out_iter) then 
-    do isph = 1,ddx_data % nsph
-      do ig = 1,ddx_data % ngrid
-        if (ddx_data % ui(ig, isph) .gt. 0) then
-          do ind  = 1, ddx_data % nbasis 
-            coefvec(ig,ind,isph) = ddx_data % wgrid(ig)*ddx_data % ui(ig,isph)*ddx_data % vgrid(ind,ig)
+    do isph = 1, params % nsph
+      do ig = 1, params % ngrid
+        if (constants % ui(ig, isph) .gt. 0) then
+          do ind  = 1, constants % nbasis 
+            coefvec(ig,ind,isph) = constants % wgrid(ig)*constants % ui(ig,isph)*constants % vgrid(ind,ig)
           end do
         end if
       end do
@@ -737,36 +749,36 @@ contains
   ! precompute termimat
   ! TODO: same as before
   if (first_out_iter) then
-    do jsph = 1, ddx_data % nsph
-      do l1 = 0, ddx_data % lmax
+    do jsph = 1, params % nsph
+      do l1 = 0, params % lmax
         if (max(DI_ri(l1,jsph),SI_ri(l1,jsph)).gt.tol_inf) then
-          termimat(l1,jsph) = ddx_data % kappa
+          termimat(l1,jsph) = params % kappa
         else if (min(DI_ri(l1,jsph),SI_ri(l1,jsph)).lt.tol_zero) then
-          termimat(l1,jsph) = l1/ddx_data % rsph(jsph) + &
-              & (l1 + 1)*(ddx_data % kappa**2*ddx_data % rsph(jsph))/((two*l1 + one) * &
+          termimat(l1,jsph) = l1/params % rsph(jsph) + &
+              & (l1 + 1)*(params % kappa**2*params % rsph(jsph))/((two*l1 + one) * &
               & (two*l1 + three))
         else
-          termimat(l1,jsph) = DI_ri(l1,jsph)/SI_ri(l1,jsph)*ddx_data % kappa
+          termimat(l1,jsph) = DI_ri(l1,jsph)/SI_ri(l1,jsph)*params % kappa
         end if
       end do
     end do
   end if
 
-  if (first_out_iter) then
-    if (ddx_data % iprint .gt. 0) then  
-      write(*,999) dble(c_init-c0)/dble(cr)
- 999  format('Time of initializing Pchi, coefvec, termi: ',f8.3, &
-          & ' secs.')
-    end if
-  end if
+!  if (first_out_iter) then
+!    if (ddx_data % iprint .gt. 0) then  
+!      write(*,999) dble(c_init-c0)/dble(cr)
+! 999  format('Time of initializing Pchi, coefvec, termi: ',f8.3, &
+!          & ' secs.')
+!    end if
+!  end if
 
   ! diff_re = epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
   diff_re = zero 
-  do jsph = 1, ddx_data % nsph
-    do l1 = 0, ddx_data % lmax
+  do jsph = 1, params % nsph
+    do l1 = 0, params % lmax
       do m1 = -l1,l1
         ind1 = l1**2 + l1 + m1 + 1
-        diff_re(ind1,jsph) = ((epsp/ddx_data % eps)*(l1/ddx_data % rsph(jsph)) * &
+        diff_re(ind1,jsph) = ((epsp/params % eps)*(l1/params % rsph(jsph)) * &
             & Xr(ind1,jsph) - termimat(l1,jsph)*Xe(ind1,jsph))
       end do
     end do
@@ -775,7 +787,7 @@ contains
   ! diff0 = Pchi * diff_er, linear scaling
   ! TODO: probably doing PX on the fly is better 
   diff0 = zero 
-  do jsph = 1, ddx_data % nsph
+  do jsph = 1, params % nsph
     do ind0 = 1, nbasis0
       diff0(ind0, jsph) = dot_product(diff_re(:,jsph), &
           & Pchi(:,ind0, jsph))
@@ -784,9 +796,9 @@ contains
 
   ! diff_ep = diff0 * coefY,    COST: M^2*nbasis*Nleb
   diff_ep = zero
-  do kep = 1, ddx_data % ncav
+  do kep = 1, constants % ncav
     val = zero
-    do jsph = 1, ddx_data % nsph 
+    do jsph = 1, params % nsph 
       do ind0 = 1, nbasis0
         val = val + diff0(ind0,jsph)*coefY(kep,ind0,jsph)
       end do
@@ -796,11 +808,11 @@ contains
 
   rhs_plus = zero
   kep = 0
-  do isph = 1, ddx_data % nsph
-    do ig = 1, ddx_data % ngrid
-      if (ddx_data % ui(ig,isph).gt.zero) then 
+  do isph = 1, params % nsph
+    do ig = 1, params % ngrid
+      if (constants % ui(ig,isph).gt.zero) then 
         kep = kep + 1
-        do ind = 1, ddx_data % nbasis
+        do ind = 1, constants % nbasis
           rhs_plus(ind,isph) = rhs_plus(ind,isph) + &
               & coefvec(ig,ind,isph)*diff_ep(kep)
         end do
@@ -819,25 +831,26 @@ contains
   ! @param[in]  isph : Sphere number
   ! @param[out] pmat : Matrix of size nylm X (lmax0+1)^2, Fixed lmax0
   !
-  subroutine mkpmat(ddx_data, isph, pmat )
+  subroutine mkpmat(params, constants, isph, pmat )
   implicit none
-  type(ddx_type), intent(in)  :: ddx_data
+  type(ddx_params_type), intent(in)  :: params
+  type(ddx_constants_type), intent(in)  :: constants
   integer,  intent(in) :: isph
-  real(dp), dimension(ddx_data % nbasis, (lmax0+1)**2), intent(inout) :: pmat
+  real(dp), dimension(constants % nbasis, (lmax0+1)**2), intent(inout) :: pmat
   integer :: l, m, ind, l0, m0, ind0, its, nbasis0
   real(dp)  :: f, f0
 
   pmat(:,:) = zero
-  do its = 1, ddx_data % ngrid
-    if (ddx_data % ui(its,isph).ne.0) then
-      do l = 0, ddx_data % lmax
+  do its = 1, params % ngrid
+    if (constants % ui(its,isph).ne.0) then
+      do l = 0, params % lmax
         ind = l*l + l + 1
         do m = -l,l
-          f = ddx_data % wgrid(its) * ddx_data % vgrid(ind+m,its) * ddx_data % ui(its,isph)
+          f = constants % wgrid(its) * constants % vgrid(ind+m,its) * constants % ui(its,isph)
           do l0 = 0, lmax0
             ind0 = l0*l0 + l0 + 1
             do m0 = -l0, l0
-              f0 = ddx_data % vgrid(ind0+m0,its)
+              f0 = constants % vgrid(ind0+m0,its)
               pmat(ind+m,ind0+m0) = pmat(ind+m,ind0+m0) + f * f0
             end do
           end do

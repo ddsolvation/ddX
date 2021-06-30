@@ -15,7 +15,6 @@
 1           ! Whether to use (1) or not (0) the FMM
 20          ! Max degree of multipole spherical harmonics for the FMM
 20          ! Max degree of local spherical harmonics for the FMM
-0           ! Whether to precompute (1) or not (0) the FMM translations
 12          ! number of spheres
 -0.04192   0.00000   2.29035   1.32281   4.00253
 -0.04192   0.00000   2.29035  -1.32281   4.00253

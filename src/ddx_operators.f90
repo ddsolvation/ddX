@@ -25,106 +25,106 @@ subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
     ! Outputs
-    real(dp), intent(out) :: phi_cav(ddx_data % ncav)
-    real(dp), intent(out) :: gradphi_cav(3, ddx_data % ncav)
-    real(dp), intent(out) :: psi(ddx_data % nbasis, ddx_data % nsph)
+    real(dp), intent(out) :: phi_cav(ddx_data % constants % ncav)
+    real(dp), intent(out) :: gradphi_cav(3, ddx_data % constants % ncav)
+    real(dp), intent(out) :: psi(ddx_data % constants % nbasis, ddx_data % params % nsph)
     ! Local variables
     integer :: isph, igrid, icav, inode, inear, jnear, jnode, jsph
     real(dp) :: d(3), v, dnorm, gradv(3), epsp=one
-    real(dp) :: grid_grad(ddx_data % ngrid, 3, ddx_data % nsph)
+    real(dp) :: grid_grad(ddx_data % params % ngrid, 3, ddx_data % params % nsph)
     real(dp), external :: dnrm2
     ! In case FMM is disabled compute phi and gradphi at cavity points by a
     ! naive double loop of a quadratic complexity
-    if (ddx_data % fmm .eq. 0) then
-        do icav = 1, ddx_data % ncav
+    if (ddx_data % params % fmm .eq. 0) then
+        do icav = 1, ddx_data % constants % ncav
             v = zero
             gradv = zero
-            do isph = 1, ddx_data % nsph
-                d = ddx_data % ccav(:, icav) - ddx_data % csph(:, isph)
+            do isph = 1, ddx_data % params % nsph
+                d = ddx_data % constants % ccav(:, icav) - ddx_data % params % csph(:, isph)
                 dnorm = dnrm2(3, d, 1)
-                v = v + ddx_data % charge(isph)/dnorm
-                gradv = gradv - ddx_data % charge(isph)*d/(dnorm**3)
+                v = v + ddx_data % params % charge(isph)/dnorm
+                gradv = gradv - ddx_data % params % charge(isph)*d/(dnorm**3)
             end do
             phi_cav(icav) = v
-            gradphi_cav(:,icav) = gradv
+            gradphi_cav(:, icav) = gradv
         end do
     ! Use the FMM otherwise
     else
         ! P2M step from centers of harmonics
-        do isph = 1, ddx_data % nsph
-            inode = ddx_data % snode(isph)
-            ddx_data % tmp_sph(1, isph) = ddx_data % charge(isph) / &
-                & ddx_data % rsph(isph) / sqrt4pi
-            ddx_data % tmp_sph(2:, isph) = zero
-            ddx_data % tmp_node_m(1, inode) = ddx_data % tmp_sph(1, isph)
-            ddx_data % tmp_node_m(2:, inode) = zero
+        do isph = 1, ddx_data % params % nsph
+            inode = ddx_data % constants % snode(isph)
+            ddx_data % workspace % tmp_sph(1, isph) = ddx_data % params % charge(isph) / &
+                & ddx_data % params % rsph(isph) / sqrt4pi
+            ddx_data % workspace % tmp_sph(2:, isph) = zero
+            ddx_data % workspace % tmp_node_m(1, inode) = ddx_data % workspace % tmp_sph(1, isph)
+            ddx_data % workspace % tmp_node_m(2:, inode) = zero
         end do
         ! M2M, M2L and L2L translations
-        call tree_m2m_rotation(ddx_data % params, ddx_data % constants, ddx_data % tmp_node_m)
-        call tree_m2l_rotation(ddx_data % params, ddx_data % constants, ddx_data % tmp_node_m, &
-            & ddx_data % tmp_node_l)
-        call tree_l2l_rotation(ddx_data % params, ddx_data % constants, ddx_data % tmp_node_l)
-        call tree_l2p(ddx_data % params, ddx_data % constants, one, ddx_data % tmp_node_l, zero, &
-            & ddx_data % tmp_grid)
-        call tree_m2p(ddx_data % params, ddx_data % constants, ddx_data % lmax, one, ddx_data % tmp_sph, &
-            & one, ddx_data % tmp_grid)
+        call tree_m2m_rotation(ddx_data % params, ddx_data % constants, ddx_data % workspace % tmp_node_m)
+        call tree_m2l_rotation(ddx_data % params, ddx_data % constants, ddx_data % workspace % tmp_node_m, &
+            & ddx_data % workspace % tmp_node_l)
+        call tree_l2l_rotation(ddx_data % params, ddx_data % constants, ddx_data % workspace % tmp_node_l)
+        call tree_l2p(ddx_data % params, ddx_data % constants, one, ddx_data % workspace % tmp_node_l, zero, &
+            & ddx_data % workspace % tmp_grid)
+        call tree_m2p(ddx_data % params, ddx_data % constants, ddx_data % params % lmax, one, ddx_data % workspace % tmp_sph, &
+            & one, ddx_data % workspace % tmp_grid)
         ! Potential from each sphere to its own grid points
-        call dgemm('T', 'N', ddx_data % ngrid, ddx_data % nsph, &
-            & ddx_data % nbasis, one, ddx_data % l2grid, &
-            & ddx_data % l2grid_nbasis, ddx_data % tmp_sph, ddx_data % nbasis, &
-            & one, ddx_data % tmp_grid, ddx_data % ngrid)
+        call dgemm('T', 'N', ddx_data % params % ngrid, ddx_data % params % nsph, &
+            & ddx_data % constants % nbasis, one, ddx_data % constants % l2grid, &
+            & ddx_data % constants % l2grid_nbasis, ddx_data % workspace % tmp_sph, ddx_data % constants % nbasis, &
+            & one, ddx_data % workspace % tmp_grid, ddx_data % params % ngrid)
         ! Rearrange potential from all grid points to external only
         icav = 0
-        do isph = 1, ddx_data % nsph
-            do igrid = 1, ddx_data % ngrid
+        do isph = 1, ddx_data % params % nsph
+            do igrid = 1, ddx_data % params % ngrid
                 ! Do not count internal grid points
-                if(ddx_data % ui(igrid, isph) .eq. zero) cycle
+                if(ddx_data % constants % ui(igrid, isph) .eq. zero) cycle
                 icav = icav + 1
-                phi_cav(icav) = ddx_data % tmp_grid(igrid, isph)
+                phi_cav(icav) = ddx_data % workspace % tmp_grid(igrid, isph)
             end do
         end do
         ! Now compute near-field FMM gradients
         ! Cycle over all spheres
-        do isph = 1, ddx_data % nsph
+        do isph = 1, ddx_data % params % nsph
             grid_grad(:, :, isph) = zero
             ! Cycle over all external grid points
-            do igrid = 1, ddx_data % ngrid
-                if(ddx_data % ui(igrid, isph) .eq. zero) cycle
+            do igrid = 1, ddx_data % params % ngrid
+                if(ddx_data % constants % ui(igrid, isph) .eq. zero) cycle
                 ! Cycle over all near-field admissible pairs of spheres,
                 ! including pair (isph, isph) which is a self-interaction
-                inode = ddx_data % snode(isph)
-                do jnear = ddx_data % snear(inode), ddx_data % snear(inode+1)-1
+                inode = ddx_data % constants % snode(isph)
+                do jnear = ddx_data % constants % snear(inode), ddx_data % constants % snear(inode+1)-1
                     ! Near-field interactions are possible only between leaf
                     ! nodes, which must contain only a single input sphere
-                    jnode = ddx_data % near(jnear)
-                    jsph = ddx_data % order(ddx_data % cluster(1, jnode))
-                    d = ddx_data % csph(:, isph) + &
-                        & ddx_data % cgrid(:, igrid)*ddx_data % rsph(isph) - &
-                        & ddx_data % csph(:, jsph)
+                    jnode = ddx_data % constants % near(jnear)
+                    jsph = ddx_data % constants % order(ddx_data % constants % cluster(1, jnode))
+                    d = ddx_data % params % csph(:, isph) + &
+                        & ddx_data % constants % cgrid(:, igrid)*ddx_data % params % rsph(isph) - &
+                        & ddx_data % params % csph(:, jsph)
                     dnorm = dnrm2(3, d, 1)
                     grid_grad(igrid, :, isph) = grid_grad(igrid, :, isph) - &
-                        & ddx_data % charge(jsph)*d/(dnorm**3)
+                        & ddx_data % params % charge(jsph)*d/(dnorm**3)
                 end do
             end do
         end do
         ! Take into account far-field FMM gradients only if pl > 0
-        if (ddx_data % pl .gt. 0) then
+        if (ddx_data % params % pl .gt. 0) then
             ! Get gradient of L2L
-            call tree_grad_l2l(ddx_data % params, ddx_data % constants, ddx_data % tmp_node_l, &
-                & ddx_data % tmp_sph_l_grad, ddx_data % tmp_sph_l)
+            call tree_grad_l2l(ddx_data % params, ddx_data % constants, ddx_data % workspace % tmp_node_l, &
+                & ddx_data % workspace % tmp_sph_l_grad, ddx_data % workspace % tmp_sph_l)
             ! Apply L2P for every axis with -1 multiplier since grad over
             ! target point is equal to grad over source point
-            call dgemm('T', 'N', ddx_data % ngrid, 3*ddx_data % nsph, &
-                & (ddx_data % pl)**2, -one, ddx_data % l2grid, &
-                & ddx_data % l2grid_nbasis, ddx_data % tmp_sph_l_grad, &
-                & (ddx_data % pl+1)**2, one, grid_grad, &
-                & ddx_data % ngrid)
+            call dgemm('T', 'N', ddx_data % params % ngrid, 3*ddx_data % params % nsph, &
+                & (ddx_data % params % pl)**2, -one, ddx_data % constants % l2grid, &
+                & ddx_data % constants % l2grid_nbasis, ddx_data % workspace % tmp_sph_l_grad, &
+                & (ddx_data % params % pl+1)**2, one, grid_grad, &
+                & ddx_data % params % ngrid)
         end if
         ! Copy output for external grid points only
         icav = 0
-        do isph = 1, ddx_data % nsph
-            do igrid = 1, ddx_data % ngrid
-                if(ddx_data % ui(igrid, isph) .eq. zero) cycle
+        do isph = 1, ddx_data % params % nsph
+            do igrid = 1, ddx_data % params % ngrid
+                if(ddx_data % constants % ui(igrid, isph) .eq. zero) cycle
                 icav = icav + 1
                 gradphi_cav(:, icav) = grid_grad(igrid, :, isph)
             end do
@@ -132,8 +132,8 @@ subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
     end if
     ! Vector psi
     psi(2:, :) = zero
-    do isph = 1, ddx_data % nsph
-        psi(1, isph) = sqrt4pi * ddx_data % charge(isph)
+    do isph = 1, ddx_data % params % nsph
+        psi(1, isph) = sqrt4pi * ddx_data % params % charge(isph)
     end do
 end subroutine mkrhs
 

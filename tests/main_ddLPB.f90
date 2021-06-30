@@ -117,17 +117,18 @@ itersolver=1
 tol=1d-1**iconv
 maxiter=200
 call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pmax, pmax, &
-    & fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, maxiter, &
+    & se, eta, eps, kappa, itersolver, tol, maxiter, &
     & ndiis, nproc, ddx_data, info)
 
-allocate(phi(ddx_data % ncav), psi(ddx_data % nbasis,n), gradphi(3, ddx_data % ncav))
+allocate(phi(ddx_data % constants % ncav), psi(ddx_data % constants % nbasis,n), &
+    & gradphi(3, ddx_data % constants % ncav))
 
 call mkrhs(ddx_data, phi, gradphi, psi)
 
 niter = 200
 ! Now, call the ddLPB solver
 !
-allocate (sigma(ddx_data % nbasis ,n))
+allocate (sigma(ddx_data % constants % nbasis ,n))
 !
 ! @param[in] phi      : Boundary conditions
 ! @param[in] charge   : Charge of atoms
@@ -141,7 +142,8 @@ allocate (sigma(ddx_data % nbasis ,n))
 call ddlpb(ddx_data, phi, psi, gradphi, sigma, esolv, charge, ndiis, niter, iconv)
 !call cosmo(.false., .true., phi, xx, psi, sigma, esolv)
 !
-if (iprint.ge.3) call prtsph('Solution to the ddLPB equation',ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, sigma)
+if (iprint.ge.3) call prtsph('Solution to the ddLPB equation', &
+    & ddx_data % constants % nbasis, ddx_data % params % lmax, ddx_data % params % nsph, 0, sigma)
 !
 write (6,'(1x,a,f14.6)') 'ddLPB Electrostatic Solvation Energy (kcal/mol):', esolv*tokcal
 deallocate(phi, psi, gradphi)

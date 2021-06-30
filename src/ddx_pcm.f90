@@ -31,20 +31,12 @@ contains
 subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force, info)
     ! Inputs:
     type(ddx_type), intent(inout)  :: ddx_data
-    real(dp), intent(in) :: phi_cav(ddx_data % ncav), &
-        & gradphi_cav(3, ddx_data % ncav), psi(ddx_data % nbasis, ddx_data % nsph)
+    real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
+        & gradphi_cav(3, ddx_data % constants % ncav), psi(ddx_data % constants % nbasis, ddx_data % params % nsph)
     ! Outputs
-    real(dp), intent(out) :: esolv, force(3, ddx_data % nsph)
+    real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
     integer, intent(out) :: info
     ! Local variables
-    real(dp), allocatable :: vsin(:), vcos(:), vplm(:), basloc(:), &
-        & dbsloc(:, :), fx(:, :), ef(:, :)
-    integer :: istatus, isph, niter, igrid, icav, inear, inode, jnear, jnode, &
-        & jsph
-    real(dp) :: start_time, finish_time, tmp1, tmp2, d(3), dnorm
-    logical :: ok
-    double precision, external :: ddot, dnrm2
-    external :: dgemm
     ! Zero initial guess on X (solution of the ddCOSMO system)
     ddx_data % xs = zero
     ! Get the energy
@@ -53,7 +45,7 @@ subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force, info)
         & ddx_data % phi_grid, ddx_data % phi, ddx_data % phiinf, &
         & ddx_data % phieps, info)
     ! Get forces if needed
-    if (ddx_data % force .eq. 1) then
+    if (ddx_data % params % force .eq. 1) then
         ! Zero initial guesses for adjoint systems
         ddx_data % s = zero
         ddx_data % y = zero

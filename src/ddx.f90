@@ -30,15 +30,15 @@ contains
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
 subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, psi, esolv, force, info)
-    ! Inputs:
+    ! Inputs
     type(ddx_type), intent(inout)  :: ddx_data
-    real(dp), intent(in) :: phi_cav(ddx_data % ncav), &
-        & gradphi_cav(3, ddx_data % ncav), psi(ddx_data % nbasis, ddx_data % nsph)
+    real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
+        & gradphi_cav(3, ddx_data % constants % ncav), psi(ddx_data % constants % nbasis, ddx_data % params % nsph)
     ! Outputs
-    real(dp), intent(out) :: esolv, force(3, ddx_data % nsph)
+    real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
     integer, intent(out) :: info
     ! Find proper model
-    select case(ddx_data % model)
+    select case(ddx_data % params % model)
         ! COSMO model
         case (1)
             call ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, esolv, force, info)
@@ -53,5 +53,69 @@ subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, psi, esolv, force, info)
             stop "Non-supported model"
     end select
 end subroutine ddsolve
+
+subroutine ddsolve_energy(ddx_data, phi_cav, psi, esolv, info)
+    ! Inputs
+    type(ddx_type), intent(inout)  :: ddx_data
+    real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
+        & psi(ddx_data % constants % nbasis, ddx_data % params % nsph)
+    ! Outputs
+    real(dp), intent(out) :: esolv
+    integer, intent(out) :: info
+    ! Find proper model
+    select case(ddx_data % params % model)
+        ! COSMO model
+        case (1)
+            ddx_data % xs = zero
+            call ddcosmo_energy(ddx_data % params, ddx_data % constants, &
+                & ddx_data % workspace, phi_cav, psi, ddx_data % xs, esolv, &
+                & ddx_data % phi_grid, ddx_data % phi, info)
+        ! PCM model
+        case (2)
+            ddx_data % xs = zero
+            call ddpcm_energy(ddx_data % params, ddx_data % constants, &
+                & ddx_data % workspace, phi_cav, psi, ddx_data % xs, esolv, &
+                & ddx_data % phi_grid, ddx_data % phi, ddx_data % phiinf, &
+                & ddx_data % phieps, info)
+        ! LPB model
+        case (3)
+            stop "LPB model is not yet fully supported"
+        ! Error case
+        case default
+            stop "Non-supported model"
+    end select
+end subroutine ddsolve_energy
+
+subroutine ddsolve_adjoint(ddx_data, phi_cav, psi, esolv, info)
+    ! Inputs
+    type(ddx_type), intent(inout)  :: ddx_data
+    real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
+        & psi(ddx_data % constants % nbasis, ddx_data % params % nsph)
+    ! Outputs
+    real(dp), intent(out) :: esolv
+    integer, intent(out) :: info
+    ! Find proper model
+    select case(ddx_data % params % model)
+        ! COSMO model
+        case (1)
+            ddx_data % xs = zero
+            call ddcosmo_energy(ddx_data % params, ddx_data % constants, &
+                & ddx_data % workspace, phi_cav, psi, ddx_data % xs, esolv, &
+                & ddx_data % phi_grid, ddx_data % phi, info)
+        ! PCM model
+        case (2)
+            ddx_data % xs = zero
+            call ddpcm_energy(ddx_data % params, ddx_data % constants, &
+                & ddx_data % workspace, phi_cav, psi, ddx_data % xs, esolv, &
+                & ddx_data % phi_grid, ddx_data % phi, ddx_data % phiinf, &
+                & ddx_data % phieps, info)
+        ! LPB model
+        case (3)
+            stop "LPB model is not yet fully supported"
+        ! Error case
+        case default
+            stop "Non-supported model"
+    end select
+end subroutine ddsolve_adjoint
 
 end module ddx

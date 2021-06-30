@@ -31,10 +31,10 @@ contains
 subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, esolv, force, info)
     ! Inputs:
     type(ddx_type), intent(inout)  :: ddx_data
-    real(dp), intent(in) :: phi_cav(ddx_data % ncav), &
-        & gradphi_cav(3, ddx_data % ncav), psi(ddx_data % nbasis, ddx_data % nsph)
+    real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
+        & gradphi_cav(3, ddx_data % constants % ncav), psi(ddx_data % constants % nbasis, ddx_data % params % nsph)
     ! Outputs
-    real(dp), intent(out) :: esolv, force(3, ddx_data % nsph)
+    real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
     integer, intent(out) :: info
     ! Zero initial guess
     ddx_data % xs = zero
@@ -43,7 +43,7 @@ subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, esolv, force, info)
         & ddx_data % workspace, phi_cav, psi, ddx_data % xs, esolv, &
         & ddx_data % phi_grid, ddx_data % phi, info)
     ! Get forces if needed
-    if (ddx_data % force .eq. 1) then
+    if (ddx_data % params % force .eq. 1) then
         ! Zero initial guess
         ddx_data % s = zero
         ! Solve adjoint ddCOSMO system
