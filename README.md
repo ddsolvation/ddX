@@ -1,10 +1,12 @@
 # ddX
 ## General information
 ddX is an open-source software package for continuum solvation models based on the domain decomposition paradigm. It contains a common interface for the three different methods ddCOSMO, ddPCM and ddLPB for the numerical solution to the COSMO, PCM and LPB solvation models. 
-Using the common interface, all three methods are thus accessible from a host-code that is used to model the solute and can be on the level of QM, QM/MM, polarizable MM or MM.
+Using the common interface, all three methods are accessible from a host-code that is used to model the solute and which can be on the level of QM, QM/MM, polarizable MM or MM.
 
-[to be completed]
+For the above methods, ddX computes the electrostatic contribution to the solvation energy, the corresponding contribution to the forces and/or the contribution to the Fock- or DFT Kohn-Sham-matrix.
 
+## Documentaton
+The code is documented through the Doxygen.
 
 ## License [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -21,14 +23,8 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-
-
-
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
-
-
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -39,6 +35,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ## References
+The relevant literature for the ddCOSMO, ddPCM and ddLPB method is listed below. If you're using one of the methods through the ddX-library, please cite the corresponding paper(s).
+
 ### ddCOSMO: 
 [1] E. Cancès, Y. Maday, B. Stamm, Domain decomposition for implicit solvation models, Journal of Chemical Physics, Vol. 139, No. 5, pp. 054111 (2013)
 
@@ -54,7 +52,7 @@ SOFTWARE.
 
 [7] B. Stamm, L. Lagardère, G. Scalmani, P. Gatto, E. Cances, J. Piquemal, Y. Maday, B. Mennucci, F. Lipparini, How to make continuum solvation incredibly fast in a few simple steps: a practical guide to the domain decomposition paradigm for the Conductor-like Screening Model, IJQC, 2018
 
-### ddPCM: 
+#### ddPCM: 
 [8] B. Stamm, E. Cancès, F. Lipparini,Y. Maday, A new discretization for the Polarizable Continuum Model within the domain decomposition paradigm, J. Chem. Physics, Vol. 144, 054101 (2016)
 
 [9] P. Gatto, F. Lipparini, and B. Stamm, Computation of Forces arising from the Polarizable Continuum Model within the Domain-Decomposition Paradigm,  J. Chem. Physics, Vol. 147, 224108 (2017) 
