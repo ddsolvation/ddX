@@ -37,7 +37,7 @@ SOFTWARE.
 ## References
 The relevant literature for the ddCOSMO, ddPCM and ddLPB method is listed below. If you're using one of the methods through the ddX-library, please cite the corresponding paper(s).
 
-### ddCOSMO: 
+#### ddCOSMO: 
 [1] E. Cancès, Y. Maday, B. Stamm, Domain decomposition for implicit solvation models, Journal of Chemical Physics, Vol. 139, No. 5, pp. 054111 (2013)
 
 [2] F. Lipparini, B. Stamm, E. Cancès, Y. Maday, B. Mennucci, A Fast Domain Decomposition Algorithm for Continuum Solvation Models: Energy and First Derivatives, J. Chem. Theory Comput., Vol. 9, No. 8, pp. 3637–3648 (2013)
@@ -59,6 +59,6 @@ The relevant literature for the ddCOSMO, ddPCM and ddLPB method is listed below.
 
 [10] M. Nottoli, B. Stamm, G. Scalmani, F. Lipparini, Quantum calculations in solution of energies, structures and properties with a domain decomposition polarizable continuum model, J. Chem. Theory Comput., Vol. 15, No. 11, pp. 6061–6073 (2019)
 
-### ddLPB: 
+#### ddLPB: 
 [11] Ch. Quan, B. Stamm, Y. Maday, A Domain Decomposition Method for the Poisson-Boltzmann Solvation Models, SIAM J. Sci. Comput., Vol. 41, No. 2, pp. B320-B350, (2019)
 
