@@ -50,7 +50,7 @@ The relevant literature for the ddCOSMO, ddPCM and ddLPB method is listed below.
 
 [6] F. Lipparini, L. Lagardère, Ch. Raynaud, B. Stamm, E. Cancès, B. Mennucci, M. Schnieders, P. Ren,Y. Maday, J.-P. Piquemal, Polarizable Molecular Dynamics in a Polarizable Continuum Solvent, J. Chem. Theory Comput., Vol. 11, No. 2, pp. 623-634 (2015) 
 
-[7] B. Stamm, L. Lagardère, G. Scalmani, P. Gatto, E. Cances, J. Piquemal, Y. Maday, B. Mennucci, F. Lipparini, How to make continuum solvation incredibly fast in a few simple steps: a practical guide to the domain decomposition paradigm for the Conductor-like Screening Model, IJQC, 2018
+[7] B. Stamm, L. Lagardère, G. Scalmani, P. Gatto, E. Cances, J. Piquemal, Y. Maday, B. Mennucci, F. Lipparini, How to make continuum solvation incredibly fast in a few simple steps: a practical guide to the domain decomposition paradigm for the Conductor-like Screening Model, Int. J. Quantum Chem. (2019)
 
 #### ddPCM: 
 [8] B. Stamm, E. Cancès, F. Lipparini,Y. Maday, A new discretization for the Polarizable Continuum Model within the domain decomposition paradigm, J. Chem. Physics, Vol. 144, 054101 (2016)
