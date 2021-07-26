@@ -99,8 +99,6 @@ contains
 !! @param[in] kappa: Debye-H\"{u}ckel parameter
 !! @param[in] itersolver: Iterative solver to be used. 1 for Jacobi iterative
 !!      solver. Other solvers might be added later.
-!! @param[in] tol: Relative error threshold for an iterative solver. tol must
-!!      in range [1d-14, 1].
 !! @param[in] maxiter: Maximum number of iterations for an iterative solver.
 !!      maxiter > 0.
 !! @param[in] ndiis: Number of extrapolation points for Jacobi/DIIS solver.
@@ -118,12 +116,12 @@ contains
 !!      = 2: Deallocation of a temporary buffer failed
 subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, se, eta, eps, kappa, &
-        & itersolver, tol, maxiter, ndiis, nproc, ddx_data, info)
+        & itersolver, maxiter, ndiis, nproc, ddx_data, info)
     ! Inputs
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
         & itersolver, maxiter, ndiis, ngrid
     real(dp), intent(in):: charge(nsph), x(nsph), y(nsph), z(nsph), &
-        & rvdw(nsph), se, eta, eps, kappa, tol
+        & rvdw(nsph), se, eta, eps, kappa
     ! Output
     type(ddx_type), target, intent(out) :: ddx_data
     integer, intent(out) :: info
@@ -146,7 +144,7 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     csph(2, :) = y
     csph(3, :) = z
     call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & itersolver, tol, maxiter, ndiis, fmm, pm, pl, nproc, nsph, charge, &
+        & itersolver, maxiter, ndiis, fmm, pm, pl, nproc, nsph, charge, &
         & csph, rvdw, print_func_default, &
         & ddx_data % params, info)
     if (info .ne. 0) return
@@ -342,16 +340,17 @@ end subroutine ddinit
 !!      = 0: Succesfull exit
 !!      < 0: If info=-i then i-th argument had an illegal value
 !!      > 0: Allocation of a buffer for the output ddx_data failed
-subroutine ddfromfile(fname, ddx_data, iprint, info)
+subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     ! Input
     character(len=*), intent(in) :: fname
     ! Outputs
     type(ddx_type), intent(out) :: ddx_data
+    real(dp), intent(out) :: tol
     integer, intent(out) :: iprint, info
     ! Local variables
     integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
         & nsph, i, itersolver, maxiter, ndiis, istatus
-    real(dp) :: eps, se, eta, kappa, tol
+    real(dp) :: eps, se, eta, kappa
     real(dp), allocatable :: charge(:), x(:), y(:), z(:), rvdw(:)
     !! Read all the parameters from the file
     ! Open a configuration file
@@ -506,7 +505,7 @@ subroutine ddfromfile(fname, ddx_data, iprint, info)
     !! Initialize ddx_data object
     call ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
         & pm, pl, se, eta, eps, kappa, itersolver, &
-        & tol, maxiter, ndiis, nproc, ddx_data, info)
+        & maxiter, ndiis, nproc, ddx_data, info)
     !! Clean local temporary data
     deallocate(charge, x, y, z, rvdw, stat=istatus)
     if(istatus .ne. 0) then
@@ -1434,68 +1433,184 @@ subroutine calcv( params, constants, first, isph, pot, sigma, basloc, vplm, vcos
 !      
 end subroutine calcv
 !------------------------------------------------------------------------
-!
-!------------------------------------------------------------------------
-! Purpose : compute
-!
-! \xi(n,i) = 
-!
-!  sum w_n U_n^i Y_l^m(s_n) [S_i]_l^m
-!  l,m
-!
-!------------------------------------------------------------------------
-subroutine ddmkxi( ddx_data, s, xi)
-!
-    type(ddx_type) :: ddx_data
-       real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in)    :: s
-       real(dp), dimension(ddx_data % constants % ncav),      intent(inout) :: xi
-!
-       integer :: its, isph, ii
-!
-       ii = 0
-       do isph = 1, ddx_data % params % nsph
-         do its = 1, ddx_data % params % ngrid
-           if (ddx_data % constants % ui(its,isph) .gt. zero) then
-             ii     = ii + 1
-             xi(ii) = ddx_data % constants % ui(its,isph)*dot_product(ddx_data %constants %  vwgrid(:,its),s(:,isph))
-           end if
-         end do
-       end do
-!
-       return
-end subroutine ddmkxi
-!
-!------------------------------------------------------------------------
-! Purpose : compute
-!
-! \zeta(n,i) = 
-!
-!  1/2 f(\eps) sum w_n U_n^i Y_l^m(s_n) [S_i]_l^m
-!              l,m
-!
-!------------------------------------------------------------------------
-subroutine ddmkzeta( ddx_data, s, zeta)
-!
-    type(ddx_type) :: ddx_data
-       real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in)    :: s
-       real(dp), dimension(ddx_data % constants % ncav),      intent(inout) :: zeta
-!
-       integer :: its, isph, ii
-!
-       ii = 0
-       do isph = 1, ddx_data % params % nsph
-         do its = 1, ddx_data % params % ngrid
-           if (ddx_data % constants % ui(its,isph) .gt. zero) then
-             ii     = ii + 1
-             zeta(ii) = ddx_data % constants % ui(its,isph)* &
-                 & dot_product(ddx_data % constants % vwgrid(:,its),s(:,isph))
-           end if
-         end do
-       end do
-!
-       zeta = pt5*((ddx_data % params % eps-one)/ddx_data % params % eps)*zeta
-       return
-end subroutine ddmkzeta
+
+!> Evaluate values of spherical harmonics at Lebedev grid points
+subroutine ddeval_grid(params, constants, alpha, x_sph, beta, x_grid, info)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: alpha, x_sph(constants % nbasis, params % nsph), &
+        & beta
+    !! Output
+    real(dp), intent(inout) :: x_grid(params % ngrid, params % nsph)
+    integer, intent(out) :: info
+    !! Local variables
+    character(len=255) :: string
+    !! The code
+    ! Check that parameters and constants are correctly initialized
+    if (params % error_flag .ne. 0) then
+        string = "ddeval_grid: `params` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (constants % error_flag .ne. 0) then
+        string = "ddeval_grid: `constants` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    ! Call corresponding work routine
+    call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &
+        & constants % vgrid, constants % vgrid_nbasis, alpha, x_sph, beta, &
+        & x_grid)
+    info = 0
+end subroutine ddeval_grid
+
+!> Evaluate values of spherical harmonics at Lebedev grid points
+subroutine ddeval_grid_work(nbasis, ngrid, nsph, vgrid, ldvgrid, alpha, &
+        & x_sph, beta, x_grid)
+    !! Inputs
+    integer, intent(in) :: nbasis, ngrid, nsph, ldvgrid
+    real(dp), intent(in) :: vgrid(ldvgrid, ngrid), alpha, &
+        & x_sph(nbasis, nsph), beta
+    !! Output
+    real(dp), intent(inout) :: x_grid(ngrid, nsph)
+    !! Local variables
+    external :: dgemm
+    !! The code
+    call dgemm('T', 'N', ngrid, nsph, nbasis, alpha, vgrid, ldvgrid, x_sph, &
+        & nbasis, beta, x_grid, ngrid)
+end subroutine ddeval_grid_work
+
+!> Integrate values at grid points into spherical harmonics
+subroutine ddintegrate_sph(params, constants, alpha, x_grid, beta, x_sph, info)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: alpha, x_grid(params % ngrid, params % nsph), &
+        & beta
+    !! Output
+    real(dp), intent(inout) :: x_sph(constants % nbasis, params % nsph)
+    integer, intent(out) :: info
+    !! Local variables
+    character(len=255) :: string
+    !! The code
+    ! Check that parameters and constants are correctly initialized
+    if (params % error_flag .ne. 0) then
+        string = "ddintegrate_sph: `params` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (constants % error_flag .ne. 0) then
+        string = "ddintegrate_sph: `constants` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    ! Call corresponding work routine
+    call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
+        & params % nsph, constants % vwgrid, constants % vgrid_nbasis, alpha, &
+        & x_grid, beta, x_sph)
+    info = 0
+end subroutine ddintegrate_sph
+
+!> Integrate values at grid points into spherical harmonics
+subroutine ddintegrate_sph_work(nbasis, ngrid, nsph, vwgrid, ldvwgrid, alpha, &
+        & x_grid, beta, x_sph)
+    !! Inputs
+    integer, intent(in) :: nbasis, ngrid, nsph, ldvwgrid
+    real(dp), intent(in) :: vwgrid(ldvwgrid, ngrid), alpha, &
+        & x_grid(ngrid, nsph), beta
+    !! Outputs
+    real(dp), intent(inout) :: x_sph(nbasis, nsph)
+    !! Local variables
+    !! The code
+    call dgemm('N', 'N', nbasis, nsph, ngrid, alpha, vwgrid, ldvwgrid, &
+        & x_grid, ngrid, beta, x_sph, nbasis)
+end subroutine ddintegrate_sph_work
+
+!> Unwrap values at cavity points into values at all grid points
+subroutine ddcav_to_grid(params, constants, x_cav, x_grid, info)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: x_cav(constants % ncav)
+    !! Output
+    real(dp), intent(inout) :: x_grid(params % ngrid, params % nsph)
+    integer, intent(out) :: info
+    !! Local variables
+    character(len=255) :: string
+    !! The code
+    ! Check that parameters and constants are correctly initialized
+    if (params % error_flag .ne. 0) then
+        string = "ddcav_to_grid: `params` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (constants % error_flag .ne. 0) then
+        string = "ddcav_to_grid: `constants` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    ! Call corresponding work routine
+    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
+        & constants % icav_ia, constants % icav_ja, x_cav, x_grid)
+    info = 0
+end subroutine ddcav_to_grid
+
+!> Unwrap values at cavity points into values at all grid points
+subroutine ddcav_to_grid_work(ngrid, nsph, ncav, icav_ia, icav_ja, x_cav, &
+        & x_grid)
+    !! Inputs
+    integer, intent(in) :: ngrid, nsph, ncav
+    integer, intent(in) :: icav_ia(nsph+1), icav_ja(ncav)
+    real(dp), intent(in) :: x_cav(ncav)
+    !! Output
+    real(dp), intent(out) :: x_grid(ngrid, nsph)
+    !! Local variables
+    integer :: isph, icav, igrid, igrid_old
+    !! The code
+    do isph = 1, nsph
+        igrid_old = 0
+        do icav = icav_ia(isph), icav_ia(isph+1)-1
+            igrid = icav_ja(icav)
+            x_grid(igrid_old+1:igrid-1, isph) = zero
+            x_grid(igrid, isph) = x_cav(icav)
+            igrid_old = igrid
+        end do
+        x_grid(igrid+1:ngrid, isph) = zero
+    end do
+end subroutine ddcav_to_grid_work
+
+!> Integrate by a characteristic function at Lebedev grid points
+!! \xi(n,i) = 
+!!
+!!  sum w_n U_n^i Y_l^m(s_n) [S_i]_l^m
+!!  l,m
+!subroutine ddproject_grid_work(nbasis, , alpha, x_sph, beta, x_grid)
+!!
+!    type(ddx_type) :: ddx_data
+!       real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in)    :: s
+!       real(dp), dimension(ddx_data % constants % ncav),      intent(inout) :: xi
+!!
+!       integer :: its, isph, ii
+!!
+!       ii = 0
+!       do isph = 1, ddx_data % params % nsph
+!         do its = 1, ddx_data % params % ngrid
+!           if (ddx_data % constants % ui(its,isph) .gt. zero) then
+!             ii     = ii + 1
+!             xi(ii) = ddx_data % constants % ui(its,isph)*dot_product(ddx_data %constants %  vwgrid(:,its),s(:,isph))
+!           end if
+!         end do
+!       end do
+!!
+!       return
+!end subroutine ddproject_cav_work
 
 !> Transfer multipole coefficients over a tree
 subroutine tree_m2m_rotation(params, constants, node_m)

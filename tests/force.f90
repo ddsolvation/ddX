@@ -21,26 +21,26 @@ type(ddx_type) :: ddx_data
 integer :: iprint, info, pmax=30
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), psi(:, :), &
     & force(:, :), force_num(:, :)
-real(dp) :: esolv1, esolv2, start_time, finish_time, step=0.0001, relerr
+real(dp) :: tol, esolv1, esolv2, start_time, finish_time, step=0.0001, relerr
 integer :: isph, i
 real(dp), external :: dnrm2
 
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, iprint, info)
+call ddfromfile(fname, ddx_data, tol, iprint, info)
 if(info .ne. 0) stop "info != 0"
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
     & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), force(3, ddx_data % params % nsph), &
     & force_num(3, ddx_data % params % nsph))
 call mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
-call ddsolve(ddx_data, phi_cav, gradphi_cav, psi, esolv1, force, info)
+call ddsolve(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv1, force, info)
 do isph = 1, ddx_data % params % nsph
     do i = 1, 3
         ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) + step
-        call solve(ddx_data, esolv1, phi_cav, gradphi_cav, psi, force, info)
+        call solve(ddx_data, tol, esolv1, phi_cav, gradphi_cav, psi, force, info)
         ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) - two*step
-        call solve(ddx_data, esolv2, phi_cav, gradphi_cav, psi, force, info)
+        call solve(ddx_data, tol, esolv2, phi_cav, gradphi_cav, psi, force, info)
         ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) + step
         force_num(i, isph) = (esolv1-esolv2) / two / step
     end do
@@ -61,8 +61,9 @@ write(*, *) "Rel.error of forces:", relerr
 if (relerr .gt. 1d-6) stop 1
 contains 
 
-subroutine solve(ddx_data, esolv, phi_cav, gradphi_cav, psi, force, info)
+subroutine solve(ddx_data, tol, esolv, phi_cav, gradphi_cav, psi, force, info)
     type(ddx_type), intent(inout) :: ddx_data
+    real(dp), intent(in) :: tol
     real(dp), intent(out) :: esolv, phi_cav(ddx_data % constants % ncav), &
         & gradphi_cav(3, ddx_data % constants % ncav), &
         & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), force(3, ddx_data % params % nsph)
@@ -74,10 +75,10 @@ subroutine solve(ddx_data, esolv, phi_cav, gradphi_cav, psi, force, info)
         & ddx_data % params % fmm, ddx_data % params % pm, ddx_data % params % pl, &
         & ddx_data % params % se, &
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, &
-        & ddx_data % params % itersolver, ddx_data % params % tol, ddx_data % params % maxiter, &
+        & ddx_data % params % itersolver, ddx_data % params % maxiter, &
         & ddx_data % params % ndiis, ddx_data % params % nproc, ddx_data2, info)
     call mkrhs(ddx_data2, phi_cav, gradphi_cav, psi)
-    call ddsolve(ddx_data2, phi_cav, gradphi_cav, psi, esolv, force, info)
+    call ddsolve(ddx_data2, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
     call ddfree(ddx_data2)
 end subroutine solve
 

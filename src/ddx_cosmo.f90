@@ -25,30 +25,34 @@ contains
 !! @param[in] phi_cav: Potential at cavity points
 !! @param[in] gradphi_cav: Gradient of a potential at cavity points
 !! @param[in] psi: TODO
+!! @param[in] tol
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
 !! @param[out] info
-subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, esolv, force, info)
-    ! Inputs:
+subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
+    !! Inputs
     type(ddx_type), intent(inout)  :: ddx_data
     real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
-        & gradphi_cav(3, ddx_data % constants % ncav), psi(ddx_data % constants % nbasis, ddx_data % params % nsph)
-    ! Outputs
+        & gradphi_cav(3, ddx_data % constants % ncav), &
+        & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
+    !! Outputs
     real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
     integer, intent(out) :: info
-    ! Zero initial guess
-    ddx_data % xs = zero
+    !! Local variables
+    integer :: xs_mode, s_mode
+    ! Zero initial guess for the `xs`
+    xs_mode = 0
     ! Get energy
     call ddcosmo_energy(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, phi_cav, psi, ddx_data % xs, esolv, &
+        & ddx_data % workspace, phi_cav, psi, xs_mode, ddx_data % xs, tol, esolv, &
         & ddx_data % phi_grid, ddx_data % phi, info)
     ! Get forces if needed
     if (ddx_data % params % force .eq. 1) then
         ! Zero initial guess
-        ddx_data % s = zero
+        s_mode = 0
         ! Solve adjoint ddCOSMO system
         call ddcosmo_adjoint(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, psi, ddx_data % s, info)
+            & ddx_data % workspace, psi, tol, s_mode, ddx_data % s, info)
         ! Get forces, they are initialized with zeros
         call ddcosmo_forces(ddx_data % params, ddx_data % constants, &
             & ddx_data % workspace, ddx_data % phi_grid, gradphi_cav, &
@@ -65,16 +69,23 @@ end subroutine ddcosmo
 !! @param[inout] workspace
 !! @param[in] phi_cav
 !! @param[in] psi
+!! @param[in] xs_mode: behaviour of the input `xs`. If it is 0 then input value of
+!!      `xs` is ignored and initialized with zero. If it is 1 then input value `xs`
+!!      is used as an initial guess for the solver.
 !! @param[inout] xs
+!! @param[in] tol
 !! @param[out] esolv
-!! @param[in] info
-subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, xs, &
-        & esolv, phi_grid, phi, info)
+!! @param[out] phi_grid
+!! @param[out] phi
+!! @param[out] info
+subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, xs_mode, xs, &
+        & tol, esolv, phi_grid, phi, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: xs_mode
     real(dp), intent(in) :: phi_cav(constants % ncav), &
-        & psi(constants % nbasis, params % nsph)
+        & psi(constants % nbasis, params % nsph), tol
     real(dp), intent(inout) :: xs(constants % nbasis, params % nsph)
     !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -85,30 +96,73 @@ subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, xs, &
     integer, intent(out) :: info
     !! Local variables
     logical :: ok
+    character(len=255) :: string
     real(dp), external :: ddot
+    !! The code
+    ! At first check if parameters, constants and workspace are correctly
+    ! initialized
+    if (params % error_flag .ne. 0) then
+        string = "ddcosmo_energy: `params` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (constants % error_flag .ne. 0) then
+        string = "ddcosmo_energy: `constants` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (workspace % error_flag .ne. 0) then
+        string = "ddcosmo_energy: `workspace` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
     ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
     ! and multiply it by characteristic function at cavity points ui
-    call wghpot(constants % ncav, phi_cav, params % nsph, params % ngrid, &
-        & constants % ui, phi_grid, workspace % tmp_grid)
+    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
+        & constants % icav_ia, constants % icav_ja, phi_cav, phi_grid)
+    workspace % tmp_cav = phi_cav * constants % ui_cav
+    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
+        & constants % icav_ia, constants % icav_ja, workspace % tmp_cav, &
+        & workspace % tmp_grid)
     ! Integrate against spherical harmonics and Lebedev weights to get Phi
-    call intrhs(params % nsph, constants % nbasis, params % ngrid, &
-        & constants % vwgrid, constants % vgrid_nbasis, &
-        & workspace % tmp_grid, phi)
+    call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
+        & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
+        & one, workspace % tmp_grid, zero, phi)
+    ! Set right hand side to -Phi
+    workspace % tmp_rhs = -phi
+    ! Zero initialize guess for the solution if needed
+    if (xs_mode .eq. 0) then
+        xs = zero
+    end if
     ! Solve ddCOSMO system L X = -Phi with a given initial guess
     info = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % n, &
         & 0, params % ndiis, &
-        & 4, params % tol, phi, xs, info, ok, lx, &
+        & 4, tol, workspace % tmp_rhs, xs, info, ok, lx, &
         & ldm1x, hnorm)
     ! Solvation energy is computed
     esolv = pt5*ddot(constants % n, xs, 1, psi, 1)
 end subroutine ddcosmo_energy
 
-subroutine ddcosmo_adjoint(params, constants, workspace, psi, s, info)
+!> Solve adjoint ddCOSMO system
+!!
+!! @param[in] params
+!! @param[in] constants
+!! @param[inout] workspace
+!! @param[in] psi
+!! @param[in] tol
+!! @param[in] s_mode
+!! @param[inout] s
+!! @param[out] info
+subroutine ddcosmo_adjoint(params, constants, workspace, psi, tol, s_mode, s, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    integer, intent(in) :: s_mode
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph), tol
     !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
     !! Outputs
@@ -116,11 +170,36 @@ subroutine ddcosmo_adjoint(params, constants, workspace, psi, s, info)
     integer, intent(out) :: info
     !! Local variables
     logical :: ok
+    character(len=255) :: string
     real(dp), external :: ddot
     !! The code
+    ! At first check if parameters, constants and workspace are correctly
+    ! initialized
+    if (params % error_flag .ne. 0) then
+        string = "ddcosmo_adjoint: `params` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (constants % error_flag .ne. 0) then
+        string = "ddcosmo_adjoint: `constants` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (workspace % error_flag .ne. 0) then
+        string = "ddcosmo_adjoint: `workspace` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    ! Initialize guess for the solution `s` if needed
+    if (s_mode .eq. 0) then
+        s = zero
+    end if
     info = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % n, 0, &
-        & params % ndiis, 4, params % tol, psi, s, info, ok, &
+        & params % ndiis, 4, tol, psi, s, info, ok, &
         & lstarx, ldm1x, hnorm)
 end subroutine ddcosmo_adjoint
 
@@ -145,11 +224,31 @@ subroutine ddcosmo_forces(params, constants, workspace, phi_grid, gradphi_cav, &
     integer :: isph, icav, igrid, inode, jnode, jsph, jnear
     real(dp) :: tmp1, tmp2, d(3), dnorm
     real(dp), external :: ddot, dnrm2
+    character(len=255) :: string
     !! The code
+    ! At first check if parameters, constants and workspace are correctly
+    ! initialized
+    if (params % error_flag .ne. 0) then
+        string = "ddcosmo_forces: `params` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (constants % error_flag .ne. 0) then
+        string = "ddcosmo_forces: `constants` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (workspace % error_flag .ne. 0) then
+        string = "ddcosmo_forces: `workspace` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
     ! Get values of S on grid
-    call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, s, &
-        & constants % nbasis, zero, sgrid, params % ngrid)
+    call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &
+        & constants % vgrid, constants % vgrid_nbasis, one, s, zero, sgrid)
     force = zero
     do isph = 1, params % nsph
         call fdoka(params, constants, isph, xs, sgrid(:, isph), &

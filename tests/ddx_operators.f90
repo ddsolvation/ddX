@@ -21,7 +21,7 @@ real(dp) :: alpha(4)=(/1d0, -1d0, 1d-294, 1d+294/)
 type(ddx_type) :: ddx_data
 integer, parameter :: nsph=10, lmax=7, force=1, itersolver=1, &
     & maxiter=1000, ndiis=25
-real(dp), parameter :: se=0d0, eta=0.1d0, eps=78d0, kappa=0d0, tol=1d-7
+real(dp), parameter :: se=0d0, eta=0.1d0, eps=78d0, kappa=0d0
 real(dp) :: gcsph(3, nsph), csph(3, nsph), grsph(nsph), rsph(nsph), &
     & gcharge(nsph), charge(nsph)
 
@@ -44,7 +44,7 @@ do i = 1, size(alpha)
     rsph = abs(alpha(i)) * grsph
     call ddinit(nsph, charge, csph(1, :), csph(2, :), csph(3, :), rsph, 2, &
         lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
-        & itersolver, tol, maxiter, ndiis, nproc, ddx_data, info)
+        & itersolver, maxiter, ndiis, nproc, ddx_data, info)
     if(info .ne. 0) stop 1
     call check_dx(ddx_data, lmax, lmax, iprint, 1d-4)
     call check_dx(ddx_data, 40, 40, iprint, 1d-15)
@@ -77,7 +77,7 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % itersolver, &
-        & ddx_data % params % tol, ddx_data % params % maxiter, ddx_data % params % ndiis, ddx_data % params % nproc, &
+        & ddx_data % params % maxiter, ddx_data % params % ndiis, ddx_data % params % nproc, &
         & ddx_data_fmm, info)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.
@@ -156,7 +156,7 @@ subroutine check_gradr(ddx_data, pm, pl, iprint, threshold)
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % itersolver, &
-        & ddx_data % params % tol, ddx_data % params % maxiter, ddx_data % params % ndiis, ddx_data % params % nproc, &
+        & ddx_data % params % maxiter, ddx_data % params % ndiis, ddx_data % params % nproc, &
         & ddx_data_fmm, info)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.

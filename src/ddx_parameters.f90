@@ -20,6 +20,7 @@ use ddx_definitions
 ! Disable implicit types
 implicit none
 
+! Interface for the printing function
 interface
     subroutine print_func_interface(string)
         character(len=255), intent(in) :: string
@@ -49,8 +50,6 @@ type ddx_params_type
     !!
     !! Other solvers might be added later.
     integer :: itersolver
-    !> Relative threshold for the iterative solvers.
-    real(dp) :: tol
     !> Maximum number of iterations for the iterative solver.
     integer :: maxiter
     !> Number of extrapolation points for Jacobi/DIIS solver. Referenced only
@@ -77,9 +76,9 @@ type ddx_params_type
     real(dp), allocatable :: csph(:, :)
     !> Array of radii of atoms of a dimension (nsph).
     real(dp), allocatable :: rsph(:)
-    !> Error state. 0 in case of no error or 1 if there were errors or if the
-    !! object is not initialised.
-    integer :: error_flag = 1
+    !> Error state. 0 in case of no error or 1 if there were errors and 2 if
+    !! the object is not initialised.
+    integer :: error_flag = 2
     !> Last error message
     character(len=255) :: error_message
     !> Error printing function
@@ -102,8 +101,6 @@ contains
 !! @param[in] ngrid: Number of Lebedev grid points `ngrid` >= 0.
 !! @param[in] itersolver: Iterative solver to be used. 1 for Jacobi iterative
 !!      solver. Other solvers might be added later.
-!! @param[in] tol: Relative error threshold for an iterative solver. tol must
-!!      in range [1d-14, 1].
 !! @param[in] maxiter: Maximum number of iterations for an iterative solver.
 !!      maxiter > 0.
 !! @param[in] ndiis: Number of extrapolation points for Jacobi/DIIS solver.
@@ -133,7 +130,7 @@ contains
 !!          params % error_message
 !!      = 1: Allocation of memory to copy geometry data failed.
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & itersolver, tol, maxiter, ndiis, fmm, pm, pl, nproc, nsph, charge, &
+        & itersolver, maxiter, ndiis, fmm, pm, pl, nproc, nsph, charge, &
         & csph, rsph, print_func, params, info)
     !! Inputs
     ! Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
@@ -157,8 +154,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     !
     ! Other solvers might be added later.
     integer, intent(in) :: itersolver
-    ! Relative threshold for the iterative solvers.
-    real(dp), intent(in) :: tol
     ! Maximum number of iterations for the iterative solver.
     integer, intent(in) :: maxiter
     ! Number of extrapolation points for Jacobi/DIIS solver. Referenced only
@@ -192,6 +187,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     integer, intent(out) :: info
     !! Local variables
     integer :: igrid, i
+    character(len=255) :: string
     !! The code
     ! Model, 1=COSMO, 2=PCM, 3=LPB
     if ((model .lt. 1) .or. (model .gt. 3)) then
@@ -281,15 +277,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         return
     end if
     params % itersolver = itersolver
-    ! Relative threshold for an iterative solver
-    if ((tol .lt. 1d-14) .or. (tol .gt. one)) then
-        params % error_flag = 1
-        params % error_message = "params_init: invalid value of `tol`"
-        call print_func(params % error_message)
-        info = -1
-        return
-    end if
-    params % tol = tol
     ! Maximum number of iterations
     if (maxiter .le. 0) then
         params % error_flag = 1
@@ -392,6 +379,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Set print function for errors
     params % print_func => print_func
     ! Clear error state
+    info = 0
     params % error_flag = 0
     params % error_message = ""
 end subroutine params_init
@@ -403,9 +391,12 @@ subroutine params_print(params)
     !! Local variables
     character(len=255) :: string
     !! The code
-    if (params % error_flag .ne. 0) then
-        call params % print_func("Parameters are not initialised or in " // &
-            & "error state")
+    if (params % error_flag .eq. 1) then
+        string = "params_print: `params` is in error state"
+        call params % print_func(string)
+    else if (params % error_flag .eq. 1) then
+        string = "params_print: `params` is not initialised"
+        call params % print_func(string)
     else
         write(string, "(A)") "DDX parameters object"
         call params % print_func(string)
@@ -413,15 +404,39 @@ subroutine params_print(params)
         call params % print_func(string)
         write(string, "(A,L1)") "Forces: ", params % force .eq. 1
         call params % print_func(string)
-        write(string, "(A,ES23.16E3)") "Eps: ", params % eps
+        write(string, "(A,ES23.16E3)") "Dielectric permittivity (eps): ", &
+            & params % eps
         call params % print_func(string)
+        write(string, "(A,ES23.16E3)") "Debye-Huckel parameter (kappa): ", &
+            & params % kappa
         call params % print_func(string)
+        write(string, "(A,ES23.16E3)") "Regularization (eta): ", params % eta
         call params % print_func(string)
+        write(string, "(A,ES23.16E3)") "Shift of regularization (se): ", &
+            & params % se
         call params % print_func(string)
+        write(string, "(A,I0)") "Modeling harmonics degree (lmax): ", &
+            & params % lmax
         call params % print_func(string)
+        write(string, "(A,I0)") "Number of Lebedev grid points (ngrid): ", &
+            & params % ngrid
         call params % print_func(string)
+        write(string, "(A,A)") "Iterative solver: ", &
+            & trim(itersolver_str(params % itersolver))
         call params % print_func(string)
+        write(string, "(A,I0)") "maxiter: ", params % maxiter
         call params % print_func(string)
+        write(string, "(A,I0)") "ndiis: ", params % ndiis
+        call params % print_func(string)
+        write(string, "(A,I0)") "fmm: ", params % fmm
+        call params % print_func(string)
+        write(string, "(A,I0)") "pm: ", params % pm
+        call params % print_func(string)
+        write(string, "(A,I0)") "pl: ", params % pl
+        call params % print_func(string)
+        write(string, "(A,I0)") "nproc: ", params % nproc
+        call params % print_func(string)
+        write(string, "(A,I0)") "nsph: ", params % nsph
         call params % print_func(string)
     end if
 end subroutine params_print

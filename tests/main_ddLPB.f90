@@ -117,7 +117,7 @@ itersolver=1
 tol=1d-1**iconv
 maxiter=200
 call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pmax, pmax, &
-    & se, eta, eps, kappa, itersolver, tol, maxiter, &
+    & se, eta, eps, kappa, itersolver, maxiter, &
     & ndiis, nproc, ddx_data, info)
 
 allocate(phi(ddx_data % constants % ncav), psi(ddx_data % constants % nbasis,n), &
@@ -139,7 +139,7 @@ allocate (sigma(ddx_data % constants % nbasis ,n))
 ! @param[out] sigma   : Solution of ddLPB
 ! @param[out] esolv   : Electrostatic solvation energy
 !
-call ddlpb(ddx_data, phi, psi, gradphi, sigma, esolv, charge, ndiis, niter, iconv)
+call ddlpb(ddx_data, phi, psi, gradphi, tol, sigma, esolv, charge, ndiis, niter)
 !call cosmo(.false., .true., phi, xx, psi, sigma, esolv)
 !
 if (iprint.ge.3) call prtsph('Solution to the ddLPB equation', &

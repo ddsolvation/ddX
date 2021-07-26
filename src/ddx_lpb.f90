@@ -57,7 +57,7 @@ contains
   !! @param[out] sigma  : Solution of ddLPB
   !! @param[out] esolv  : Electrostatic solvation energy
   !!
-  subroutine ddlpb(ddx_data, phi, psi, gradphi, sigma, esolv, charge, ndiis, niter, iconv)
+  subroutine ddlpb(ddx_data, phi, psi, gradphi, tol, sigma, esolv, charge, ndiis, niter)
   ! main ddLPB
   implicit none
   type(ddx_type), intent(inout)  :: ddx_data
@@ -65,7 +65,7 @@ contains
   integer                         :: iteration = 1
   integer, intent(in)             :: ndiis
   integer, intent(in)             :: niter
-  integer, intent(in)             :: iconv
+  real(dp), intent(in)       :: tol
   real(dp), intent(inout)    :: esolv
   real(dp)                   :: inc, old_esolv
   real(dp), intent(inout)    :: sigma(ddx_data % constants % nbasis, ddx_data % params % nsph)
@@ -93,13 +93,11 @@ contains
   !! hnorm  : External routine from matvec.f90. Used for Jacobi solver
   !!          h^-1/2 norm of the increment on each sphere
   !! ok     : Boolean to check convergence of solver
-  !! tol    : Tolerance for Jacobi solver
   !! n_iter : Number of iterative steps
   real(dp), allocatable :: g(:,:), f(:,:), g0(:), f0(:), phi_grid(:, :)
   integer                    :: isph
   integer                    :: i
   logical                    :: ok = .false.
-  real(dp)              :: tol
   integer                    :: n_iter
   integer                    :: its
   !
@@ -175,8 +173,6 @@ contains
 
   rhs_r = rhs_r_init
   rhs_e = rhs_e_init
-
-  tol = 10.0d0**(-iconv)
 
   first_out_iter = .true.
 

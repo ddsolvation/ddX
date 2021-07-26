@@ -115,6 +115,9 @@ type ddx_constants_type
     !> Values of a characteristic function U at all grid points of all spheres.
     !!      Dimension is (ngrid, nsph).
     real(dp), allocatable :: ui(:, :)
+    !> Values of a characteristic function U at cavity points. Dimension is
+    !!      (ncav).
+    real(dp), allocatable :: ui_cav(:)
     !> Derivative of the characteristic function U at all grid points of all
     !!      spheres. Dimension is (3, ngrid, nsph).
     real(dp), allocatable :: zi(:, :, :)
@@ -441,7 +444,7 @@ subroutine constants_geometry_init(params, constants, info)
     !! Local variables
     real(dp) :: swthr, v(3), maxv, ssqv, vv, r, t
     integer :: nngmax, i, lnl, isph, jsph, inear, igrid, iwork, jwork, lwork, &
-        & old_lwork
+        & old_lwork, icav
     integer, allocatable :: tmp_nl(:), work(:, :), tmp_work(:, :)
     !! The code
     ! Upper bound of switch region. Defines intersection criterion for spheres
@@ -608,9 +611,18 @@ subroutine constants_geometry_init(params, constants, info)
         info = 1
         return
     endif
-    ! Get actual cavity coordinates and indexes in CSR format
+    ! Allocate space for characteristic functions ui at cavity points
+    allocate(constants % ui_cav(constants % ncav), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = "`ui_cav` allocations failed"
+        info = 1
+        return
+    end if
+    ! Get actual cavity coordinates and indexes in CSR format and fill in
+    ! ui_cav aray
     constants % icav_ia(1) = 1
-    i = 1
+    icav = 1
     do isph = 1, params % nsph
         constants % icav_ia(isph+1) = constants % icav_ia(isph) + &
             & constants % ncav_sph(isph)
@@ -619,13 +631,15 @@ subroutine constants_geometry_init(params, constants, info)
             ! Ignore zero contribution
             if (constants % ui(igrid, isph) .eq. zero) cycle
             ! Store coordinates
-            constants % ccav(:, i) = params % csph(:, isph) + &
+            constants % ccav(:, icav) = params % csph(:, isph) + &
                 & params % rsph(isph)* &
                 & constants % cgrid(:, igrid)
             ! Store index
-            constants % icav_ja(i) = igrid
+            constants % icav_ja(icav) = igrid
+            ! Store characteristic function
+            constants % ui_cav(icav) = constants % ui(igrid, isph)
             ! Advance cavity array index
-            i = i + 1
+            icav = icav + 1
         end do
     end do
     ! Compute diagonal preconditioner for PCM equations

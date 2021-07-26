@@ -41,6 +41,8 @@ type ddx_workspace_type
     !!      of each sphere. Dimension is (grad_nbasis, nsph). Allocated and
     !!      used only if fmm=1.
     real(dp), allocatable :: tmp_sph2(:, :)
+    !> Temporary workspace for right hand side for solvers. Dimension is (nbasis, nsph).
+    real(dp), allocatable :: tmp_rhs(:, :)
     !> Temporary workspace for a gradient of M2M of harmonics of a degree up to
     !!      lmax+1 of each sphere. Dimension is ((grad_nbasis, 3, nsph).
     real(dp), allocatable :: tmp_sph_grad(:, :, :)
@@ -62,6 +64,9 @@ type ddx_workspace_type
     !> Temporary workspace for grid values of each sphere. Dimension is
     !!      (ngrid, nsph).
     real(dp), allocatable :: tmp_grid2(:, :)
+    !> Temporary workspace for values at cavity points. Dimension is
+    !!      (ncav).
+    real(dp), allocatable :: tmp_cav(:)
     !> Temporary electric field in cavity points. Dimension is (3, ncav).
     real(dp), allocatable :: tmp_efld(:, :)
     !> Flag if there were an error
@@ -183,6 +188,14 @@ subroutine workspace_init(params, constants, workspace, info)
     if (info .ne. 0) then
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_grid2` " // &
+            & "allocation failed"
+        info = 1
+        return
+    end if
+    allocate(workspace % tmp_cav(constants % ncav), stat=info)
+    if (info .ne. 0) then
+        workspace % error_flag = 1
+        workspace % error_message = "workspace_init: `tmp_cav` " // &
             & "allocation failed"
         info = 1
         return

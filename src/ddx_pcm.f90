@@ -28,30 +28,35 @@ contains
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
 !! @param[out] info
-subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force, info)
-    ! Inputs:
+subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
+    !! Inputs
     type(ddx_type), intent(inout)  :: ddx_data
     real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
-        & gradphi_cav(3, ddx_data % constants % ncav), psi(ddx_data % constants % nbasis, ddx_data % params % nsph)
-    ! Outputs
+        & gradphi_cav(3, ddx_data % constants % ncav), &
+        & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
+    !! Outputs
     real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
     integer, intent(out) :: info
+    !! Local variables
+    integer :: xs_mode, phieps_mode, s_mode, y_mode
     ! Local variables
     ! Zero initial guess on X (solution of the ddCOSMO system)
-    ddx_data % xs = zero
+    xs_mode = 0
+    ! Use Phi that will be computed by the `ddpcm_energy` as the initial guess
+    phieps_mode = 1
     ! Get the energy
     call ddpcm_energy(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, phi_cav, psi, ddx_data % xs, esolv, &
+        & ddx_data % workspace, phi_cav, psi, xs_mode, ddx_data % xs, tol, esolv, &
         & ddx_data % phi_grid, ddx_data % phi, ddx_data % phiinf, &
-        & ddx_data % phieps, info)
+        & phieps_mode, ddx_data % phieps, info)
     ! Get forces if needed
     if (ddx_data % params % force .eq. 1) then
         ! Zero initial guesses for adjoint systems
-        ddx_data % s = zero
-        ddx_data % y = zero
+        s_mode = 0
+        y_mode = 0
         ! Solve adjoint systems
         call ddpcm_adjoint(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, psi, ddx_data % s, ddx_data % y, info)
+            & ddx_data % workspace, psi, tol, s_mode, ddx_data % s, y_mode, ddx_data % y, info)
         ! Get forces, they are initialized with zeros in gradr
         call ddpcm_forces(ddx_data % params, ddx_data % constants, &
             & ddx_data % workspace, ddx_data % phi_grid, gradphi_cav, &
@@ -69,16 +74,18 @@ end subroutine ddpcm
 !! @param[inout] workspace
 !! @param[in] phi_cav
 !! @param[in] psi
+!! @param[in] xs_mode
 !! @param[inout] xs
 !! @param[out] esolv
 !! @param[in] info
-subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs, &
-        & esolv, phi_grid, phi, phiinf, phieps, info)
+subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, xs, &
+        & tol, esolv, phi_grid, phi, phiinf, phieps_mode, phieps, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: xs_mode, phieps_mode
     real(dp), intent(in) :: phi_cav(constants % ncav), &
-        & psi(constants % nbasis, params % nsph)
+        & psi(constants % nbasis, params % nsph), tol
     real(dp), intent(inout) :: xs(constants % nbasis, params % nsph)
     !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -102,30 +109,43 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs, &
         & workspace % tmp_grid, phi)
     ! Compute Phi_infty
     call rinfx(params, constants, workspace, phi, phiinf)
-    ! Set initial guess on Phi_epsilon as Phi
-    phieps = phi
+    ! Select initial guess for the ddPCM system
+    select case (phieps_mode)
+        ! Zero guess
+        case (0)
+            phieps = zero
+        ! Phi as the initial guess
+        case (1)
+            phieps = phi
+        ! Otherwise use user-provided value as the initial guess
+    end select
     ! Maximum number of iterations for an iterative solver
     info = params % maxiter
     ! Solve ddPCM system R_eps Phi_epsilon = Phi_infty
     call jacobi_diis(params, constants, workspace, constants % n, 0, &
         & params % ndiis, &
-        & 4, params % tol, phiinf, phieps, info, ok, &
+        & 4, tol, phiinf, phieps, info, ok, &
         & rx, apply_repsx_prec, hnorm)
-    ! Solve ddCOSMO system L X = -Phi_epsilon with a zero initial guess
+    ! Zero initialize guess for the solution of the ddCOSMO system if needed
+    if (xs_mode .eq. 0) then
+        xs = zero
+    end if
+    ! Solve ddCOSMO system L X = -Phi_epsilon with a proper initial guess
     info = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % n, 0, &
         & params % ndiis, &
-        & 4, params % tol, phieps, xs, info, ok, lx, &
+        & 4, tol, phieps, xs, info, ok, lx, &
         & ldm1x, hnorm)
     ! Solvation energy is computed
     esolv = pt5*ddot(constants % n, xs, 1, psi, 1)
 end subroutine ddpcm_energy
 
-subroutine ddpcm_adjoint(params, constants, workspace, psi, s, y, info)
+subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, y_mode, y, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    integer, intent(in) :: s_mode, y_mode
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph), tol
     !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
     !! Outputs
@@ -135,15 +155,23 @@ subroutine ddpcm_adjoint(params, constants, workspace, psi, s, y, info)
     !! Local variables
     logical :: ok
     !! The code
+    ! Zero initialize `s` if needed
+    if (s_mode .eq. 0) then
+        s = zero
+    end if
     ! Solve the adjoint ddCOSMO system
     info = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % n, 0, &
-        & params % ndiis, 4, params % tol, psi, s, info, ok, &
+        & params % ndiis, 4, tol, psi, s, info, ok, &
         & lstarx, ldm1x, hnorm)
+    ! Zero initialize `y` if needed
+    if (y_mode .eq. 0) then
+        y = zero
+    end if
     ! Solve adjoint ddPCM system
     info = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % n, 0, &
-        & params % ndiis, 4, params % tol, s, y, info, ok, &
+        & params % ndiis, 4, tol, s, y, info, ok, &
         & rstarx, apply_rstarepsx_prec, hnorm)
 end subroutine ddpcm_adjoint
 
