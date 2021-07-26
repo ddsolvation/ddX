@@ -2493,8 +2493,8 @@ end subroutine check_tree_rib
 
 subroutine fmm_p2m_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)**2)
     ! Local variables
@@ -2540,9 +2540,9 @@ end subroutine fmm_p2m_baseline
 
 subroutine fmm_m2p_baseline(c, src_r, p, vscales, alpha, src_m, beta, dst_v)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, vscales((p+1)*(p+1)), alpha, &
         & src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Local variables
@@ -2583,8 +2583,8 @@ end subroutine fmm_m2p_baseline
 
 subroutine fmm_m2p_adj_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)*(p+1)), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)**2)
     ! Local variables
@@ -2623,8 +2623,8 @@ end subroutine fmm_m2p_adj_baseline
 
 subroutine fmm_p2l_baseline(c, src_q, dst_r, p, vscales, beta, dst_l)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)**2)
     ! Local variables
@@ -2666,9 +2666,9 @@ end subroutine fmm_p2l_baseline
 
 subroutine fmm_l2p_baseline(c, src_r, p, vscales, alpha, src_l, beta, dst_v)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, vscales((p+1)*(p+1)), alpha, &
         & src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Local variables
@@ -2709,8 +2709,8 @@ end subroutine fmm_l2p_baseline
 
 subroutine fmm_l2p_adj_baseline(c, src_q, dst_r, p, vscales, beta, dst_l)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)*(p+1)), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)**2)
     ! Local variables
@@ -2753,8 +2753,8 @@ end subroutine fmm_l2p_adj_baseline
 
 subroutine polleg_baseline(ctheta, stheta, p, vplm)
     ! Inputs
-    real(dp), intent(in) :: ctheta, stheta
     integer, intent(in) :: p
+    real(dp), intent(in) :: ctheta, stheta
     ! Outputs
     real(dp), intent(out) :: vplm((p+1)**2)
     ! Temporary workspace
@@ -2859,9 +2859,9 @@ subroutine fmm_m2m_baseline(c, src_r, dst_r, p, vscales, src_m, dst_m)
 !   vscales: normalization constants for Y_lm
 !   src_m: expansion in old harmonics
 !   dst_m: expansion in new harmonics
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1))
     real(dp), intent(in) :: src_m((p+1)*(p+1))
-    integer, intent(in) :: p
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     real(dp) :: r, r1, r2, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
     real(dp) :: vplm((p+1)*(p+1)), fact(2*p+1), tmpk1, tmpk2, tmpk3, tmp1
@@ -2967,9 +2967,9 @@ subroutine fmm_l2l_baseline(c, src_r, dst_r, p, vscales, src_l, dst_l)
 !   vscales: normalization constants for Y_lm (of degree up to p)
 !   src_l: expansion in old harmonics
 !   dst_l: expansion in new harmonics
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1))
     real(dp), intent(in) :: src_l((p+1)*(p+1))
-    integer, intent(in) :: p
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     real(dp) :: r, r1, r2, ctheta, stheta, cphi, sphi
     real(dp) :: vcos(p+1), vsin(p+1)
@@ -3078,10 +3078,10 @@ subroutine fmm_m2l_baseline(c, src_r, dst_r, pm, pl, vscales, src_m, dst_l)
 !   vscales: normalization constants for Y_lm (of degree up to pl+pm)
 !   src_m: expansion in old (multipole) harmonics
 !   dst_l: expansion in new (local) harmonics
+    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: c(3), src_r, dst_r
     real(dp), intent(in) :: vscales((pm+pl+1)*(pm+pl+1))
     real(dp), intent(in) :: src_m((pm+1)*(pm+1))
-    integer, intent(in) :: pm, pl
     real(dp), intent(inout) :: dst_l((pl+1)*(pl+1))
     real(dp) :: r, r1, r2, ctheta, stheta, cphi, sphi
     real(dp) :: vcos(pm+pl+1), vsin(pm+pl+1)

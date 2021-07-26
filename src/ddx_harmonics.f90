@@ -2669,13 +2669,13 @@ subroutine fmm_sph_rotate_oz_work(p, vcos, vsin, alpha, src, beta, dst)
         ! l = 0
         dst(1) = alpha*src(1)
         ! l > 0
-        !GCC$ unroll 4
+        !!GCC$ unroll 4
         do l = 1, p
             ind = l*l + l + 1
             ! m = 0
             dst(ind) = alpha*src(ind)
             ! m != 0
-            !GCC$ unroll 4
+            !!GCC$ unroll 4
             do m = 1, l
                 v1 = src(ind+m)
                 v2 = src(ind-m)
@@ -2691,13 +2691,13 @@ subroutine fmm_sph_rotate_oz_work(p, vcos, vsin, alpha, src, beta, dst)
         ! l = 0
         dst(1) = beta*dst(1) + alpha*src(1)
         ! l > 0
-        !GCC$ unroll 4
+        !!GCC$ unroll 4
         do l = 1, p
             ind = l*l + l + 1
             ! m = 0
             dst(ind) = beta*dst(ind) + alpha*src(ind)
             ! m != 0
-            !GCC$ unroll 4
+            !!GCC$ unroll 4
             do m = 1, l
                 v1 = src(ind+m)
                 v2 = src(ind-m)
@@ -2988,7 +2988,7 @@ subroutine fmm_sph_rotate_oxz_work(p, ctheta, stheta, alpha, src, beta, dst, &
             fl2 = fl * fl
             vsqr(l) = fl2
             scal_uvw_m(0) = one / fl
-            !GCC$ unroll 4
+            !!GCC$ unroll 4
             do m = 1, l-1
                 u = sqrt(fl2 - vsqr(m))
                 scal_uvw_m(m) = one / u
@@ -2998,12 +2998,12 @@ subroutine fmm_sph_rotate_oxz_work(p, ctheta, stheta, alpha, src, beta, dst, &
             scal_uvw_m(l) = one / u
             scal_u_n(0) = dble(l)
             scal_v_n(0) = -sqrt(dble(l*(l-1))) / sqrt2
-            !GCC$ unroll 4
+            !!GCC$ unroll 4
             do n = 1, l-2
                 u = sqrt(fl2-vsqr(n))
                 scal_u_n(n) = u
             end do
-            !GCC$ unroll 4
+            !!GCC$ unroll 4
             do n = 1, l-2
                 v = dble(l+n)
                 v = sqrt(v*v-v) / two
@@ -3045,7 +3045,7 @@ subroutine fmm_sph_rotate_oxz_work(p, ctheta, stheta, alpha, src, beta, dst, &
             r(1, 0, l) = (u*scal_u_n(0) + v*scal_v_n(0)) * scal_uvw_m(l)
             tmp1 = tmp1 + src(ind)*r(1, 0, l)
             ! m = l, n = 2..l-2 and m = -l, n = 2-l..-2
-            !GCC$ unroll 4
+            !!GCC$ unroll 4
             do n = 2, l-2
                 vu = stheta * r_prev(:, n, l-1)
                 vv = ctheta*r_prev(:, n-1, l-1) + r_prev(2:1:-1, n-1, l-1)
@@ -3083,7 +3083,7 @@ subroutine fmm_sph_rotate_oxz_work(p, ctheta, stheta, alpha, src, beta, dst, &
             r(1, 1, 0) = w * scal_uvw_m(0)
             tmp1 = tmp1 + src(ind+1)*r(1, 1, 0)
             ! n = 2..l-2
-            !GCC$ unroll 4
+            !!GCC$ unroll 4
             do n = 2, l-2
                 v = scal_v_n(n)*r_prev(1, n-1, 0) + &
                     & scal_w_n(n)*r_prev(1, n+1, 0)
@@ -3094,7 +3094,7 @@ subroutine fmm_sph_rotate_oxz_work(p, ctheta, stheta, alpha, src, beta, dst, &
             end do
             dst(ind) = alpha * tmp1
             ! Now deal with m=1..l-1 and m=1-l..-1
-            !GCC$ unroll 4
+            !!GCC$ unroll 4
             do m = 1, l-1
                 ! n = l and n = -l
                 vv = -stheta * r_prev(:, l-1, m)
@@ -3129,7 +3129,7 @@ subroutine fmm_sph_rotate_oxz_work(p, ctheta, stheta, alpha, src, beta, dst, &
                 r(2, 1, m) = v * scal_uvw_m(m)
                 tmp2 = tmp2 + src(ind-1)*r(2, 1, m)
                 ! n = 2..l-2 and n = 2-l..-2
-                !GCC$ unroll 4
+                !!GCC$ unroll 4
                 do n = 2, l-2
                     vv = scal_v_n(n)*r_prev(:, n-1, m) + &
                         & scal_w_n(n)*r_prev(:, n+1, m)
@@ -4596,7 +4596,7 @@ subroutine fmm_m2l_ztranslate_work(z, src_r, dst_r, pm, pl, vscales, &
     do k = 1, pm
         n = pm - k + 1
         indk2 = indk1 + n
-        !GCC$ unroll 4
+        !!GCC$ unroll 4
         do j = k, pm
             indj = j*j + j + 1
             src_m2(indk1+j-k) = pow_r1(j+1) * src_m(indj+k)
@@ -4614,20 +4614,20 @@ subroutine fmm_m2l_ztranslate_work(z, src_r, dst_r, pm, pl, vscales, &
             tmp1 = alpha * vscales(indj) * pow_r2
             pow_r2 = pow_r2 * r2
             res1 = zero
-            !GCC$ unroll 4
+            !!GCC$ unroll 4
             do n = 0, pm
                 res1 = res1 + m2l_ztranslate_coef(n+1, 1, j+1)*src_m2(n+1)
             end do
             dst_l(indj) = tmp1 * res1
             ! k != 0
-            !GCC$ unroll 4
+            !!GCC$ unroll 4
             do k = 1, j
                 ! Offsets for src_m2
                 indk1 = pm + 2 + (2*pm-k+2)*(k-1)
                 indk2 = indk1 + pm - k + 1
                 res1 = zero
                 res2 = zero
-                !GCC$ unroll 4
+                !!GCC$ unroll 4
                 do n = k, pm
                     res1 = res1 + &
                         & m2l_ztranslate_coef(n-k+1, k+1, j-k+1)* &
