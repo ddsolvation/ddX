@@ -69,6 +69,16 @@ type ddx_workspace_type
     real(dp), allocatable :: tmp_cav(:)
     !> Temporary electric field in cavity points. Dimension is (3, ncav).
     real(dp), allocatable :: tmp_efld(:, :)
+    !> Jacobi solver temporary vector x. Dimension is (n).
+    real(dp), allocatable :: tmp_x_new(:)
+    !> Jacobi solver temporary result of matvec. Dimension is (n).
+    real(dp), allocatable :: tmp_y(:)
+    !> Jacobi solver temporary DIIS array. Dimension is (n, ndiis).
+    real(dp), allocatable :: tmp_x_diis(:, :)
+    !> Jacobi solver temporary DIIS array. Dimension is (n, ndiis).
+    real(dp), allocatable :: tmp_e_diis(:, :)
+    !> Jacobi solver temporary DIIS array. Dimension is (ndiis+1, ndiis+1).
+    real(dp), allocatable :: tmp_bmat(:, :)
     !> Flag if there were an error
     integer :: error_flag
     !> Last error message
@@ -85,6 +95,7 @@ subroutine workspace_init(params, constants, workspace, info)
     type(ddx_workspace_type), intent(out) :: workspace
     integer, intent(out) :: info
     !! Local variables
+    character(len=255) :: string
     !! The code
     allocate(workspace % tmp_vplm(constants % vgrid_nbasis, params % nproc), &
         & workspace % tmp_vcos(constants % vgrid_dmax+1, params % nproc), &
@@ -92,8 +103,10 @@ subroutine workspace_init(params, constants, workspace, info)
         & stat=info)
     if (info .ne. 0) then
         workspace % error_flag = 1
-        workspace % error_message = "workspace_init: `tmp_vplm`, `tmp_vcos` " &
-            & // "and `tmp_vsin` allocations failed"
+        string = "workspace_init: `tmp_vplm`, `tmp_vcos` and `tmp_vsin` " &
+            & // "allocations failed"
+        workspace % error_message = string
+        call params % print_func(string)
         info = 1
         return
     end if
@@ -204,6 +217,47 @@ subroutine workspace_init(params, constants, workspace, info)
     if (info .ne. 0) then
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_efld` " // &
+            & "allocation failed"
+        info = 1
+        return
+    end if
+    allocate(workspace % tmp_x_new(constants % n), stat=info)
+    if (info .ne. 0) then
+        workspace % error_flag = 1
+        workspace % error_message = "workspace_init: `tmp_x_new` " // &
+            & "allocation failed"
+        info = 1
+        return
+    end if
+    allocate(workspace % tmp_y(constants % n), stat=info)
+    if (info .ne. 0) then
+        workspace % error_flag = 1
+        workspace % error_message = "workspace_init: `tmp_y` " // &
+            & "allocation failed"
+        info = 1
+        return
+    end if
+    allocate(workspace % tmp_x_diis(constants % n, params % ndiis), stat=info)
+    if (info .ne. 0) then
+        workspace % error_flag = 1
+        workspace % error_message = "workspace_init: `tmp_x_diis` " // &
+            & "allocation failed"
+        info = 1
+        return
+    end if
+    allocate(workspace % tmp_e_diis(constants % n, params % ndiis), stat=info)
+    if (info .ne. 0) then
+        workspace % error_flag = 1
+        workspace % error_message = "workspace_init: `tmp_e_diis` " // &
+            & "allocation failed"
+        info = 1
+        return
+    end if
+    allocate(workspace % tmp_bmat(params % ndiis+1, params % ndiis+1), &
+        & stat=info)
+    if (info .ne. 0) then
+        workspace % error_flag = 1
+        workspace % error_message = "workspace_init: `tmp_bmat` " // &
             & "allocation failed"
         info = 1
         return

@@ -16,217 +16,77 @@ implicit none
 
 contains
 
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-! Purpose : Jacobi/DIIS solver
-!
-! variables:
-!
-!   n        : integer, input, size of the matrix
-!
-!   lprint   : integer, input, printing flag.
-!
-!   diis_max : integer, input, number of points to be used for diis extrapolation
-!
-!              if diis_max = 0, this is just a Jacobi solver.
-!
-!   norm     : integer, input, norm to be used to evaluate convergence
-!              1: max |x_new - x|
-!              2: rms (x_new - x)
-!              3: rms (x_new - x) and max |x_new - x|
-!              4: norm computed by the user-provided function u_norm(n,x)
-!
-!   tol      : real, input, convergence criterion. if norm = 3, convergence is 
-!              achieved when rms (x_new - x) < tol and max |x_new - x| < 10*tol.
-!
-!   rhs      : real, dimension(n), input, right-hand side of the linear system
-!
-!   x        : real, dimension(n). In input, a guess of the solution (can be zero).
-!              In output, the solution
-!
-!   n_iter   : integer, in input, the maximum number of iterations. In output,
-!              the number of iterations needed to converge or -1 if the process did not converge
-!
-!   ok       : logical, output, T if the solver converged, false otherwise.
-!
-!   matvec   : external, subroutine to compute the required matrix-vector multiplication
-!              format: subroutine matvec(n,x,y)
-!
-!   dm1vec   : external, subroutine to apply the inverse diagonal matrix to a vector.
-!              format: subroutine dm1vec(n,x,y)
-! 
-!   u_norm   : external, optional function to compute the norm of a vector.
-!              format: real(dp) function u_norm(n,x)
-!
-!---------------------------------------------------------------------------------------------
-subroutine jacobi_diis(params, constants, workspace, n, lprint, diis_max, norm, tol, rhs, x, n_iter, &
-        & ok, matvec, dm1vec, u_norm)
-    ! Inputs
-      type(ddx_params_type), intent(in) :: params
-      type(ddx_constants_type), intent(in) :: constants
-      integer,               intent(in)    :: n, diis_max, norm, lprint
-      real(dp),                intent(in)    :: tol
-      real(dp),  dimension(n), intent(in)    :: rhs
+!> Jacobi iterative solver
+!!
+!! @param[in] params:
+!! @param[in] constants:
+!! @param[inout] workspace:
+!! @param[in] tol:
+!! @param[in] rhs:
+!! @param[inout] x:
+!! @param[inout] niter:
+!! @param[out] iter_residual:
+!! @param[in] matvec:
+!! @param[in] dm1vec:
+!! @param[in] norm:
+!! @param[in] info:
+subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
+        & x_rel_diff, matvec, dm1vec, norm_func, info)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: tol, rhs(constants % n)
     !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-      ! Outputs
-      real(dp),  dimension(n), intent(inout) :: x
-      integer,               intent(inout) :: n_iter
-      logical,               intent(inout) :: ok
-      external                             :: matvec, dm1vec
-      real(dp),  optional                    :: u_norm
-      external                             :: u_norm
-      ! Local variables
-      integer :: it, nmat, istatus, lenb
-      real(dp)  :: rms_norm, max_norm, tol_max, rms_norm_diff, max_norm_diff
-      logical :: dodiis
-!
-      real(dp), allocatable :: x_new(:), y(:), x_diis(:,:), e_diis(:,:), bmat(:,:)
-!
-!---------------------------------------------------------------------------------------------
-!
-!     check inputs
-      if ( (norm.eq.4) .and. (.not.present(u_norm)) ) then
-        write(6,*) ' must provide a function norm(n,x) to evaluate the norm of the increment'
-        stop
-      endif
-!
-!     DIIS extrapolation flag
-      dodiis =  (diis_max.ne.0)
-!
-!     set tolerance
-      tol_max = 10.0d0 * tol
-!
-!     extrapolation required
-      if (dodiis) then
-!
-!       allocate workspaces
-        lenb = diis_max + 1
-        allocate( x_diis(n,diis_max), e_diis(n,diis_max), bmat(lenb,lenb) , stat=istatus )
-        if (istatus .ne. 0) then
-          write(*,*) ' jacobi_diis: [1] failed allocation (diis)'
-          stop
-        endif
-!        
-!       an enigmatic constant
-        nmat = 1
-!        
-      endif
-!
-!     allocate workspaces
-      allocate( x_new(n), y(n) , stat=istatus )
-      if (istatus .ne. 0) then
-        write(*,*) ' jacobi_diis: [2] failed allocation (scratch)' 
-        stop
-      endif
-!
-!     Jacobi iterations
-!     =================
-      do it = 1, n_iter
-!
-!       y = rhs - O x
-        call matvec(params, constants, workspace, x, y )
-        !call prtsph("matvec", ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, y)
-        y = rhs - y
-        !call prtsph("matvec y", ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, y)
-!
-!       x_new = D^-1 y
-        call dm1vec(params, constants, workspace, y, x_new)
-        !call prtsph("matvec D^-1 y", ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, x_new)
-!
-!       DIIS extrapolation
-!       ==================
-        if (dodiis) then
-!
-          x_diis(:,nmat) = x_new
-          e_diis(:,nmat) = x_new - x
-!
-          call diis(n,nmat,diis_max,x_diis,e_diis,bmat,x_new)
-!
-        endif
-!
-!       increment
-        x = x_new - x
-!
-!       rms/max norm of increment
-        if ( norm.le.3 ) then
-!
-!         compute norm
-          call rmsvec( n, x, rms_norm_diff, max_norm_diff )
-          call rmsvec( n, x_new, rms_norm, max_norm)
-!
-!         check norm
-          if ( norm.eq.1 ) then
-!                  
-            ok = (rms_norm_diff .lt. tol*rms_norm)
-            
-          elseif ( norm.eq.2 ) then
-!                  
-            ok = (max_norm_diff .lt. tol*max_norm)
-!            
-          else 
-
-            ok = (rms_norm_diff .lt. tol*rms_norm) .and. (max_norm_diff .lt. tol*max_norm)
-!            
-          endif
-!
-!       user-provided norm of increment
-        elseif ( norm.eq.4 ) then
-!
-!         just a placeholder for printing
-          max_norm_diff = -1.d0
-!
-!         compute norm
-          rms_norm_diff = u_norm(params % lmax, constants % nbasis, params % nsph, x )
-          rms_norm = u_norm(params % lmax, constants % nbasis, params % nsph, x_new )
-!
-!         check norm
-          ok = (rms_norm_diff .lt. tol*rms_norm)
-!          
-        endif
-!
-!       printing
-        if ( lprint.gt.0 ) then
-           if (norm.eq.1) then
-             write(*,110) it, 'max', max_norm_diff/max_norm
-           else if (norm.eq.2) then
-             write(*,110) it, 'rms', rms_norm_diff/rms_norm
-           else if (norm.eq.3) then
-             write(*,100) it, rms_norm_diff/rms_norm, max_norm_diff/max_norm
-           else if (norm.eq.4) then
-             write(*,120) it, rms_norm_diff/rms_norm
-           end if
-         end if
-  100   format(t3,'iter=',i4,' residual norm (rms,max): ', 2d14.4 )
-  110   format(t3,'iter=',i4,' residual norm (',a,'): ', d14.4 )
-  120   format(t3,'iter=',i4,' residual norm: ', d20.14 )
-!
-!       update
-        x = x_new
-!
-!       EXIT Jacobi loop here
-!       =====================
-        if (ok) exit
-!
-      enddo
-!
-!     record number of Jacobi iterations
-    if (ok) then
-        n_iter = it
-    else
-        n_iter = -1
-    end if
-!
-      return
-!
-!
+    !! Outputs
+    real(dp), intent(inout) :: x(constants % n)
+    integer, intent(inout) :: niter
+    real(dp), intent(out) :: x_rel_diff(niter)
+    integer, intent(out) :: info
+    !! Functions
+    external :: matvec, dm1vec
+    real(dp), external :: norm_func
+    !! Local variables
+    integer :: it, nmat
+    real(dp) :: diff, norm, rel_diff
+    !! The code
+    ! DIIS variable
+    nmat = 1
+    ! Iterations
+    do it = 1, niter
+        ! y = rhs - O x
+        call matvec(params, constants, workspace, x, workspace % tmp_y)
+        workspace % tmp_y = rhs - workspace % tmp_y
+        ! x_new = D^-1 y
+        call dm1vec(params, constants, workspace, workspace % tmp_y, &
+            & workspace % tmp_x_new)
+        ! DIIS extrapolation
+        if (params % ndiis .gt. 0) then
+            workspace % tmp_x_diis(:, nmat) = workspace % tmp_x_new
+            workspace % tmp_e_diis(:, nmat) = workspace % tmp_x_new - x
+            call diis(constants % n, nmat, params % ndiis, &
+                & workspace % tmp_x_diis, workspace % tmp_e_diis, &
+                & workspace % tmp_bmat, workspace % tmp_x_new)
+        end if
+        ! Norm of increment
+        x = workspace % tmp_x_new - x
+        diff = norm_func(params % lmax, constants % nbasis, params % nsph, x)
+        norm = norm_func(params % lmax, constants % nbasis, params % nsph, &
+            & workspace % tmp_x_new)
+        rel_diff = diff / norm
+        x_rel_diff(it) = rel_diff
+        ! Update solution
+        x = workspace % tmp_x_new
+        ! Check stop condition
+        if (rel_diff .le. tol) then
+            info = 0
+            niter = it
+            return
+        end if
+    end do
+    info = 1
 endsubroutine jacobi_diis
-!---------------------------------------------------------------------------------------------
-!
-!
-!
-!---------------------------------------------------------------------------------------------
-!
+
 subroutine diis(n,nmat,ndiis,x,e,b,xnew)
 implicit none
 integer,                             intent(in)    :: n, ndiis

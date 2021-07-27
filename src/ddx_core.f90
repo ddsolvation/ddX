@@ -42,18 +42,38 @@ type ddx_type
     !> Variable \f$ \Phi_\varepsilon \f$ of a dimension (nbasis, nsph).
     !!      Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: phieps(:, :)
+    !> Number of iteration to solve ddPCM system
+    integer :: phieps_niter
+    !> Relative error of each step of iterative solver for ddPCM system.
+    !!      Dimension is (maxiter).
+    real(dp), allocatable :: phieps_rel_diff(:)
     !> Solution of the ddCOSMO system of a dimension (nbasis, nsph). Allocated
     !!      and used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: xs(:, :)
+    !> Number of iteration to solve ddCOSMO system
+    integer :: xs_niter
+    !> Relative error of each step of iterative solver for ddCOSMO system.
+    !!      Dimension is (maxiter).
+    real(dp), allocatable :: xs_rel_diff(:)
     !> Solution of the adjoint ddCOSMO system of a dimension (nbasis, nsph).
     !!      Allocated and used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: s(:, :)
+    !> Number of iteration to solve adoint ddCOSMO system
+    integer :: s_niter
+    !> Relative error of each step of iterative solver for adjoint ddCOSMO
+    !!      system. Dimension is (maxiter).
+    real(dp), allocatable :: s_rel_diff(:)
     !> Values of s at grid points. Dimension is (ngrid, nsph). Allocated and
     !!      used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: sgrid(:, :)
     !> Solution of the adjoint ddPCM system of a dimension (nbasis, nsph).
     !!      Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: y(:, :)
+    !> Number of iteration to solve adjoint ddPCM system
+    integer :: y_niter
+    !> Relative error of each step of iterative solver for adjoint ddPCM
+    !!      system. Dimension is (maxiter).
+    real(dp), allocatable :: y_rel_diff(:)
     !> Values of y at grid points. Dimension is (ngrid, nsph). Allocated and
     !!      used only by PCM (model=2) model.
     real(dp), allocatable :: ygrid(:, :)
@@ -183,11 +203,29 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             info = 1
             return
         end if
+        allocate(ddx_data % xs_rel_diff(ddx_data % params % maxiter), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            ddx_data % error_flag = 1
+            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
         allocate(ddx_data % s(ddx_data % constants % nbasis, &
             & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
             ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `s` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
+        allocate(ddx_data % s_rel_diff(ddx_data % params % maxiter), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            ddx_data % error_flag = 1
+            ddx_data % error_message = "ddinit: `s_rel_diff` " // &
                 & "allocation failed"
             info = 1
             return
@@ -247,6 +285,15 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             info = 1
             return
         end if
+        allocate(ddx_data % phieps_rel_diff(ddx_data % params % maxiter), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            ddx_data % error_flag = 1
+            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
         allocate(ddx_data % xs(ddx_data % constants % nbasis, &
             & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
@@ -256,11 +303,29 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             info = 1
             return
         end if
+        allocate(ddx_data % xs_rel_diff(ddx_data % params % maxiter), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            ddx_data % error_flag = 1
+            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
         allocate(ddx_data % s(ddx_data % constants % nbasis, &
             & ddx_data % params % nsph), stat=istatus)
         if (istatus .ne. 0) then
             ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `s` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
+        allocate(ddx_data % s_rel_diff(ddx_data % params % maxiter), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            ddx_data % error_flag = 1
+            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
                 & "allocation failed"
             info = 1
             return
@@ -279,6 +344,15 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         if (istatus .ne. 0) then
             ddx_data % error_flag = 1
             ddx_data % error_message = "ddinit: `y` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
+        allocate(ddx_data % y_rel_diff(ddx_data % params % maxiter), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            ddx_data % error_flag = 1
+            ddx_data % error_message = "ddinit: `y_rel_diff` " // &
                 & "allocation failed"
             info = 1
             return

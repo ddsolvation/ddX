@@ -30,9 +30,10 @@ contains
 !! @param[in] tol
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
-subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
+subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, &
+        & info)
     ! Inputs
-    type(ddx_type), intent(inout)  :: ddx_data
+    type(ddx_type), intent(inout) :: ddx_data
     real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
         & gradphi_cav(3, ddx_data % constants % ncav), psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
     ! Outputs

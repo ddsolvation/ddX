@@ -83,6 +83,9 @@ contains
   !!
   real(dp), allocatable ::   Xr(:,:), Xe(:,:), rhs_r(:,:), rhs_e(:,:), &
                                   & rhs_r_init(:,:), rhs_e_init(:,:)
+
+  ! Workspace for convergence results of Jacobi solver
+  real(dp), allocatable ::   Xr_rel_diff(:)
   !!
   !! g      : Intermediate matrix for computation of g0
   !! f      : Intermediate matrix for computation of f0
@@ -100,6 +103,8 @@ contains
   logical                    :: ok = .false.
   integer                    :: n_iter
   integer                    :: its
+  ! Success result
+  integer info
   !
   ! Allocate Bessel's functions of the first kind and the second kind
   ! and their derivatives
@@ -182,6 +187,8 @@ contains
     !! A X_r = RHS_r (= G_X+G_0) 
     !! NOTE: Number of iterative steps can be user provided
     n_iter = 200
+    ! Workspace for convergence of Jacobi solver
+    allocate(Xr_rel_diff(n_iter))
     !! Call Jacobi solver
     !! @param[in]      nsph*nylm : Size of matrix
     !! @param[in]      iprint    : Flag for printing
@@ -199,9 +206,13 @@ contains
     !! @param[in]      ldm1x     : External subroutine to apply invert diagonal
     !!                             matrix to vector, i.e., L^{-1}x_r, comes from matvec.f90
     !! @param[in]      hnorm     : User defined norm, comes from matvec.f90
+    !call jacobi_diis(ddx_data % params, ddx_data % constants, &
+    !    & ddx_data % workspace, ddx_data % constants % n, 0, ndiis, 4, tol, &
+    !                 & rhs_r, Xr, n_iter, ok, lx, ldm1x, hnorm)
     call jacobi_diis(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, ddx_data % constants % n, 0, ndiis, 4, tol, &
-                     & rhs_r, Xr, n_iter, ok, lx, ldm1x, hnorm)
+        & ddx_data % workspace, tol, rhs_r, Xr, n_iter, Xr_rel_diff, lx, &
+        & ldm1x, hnorm, info)
+    deallocate(Xr_rel_diff)
     call convert_ddcosmo(ddx_data, 1, Xr)
     ! call print_ddvector('xr',xr)
   
