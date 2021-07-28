@@ -47,8 +47,8 @@ subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, &
     ddx_data % xs_niter = ddx_data % params % maxiter
     call ddcosmo_energy(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, phi_cav, psi, xs_mode, ddx_data % xs, &
-        & ddx_data % xs_niter, ddx_data % xs_rel_diff, tol, esolv, &
-        & ddx_data % phi_grid, ddx_data % phi, info)
+        & ddx_data % xs_niter, ddx_data % xs_rel_diff, ddx_data % xs_time, &
+        & tol, esolv, ddx_data % phi_grid, ddx_data % phi, info)
     ! Get forces if needed
     if (ddx_data % params % force .eq. 1) then
         ! Zero initial guess
@@ -57,7 +57,8 @@ subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, &
         ddx_data % s_niter = ddx_data % params % maxiter
         call ddcosmo_adjoint(ddx_data % params, ddx_data % constants, &
             & ddx_data % workspace, psi, tol, s_mode, ddx_data % s, &
-            & ddx_data % s_niter, ddx_data % s_rel_diff, info)
+            & ddx_data % s_niter, ddx_data % s_rel_diff, ddx_data % s_time, &
+            & info)
         ! Get forces, they are initialized with zeros
         call ddcosmo_forces(ddx_data % params, ddx_data % constants, &
             & ddx_data % workspace, ddx_data % phi_grid, gradphi_cav, &
@@ -84,7 +85,7 @@ end subroutine ddcosmo
 !! @param[out] phi
 !! @param[out] info
 subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, &
-        & xs_mode, xs, xs_niter, xs_rel_diff, tol, esolv, phi_grid, &
+        & xs_mode, xs, xs_niter, xs_rel_diff, xs_time, tol, esolv, phi_grid, &
         & phi, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -98,13 +99,14 @@ subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, &
     !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
     !! Outputs
-    real(dp), intent(out) :: xs_rel_diff(xs_niter)
+    real(dp), intent(out) :: xs_rel_diff(xs_niter), xs_time
     real(dp), intent(out) :: esolv
     real(dp), intent(out) :: phi_grid(params % ngrid, params % nsph)
     real(dp), intent(out) :: phi(constants % nbasis, params % nsph)
     integer, intent(out) :: info
     !! Local variables
     character(len=255) :: string
+    real(dp) :: start_time, finish_time
     real(dp), external :: ddot
     !! The code
     ! At first check if parameters, constants and workspace are correctly
@@ -146,8 +148,11 @@ subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, &
         xs = zero
     end if
     ! Solve ddCOSMO system L X = -Phi with a given initial guess
+    call cpu_time(start_time)
     call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
         & xs, xs_niter, xs_rel_diff, lx, ldm1x, hnorm, info)
+    call cpu_time(finish_time)
+    xs_time = finish_time - start_time
     ! Check if solver did not converge
     if (info .ne. 0) then
         string = "ddcosmo_energy: solver for ddCOSMO system did not converge"
@@ -171,7 +176,7 @@ end subroutine ddcosmo_energy
 !! @param[inout] s
 !! @param[out] info
 subroutine ddcosmo_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
-        & s_niter, s_rel_diff, info)
+        & s_niter, s_rel_diff, s_time, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -180,12 +185,12 @@ subroutine ddcosmo_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
     !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
     !! Outputs
-    real(dp), intent(inout) :: s(constants % nbasis, params % nsph)
+    real(dp), intent(inout) :: s(constants % nbasis, params % nsph), s_time
     integer, intent(inout) :: s_niter
     real(dp), intent(out) :: s_rel_diff(s_niter)
     integer, intent(out) :: info
     !! Local variables
-    logical :: ok
+    real(dp) :: start_time, finish_time
     character(len=255) :: string
     real(dp), external :: ddot
     !! The code
@@ -213,9 +218,11 @@ subroutine ddcosmo_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
     if (s_mode .eq. 0) then
         s = zero
     end if
-    info = params % maxiter
+    call cpu_time(start_time)
     call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
         & s_rel_diff, lstarx, ldm1x, hnorm, info)
+    call cpu_time(finish_time)
+    s_time = finish_time - start_time
     ! Check if solver did not converge
     if (info .ne. 0) then
         string = "ddcosmo_adjoint: solver for adjoint ddCOSMO system did " &
@@ -227,8 +234,8 @@ subroutine ddcosmo_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
     info = 0
 end subroutine ddcosmo_adjoint
 
-subroutine ddcosmo_forces(params, constants, workspace, phi_grid, gradphi_cav, &
-        & psi, s, sgrid, xs, zeta, force, info)
+subroutine ddcosmo_forces(params, constants, workspace, phi_grid, &
+        & gradphi_cav, psi, s, sgrid, xs, zeta, force, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants

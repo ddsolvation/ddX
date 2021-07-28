@@ -47,6 +47,8 @@ type ddx_type
     !> Relative error of each step of iterative solver for ddPCM system.
     !!      Dimension is (maxiter).
     real(dp), allocatable :: phieps_rel_diff(:)
+    !> Time to solve primal ddPCM system
+    real(dp) :: phieps_time
     !> Solution of the ddCOSMO system of a dimension (nbasis, nsph). Allocated
     !!      and used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: xs(:, :)
@@ -55,6 +57,8 @@ type ddx_type
     !> Relative error of each step of iterative solver for ddCOSMO system.
     !!      Dimension is (maxiter).
     real(dp), allocatable :: xs_rel_diff(:)
+    !> Time to solve primal ddCOSMO system
+    real(dp) :: xs_time
     !> Solution of the adjoint ddCOSMO system of a dimension (nbasis, nsph).
     !!      Allocated and used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: s(:, :)
@@ -63,6 +67,8 @@ type ddx_type
     !> Relative error of each step of iterative solver for adjoint ddCOSMO
     !!      system. Dimension is (maxiter).
     real(dp), allocatable :: s_rel_diff(:)
+    !> Time to solve adjoint ddCOSMO system
+    real(dp) :: s_time
     !> Values of s at grid points. Dimension is (ngrid, nsph). Allocated and
     !!      used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: sgrid(:, :)
@@ -74,6 +80,8 @@ type ddx_type
     !> Relative error of each step of iterative solver for adjoint ddPCM
     !!      system. Dimension is (maxiter).
     real(dp), allocatable :: y_rel_diff(:)
+    !> Time to solve adjoint ddPCM system
+    real(dp) :: y_time
     !> Values of y at grid points. Dimension is (ngrid, nsph). Allocated and
     !!      used only by PCM (model=2) model.
     real(dp), allocatable :: ygrid(:, :)

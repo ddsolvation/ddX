@@ -49,10 +49,11 @@ subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
     ddx_data % phieps_niter = ddx_data % params % maxiter
     call ddpcm_energy(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, phi_cav, psi, xs_mode, ddx_data % xs, &
-        & ddx_data % xs_niter, ddx_data % xs_rel_diff, tol, esolv, &
+        & ddx_data % xs_niter, ddx_data % xs_rel_diff, ddx_data % xs_time, &
+        & tol, esolv, &
         & ddx_data % phi_grid, ddx_data % phi, ddx_data % phiinf, &
         & phieps_mode, ddx_data % phieps, ddx_data % phieps_niter, &
-        & ddx_data % phieps_rel_diff, info)
+        & ddx_data % phieps_rel_diff, ddx_data % phieps_time, info)
     ! Get forces if needed
     if (ddx_data % params % force .eq. 1) then
         ! Zero initial guesses for adjoint systems
@@ -63,8 +64,10 @@ subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
         ddx_data % y_niter = ddx_data % params % maxiter
         call ddpcm_adjoint(ddx_data % params, ddx_data % constants, &
             & ddx_data % workspace, psi, tol, s_mode, ddx_data % s, &
-            & ddx_data % s_niter, ddx_data % s_rel_diff, y_mode, &
-            & ddx_data % y, ddx_data % y_niter, ddx_data % y_rel_diff, info)
+            & ddx_data % s_niter, ddx_data % s_rel_diff, ddx_data % s_time, &
+            & y_mode, &
+            & ddx_data % y, ddx_data % y_niter, ddx_data % y_rel_diff, &
+            & ddx_data % y_time, info)
         ! Get forces, they are initialized with zeros in gradr
         call ddpcm_forces(ddx_data % params, ddx_data % constants, &
             & ddx_data % workspace, ddx_data % phi_grid, gradphi_cav, &
@@ -87,8 +90,9 @@ end subroutine ddpcm
 !! @param[out] esolv
 !! @param[in] info
 subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
-        & xs, xs_niter, xs_rel_diff, tol, esolv, phi_grid, phi, phiinf, &
-        & phieps_mode, phieps, phieps_niter, phieps_rel_diff, info)
+        & xs, xs_niter, xs_rel_diff, xs_time, tol, esolv, phi_grid, phi, &
+        & phiinf, phieps_mode, phieps, phieps_niter, phieps_rel_diff, &
+        & phieps_time, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -105,12 +109,13 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
     real(dp), intent(out) :: esolv, phi_grid(params % ngrid, params % nsph), &
         & phi(constants % nbasis, params % nsph), &
         & phiinf(constants % nbasis, params % nsph), &
-        & xs_rel_diff(xs_niter), phieps_rel_diff(phieps_niter)
+        & xs_rel_diff(xs_niter), phieps_rel_diff(phieps_niter), xs_time, &
+        & phieps_time
     integer, intent(out) :: info
     !! Local variables
+    real(dp) :: start_time, finish_time
     character(len=255) :: string
     real(dp), external :: ddot
-    external :: dgemm
     ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
     ! and multiply it by characteristic function at cavity points ui
     call wghpot(constants % ncav, phi_cav, params % nsph, params % ngrid, &
@@ -132,8 +137,11 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
         ! Otherwise use user-provided value as the initial guess
     end select
     ! Solve ddPCM system R_eps Phi_epsilon = Phi_infty
+    call cpu_time(start_time)
     call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
         & phieps_niter, phieps_rel_diff, rx, apply_repsx_prec, hnorm, info)
+    call cpu_time(finish_time)
+    phieps_time = finish_time - start_time
     ! Check if solver did not converge
     if (info .ne. 0) then
         string = "ddpcm_energy: solver for ddPCM system did not converge"
@@ -146,8 +154,11 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
     end if
     ! Solve ddCOSMO system L X = -Phi_epsilon with a proper initial guess
     info = params % maxiter
+    call cpu_time(start_time)
     call jacobi_diis(params, constants, workspace, tol, phieps, xs, xs_niter, &
         & xs_rel_diff, lx, ldm1x, hnorm, info)
+    call cpu_time(finish_time)
+    xs_time = finish_time - start_time
     ! Check if solver did not converge
     if (info .ne. 0) then
         string = "ddpcm_energy: solver for ddCOSMO system did not converge"
@@ -161,7 +172,8 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
 end subroutine ddpcm_energy
 
 subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
-        & s_niter, s_rel_diff, y_mode, y, y_niter, y_rel_diff, info)
+        & s_niter, s_rel_diff, s_time, y_mode, y, y_niter, y_rel_diff, &
+        & y_time, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -174,9 +186,11 @@ subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
     !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
     !! Outputs
-    real(dp), intent(out) :: s_rel_diff(s_niter), y_rel_diff(y_niter)
+    real(dp), intent(out) :: s_rel_diff(s_niter), y_rel_diff(y_niter), &
+        & s_time, y_time
     integer, intent(out) :: info
     !! Local variables
+    real(dp) :: start_time, finish_time
     character(len=255) :: string
     !! The code
     ! Zero initialize `s` if needed
@@ -184,8 +198,11 @@ subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
         s = zero
     end if
     ! Solve the adjoint ddCOSMO system
+    call cpu_time(start_time)
     call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
         & s_rel_diff, lstarx, ldm1x, hnorm, info)
+    call cpu_time(finish_time)
+    s_time = finish_time - start_time
     ! Check if solver did not converge
     if (info .ne. 0) then
         string = "ddpcm_energy: solver for adjoint ddCOSMO system did not " &
@@ -198,8 +215,11 @@ subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
         y = zero
     end if
     ! Solve adjoint ddPCM system
+    call cpu_time(start_time)
     call jacobi_diis(params, constants, workspace, tol, s, y, y_niter, &
         & y_rel_diff, rstarx, apply_rstarepsx_prec, hnorm, info)
+    call cpu_time(finish_time)
+    y_time = finish_time - start_time
     ! Check if solver did not converge
     if (info .ne. 0) then
         string = "ddpcm_energy: solver for adjoint ddPCM system did not " &
