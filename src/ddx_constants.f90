@@ -97,10 +97,8 @@ type ddx_constants_type
     !! vwgrid(:, igrid) = vgrid(:, igrid) * wgrid(igrid)
     !! Dimension of this array is (vgrid_nbasis, ngrid).
     real(dp), allocatable :: vwgrid(:, :)
-    !> Number of L2P harmonics evaluated at Lebedev grid points
-    integer :: l2grid_nbasis
-    !> Values of L2P at grid points. Dimension is (l2grid_nbasis, ngrid).
-    real(dp), allocatable :: l2grid(:, :)
+    !> Values of L2P/M2P at grid points. Dimension is (vgrid_nbasis, ngrid).
+    real(dp), allocatable :: vgrid2(:, :)
     !> Upper limit on a number of neighbours per sphere. This value is just an
     !!      upper bound that is not guaranteed to be the actual maximum.
     integer :: nngmax
@@ -241,7 +239,6 @@ subroutine constants_init(params, constants, info)
         constants % m2p_lmax = -1
         constants % m2p_nbasis = -1
         constants % grad_nbasis = -1
-        constants % l2grid_nbasis = -1
     else
         ! If forces are required then we need the M2P of a degree lmax+1 for
         ! the near-field analytical gradients
@@ -258,7 +255,6 @@ subroutine constants_init(params, constants, info)
         end if
         constants % vgrid_dmax = max(params % pl, params % lmax)
         constants % m2p_nbasis = (constants % m2p_lmax+1) ** 2
-        constants % l2grid_nbasis = (params % pl+1) ** 2
     end if
     ! Compute sizes of vgrid, vfact and vscales
     constants % vgrid_nbasis = (constants % vgrid_dmax+1) ** 2
@@ -390,20 +386,20 @@ subroutine constants_init(params, constants, info)
             & constants % vgrid(:, igrid)
     end do
     if (params % fmm .eq. 1) then
-        allocate(constants % l2grid( &
-            & constants % l2grid_nbasis, params % ngrid), &
+        allocate(constants % vgrid2( &
+            & constants % vgrid_nbasis, params % ngrid), &
             & stat=info)
         if (info .ne. 0) then
             constants % error_flag = 1
-            constants % error_message = "constants_init: `l2grid` " // &
+            constants % error_message = "constants_init: `vgrid2` " // &
                 & "allocation failed"
             info = 1
             return
         end if
         do igrid = 1, params % ngrid
-            do l = 0, params % pl
+            do l = 0, constants % vgrid_dmax
                 indl = l*l + l + 1
-                constants % l2grid(indl-l:indl+l, igrid) = &
+                constants % vgrid2(indl-l:indl+l, igrid) = &
                     & constants % vgrid(indl-l:indl+l, igrid) / &
                     & constants % vscales(indl)**2
             end do

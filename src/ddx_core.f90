@@ -1974,8 +1974,8 @@ subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v)
     end do
     ! Get values at grid points
     call dgemm('T', 'N', params % ngrid, params % nsph, &
-        & (params % pl+1)**2, alpha, constants % l2grid, &
-        & constants % l2grid_nbasis, sph_l, (params % pl+1)**2, beta, grid_v, &
+        & (params % pl+1)**2, alpha, constants % vgrid2, &
+        & constants % vgrid_nbasis, sph_l, (params % pl+1)**2, beta, grid_v, &
         & params % ngrid)
 end subroutine tree_l2p
 
@@ -2000,7 +2000,7 @@ subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l)
     end if
     ! Get weights of spherical harmonics at each sphere
     call dgemm('N', 'N', (params % pl+1)**2, params % nsph, &
-        & params % ngrid, one, constants % l2grid, constants % l2grid_nbasis, &
+        & params % ngrid, one, constants % vgrid2, constants % vgrid_nbasis, &
         & grid_v, params % ngrid, zero, sph_l, &
         & (params % pl+1)**2)
     ! Get data from all clusters to spheres

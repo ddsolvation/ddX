@@ -70,8 +70,8 @@ subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
             & one, ddx_data % workspace % tmp_grid)
         ! Potential from each sphere to its own grid points
         call dgemm('T', 'N', ddx_data % params % ngrid, ddx_data % params % nsph, &
-            & ddx_data % constants % nbasis, one, ddx_data % constants % l2grid, &
-            & ddx_data % constants % l2grid_nbasis, ddx_data % workspace % tmp_sph, ddx_data % constants % nbasis, &
+            & ddx_data % constants % nbasis, one, ddx_data % constants % vgrid2, &
+            & ddx_data % constants % vgrid_nbasis, ddx_data % workspace % tmp_sph, ddx_data % constants % nbasis, &
             & one, ddx_data % workspace % tmp_grid, ddx_data % params % ngrid)
         ! Rearrange potential from all grid points to external only
         icav = 0
@@ -115,8 +115,8 @@ subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
             ! Apply L2P for every axis with -1 multiplier since grad over
             ! target point is equal to grad over source point
             call dgemm('T', 'N', ddx_data % params % ngrid, 3*ddx_data % params % nsph, &
-                & (ddx_data % params % pl)**2, -one, ddx_data % constants % l2grid, &
-                & ddx_data % constants % l2grid_nbasis, ddx_data % workspace % tmp_sph_l_grad, &
+                & (ddx_data % params % pl)**2, -one, ddx_data % constants % vgrid2, &
+                & ddx_data % constants % vgrid_nbasis, ddx_data % workspace % tmp_sph_l_grad, &
                 & (ddx_data % params % pl+1)**2, one, grid_grad, &
                 & ddx_data % params % ngrid)
         end if
@@ -411,8 +411,8 @@ subroutine dx_fmm(params, constants, workspace, do_diag, x, y)
     ! Apply diagonal contribution if needed
     if(do_diag .eq. 1) then
         call dgemm('T', 'N', params % ngrid, params % nsph, &
-            & constants % nbasis, -pt5, constants % l2grid, &
-            & constants % l2grid_nbasis, x, constants % nbasis, one, &
+            & constants % nbasis, -pt5, constants % vgrid2, &
+            & constants % vgrid_nbasis, x, constants % nbasis, one, &
             & workspace % tmp_grid, params % ngrid)
     end if
     ! Multiply by characteristic function
@@ -575,8 +575,8 @@ subroutine dstarx_fmm(params, constants, workspace, do_diag, x, y)
     ! Apply diagonal contribution if needed
     if(do_diag .eq. 1) then
         call dgemm('N', 'N', constants % nbasis, params % nsph, &
-            & params % ngrid, -pt5, constants % l2grid, &
-            & constants % l2grid_nbasis, workspace % tmp_grid, params % ngrid, &
+            & params % ngrid, -pt5, constants % vgrid2, &
+            & constants % vgrid_nbasis, workspace % tmp_grid, params % ngrid, &
             & one, y, constants % nbasis)
     end if
 end subroutine dstarx_fmm
@@ -953,11 +953,11 @@ subroutine gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
                 do m = -l, l 
                     !! DEBUG comment
                     gi = gi + fac*constants % vgrid(ind+m,its)*g(ind+m,isph)
-                    !gi = gi + pt5*constants % l2grid(ind+m,its)*g(ind+m,isph)
+                    !gi = gi + pt5*constants % vgrid2(ind+m,its)*g(ind+m,isph)
                 end do
             end do
             !do l = 0, (params % lmax+1)**2
-            !    gi = gi + constants % l2grid(l, its)*g(l, isph)
+            !    gi = gi + constants % vgrid2(l, its)*g(l, isph)
             !end do
             !gi = pt5 * gi
             fii = constants % wgrid(its)*gi*ygrid(its,isph)
@@ -1245,7 +1245,7 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
     !! Diagonal update of computed grid values, that is needed for R^C, a part
     !! of R^A and a part of R^B
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & pt5, constants % l2grid, constants % l2grid_nbasis, g, &
+        & pt5, constants % vgrid2, constants % vgrid_nbasis, g, &
         & constants % nbasis, -one, workspace % tmp_grid, params % ngrid)
     !! Scale temporary grid points by corresponding Lebedev weights and ygrid
     do igrid = 1, params % ngrid
@@ -1307,7 +1307,7 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
                 ! Indexes k and j are flipped compared to the paper
                 call dgemv('T', params % pl**2, 3, one, &
                     & workspace % tmp_sph_l_grad(1, 1, isph), &
-                    & (params % pl+1)**2, constants % l2grid(1, igrid), 1, &
+                    & (params % pl+1)**2, constants % vgrid2(1, igrid), 1, &
                     & zero, gg3, 1)
                 ! Gradient of the near-field potential is a gradient of
                 ! multipole expansion
