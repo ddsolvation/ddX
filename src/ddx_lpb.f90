@@ -20,25 +20,30 @@ implicit none
 logical :: first_out_iter
 logical :: do_diag
 integer :: matAB
-integer :: lmax0
 !!
 !! Hardcoded values
 !!
 integer :: nbasis0
+integer :: lmax0
 real(dp),  parameter :: epsp = 1.0d0
 !!
 !! Taken from Chaoyu's MATLAB code
 !!
 !! wij          : (?) Maybe Eq. (54) 
+!! coefvec      : Intermediate value in computation of update_rhs
+!! Pchi         : Pchi matrix, Eq. (87)
+!! Qmat         : (?)
+!! coefY        : Intermediate calculation in Q Matrix Eq. (91)
+!! C_ik         : (i'_l0(r_j)/i_l0(r_j)-k'_l0(r_j)/k_l0(r_j))^{-1}
 real(dp), allocatable :: wij(:,:)
 real(dp), allocatable :: coefvec(:,:,:), Pchi(:,:,:), &
-                              & Qmat(:,:,:), coefY(:,:,:)
+                         & Qmat(:,:,:), coefY(:,:,:)
+real(dp), allocatable :: C_ik(:,:)
 !! SI_ri        : Bessel' function of first kind
 !! DI_ri        : Derivative of Bessel' function of first kind
 !! SK_ri        : Bessel' function of second kind
 !! DK_ri        : Derivative of Bessel' function of second kind
 !! termimat     : i'_l(r_j)/i_l(r_j)
-!! NOTE: Tolerance and n_iter_gmres can be given by the user
 !! tol_gmres    : Tolerance of GMRES iteration
 !! n_iter_gmres : Maximum number of GMRES itertation
 
@@ -54,24 +59,25 @@ contains
   !!
   !! ddLPB calculation happens here
   !! @param[in] ddx_data : dd Data 
-  !! @param[in] phi     : Boundary conditions
-  !! @param[in] psi     : Electrostatic potential vector.
-  !!                      Use of psi unknown
-  !! @param[in] gradphi : Gradient of phi
+  !! @param[in] phi      : Boundary conditions
+  !! @param[in] psi      : Electrostatic potential vector.
+  !!                       Use of psi unknown
+  !! @param[in] gradphi  : Gradient of phi
+  !! @param[out] esolv   : Electrostatic solvation energy
   !!
-  !! @param[out] esolv  : Electrostatic solvation energy
-  !!
-  subroutine ddlpb(ddx_data, phi, gradphi, psi, esolv)
+  subroutine ddlpb(ddx_data, phi, gradphi, psi, esolv, force)
   ! main ddLPB
   implicit none
-  type(ddx_type), intent(in)  :: ddx_data
-  logical                         :: converged = .false.
-  integer                         :: iteration = 1
-  real(dp), intent(inout)    :: esolv
-  real(dp)                   :: inc, old_esolv
+  ! Inputs
+  type(ddx_type), intent(inout) :: ddx_data
   real(dp), intent(in)       :: phi(ddx_data % ncav), &
-                                        & gradphi(3,ddx_data % ncav)
+                                & gradphi(3,ddx_data % ncav)
   real(dp), intent(in)       :: psi(ddx_data % nbasis, ddx_data % nsph)
+  ! Outputs
+  real(dp), intent(out)      :: esolv, force(3, ddx_data % nsph)
+  logical                    :: converged = .false.
+  integer                    :: iteration = 1, istatus
+  real(dp)                   :: inc, old_esolv
   !!
   !! Xr         : Reaction potential solution (Laplace equation)
   !! Xe         : Extended potential solution (HSP equation)
@@ -81,7 +87,10 @@ contains
   !! rhs_e_init : Initial right hand side corresponding to HSP equation
   !!
   real(dp), allocatable ::   Xr(:,:), Xe(:,:), rhs_r(:,:), rhs_e(:,:), &
-                                  & rhs_r_init(:,:), rhs_e_init(:,:)
+                                  & rhs_r_init(:,:), rhs_e_init(:,:), &
+                                  & Xadj_r(:,:), Xadj_e(:,:), &
+                                  & Xadj_r_sgrid(:,:), Xadj_e_sgrid(:,:), &
+                                  & force_r(:,:), force_e(:,:)
   !!
   !! g      : Intermediate matrix for computation of g0
   !! f      : Intermediate matrix for computation of f0
@@ -99,6 +108,10 @@ contains
   logical                    :: ok = .false.
   integer                    :: n_iter
   integer                    :: its
+  
+  ! Local variables, used in force computation
+  real(dp), allocatable :: vsin(:), vcos(:), vplm(:), basloc(:), &
+        & dbsloc(:, :), fx(:, :), ef(:, :)
   ! lmax0 set to minimum of 6 or given lmax.
   ! nbasis0 set to minimum of 49 or given (lmax+1)^2.
   ! Previous implementation had hard coded value 6 and 49.
@@ -113,14 +126,25 @@ contains
 
   allocate(g(ddx_data % ngrid,ddx_data % nsph),&
            & f(ddx_data % ngrid, ddx_data % nsph), &
-           & phi_grid(ddx_data % ngrid, ddx_data % nsph))
-  allocate(g0(ddx_data % nbasis),f0(ddx_data % nbasis))
-  allocate(rhs_r(ddx_data % nbasis, ddx_data % nsph),&
-           & rhs_e(ddx_data % nbasis, ddx_data % nsph))
-  allocate(rhs_r_init(ddx_data % nbasis, ddx_data % nsph),&
-           & rhs_e_init(ddx_data % nbasis, ddx_data % nsph))
-  allocate(Xr(ddx_data % nbasis, ddx_data % nsph),&
-           & Xe(ddx_data % nbasis, ddx_data % nsph))
+           & phi_grid(ddx_data % ngrid, ddx_data % nsph), &
+           & g0(ddx_data % nbasis),f0(ddx_data % nbasis),&
+           & rhs_r(ddx_data % nbasis, ddx_data % nsph), &
+           & rhs_e(ddx_data % nbasis, ddx_data % nsph), &
+           & rhs_r_init(ddx_data % nbasis, ddx_data % nsph),&
+           & rhs_e_init(ddx_data % nbasis, ddx_data % nsph), &
+           & Xr(ddx_data % nbasis, ddx_data % nsph),&
+           & Xe(ddx_data % nbasis, ddx_data % nsph), &
+           & Xadj_r(ddx_data % nbasis, ddx_data % nsph),&
+           & Xadj_e(ddx_data % nbasis, ddx_data % nsph), &
+           & vsin(ddx_data % lmax+1), vcos(ddx_data % lmax+1), &
+           & vplm(ddx_data % nbasis), basloc(ddx_data % nbasis), &
+           & dbsloc(3, ddx_data % nbasis), fx(3, ddx_data % nsph), &
+           & Xadj_r_sgrid(ddx_data % ngrid, ddx_data % nsph), &
+           & Xadj_e_sgrid(ddx_data % ngrid, ddx_data % nsph), &
+           & force_r(3, ddx_data % nsph), &
+           & force_e(3, ddx_data % nsph), &
+           & stat = istatus)
+  if (istatus.ne.0) write(6,*) 'ddlpb allocation failed'
 
   !do i = 1, ncav
   !  write(6,'(3F15.8)') phi(i), gradphi(:,i)
@@ -159,7 +183,7 @@ contains
   !! rhs_e_init: f0
   !!
   do isph = 1, ddx_data % nsph
-    !! intrhs is a subroutine in dd_operators
+    !! intrhs is a subroutine in ddx_operators
     !! @param[in]  isph : Sphere number, used for output
     !! @param[in]  g    : Intermediate right side g
     !! @param[out] g0   : Integrated right side Eq.(77) in QSM19.SISC
@@ -177,14 +201,14 @@ contains
   rhs_r = rhs_r_init
   rhs_e = rhs_e_init
   
+  n_iter = ddx_data % maxiter
+  
   first_out_iter = .true.
 
   do while (.not.converged)
 
     !! Solve the ddCOSMO step
     !! A X_r = RHS_r (= G_X+G_0) 
-    !! NOTE: Number of iterative steps can be user provided
-    n_iter = ddx_data % maxiter
     !! Call Jacobi solver
     !! @param[in]      nsph*nylm : Size of matrix
     !! @param[in]      iprint    : Flag for printing
@@ -241,9 +265,62 @@ contains
   end do
   ! Start the Force computation
   if(ddx_data % force .eq. 1) then
-    !Call the subroutine force
-    call ddx_lpb_force(ddx_data, psi)
+    ! stop "Forces not implemented in ddLPB"
+    ! Call the subroutine adjoint to solve the adjoint solution
+    call ddx_lpb_adjoint(ddx_data, psi, Xadj_r, Xadj_e)
+    call debug_derivative(ddx_data)
+    ! Call dgemm to integrate the adjoint solution on the grid points
+    call dgemm('T', 'N', ddx_data % ngrid, ddx_data % nsph, &
+            & ddx_data % nbasis, one, ddx_data % vgrid, ddx_data % vgrid_nbasis, &
+            & Xadj_r , ddx_data % nbasis, zero, Xadj_r_sgrid, &
+            & ddx_data % ngrid)
+    call dgemm('T', 'N', ddx_data % ngrid, ddx_data % nsph, &
+            & ddx_data % nbasis, one, ddx_data % vgrid, ddx_data % vgrid_nbasis, &
+            & Xadj_e , ddx_data % nbasis, zero, Xadj_e_sgrid, &
+            & ddx_data % ngrid)
+    ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
+    do isph = 1, ddx_data % nsph
+      call fdoka(ddx_data, isph, Xr, Xadj_r_sgrid(:, isph), &
+                & basloc, dbsloc, vplm, vcos, vsin, force_r(:,isph))
+      call fdokb(ddx_data, isph, Xr, Xadj_r_sgrid, basloc, &
+                & dbsloc, vplm, vcos, vsin, force_r(:, isph))
+    end do
+    ! Remove the factor of 4pi/2l+1
+    call convert_force(ddx_data, -1, force_r)
+    ! Compute B^k*Xadj_e
+    do isph = 1, ddx_data % nsph
+      call fdoka_b_xe(ddx_data, isph, Xe, Xadj_e_sgrid(:, isph), &
+                & basloc, dbsloc, vplm, vcos, vsin, force_e(:,isph))
+      call fdokb_b_xe(ddx_data, isph, Xe, Xadj_e_sgrid, &
+                & basloc, dbsloc, vplm, vcos, vsin, force_e(:, isph))
+    end do
+    ! Add contributions with respect to C_1 and C_2 matrix
+    ! It's a seperate subroutine because one wants to use convert_force before
+    do isph = 1, ddx_data % nsph
+      ! fdoc: Force, derivative of C
+      call fdoc(ddx_data, isph, Xr, Xe, Xadj_r, Xadj_e, Xadj_r_sgrid,&
+               & Xadj_e_sgrid, force_r(:, isph), force_e(:, isph))
+    end do
+    if (ddx_data % iprint .ge. 5) then
+      write(*,*) 'Forces Laplace:'
+      do isph = 1, ddx_data % nsph
+        write(6,'(1x,i5,3ES25.16E3)') isph, force_r(:,isph)
+      end do
+      write(*,*) 'Forces HSP:'
+      do isph = 1, ddx_data % nsph
+        write(6,'(1x,i5,3ES25.16E3)') isph, force_e(:,isph)
+      end do
+  end if
+    force = force_r + force_e
   endif
+  deallocate(g, f, phi_grid, g0 ,f0, &
+           & rhs_r, rhs_e, rhs_r_init , &
+           & rhs_e_init, Xr, Xe, Xadj_r, Xadj_e, &
+           & Xadj_r_sgrid, Xadj_e_sgrid, &
+           & force_r, force_e, &
+           & vsin, vcos, vplm, basloc,&
+           & dbsloc, fx, stat = istatus)
+  if (istatus.ne.0) write(6,*) 'ddlpb deallocation failed'
 
   return
   end subroutine ddlpb
@@ -328,7 +405,8 @@ contains
     end do
   end do
 
-  allocate (coefY(ddx_data % ncav, nbasis0, ddx_data % nsph), stat = istatus)
+  allocate (coefY(ddx_data % ncav, nbasis0, ddx_data % nsph), & 
+            & C_ik(0:ddx_data % lmax, ddx_data % nsph), stat = istatus)
   ! memuse = memuse + ncav*nbasis0*nsph
   ! memmax = max(memmax,memuse)
   if ( istatus .ne. 0 ) then
@@ -376,6 +454,7 @@ contains
 
       !write(*,*) SK_ri(l0,jsph), termk
       coef_bessel(l0,jsph) = one/(termi - termk)
+      C_ik(l0, jsph) = one/(termi - termk)
       !write(*,*) DI_ri(l0,jsph), SI_ri(l0,jsph), coef_bessel(l0,jsph)
       !write(*,*) (min(-DK_ri(l0,jsph), SK_ri(l0,jsph)).lt.tol_zero), &
       !    & DK_ri(l0,jsph), termk
@@ -383,7 +462,7 @@ contains
   end do
 
   ! Computation of F0 using above terms
-  ! (?) Use of kep not known (?)
+  ! kep: External grid poitns
   kep = 0
   do isph = 1, ddx_data % nsph
     do ig = 1, ddx_data % ngrid
@@ -423,7 +502,7 @@ contains
             do m0 = -l0, l0
               ind0 = l0**2 + l0 + m0 + 1
               sumSijn = sumSijn + c0(ind0,jsph)*coef_Ylm*basloc(ind0)
-              ! NOTE: (?) Don't know the use of coefY till now (?)
+              ! coefY : Intermediate calculations in Q matrix
               coefY(kep,ind0,jsph) = coef_Ylm*basloc(ind0)
             end do
           end do
@@ -498,7 +577,6 @@ contains
   !!
   !! Scale the ddCOSMO solution vector
   !! @param[in]      direction : Direction of the scaling
-  !! (?) NOTE: We send direction = 1, then why the case of -1 (?)
   !! @param[in, out] vector    : ddCOSMO solution vector
   !!
   subroutine convert_ddcosmo(ddx_data, direction, vector)
@@ -521,6 +599,47 @@ contains
   end do
   return
   end subroutine convert_ddcosmo
+  
+  !!
+  !! Scale the Force solution vector
+  !! @param[in]      direction : Direction of the scaling
+  !! @param[in, out] vector    : Force vector
+  !!
+  subroutine convert_force(ddx_data, direction, vector)
+  implicit none
+  type(ddx_type), intent(in)  :: ddx_data
+  integer :: isph, l, m
+  integer, intent(in) :: direction
+  real(dp), intent(inout) :: vector(3, ddx_data % nsph)
+  real(dp) :: fac
+  
+  do isph = 1, ddx_data % nsph
+    fac = four*pi/(two*dble(l) + one) 
+    if (direction.eq.-1) fac = one/fac
+    do m = 1, 3
+      vector(m,isph) = fac*vector(m,isph)
+    end do
+  end do
+  return
+  end subroutine convert_force
+  
+  !!
+  !! Scale the ddLPB diagonal vector
+  !! @param[in, out] vector    : ddLPB vector
+  !!
+  subroutine convert_ddlpb(ddx_data, vector)
+    ! Inputs
+    type(ddx_type), intent(in) :: ddx_data
+    ! Output
+    real(dp), intent(inout) :: vector(ddx_data % nbasis, ddx_data % nsph)
+    ! Local variables
+    integer :: l, ind
+    ! Loop over harmonics
+    do l = 0, ddx_data % lmax
+        ind = l*l + l + 1
+        vector(ind-l:ind+l, :) = vector(ind-l:ind+l, :) / (ddx_data % vscales(ind)**2)
+    end do
+  end subroutine convert_ddlpb
 
 
   !!
@@ -610,8 +729,7 @@ contains
         ! compute geometrical variables
         vij  = ddx_data % csph(:,isph) + ddx_data % rsph(isph)*ddx_data % cgrid(:,its) - ddx_data % csph(:,jsph)
         vvij = sqrt(dot_product(vij,vij))
-        tij  = vvij/ddx_data % rsph(jsph) 
-
+        tij  = vvij/ddx_data % rsph(jsph)
         if ( tij.lt.one ) then
           sij = vij/vvij
           call ylmbas(sij, rho, ctheta, stheta, cphi, &
@@ -663,10 +781,17 @@ contains
   do l = 0, ddx_data % lmax
     do  m = -l, l
       ind = l*l + l + 1 + m
-      if ((SI_rijn(l).lt.zero) .or. (SI_ri(l,isph).lt.tol_zero) &
-          & .or. (SI_rijn(l)/SI_ri(l,isph).gt.(rijn/ri)**l)) then
+      if ((SI_rijn(l).lt.tol_zero)) then
+        write(*,*) 'DEBUG : Case 1'
+        fac_hsp(ind) = (rijn/ri)**l*basloc(ind)
+      else if (SI_ri(l,isph).lt.tol_zero) then
+        write(*,*) 'DEBUG : Case 2'
+        fac_hsp(ind) = (rijn/ri)**l*basloc(ind)
+      else if(SI_rijn(l)/SI_ri(l,isph).gt.(rijn/ri)**l) then
+        write(*,*) 'DEBUG : Case 3'
         fac_hsp(ind) = (rijn/ri)**l*basloc(ind)
       else if ( SI_ri(l,isph).gt.tol_inf) then
+        write(*,*) 'DEBUG : Case 4'
         fac_hsp(ind) = zero
       else
         fac_hsp(ind) = SI_rijn(l)/SI_ri(l,isph)*basloc(ind)
@@ -695,8 +820,8 @@ contains
   ! Update the RHS in outer iteration
   ! @param[in] rhs_cosmo_init : G_0
   ! @param[in] rhs_hsp_init   : F_0
-  ! @param[in, out] rhs_cosmo : -C_1*X_r^(k-1) - -C_2*X_e^(k-1) + G_0 + F_0
-  ! @param[in, out] rhs_hsp   : -C_1*X_r^(k-1) - -C_2*X_e^(k-1) + F_0
+  ! @param[in, out] rhs_cosmo : -C_1*X_r^(k-1) - C_2*X_e^(k-1) + G_0 + F_0
+  ! @param[in, out] rhs_hsp   : -C_1*X_r^(k-1) - C_2*X_e^(k-1) + F_0
   ! @param[in] Xr             : X_r^(k-1)
   ! @param[in] Xe             : X_e^(k-1)
   !
@@ -865,14 +990,14 @@ contains
   endsubroutine mkpmat
   
   !
-  ! Computation of forces
-  ! NOTE: Work in progress
+  ! Computation of Adjoint
   ! @param[in] ddx_data: Input data file
   ! @param[in] psi     : psi_r
-  subroutine ddx_lpb_force(ddx_data, psi)
+  subroutine ddx_lpb_adjoint(ddx_data, psi, Xadj_r, Xadj_e)
   implicit none
-  type(ddx_type), intent(in)  :: ddx_data
-  real(dp), intent(in)        :: psi(ddx_data % nbasis, ddx_data % nsph)
+  type(ddx_type), intent(in)           :: ddx_data
+  real(dp), intent(in)                 :: psi(ddx_data % nbasis, ddx_data % nsph)
+  real(dp), intent(inout), dimension(ddx_data % nbasis,ddx_data % nsph) :: Xadj_r(:,:), Xadj_e(:,:)
   ! Local Variables
   ! ok             : Logical expression used in Jacobi solver
   ! n_iter         : Maximum number of iteration
@@ -896,19 +1021,19 @@ contains
   !! rhs_hsp        : RHS corresponding to HSP equation
   !! rhs_cosmo_init : Initial RHS for Laplace, psi_r in literature
   !! rhs_hsp_init   : Initial RHS for HSP, psi_e = 0 in literature
-  !! X_k_1          : Solution of previous iterative step, holds Xadj_r_k_1
-  real(dp), allocatable :: Xadj_r(:,:), Xadj_e(:,:), rhs_cosmo(:,:), rhs_hsp(:,:), &
+  !! X_r_k_1          : Solution of previous iterative step, holds Xadj_r_k_1
+  !! X_e_k_1          : Solution of previous iterative step, holds Xadj_e_k_1
+  real(dp), allocatable :: rhs_cosmo(:,:), rhs_hsp(:,:), &
                         & rhs_cosmo_init(:,:), rhs_hsp_init(:,:), &
-                        & X_k_1(:,:)
+                        & X_r_k_1(:,:), X_e_k_1(:,:)
                         
   ! Allocation
-  allocate(Xadj_r(ddx_data % nbasis, ddx_data % nsph), &
-           & Xadj_e(ddx_data % nbasis, ddx_data % nsph), &
-           & rhs_cosmo(ddx_data % nbasis, ddx_data % nsph), &
+  allocate(rhs_cosmo(ddx_data % nbasis, ddx_data % nsph), &
            & rhs_hsp(ddx_data % nbasis, ddx_data % nsph), &
            & rhs_cosmo_init(ddx_data % nbasis, ddx_data % nsph), &
            & rhs_hsp_init(ddx_data % nbasis, ddx_data % nsph),&
-           & X_k_1(ddx_data % nbasis, ddx_data % nsph),&
+           & X_r_k_1(ddx_data % nbasis, ddx_data % nsph),&
+           & X_e_k_1(ddx_data % nbasis, ddx_data % nsph),&
            & stat = istatus)
   if(istatus .ne. 0) then
     write(*,*) 'Allocation failed in Forces LPB!'
@@ -926,7 +1051,8 @@ contains
   inc = zero
   relative_num = zero
   relative_denom = zero
-  X_k_1 = zero
+  X_r_k_1 = zero
+  X_e_k_1 = zero
   ! Logical variable for the first outer iteration
   first_out_iter = .true.
   ! Initial RHS
@@ -936,8 +1062,7 @@ contains
   rhs_hsp_init = zero
   ! Updated RHS
   rhs_cosmo = rhs_cosmo_init
-  ! TODO: Issue for zero entry, Check what can be the best situation
-  rhs_hsp = psi
+  rhs_hsp = zero
   ! Initial Xadj_r and Xadj_e
   Xadj_r = zero
   Xadj_e = zero
@@ -952,9 +1077,14 @@ contains
     
     ! Solve the HSP equation
     ! B*X_adj_e = psi_e
-    call jacobi_diis(ddx_data, ddx_data % n, ddx_data % iprint, ddx_data % ndiis, &
-                    & 4, ddx_data % tol, rhs_hsp, Xadj_e, n_iter, ok, bstarx, &
-                    & ldm1x, hnorm)
+    ! For first iteration the rhs is zero for HSP equation. Hence, Xadj_e = 0
+    if(iteration.ne.1) then
+      call jacobi_diis(ddx_data, ddx_data % n, ddx_data % iprint, ddx_data % ndiis, &
+                      & 4, ddx_data % tol, rhs_hsp, Xadj_e, n_iter, ok, bstarx, &
+                      & ldm1x, hnorm)
+      ! Remove the factor of 4pi/(2l+1) on diagonal
+      call convert_ddlpb(ddx_data, Xadj_e)
+    endif
     
     ! Update the RHS
     ! |rhs_r| = |psi_r|-|C1* C1*||Xadj_r|
@@ -967,8 +1097,9 @@ contains
     relative_denom = zero
     do isph = 1, ddx_data % nsph
       do ibasis = 1, ddx_data % nbasis
-        relative_num = relative_num + (Xadj_r(ibasis, isph)-X_k_1(ibasis, isph))**2
-        relative_denom = relative_denom + (X_k_1(ibasis, isph))**2
+        relative_num = relative_num + (Xadj_r(ibasis, isph)-X_r_k_1(ibasis, isph))**2 &
+                       & + (Xadj_e(ibasis, isph)-X_e_k_1(ibasis, isph))**2
+        relative_denom = relative_denom + X_r_k_1(ibasis, isph)**2+X_e_k_1(ibasis, isph)**2
       end do
     end do
     relative_num = sqrt(relative_num)
@@ -977,7 +1108,8 @@ contains
     ! Check for convergence
     inc = relative_num/relative_denom
     ! Store the previous step solution
-    X_k_1 = Xadj_r
+    X_r_k_1 = Xadj_r
+    X_e_k_1 = Xadj_e
     if ((iteration .gt. 1) .and. (inc.lt.ddx_data % tol)) then
       write(6,*) 'Reach tolerance.'
       converged = .true.
@@ -986,14 +1118,20 @@ contains
     iteration = iteration + 1
     first_out_iter = .false.
   end do
+  if (ddx_data % iprint .ge. 5) then
+    call prtsph('Xadj_r', ddx_data % nbasis, ddx_data % lmax, &
+          & ddx_data % nsph, 0, Xadj_r)
+    call prtsph('Xadj_e', ddx_data % nbasis, ddx_data % lmax, &
+          & ddx_data % nsph, 0, Xadj_e)
+  end if
   ! Deallocation
-  deallocate(Xadj_r, Xadj_e, rhs_cosmo, rhs_hsp, rhs_cosmo_init, &
-           & rhs_hsp_init, X_k_1, stat = istatus)
+  deallocate(rhs_cosmo, rhs_hsp, rhs_cosmo_init, &
+           & rhs_hsp_init, X_r_k_1, X_e_k_1, stat = istatus)
   if(istatus .ne. 0) then
     write(*,*) 'Deallocation failed in Forces LPB!'
     stop
   end if
-  end subroutine
+  end subroutine ddx_lpb_adjoint
   
   !! Computation of Adjoint B, i.e., B*
   !> Apply adjoint single layer operator to spherical harmonics
@@ -1006,7 +1144,7 @@ contains
   ! Output
   real(dp), intent(out)      :: y(ddx_data % nbasis, ddx_data % nsph)
   ! Local variables
-  integer                    :: isph, igrid, istatus
+  integer                    :: isph, igrid, istatus, l, ind
   real(dp), allocatable      :: xi(:,:), vplm(:), basloc(:), vcos(:), vsin(:)
   ! Allocate workspaces
   allocate(xi(ddx_data % ngrid, ddx_data % nsph), vplm(ddx_data % nbasis), &
@@ -1022,7 +1160,6 @@ contains
   end if
   ! Initalize
   y = zero
-  ! !!$omp parallel do default(shared) private(isph,ig)
   !! Expand x over spherical harmonics
   ! Loop over spheres      
   do isph = 1, ddx_data % nsph
@@ -1034,8 +1171,6 @@ contains
   end do
   !! Compute action
   ! Loop over spheres
-  ! !!$omp parallel do default(shared) private(isph,basloc,vplm,vcos,vsin) &
-  ! !!$omp schedule(dynamic)
   do isph = 1, ddx_data % nsph
       ! Compute NEGATIVE action of off-digonal blocks
       call adjrhs_lpb(ddx_data, isph, xi, y(:, isph), basloc, vplm, vcos, vsin)
@@ -1049,8 +1184,8 @@ contains
   ! NOTE: Activate this if one is using GMRES solver
   !       Jacobi solver uses ldm1x for diagonals. Declare l and ind above.
   !do l = 0, ddx_data % lmax
-  !      ind = l*l + l + 1
-  !      y(ind-l:ind+l, :) = x(ind-l:ind+l, :) * (ddx_data % vscales(ind)**2)
+  !  ind = l*l + l + 1
+  !  y(ind-l:ind+l, :) = x(ind-l:ind+l, :) * (ddx_data % vscales(ind)**2)
   !end do
   ! Deallocate workspaces
   deallocate( xi, basloc, vplm, vcos, vsin , stat=istatus )
@@ -1268,6 +1403,8 @@ contains
     ! Compute 
     ! diff_ep_c1 = diff0_c1 * coefY,    COST: M^2*nbasis*Nleb
     ! diff_ep_c2 = diff0_c2 * coefY,    COST: M^2*nbasis*Nleb
+    ! coefY = (i'_{\ell_0}(r_j)/i_{\ell_0}(r_j)-l'_{\ell_0}(r_j)/k_{\ell_0}(r_j))^{-1}
+    !         x (k_{\ell_0}(r_jin)/k_{\ell_0}(r_j))Y_{\ell_0m_0}(s_jin)
     diff_ep_c1 = zero
     diff_ep_c2 = zero
     do iext = 1, ddx_data % ncav
@@ -1307,5 +1444,1080 @@ contains
 
   return
   end subroutine update_rhs_adj
+  
+  !
+  ! Subroutine to compute K^A counterpart for the HSP equation. Similar to fdoka.
+  ! @param[in]  ddx_data  : Data type
+  ! @param[in]  isph      : Index of sphere
+  ! @param[in]  Xe        : Solution vector Xe
+  ! @param[in]  Xadj_e    : Adjoint solution on evaluated on grid points Xadj_e_sgrid
+  ! @param[in]  basloc    : Spherical harmonics Y_lm
+  ! @param[in]  dbasloc   : Derivative of spherical harmonics \nabla^i(Y_lm)
+  ! @param[in]  vplm      : Argument to call ylmbas
+  ! @param[in]  vcos      : Argument to call ylmbas
+  ! @param[in]  vsin      : Argument to call ylmbas
+  ! @param[out] force_e   : Force of adjoint part
+  subroutine fdoka_b_xe(ddx_data, isph, Xe, Xadj_e, basloc, dbsloc, &
+                       & vplm, vcos, vsin, force_e)
+  use bessel
+  implicit none
+  type(ddx_type), intent(in) :: ddx_data
+  integer,                         intent(in)    :: isph
+  real(dp),  dimension(ddx_data % nbasis, ddx_data % nsph), intent(in)   :: Xe
+  real(dp),  dimension(ddx_data % ngrid),       intent(in)    :: Xadj_e
+  real(dp),  dimension(ddx_data % nbasis),      intent(inout) :: basloc, vplm
+  real(dp),  dimension(3, ddx_data % nbasis),    intent(inout) :: dbsloc
+  real(dp),  dimension(ddx_data % lmax+1),      intent(inout) :: vcos, vsin
+  real(dp),  dimension(3),           intent(inout) :: force_e
+  
+  ! Local Variables
+  ! igrid  : Index of grid point
+  ! ineigh : Index over Row space of neighbors
+  ! jsph   : Index of neighbor sphere
+  ! l     : Index for l, l:0,...,lmax
+  ! m     : Index for m, m:-l,...,l
+  ! ind    : l*l+l+1
+  ! NM     : Argument for calling Bessel functions
+  integer :: igrid, ineigh, jsph, l, ind, m, NM
+  ! SI_rijn : Besssel function of first kind for rijn
+  ! DI_rijn : Derivative of Besssel function of first kind for rijn
+  real(dp), dimension(0:ddx_data % lmax) :: SI_rijn, DI_rijn
+  ! rijn   : r_j*r_1^j(x_i^n) = |x_i^n-x_j|
+  ! tij    : r_1^j(x_i^n)
+  ! beta   : Eq.(53) Stamm.etal.18
+  ! tlow   : Lower bound for switch region
+  ! thigh  : Upper bound for switch region
+  ! xij    : chi_j(x_i^n)
+  ! oij    : omega^\eta_ijn
+  ! f1     : First factor in alpha computation
+  ! f2     : Second factor in alpha computation
+  real(dp)  :: rijn, tij, beta, tlow, thigh, xij, oij, f1, f2, f3
+  ! vij   : x_i^n-x_j
+  ! sij   : e^j(x_i^n)
+  ! alpha : Eq.(52) Stamm.etal.18
+  ! va    : Eq.(54) Stamm.etal.18
+  real(dp)  :: vij(3), sij(3), alpha(3), va(3), rj
+  real(dp), external :: dnrm2
+  
+  SI_rijn = 0
+  DI_rijn = 0
+  
+  tlow  = one - pt5*(one - ddx_data % se)*ddx_data % eta
+  thigh = one + pt5*(one + ddx_data % se)*ddx_data % eta
+    
+  ! Loop over grid points
+  do igrid = 1, ddx_data % ngrid
+    va = zero
+    do ineigh = ddx_data % inl(isph), ddx_data % inl(isph+1) - 1
+      jsph = ddx_data % nl(ineigh)
+      vij  = ddx_data % csph(:,isph) + &
+            & ddx_data % rsph(isph)*ddx_data % cgrid(:,igrid) - &
+            & ddx_data % csph(:,jsph)
+      rijn = dnrm2(3, vij, 1)
+      tij  = rijn/ddx_data % rsph(jsph)
+      rj = ddx_data % rsph(jsph)
+     
+      if (tij.ge.thigh) cycle
+      ! Computation of modified spherical Bessel function values      
+      call SPHI_bessel(ddx_data % lmax, rijn*ddx_data % kappa, NM, SI_rijn, DI_rijn)
+    
+      sij  = vij/rijn
+      !call dbasis(sij,basloc,dbsloc,vplm,vcos,vsin)
+      call dbasis(ddx_data, sij, basloc, dbsloc, vplm, vcos, vsin)
+      alpha  = zero
+      do l = 0, ddx_data % lmax
+        ind = l*l + l + 1
+        if ((SI_rijn(l).lt.zero) .or. (SI_ri(l,jsph).lt.tol_zero) &
+          & .or. (SI_rijn(l)/SI_ri(l,jsph).gt.(rijn/rj)**l)) then
+          f2 = (rijn/rj)**l
+          f1 = (l*(rijn/rj)**(l-1))/rj
+        else if ( SI_ri(l,jsph).gt.tol_inf) then
+          f2 = zero
+          f1 = zero
+        else
+          f2 = SI_rijn(l)/(rijn*SI_ri(l, jsph))
+          f1 = (DI_rijn(l)*ddx_data % kappa)/SI_ri(l, jsph)
+        end if
+        do m = -l, l
+          alpha(:) = alpha(:) + (f1*sij(:)*basloc(ind+m) + &
+                    & f2*dbsloc(:,ind+m))*Xe(ind+m,jsph)
+        end do
+      end do
+      beta = compute_beta(ddx_data, SI_rijn, rijn, jsph, Xe(:,jsph),basloc)
+      xij = fsw(tij, ddx_data % se, ddx_data % eta)
+      if (ddx_data % fi(igrid,isph).gt.one) then
+        oij = xij/ddx_data % fi(igrid,isph)
+        f2  = -oij/ddx_data % fi(igrid,isph)
+      else
+        oij = xij
+        f2  = zero
+      end if
+      f1 = oij
+      va(:) = va(:) + f1*alpha(:) + beta*f2*ddx_data % zi(:,igrid,isph)
+      if (tij .gt. tlow) then
+        f3 = beta*dfsw(tij,ddx_data % se,ddx_data % eta)/ddx_data % rsph(jsph)
+        if (ddx_data % fi(igrid,isph).gt.one) f3 = f3/ddx_data % fi(igrid,isph)
+        va(:) = va(:) + f3*sij(:)
+      end if
+    end do
+  force_e = force_e - ddx_data % wgrid(igrid)*Xadj_e(igrid)*va(:)
+  end do
+  return
+  end subroutine fdoka_b_xe
+  
+  !
+  ! Subroutine to compute K^A+K^C counterpart for the HSP equation. Similar to fdokb.
+  ! @param[in]  ddx_data  : Data type
+  ! @param[in]  isph      : Index of sphere
+  ! @param[in]  Xe        : Solution vector Xe
+  ! @param[in]  Xadj_e    : Adjoint solution on evaluated on grid points Xadj_e_sgrid
+  ! @param[in]  basloc    : Spherical harmonics Y_lm
+  ! @param[in]  dbasloc   : Derivative of spherical harmonics \nabla^i(Y_lm)
+  ! @param[in]  vplm      : Argument to call ylmbas
+  ! @param[in]  vcos      : Argument to call ylmbas
+  ! @param[in]  vsin      : Argument to call ylmbas
+  ! @param[out] force_e   : Force of adjoint part
+  subroutine fdokb_b_xe(ddx_data, isph, Xe, Xadj_e, basloc, dbsloc, &
+                        & vplm, vcos, vsin, force_e)
+  use bessel
+  implicit none
+  type(ddx_type), intent(in) :: ddx_data
+  integer,                         intent(in)    :: isph
+  real(dp),  dimension(ddx_data % nbasis, ddx_data % nsph), intent(in)    :: Xe
+  real(dp),  dimension(ddx_data % ngrid, ddx_data % nsph),  intent(in)    :: Xadj_e
+  real(dp),  dimension(ddx_data % nbasis),      intent(inout) :: basloc,  vplm
+  real(dp),  dimension(3, ddx_data % nbasis),   intent(inout) :: dbsloc
+  real(dp),  dimension(ddx_data % lmax+1),      intent(inout) :: vcos, vsin
+  real(dp),  dimension(3),           intent(inout) :: force_e
+
+  ! Local Variables
+  ! igrid  : Index of grid points
+  ! jsph   : Index of jth sphere
+  ! ksph   : Index of kth sphere
+  ! ineigh : Row pointer over ith row
+  ! l      : Index for l, l:0,...,lmax
+  ! m      : Index for m, m:-l0,...,l0
+  ! ind    : l*l+l+1
+  ! jk     : Row pointer over kth row
+  ! NM     : Argument for calling Bessel functions
+  integer :: igrid, jsph, ksph, ineigh, l, m, ind, jk,  NM
+  ! SI_rjin : Besssel function of first kind for rijn
+  ! DI_rjin : Derivative of Besssel function of first kind for rijn
+  ! SI_rjkn : Besssel function of first kind for rjkn
+  ! DI_rjkn : Derivative of Besssel function of first kind for rjkn
+  real(dp), dimension(0:ddx_data % lmax) :: SI_rjin, DI_rjin, SI_rjkn, DI_rjkn, SI_rjin_d,&
+                                          & DI_rjin_d, SI_rjin_dh, DI_rjin_dh
+  
+  logical :: proc
+  ! rjin    : r_i*r_1^i(x_j^n) = |x_j^n-x_i|
+  ! tji     : r_1^i(x_j^n)
+  ! xji     : chi_i(x_j^n)
+  ! oji     : omega^\eta_jin
+  ! fac     : \delta_fj_n*\omega^\eta_ji
+  ! f1      : First factor in alpha computation
+  ! f2      : Second factor in alpha computation
+  ! beta_ji : Eq.(57) Stamm.etal.18
+  ! dj      : Before Eq.(10) Stamm.etal.18
+  ! tlow    : Lower bound for switch region
+  ! thigh   : Upper bound for switch region
+  real(dp)  :: rjin, tji, xji, oji, fac, f1, f2, beta_ji, dj, tlow, thigh, f1_d, f1_dh,&
+               & f2_d, f2_dh, arg_d, arg_dh, step_size, f2_taylor, f2_taylor_dh
+  ! beta_jk : Eq.(58) Stamm.etal.18
+  ! rjkn    : r_k*r_1^k(x_j^n) = |x_j^n-x_k|
+  ! tjk     : r_1^k(x_j^n)
+  ! xjk     : chi_k(x_j^n)
+  real(dp)  :: b, beta_jk, g1, g2, rjkn, tjk, xjk
+  ! vji   : x_j^n-x_i
+  ! sji   : e^i(x_j^n)
+  ! vjk   : x_j^n-x_k
+  ! sjk   : e^k(x_j^n)
+  ! alpha : Eq.(56) Stamm.etal.18
+  ! vb    : Eq.(60) Stamm.etal.18
+  ! vc    : Eq.(59) Stamm.etal.18
+  real(dp)  :: vji(3), sji(3), vjk(3), sjk(3), alpha(3), vb(3), vc(3)
+  ! rho    : Argument for ylmbas
+  ! ctheta : Argument for ylmbas
+  ! stheta : Argument for ylmbas
+  ! cphi   : Argument for ylmbas
+  ! sphi   : Argument for ylmbas
+  real(dp) :: rho, ctheta, stheta, cphi, sphi, ri
+  real(dp), external :: dnrm2
+  
+  SI_rjin = 0
+  DI_rjin = 0
+  SI_rjin_d = 0
+  DI_rjin_d = 0
+  SI_rjin_dh = 0
+  DI_rjin_dh = 0
+  SI_rjkn = 0
+  DI_rjkn = 0
+  
+  step_size = 0.000001
+  arg_d =  0.094112531233527419
+  arg_dh = arg_d + step_size
+
+  tlow  = one - pt5*(one - ddx_data % se)*ddx_data % eta
+  thigh = one + pt5*(one + ddx_data % se)*ddx_data % eta
+
+  do igrid = 1, ddx_data % ngrid
+    vb = zero
+    vc = zero
+    do ineigh = ddx_data % inl(isph), ddx_data % inl(isph+1) - 1
+      jsph = ddx_data % nl(ineigh)
+      vji  = ddx_data % csph(:,jsph) + &
+              & ddx_data % rsph(jsph)*ddx_data % cgrid(:,igrid) - &
+              & ddx_data % csph(:,isph)
+      rjin = dnrm2(3, vji, 1)
+      tji  = rjin/ddx_data % rsph(isph)
+      ri = ddx_data % rsph(isph)
+
+      if (tji.gt.thigh) cycle
+      ! Computation of modified spherical Bessel function values      
+      call SPHI_bessel(ddx_data % lmax, arg_d, NM, SI_rjin_d, DI_rjin_d)
+      call SPHI_bessel(ddx_data % lmax, arg_dh, NM, SI_rjin_dh, DI_rjin_dh)
+      
+      call SPHI_bessel(ddx_data % lmax, rjin*ddx_data % kappa, NM, SI_rjin, DI_rjin)
+      
+      sji  = vji/rjin
+      !call dbasis(sji,basloc,dbsloc,vplm,vcos,vsin)
+      call dbasis(ddx_data, sji, basloc, dbsloc, vplm, vcos, vsin)
+      alpha = zero
+      do l = 0, ddx_data % lmax
+        ind = l*l + l + 1
+        if ((SI_rjin(l).lt.tol_zero) .or. (SI_ri(l,isph).lt.tol_zero) &
+          & .or. (SI_rjin(l)/SI_ri(l,isph).gt.(rjin/ri)**l)) then
+          f1 = (l*(rjin/ri)**(l-1))/ri
+          f2 = (rjin/ri)**l
+        else if ( SI_ri(l,isph).gt.tol_inf) then
+          f1 = zero
+          f2 = zero
+        else
+          f1 = (DI_rjin(l)*ddx_data % kappa)/SI_ri(l,isph)
+          f2 = SI_rjin(l)/SI_ri(l,isph)
+        end if
+          
+        f1_d = DI_rjin_d(l)
+        f2_d = SI_rjin_d(l)
+          
+        f1_dh = DI_rjin_dh(l)
+        f2_dh = SI_rjin_dh(l)
+        
+        f2_taylor = l/arg_d + &
+            & (l + one)*(ddx_data % kappa**2*arg_d)/((two*l + one) * &
+            & (two*l + three))
+        f2_taylor_dh = l/arg_dh + &
+            & (l + one)*(ddx_data % kappa**2*arg_dh)/((two*l + one) * &
+            & (two*l + three))
+        do m = -l, l
+          alpha = alpha + (f1*sji*basloc(ind+m) + (f2/rjin)*dbsloc(:,ind+m))*Xe(ind+m,isph)
+        end do
+        write(*,*) ' DEBUG rjin                                 :', rjin*ddx_data % kappa
+        write(*,*) ' DEBUG ri                                   :', ri*ddx_data % kappa
+        write(*,*) ' DEBUG, Finite Differece derivative, ', l,' : ', (f2_dh-f2_d)/step_size
+        write(*,*) ' DEBUG, Taylor Differece derivative, ', l,' : ', (f2_taylor_dh-f2_taylor)/step_size
+        write(*,*) ' DEBUG, Analytical Derivative      , ', l,' : ', f1_d
+        write(*,*) ' '
+      end do
+      xji = fsw(tji,ddx_data % se,ddx_data % eta)
+      if (ddx_data % fi(igrid,jsph).gt.one) then
+        oji = xji/ddx_data % fi(igrid,jsph)
+      else
+        oji = xji
+      end if
+      f1 = oji
+      vb = vb + f1*alpha*Xadj_e(igrid,jsph)
+      if (tji .gt. tlow) then
+        ! Compute beta_jin, i.e., Eq.(57) Stamm.etal.18
+        beta_ji = compute_beta(ddx_data, SI_rjin, rjin, isph, Xe(:,isph), basloc)
+        if (ddx_data % fi(igrid,jsph) .gt. one) then
+          dj  = one/ddx_data % fi(igrid,jsph)
+          fac = dj*xji
+          proc = .false.
+          b    = zero
+          do jk = ddx_data % inl(jsph), ddx_data % inl(jsph+1) - 1
+            ksph = ddx_data % nl(jk)
+            vjk  = ddx_data % csph(:,jsph) + &
+                 & ddx_data % rsph(jsph)*ddx_data % cgrid(:,igrid) - &
+                 & ddx_data % csph(:,ksph)
+            rjkn = dnrm2(3, vjk, 1)
+            tjk  = rjkn/ddx_data % rsph(ksph)
+            ! Computation of modified spherical Bessel function values      
+            call SPHI_bessel(ddx_data % lmax,rjkn*ddx_data % kappa,NM,SI_rjkn,DI_rjkn)
+            if (ksph.ne.isph) then
+              if (tjk .le. thigh) then
+              proc = .true.
+              sjk  = vjk/rjkn
+              !call ylmbas(sjk,basloc,vplm,vcos,vsin)
+              call ylmbas(sjk, rho, ctheta, stheta, cphi, sphi, &
+                  & ddx_data % lmax, ddx_data % vscales, basloc, vplm, &
+                  & vcos, vsin)
+              beta_jk  = compute_beta(ddx_data, SI_rjkn, rjkn, ksph, Xe(:,ksph), basloc)
+              xjk = fsw(tjk, ddx_data % se, ddx_data % eta)
+              b   = b + beta_jk*xjk
+              end if
+            end if
+          end do
+          if (proc) then
+            g1 = dj*dj*dfsw(tji,ddx_data % se,ddx_data % eta)/ddx_data % rsph(isph)
+            g2 = g1*Xadj_e(igrid,jsph)*b
+            vc = vc + g2*sji
+          end if
+        else
+          dj  = one
+          fac = zero
+        end if
+        f2 = (one-fac)*dj*dfsw(tji,ddx_data % se,ddx_data % eta)/ddx_data % rsph(isph)
+        vb = vb + f2*Xadj_e(igrid,jsph)*beta_ji*sji
+      end if 
+    end do
+    force_e = force_e + ddx_data % wgrid(igrid)*(vb - vc)
+    end do
+  return
+  end subroutine fdokb_b_xe
+  
+  real(dp) function compute_beta(ddx_data, SI_rijn, rijn, jsph, Xe, basloc)
+  implicit none
+  type(ddx_type) :: ddx_data
+  real(dp), dimension(0:ddx_data % lmax), intent(in) :: SI_rijn
+  real(dp), dimension(ddx_data % nbasis), intent(in) :: basloc
+  real(dp), dimension(ddx_data % nbasis), intent(in)   :: Xe
+  integer, intent(in) :: jsph
+  real(dp), intent(in) :: rijn
+
+  integer :: l, m, ind
+  real(dp)  :: ss, fac, rj
+  ss = zero
+  rj = ddx_data % rsph(jsph)
+
+  ! loop over l
+  do l = 0, ddx_data % lmax
+    ind = l*l + l + 1
+    do m = -l, l
+      if ((SI_rijn(l).lt.zero) .or. (SI_ri(l,jsph).lt.1.0D-15) &
+          & .or. (SI_rijn(l)/SI_ri(l,jsph).gt.(rijn/rj)**l)) then
+        fac = (rijn/rj)**l
+      else if ( SI_ri(l,jsph).gt.1.0D30) then
+        fac = zero
+      else
+        fac = SI_rijn(l)/SI_ri(l,jsph)
+      end if
+      ss = ss + fac*basloc(ind+m)*Xe(ind+m)
+    end do
+  end do
+     
+  compute_beta = ss
+  end function compute_beta
+  
+  !
+  ! Subroutine to compute the derivative of C_1 and C_2
+  ! @param[in] ddx_data   : Data Type
+  ! @param[in] ksph       : Derivative with respect to x_k
+  ! @param[in] Xr         : Solution of the Laplace problem
+  ! @param[in] Xe         : Solution of the HSP problem
+  ! @param[in] Xadj_r     : Solution of the Adjoint Laplace problem
+  ! @param[in] Xadj_e     : Solution of the Adjoint HSP problem
+  ! @param[inout] force_r : Force corresponding to Laplace problem
+  ! @param[inout] force_e : Force corresponding to HSP problem
+  ! Work in progress
+  subroutine fdoc(ddx_data, ksph, Xr, Xe, Xadj_r, Xadj_e, Xadj_r_sgrid, &
+                 & Xadj_e_sgrid, force_r, force_e)
+  implicit none
+  type(ddx_type) :: ddx_data
+  integer , intent(in) :: ksph
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(in) :: Xr, Xe
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(in) :: Xadj_e, Xadj_r
+  real(dp),  dimension(ddx_data % ngrid), intent(in)    :: Xadj_r_sgrid, Xadj_e_sgrid
+  real(dp), dimension(3), intent(inout) :: force_r, force_e
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph) :: diff_re
+  real(dp), dimension(nbasis0, ddx_data % nsph) :: diff0
+  
+  ! The matrix C_1[Xr]+C_2[Xe] has two terms depending on x_i, namely U_i(x_in)
+  ! and [Q]_jl'm'^in. We compute these contributions seperately.
+  ! First: Compute \nabla^k(U_i(x_in)) [Q]_jl'm'^in 
+  call derivative_U(ddx_data, ksph, Xr, Xe, Xadj_r_sgrid, Xadj_e_sgrid, force_r,&
+                    & force_e, diff_re, diff0 )
+  ! Second: Compute U_i(x_in) [Q^k]_jl'm'^in 
+  call derivative_Q(ddx_data, ksph, Xr, Xe, Xadj_r, Xadj_e, force_r, force_e, diff_re, &
+                    & diff0 )
+  return
+  end subroutine fdoc
+  
+  !
+  ! Subroutine to compute the derivative of PChi
+  ! @param[in]  ddx_data : Data Type
+  ! @param[in]  ksph     : Derivative with respect to x_k
+  ! @param[out] dpmat    : P^kChi_i
+  subroutine derivative_mkpmat(ddx_data, ksph, dpmat)
+  implicit none
+  type(ddx_type) :: ddx_data
+  integer, intent (in) :: ksph
+  real(dp), dimension(3, ddx_data % nbasis, nbasis0,&
+                      & ddx_data % nsph), intent(out) :: dpmat
+  ! Local Variables
+  ! vik     : x_i^n-x_k
+  ! sik     : e^k(x_i^n)
+  ! f       : w_n*Y_lm(s_n)*Der_U_i(x_i^n)
+  ! der_u_i : \nabla U_i(x_i^n)
+  real(dp), dimension(3) :: vik, sik, f, der_u_i
+  ! rikn  : r_k*r_1^k(x_k^n) = |x_i^n-x_k|
+  ! tik   : r_1^k(x_i^n)
+  ! fac   : Der_Chi(r_1^k(x_i^n))*e^k(x_i^n)/r_k
+  ! f0    : Y_l0m0(s_n)
+  real(dp) :: rikn, tik, fac, f0, swthr
+  ! isph  : Index for sphere
+  ! ig    : Index for grid point
+  ! l     : l=0,lmax
+  ! m     : m=-l, l
+  ! ind   : l*l+l+1
+  ! l0    : l=0,lmax0
+  ! m0    : m0=-l0, l0
+  ! ind0  : l0*l0+l0+1
+  integer  :: isph, ig, l, m, ind, l0, m0, ind0, neighbor, ji
+  real(dp), external :: dnrm2
+  
+  swthr = one + (ddx_data % se + one)*ddx_data % eta/two
+  neighbor = zero
+  
+  ! Loop over spheres, i.e., different matrix PChi_i
+  do isph = 1, ddx_data % nsph
+    neighbor = zero
+    do ji = ddx_data % inl(isph), ddx_data % inl(isph+1) - 1
+      if (ksph .eq. ddx_data % nl(ji)) then
+        neighbor = one
+        exit
+      end if
+    end do
+    ! Loop over grid points
+    do ig = 1, ddx_data % ngrid
+      der_u_i = zero
+      if(ddx_data % ui(ig, isph) .gt. zero .and. ddx_data % ui(ig, isph) .lt. one) then
+        vik = ddx_data % csph(:, isph) + ddx_data % rsph(isph)*ddx_data % cgrid(:,ig) -&
+              & ddx_data % csph(:, ksph)
+        rikn = dnrm2(3, vik, 1)
+        tik  = rikn/ddx_data % rsph(ksph)
+        ! Neighbor of x_i
+        if(neighbor .eq. one .and. tik.lt.swthr .and. tik.gt.swthr-ddx_data % eta) then
+          sik = vik/rikn
+          fac = dfsw(tik, ddx_data % se, ddx_data % eta)/ddx_data % rsph(ksph)
+          der_u_i = fac*sik
+        ! ksph=isph
+        else if (ksph .eq. isph) then
+          der_u_i = -ddx_data % zi(:,ig,isph)
+        ! Not neighbor or equal sphere
+        else
+          der_u_i = zero
+        end if
+        do l = 0, ddx_data % lmax
+          ind = l*l + l + 1
+          do m = -l,l
+            f = ddx_data % wgrid(ig)*ddx_data % vgrid(ind+m, ig)*der_u_i
+            do l0 = 0, lmax0
+              ind0 = l0*l0 + l0 + 1
+              do m0 = -l0, l0
+                f0 = ddx_data % vgrid(ind0+m0, ig)
+                dpmat(:,ind+m,ind0+m0,isph) = dpmat(:,ind+m,ind0+m0,isph) + f*f0
+              end do
+            end do
+          end do
+        end do
+      end if
+    end do
+  end do
+  return
+  end subroutine derivative_mkpmat
+  
+  !
+  ! Subroutine to compute the derivative of U_i(x_in)
+  ! @param[in] ddx_data     : Data Type
+  ! @param[in] ksph         : Derivative with respect to x_k
+  ! @param[in] Xr           : Solution of the Laplace problem
+  ! @param[in] Xe           : Solution of the HSP problem
+  ! @param[in] Xadj_r_sgrid : Solution of the Adjoint Laplace problem
+  ! @param[in] Xadj_e_sgrid : Solution of the Adjoint HSP problem
+  ! @param[inout] force_r   : Force corresponding to Laplace problem
+  ! @param[inout] force_e   : Force corresponding to HSP problem
+  ! @param[out] diff_re     : epsilon_1/epsilon_2 * l'/r_j[Xr]_jl'm' 
+  !                         - (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
+  ! @param[out] diff0       : dot_product([PU_j]_l0m0^l'm', l'/r_j[Xr]_jl'm' -
+  !                        (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm')
+  subroutine derivative_U(ddx_data, ksph, Xr, Xe, Xadj_r_sgrid, Xadj_e_sgrid, force_r, & 
+                          &force_e, diff_re, diff0)
+  implicit none
+  type(ddx_type), intent(in) :: ddx_data
+  integer, intent(in) :: ksph
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(in) :: Xr, Xe
+  real(dp), dimension(ddx_data % ngrid, ddx_data % nsph), intent(in) :: Xadj_r_sgrid,&
+                                                                        & Xadj_e_sgrid
+  real(dp), dimension(3), intent(inout) :: force_r, force_e
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(out) :: diff_re
+  real(dp), dimension(nbasis0, ddx_data % nsph), intent(out) :: diff0
+  real(dp), external :: dnrm2
+  ! Local variable
+  ! isph  : Index for sphere i
+  ! jsph  : Index for sphere j
+  ! igrid : Index for grid point
+  ! l     : l=0, lmax
+  ! m     : -l,..,l
+  ! ind   : l^2+l+1
+  ! l0    : l0=0, lmax0
+  ! m0    : -l0, l0
+  ! ind0  : l0^2+l0+1
+  ! kep   : Index for external grid point
+  integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, kep
+  ! vik     : x_i^n-x_k
+  ! der_u_i : \nabla U_i(x_i^n)
+  ! sik     : e^k(x_i^n)
+  real(dp), dimension(3) :: vik, der_u_i, sik
+  ! val   : Intermediate variable to compute diff_ep
+  real(dp) :: val
+  ! coefvec : \omega_n*\nabla (U_i^e(x_in))*Y_lm(s_n)
+  real(dp), dimension(3, ddx_data % ngrid, ddx_data % nbasis, ddx_data % nsph) :: coefvec
+  ! phi_in : sum_{j=1}^N diff0_j * coefY_j
+  real(dp), dimension(ddx_data % ngrid, ddx_data % nsph) :: phi_in
+  ! Debug purpose
+  real(dp), dimension(ddx_data % ncav, nbasis0, ddx_data % nsph) :: coefY_unit
+  real(dp), dimension(ddx_data % nbasis, nbasis0, ddx_data % nsph):: Pchi_d
+  
+  ! For checking the derivative of U_i^e, we make the matrix Q constant
+  Pchi_d = one
+  coefY_unit = one
+
+  ! Compute l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
+  do jsph = 1, ddx_data % nsph
+    do l = 0, ddx_data % lmax
+      do m = -l,l
+        ind = l**2 + l + m + 1
+        diff_re(ind,jsph) = ((epsp/ddx_data % eps)*(l/ddx_data % rsph(jsph)) * &
+              & Xr(ind,jsph) - termimat(l,jsph)*Xe(ind,jsph))
+      end do
+    end do
+  end do
+  
+  ! diff0 = Pchi * diff_re, linear scaling
+  diff0 = zero 
+  do jsph = 1, ddx_data % nsph
+    do ind0 = 1, nbasis0
+      diff0(ind0, jsph) = dot_product(diff_re(:,jsph), &
+          & Pchi_d(:,ind0, jsph))
+    end do
+  end do
+  
+  ! phi_in = diff0 * coefY,    COST: M^2*nbasis*Nleb
+  ! Here, summation over j takes place
+  phi_in = zero
+  kep = 0
+  do igrid = 1, ddx_data % ngrid
+    do isph = 1, ddx_data % nsph
+      if(ddx_data % ui(igrid, isph) .gt. zero) then
+        kep = kep + 1
+        val = zero
+        do jsph = 1, ddx_data % nsph 
+          do ind0 = 1, nbasis0
+            val = val + diff0(ind0,jsph)*coefY_unit(kep,ind0,jsph)
+          end do
+        end do
+      end if
+    phi_in(igrid, isph) = val
+    end do
+  end do
+  call fdoga(ddx_data, ksph, Xadj_r_sgrid, phi_in, force_r)
+  call fdoga(ddx_data, ksph, Xadj_e_sgrid, phi_in, force_e)
+  
+  end subroutine derivative_U
+  
+  !
+  ! Subroutine to compute the derivative of [Q]_jl'm'^in
+  ! @param[in] ddx_data   : Data Type
+  ! @param[in] ksph       : Derivative with respect to x_k
+  ! @param[in] Xr         : Solution of the Laplace problem
+  ! @param[in] Xe         : Solution of the HSP problem
+  ! @param[in] Xadj_r     : Solution of the Adjoint Laplace problem
+  ! @param[in] Xadj_e     : Solution of the Adjoint HSP problem
+  ! @param[inout] force_r : Force corresponding to Laplace problem
+  ! @param[inout] force_e : Force corresponding to HSP problem
+  ! @param[in] diff_re    : l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
+  ! @param[in] diff0      : dot_product([PU_j]_l0m0^l'm', l'/r_j[Xr]_jl'm' -
+  !                        (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm')
+  subroutine derivative_Q(ddx_data, ksph, Xr, Xe, Xadj_r, Xadj_e, force_r, force_e, & 
+                         & diff_re, diff0)
+  use bessel
+  implicit none
+  type(ddx_type), intent(in) :: ddx_data
+  integer, intent(in) :: ksph
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(in) :: Xr, Xe
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(in) :: Xadj_r, Xadj_e
+  real(dp), dimension(3), intent(inout) :: force_r, force_e
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph), intent(in) :: diff_re
+  real(dp), dimension(nbasis0, ddx_data % nsph), intent(in) :: diff0
+  real(dp), external :: dnrm2
+  ! Local variable
+  ! isph  : Index for sphere i
+  ! jsph  : Index for sphere j
+  ! igrid : Index for grid point
+  ! l     : l=0, lmax
+  ! m     : -l,..,l
+  ! ind   : l^2+l+1
+  ! l0    : l0=0, lmax0
+  ! m0    : -l0, l0
+  ! ind0  : l0^2+l0+1
+  ! kep   : Index for external grid point
+  ! i     : Index for dimension
+  ! NM     : Argument for calling Bessel functions
+  integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, kep, i, NM
+  ! vik      : x_i^n-x_k
+  ! der_u_i  : \nabla U_i(x_i^n)
+  ! sik      : e^k(x_i^n)
+  ! val_dim3 : Intermediate variable to compute diff_ep_der_Pchi
+  real(dp), dimension(3) :: vik, der_u_i, sik, val_dim3
+  ! tik   : r_1^k(x_i^n)
+  ! tij   : r_1^j(x_i^n)
+  ! fac   : Der_Chi(r_1^k(x_i^n))*e^k(x_i^n)/r_k
+  ! rikn  : r_k*r_1^k(x_k^n) = |x_i^n-x_k|
+  ! rijn  : r_j*r_1^j(x_j^n) = |x_i^n-x_j|
+  ! f1    : First factor in alpha computation
+  ! f2    : Second factor in alpha computation
+  real(dp) :: tik, tij, fac, rikn, rijn, f1, f2
+  ! vij   : x_i^n-x_j
+  ! sij   : e^j(x_i^n)
+  real(dp)  :: vij(3), sij(3)
+  ! basloc : Y_lm(s_n)
+  ! vplm   : Argument to call ylmbas
+  real(dp),  dimension(ddx_data % nbasis):: basloc, vplm
+  ! dbasloc : Derivative of Y_lm(s_n)
+  real(dp),  dimension(3, ddx_data % nbasis):: dbasloc
+  ! vcos   : Argument to call ylmbas
+  ! vsin   : Argument to call ylmbas
+  real(dp),  dimension(ddx_data % lmax+1):: vcos, vsin
+  ! der_c_one_c_two : Derivative of C_1 and C_2
+  real(dp), dimension(3, ddx_data % nbasis, ddx_data % nsph) :: der_c_one_c_two
+  ! coefvec : \omega_n*U_i^e(x_in)*Y_lm(s_n)
+  real(dp), dimension(ddx_data % ngrid, ddx_data % nbasis, ddx_data % nsph) :: coefvec
+  ! diff0_der : Derivative of PChi matrix scaled by diff_re
+  real(dp), dimension(3, nbasis0, ddx_data % nsph) :: diff0_der
+  ! dpmat   : Derivative of PChi matrix. Size: 3 x nbasis x nbasis0 x nsph
+  real(dp), dimension(3, ddx_data % nbasis, nbasis0, &
+                      & ddx_data % nsph) :: dpmat
+  ! diff_ep_der_Pchi : First product rule term
+  real(dp), dimension(3, ddx_data % ncav) :: diff_ep_der_Pchi
+  ! diff_ep_der_ki_Y : Second and Third product rule term
+  real(dp), dimension(3) :: diff_ep_der_ki_Y
+  ! SK_rijn : Besssel function of first kind for rijn
+  ! DK_rijn : Derivative of Besssel function of first kind for rijn
+  real(dp), dimension(0:ddx_data % lmax) :: SK_rijn, DK_rijn
+  
+  SK_rijn = 0
+  DK_rijn = 0
+  
+  ! (?) This can be taken from update_rhs
+  do isph = 1, ddx_data % nsph
+    ! Loop over grid points
+    do igrid = 1, ddx_data % ngrid
+      ! Check if the characteristic function is positive
+      if (ddx_data % ui(igrid, isph) .gt. zero) then
+        do ind  = 1, ddx_data % nbasis 
+          coefvec(igrid,ind,isph) = ddx_data % wgrid(igrid) &
+                                  &*ddx_data % ui(igrid,isph)*ddx_data % vgrid(ind,igrid)
+        end do
+      end if
+    end do
+  end do
+  
+  ! Derivative of PChi_i with respect to x_k
+  call derivative_mkpmat(ddx_data, ksph, dpmat)
+  
+  ! diff0_der = [PChi^k] * diff_re
+  diff0_der = zero
+  do jsph = 1, ddx_data % nsph
+    do ind0 = 1, nbasis0
+      do i = 1, 3
+        diff0_der(i, ind0, jsph) = dot_product(diff_re(:,jsph), &
+          & dpmat(i, :,ind0, jsph))
+      end do
+    end do
+  end do
+  
+  ! diff_ep_der_Pchi = diff0_der * coefY,    COST: M^2*nbasis*Nleb
+  diff_ep_der_Pchi = zero
+  do kep = 1, ddx_data % ncav
+    val_dim3 = zero
+    do jsph = 1, ddx_data % nsph 
+      do ind0 = 1, nbasis0
+        val_dim3 = val_dim3 + diff0_der(:,ind0,jsph)*coefY(kep,ind0,jsph)
+      end do
+    end do
+    diff_ep_der_Pchi(:, kep) = val_dim3(:)
+  end do
+  
+  ! diff_ep_der_ki_Y = \sum_j \sum_l0m0 (C_ik [PU_j]_l0m0^l'm' (\nabla^k(k_l0^j(x_ni)*
+  !                     Y_l0m0^j(x_ni) +k_l0^j(x_ni)\nabla^k(Y_l0m0^j(x_ni)))))
+  diff_ep_der_ki_Y = zero
+  der_c_one_c_two = zero
+  kep = 0
+  ! Loop over i-th sphers
+  do isph = 1, ddx_data % nsph
+    ! Loop over gird points
+    do igrid = 1, ddx_data % ngrid
+      ! Loop over j-th sphere
+      do jsph = 1, ddx_data % nsph
+        vij = ddx_data % csph(:, isph) + ddx_data % rsph(isph)*ddx_data % cgrid (:, igrid)&
+              & - ddx_data % csph(:, jsph)
+        rijn = dnrm2(3, vij, 1)
+        tij = rijn/ddx_data % rsph(jsph)
+        sij = vij / rijn
+        ! Compute Y_lm(x_ni) and \nabla^k (Y_lm(x_ni))
+        call dbasis(ddx_data, sij, basloc, dbasloc, vplm, vcos, vsin)
+        ! Loop over lmax0
+        do l0 = 0, lmax0
+          ! Compute k_l0^ĵ(x_ni) and \nabla^k(k_l0^ĵ(x_ni))
+          call SPHK_bessel(lmax0, rijn*ddx_data % kappa, NM, SK_rijn, DK_rijn)
+          ind0 = l0*l0 + l0 + 1
+          ! Loop over m0
+          do m0 = -l0, l0
+            ! f1 = k_l0'(x_ni-x_j)/k_l0(r_j) Y_l0m0(x_ni)
+            f1 = (DK_rijn(l0)/SK_ri(l0, jsph)*ddx_data % kappa)*basloc(ind0 + m0)
+            ! f2 = k_l0(x_in)/r_jr_1^j(x_ni)
+            f2 = (SK_rijn(l0)/rijn*SK_ri(l0, jsph))
+            if(ksph .eq. jsph) then
+              diff_ep_der_ki_Y = diff_ep_der_ki_Y - (f1*sij + f2*dbasloc(:, ind0+m0))&
+                                 & * C_ik(l0, jsph)*diff0(ind0, jsph)
+            else if (ksph .eq. isph) then
+              diff_ep_der_ki_Y = diff_ep_der_ki_Y + (f1*sij + f2*dbasloc(:, ind0+m0))&
+                                 & * C_ik(l0, jsph)*diff0(ind0, jsph)
+            else
+              diff_ep_der_ki_Y = zero
+            end if
+          end do
+        end do
+        if (ddx_data % ui(igrid, jsph) .gt. zero) then
+          kep = kep + 1
+          ! Loop over lm
+          do ind = 1, ddx_data % nbasis
+            der_c_one_c_two(:, ind, jsph) = der_c_one_c_two (:, ind, jsph) &
+                                           & + (diff_ep_der_Pchi(:, kep) &
+                                           & + diff_ep_der_ki_Y(:)) &
+                                           & * coefvec(igrid, ind, jsph)
+          end do
+        end if
+      end do
+    end do
+    do ind = 1, ddx_data % nbasis
+      force_r = force_r + Xadj_r(ind, isph)*der_c_one_c_two(:, ind, isph)
+      force_e = force_e + Xadj_e(ind, isph)*der_c_one_c_two(:, ind, isph)
+    end do
+  end do
+  end subroutine derivative_Q
+  
+  !
+  ! Debug derivative of C1 and C2 in code
+  ! @param[in, out] rhs_cosmo : C_1*X_r + C_2*X_e
+  ! @param[in, out] rhs_hsp   : C_1*X_r + C_2*X_e
+  ! @param[in] Xr             : X_r
+  ! @param[in] Xe             : X_e
+  !
+  subroutine C1_C2(ddx_data, rhs_cosmo, rhs_hsp, Xr, Xe)
+  use bessel
+  implicit none
+  type(ddx_type), intent(in)  :: ddx_data
+  real(dp), dimension(ddx_data % nbasis,ddx_data % nsph), intent(inout) :: rhs_cosmo, rhs_hsp
+  real(dp), dimension(ddx_data % nbasis,ddx_data % nsph) :: rhs_plus
+  real(dp), dimension(ddx_data % nbasis,ddx_data % nsph), intent(in) :: Xr, Xe
+  
+  integer :: isph, jsph, ig, kep, ind, l1,m1, ind1, ind0, count, istatus
+  real(dp), dimension(3) :: vij
+  real(dp), dimension(ddx_data % nbasis,ddx_data % nsph) :: diff_re
+  real(dp), dimension(nbasis0,ddx_data % nsph) :: diff0
+  real(dp), dimension(ddx_data % nbasis, nbasis0, ddx_data % nsph):: Pchi_d
+  real(dp), dimension(ddx_data % ngrid, ddx_data % nbasis, ddx_data % nsph) ::coefvec_d
+  real(dp), dimension(0:ddx_data % lmax, ddx_data % nsph):: termimat_d
+  real(dp), dimension(ddx_data % ncav) :: diff_ep
+  real(dp) :: val
+  real(dp), dimension(ddx_data % ncav, nbasis0, ddx_data % nsph) :: coefY_unit
+      
+  ! Compute P_chi matrix, Eq.(87)
+  !do jsph = 1, ddx_data % nsph
+  !  call mkpmat(ddx_data, jsph, Pchi_d(:,:,jsph))
+  !end do
+
+  ! For checking the derivative of U_i^e, we make the matrix Q constant
+  Pchi_d = one
+  coefY_unit = one
+      
+  ! Precompute coefvec of Qmat, Cost: linear scaling
+  do isph = 1,ddx_data % nsph
+    do ig = 1,ddx_data % ngrid
+      if (ddx_data % ui(ig, isph) .gt. 0) then
+        do ind  = 1, ddx_data % nbasis 
+          coefvec_d(ig,ind,isph) = ddx_data % wgrid(ig)*ddx_data % ui(ig,isph)*ddx_data % vgrid(ind,ig)
+        end do
+      end if
+    end do
+  end do
+      
+  ! precompute termimat
+  do jsph = 1, ddx_data % nsph
+    do l1 = 0, ddx_data % lmax
+      if (max(DI_ri(l1,jsph),SI_ri(l1,jsph)).gt.tol_inf) then
+        termimat_d(l1,jsph) = ddx_data % kappa
+      else if (min(DI_ri(l1,jsph),SI_ri(l1,jsph)).lt.tol_zero) then
+        termimat_d(l1,jsph) = l1/ddx_data % rsph(jsph) + &
+            & (l1 + 1)*(ddx_data % kappa**2*ddx_data % rsph(jsph))/((two*l1 + one) * &
+            & (two*l1 + three))
+      else
+        termimat_d(l1,jsph) = DI_ri(l1,jsph)/SI_ri(l1,jsph)*ddx_data % kappa
+      end if
+    end do
+  end do
+
+  ! diff_re = epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
+  diff_re = zero 
+  do jsph = 1, ddx_data % nsph
+    do l1 = 0, ddx_data % lmax
+      do m1 = -l1,l1
+        ind1 = l1**2 + l1 + m1 + 1
+        diff_re(ind1,jsph) = ((epsp/ddx_data % eps)*(l1/ddx_data % rsph(jsph)) * &
+            & Xr(ind1,jsph) - termimat_d(l1,jsph)*Xe(ind1,jsph))
+      end do
+    end do
+  end do
+
+  ! diff0 = Pchi * diff_er, linear scaling
+  ! TODO: probably doing PX on the fly is better 
+  diff0 = zero 
+  do jsph = 1, ddx_data % nsph
+    do ind0 = 1, nbasis0
+      diff0(ind0, jsph) = dot_product(diff_re(:,jsph), &
+          & Pchi_d(:,ind0, jsph))
+    end do
+  end do
+
+  ! diff_ep = diff0 * coefY,    COST: M^2*nbasis*Nleb
+  ! Changing coefY to coefY_unit
+  diff_ep = zero
+  do kep = 1, ddx_data % ncav
+    val = zero
+    do jsph = 1, ddx_data % nsph 
+      do ind0 = 1, nbasis0
+        val = val + diff0(ind0,jsph)*coefY_unit(kep,ind0,jsph)
+      end do
+    end do
+    diff_ep(kep) = val 
+  end do
+
+  rhs_plus = zero
+  kep = 0
+  do isph = 1, ddx_data % nsph
+    do ig = 1, ddx_data % ngrid
+      if (ddx_data % ui(ig,isph).gt.zero) then 
+        kep = kep + 1
+        do ind = 1, ddx_data % nbasis
+          rhs_plus(ind,isph) = rhs_plus(ind,isph) + &
+              & coefvec_d(ig,ind,isph)*diff_ep(kep)
+        end do
+      end if
+    end do
+  end do
+
+  rhs_cosmo = rhs_plus
+  rhs_hsp =  rhs_plus
+  return
+  end subroutine C1_C2  
+
+  
+  !
+  ! Debug routine to check the adjoint system. Compute <y^T,Lx>
+  ! @param[in] ddx_data : Data type
+  ! @param[in] lx       : Matrix multiplication L*x
+  ! @param[in] lstarx   : Matrix multiplication Lstar*x
+  subroutine debug_adjoint(ddx_data, lx, lstarx)
+  implicit none
+  type(ddx_type), intent(in)  :: ddx_data
+  external  :: lx, lstarx
+  ! Local variable
+  ! vector_y      : Lx
+  ! vector_x      : Initial vector
+  ! vector_y_star : Lstarx
+  ! unit_vector   : Unit vector
+  real(dp), dimension(ddx_data % n):: vector_y, vector_x, vector_y_star
+  real(dp), dimension(ddx_data % n):: unit_vector
+  ! in          : Index for n
+  ! sum_adjoint  : Sum for adjoint system
+  ! sum_original : Sum for original system
+  integer :: in
+  real(dp) :: sum_adjoint, sum_original
+  
+  vector_x = one
+  vector_y = one
+  vector_y_star = one
+  unit_vector = one
+  ! Call original system
+  if (ddx_data % model .eq. 3) then 
+    call lx(ddx_data, ddx_data % n, vector_x, vector_y)
+  else
+    call lx(ddx_data, vector_x, vector_y)
+  end if
+  ! Call adjoint system
+  call lstarx(ddx_data, vector_x, vector_y_star)
+  write(*,*) vector_y
+  write(*,*) vector_y_star
+  
+  sum_adjoint = 0
+  sum_original = 0
+  do in = 1, ddx_data % n
+    sum_adjoint = sum_adjoint + unit_vector(in)*vector_y_star(in)
+    sum_original = sum_original + unit_vector(in)*vector_y(in)
+  end do
+  if (ddx_data % iprint .ge. 5) then
+    write(*,*) 'The original system <y^T,Lx>: ', sum_original
+    write(*,*) 'The adjoint system <y^T,Lstarx>: ', sum_adjoint
+  end if
+  return
+  end subroutine debug_adjoint
+  
+    !
+  ! Debug routine to check the derivative of system. Compute <y^T,L^Kx>
+  ! @param[in] ddx_data : Data type
+  ! @param[in] lx       : Matrix multiplication L*x
+  subroutine debug_derivative(ddx_data)
+  implicit none
+  type(ddx_type), intent(inout)  :: ddx_data
+  ! Local variable
+  ! vector_y_cosmo  : Ax
+  ! vector_x        : Initial vector
+  ! unit_vector_1   : Unit vector dim: 1 \times M(l_max+1)^2
+  ! vector_yh_cosmo : A(x+h)
+  real(dp), dimension(ddx_data % n):: vector_y_cosmo, vector_x,&
+                                      &unit_vector_1, vector_yh_cosmo
+  real(dp), dimension(ddx_data % n):: vector_y_lpb, vector_yh_lpb
+  ! unit_vector   : Unit vector dim: nbasis \times nsph
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph):: unit_vector
+  ! 
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph):: vector_r, vector_rh
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph):: vector_e, vector_eh
+  ! unit_vector_grid : Unit vector evaluated on grid points
+  real(dp), dimension(ddx_data % ngrid, ddx_data % nsph):: unit_vector_grid
+  ! derivative_cosmo : A^k(x)
+  ! derivative_lpb   : A^k(x) 
+  real(dp), dimension(3, ddx_data % nsph) :: derivative_cosmo
+  real(dp), dimension(3, ddx_data % nsph) :: derivative_lpb
+  real(dp), dimension(3, ddx_data % nsph) :: derivative_u_r
+  real(dp), dimension(3, ddx_data % nsph) :: derivative_u_e
+  ! vsin, vcos, vplm : Values used in basloc
+  real(dp), dimension(ddx_data % lmax +1) :: vsin, vcos
+  ! basloc : Y_lm
+  real(dp), dimension(ddx_data % nbasis)  :: vplm, basloc
+  ! dbasloc : Derivatives of Y_lm
+  real(dp), dimension(3, ddx_data % nbasis)  :: dbsloc
+  
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph) :: diff_re
+  real(dp), dimension(nbasis0, ddx_data % nsph) :: diff0
+  ! in          : Index for n
+  ! isph        : Index for spheres
+  integer :: in, isph, i, jsph, ibasis
+  ! sum  : <y^T,Lx>
+  ! step : Finite difference step length
+  real(dp) :: sum_x_cosmo, sum_xh_cosmo, step
+  real(dp) :: sum_x_lpb, sum_xh_lpb
+  real(dp) :: sum_x_c1, sum_xh_c1
+  
+  ! Initial values
+  ! x    : one
+  ! y=Lx : one
+  vector_x = one
+  vector_y_cosmo = one
+  vector_yh_cosmo = one
+  vector_y_lpb = one
+  vector_yh_lpb = one
+  
+  vector_r = zero
+  vector_rh = zero
+  vector_e = zero
+  vector_eh = zero
+  
+  derivative_lpb = zero
+  derivative_cosmo = zero
+  derivative_u_e = zero
+  derivative_u_r = zero
+  
+  unit_vector = one
+  unit_vector_1 = one
+  step = 0.000001
+  
+  isph = one
+  i = one
+  
+  ! Call Lx for x
+  ! Calling for Lx corrsponding to ddCOSMO and ddLPB different
+  call lx(ddx_data, vector_x, vector_y_cosmo)
+  ! ddLPB
+  call matABx(ddx_data , ddx_data % n, vector_x, vector_y_lpb)
+  ! C_1 and C_2
+  call C1_C2(ddx_data, vector_r, vector_e, unit_vector, unit_vector)
+  
+  ! Values at x+h, change coordinates for x_i
+  ddx_data % csph(i, isph) = ddx_data % csph(i, isph) + step
+!   ! Call Lx for x+h
+  call lx(ddx_data, vector_x, vector_yh_cosmo)
+  ! ddLPB
+  call matABx(ddx_data , ddx_data % n, vector_x, vector_yh_lpb)
+  ! C_1 and C_2
+  
+  ! Values at x
+  ddx_data % csph(i, isph) = ddx_data % csph(i, isph) - step
+  ! Compute solution on grid points
+  call dgemm('T', 'N', ddx_data % ngrid, ddx_data % nsph, &
+            & ddx_data % nbasis, one, ddx_data % vgrid, ddx_data % vgrid_nbasis, &
+            & unit_vector , ddx_data % nbasis, zero, unit_vector_grid, &
+            & ddx_data % ngrid)
+  
+  ! Compute unit_vector^T*B^k*unit_vector for x_1
+  call fdoka(ddx_data, isph, unit_vector, unit_vector_grid(:, isph), &
+                  & basloc, dbsloc, vplm, vcos, vsin, derivative_cosmo(:,isph))
+  call fdokb(ddx_data, isph, unit_vector, unit_vector_grid, &
+                  & basloc, dbsloc, vplm, vcos, vsin, derivative_cosmo(:, isph))
+  call fdoka_b_xe(ddx_data, isph, unit_vector, unit_vector_grid(:, isph), &
+                  & basloc, dbsloc, vplm, vcos, vsin, derivative_lpb(:,isph))
+  call fdokb_b_xe(ddx_data, isph, unit_vector, unit_vector_grid, &
+                  & basloc, dbsloc, vplm, vcos, vsin, derivative_lpb(:, isph))
+  call derivative_U(ddx_data, isph, unit_vector, unit_vector, unit_vector_grid,&
+                  & unit_vector(:, isph), derivative_u_r(:, isph), & 
+                  & derivative_u_e(:, isph), diff_re, diff0)
+  !call derivative_Q(ddx_data, isph, unit_vector, unit_vector, unit_vector, unit_vector, &
+  !                 & derivative_u_r(:, isph), derivative_u_e(:, isph), diff_re, &
+  !                & diff0)
+  
+  sum_x_cosmo = 0
+  sum_xh_cosmo = 0
+  sum_x_lpb = 0
+  sum_xh_lpb = 0
+  sum_x_c1 = 0
+  
+  do in = 1, ddx_data % n
+    sum_x_cosmo = sum_x_cosmo + unit_vector_1(in)*vector_y_cosmo(in)
+    sum_xh_cosmo = sum_xh_cosmo + unit_vector_1(in)*vector_yh_cosmo(in)
+    sum_x_lpb = sum_x_lpb + unit_vector_1(in)*vector_y_lpb(in)
+    sum_xh_lpb = sum_xh_lpb + unit_vector_1(in)*vector_yh_lpb(in)
+  end do
+  
+  do ibasis = 1, ddx_data % nbasis
+    do jsph = 1, ddx_data % nsph
+      sum_x_c1 = sum_x_c1 + unit_vector(ibasis, jsph)*vector_r(ibasis, jsph)  + &
+               & unit_vector(ibasis, jsph)*vector_e(ibasis, jsph)
+    end do
+  end do
+  if (ddx_data % iprint .ge. 0) then
+    ! Print x-direction force
+    write(*,*) '<y^T,A^Kx>           : ', derivative_cosmo(: ,isph)
+    ! Print finite difference
+    write(*,*) 'Finite Difference  A : ', (sum_xh_cosmo-sum_x_cosmo)/step
+    ! Print x-direction force
+    write(*,*) '<y^T,B^Kx>           : ', derivative_lpb(: ,isph)
+    ! Print finite difference
+    write(*,*) 'Finite Difference  B : ', (sum_xh_lpb - sum_x_lpb)/step
+    ! Print x-direction force for C_1Xr+C_2Xe, U derivative
+    write(*,*) '<y^T, C^Kx>          : ', derivative_u_r(:,isph) + derivative_u_e(:,isph)
+    write(*,*) 'Finite Difference  C1: ', sum_x_c1
+  end if
+  return
+  end subroutine debug_derivative
 
 end module ddx_lpb

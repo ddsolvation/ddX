@@ -2889,7 +2889,7 @@ end function fsw
 !! @param[in] t: real non-negative input value
 !! @param[in] se: shift
 !! @param[in] eta: regularization parameter \f$ \eta \f$
-real(dp) function dfsw(t, se, eta)
+real(dp) function  dfsw(t, se, eta)
     ! Inputs
     real(dp), intent(in) :: t, se, eta
     ! Local variables

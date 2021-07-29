@@ -45,7 +45,7 @@ subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
             call ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
         ! LPB model
         case (3)
-            call ddlpb(ddx_data, phi_cav, gradphi_cav, psi, esolv)
+            call ddlpb(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
         ! Error case
         case default
             stop "Non-supported model"

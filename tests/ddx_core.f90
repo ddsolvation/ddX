@@ -1141,7 +1141,7 @@ subroutine check_l2p(p, alpha)
     print "(A)", repeat("=", 40)
     print "(A)", "  i | ok | err(i)"
     print "(A)", repeat("=", 40)
-    threshold = dble(p+1) * 2d-16
+    threshold = dble(p+1) * 2d-15
     ! Check against the baseline
     do i = 1, nx
         c = y(:, i)
@@ -1436,7 +1436,7 @@ subroutine check_m2m_adj(p, alpha)
         call dgemm('T', 'N', nrand, nrand, (p+1)**2, -one, src_m2, (p+1)**2, &
             & src_m, (p+1)**2, one, tmp, nrand)
         err = dnrm2(nrand*nrand, tmp, 1) / err
-        ok = err .lt. 1d-15
+        ok = err .lt. 1d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
