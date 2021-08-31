@@ -14,14 +14,16 @@ set(SRC
     "ddx.f90"
     "ddx_lpb.f90"
     "bessel.f90"
-    "llgnew.f")
+    "llgnew.f"
+    "CBESSEL.f90")
 
 # Preprocess OPENMP directive (disabled currently)
 #set_source_files_properties("dd_core.f90" PROPERTIES COMPILE_FLAGS -cpp)
 
 set(COVERAGE_EXCLUDES
     "${CMAKE_CURRENT_SOURCE_DIR}/llgnew.f" PARENT_SCOPE
-    "${CMAKE_CURRENT_SOURCE_DIR}/bessel.f90" PARENT_SCOPE)
+    "${CMAKE_CURRENT_SOURCE_DIR}/bessel.f90" PARENT_SCOPE
+     "${CMAKE_CURRENT_SOURCE_DIR}/CBESSEL.f90" PARENT_SCOPE)
 
 list(TRANSFORM SRC PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)
 

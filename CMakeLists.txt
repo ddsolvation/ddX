@@ -93,7 +93,7 @@ if(COVERAGE)
     # Append coverage flags
     append_coverage_compiler_flags()
     # Set excluded coverage paths
-    set(COVERAGE_EXCLUDES "tests/*" "src/llgnew.f" "src/bessel.f90")
+    set(COVERAGE_EXCLUDES "tests/*" "src/llgnew.f" "src/bessel.f90" "src/CBESSEL.F90")
     # Setup a target for an overall coverage
     setup_target_for_coverage_lcov(NAME coverage
         EXECUTABLE ctest

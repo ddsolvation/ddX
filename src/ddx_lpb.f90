@@ -15,7 +15,7 @@ use ddx_operators
 use ddx_solvers
 implicit none
 !!
-!! Logical variables for iterations, cosmo solver, and HSP solver
+!! Logical variables for iterations,  fcosmo solver, and HSP solver
 !!
 logical :: first_out_iter
 logical :: do_diag
@@ -354,12 +354,18 @@ contains
     stop
   end if
   do isph = 1, ddx_data % nsph
-    call SPHI_bessel(ddx_data % lmax,ddx_data % rsph(isph)*ddx_data % kappa,&
-                     & NM,SI_ri(:,isph), &
+    call modified_spherical_bessel_first_kind(ddx_data % lmax, ddx_data % rsph(isph)*ddx_data % kappa,&
+                     & SI_ri(:,isph), &
                      & DI_ri(:,isph))
-    call SPHK_bessel(ddx_data % lmax,ddx_data % rsph(isph)*ddx_data % kappa,&
-                     & NM,SK_ri(:,isph), &
+    !call SPHI_bessel(ddx_data % lmax,ddx_data % rsph(isph)*ddx_data % kappa,&
+    !                 & NM,SI_ri(:,isph), &
+    !                 & DI_ri(:,isph))
+    call modified_spherical_bessel_second_kind(ddx_data % lmax, ddx_data % rsph(isph)*ddx_data % kappa, &
+                     & SK_ri(:,isph), &
                      & DK_ri(:,isph))
+    !call SPHK_bessel(ddx_data % lmax,ddx_data % rsph(isph)*ddx_data % kappa,&
+    !                 & NM,SK_ri(:,isph), &
+    !                 & DK_ri(:,isph))
   end do
   return
   end subroutine ddlpb_init
@@ -424,33 +430,33 @@ contains
   do jsph = 1, ddx_data % nsph
     do l0 = 0, lmax0
       ! Case: kappa > tol_inf
-      if (max(DI_ri(l0,jsph), SI_ri(l0,jsph)).gt.tol_inf) then
-        termi = ddx_data % kappa
+      !if (max(DI_ri(l0,jsph), SI_ri(l0,jsph)).gt.tol_inf) then
+      !  termi = ddx_data % kappa
       ! Case: kappa < tol_zero
       !       One can ignore the other terms (including the second
       !       term given below) as kappa is so small the
       !       contributions are negligible
-      else if (min(DI_ri(l0,jsph), SI_ri(l0,jsph)).lt.tol_zero) then
-        termi = l0/ddx_data % rsph(jsph) + &
-            & (l0 + one)*(ddx_data % kappa**2*ddx_data % rsph(jsph))/((two*l0 + one) * &
-            & (two*l0 + three))
+      !else if (min(DI_ri(l0,jsph), SI_ri(l0,jsph)).lt.tol_zero) then
+      !  termi = l0/ddx_data % rsph(jsph) + &
+      !      & (l0 + one)*(ddx_data % kappa**2*ddx_data % rsph(jsph))/((two*l0 + one) * &
+      !      & (two*l0 + three))
       ! Case: kappa is of normal size.
       ! NOTE: We notice a factor of kappa. The reason being while computing
       !       DI_ri the argument is kappa*r. Hence a factor of kappa.
-      else
-        termi = DI_ri(l0,jsph)/SI_ri(l0,jsph)*ddx_data % kappa
-      end if
+      !else
+      termi = DI_ri(l0,jsph)/SI_ri(l0,jsph)*ddx_data % kappa
+      !end if
       !write(*,*) SI_ri(l0,jsph), termi
 
       ! Similar calculation for SK_ri to SI_ri
-      if (SK_ri(l0,jsph).gt.tol_inf) then
-        termk = - (l0 + one)/ddx_data % rsph(jsph) - &
-            & l0*(ddx_data % kappa**2*ddx_data % rsph(jsph))/((two*l0 - one)*(two*l0 + one))
-      else if (SK_ri(l0,jsph).lt.tol_zero) then
-        termk = -ddx_data % kappa
-      else
-        termk = DK_ri(l0,jsph)/SK_ri(l0,jsph)*ddx_data % kappa
-      end if
+      !if (SK_ri(l0,jsph).gt.tol_inf) then
+      !  termk = - (l0 + one)/ddx_data % rsph(jsph) - &
+      !      & l0*(ddx_data % kappa**2*ddx_data % rsph(jsph))/((two*l0 - one)*(two*l0 + one))
+      !else if (SK_ri(l0,jsph).lt.tol_zero) then
+      !  termk = -ddx_data % kappa
+      !else
+      termk = DK_ri(l0,jsph)/SK_ri(l0,jsph)*ddx_data % kappa
+      !end if
 
       !write(*,*) SK_ri(l0,jsph), termk
       coef_bessel(l0,jsph) = one/(termi - termk)
@@ -479,7 +485,8 @@ contains
           
           ! Compute Bessel function of 2nd kind for the coordinates
           ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-          call SPHK_bessel(lmax0,rijn*ddx_data % kappa,NM,SK_rijn,DK_rijn)
+          call modified_spherical_bessel_second_kind(lmax0, rijn*ddx_data % kappa, SK_rijn, DK_rijn)
+          !call SPHK_bessel(lmax0,rijn*ddx_data % kappa,NM,SK_rijn,DK_rijn)
           call ylmbas(sijn , rho, ctheta, stheta, cphi, &
                       & sphi, ddx_data % lmax, ddx_data % vscales, &
                       & basloc, vplm, vcos, vsin)
@@ -488,15 +495,15 @@ contains
             ! term: k_l0(r_ijn)/k_l0(r_i)
             ! Uses approximation of SK_ri in double factorial terms when argument
             ! is less than one
-            if (SK_ri(l0,jsph).gt.tol_inf) then
+            !if (SK_ri(l0,jsph).gt.tol_inf) then
             ! Uses approximation of SK_ri in double factorial terms when argument
             ! is greater than l0
-              term = (ddx_data % rsph(jsph)/rijn)**(l0+1)
-            else if (SK_ri(l0,jsph).lt.tol_zero) then
-              term = (ddx_data % rsph(jsph)/rijn)*exp(-ddx_data % kappa*(rijn-ddx_data % rsph(jsph)))
-            else
-              term = SK_rijn(l0)/SK_ri(l0,jsph)
-            end if
+            !  term = (ddx_data % rsph(jsph)/rijn)**(l0+1)
+            !else if (SK_ri(l0,jsph).lt.tol_zero) then
+            !  term = (ddx_data % rsph(jsph)/rijn)*exp(-ddx_data % kappa*(rijn-ddx_data % rsph(jsph)))
+            !else
+            term = SK_rijn(l0)/SK_ri(l0,jsph)
+            !end if
             ! coef_Ylm : (der_i_l0/i_l0 - der_k_l0/k_l0)^(-1)*k_l0(r_ijn)/k_l0(r_i)
             coef_Ylm =  coef_bessel(l0,jsph)*term
             do m0 = -l0, l0
@@ -776,26 +783,21 @@ contains
   fac_hsp = 0
 
   ! Computation of modified spherical Bessel function values      
-  call SPHI_bessel(ddx_data % lmax,rijn*ddx_data % kappa,NM,SI_rijn,DI_rijn)
+  !call SPHI_bessel(ddx_data % lmax,rijn*ddx_data % kappa,NM,SI_rijn,DI_rijn)
+  call modified_spherical_bessel_first_kind(ddx_data % lmax, rijn*ddx_data % kappa, SI_rijn, DI_rijn)
+  !call debug_bessel(ddx_data, rijn*ddx_data % kappa)
   
   do l = 0, ddx_data % lmax
     do  m = -l, l
       ind = l*l + l + 1 + m
-      if ((SI_rijn(l).lt.tol_zero)) then
-        write(*,*) 'DEBUG : Case 1'
-        fac_hsp(ind) = (rijn/ri)**l*basloc(ind)
-      else if (SI_ri(l,isph).lt.tol_zero) then
-        write(*,*) 'DEBUG : Case 2'
-        fac_hsp(ind) = (rijn/ri)**l*basloc(ind)
-      else if(SI_rijn(l)/SI_ri(l,isph).gt.(rijn/ri)**l) then
-        write(*,*) 'DEBUG : Case 3'
-        fac_hsp(ind) = (rijn/ri)**l*basloc(ind)
-      else if ( SI_ri(l,isph).gt.tol_inf) then
-        write(*,*) 'DEBUG : Case 4'
-        fac_hsp(ind) = zero
-      else
-        fac_hsp(ind) = SI_rijn(l)/SI_ri(l,isph)*basloc(ind)
-      end if
+      !if ((SI_rijn(l) .lt. zero) .or. (SI_ri(l,isph).lt.tol_zero) &
+      !    & .or. (SI_rijn(l)/SI_ri(l,isph) .gt. (rijn/ri)**l)) then
+      !  fac_hsp(ind) = (rijn/ri)**l*basloc(ind)
+      !else if (SI_ri(l,isph).gt.tol_inf) then
+      !  fac_hsp(ind) = zero
+      !else
+      fac_hsp(ind) = SI_rijn(l)/SI_ri(l,isph)*basloc(ind)
+      !end if
     end do
   end do
   endsubroutine inthsp
@@ -852,7 +854,7 @@ contains
       stop
     end if
   end if
-  
+
   ! Compute P_chi matrix, Eq.(87)
   ! TODO: probably has to be declared somewhere
   ! and i have to recover mkpmat 
@@ -882,15 +884,15 @@ contains
   if (first_out_iter) then
     do jsph = 1, ddx_data % nsph
       do l1 = 0, ddx_data % lmax
-        if (max(DI_ri(l1,jsph),SI_ri(l1,jsph)).gt.tol_inf) then
-          termimat(l1,jsph) = ddx_data % kappa
-        else if (min(DI_ri(l1,jsph),SI_ri(l1,jsph)).lt.tol_zero) then
-          termimat(l1,jsph) = l1/ddx_data % rsph(jsph) + &
-              & (l1 + 1)*(ddx_data % kappa**2*ddx_data % rsph(jsph))/((two*l1 + one) * &
-              & (two*l1 + three))
-        else
-          termimat(l1,jsph) = DI_ri(l1,jsph)/SI_ri(l1,jsph)*ddx_data % kappa
-        end if
+        !if (max(DI_ri(l1,jsph),SI_ri(l1,jsph)).gt.tol_inf) then
+        !  termimat(l1,jsph) = ddx_data % kappa
+        !else if (min(DI_ri(l1,jsph),SI_ri(l1,jsph)).lt.tol_zero) then
+        !  termimat(l1,jsph) = l1/ddx_data % rsph(jsph) + &
+        !      & (l1 + 1)*(ddx_data % kappa**2*ddx_data % rsph(jsph))/((two*l1 + one) * &
+        !      & (two*l1 + three))
+        !else
+        termimat(l1,jsph) = DI_ri(l1,jsph)/SI_ri(l1,jsph)*ddx_data % kappa
+        !end if
       end do
     end do
   end if
@@ -1282,19 +1284,20 @@ contains
   fac_hsp = 0
 
   ! Computation of modified spherical Bessel function values      
-  call SPHI_bessel(ddx_data % lmax,rjin*ddx_data % kappa,NM,SI_rjin,DI_rjin)
+  !call SPHI_bessel(ddx_data % lmax,rjin*ddx_data % kappa,NM,SI_rjin,DI_rjin)
+  call modified_spherical_bessel_first_kind(ddx_data % lmax, rjin*ddx_data % kappa, SI_rjin, DI_rjin)
   
   do l = 0, ddx_data % lmax
     do  m = -l, l
       ind = l*l + l + 1 + m
-      if ((SI_rjin(l).lt.zero) .or. (SI_ri(l,jsph).lt.tol_zero) &
-          & .or. (SI_rjin(l)/SI_ri(l,jsph).gt.(rjin/rj)**l)) then
-        fac_hsp(ind) = (rjin/rj)**l*basloc(ind)
-      else if ( SI_ri(l,jsph).gt.tol_inf) then
-        fac_hsp(ind) = zero
-      else
-        fac_hsp(ind) = SI_rjin(l)/SI_ri(l,jsph)*basloc(ind)
-      end if
+      !if ((SI_rjin(l).lt.zero) .or. (SI_ri(l,jsph).lt.tol_zero) &
+      !    & .or. (SI_rjin(l)/SI_ri(l,jsph).gt.(rjin/rj)**l)) then
+      !  fac_hsp(ind) = (rjin/rj)**l*basloc(ind)
+      !else if ( SI_ri(l,jsph).gt.tol_inf) then
+      !  fac_hsp(ind) = zero
+      !else
+      fac_hsp(ind) = SI_rjin(l)/SI_ri(l,jsph)*basloc(ind)
+      !end if
     end do
   end do
   endsubroutine inthsp_adj
@@ -1481,7 +1484,8 @@ contains
   integer :: igrid, ineigh, jsph, l, ind, m, NM
   ! SI_rijn : Besssel function of first kind for rijn
   ! DI_rijn : Derivative of Besssel function of first kind for rijn
-  real(dp), dimension(0:ddx_data % lmax) :: SI_rijn, DI_rijn
+  real(dp), dimension(0:ddx_data % lmax) :: SI_rijn
+  real(dp), dimension(0:ddx_data % lmax) :: DI_rijn
   ! rijn   : r_j*r_1^j(x_i^n) = |x_i^n-x_j|
   ! tij    : r_1^j(x_i^n)
   ! beta   : Eq.(53) Stamm.etal.18
@@ -1519,25 +1523,32 @@ contains
      
       if (tij.ge.thigh) cycle
       ! Computation of modified spherical Bessel function values      
-      call SPHI_bessel(ddx_data % lmax, rijn*ddx_data % kappa, NM, SI_rijn, DI_rijn)
-    
+      !call SPHI_bessel(ddx_data % lmax, rijn*ddx_data % kappa, NM, SI_rijn, DI_rijn)
+      call modified_spherical_bessel_first_kind(ddx_data % lmax, rijn*ddx_data % kappa, SI_rijn, DI_rijn)
+
       sij  = vij/rijn
       !call dbasis(sij,basloc,dbsloc,vplm,vcos,vsin)
       call dbasis(ddx_data, sij, basloc, dbsloc, vplm, vcos, vsin)
       alpha  = zero
       do l = 0, ddx_data % lmax
         ind = l*l + l + 1
-        if ((SI_rijn(l).lt.zero) .or. (SI_ri(l,jsph).lt.tol_zero) &
-          & .or. (SI_rijn(l)/SI_ri(l,jsph).gt.(rijn/rj)**l)) then
-          f2 = (rijn/rj)**l
-          f1 = (l*(rijn/rj)**(l-1))/rj
-        else if ( SI_ri(l,jsph).gt.tol_inf) then
-          f2 = zero
-          f1 = zero
-        else
-          f2 = SI_rijn(l)/(rijn*SI_ri(l, jsph))
-          f1 = (DI_rijn(l)*ddx_data % kappa)/SI_ri(l, jsph)
-        end if
+        !if ((SI_rijn(l).lt.zero) .or. (SI_ri(l,jsph).lt.tol_zero) &
+        !  & .or. (SI_rijn(l)/SI_ri(l,jsph).gt.(rijn/rj)**l)) then
+        !  f2 = (rijn/rj)**l
+        !else if ( SI_ri(l,jsph).gt.tol_inf) then
+        !  f2 = zero
+        !else
+        f2 = SI_rijn(l)/(rijn*SI_ri(l, jsph))
+        !end if
+
+        !if(SI_ri(l,jsph) .lt. tol_zero) then
+        !  f1 = (l*(rijn/rj)**(l-1))/(rj*ddx_data % kappa);
+        !else if(SI_rijn(l) .gt. tol_inf .or. SI_rijn(l) .lt. tol_zero) then
+        !  f1 = zero;
+        !else
+        f1 = (DI_rijn(l)*ddx_data % kappa)/SI_ri(l,jsph);
+        !endif
+
         do m = -l, l
           alpha(:) = alpha(:) + (f1*sij(:)*basloc(ind+m) + &
                     & f2*dbsloc(:,ind+m))*Xe(ind+m,jsph)
@@ -1605,9 +1616,9 @@ contains
   ! DI_rjin : Derivative of Besssel function of first kind for rijn
   ! SI_rjkn : Besssel function of first kind for rjkn
   ! DI_rjkn : Derivative of Besssel function of first kind for rjkn
-  real(dp), dimension(0:ddx_data % lmax) :: SI_rjin, DI_rjin, SI_rjkn, DI_rjkn, SI_rjin_d,&
-                                          & DI_rjin_d, SI_rjin_dh, DI_rjin_dh
-  
+  real(dp), dimension(0:ddx_data % lmax) :: SI_rjin, SI_rjkn
+  real(dp), dimension(0:ddx_data % lmax) :: DI_rjin, DI_rjkn
+
   logical :: proc
   ! rjin    : r_i*r_1^i(x_j^n) = |x_j^n-x_i|
   ! tji     : r_1^i(x_j^n)
@@ -1620,8 +1631,7 @@ contains
   ! dj      : Before Eq.(10) Stamm.etal.18
   ! tlow    : Lower bound for switch region
   ! thigh   : Upper bound for switch region
-  real(dp)  :: rjin, tji, xji, oji, fac, f1, f2, beta_ji, dj, tlow, thigh, f1_d, f1_dh,&
-               & f2_d, f2_dh, arg_d, arg_dh, step_size, f2_taylor, f2_taylor_dh
+  real(dp)  :: rjin, tji, xji, oji, fac, f1, f2, beta_ji, dj, tlow, thigh
   ! beta_jk : Eq.(58) Stamm.etal.18
   ! rjkn    : r_k*r_1^k(x_j^n) = |x_j^n-x_k|
   ! tjk     : r_1^k(x_j^n)
@@ -1640,21 +1650,14 @@ contains
   ! stheta : Argument for ylmbas
   ! cphi   : Argument for ylmbas
   ! sphi   : Argument for ylmbas
-  real(dp) :: rho, ctheta, stheta, cphi, sphi, ri
+  real(dp) :: rho, ctheta, stheta, cphi, sphi, ri, arg_bessel
+
   real(dp), external :: dnrm2
   
   SI_rjin = 0
   DI_rjin = 0
-  SI_rjin_d = 0
-  DI_rjin_d = 0
-  SI_rjin_dh = 0
-  DI_rjin_dh = 0
   SI_rjkn = 0
   DI_rjkn = 0
-  
-  step_size = 0.000001
-  arg_d =  0.094112531233527419
-  arg_dh = arg_d + step_size
 
   tlow  = one - pt5*(one - ddx_data % se)*ddx_data % eta
   thigh = one + pt5*(one + ddx_data % se)*ddx_data % eta
@@ -1668,55 +1671,42 @@ contains
               & ddx_data % rsph(jsph)*ddx_data % cgrid(:,igrid) - &
               & ddx_data % csph(:,isph)
       rjin = dnrm2(3, vji, 1)
+      arg_bessel = rjin*ddx_data % kappa
       tji  = rjin/ddx_data % rsph(isph)
       ri = ddx_data % rsph(isph)
 
       if (tji.gt.thigh) cycle
-      ! Computation of modified spherical Bessel function values      
-      call SPHI_bessel(ddx_data % lmax, arg_d, NM, SI_rjin_d, DI_rjin_d)
-      call SPHI_bessel(ddx_data % lmax, arg_dh, NM, SI_rjin_dh, DI_rjin_dh)
+
+      call modified_spherical_bessel_first_kind(ddx_data % lmax, rjin*ddx_data % kappa, SI_rjin, DI_rjin)
       
-      call SPHI_bessel(ddx_data % lmax, rjin*ddx_data % kappa, NM, SI_rjin, DI_rjin)
-      
+      !call SPHI_bessel(ddx_data % lmax, rjin*ddx_data % kappa, NM, SI_rjin, DI_rjin)
+
       sji  = vji/rjin
       !call dbasis(sji,basloc,dbsloc,vplm,vcos,vsin)
       call dbasis(ddx_data, sji, basloc, dbsloc, vplm, vcos, vsin)
       alpha = zero
       do l = 0, ddx_data % lmax
         ind = l*l + l + 1
-        if ((SI_rjin(l).lt.tol_zero) .or. (SI_ri(l,isph).lt.tol_zero) &
-          & .or. (SI_rjin(l)/SI_ri(l,isph).gt.(rjin/ri)**l)) then
-          f1 = (l*(rjin/ri)**(l-1))/ri
-          f2 = (rjin/ri)**l
-        else if ( SI_ri(l,isph).gt.tol_inf) then
-          f1 = zero
-          f2 = zero
-        else
-          f1 = (DI_rjin(l)*ddx_data % kappa)/SI_ri(l,isph)
-          f2 = SI_rjin(l)/SI_ri(l,isph)
-        end if
+        !if ((SI_rjin(l).lt.zero) .or. (SI_ri(l,isph).lt.tol_zero) &
+        !  & .or. (SI_rjin(l)/SI_ri(l,isph).gt.(rjin/ri)**l)) then
+        !  f2 = (rjin/ri)**l
+        !else if ( SI_ri(l,isph).gt.tol_inf) then
+        !  f2 = zero
+        !else
+        f2 = SI_rjin(l)/SI_ri(l,isph)
+        !end if
+
+        !if(SI_ri(l,isph) .lt. tol_zero) then
+        !  f1 = (l*(rjin/ri)**(l-1))/(ri*ddx_data % kappa);
+        !else if(SI_rjin(l) .gt. tol_inf .or. SI_rjin(l) .lt. tol_zero .or. SI_rjin(l) .lt. zero) then
+        !  f1 = zero;
+        !else
+        f1 = (DI_rjin(l)*ddx_data % kappa)/SI_ri(l,isph);
+        !endif
           
-        f1_d = DI_rjin_d(l)
-        f2_d = SI_rjin_d(l)
-          
-        f1_dh = DI_rjin_dh(l)
-        f2_dh = SI_rjin_dh(l)
-        
-        f2_taylor = l/arg_d + &
-            & (l + one)*(ddx_data % kappa**2*arg_d)/((two*l + one) * &
-            & (two*l + three))
-        f2_taylor_dh = l/arg_dh + &
-            & (l + one)*(ddx_data % kappa**2*arg_dh)/((two*l + one) * &
-            & (two*l + three))
         do m = -l, l
           alpha = alpha + (f1*sji*basloc(ind+m) + (f2/rjin)*dbsloc(:,ind+m))*Xe(ind+m,isph)
         end do
-        write(*,*) ' DEBUG rjin                                 :', rjin*ddx_data % kappa
-        write(*,*) ' DEBUG ri                                   :', ri*ddx_data % kappa
-        write(*,*) ' DEBUG, Finite Differece derivative, ', l,' : ', (f2_dh-f2_d)/step_size
-        write(*,*) ' DEBUG, Taylor Differece derivative, ', l,' : ', (f2_taylor_dh-f2_taylor)/step_size
-        write(*,*) ' DEBUG, Analytical Derivative      , ', l,' : ', f1_d
-        write(*,*) ' '
       end do
       xji = fsw(tji,ddx_data % se,ddx_data % eta)
       if (ddx_data % fi(igrid,jsph).gt.one) then
@@ -1742,7 +1732,9 @@ contains
             rjkn = dnrm2(3, vjk, 1)
             tjk  = rjkn/ddx_data % rsph(ksph)
             ! Computation of modified spherical Bessel function values      
-            call SPHI_bessel(ddx_data % lmax,rjkn*ddx_data % kappa,NM,SI_rjkn,DI_rjkn)
+            !call SPHI_bessel(ddx_data % lmax,rjkn*ddx_data % kappa,NM,SI_rjkn,DI_rjkn)
+            call modified_spherical_bessel_first_kind(ddx_data % lmax, rjkn*ddx_data % lmax, SI_rjkn, DI_rjkn)
+
             if (ksph.ne.isph) then
               if (tjk .le. thigh) then
               proc = .true.
@@ -1793,14 +1785,14 @@ contains
   do l = 0, ddx_data % lmax
     ind = l*l + l + 1
     do m = -l, l
-      if ((SI_rijn(l).lt.zero) .or. (SI_ri(l,jsph).lt.1.0D-15) &
-          & .or. (SI_rijn(l)/SI_ri(l,jsph).gt.(rijn/rj)**l)) then
-        fac = (rijn/rj)**l
-      else if ( SI_ri(l,jsph).gt.1.0D30) then
-        fac = zero
-      else
-        fac = SI_rijn(l)/SI_ri(l,jsph)
-      end if
+      !if ((SI_rijn(l).lt.zero) .or. (SI_ri(l,jsph).lt.1.0D-15) &
+      !    & .or. (SI_rijn(l)/SI_ri(l,jsph).gt.(rijn/rj)**l)) then
+      !  fac = (rijn/rj)**l
+      !else if ( SI_ri(l,jsph).gt.1.0D30) then
+      !  fac = zero
+      !else
+      fac = SI_rijn(l)/SI_ri(l,jsph)
+      !end if
       ss = ss + fac*basloc(ind+m)*Xe(ind+m)
     end do
   end do
@@ -2002,13 +1994,14 @@ contains
     end do
   end do
   
-  ! phi_in = diff0 * coefY,    COST: M^2*nbasis*Nleb
+  ! phi_in = diff0 * coefY
   ! Here, summation over j takes place
   phi_in = zero
   kep = 0
   do igrid = 1, ddx_data % ngrid
     do isph = 1, ddx_data % nsph
       if(ddx_data % ui(igrid, isph) .gt. zero) then
+        ! Extrenal grid point
         kep = kep + 1
         val = zero
         do jsph = 1, ddx_data % nsph 
@@ -2035,7 +2028,7 @@ contains
   ! @param[in] Xadj_e     : Solution of the Adjoint HSP problem
   ! @param[inout] force_r : Force corresponding to Laplace problem
   ! @param[inout] force_e : Force corresponding to HSP problem
-  ! @param[in] diff_re    : l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
+  ! @param[in] diff_re    : epsilon_1/epsilon_2*l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
   ! @param[in] diff0      : dot_product([PU_j]_l0m0^l'm', l'/r_j[Xr]_jl'm' -
   !                        (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm')
   subroutine derivative_Q(ddx_data, ksph, Xr, Xe, Xadj_r, Xadj_e, force_r, force_e, & 
@@ -2136,7 +2129,7 @@ contains
     end do
   end do
   
-  ! diff_ep_der_Pchi = diff0_der * coefY,    COST: M^2*nbasis*Nleb
+  ! diff_ep_der_Pchi = diff0_der * coefY
   diff_ep_der_Pchi = zero
   do kep = 1, ddx_data % ncav
     val_dim3 = zero
@@ -2153,9 +2146,9 @@ contains
   diff_ep_der_ki_Y = zero
   der_c_one_c_two = zero
   kep = 0
-  ! Loop over i-th sphers
+  ! Loop over i-th spheres
   do isph = 1, ddx_data % nsph
-    ! Loop over gird points
+    ! Loop over grid points
     do igrid = 1, ddx_data % ngrid
       ! Loop over j-th sphere
       do jsph = 1, ddx_data % nsph
@@ -2169,7 +2162,8 @@ contains
         ! Loop over lmax0
         do l0 = 0, lmax0
           ! Compute k_l0^ĵ(x_ni) and \nabla^k(k_l0^ĵ(x_ni))
-          call SPHK_bessel(lmax0, rijn*ddx_data % kappa, NM, SK_rijn, DK_rijn)
+          call modified_spherical_bessel_second_kind(lmax0, rijn*ddx_data % kappa, SK_rijn, DK_rijn)
+          !call SPHK_bessel(lmax0, rijn*ddx_data % kappa, NM, SK_rijn, DK_rijn)
           ind0 = l0*l0 + l0 + 1
           ! Loop over m0
           do m0 = -l0, l0
@@ -2228,7 +2222,6 @@ contains
   real(dp), dimension(nbasis0,ddx_data % nsph) :: diff0
   real(dp), dimension(ddx_data % nbasis, nbasis0, ddx_data % nsph):: Pchi_d
   real(dp), dimension(ddx_data % ngrid, ddx_data % nbasis, ddx_data % nsph) ::coefvec_d
-  real(dp), dimension(0:ddx_data % lmax, ddx_data % nsph):: termimat_d
   real(dp), dimension(ddx_data % ncav) :: diff_ep
   real(dp) :: val
   real(dp), dimension(ddx_data % ncav, nbasis0, ddx_data % nsph) :: coefY_unit
@@ -2252,21 +2245,6 @@ contains
       end if
     end do
   end do
-      
-  ! precompute termimat
-  do jsph = 1, ddx_data % nsph
-    do l1 = 0, ddx_data % lmax
-      if (max(DI_ri(l1,jsph),SI_ri(l1,jsph)).gt.tol_inf) then
-        termimat_d(l1,jsph) = ddx_data % kappa
-      else if (min(DI_ri(l1,jsph),SI_ri(l1,jsph)).lt.tol_zero) then
-        termimat_d(l1,jsph) = l1/ddx_data % rsph(jsph) + &
-            & (l1 + 1)*(ddx_data % kappa**2*ddx_data % rsph(jsph))/((two*l1 + one) * &
-            & (two*l1 + three))
-      else
-        termimat_d(l1,jsph) = DI_ri(l1,jsph)/SI_ri(l1,jsph)*ddx_data % kappa
-      end if
-    end do
-  end do
 
   ! diff_re = epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
   diff_re = zero 
@@ -2275,13 +2253,12 @@ contains
       do m1 = -l1,l1
         ind1 = l1**2 + l1 + m1 + 1
         diff_re(ind1,jsph) = ((epsp/ddx_data % eps)*(l1/ddx_data % rsph(jsph)) * &
-            & Xr(ind1,jsph) - termimat_d(l1,jsph)*Xe(ind1,jsph))
+            & Xr(ind1,jsph) - termimat(l1,jsph)*Xe(ind1,jsph))
       end do
     end do
   end do
 
   ! diff0 = Pchi * diff_er, linear scaling
-  ! TODO: probably doing PX on the fly is better 
   diff0 = zero 
   do jsph = 1, ddx_data % nsph
     do ind0 = 1, nbasis0
@@ -2322,7 +2299,114 @@ contains
   return
   end subroutine C1_C2  
 
-  
+  !
+  ! Subroutine to compute the Modified Spherical Bessel function of the first kind
+  ! @param[in]  lmax     : Data type
+  ! @param[in]  argument : Argument of Bessel function
+  ! @param[out] SI       : Modified Bessel function of the first kind
+  ! @param[out] DI       : Derivative of modified Bessel function of the first kind
+  subroutine modified_spherical_bessel_first_kind(lmax, argument, SI, DI)
+  use Complex_Bessel
+  implicit none
+  integer, intent(in) :: lmax
+  real(dp), intent(in) :: argument
+  real(dp), dimension(0:lmax), intent(out) :: SI, DI
+  ! Local Variables
+  ! Complex_SI     : Modified Bessel functions of the first kind
+  ! argument       : Argument for Complex_SI
+  ! scaling_factor : sqrt(pi/2x)
+  ! fnu            : Starting argument for I_J(x)
+  ! NZ             : Number of components set to zero due to underflow
+  ! ierr           : Erro indicator for I_J(x)
+  ! l              : l=0,...,lmax
+  complex(dp), dimension(0:lmax) :: Complex_SI
+  complex(dp) :: complex_argument
+  real(dp) :: scaling_factor, fnu
+  integer :: NZ, ierr, l
+
+  ! Compute I_(0.5+J) for J:1,...,lmax
+  ! NOTE: cbesi computes I_(FNU+J-1)
+  fnu = 1.5
+  scaling_factor = sqrt(PI/(2*argument))
+  ! NOTE: Complex argument is required to call I_J(x)
+  complex_argument = argument
+
+  ! Compute for l = 0
+  call cbesi(complex_argument, fnu - 1.0, 1, 1, Complex_SI(0), NZ, ierr)
+  if (ierr .ne. 0) stop 'Error in computing Bessel function of first kind'
+  ! Compute for l = 1,...,lmax
+  call cbesi(complex_argument, fnu, 1, lmax, Complex_SI(1:lmax), NZ, ierr)
+  if (ierr .ne. 0) stop 'Error in computing Bessel function of first kind'
+
+  ! Store the real part of the complex Bessel functions
+  SI = real(Complex_SI)
+  ! Converting Modified Bessel to Spherical Modified Bessel
+  do l = 0, lmax
+    SI(l) = scaling_factor*SI(l)
+  end do
+
+  ! Computation of Derivatives of SI
+  DI(0) = SI(1)
+  do l = 1,lmax
+    DI(l)= SI(l-1)-((l+1.0D0)*SI(l))/argument
+  end do
+
+  end subroutine modified_spherical_bessel_first_kind
+
+  !
+  ! Subroutine to compute the Modified Spherical Bessel function of the second kind
+  ! @param[in]  lmax     : Size
+  ! @param[in]  argument : Argument of Bessel function
+  ! @param[out] SK       : Modified Bessel function of the second kind
+  ! @param[out] DK       : Derivative of modified Bessel function of the second kind
+  subroutine modified_spherical_bessel_second_kind(lmax, argument, SK, DK)
+  use Complex_Bessel
+  implicit none
+  integer , intent(in) :: lmax
+  real(dp), intent(in) :: argument
+  real(dp), dimension(0:lmax), intent(out) :: SK, DK
+  ! Local Variables
+  ! Complex_SK     : Modified Bessel functions of the second kind
+  ! argument       : Argument for Complex_SK
+  ! scaling_factor : sqrt(pi/2x)
+  ! fnu            : Starting argument for K_J(x)
+  ! NZ             : Number of components set to zero due to underflow
+  ! ierr           : Error indicator for K_J(x)
+  ! l              : l=0,...,lmax
+  complex(dp), dimension(0:lmax) :: Complex_SK
+  complex(dp) :: complex_argument
+  real(dp) :: scaling_factor, fnu
+  integer :: NZ, ierr, l
+
+  ! Compute K_(0.5+J) for J:1,...,lmax
+  ! NOTE: cbesk computes K_(FNU+J-1)
+  fnu = 1.5
+  scaling_factor = sqrt(2/(PI*argument))
+  ! NOTE: Complex argument is required to call K_J(x)
+  complex_argument = argument
+
+  ! Compute for l = 0
+  call cbesk(complex_argument, fnu - 1.0, 1, 1, Complex_SK(0), NZ, ierr)
+  if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
+  ! Compute for l = 1,...,lmax
+  call cbesk(complex_argument, fnu, 1, lmax, Complex_SK(1:lmax), NZ, ierr)
+  if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
+
+  ! Store the real part of the complex Bessel functions
+  SK = real(Complex_SK)
+  ! Converting Modified Bessel to Spherical Modified Bessel
+  do l = 0, lmax
+    SK(l) = scaling_factor*SK(l)
+  end do
+
+  ! Computation of Derivatives of SK
+  DK(0) = -SK(1)
+  do l = 1, lmax
+    DK(l) = -SK(l-1) - ((l+1.0D0)*SK(l))/argument
+  end do
+
+  end subroutine modified_spherical_bessel_second_kind
+
   !
   ! Debug routine to check the adjoint system. Compute <y^T,Lx>
   ! @param[in] ddx_data : Data type
@@ -2383,24 +2467,30 @@ contains
   ! Local variable
   ! vector_y_cosmo  : Ax
   ! vector_x        : Initial vector
-  ! unit_vector_1   : Unit vector dim: 1 \times M(l_max+1)^2
+  ! unit_vector_nelements   : Unit vector dim: 1 \times M(l_max+1)^2
   ! vector_yh_cosmo : A(x+h)
   real(dp), dimension(ddx_data % n):: vector_y_cosmo, vector_x,&
-                                      &unit_vector_1, vector_yh_cosmo
+                                      &unit_vector_nelements, vector_yh_cosmo
   real(dp), dimension(ddx_data % n):: vector_y_lpb, vector_yh_lpb
   ! unit_vector   : Unit vector dim: nbasis \times nsph
-  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph):: unit_vector
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph):: unit_vector_nbasis_nsph
   ! 
-  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph):: vector_r, vector_rh
-  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph):: vector_e, vector_eh
-  ! unit_vector_grid : Unit vector evaluated on grid points
-  real(dp), dimension(ddx_data % ngrid, ddx_data % nsph):: unit_vector_grid
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph):: vector_r_c1_c2
+  real(dp), dimension(ddx_data % nbasis, ddx_data % nsph):: vector_e_c1_c2, zero_vector_nbasis_nsph
+  ! unit_vector_evaluated_at_grid : Unit vector evaluated on grid points
+  real(dp), dimension(ddx_data % ngrid, ddx_data % nsph):: unit_vector_evaluated_at_grid
+  ! unit_vector_ngrid_nsph : Unit Vector of size ngrid \times nsph
+  real(dp), dimension(ddx_data % ngrid, ddx_data % nsph):: unit_vector_ngrid_nsph
+  ! summation_char : Summation of the characteristic function
+  real(dp), dimension(ddx_data % ngrid, ddx_data % nsph):: summation_char
   ! derivative_cosmo : A^k(x)
   ! derivative_lpb   : A^k(x) 
   real(dp), dimension(3, ddx_data % nsph) :: derivative_cosmo
   real(dp), dimension(3, ddx_data % nsph) :: derivative_lpb
   real(dp), dimension(3, ddx_data % nsph) :: derivative_u_r
   real(dp), dimension(3, ddx_data % nsph) :: derivative_u_e
+  real(dp), dimension(3, ddx_data % nsph) :: derivative_char
+
   ! vsin, vcos, vplm : Values used in basloc
   real(dp), dimension(ddx_data % lmax +1) :: vsin, vcos
   ! basloc : Y_lm
@@ -2412,12 +2502,12 @@ contains
   real(dp), dimension(nbasis0, ddx_data % nsph) :: diff0
   ! in          : Index for n
   ! isph        : Index for spheres
-  integer :: in, isph, i, jsph, ibasis
+  integer :: in, isph, i, jsph, ibasis, igrid, counter
   ! sum  : <y^T,Lx>
   ! step : Finite difference step length
   real(dp) :: sum_x_cosmo, sum_xh_cosmo, step
   real(dp) :: sum_x_lpb, sum_xh_lpb
-  real(dp) :: sum_x_c1, sum_xh_c1
+  real(dp) :: sum_x_c1, sum_char
   
   ! Initial values
   ! x    : one
@@ -2427,59 +2517,87 @@ contains
   vector_yh_cosmo = one
   vector_y_lpb = one
   vector_yh_lpb = one
+  zero_vector_nbasis_nsph = zero
   
-  vector_r = zero
-  vector_rh = zero
-  vector_e = zero
-  vector_eh = zero
+  vector_r_c1_c2 = zero
+  vector_e_c1_c2 = zero
   
   derivative_lpb = zero
   derivative_cosmo = zero
   derivative_u_e = zero
   derivative_u_r = zero
+  derivative_char = zero
   
-  unit_vector = one
-  unit_vector_1 = one
-  step = 0.000001
+  unit_vector_nbasis_nsph = one
+  unit_vector_nelements = one
+  unit_vector_ngrid_nsph = one
+  step = 0.00001
+  counter = zero
   
   isph = one
   i = one
-  
+  ! Using central difference approximation
+  ! Values at x-h
+  ddx_data % csph(i, isph) = ddx_data % csph(i, isph) - step
   ! Call Lx for x
   ! Calling for Lx corrsponding to ddCOSMO and ddLPB different
   call lx(ddx_data, vector_x, vector_y_cosmo)
   ! ddLPB
   call matABx(ddx_data , ddx_data % n, vector_x, vector_y_lpb)
-  ! C_1 and C_2
-  call C1_C2(ddx_data, vector_r, vector_e, unit_vector, unit_vector)
-  
+
   ! Values at x+h, change coordinates for x_i
-  ddx_data % csph(i, isph) = ddx_data % csph(i, isph) + step
+  ddx_data % csph(i, isph) = ddx_data % csph(i, isph) + 2*step
 !   ! Call Lx for x+h
   call lx(ddx_data, vector_x, vector_yh_cosmo)
   ! ddLPB
   call matABx(ddx_data , ddx_data % n, vector_x, vector_yh_lpb)
-  ! C_1 and C_2
   
   ! Values at x
   ddx_data % csph(i, isph) = ddx_data % csph(i, isph) - step
   ! Compute solution on grid points
+
+  ! C_1 and C_2
+  call C1_C2(ddx_data, vector_r_c1_c2, vector_e_c1_c2, unit_vector_nbasis_nsph, unit_vector_nbasis_nsph)
+
+  !call update_rhs(ddx_data, zero_vector_nbasis_nsph, zero_vector_nbasis_nsph, vector_r_c1_c2, &
+                 !& vector_e_c1_c2, unit_vector_nbasis_nsph, unit_vector_nbasis_nsph)
+
   call dgemm('T', 'N', ddx_data % ngrid, ddx_data % nsph, &
             & ddx_data % nbasis, one, ddx_data % vgrid, ddx_data % vgrid_nbasis, &
-            & unit_vector , ddx_data % nbasis, zero, unit_vector_grid, &
+            & unit_vector_nbasis_nsph , ddx_data % nbasis, zero, unit_vector_evaluated_at_grid, &
             & ddx_data % ngrid)
+
+  summation_char = zero
+  ! Checking the implementation of fdoga in ddx_core.f90
+  ! Store \omega_n*ui*a_in
+  do jsph = 1,ddx_data % nsph
+    do igrid = 1,ddx_data % ngrid
+      if (ddx_data % ui(igrid, jsph) .gt. zero) then
+        counter = counter + 1
+        summation_char(igrid,jsph) = ddx_data % wgrid(igrid) * &
+                                    & unit_vector_evaluated_at_grid(igrid, jsph) &
+                                    & * ddx_data % ui(igrid, jsph)
+      end if
+    end do
+  end do
   
   ! Compute unit_vector^T*B^k*unit_vector for x_1
-  call fdoka(ddx_data, isph, unit_vector, unit_vector_grid(:, isph), &
+  call fdoka(ddx_data, isph, unit_vector_nbasis_nsph, unit_vector_evaluated_at_grid(:, isph), &
                   & basloc, dbsloc, vplm, vcos, vsin, derivative_cosmo(:,isph))
-  call fdokb(ddx_data, isph, unit_vector, unit_vector_grid, &
+  call fdokb(ddx_data, isph, unit_vector_nbasis_nsph, unit_vector_evaluated_at_grid, &
                   & basloc, dbsloc, vplm, vcos, vsin, derivative_cosmo(:, isph))
-  call fdoka_b_xe(ddx_data, isph, unit_vector, unit_vector_grid(:, isph), &
+  call fdoka_b_xe(ddx_data, isph, unit_vector_nbasis_nsph, unit_vector_evaluated_at_grid(:, isph), &
                   & basloc, dbsloc, vplm, vcos, vsin, derivative_lpb(:,isph))
-  call fdokb_b_xe(ddx_data, isph, unit_vector, unit_vector_grid, &
+  call fdokb_b_xe(ddx_data, isph, unit_vector_nbasis_nsph, unit_vector_evaluated_at_grid, &
                   & basloc, dbsloc, vplm, vcos, vsin, derivative_lpb(:, isph))
-  call derivative_U(ddx_data, isph, unit_vector, unit_vector, unit_vector_grid,&
-                  & unit_vector(:, isph), derivative_u_r(:, isph), & 
+
+  ! Call fdoga with phi_n = unit_vector and xi = unit_vector_evaluated_at_grid
+  call fdoga(ddx_data, isph, unit_vector_evaluated_at_grid, unit_vector_ngrid_nsph, &
+             & derivative_char(:, isph))
+
+  call derivative_U(ddx_data, isph, unit_vector_nbasis_nsph, unit_vector_nbasis_nsph, &
+                  & unit_vector_evaluated_at_grid,&
+                  & unit_vector_evaluated_at_grid, derivative_u_r(:, isph), &
                   & derivative_u_e(:, isph), diff_re, diff0)
   !call derivative_Q(ddx_data, isph, unit_vector, unit_vector, unit_vector, unit_vector, &
   !                 & derivative_u_r(:, isph), derivative_u_e(:, isph), diff_re, &
@@ -2487,37 +2605,117 @@ contains
   
   sum_x_cosmo = 0
   sum_xh_cosmo = 0
+
   sum_x_lpb = 0
   sum_xh_lpb = 0
-  sum_x_c1 = 0
-  
+
   do in = 1, ddx_data % n
-    sum_x_cosmo = sum_x_cosmo + unit_vector_1(in)*vector_y_cosmo(in)
-    sum_xh_cosmo = sum_xh_cosmo + unit_vector_1(in)*vector_yh_cosmo(in)
-    sum_x_lpb = sum_x_lpb + unit_vector_1(in)*vector_y_lpb(in)
-    sum_xh_lpb = sum_xh_lpb + unit_vector_1(in)*vector_yh_lpb(in)
+    sum_x_cosmo = sum_x_cosmo + unit_vector_nelements(in)*vector_y_cosmo(in)
+    sum_xh_cosmo = sum_xh_cosmo + unit_vector_nelements(in)*vector_yh_cosmo(in)
+    sum_x_lpb = sum_x_lpb + unit_vector_nelements(in)*vector_y_lpb(in)
+    sum_xh_lpb = sum_xh_lpb + unit_vector_nelements(in)*vector_yh_lpb(in)
   end do
+
+  sum_x_c1 = 0
   
   do ibasis = 1, ddx_data % nbasis
     do jsph = 1, ddx_data % nsph
-      sum_x_c1 = sum_x_c1 + unit_vector(ibasis, jsph)*vector_r(ibasis, jsph)  + &
-               & unit_vector(ibasis, jsph)*vector_e(ibasis, jsph)
+      sum_x_c1 = sum_x_c1 + unit_vector_nbasis_nsph(ibasis, jsph)*vector_r_c1_c2(ibasis, jsph)  + &
+               & unit_vector_nbasis_nsph(ibasis, jsph)*vector_e_c1_c2(ibasis, jsph)
     end do
   end do
+
+  sum_char = 0
+
+  ! Evaluate summation of omega_n*ui*phi_n*a_in
+  do igrid = 1, ddx_data % ngrid
+    do jsph = 1, ddx_data % nsph
+      sum_char = sum_char + summation_char(igrid, jsph)
+    end do
+  end do
+
   if (ddx_data % iprint .ge. 0) then
     ! Print x-direction force
     write(*,*) '<y^T,A^Kx>           : ', derivative_cosmo(: ,isph)
     ! Print finite difference
-    write(*,*) 'Finite Difference  A : ', (sum_xh_cosmo-sum_x_cosmo)/step
+    write(*,*) 'Finite Difference  A : ', (sum_xh_cosmo-sum_x_cosmo)/(2*step)
     ! Print x-direction force
     write(*,*) '<y^T,B^Kx>           : ', derivative_lpb(: ,isph)
     ! Print finite difference
-    write(*,*) 'Finite Difference  B : ', (sum_xh_lpb - sum_x_lpb)/step
+    write(*,*) 'Finite Difference  B : ', (sum_xh_lpb - sum_x_lpb)/(2*step)
     ! Print x-direction force for C_1Xr+C_2Xe, U derivative
-    write(*,*) '<y^T, C^Kx>          : ', derivative_u_r(:,isph) + derivative_u_e(:,isph)
-    write(*,*) 'Finite Difference  C1: ', sum_x_c1
+    write(*,*) '<y^T, C^Kx>          : ', -(derivative_u_r(:,isph) + derivative_u_e(:,isph))
+    write(*,*) '[Xadj][C1Xr + C2Xe]  : ', sum_x_c1
+    ! Print value for fdoga
+    write(*,*) '<y^T, U^Kx>          : ', -derivative_char(:,isph)
+    ! Print value
+    write(*,*) '[Xadj][U_iX]         : ', sum_char
+    ! Counter
+    write(*,*) 'Counter              : ', counter
   end if
   return
   end subroutine debug_derivative
+
+  subroutine debug_bessel(ddx_data, arg)
+  use bessel
+  implicit none
+  type(ddx_type), intent(in) :: ddx_data
+  real(dp), intent(in) :: arg
+  ! Local variable
+  ! SI_ri_minus_h : Bessel function evaluated at arg-step_size
+  ! SI_ri_plus_h  : Bessel function evaluated at arg+step_size
+  ! SI_ri         : Bessel function evaluated at arg
+  ! DI_ri_minus_h : Derivative of Bessel function evaluated at arg-step_size
+  ! DI_ri_plus_h  : Derivative of Bessel function evaluated at arg+step_size
+  ! DI_ri         : Derivative of Bessel function evaluated at arg
+  real(dp), dimension(0:ddx_data % lmax) :: SI_ri_minus_h, SI_ri, SI_ri_plus_h, DI_ri_minus_h, DI_ri, DI_ri_plus_h
+  real(dp), dimension(0:ddx_data % lmax) :: Complex_SI, Complex_DI, Complex_SK, Complex_DK, SK, DK
+  ! arg          : Argument of Bessel function
+  ! arg_minus_h  : Argument of Bessel function - step_size
+  ! arg_plus_h   : Argument of Bessel function + step_size
+  ! step         : Step size
+  real(dp) :: arg_minus_h, arg_plus_h, step, finite_difference
+  integer :: NM, l
+  ! Initial values
+  SI_ri = 0
+  SI_ri_minus_h = 0
+  SI_ri_plus_h = 0
+  DI_ri = 0
+  DI_ri_minus_h = 0
+  DI_ri_plus_h = 0
+
+  Complex_SI = 0
+  Complex_DI = 0
+  Complex_SK = 0
+  Complex_DK = 0
+  SK = 0
+  DK = 0
+
+  step = 0.000001
+  arg_minus_h = arg - step
+  arg_plus_h = arg + step
+
+  call SPHI_bessel(ddx_data % lmax, arg, NM, SI_ri, DI_ri)
+  call SPHK_bessel(ddx_data % lmax, arg, NM, SK, DK)
+  call SPHI_bessel(ddx_data % lmax, arg_minus_h , NM, SI_ri_minus_h, DI_ri_minus_h)
+  call SPHI_bessel(ddx_data % lmax, arg_plus_h, NM, SI_ri_plus_h, DI_ri_plus_h)
+  call modified_spherical_bessel_first_kind(ddx_data % lmax, arg, Complex_SI, Complex_DI)
+  call modified_spherical_bessel_second_kind(ddx_data % lmax, arg, Complex_SK, Complex_DK)
+  write(*,*) 'DEBUG for Bessel functions and derivatives with argument : ', arg
+  do l = 0, ddx_data % lmax
+   finite_difference = (SI_ri_plus_h(l) -  SI_ri_minus_h(l))/(2*step)
+   write(*,*) 'l : ', l, '  i_l(arg)                    : ', SI_ri(l)
+   write(*,*) 'l : ', l, '  Complex Bessel              : ', Complex_SI(l)
+   write(*,*) 'l : ', l, '  k_l(arg)                    : ', SK(l)
+   write(*,*) 'l : ', l, '  Complex Bessel_K            : ', Complex_SK(l)
+   write(*,*) 'l : ', l, '  Analytic Derivative         : ', DI_ri(l)
+   write(*,*) 'l : ', l, '  Comp Analytic Derivative    : ', Complex_DI(l)
+   write(*,*) 'l : ', l, '  Finite differece Derivative : ', finite_difference
+   if( (DI_ri(l) - finite_difference) .gt. 1.0D-04) then
+     write(*,*) ' Difference in derivative'
+   endif
+   write(*,*) ' '
+  end do
+  end subroutine debug_bessel
 
 end module ddx_lpb
