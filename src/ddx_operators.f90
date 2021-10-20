@@ -1305,6 +1305,9 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
                 ! Another R^A component (grad_i of potential of a sum of R_ij
                 ! for index inequality j!=i)
                 ! Indexes k and j are flipped compared to the paper
+                ! In case pl=0 MKL does not make gg3 zero reusing old value of
+                ! gg3, so we have to clear it manually
+                gg3 = zero
                 call dgemv('T', params % pl**2, 3, one, &
                     & workspace % tmp_sph_l_grad(1, 1, isph), &
                     & (params % pl+1)**2, constants % vgrid2(1, igrid), 1, &
