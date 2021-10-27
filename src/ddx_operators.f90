@@ -21,32 +21,49 @@ contains
 !!
 !! TODO: make use of FMM here
 !! AJ: Added gradphi for ddLPB
-subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
+subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, hessian_cav, psi)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
     ! Outputs
     real(dp), intent(out) :: phi_cav(ddx_data % ncav)
     real(dp), intent(out) :: gradphi_cav(3, ddx_data % ncav)
+    real(dp), intent(out) :: hessian_cav(3, 3, ddx_data % ncav)
     real(dp), intent(out) :: psi(ddx_data % nbasis, ddx_data % nsph)
     ! Local variables
-    integer :: isph, igrid, icav, inode, inear, jnear, jnode, jsph
-    real(dp) :: d(3), v, dnorm, gradv(3), epsp=one
+    integer :: isph, igrid, icav, inode, inear, jnear, jnode, jsph, i, j
+    real(dp) :: d(3), v, dnorm, gradv(3), epsp=one, hessianv(3,3), transpose_matrix(3,3)
     real(dp) :: grid_grad(ddx_data % ngrid, 3, ddx_data % nsph)
+    real(dp) :: identity_matrix(3,3)
     real(dp), external :: dnrm2
+    identity_matrix = zero
+    do i = 1, 3
+      identity_matrix(i,i) = one
+    end do
     ! In case FMM is disabled compute phi and gradphi at cavity points by a
     ! naive double loop of a quadratic complexity
     if (ddx_data % fmm .eq. 0) then
         do icav = 1, ddx_data % ncav
             v = zero
             gradv = zero
+            hessianv = zero
             do isph = 1, ddx_data % nsph
                 d = ddx_data % ccav(:, icav) - ddx_data % csph(:, isph)
+                do i = 1,3
+                  do j = 1,3
+                    transpose_matrix(i,j) = d(i)*d(j)
+                  end do
+                end do
                 dnorm = dnrm2(3, d, 1)
                 v = v + ddx_data % charge(isph)/dnorm
                 gradv = gradv - ddx_data % charge(isph)*d/(dnorm**3)
+                hessianv = hessianv + &
+                            & ddx_data % charge(isph)*(3*transpose_matrix/(dnorm**5)- &
+                            & identity_matrix/(dnorm**3))
+
             end do
             phi_cav(icav) = v
             gradphi_cav(:,icav) = gradv
+            hessian_cav(:,:,icav) = hessianv
         end do
     ! Use the FMM otherwise
     else
@@ -144,7 +161,8 @@ subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
     ! Vector psi
     psi(2:, :) = zero
     do isph = 1, ddx_data % nsph
-        psi(1, isph) = sqrt4pi * ddx_data % charge(isph)
+        !NOTE: One needs to make a check condition for ddCOSMO and ddLPB
+        psi(1, isph) = (1/sqrt4pi) * ddx_data % charge(isph)
     end do
 end subroutine mkrhs
 

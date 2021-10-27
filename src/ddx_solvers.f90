@@ -49,6 +49,7 @@ contains
 !   ok       : logical, output, T if the solver converged, false otherwise.
 !
 !   matvec   : external, subroutine to compute the required matrix-vector multiplication
+!              for the off-diagonal part.
 !              format: subroutine matvec(n,x,y)
 !
 !   dm1vec   : external, subroutine to apply the inverse diagonal matrix to a vector.

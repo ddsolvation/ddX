@@ -20,7 +20,8 @@ implicit none
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
 integer :: info
-real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), psi(:, :), force(:, :)
+real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), hessian_cav(:,:,:), &
+                        & psi(:, :), force(:, :)
 real(dp) :: esolv, start_time, finish_time
 integer :: i, j, isph
 
@@ -30,13 +31,14 @@ write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, info)
 if(info .ne. 0) stop "info != 0"
 allocate(phi_cav(ddx_data % ncav), gradphi_cav(3, ddx_data % ncav), &
+    & hessian_cav(3,3,ddx_data % ncav),&
     & psi(ddx_data % nbasis, ddx_data % nsph), force(3, ddx_data % nsph))
 call cpu_time(start_time)
-call mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
+call mkrhs(ddx_data, phi_cav, gradphi_cav, hessian_cav, psi)
 call cpu_time(finish_time)
 write(*, "(A,ES11.4E2,A)") "mkrhs time:", finish_time-start_time, " seconds"
 call cpu_time(start_time)
-call ddsolve(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
+call ddsolve(ddx_data, phi_cav, gradphi_cav, hessian_cav, psi, esolv, force)
 call cpu_time(finish_time)
 write(*, "(A,ES11.4E2,A)") "ddsolve time:", finish_time-start_time, " seconds"
 write(*, "(A,ES25.16E3)") "ddsolve esolv:", esolv

@@ -1394,6 +1394,24 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         end if
     ! LPB model
     else if (model .eq. 3) then
+        allocate(ddx_data % phi_grid(ddx_data % ngrid, nsph), stat=istatus)
+        if (istatus .ne. 0) then
+          !write(*, *) "Error in allocation of M2P matrices"
+            info = 38
+            return
+        end if
+        allocate(ddx_data % phi(ddx_data % nbasis, nsph), stat=istatus)
+        if (istatus .ne. 0) then
+            !write(*, *) "Error in allocation of M2P matrices"
+            info = 38
+            return
+        end if
+        allocate(ddx_data % zeta(ddx_data % ncav), stat=istatus)
+        if (istatus .ne. 0) then
+            !write(*, *) "Error in allocation of M2P matrices"
+            info = 38
+            return
+        end if
     end if
     allocate(ddx_data % tmp_grid(ddx_data % ngrid, nsph), stat=istatus)
     if (istatus .ne. 0) then
@@ -10945,33 +10963,33 @@ subroutine fdoga(ddx_data, isph, xi, phi, fx )
 !
 end subroutine fdoga
 
-subroutine efld(nsrc,src,csrc,ntrg,ctrg,ef)
-integer,                    intent(in)    :: nsrc, ntrg
-real*8,  dimension(nsrc),   intent(in)    :: src
-real*8,  dimension(3,nsrc), intent(in)    :: csrc
-real*8,  dimension(3,ntrg), intent(in)    :: ctrg
-real*8,  dimension(3,ntrg), intent(inout) :: ef
+subroutine efld(ncav,zeta,ccav,nsph,csph,force)
+integer,                    intent(in)    :: ncav, nsph
+real*8,  dimension(ncav),   intent(in)    :: zeta
+real*8,  dimension(3,ncav), intent(in)    :: ccav
+real*8,  dimension(3,nsph), intent(in)    :: csph
+real*8,  dimension(3,nsph), intent(inout) :: force
 !
-integer :: i, j
-real*8  :: dx, dy, dz, r2, rr, r3, f, e(3)
+integer :: icav, isph
+real*8  :: dx, dy, dz, rijn2, rijn, rijn3, f, sum_int(3)
 real*8, parameter :: zero=0.0d0
 !
-ef = zero
-do j = 1, ntrg
-  e = zero
-  do i = 1, nsrc
-    dx   = ctrg(1,j) - csrc(1,i)
-    dy   = ctrg(2,j) - csrc(2,i)
-    dz   = ctrg(3,j) - csrc(3,i)
-    r2   = dx*dx + dy*dy + dz*dz
-    rr   = sqrt(r2)
-    r3   = r2*rr
-    f    = src(i)/r3
-    e(1) = e(1) + f*dx
-    e(2) = e(2) + f*dy
-    e(3) = e(3) + f*dz
+force = zero
+do isph = 1, nsph
+  sum_int = zero
+  do icav = 1, ncav
+    dx   = csph(1,isph) - ccav(1,icav)
+    dy   = csph(2,isph) - ccav(2,icav)
+    dz   = csph(3,isph) - ccav(3,icav)
+    rijn2   = dx*dx + dy*dy + dz*dz
+    rijn   = sqrt(rijn2)
+    rijn3   = rijn2*rijn
+    f    = zeta(icav)/rijn3
+    sum_int(1) = sum_int(1) + f*dx
+    sum_int(2) = sum_int(2) + f*dy
+    sum_int(3) = sum_int(3) + f*dz
   end do
-  ef(:,j) = e
+  force(:,isph) = sum_int
 end do
 end subroutine efld
 

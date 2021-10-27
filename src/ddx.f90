@@ -28,11 +28,13 @@ contains
 !! @param[in] psi: TODO
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
-subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
+subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, hessian_cav, psi, esolv, force)
     ! Inputs:
     type(ddx_type), intent(inout)  :: ddx_data
     real(dp), intent(in) :: phi_cav(ddx_data % ncav), &
-        & gradphi_cav(3, ddx_data % ncav), psi(ddx_data % nbasis, ddx_data % nsph)
+        & gradphi_cav(3, ddx_data % ncav),&
+        & hessian_cav(3, 3, ddx_data % ncav), &
+        &psi(ddx_data % nbasis, ddx_data % nsph)
     ! Outputs
     real(dp), intent(out) :: esolv, force(3, ddx_data % nsph)
     ! Find proper model
@@ -45,7 +47,8 @@ subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
             call ddpcm(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
         ! LPB model
         case (3)
-            call ddlpb(ddx_data, phi_cav, gradphi_cav, psi, esolv, force)
+            call ddlpb(ddx_data, phi_cav, gradphi_cav, hessian_cav,&
+                      & psi, esolv, force)
         ! Error case
         case default
             stop "Non-supported model"
