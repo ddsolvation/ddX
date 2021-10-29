@@ -19,7 +19,9 @@ implicit none
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
 integer :: iprint, info
-real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), psi(:, :), force(:, :)
+integer :: phi_flag=1, grad_flag=1, hessian_flag=1
+real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), hessianphi_cav(:, :, :), &
+    & psi(:, :), force(:, :)
 real(dp) :: tol, esolv, start_time, finish_time
 integer :: i, j, isph
 
@@ -29,9 +31,11 @@ write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol, iprint, info)
 if(info .ne. 0) stop "info != 0"
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
+    & hessianphi_cav(3, 3, ddx_data % constants % ncav), &
     & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), force(3, ddx_data % params % nsph))
 call cpu_time(start_time)
-call mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
+call mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, hessian_flag, &
+    & hessianphi_cav, psi)
 call cpu_time(finish_time)
 write(*, "(A,ES11.4E2,A)") "mkrhs time:", finish_time-start_time, " seconds"
 call cpu_time(start_time)
@@ -106,7 +110,7 @@ write(*, *) "Full forces"
         write(6,'(1x,i5,3ES25.16E3)') isph, force(:,isph)
     end do
 end if
-deallocate(phi_cav, gradphi_cav, psi, force)
+deallocate(phi_cav, gradphi_cav, hessianphi_cav, psi, force)
 call ddfree(ddx_data)
 
 end program main

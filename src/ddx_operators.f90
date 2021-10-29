@@ -17,21 +17,38 @@ implicit none
 
 contains
 
-!> Compute potential in cavity points
+!> Compute potential, its gradient and hessian in cavity points
 !!
-!! TODO: make use of FMM here
-!! AJ: Added gradphi for ddLPB
-subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
+!! If ddx_data is FMM-ready then approximate output is computed by the FMM.
+!!
+!! @param[in] ddx_data: ddX object
+!! @param[in] phi_flag: 1 if need to produce output potential
+!! @param[out] phi_cav: Potential at cavity points. Referenced only if
+!!      phi_flag=1
+!! @param[in] grad_flag: 1 if need to produce gradient of potential
+!! @param[out] gradphi_cav: Potential at cavity points. Referenced only if
+!!      grad_flag=1
+!! @param[in] hessian_flag: 1 if need to produce hessian of potential
+!! @param[out] hessianphi_cav: Potential at cavity points. Referenced only if
+!!      hessian_flag=1
+subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
+        & hessian_flag, hessianphi_cav, psi)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
+    integer, intent(in) :: phi_flag, grad_flag, hessian_flag
     ! Outputs
     real(dp), intent(out) :: phi_cav(ddx_data % constants % ncav)
     real(dp), intent(out) :: gradphi_cav(3, ddx_data % constants % ncav)
-    real(dp), intent(out) :: psi(ddx_data % constants % nbasis, ddx_data % params % nsph)
+    real(dp), intent(out) :: hessianphi_cav(3, 3, ddx_data % constants % ncav)
+    real(dp), intent(out) :: psi(ddx_data % constants % nbasis, &
+        & ddx_data % params % nsph)
     ! Local variables
-    integer :: isph, igrid, icav, inode, inear, jnear, jnode, jsph
-    real(dp) :: d(3), v, dnorm, gradv(3), epsp=one
-    real(dp) :: grid_grad(ddx_data % params % ngrid, 3, ddx_data % params % nsph)
+    integer :: isph, igrid, icav, inode, inear, jnear, jnode, jsph, i
+    real(dp) :: d(3), v, tmpv, r, gradv(3), hessianv(3, 3), tmpd(3), epsp=one
+    real(dp) :: grid_grad(ddx_data % params % ngrid, 3, &
+        & ddx_data % params % nsph), grid_hessian(ddx_data % params % ngrid, &
+        & 3, 3, ddx_data % params % nsph), &
+        & grid_hessian2(ddx_data % params % ngrid, 3, ddx_data % params % nsph)
     real(dp), external :: dnrm2
     ! In case FMM is disabled compute phi and gradphi at cavity points by a
     ! naive double loop of a quadratic complexity
@@ -39,14 +56,35 @@ subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
         do icav = 1, ddx_data % constants % ncav
             v = zero
             gradv = zero
+            hessianv = zero
             do isph = 1, ddx_data % params % nsph
-                d = ddx_data % constants % ccav(:, icav) - ddx_data % params % csph(:, isph)
-                dnorm = dnrm2(3, d, 1)
-                v = v + ddx_data % params % charge(isph)/dnorm
-                gradv = gradv - ddx_data % params % charge(isph)*d/(dnorm**3)
+                d = ddx_data % constants % ccav(:, icav) - &
+                    & ddx_data % params % csph(:, isph)
+                r = dnrm2(3, d, 1)
+                d = d / r
+                tmpv = ddx_data % params % charge(isph) / r
+                v = v + tmpv
+                tmpv = tmpv / r
+                tmpd = tmpv * d
+                tmpv = tmpv / r
+                gradv = gradv - tmpd
+                tmpd = three / r * tmpd
+                hessianv(:, 1) = hessianv(:, 1) + tmpd*d(1)
+                hessianv(:, 2) = hessianv(:, 2) + tmpd*d(2)
+                hessianv(:, 3) = hessianv(:, 3) + tmpd*d(3)
+                hessianv(1, 1) = hessianv(1, 1) - tmpv
+                hessianv(2, 2) = hessianv(2, 2) - tmpv
+                hessianv(3, 3) = hessianv(3, 3) - tmpv
             end do
-            phi_cav(icav) = v
-            gradphi_cav(:, icav) = gradv
+            if (phi_flag .eq. 1) then
+                phi_cav(icav) = v
+            end if
+            if (grad_flag .eq. 1) then
+                gradphi_cav(:, icav) = gradv
+            end if
+            if (hessian_flag .eq. 1) then
+                hessianphi_cav(:, :, icav) = hessianv
+            end if
         end do
     ! Use the FMM otherwise
     else
@@ -83,10 +121,11 @@ subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
                 phi_cav(icav) = ddx_data % workspace % tmp_grid(igrid, isph)
             end do
         end do
-        ! Now compute near-field FMM gradients
+        ! Now compute near-field FMM gradients and hessians
         ! Cycle over all spheres
         do isph = 1, ddx_data % params % nsph
             grid_grad(:, :, isph) = zero
+            grid_hessian(:, :, :, isph) = zero
             ! Cycle over all external grid points
             do igrid = 1, ddx_data % params % ngrid
                 if(ddx_data % constants % ui(igrid, isph) .eq. zero) cycle
@@ -101,9 +140,22 @@ subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
                     d = ddx_data % params % csph(:, isph) + &
                         & ddx_data % constants % cgrid(:, igrid)*ddx_data % params % rsph(isph) - &
                         & ddx_data % params % csph(:, jsph)
-                    dnorm = dnrm2(3, d, 1)
+                    r = dnrm2(3, d, 1)
+                    d = d / r / r
+                    tmpv = ddx_data % params % charge(jsph) / r
                     grid_grad(igrid, :, isph) = grid_grad(igrid, :, isph) - &
-                        & ddx_data % params % charge(jsph)*d/(dnorm**3)
+                        & tmpv * d
+                    tmpd = three * tmpv * d
+                    tmpv = tmpv / r / r
+                    grid_hessian(igrid, 1, :, isph) = grid_hessian(igrid, 1, :, isph) + &
+                        & d(1)*tmpd
+                    grid_hessian(igrid, 2, :, isph) = grid_hessian(igrid, 2, :, isph) + &
+                        & d(2)*tmpd
+                    grid_hessian(igrid, 3, :, isph) = grid_hessian(igrid, 3, :, isph) + &
+                        & d(3)*tmpd
+                    grid_hessian(igrid, 1, 1, isph) = grid_hessian(igrid, 1, 1, isph) - tmpv
+                    grid_hessian(igrid, 2, 2, isph) = grid_hessian(igrid, 2, 2, isph) - tmpv
+                    grid_hessian(igrid, 3, 3, isph) = grid_hessian(igrid, 3, 3, isph) - tmpv
                 end do
             end do
         end do
@@ -120,6 +172,33 @@ subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
                 & (ddx_data % params % pl+1)**2, one, grid_grad, &
                 & ddx_data % params % ngrid)
         end if
+        ! Take into account far-field FMM hessians only if pl > 1
+        if (ddx_data % params % pl .gt. 1) then
+            do i = 1, 3
+                ! Load previously computed gradient into leaves, since
+                ! tree_grad_l2l currently takes local expansions of entire
+                ! tree. In future it might be changed.
+                do isph = 1, ddx_data % params % nsph
+                    inode = ddx_data % constants % snode(isph)
+                    ddx_data % workspace % tmp_node_l(:, inode) = ddx_data % &
+                        & workspace % tmp_sph_l_grad(:, i, isph)
+                end do
+                ! Get gradient of a gradient of L2L. Currently this uses input
+                ! pl maximal degree of local harmonics but in reality we need
+                ! only pl-1 maximal degree since coefficients of harmonics of a
+                ! degree pl zre zeros.
+                call tree_grad_l2l(ddx_data % params, ddx_data % constants, ddx_data % workspace % tmp_node_l, &
+                    & ddx_data % workspace % tmp_sph_l_grad2, ddx_data % workspace % tmp_sph_l)
+                ! Apply L2P for every axis
+                call dgemm('T', 'N', ddx_data % params % ngrid, 3*ddx_data % params % nsph, &
+                    & (ddx_data % params % pl-1)**2, one, ddx_data % constants % vgrid2, &
+                    & ddx_data % constants % vgrid_nbasis, ddx_data % workspace % tmp_sph_l_grad2, &
+                    & (ddx_data % params % pl+1)**2, zero, grid_hessian2, &
+                    & ddx_data % params % ngrid)
+                ! Properly copy hessian
+                grid_hessian(:, i, :, :) = grid_hessian(:, i, :, :) + grid_hessian2
+            end do
+        end if
         ! Copy output for external grid points only
         icav = 0
         do isph = 1, ddx_data % params % nsph
@@ -127,6 +206,7 @@ subroutine mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
                 if(ddx_data % constants % ui(igrid, isph) .eq. zero) cycle
                 icav = icav + 1
                 gradphi_cav(:, icav) = grid_grad(igrid, :, isph)
+                hessianphi_cav(:, :, icav) = grid_hessian(igrid, :, :, isph)
             end do
         end do
     end if

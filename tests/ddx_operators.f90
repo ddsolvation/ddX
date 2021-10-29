@@ -17,7 +17,7 @@ integer :: i, iprint=1, info, ngrid=590, nproc=1
 ! Some implementation do not work for alpha=1d-307, so range of test values is
 ! reduced. This can be fixed by enforcing proper order of multiplications like
 ! a*b*c into a*(b*c).
-real(dp) :: alpha(4)=(/1d0, -1d0, 1d-294, 1d+294/)
+real(dp) :: alpha(4)=(/1d0, -1d0, 1d-100, 1d+100/)
 type(ddx_type) :: ddx_data
 integer, parameter :: nsph=10, lmax=7, force=1, itersolver=1, &
     & maxiter=1000, ndiis=25
@@ -46,6 +46,12 @@ do i = 1, size(alpha)
         lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
         & itersolver, maxiter, ndiis, nproc, ddx_data, info)
     if(info .ne. 0) stop 1
+    call check_mkrhs(ddx_data, 0, 0, iprint, 1d-1)
+    call check_mkrhs(ddx_data, 1, 1, iprint, 1d-2)
+    call check_mkrhs(ddx_data, 3, 3, iprint, 1d-3)
+    call check_mkrhs(ddx_data, 5, 5, iprint, 1d-4)
+    call check_mkrhs(ddx_data, 20, 20, iprint, 1d-9)
+    call check_mkrhs(ddx_data, 40, 40, iprint, 1d-15)
     call check_dx(ddx_data, lmax, lmax, iprint, 1d-4)
     call check_dx(ddx_data, 40, 40, iprint, 1d-15)
     call check_gradr(ddx_data, lmax, lmax, iprint, 1d-4)
@@ -55,6 +61,68 @@ do i = 1, size(alpha)
 end do
 
 contains
+
+subroutine check_mkrhs(ddx_data, pm, pl, iprint, threshold)
+    ! Inputs
+    type(ddx_type), intent(inout) :: ddx_data
+    integer, intent(in) :: pm, pl, iprint
+    real(dp), intent(in) :: threshold
+    ! Local variables
+    type(ddx_type) :: ddx_data_fmm
+    integer :: info
+    real(dp), allocatable :: phi_cav(:), phi2_cav(:), gradphi_cav(:, :), &
+        & gradphi2_cav(:, :), hessianphi_cav(:, :, :), &
+        & hessianphi2_cav(:, :, :), psi(:, :), psi2(:, :), force(:, :)
+    real(dp) :: fnorm, fdiff
+    real(dp), external :: dnrm2
+    ! Init FMM-related ddx_data
+    call ddinit(ddx_data % params % nsph, ddx_data % params % charge, ddx_data % params % csph(1, :), &
+        & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
+        & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
+        & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
+        & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % itersolver, &
+        & ddx_data % params % maxiter, ddx_data % params % ndiis, ddx_data % params % nproc, &
+        & ddx_data_fmm, info)
+    ! Allocate resources
+    allocate(phi_cav(ddx_data % constants % ncav), &
+        & phi2_cav(ddx_data % constants % ncav), &
+        & gradphi_cav(3, ddx_data % constants % ncav), &
+        & gradphi2_cav(3, ddx_data % constants % ncav), &
+        & hessianphi_cav(3, 3, ddx_data % constants % ncav), &
+        & hessianphi2_cav(3, 3, ddx_data % constants % ncav), &
+        & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), &
+        & psi2(ddx_data % constants % nbasis, ddx_data % params % nsph), &
+        & force(3, ddx_data % params % nsph), &
+        & stat=info)
+    if(info .ne. 0) call error(-1, "Allocation failed")
+    ! Dense operator mkrhs is trusted to have no errors, this must be somehow
+    ! checked in the future.
+    call mkrhs(ddx_data, 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
+    call mkrhs(ddx_data_fmm, 1, phi2_cav, 1, gradphi2_cav, 1, &
+        & hessianphi2_cav, psi2)
+    ! Compare potentials
+    phi2_cav = phi2_cav - phi_cav
+    gradphi2_cav = gradphi2_cav - gradphi_cav
+    hessianphi2_cav = hessianphi2_cav - hessianphi_cav
+    fnorm = dnrm2(ddx_data % constants % ncav, phi_cav, 1)
+    fdiff = dnrm2(ddx_data % constants % ncav, phi2_cav, 1)
+    print *, "Pot ", fdiff, fnorm, fdiff/fnorm
+    if (fdiff .gt. threshold*fnorm) then
+        call error(-1, "Potentials are different")
+    end if
+    fnorm = dnrm2(3*ddx_data % constants % ncav, gradphi_cav, 1)
+    fdiff = dnrm2(3*ddx_data % constants % ncav, gradphi2_cav, 1)
+    print *, "Grad", fdiff, fnorm, fdiff/fnorm
+    if (fdiff .gt. threshold*fnorm) then
+        call error(-1, "Gradients are different")
+    end if
+    fnorm = dnrm2(9*ddx_data % constants % ncav, hessianphi_cav, 1)
+    fdiff = dnrm2(9*ddx_data % constants % ncav, hessianphi2_cav, 1)
+    print *, "Hess", fdiff, fnorm, fdiff/fnorm
+    if (fdiff .gt. threshold*fnorm) then
+        call error(-1, "Hessians are different")
+    end if
+end subroutine check_mkrhs
 
 subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
     ! Inputs

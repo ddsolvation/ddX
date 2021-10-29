@@ -41,7 +41,7 @@ real(dp), allocatable :: x(:), y(:), z(:), rvdw(:), charge(:)
 !   psi         : Electrostatic potential vector of size nylm*n
 !   xs          : (?)
 !
-real(dp), allocatable :: phi(:), gradphi(:,:), psi(:, :), xs(:, :)
+real(dp), allocatable :: phi(:), gradphi(:,:), hessianphi(:, :, :), psi(:, :), xs(:, :)
 real(dp), allocatable :: g(:, :), rhs(:, :)
 !
 ! These constants are defined in ddX library already
@@ -121,9 +121,9 @@ call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pmax, pmax
     & ndiis, nproc, ddx_data, info)
 
 allocate(phi(ddx_data % constants % ncav), psi(ddx_data % constants % nbasis,n), &
-    & gradphi(3, ddx_data % constants % ncav))
+    & gradphi(3, ddx_data % constants % ncav), hessianphi(3, 3, ddx_data % constants % ncav))
 
-call mkrhs(ddx_data, phi, gradphi, psi)
+call mkrhs(ddx_data, 1, phi, 1, gradphi, 1, hessianphi, psi)
 
 niter = 200
 ! Now, call the ddLPB solver

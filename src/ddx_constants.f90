@@ -194,7 +194,7 @@ type ddx_constants_type
     !!      fmm=1.
     integer :: grad_nbasis
     !> Flag if there were an error
-    integer :: error_flag
+    integer :: error_flag = 2
     !> Last error message
     character(len=255) :: error_message
 end type ddx_constants_type

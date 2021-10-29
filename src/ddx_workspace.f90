@@ -5,6 +5,8 @@
 !! @file src/ddx_workspace.f90
 !! Allocation of workspace for ddX
 !!
+!! TODO: deallocation function
+!!
 !! @version 1.0.0
 !! @author Aleksandr Mikhalev
 !! @date 2021-06-22
@@ -52,6 +54,9 @@ type ddx_workspace_type
     !> Temporary workspace for a gradient of L2L of harmonics of a degree up to
     !!      pl of each sphere. Dimension is ((pl+1)**2, 3, nsph).
     real(dp), allocatable :: tmp_sph_l_grad(:, :, :)
+    !> Temporary workspace for a gradient of L2L of harmonics of a degree up to
+    !!      pl of each sphere. Dimension is ((pl+1)**2, 3, nsph).
+    real(dp), allocatable :: tmp_sph_l_grad2(:, :, :)
     !> Temporary workspace for multipole coefficients of each node. Dimension
     !!      is ((pm+1)**2, nsph)
     real(dp), allocatable :: tmp_node_m(:, :)
@@ -80,7 +85,7 @@ type ddx_workspace_type
     !> Jacobi solver temporary DIIS array. Dimension is (ndiis+1, ndiis+1).
     real(dp), allocatable :: tmp_bmat(:, :)
     !> Flag if there were an error
-    integer :: error_flag
+    integer :: error_flag = 2
     !> Last error message
     character(len=255) :: error_message
 end type ddx_workspace_type
@@ -164,6 +169,16 @@ subroutine workspace_init(params, constants, workspace, info)
         if (info .ne. 0) then
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_sph_l_grad` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
+        allocate(workspace % tmp_sph_l_grad2( &
+            & (params % pl+1)**2, 3, params % nsph), &
+            & stat=info)
+        if (info .ne. 0) then
+            workspace % error_flag = 1
+            workspace % error_message = "workspace_init: `tmp_sph_l_grad2` " // &
                 & "allocation failed"
             info = 1
             return
@@ -262,6 +277,10 @@ subroutine workspace_init(params, constants, workspace, info)
         info = 1
         return
     end if
+    ! Clear error state
+    info = 0
+    workspace % error_flag = 0
+    workspace % error_message = ""
 end subroutine workspace_init
 
 end module

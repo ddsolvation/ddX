@@ -19,7 +19,8 @@ implicit none
 character(len=255) :: finname, foutname, tmpstr
 type(ddx_type) :: ddx_data
 integer :: iprint, info
-real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), psi(:, :), force(:, :)
+real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
+    & hessianphi_cav(:, :, :), psi(:, :), force(:, :)
 real(dp) :: tol, threshold, esolv, esolv2, fnorm, fdiff, ftmp(3)
 integer :: i, j, isph, istatus
 real(dp), external :: dnrm2
@@ -36,11 +37,12 @@ call ddfromfile(finname, ddx_data, tol, iprint, info)
 if(info .ne. 0) call error(-1, "info != 0")
 ! Allocate resources
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
+    & hessianphi_cav(3, 3, ddx_data % constants % ncav), &
     & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), force(3, ddx_data % params % nsph), &
     & stat=istatus)
 if(istatus .ne. 0) call error(-1, "Allocation failed")
 ! Prepare host-code-related entities
-call mkrhs(ddx_data, phi_cav, gradphi_cav, psi)
+call mkrhs(ddx_data, 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
 ! Use the solver
 call ddsolve(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
 ! Open output file for reading
