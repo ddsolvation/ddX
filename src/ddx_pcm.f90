@@ -116,14 +116,39 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
     real(dp) :: start_time, finish_time
     character(len=255) :: string
     real(dp), external :: ddot
+    !! The code
+    ! At first check if parameters, constants and workspace are correctly
+    ! initialized
+    if (params % error_flag .ne. 0) then
+        string = "ddpcm_energy: `params` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (constants % error_flag .ne. 0) then
+        string = "ddpcm_energy: `constants` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (workspace % error_flag .ne. 0) then
+        string = "ddpcm_energy: `workspace` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
     ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
     ! and multiply it by characteristic function at cavity points ui
-    call wghpot(constants % ncav, phi_cav, params % nsph, params % ngrid, &
-        & constants % ui, phi_grid, workspace % tmp_grid)
+    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
+        & constants % icav_ia, constants % icav_ja, phi_cav, phi_grid)
+    workspace % tmp_cav = phi_cav * constants % ui_cav
+    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
+        & constants % icav_ia, constants % icav_ja, workspace % tmp_cav, &
+        & workspace % tmp_grid)
     ! Integrate against spherical harmonics and Lebedev weights to get Phi
-    call intrhs(params % nsph, constants % nbasis, params % ngrid, &
-        & constants % vwgrid, constants % vgrid_nbasis, &
-        & workspace % tmp_grid, phi)
+    call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
+        & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
+        & one, workspace % tmp_grid, zero, phi)
     ! Compute Phi_infty
     call rinfx(params, constants, workspace, phi, phiinf)
     ! Select initial guess for the ddPCM system
@@ -152,11 +177,13 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
     if (xs_mode .eq. 0) then
         xs = zero
     end if
+    ! Set right hand side to -Phi_epsilon
+    workspace % tmp_rhs = -phieps
     ! Solve ddCOSMO system L X = -Phi_epsilon with a proper initial guess
     info = params % maxiter
     call cpu_time(start_time)
-    call jacobi_diis(params, constants, workspace, tol, phieps, xs, xs_niter, &
-        & xs_rel_diff, lx, ldm1x, hnorm, info)
+    call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
+        & xs, xs_niter, xs_rel_diff, lx, ldm1x, hnorm, info)
     call cpu_time(finish_time)
     xs_time = finish_time - start_time
     ! Check if solver did not converge
@@ -267,7 +294,7 @@ subroutine ddpcm_forces(params, constants, workspace, phi_grid, gradphi_cav, &
     call dgemm('T', 'N', params % ngrid, params % nsph, &
         & constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &
         & y, constants % nbasis, zero, ygrid, params % ngrid)
-    g = phi - phieps
+    g = phieps - phi
     q = s - fourpi/(params % eps-one)*y
     qgrid = sgrid - fourpi/(params % eps-one)*ygrid
     ! gradr initializes forces with zeros

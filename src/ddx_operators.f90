@@ -218,99 +218,86 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
 end subroutine mkrhs
 
 !> Apply single layer operator to spherical harmonics
-!!
-!! Diagonal blocks are not counted here.
-subroutine lx(params, constants, workspace, x, y)
+subroutine lx(params, constants, workspace, do_diag, x, y)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
-    integer :: isph, istatus
-    ! TODO: move allocation of these temporaries into workspace type
-    real(dp), allocatable :: pot(:), vplm(:), basloc(:), vcos(:), vsin(:)
-    ! Allocate workspaces
-    allocate(pot(params % ngrid), vplm(constants % nbasis), &
-        & basloc(constants % nbasis), vcos(params % lmax+1), &
-        & vsin(params % lmax+1) , stat=istatus )
-    if ( istatus.ne.0 ) then
-        write(*,*) 'lx: allocation failed !'
-        stop
-    end if
+    integer :: isph, l, ind
     ! Initialize
     y = zero
     do isph = 1, params % nsph
         ! Compute NEGATIVE action of off-digonal blocks
-        call calcv(params, constants, .false., isph, pot, x, basloc, vplm, &
-            & vcos, vsin)
+        call calcv(params, constants, .false., isph, workspace % tmp_grid, &
+            & x, workspace % tmp_vylm, workspace % tmp_vplm, &
+            & workspace % tmp_vcos, workspace % tmp_vsin)
         call intrhs(1, constants % nbasis, params % ngrid, &
-            & constants % vwgrid, constants % vgrid_nbasis, pot, &
-            & y(:, isph))
+            & constants % vwgrid, constants % vgrid_nbasis, &
+            & workspace % tmp_grid, y(:, isph))
         ! Action of off-diagonal blocks
         y(:, isph) = -y(:, isph)
     end do
-    ! Deallocate workspaces
-    deallocate(pot, basloc, vplm, vcos, vsin , stat=istatus)
-    if (istatus .ne. 0) then
-        write(*,*) 'lx: allocation failed !'
-        stop
-    endif
+    ! If diagonals are to be accounted
+    if (do_diag .eq. 1) then
+        ! Loop over harmonics
+        do l = 0, params % lmax
+            ind = l*l + l + 1
+            y(ind-l:ind+l, :) = y(ind-l:ind+l, :) + &
+                & x(ind-l:ind+l, :) / (constants % vscales(ind)**2)
+        end do
+    end if
 end subroutine lx
 
 !> Apply adjoint single layer operator to spherical harmonics
 !!
 !! Diagonal blocks are not counted here.
-subroutine lstarx(params, constants, workspace, x, y)
+subroutine lstarx(params, constants, workspace, do_diag, x, y)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
-    integer :: isph, igrid, istatus
-    real(dp), allocatable :: xi(:,:), vplm(:), basloc(:), vcos(:), vsin(:)
-    ! Allocate workspaces
-    allocate(xi(params % ngrid, params % nsph), vplm(constants % nbasis), &
-        & basloc(constants % nbasis), vcos(params % lmax+1), &
-        & vsin(params % lmax+1), stat=istatus)
-    if (istatus .ne. 0) then
-        write(*, *) 'lstarx: allocation failed!'
-        stop
-    endif
+    integer :: isph, igrid, l, ind
     ! Initilize
     y = zero
-    ! !!$omp parallel do default(shared) private(isph,ig)
     !! Expand x over spherical harmonics
     ! Loop over spheres      
     do isph = 1, params % nsph
         ! Loop over grid points
         do igrid = 1, params % ngrid
-            xi(igrid, isph) = dot_product(x(:, isph), &
+            workspace % tmp_grid(igrid, isph) = dot_product(x(:, isph), &
                 & constants % vgrid(:constants % nbasis, igrid))
         end do
     end do
     !! Compute action
     ! Loop over spheres
-    ! !!$omp parallel do default(shared) private(isph,basloc,vplm,vcos,vsin) &
-    ! !!$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Compute NEGATIVE action of off-digonal blocks
-        call adjrhs(params, constants, isph, xi, y(:, isph), basloc, vplm, vcos, vsin)
+        call adjrhs(params, constants, isph, workspace % tmp_grid, &
+            & y(:, isph), workspace % tmp_vylm, workspace % tmp_vplm, &
+            & workspace % tmp_vcos, workspace % tmp_vsin)
         y(:, isph) = - y(:, isph)
     end do
-    ! Deallocate workspaces
-    deallocate( xi, basloc, vplm, vcos, vsin , stat=istatus )
-    if ( istatus.ne.0 ) then
-        write(*,*) 'lstarx: allocation failed !'
-        stop
-    endif
+    ! If diagonals are to be accounted
+    if (do_diag .eq. 1) then
+        ! Loop over harmonics
+        do l = 0, params % lmax
+            ind = l*l + l + 1
+            y(ind-l:ind+l, :) = y(ind-l:ind+l, :) + &
+                & x(ind-l:ind+l, :) / (constants % vscales(ind)**2)
+        end do
+    end if
 end subroutine lstarx
 
 !> Diagonal preconditioning for Lx operator
@@ -363,30 +350,15 @@ subroutine dx_dense(params, constants, workspace, do_diag, x, y)
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
-    real(dp), allocatable :: vts(:), vplm(:), basloc(:), vcos(:), vsin(:)
     real(dp) :: c(3), vij(3), sij(3)
     real(dp) :: vvij, tij, tt, f, f1, rho, ctheta, stheta, cphi, sphi
     integer :: its, isph, jsph, l, m, ind, lm, istatus
     real(dp), external :: dnrm2
-    ! Allocate temporaries
-    allocate(vts(params % ngrid), vplm(constants % nbasis), &
-        & basloc(constants % nbasis),vcos(params % lmax+1), &
-        & vsin(params % lmax+1), stat=istatus)
-    if (istatus.ne.0) then
-        write(6,*) 'dx: allocation failed !'
-        stop
-    end if
     y = zero
-    ! this loop is easily parallelizable
-    ! !!$omp parallel do default(none) schedule(dynamic) &
-    ! !!$omp private(isph,its,jsph,basloc,vplm,vcos,vsin,vij, &
-    ! !!$omp vvij,tij,sij,tt,l,ind,f,m,vts,c) &
-    ! !!$omp shared(nsph,ngrid,ui,csph,rsph,grid, &
-    ! !!$omp lmax,fourpi,dodiag,x,y,basis)
     do isph = 1, params % nsph
         ! compute the "potential" from the other spheres
         ! at the exposed lebedv points of the i-th sphere 
-        vts = zero
+        workspace % tmp_grid(:, 1) = zero
         do its = 1, params % ngrid
             if (constants % ui(its,isph).gt.zero) then
                 c = params % csph(:,isph) + params % rsph(isph)* &
@@ -401,8 +373,9 @@ subroutine dx_dense(params, constants, workspace, do_diag, x, y)
                         sij = vij/vvij 
                         ! build the local basis
                         call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
-                            & params % lmax, constants % vscales, basloc, &
-                            & vplm, vcos, vsin)
+                            & params % lmax, constants % vscales, &
+                            & workspace % tmp_vylm, workspace % tmp_vplm, &
+                            & workspace % tmp_vcos, workspace % tmp_vsin)
                         ! with all the required stuff, finally compute
                         ! the "potential" at the point 
                         tt = one/tij 
@@ -410,8 +383,10 @@ subroutine dx_dense(params, constants, workspace, do_diag, x, y)
                             ind = l*l + l + 1
                             f = fourpi*dble(l)/(two*dble(l) + one)*tt
                             do m = -l, l
-                                vts(its) = vts(its) + f*x(ind + m,jsph) * &
-                                    & basloc(ind + m)
+                                workspace % tmp_grid(its, 1) = &
+                                    & workspace % tmp_grid(its, 1) + &
+                                    & f*x(ind + m,jsph) * &
+                                    & workspace % tmp_vylm(ind + m, 1)
                             end do
                             tt = tt/tij
                         end do
@@ -421,26 +396,23 @@ subroutine dx_dense(params, constants, workspace, do_diag, x, y)
                             ind = l*l + l + 1
                             f = (two*dble(l) + one)/fourpi
                             do m = -l, l
-                                vts(its) = vts(its) - pt5*x(ind + m,isph) * &
+                                workspace % tmp_grid(its, 1) = &
+                                    & workspace % tmp_grid(its, 1) - &
+                                    & pt5*x(ind + m,isph) * &
                                     & constants % vgrid(ind + m,its)/f
                             end do
                         end do
                     end if 
                 end do
-                !if(isph .eq. 1)
-                vts(its) = constants % ui(its,isph)*vts(its) 
+                workspace % tmp_grid(its, 1) = constants % ui(its, isph) * &
+                    & workspace % tmp_grid(its, 1)
             end if
         end do
         ! now integrate the potential to get its modal representation
         call intrhs(1, constants % nbasis, params % ngrid, &
-            & constants % vwgrid, constants % vgrid_nbasis, vts, y(:,isph))
+            & constants % vwgrid, constants % vgrid_nbasis, &
+            & workspace % tmp_grid, y(:,isph))
     end do
-    ! Clean up temporary data
-    deallocate(vts,vplm,basloc,vcos,vsin,stat=istatus)
-    if (istatus.ne.0) then
-        write(6,*) 'dx: deallocation failed !'
-        stop
-    end if
 end subroutine dx_dense
 
 !> FMM-accelerated implementation of double layer operator
@@ -534,19 +506,10 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
-    real(dp), allocatable :: vts(:), vplm(:), basloc(:), vcos(:), vsin(:)
     real(dp) :: c(3), vji(3), sji(3)
     real(dp) :: vvji, tji, fourpi, tt, f, f1, rho, ctheta, stheta, cphi, sphi
     integer :: its, isph, jsph, l, m, ind, lm, istatus
     real(dp), external :: dnrm2
-    ! Allocate temporaries
-    allocate(vts(params % ngrid), vplm(constants % nbasis), &
-        & basloc(constants % nbasis),vcos(params % lmax+1), &
-        & vsin(params % lmax+1), stat=istatus)
-    if (istatus.ne.0) then
-        write(6,*) 'dx: allocation failed !'
-        stop
-    end if
     y = zero
     ! this loop is easily parallelizable
     ! !!$omp parallel do default(none) schedule(dynamic) &
@@ -568,14 +531,16 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)
                         sji = vji/vvji
                         ! build the local basis
                         call ylmbas(sji, rho, ctheta, stheta, cphi, sphi, &
-                            & params % lmax, constants % vscales, basloc, &
-                            & vplm, vcos, vsin)
+                            & params % lmax, constants % vscales, &
+                            & workspace % tmp_vylm, workspace % tmp_vplm, &
+                            & workspace % tmp_vcos, workspace % tmp_vsin)
                         tt = constants % ui(its,jsph)*dot_product(constants % vwgrid(:,its),x(:,jsph))/tji
                         do l = 0, params % lmax
                             ind = l*l + l + 1
                             f = dble(l)*tt/ constants % vscales(ind)**2
                             do m = -l, l
-                                y(ind+m,isph) = y(ind+m,isph) + f*basloc(ind+m)
+                                y(ind+m,isph) = y(ind+m,isph) + &
+                                    & f*workspace % tmp_vylm(ind+m, 1)
                             end do
                             tt = tt/tji
                         end do
@@ -594,11 +559,6 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)
             end if
         end do
     end do
-    deallocate(vts,vplm,basloc,vcos,vsin,stat=istatus)
-    if (istatus.ne.0) then
-        write(6,*) 'dx: deallocation failed !'
-        stop
-    end if
 end subroutine dstarx_dense
 
 !> FMM-accelerated implementation of adjoint double layer operator
@@ -669,10 +629,11 @@ end subroutine dstarx_fmm
 !! @param[in] ddx_data:
 !! @param[in] x:
 !! @param[out] y:
-subroutine rx(params, constants, workspace, x, y)
+subroutine rx(params, constants, workspace, do_diag, x, y)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     ! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -681,8 +642,14 @@ subroutine rx(params, constants, workspace, x, y)
     ! Local variables
     real(dp) :: fac
     ! Output `y` is cleaned here
-    call dx(params, constants, workspace, 0, x, y)
-    y = -y
+    call dx(params, constants, workspace, do_diag, x, y)
+    ! Update correspondingly to identity operator if needed
+    if (do_diag .eq. 1) then
+        fac = twopi * (params % eps + one) / (params % eps - one)
+        y = fac*x - y
+    else
+        y = -y
+    end if
 end subroutine rx
 
 !> Apply \f$ R^* \f$ operator to spherical harmonics
@@ -693,10 +660,11 @@ end subroutine rx
 !! @param[in] ddx_data:
 !! @param[in] x:
 !! @param[out] y:
-subroutine rstarx(params, constants, workspace, x, y)
+subroutine rstarx(params, constants, workspace, do_diag, x, y)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     ! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -705,8 +673,14 @@ subroutine rstarx(params, constants, workspace, x, y)
     ! Local variables
     real(dp) :: fac
     ! Output `y` is cleaned here
-    call dstarx(params, constants, workspace, 0, x, y)
-    y = -y
+    call dstarx(params, constants, workspace, do_diag, x, y)
+    ! Update correspondingly to identity operator if needed
+    if (do_diag .eq. 1) then
+        fac = twopi * (params % eps + one) / (params % eps - one)
+        y = fac*x - y
+    else
+        y = -y
+    end if
 end subroutine rstarx
 
 !> Apply \f$ R_\varepsilon \f$ operator to spherical harmonics

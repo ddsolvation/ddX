@@ -49,13 +49,14 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
     !! Local variables
     integer :: it, nmat
     real(dp) :: diff, norm, rel_diff
+    integer, parameter :: do_diag=0 !! Ignore diagonal blocks
     !! The code
     ! DIIS variable
     nmat = 1
     ! Iterations
     do it = 1, niter
         ! y = rhs - O x
-        call matvec(params, constants, workspace, x, workspace % tmp_y)
+        call matvec(params, constants, workspace, do_diag, x, workspace % tmp_y)
         workspace % tmp_y = rhs - workspace % tmp_y
         ! x_new = D^-1 y
         call dm1vec(params, constants, workspace, workspace % tmp_y, &

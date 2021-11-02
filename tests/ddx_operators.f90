@@ -165,7 +165,7 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
                 & ddx_data_fmm % workspace, do_diag, x(:, :, irand), z(:, :, irand))
         end do
         diff_norm = dnrm2(ddx_data % constants % n * nrand, y-z, 1)
-        write(*, *) "dx_dense vs dx_fmm(no precompute) rel.error=", diff_norm/full_norm
+        write(*, *) "dx_dense vs dx_fmm rel.error=", diff_norm/full_norm
         ! Check dense adjoint operator dstarx
         do irand = 1, nrand
             call dstarx(ddx_data % params, ddx_data % constants, &
@@ -197,7 +197,7 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, z, ddx_data % constants % n, &
             & x, ddx_data % constants % n, zero, yy, nrand)
         diff_norm = dnrm2(nrand**2, xx-yy, 1)
-        write(*, *) "dstarx_fmm vs dx_fmm (no precompute) rel.error=", diff_norm/full_norm
+        write(*, *) "dstarx_fmm vs dx_fmm rel.error=", diff_norm/full_norm
     end do
     ! Free temporary objects
     call ddfree(ddx_data_fmm)
