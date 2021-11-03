@@ -150,7 +150,7 @@ subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, &
     ! Solve ddCOSMO system L X = -Phi with a given initial guess
     call cpu_time(start_time)
     call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
-        & xs, xs_niter, xs_rel_diff, lx, ldm1x, hnorm, info)
+        & xs, xs_niter, xs_rel_diff, lx_nodiag, ldm1x, hnorm, info)
     call cpu_time(finish_time)
     xs_time = finish_time - start_time
     ! Check if solver did not converge
@@ -220,7 +220,7 @@ subroutine ddcosmo_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
     end if
     call cpu_time(start_time)
     call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
-        & s_rel_diff, lstarx, ldm1x, hnorm, info)
+        & s_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
     call cpu_time(finish_time)
     s_time = finish_time - start_time
     ! Check if solver did not converge

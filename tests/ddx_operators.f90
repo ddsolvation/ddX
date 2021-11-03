@@ -81,7 +81,7 @@ subroutine check_mkrhs(ddx_data, pm, pl, iprint, threshold)
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % itersolver, &
-        & ddx_data % params % maxiter, ddx_data % params % ndiis, ddx_data % params % nproc, &
+        & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, ddx_data % params % nproc, &
         & ddx_data_fmm, info)
     ! Allocate resources
     allocate(phi_cav(ddx_data % constants % ncav), &
@@ -145,7 +145,7 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % itersolver, &
-        & ddx_data % params % maxiter, ddx_data % params % ndiis, ddx_data % params % nproc, &
+        & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, ddx_data % params % nproc, &
         & ddx_data_fmm, info)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.
@@ -156,26 +156,26 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
         write(*, *) "do_diag=", do_diag
         ! Random check of FMM dx operator against dense dx operator
         do irand = 1, nrand
-            call dx(ddx_data % params, ddx_data % constants, &
+            call dx_dense(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, do_diag, x(:, :, irand), y(:, :, irand))
         end do
         full_norm = dnrm2(ddx_data % constants % n * nrand, y, 1)
         do irand = 1, nrand
-            call dx(ddx_data_fmm % params, ddx_data_fmm % constants, &
+            call dx_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
                 & ddx_data_fmm % workspace, do_diag, x(:, :, irand), z(:, :, irand))
         end do
         diff_norm = dnrm2(ddx_data % constants % n * nrand, y-z, 1)
         write(*, *) "dx_dense vs dx_fmm rel.error=", diff_norm/full_norm
         ! Check dense adjoint operator dstarx
         do irand = 1, nrand
-            call dstarx(ddx_data % params, ddx_data % constants, &
+            call dstarx_dense(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, do_diag, x(:, :, irand), y(:, :, irand))
         end do
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, y, ddx_data % constants % n, &
             & y, ddx_data % constants % n, zero, xx, nrand)
         full_norm = dnrm2(nrand**2, xx, 1)
         do irand = 1, nrand
-            call dx(ddx_data % params, ddx_data % constants, &
+            call dx_dense(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, do_diag, y(:, :, irand), z(:, :, irand))
         end do
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, z, ddx_data % constants % n, &
@@ -184,14 +184,14 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
         write(*, *) "dstarx_dense vs dx_dense rel.error=", diff_norm/full_norm
         ! Check FMM adjoint operator dstarx (without precomputed FMM matrices)
         do irand = 1, nrand
-            call dstarx(ddx_data_fmm % params, ddx_data_fmm % constants, &
+            call dstarx_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
                 & ddx_data_fmm % workspace, do_diag, x(:, :, irand), y(:, :, irand))
         end do
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, y, ddx_data % constants % n, &
             & y, ddx_data % constants % n, zero, xx, nrand)
         full_norm = dnrm2(nrand**2, xx, 1)
         do irand = 1, nrand
-            call dx(ddx_data_fmm % params, ddx_data_fmm % constants, &
+            call dx_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
                 & ddx_data_fmm % workspace, do_diag, y(:, :, irand), z(:, :, irand))
         end do
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, z, ddx_data % constants % n, &
@@ -224,7 +224,7 @@ subroutine check_gradr(ddx_data, pm, pl, iprint, threshold)
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % itersolver, &
-        & ddx_data % params % maxiter, ddx_data % params % ndiis, ddx_data % params % nproc, &
+        & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, ddx_data % params % nproc, &
         & ddx_data_fmm, info)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.

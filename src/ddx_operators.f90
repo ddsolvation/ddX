@@ -217,20 +217,19 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
     end do
 end subroutine mkrhs
 
-!> Apply single layer operator to spherical harmonics
-subroutine lx(params, constants, workspace, do_diag, x, y)
+!> Single layer operator matvec without diagonal blocks
+subroutine lx_nodiag(params, constants, workspace, x, y)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-    ! Output
+    !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Local variables
+    !! Local variables
     integer :: isph, l, ind
-    ! Initialize
+    !! Initialize
     y = zero
     do isph = 1, params % nsph
         ! Compute NEGATIVE action of off-digonal blocks
@@ -243,33 +242,52 @@ subroutine lx(params, constants, workspace, do_diag, x, y)
         ! Action of off-diagonal blocks
         y(:, isph) = -y(:, isph)
     end do
-    ! If diagonals are to be accounted
-    if (do_diag .eq. 1) then
-        ! Loop over harmonics
-        do l = 0, params % lmax
-            ind = l*l + l + 1
-            y(ind-l:ind+l, :) = y(ind-l:ind+l, :) + &
-                & x(ind-l:ind+l, :) / (constants % vscales(ind)**2)
-        end do
-    end if
-end subroutine lx
+end subroutine lx_nodiag
 
-!> Apply adjoint single layer operator to spherical harmonics
-!!
-!! Diagonal blocks are not counted here.
-subroutine lstarx(params, constants, workspace, do_diag, x, y)
+!> Single layer operator matvec with diagonal blocks
+subroutine lx(params, constants, workspace, x, y)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-    ! Output
+    !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Local variables
+    !! Local variables
+    integer :: isph, l, ind
+    !! Initialize
+    y = zero
+    do isph = 1, params % nsph
+        ! Compute NEGATIVE action of off-digonal blocks
+        call calcv(params, constants, .false., isph, workspace % tmp_grid, &
+            & x, workspace % tmp_vylm, workspace % tmp_vplm, &
+            & workspace % tmp_vcos, workspace % tmp_vsin)
+        call intrhs(1, constants % nbasis, params % ngrid, &
+            & constants % vwgrid, constants % vgrid_nbasis, &
+            & workspace % tmp_grid, y(:, isph))
+    end do
+    ! Loop over harmonics
+    do l = 0, params % lmax
+        ind = l*l + l + 1
+        y(ind-l:ind+l, :) = -y(ind-l:ind+l, :) + &
+            & x(ind-l:ind+l, :) / (constants % vscales(ind)**2)
+    end do
+end subroutine lx
+
+!> Adjoint single layer operator matvec without diagonal blocks
+subroutine lstarx_nodiag(params, constants, workspace, x, y)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
+    !! Temporaries
+    type(ddx_workspace_type), intent(inout) :: workspace
+    !! Output
+    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
+    !! Local variables
     integer :: isph, igrid, l, ind
-    ! Initilize
+    !! Initilize
     y = zero
     !! Expand x over spherical harmonics
     ! Loop over spheres      
@@ -289,15 +307,45 @@ subroutine lstarx(params, constants, workspace, do_diag, x, y)
             & workspace % tmp_vcos, workspace % tmp_vsin)
         y(:, isph) = - y(:, isph)
     end do
-    ! If diagonals are to be accounted
-    if (do_diag .eq. 1) then
-        ! Loop over harmonics
-        do l = 0, params % lmax
-            ind = l*l + l + 1
-            y(ind-l:ind+l, :) = y(ind-l:ind+l, :) + &
-                & x(ind-l:ind+l, :) / (constants % vscales(ind)**2)
+end subroutine lstarx_nodiag
+
+!> Adjoint single layer operator matvec with diagonal blocks
+subroutine lstarx(params, constants, workspace, x, y)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
+    !! Temporaries
+    type(ddx_workspace_type), intent(inout) :: workspace
+    !! Output
+    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
+    !! Local variables
+    integer :: isph, igrid, l, ind
+    !! Initilize
+    y = zero
+    !! Expand x over spherical harmonics
+    ! Loop over spheres      
+    do isph = 1, params % nsph
+        ! Loop over grid points
+        do igrid = 1, params % ngrid
+            workspace % tmp_grid(igrid, isph) = dot_product(x(:, isph), &
+                & constants % vgrid(:constants % nbasis, igrid))
         end do
-    end if
+    end do
+    !! Compute action
+    ! Loop over spheres
+    do isph = 1, params % nsph
+        ! Compute NEGATIVE action of off-digonal blocks
+        call adjrhs(params, constants, isph, workspace % tmp_grid, &
+            & y(:, isph), workspace % tmp_vylm, workspace % tmp_vplm, &
+            & workspace % tmp_vcos, workspace % tmp_vsin)
+    end do
+    ! Loop over harmonics
+    do l = 0, params % lmax
+        ind = l*l + l + 1
+        y(ind-l:ind+l, :) = -y(ind-l:ind+l, :) + &
+            & x(ind-l:ind+l, :) / (constants % vscales(ind)**2)
+    end do
 end subroutine lstarx
 
 !> Diagonal preconditioning for Lx operator
@@ -310,28 +358,48 @@ subroutine ldm1x(params, constants, workspace, x, y)
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-    ! Output
+    !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Local variables
+    !! Local variables
     integer :: l, ind
-    ! Loop over harmonics
+    !! Loop over harmonics
     do l = 0, params % lmax
         ind = l*l + l + 1
         y(ind-l:ind+l, :) = x(ind-l:ind+l, :) * (constants % vscales(ind)**2)
     end do
 end subroutine ldm1x
 
-!> Apply double layer operator to spherical harmonics
-subroutine dx(params, constants, workspace, do_diag, x, y)
-    ! Inputs
+!> Double layer operator matvec without diagonal blocks
+subroutine dx_nodiag(params, constants, workspace, x, y)
+    !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
-    integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    ! Output
+    !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Select implementation
+    !! Local parameter
+    integer, parameter :: do_diag=0
+    !! Select implementation
+    if (params % fmm .eq. 0) then
+        call dx_dense(params, constants, workspace, do_diag, x, y)
+    else
+        call dx_fmm(params, constants, workspace, do_diag, x, y)
+    end if
+end subroutine dx_nodiag
+
+!> Double layer operator matvec with diagonal blocks
+subroutine dx(params, constants, workspace, x, y)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
+    !! Output
+    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
+    !! Local parameter
+    integer, parameter :: do_diag=1
+    !! Select implementation
     if (params % fmm .eq. 0) then
         call dx_dense(params, constants, workspace, do_diag, x, y)
     else
@@ -341,15 +409,15 @@ end subroutine dx
 
 !> Baseline implementation of double layer operator
 subroutine dx_dense(params, constants, workspace, do_diag, x, y)
-    ! Inputs
+    !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    ! Output
+    !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Local variables
+    !! Local variables
     real(dp) :: c(3), vij(3), sij(3)
     real(dp) :: vvij, tij, tt, f, f1, rho, ctheta, stheta, cphi, sphi
     integer :: its, isph, jsph, l, m, ind, lm, istatus
@@ -417,18 +485,18 @@ end subroutine dx_dense
 
 !> FMM-accelerated implementation of double layer operator
 subroutine dx_fmm(params, constants, workspace, do_diag, x, y)
-    ! Inputs
+    !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    ! Output
+    !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Local variables
+    !! Local variables
     integer :: isph, inode, l, indl, indl1, m
     real(dp) :: finish_time, start_time
-    ! Scale input harmonics at first
+    !! Scale input harmonics at first
     workspace % tmp_sph(1, :) = zero
     indl = 2
     do l = 1, params % lmax
@@ -476,17 +544,39 @@ subroutine dx_fmm(params, constants, workspace, do_diag, x, y)
         & params % ngrid, zero, y, constants % nbasis)
 end subroutine dx_fmm
 
-subroutine dstarx(params, constants, workspace, do_diag, x, y)
-    ! Inputs
+!> Adjoint double layer operator matvec without diagonal blocks
+subroutine dstarx_nodiag(params, constants, workspace, x, y)
+    !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    ! Temporaries
+    !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-    ! Output
+    !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Select implementation
+    !! Local variables
+    integer, parameter :: do_diag=0
+    !! Select implementation
+    if (params % fmm .eq. 0) then
+        call dstarx_dense(params, constants, workspace, do_diag, x, y)
+    else
+        call dstarx_fmm(params, constants, workspace, do_diag, x, y)
+    end if
+end subroutine dstarx_nodiag
+
+!> Adjoint double layer operator matvec with diagonal blocks
+subroutine dstarx(params, constants, workspace, x, y)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
+    !! Temporaries
+    type(ddx_workspace_type), intent(inout) :: workspace
+    !! Output
+    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
+    !! Local variables
+    integer, parameter :: do_diag=1
+    !! Select implementation
     if (params % fmm .eq. 0) then
         call dstarx_dense(params, constants, workspace, do_diag, x, y)
     else
@@ -512,11 +602,6 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)
     real(dp), external :: dnrm2
     y = zero
     ! this loop is easily parallelizable
-    ! !!$omp parallel do default(none) schedule(dynamic) &
-    ! !!$omp private(isph,its,jsph,basloc,vplm,vcos,vsin,vji, &
-    ! !!$omp vvji,tji,sji,tt,l,ind,f,m,vts,c) &
-    ! !!$omp shared(nsph,ngrid,ui,csph,rsph,grid,facl, &
-    ! !!$omp lmax,fourpi,dodiag,x,y,basis,w,nbasis)
     do isph = 1, params % nsph
         do jsph = 1, params % nsph
             if (jsph.ne.isph) then
@@ -625,85 +710,59 @@ end subroutine dstarx_fmm
 !!
 !! Compute \f$ y = R x = - D x \f$ with excluded diagonal influence (blocks
 !! D_ii are assumed to be zero).
-!!
-!! @param[in] ddx_data:
-!! @param[in] x:
-!! @param[out] y:
-subroutine rx(params, constants, workspace, do_diag, x, y)
-    ! Inputs
+subroutine rx(params, constants, workspace, x, y)
+    !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    ! Temporaries
+    !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-    ! Output
+    !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Local variables
+    !! Local variables
     real(dp) :: fac
-    ! Output `y` is cleaned here
-    call dx(params, constants, workspace, do_diag, x, y)
-    ! Update correspondingly to identity operator if needed
-    if (do_diag .eq. 1) then
-        fac = twopi * (params % eps + one) / (params % eps - one)
-        y = fac*x - y
-    else
-        y = -y
-    end if
+    !! Output `y` is cleaned here
+    call dx_nodiag(params, constants, workspace, x, y)
+    y = -y
 end subroutine rx
 
 !> Apply \f$ R^* \f$ operator to spherical harmonics
 !!
 !! Compute \f$ y = R^* x = - D^* x \f$ with excluded diagonal influence (blocks
 !! D_ii are assumed to be zero).
-!!
-!! @param[in] ddx_data:
-!! @param[in] x:
-!! @param[out] y:
-subroutine rstarx(params, constants, workspace, do_diag, x, y)
-    ! Inputs
+subroutine rstarx(params, constants, workspace, x, y)
+    !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    ! Temporaries
+    !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-    ! Output
+    !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Local variables
+    !! Local variables
     real(dp) :: fac
-    ! Output `y` is cleaned here
-    call dstarx(params, constants, workspace, do_diag, x, y)
-    ! Update correspondingly to identity operator if needed
-    if (do_diag .eq. 1) then
-        fac = twopi * (params % eps + one) / (params % eps - one)
-        y = fac*x - y
-    else
-        y = -y
-    end if
+    !! Output `y` is cleaned here
+    call dstarx_nodiag(params, constants, workspace, x, y)
+    y = -y
 end subroutine rstarx
 
 !> Apply \f$ R_\varepsilon \f$ operator to spherical harmonics
 !!
 !! Compute \f$ y = R_\varepsilon x = (2\pi(\varepsilon + 1) / (\varepsilon
 !! - 1) - D) x \f$.
-!!
-!! @param[in] ddx_data:
-!! @param[in] x:
-!! @param[out] y:
 subroutine repsx(params, constants, workspace, x, y)
-    ! Inputs
+    !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    ! Temporaries
+    !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-    ! Output
+    !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Local variables
+    !! Local variables
     real(dp) :: fac
-    ! Output `y` is cleaned here
-    call dx(params, constants, workspace, 1, x, y)
+    !! Output `y` is cleaned here
+    call dx(params, constants, workspace, x, y)
     ! Apply diagonal
     fac = twopi * (params % eps + one) / (params % eps - one)
     y = fac*x - y
@@ -713,10 +772,6 @@ end subroutine repsx
 !!
 !! Compute \f$ y = R^*_\varepsilon x = (2\pi(\varepsilon + 1) / (\varepsilon
 !! - 1) - D) x \f$.
-!!
-!! @param[in] ddx_data:
-!! @param[in] x:
-!! @param[out] y:
 subroutine rstarepsx(params, constants, workspace, x, y)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -729,7 +784,7 @@ subroutine rstarepsx(params, constants, workspace, x, y)
     ! Local variables
     real(dp) :: fac
     ! Output `y` is cleaned here
-    call dstarx(params, constants, workspace, 1, x, y)
+    call dstarx(params, constants, workspace, x, y)
     ! Apply diagonal
     fac = twopi * (params % eps + one) / (params % eps - one)
     y = fac*x - y
@@ -754,7 +809,7 @@ subroutine rinfx(params, constants, workspace, x, y)
     ! Local variables
     real(dp) :: fac
     ! Output `y` is cleaned here
-    call dx(params, constants, workspace, 1, x, y)
+    call dx(params, constants, workspace, x, y)
     ! Apply diagonal
     y = twopi*x - y
 end subroutine rinfx
@@ -778,7 +833,7 @@ subroutine rstarinfx(params, constants, workspace, x, y)
     ! Local variables
     real(dp) :: fac
     ! Output `y` is cleaned here
-    call dstarx(params, constants, workspace, 1, x, y)
+    call dstarx(params, constants, workspace, x, y)
     ! Apply diagonal
     y = twopi*x - y
 end subroutine rstarinfx
@@ -792,7 +847,7 @@ subroutine apply_repsx_prec(params, constants, workspace, x, y)
     ! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
-    real(dp), intent(inout) :: y(constants % nbasis, params % nsph)
+    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     integer :: isph
     ! simply do a matrix-vector product with the transposed preconditioner 
     ! !!$omp parallel do default(shared) schedule(dynamic) &
@@ -815,7 +870,7 @@ subroutine apply_rstarepsx_prec(params, constants, workspace, x, y)
     ! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
-    real(dp), intent(inout) :: y(constants % nbasis, params % nsph)
+    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
     integer :: isph
     ! simply do a matrix-vector product with the transposed preconditioner 

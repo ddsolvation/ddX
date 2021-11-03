@@ -82,7 +82,7 @@ subroutine solve(ddx_data, tol, esolv, phi_cav, gradphi_cav, hessianphi_cav, &
         & ddx_data % params % se, &
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, &
         & ddx_data % params % itersolver, ddx_data % params % maxiter, &
-        & ddx_data % params % ndiis, ddx_data % params % nproc, ddx_data2, info)
+        & ddx_data % params % jacobi_ndiis, ddx_data % params % nproc, ddx_data2, info)
     call mkrhs(ddx_data2, 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
     call ddsolve(ddx_data2, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
     call ddfree(ddx_data2)

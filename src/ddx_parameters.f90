@@ -54,7 +54,14 @@ type ddx_params_type
     integer :: maxiter
     !> Number of extrapolation points for Jacobi/DIIS solver. Referenced only
     !!      if Jacobi solver is used.
-    integer :: ndiis
+    integer :: jacobi_ndiis
+    !> Number of last vectors that GMRESR works with. Referenced only if GMRESR
+    !!      solver is used.
+    integer :: gmresr_j
+    !> Dimension of the envoked GMRESR. In case of 0 GMRESR becomes the GCR
+    !!      solver, one of the simplest versions of GMRESR. Referenced only if
+    !!      GMRESR solver is used.
+    integer :: gmresr_m
     !> Enable (1) or disable (0) use of FMM techniques.
     integer :: fmm
     !> Maximal degree of spherical harmonics for a multipole expansion.
@@ -294,7 +301,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         info = -1
         return
     end if
-    params % ndiis = ndiis
+    params % jacobi_ndiis = ndiis
     ! Check if FMM-acceleration is needed
     if ((fmm .lt. 0) .or. (fmm .gt. 1)) then
         params % error_flag = 1
@@ -426,7 +433,7 @@ subroutine params_print(params)
         call params % print_func(string)
         write(string, "(A,I0)") "maxiter: ", params % maxiter
         call params % print_func(string)
-        write(string, "(A,I0)") "ndiis: ", params % ndiis
+        write(string, "(A,I0)") "jacobi_ndiis: ", params % jacobi_ndiis
         call params % print_func(string)
         write(string, "(A,I0)") "fmm: ", params % fmm
         call params % print_func(string)
