@@ -84,6 +84,8 @@ type ddx_workspace_type
     real(dp), allocatable :: tmp_e_diis(:, :)
     !> Jacobi solver temporary DIIS array. Dimension is (ndiis+1, ndiis+1).
     real(dp), allocatable :: tmp_bmat(:, :)
+    !> GMRESR temporary workspace. Dimension is (n, 2*gmres_j+gmres_dim+2)
+    real(dp), allocatable :: tmp_gmresr(:, :)
     !> Flag if there were an error
     integer :: error_flag = 2
     !> Last error message
@@ -278,6 +280,18 @@ subroutine workspace_init(params, constants, workspace, info)
             & "allocation failed"
         info = 1
         return
+    end if
+    ! In case of GMRESR iterative solver allocate corresponding temporary space
+    if ((params % itersolver .eq. 2) .or. (params % model .eq. 3)) then
+        allocate(workspace % tmp_gmresr(constants % n, &
+            & 0:2*params % gmresr_j + params % gmresr_dim + 1), stat=info)
+        if (info .ne. 0) then
+            workspace % error_flag = 1
+            workspace % error_message = "workspace_init: `tmp_gmresr` " // &
+                & "allocations failed"
+            info = 1
+            return
+        end if
     end if
     ! Clear error state
     info = 0

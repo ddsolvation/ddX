@@ -20,7 +20,7 @@ integer :: i, iprint=1, info, ngrid=590, nproc=1
 real(dp) :: alpha(4)=(/1d0, -1d0, 1d-100, 1d+100/)
 type(ddx_type) :: ddx_data
 integer, parameter :: nsph=10, lmax=7, force=1, itersolver=1, &
-    & maxiter=1000, ndiis=25
+    & maxiter=1000, jacobi_ndiis=25, gmresr_j=1, gmresr_dim=10
 real(dp), parameter :: se=0d0, eta=0.1d0, eps=78d0, kappa=0d0
 real(dp) :: gcsph(3, nsph), csph(3, nsph), grsph(nsph), rsph(nsph), &
     & gcharge(nsph), charge(nsph)
@@ -44,7 +44,8 @@ do i = 1, size(alpha)
     rsph = abs(alpha(i)) * grsph
     call ddinit(nsph, charge, csph(1, :), csph(2, :), csph(3, :), rsph, 2, &
         lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
-        & itersolver, maxiter, ndiis, nproc, ddx_data, info)
+        & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+        & nproc, ddx_data, info)
     if(info .ne. 0) stop 1
     call check_mkrhs(ddx_data, 0, 0, iprint, 1d-1)
     call check_mkrhs(ddx_data, 1, 1, iprint, 1d-2)
@@ -81,7 +82,9 @@ subroutine check_mkrhs(ddx_data, pm, pl, iprint, threshold)
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % itersolver, &
-        & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, ddx_data % params % nproc, &
+        & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
+        & ddx_data % params % gmresr_j, ddx_data % params % gmresr_dim, &
+        & ddx_data % params % nproc, &
         & ddx_data_fmm, info)
     ! Allocate resources
     allocate(phi_cav(ddx_data % constants % ncav), &
@@ -145,7 +148,9 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % itersolver, &
-        & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, ddx_data % params % nproc, &
+        & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
+        & ddx_data % params % gmresr_j, ddx_data % params % gmresr_dim, &
+        & ddx_data % params % nproc, &
         & ddx_data_fmm, info)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.
@@ -224,7 +229,9 @@ subroutine check_gradr(ddx_data, pm, pl, iprint, threshold)
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % itersolver, &
-        & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, ddx_data % params % nproc, &
+        & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
+        & ddx_data % params % gmresr_j, ddx_data % params % gmresr_dim, &
+        & ddx_data % params % nproc, &
         & ddx_data_fmm, info)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.

@@ -20,7 +20,7 @@ implicit none
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
 integer :: iprint, nproc, lmax, pmax, ngrid, iconv, igrad, n, force, fmm, model
-integer :: niter, ndiis=25, fmm_precompute, itersolver, maxiter
+integer :: niter, jacobi_ndiis=25, gmresr_j=1, gmresr_dim=10, itersolver, maxiter
 logical :: ok
 real(dp) :: eps, eta, tol, se, kappa
 ! esolv       : Electrostatic Solvation Energy
@@ -118,7 +118,7 @@ tol=1d-1**iconv
 maxiter=200
 call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pmax, pmax, &
     & se, eta, eps, kappa, itersolver, maxiter, &
-    & ndiis, nproc, ddx_data, info)
+    & jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
 
 allocate(phi(ddx_data % constants % ncav), psi(ddx_data % constants % nbasis,n), &
     & gradphi(3, ddx_data % constants % ncav), hessianphi(3, 3, ddx_data % constants % ncav))
@@ -139,7 +139,8 @@ allocate (sigma(ddx_data % constants % nbasis ,n))
 ! @param[out] sigma   : Solution of ddLPB
 ! @param[out] esolv   : Electrostatic solvation energy
 !
-call ddlpb(ddx_data, phi, psi, gradphi, tol, sigma, esolv, charge, ndiis, niter)
+call ddlpb(ddx_data, phi, psi, gradphi, tol, sigma, esolv, charge, &
+    & jacobi_ndiis, niter)
 !call cosmo(.false., .true., phi, xx, psi, sigma, esolv)
 !
 if (iprint.ge.3) call prtsph('Solution to the ddLPB equation', &

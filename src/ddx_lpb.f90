@@ -43,7 +43,8 @@ real(dp), allocatable :: coefvec(:,:,:), Pchi(:,:,:), &
 
 real(dp), allocatable :: SI_ri(:,:), DI_ri(:,:), SK_ri(:,:), &
                               & DK_ri(:,:), termimat(:,:)
-real(dp)              :: tol_gmres, n_iter_gmres
+real(dp)              :: tol_gmres
+integer               :: n_iter_gmres
 
 contains
   !!
@@ -455,29 +456,32 @@ contains
   ! @param[in]      x : Input vector
   ! @param[in, out] y : y=A*x
   !
-  subroutine matABx(ddx_data, n, x, y )
+  subroutine matABx(params, constants, workspace, x, y)
   implicit none 
-  type(ddx_type), intent(in)  :: ddx_data
-  integer, intent(in) :: n
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in) :: x
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(inout) :: y
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    !! Temporaries
+    type(ddx_workspace_type), intent(inout) :: workspace
+  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+  real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
   integer :: isph, istatus
   real(dp), allocatable :: pot(:), vplm(:), basloc(:), vcos(:), vsin(:)
   integer :: i
   ! allocate workspaces
-  allocate( pot(ddx_data % params % ngrid), vplm(ddx_data % constants % nbasis), basloc(ddx_data % constants % nbasis), &
-            & vcos(ddx_data % params % lmax+1), vsin(ddx_data % params % lmax+1) , stat=istatus )
+  allocate( pot(params % ngrid), vplm(constants % nbasis), basloc(constants % nbasis), &
+            & vcos(params % lmax+1), vsin(params % lmax+1) , stat=istatus )
   if ( istatus.ne.0 ) then
     write(*,*) 'Bx: allocation failed !'
     stop
   endif
 
   y = zero
-  do isph = 1, ddx_data % params % nsph
-    call calcv2_lpb(ddx_data % params, ddx_data % constants, isph, pot, x, basloc, vplm, vcos, vsin )
+  do isph = 1, params % nsph
+    call calcv2_lpb(params, constants, isph, pot, x, basloc, vplm, vcos, vsin )
     ! intrhs comes from ddCOSMO
-    call intrhs(1, ddx_data % constants % nbasis, ddx_data % params % ngrid, &
-                ddx_data % constants % vwgrid, ddx_data % constants % vgrid_nbasis, &
+    call intrhs(1, constants % nbasis, params % ngrid, &
+                constants % vwgrid, constants % vgrid_nbasis, &
                 & pot, y(:,isph) )
     ! Action of off-diagonal blocks
     y(:,isph) = - y(:,isph)
@@ -527,21 +531,12 @@ contains
   !!
   subroutine lpb_hsp(ddx_data, rhs, Xe)
   implicit none
-  type(ddx_type), intent(in)  :: ddx_data
+  type(ddx_type), intent(inout)  :: ddx_data
   real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in) :: rhs
   real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(inout) :: Xe
   integer :: isph, istatus, n_iter, info, c1, c2, cr
   real(dp) :: tol, r_norm
-  real(dp), allocatable :: work(:,:)
-  integer, parameter  :: gmm = 20, gmj = 25
   
-  allocate(work(ddx_data % constants % n, 0:2*gmj + gmm + 2 - 1),stat=istatus)
-  if (istatus.ne.0) then
-    write(*,*) ' LPB-HSP: failed allocation for GMRES'
-    stop
-  endif
-   
-  work = zero
   Xe = rhs
   
   matAB = 1
@@ -567,10 +562,10 @@ contains
   !! @param[in]      matABx        : Subroutine A*x. Named matabx in file
   !! @param[in, out] info          : Flag after solve. 0 means within tolerance
   !!                                 1 means max number of iteration
-  call gmresr(ddx_data, .false., ddx_data % constants % n, gmj, gmm, rhs, Xe, work, tol_gmres,'rel', &
+  call gmresr(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
+      & tol_gmres, rhs, Xe, &
       & n_iter_gmres, r_norm, matABx, info)
 
-  deallocate(work)
   endsubroutine lpb_hsp
 
   !

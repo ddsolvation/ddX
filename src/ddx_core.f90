@@ -144,10 +144,11 @@ contains
 !!      = 2: Deallocation of a temporary buffer failed
 subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, se, eta, eps, kappa, &
-        & itersolver, maxiter, ndiis, nproc, ddx_data, info)
+        & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, &
+        & ddx_data, info)
     ! Inputs
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
-        & itersolver, maxiter, ndiis, ngrid
+        & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, ngrid
     real(dp), intent(in):: charge(nsph), x(nsph), y(nsph), z(nsph), &
         & rvdw(nsph), se, eta, eps, kappa
     ! Output
@@ -172,7 +173,8 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     csph(2, :) = y
     csph(3, :) = z
     call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & itersolver, maxiter, ndiis, fmm, pm, pl, nproc, nsph, charge, &
+        & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, fmm, &
+        & pm, pl, nproc, nsph, charge, &
         & csph, rvdw, print_func_default, &
         & ddx_data % params, info)
     if (info .ne. 0) return
@@ -431,7 +433,8 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     integer, intent(out) :: iprint, info
     ! Local variables
     integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
-        & nsph, i, itersolver, maxiter, ndiis, istatus
+        & nsph, i, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+        & istatus
     real(dp) :: eps, se, eta, kappa
     real(dp), allocatable :: charge(:), x(:), y(:), z(:), rvdw(:)
     !! Read all the parameters from the file
@@ -502,9 +505,9 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     end if
     ! Iterative solver of choice. Only one is supported as of now.
     read(100, *) itersolver
-    if(itersolver .ne. 1) then
+    if((itersolver .lt. 1) .or. (itersolver .gt. 2)) then
         write(*, "(3A)") "Error on the 10th line of a config file ", fname, &
-            & ": `itersolver` must be an integer value of a value 1."
+            & ": `itersolver` must be an integer value of a value 1 or 2."
         stop 1
     end if
     ! Relative convergence threshold for the iterative solver
@@ -522,44 +525,64 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
         stop 1
     end if
     ! Number of extrapolation points for Jacobi/DIIS solver
-    read(100, *) ndiis
-    if((ndiis .lt. 0)) then
+    read(100, *) jacobi_ndiis
+    if((jacobi_ndiis .lt. 0)) then
         write(*, "(3A)") "Error on the 13th line of a config file ", fname, &
-            & ": `ndiis` must be a non-negative integer value."
+            & ": `jacobi_ndiis` must be a non-negative integer value."
         stop 1
     end if
+    ! Number of last vectors that GMRESR works with. Referenced only if GMRESR
+    !      solver is used.
+    read(100, *) gmresr_j
+    if((gmresr_j .lt. 1)) then
+        write(*, "(3A)") "Error on the 14th line of a config file ", fname, &
+            & ": `gmresr_j` must be a non-negative integer value."
+        stop 1
+    end if
+    ! Dimension of the envoked GMRESR. In case of 0 GMRESR becomes the GCR
+    !      solver, one of the simplest versions of GMRESR. Referenced only if
+    !      GMRESR solver is used.
+    read(100, *) gmresr_dim
+    if((gmresr_dim .lt. 0)) then
+        write(*, "(3A)") "Error on the 15th line of a config file ", fname, &
+            & ": `gmresr_dim` must be a non-negative integer value."
+        stop 1
+    end if
+    ! Dimension of the envoked GMRESR. In case of 0 GMRESR becomes the GCR
+    !      solver, one of the simplest versions of GMRESR. Referenced only if
+    !      GMRESR solver is used.
     ! Whether to compute (1) or not (0) forces as analytical gradients
     read(100, *) force
     if((force .lt. 0) .or. (force .gt. 1)) then
-        write(*, "(3A)") "Error on the 14th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 16th line of a config file ", fname, &
             & ": `force` must be an integer value of a value 0 or 1."
         stop 1
     end if
     ! Whether to use (1) or not (0) the FMM to accelerate computations
     read(100, *) fmm
     if((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        write(*, "(3A)") "Error on the 15th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 17th line of a config file ", fname, &
             & ": `fmm` must be an integer value of a value 0 or 1."
         stop 1
     end if
     ! Max degree of multipole spherical harmonics for the FMM
     read(100, *) pm
     if(pm .lt. 0) then
-        write(*, "(3A)") "Error on the 16th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 18th line of a config file ", fname, &
             & ": `pm` must be a non-negative integer value."
         stop 1
     end if
     ! Max degree of local spherical harmonics for the FMM
     read(100, *) pl
     if(pl .lt. 0) then
-        write(*, "(3A)") "Error on the 17th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 19th line of a config file ", fname, &
             & ": `pl` must be a non-negative integer value."
         stop 1
     end if
     ! Number of input spheres
     read(100, *) nsph
     if(nsph .le. 0) then
-        write(*, "(3A)") "Error on the 19th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 20th line of a config file ", fname, &
             & ": `nsph` must be a positive integer value."
         stop 1
     end if
@@ -587,7 +610,7 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     !! Initialize ddx_data object
     call ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
         & pm, pl, se, eta, eps, kappa, itersolver, &
-        & maxiter, ndiis, nproc, ddx_data, info)
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     !! Clean local temporary data
     deallocate(charge, x, y, z, rvdw, stat=istatus)
     if(istatus .ne. 0) then
