@@ -25,7 +25,7 @@ real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
                        & hessian_cav(:,:,:), psi(:, :), &
                        & force(:, :), force_num(:, :)
 real(dp) :: esolv, esolv_plus_h, esolv_minus_h, &
-          & step = 0.00001, relerr
+          & step = 2*1d-5, relerr
 integer :: isph, i
 real(dp), external :: dnrm2
 
@@ -58,22 +58,22 @@ call mkrhs(ddx_data, phi_cav, gradphi_cav, hessian_cav, psi)
 
 call ddlpb(ddx_data, phi_cav, gradphi_cav, hessian_cav, psi, esolv, force)
 
-isph = 1; i = 3
-write(*,*) 'Sphere : ', isph, ' , Dimension : ', i
-
-ddx_data % csph(i, isph) = ddx_data % csph(i, isph) + step
-
-call solve(ddx_data, esolv_plus_h)
-ddx_data % csph(i, isph) = ddx_data % csph(i, isph) - two*step
-
-call solve(ddx_data, esolv_minus_h)
-ddx_data % csph(i, isph) = ddx_data % csph(i, isph) + step
-
-write(*,*) 'esolv+h  : ', esolv_plus_h, ' , esolv-h : ', esolv_minus_h, ' , step :', step
-force_num(i, isph) = (esolv_plus_h - esolv_minus_h) / two / step
-
-relerr = abs(force_num(i,isph) -force(i,isph))/ &
-           & abs(force(i,isph))
+do isph = 1, ddx_data % nsph
+  do i = 1, 3
+    esolv_plus_h = zero
+    esolv_minus_h = zero
+    ddx_data % csph(i, isph) = ddx_data % csph(i, isph) + step
+    call solve(ddx_data, esolv_plus_h)
+    ddx_data % csph(i, isph) = ddx_data % csph(i, isph) - step
+    !call solve(ddx_data, esolv_minus_h)
+    !write(*,*) 'esolv  :', esolv, 'esolv+h  : ', esolv_plus_h, ' , esolv : ', esolv_minus_h, ' , step :', step
+    force_num(i, isph) = (esolv_plus_h - esolv) / step
+    if(abs(force_num(i,isph)) .le. 1d-8) force_num(i,isph) = zero
+    if(abs(force(i,isph)) .le. 1d-8) force(i,isph) = zero
+  end do
+end do
+relerr = dnrm2(3*ddx_data % nsph, force_num-force, 1) / &
+    & dnrm2(3*ddx_data % nsph, force, 1)
 
 write(6,'(2A60)') 'Analytical forces', 'Numerical forces'
 do i = 1, ddx_data % nsph
@@ -119,7 +119,7 @@ subroutine solve(ddx_data, esolv_in)
     hessian_cav2 = zero; psi2 = zero; force2 = zero
 
     call mkrhs(ddx_data2, phi_cav2, gradphi_cav2, hessian_cav2, psi2)
-    call ddlpb(ddx_data2, phi_cav2, gradphi_cav2, hessian_cav2, psi2, esolv_in, force2)
+    call ddsolve(ddx_data2, phi_cav2, gradphi_cav2, hessian_cav2, psi2, esolv_in, force2)
     call ddfree(ddx_data2)
     deallocate(phi_cav2, gradphi_cav2, hessian_cav2, psi2, force2)
     return
