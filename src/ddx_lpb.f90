@@ -19,25 +19,10 @@ implicit none
 !!
 !! first_outer_iter : Logical variable to check if the first outer iteration has been
 !!                    performed
-!! lmax0            : lmax0 = min{lmax, 6}
-!! nbasis0          : (lmax0+1)^2
 !! epsp             : Dielectric permittivity of the solvent. 1.0d0 is for H20
 logical :: first_out_iter
-integer :: lmax0, nbasis0
 real(dp),  parameter :: epsp = 1.0d0
 !!
-!! Taken from the initial version of the code by Chaoyu Quan
-!!
-!! (Size)       : lmax*nsph
-!! tol_gmres    : Tolerance of GMRES iteration
-!! n_iter_gmres : Maximum number of GMRES iteration
-
-real(dp)              :: tol_gmres
-real(dp)              :: n_iter_gmres
-
-!! Terms related to Forces of ddLPB model
-!! diff_ep_adj : sum_{l0,m0}Pchi*coefY,  size : ncav*nbasis*nsph
-real(dp), allocatable :: diff_ep_adj(:, :, :)
 !! Local variables and their definitions that will be used throughout this file
 !! isph    : Index for the sphere i
 !! jsph    : Index for the sphere j
@@ -102,12 +87,6 @@ contains
   !! phi_grid: Phi evaluated at grid points
   real(dp), allocatable :: g(:,:), f(:,:), phi_grid(:, :)
   
-  ! lmax0 set to minimum of 6 or given lmax.
-  ! nbasis0 set to minimum of 49 or given (lmax+1)^2.
-  ! Previous implementation had hard coded value 6 and 49.
-  lmax0 = MIN(6, ddx_data % params % lmax)
-  nbasis0 = MIN(49, ddx_data % constants % nbasis)
-
   !
   ! Allocate Bessel's functions of the first kind, the second kind, their derivatives,
   ! coefvec, Pchi, and termimat
@@ -179,97 +158,9 @@ contains
   real(dp), dimension(3)      :: sijn ,vij
   real(dp), dimension(ddx_data % constants % nbasis) :: basloc, vplm
   real(dp), dimension(ddx_data % params % lmax+1) :: vcos, vsin
-  real(dp), dimension(0:lmax0) :: SK_rijn, DK_rijn
-
-  allocate(ddx_data % constants % SI_ri(0:ddx_data % params % lmax, ddx_data % params % nsph),&
-           & ddx_data % constants % DI_ri(0:ddx_data % params % lmax, ddx_data % params % nsph),&
-           & ddx_data % constants % SK_ri(0:ddx_data % params % lmax, ddx_data % params % nsph), &
-           & ddx_data % constants % DK_ri(0:ddx_data % params % lmax, ddx_data % params % nsph), &
-           & diff_ep_adj(ddx_data % constants % ncav, &
-           & ddx_data % constants % nbasis, ddx_data % params % nsph), &
-           & ddx_data % constants % coefvec(ddx_data % params % ngrid, &
-           & ddx_data % constants % nbasis, ddx_data % params % nsph), &
-           & ddx_data % constants % Pchi(ddx_data % constants % nbasis, nbasis0, ddx_data % params % nsph), &
-           & ddx_data % constants % coefY(ddx_data % constants % ncav, nbasis0, ddx_data % params % nsph), &
-           & ddx_data % constants % C_ik(0:ddx_data % params % lmax, ddx_data % params % nsph), &
-           & ddx_data % constants % termimat(0:ddx_data % params % lmax, ddx_data % params % nsph), &
-           & stat=istatus)
-
-  if (istatus.ne.0) then
-    write(*,*)'ddlpb_init : [1] allocation failed !'
-    stop
-  end if
-
-  SK_rijn = zero
-  DK_rijn = zero
-  do isph = 1, ddx_data % params % nsph
-    call modified_spherical_bessel_first_kind(ddx_data % params % lmax, &
-                     & ddx_data % params % rsph(isph)*ddx_data % params % kappa,&
-                     & ddx_data % constants % SI_ri(:,isph), &
-                     & ddx_data % constants % DI_ri(:,isph))
-    call modified_spherical_bessel_second_kind(ddx_data % params % lmax, &
-                     & ddx_data % params % rsph(isph)*ddx_data % params % kappa, &
-                     & ddx_data % constants % SK_ri(:,isph), &
-                     & ddx_data % constants % DK_ri(:,isph))
-    ! Compute matrix PU_i^e(x_in)
-    ! Previous implementation in update_rhs. Made it in ddinit, so as to use
-    ! it in Forces as well.
-    call mkpmat(ddx_data % params, ddx_data % constants, isph, ddx_data % constants % Pchi(:,:,isph))
-    ! Compute w_n*Ui(x_in)*Y_lm(s_n)
-    do igrid = 1,ddx_data % params % ngrid
-      if (ddx_data % constants % ui(igrid, isph) .gt. 0) then
-        do ind  = 1, ddx_data % constants % nbasis
-          ddx_data % constants % coefvec(igrid,ind,isph) = ddx_data % constants % wgrid(igrid)*&
-                                  & ddx_data % constants % ui(igrid,isph)*&
-                                  & ddx_data % constants % vgrid(ind,igrid)
-        end do
-      end if
-    end do
-    ! Compute i'_l(r_i)/i_l(r_i)
-    do l = 0, ddx_data % params % lmax
-      ddx_data % constants % termimat(l,isph) = ddx_data % constants % DI_ri(l,isph)/ &
-          & ddx_data % constants % SI_ri(l,isph)*ddx_data % params % kappa
-    end do
-    ! Compute (i'_l0/i_l0 - k'_l0/k_l0)^(-1) is computed in Eq.(97)
-    do l0 = 0, lmax0
-      termi = ddx_data % constants % DI_ri(l0,isph)/ &
-          & ddx_data % constants % SI_ri(l0,isph)*ddx_data % params % kappa
-      termk = ddx_data % constants % DK_ri(l0,isph)/ &
-          & ddx_data % constants % SK_ri(l0,isph)*ddx_data % params % kappa
-      ddx_data % constants % C_ik(l0, isph) = one/(termi - termk)
-    end do
-  end do
-
-  icav = zero
-  do isph = 1, ddx_data % params % nsph
-    do igrid = 1, ddx_data % params % ngrid
-      if(ddx_data % constants % ui(igrid, isph) .gt. zero) then
-        icav = icav + 1
-        do jsph = 1, ddx_data % params % nsph
-          vij  = ddx_data % params % csph(:,isph) + &
-               & ddx_data % params % rsph(isph)*ddx_data % constants % cgrid(:,igrid) - &
-               & ddx_data % params % csph(:,jsph)
-          rijn = sqrt(dot_product(vij,vij))
-          sijn = vij/rijn
-
-          ! Compute Bessel function of 2nd kind for the coordinates
-          ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-          call modified_spherical_bessel_second_kind(lmax0, rijn*ddx_data % params % kappa,&
-                                                   & SK_rijn, DK_rijn)
-          call ylmbas(sijn , rho, ctheta, stheta, cphi, &
-                      & sphi, ddx_data % params % lmax, ddx_data % constants % vscales, &
-                      & basloc, vplm, vcos, vsin)
-          do l0 = 0, lmax0
-            term = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
-            do m0 = -l0,l0
-              ind0 = l0*l0 + l0 + m0 + 1
-              ddx_data % constants % coefY(icav, ind0, jsph) = ddx_data % constants % C_ik(l0,jsph)*term*basloc(ind0)
-            end do
-          end do
-        end do
-      end if
-    end do
-  end do
+  real(dp), dimension(0:ddx_data % constants % lmax0) :: SK_rijn, DK_rijn
+  integer :: ibasis, ibasis0
+  real(dp) :: val
   return
   end subroutine ddlpb_init
 
@@ -300,7 +191,7 @@ contains
       & basloc(ddx_data % constants % nbasis), &
       & vcos(ddx_data % params % lmax+1), &
       & vsin(ddx_data % params % lmax+1))
-  allocate(SK_rijn(0:lmax0),DK_rijn(0:lmax0))
+  allocate(SK_rijn(0:ddx_data % constants % lmax0),DK_rijn(0:ddx_data % constants % lmax0))
   ic = 0 ; f(:,:)=0.d0
   c0 = zero
   !
@@ -339,13 +230,14 @@ contains
           
           ! Compute Bessel function of 2nd kind for the coordinates
           ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-          call modified_spherical_bessel_second_kind(lmax0, rijn*ddx_data % params % kappa,&
+          call modified_spherical_bessel_second_kind( &
+              & ddx_data % constants % lmax0, rijn*ddx_data % params % kappa,&
                                                    & SK_rijn, DK_rijn)
           call ylmbas(sijn , rho, ctheta, stheta, cphi, &
                       & sphi, ddx_data % params % lmax, ddx_data % constants % vscales, &
                       & basloc, vplm, vcos, vsin)
 
-          do l0 = 0,lmax0
+          do l0 = 0, ddx_data % constants % lmax0
             term = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
             ! coef_Ylm : (der_i_l0/i_l0 - der_k_l0/k_l0)^(-1)*k_l0(r_ijn)/k_l0(r_i)
             coef_Ylm =  ddx_data % constants % C_ik(l0,jsph)*term
@@ -478,11 +370,9 @@ contains
   !! @param[in, out] Xe            : Initial guess of the problem
   !! @param[in]      work          : Work space of size
   !!                               : nsph*nylm X (2*gmj + gmm + 2)
-  !! @param[in]      tol_gmres     : GMRES tolerance
   !! @param[in]      Stopping      : Stopping criteria, Default set to
   !!                                 'rel' for relative. Other option
   !!                                 'abs' for absolute
-  !! @param[in]      n_iter_gmres  : Number of GMRES iteration
   !! @param[in]      r_norm        : Residual measure
   !! @param[in]      bx        : Subroutine A*x. Named matabx in file
   !! @param[in, out] info          : Flag after solve. 0 means within tolerance
@@ -490,11 +380,6 @@ contains
   n_iter = ddx_data % params % maxiter
   call gmresr(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
       & tol, rhs, Xe, n_iter, r_norm, bx, info)
-!    call gmresr(ddx_data, .true., ddx_data % constants % n, &
-!        & ddx_data % params % gmresr_j, ddx_data % params % gmresr_dim, &
-!        & rhs, Xe, ddx_data % workspace % tmp_gmresr, tol,'rel', &
-!        & n_iter_gmres, r_norm, bx, info)
-
   endsubroutine lpb_hsp
 
   !
@@ -612,7 +497,7 @@ contains
   integer :: isph, jsph, igrid, icav, ind, l, m, ind0, istatus
   real(dp), dimension(3) :: vij
   real(dp), dimension(constants % nbasis, params % nsph) :: diff_re_c1_c2
-  real(dp), dimension(nbasis0, params % nsph) :: diff0
+  real(dp), dimension(constants % nbasis0, params % nsph) :: diff0
   real(dp), dimension(constants % nbasis, constants % nbasis, params % nsph) :: smat
   real(dp), dimension(constants % ncav) :: diff_ep
   real(dp) :: Qval, rijn, val
@@ -635,7 +520,7 @@ contains
   ! TODO: probably doing PX on the fly is better 
   diff0 = zero 
   do jsph = 1, params % nsph
-    do ind0 = 1, nbasis0
+    do ind0 = 1, constants % nbasis0
       diff0(ind0, jsph) = dot_product(diff_re_c1_c2(:,jsph), &
           & constants % Pchi(:,ind0, jsph))
     end do
@@ -646,7 +531,7 @@ contains
   do icav = 1, constants % ncav
     val = zero
     do jsph = 1, params % nsph 
-      do ind0 = 1, nbasis0
+      do ind0 = 1, constants % nbasis0
         val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
       end do
     end do
@@ -672,39 +557,6 @@ contains
 
   return
   end subroutine update_rhs  
-
-  !
-  ! Computation of P_chi
-  ! @param[in]  isph : Sphere number
-  ! @param[out] pmat : Matrix of size nbasis X (lmax0+1)^2, Fixed lmax0
-  !
-  subroutine mkpmat(params, constants, isph, pmat )
-  implicit none
-  type(ddx_params_type), intent(in)  :: params
-  type(ddx_constants_type), intent(in)  :: constants
-  integer,  intent(in) :: isph
-  real(dp), dimension(constants % nbasis, (lmax0+1)**2), intent(inout) :: pmat
-  integer :: l, m, ind, l0, m0, ind0, its, nbasis0
-  real(dp)  :: f, f0
-  pmat(:,:) = zero
-  do its = 1, params % ngrid
-    if (constants % ui(its,isph).ne.0) then
-      do l = 0, params % lmax
-        ind = l*l + l + 1
-        do m = -l,l
-          f = constants % wgrid(its) * constants % vgrid(ind+m,its) * constants % ui(its,isph)
-          do l0 = 0, lmax0
-            ind0 = l0*l0 + l0 + 1
-            do m0 = -l0, l0
-              f0 = constants % vgrid(ind0+m0,its)
-              pmat(ind+m,ind0+m0) = pmat(ind+m,ind0+m0) + f * f0
-            end do
-          end do
-        end do
-      end do
-    end if
-  end do
-  endsubroutine mkpmat
 
   !
   ! Computation for Solvation energy
@@ -943,11 +795,6 @@ contains
       call gmresr(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, tol, rhs_hsp, Xadj_e, n_iter, &
           & r_norm, bstarx, info)
-!      call gmresr(ddx_data, .false., ddx_data % constants % n, &
-!          & ddx_data % params % gmresr_j, ddx_data % params % gmresr_dim, &
-!            & rhs_hsp, Xadj_e, ddx_data % workspace % tmp_gmresr, tol, &
-!            & 'rel', n_iter_gmres, r_norm, bstarx, info)
-
     endif
 
     ! Update the RHS
@@ -1327,25 +1174,6 @@ contains
 
   epsilon_ratio = epsp/ddx_data % params % eps
 
-  ! NOTE: These remain constant through the outer iteration and hence needs to be computed
-  !       once.
-  if(first_out_iter) then
-    ! Compute
-    ! diff_ep_adj = Pchi * coefY
-    ! Summation over l0, m0
-    diff_ep_adj = zero
-    do icav = 1, ddx_data % constants % ncav
-      do ibasis = 1, ddx_data % constants % nbasis
-        do isph = 1, ddx_data % params % nsph
-          val = zero
-          do ibasis0 = 1, nbasis0
-            val = val + ddx_data % constants % Pchi(ibasis,ibasis0,isph)*ddx_data % constants % coefY(icav,ibasis0,isph)
-          end do
-          diff_ep_adj(icav, ibasis, isph) = val
-        end do
-      end do
-    end do
-  endif
 
   ! Call dgemm to integrate the adjoint solution on the grid points
   ! Summation over l' and m'
@@ -1368,7 +1196,7 @@ contains
                         & ddx_data % constants % wgrid(igrid)*&
                         & ddx_data % constants % ui(igrid, jsph)*&
                         & Xadj_sgrid(igrid, jsph)*&
-                        & diff_ep_adj(icav, ibasis, isph)
+                        & ddx_data % constants % diff_ep_adj(icav, ibasis, isph)
           end if
         end do
       end do
@@ -1699,13 +1527,14 @@ contains
   ! sum_dim3 : Storage of sum
   real(dp), dimension(3, ddx_data % constants % nbasis, ddx_data % params % nsph) :: sum_dim3
   ! coefY_der : Derivative of k_l0 and Y_l0m0
-  real(dp), dimension(3, ddx_data % constants % ncav, nbasis0, ddx_data % params % nsph) :: coefY_der
+  real(dp), dimension(3, ddx_data % constants % ncav, &
+      & ddx_data % constants % nbasis0, ddx_data % params % nsph) :: coefY_der
   ! Debug purpose
   ! These variables can be taken from the subroutine update_rhs
   ! diff0       : dot_product([PU_j]_l0m0^l'm', l'/r_j[Xr]_jl'm' -
   !                        (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm')
 
-  real(dp), dimension(nbasis0, ddx_data % params % nsph) :: diff0
+  real(dp), dimension(ddx_data % constants % nbasis0, ddx_data % params % nsph) :: diff0
   real(dp) :: termi, termk, rijn
   ! basloc : Y_lm(s_n)
   ! vplm   : Argument to call ylmbas
@@ -1737,12 +1566,13 @@ contains
           rijn = sqrt(dot_product(vij,vij))
           sij = vij/rijn
 
-          call modified_spherical_bessel_second_kind(lmax0, &
+          call modified_spherical_bessel_second_kind( &
+              & ddx_data % constants % lmax0, &
                                                      & rijn*ddx_data % params % kappa, &
                                                      & SK_rijn, DK_rijn)
           call dbasis(ddx_data % params, ddx_data % constants, sij, basloc, dbasloc, vplm, vcos, vsin)
 
-          do l0 = 0,lmax0
+          do l0 = 0, ddx_data % constants % lmax0
             f1 = (DK_rijn(l0)*ddx_data % params % kappa)/ddx_data % constants % SK_ri(l0,jsph)
             f2 = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
             do m0 = -l0, l0
@@ -1780,7 +1610,7 @@ contains
   ! diff0 = Pchi * diff_re, linear scaling
   diff0 = zero
   do jsph = 1, ddx_data % params % nsph
-    do ind0 = 1, nbasis0
+    do ind0 = 1, ddx_data % constants % nbasis0
       diff0(ind0, jsph) = dot_product(diff_re(:,jsph), &
           & ddx_data % constants % Pchi(:,ind0, jsph))
     end do
@@ -1797,7 +1627,7 @@ contains
         val = zero
         val_dim3(:) = zero
         do jsph = 1, ddx_data % params % nsph 
-          do ind0 = 1, nbasis0
+          do ind0 = 1, ddx_data % constants % nbasis0
             val = val + diff0(ind0,jsph)*ddx_data % constants % coefY(icav,ind0,jsph)
             val_dim3(:) = val_dim3(:) + diff0(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
           end do
@@ -1871,13 +1701,14 @@ contains
   ! sum_dim3 : Storage of sum
   real(dp), dimension(3, ddx_data % constants % nbasis, ddx_data % params % nsph) :: sum_dim3
   ! coefY_der : Derivative of k_l0 and Y_l0m0
-  real(dp), dimension(3, ddx_data % constants % ncav, nbasis0, ddx_data % params % nsph) :: coefY_der
+  real(dp), dimension(3, ddx_data % constants % ncav, &
+      & ddx_Data % constants % nbasis0, ddx_data % params % nsph) :: coefY_der
   ! Debug purpose
   ! These variables can be taken from the subroutine update_rhs
   ! diff0       : dot_product([PU_j]_l0m0^l'm', l'/r_j[Xr]_jl'm' -
   !                        (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm')
 
-  real(dp), dimension(nbasis0, ddx_data % params % nsph) :: diff0
+  real(dp), dimension(ddx_data % constants % nbasis0, ddx_data % params % nsph) :: diff0
   real(dp) :: termi, termk, rijn
   ! vplm   : Argument to call ylmbas
   real(dp),  dimension(ddx_data % constants % nbasis):: basloc, vplm
@@ -1927,12 +1758,13 @@ contains
           rijn = sqrt(dot_product(vij,vij))
           sij = vij/rijn
 
-          call modified_spherical_bessel_second_kind(lmax0, &
+          call modified_spherical_bessel_second_kind( &
+              & ddx_data % constants % lmax0, &
                                                      & rijn*ddx_data % params % kappa, &
                                                      & SK_rijn, DK_rijn)
           call dbasis(ddx_data % params, ddx_data % constants, sij, basloc, dbasloc, vplm, vcos, vsin)
 
-          do l0 = 0,lmax0
+          do l0 = 0, ddx_data % constants % lmax0
             f1 = (DK_rijn(l0)*ddx_data % params % kappa)/ddx_data % constants % SK_ri(l0,jsph)
             f2 = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
             do m0 = -l0, l0
@@ -1969,7 +1801,7 @@ contains
         icav = icav + 1
         val_dim3(:) = zero
         do jsph = 1, ddx_data % params % nsph
-          do ind0 = 1, nbasis0
+          do ind0 = 1, ddx_data % constants % nbasis0
             val_dim3(:) = val_dim3(:) + c0_d(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
           end do
         end do
@@ -2088,13 +1920,14 @@ contains
             rijn = sqrt(dot_product(vij,vij))
             sij = vij/rijn
 
-            call modified_spherical_bessel_second_kind(lmax0, rijn*ddx_data % params % kappa,&
+            call modified_spherical_bessel_second_kind( &
+                & ddx_data % constants % lmax0, rijn*ddx_data % params % kappa,&
                                                      & SK_rijn, DK_rijn)
             call dbasis(ddx_data % params, ddx_data % constants, &
                 & sij, basloc, dbasloc, vplm, vcos, vsin)
             sum_int = zero
             ! Loop over l0
-            do l0 = 0, lmax0
+            do l0 = 0, ddx_data % constants % lmax0
               term = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
               ! Loop over m0
               do m0 = -l0,l0
@@ -2219,13 +2052,14 @@ contains
             rijn = sqrt(dot_product(vij,vij))
             sij = vij/rijn
 
-            call modified_spherical_bessel_second_kind(lmax0, rijn*ddx_data % params % kappa,&
+            call modified_spherical_bessel_second_kind( &
+                & ddx_data % constants % lmax0, rijn*ddx_data % params % kappa,&
                                                      & SK_rijn, DK_rijn)
             call dbasis(ddx_data % params, ddx_data % constants, &
                 & sij, basloc, dbasloc, vplm, vcos, vsin)
             sum_int = zero
             ! Loop over l0
-            do l0 = 0, lmax0
+            do l0 = 0, ddx_data % constants % lmax0
               term = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
               ! Loop over m0
               do m0 = -l0,l0
@@ -2354,114 +2188,6 @@ contains
   force = force - ddx_data % params % charge(ksph)*sum_int
   end subroutine fdops
 
-  !
-  ! Subroutine to compute the Modified Spherical Bessel function of the first kind
-  ! @param[in]  lmax     : Data type
-  ! @param[in]  argument : Argument of Bessel function
-  ! @param[out] SI       : Modified Bessel function of the first kind
-  ! @param[out] DI       : Derivative of modified Bessel function of the first kind
-  subroutine modified_spherical_bessel_first_kind(lmax, argument, SI, DI)
-  use Complex_Bessel
-  implicit none
-  integer, intent(in) :: lmax
-  real(dp), intent(in) :: argument
-  real(dp), dimension(0:lmax), intent(out) :: SI, DI
-  ! Local Variables
-  ! Complex_SI     : Modified Bessel functions of the first kind
-  ! argument       : Argument for Complex_SI
-  ! scaling_factor : sqrt(pi/2x)
-  ! fnu            : Starting argument for I_J(x)
-  ! NZ             : Number of components set to zero due to underflow
-  ! ierr           : Erro indicator for I_J(x)
-  ! l              : l=0,...,lmax
-  complex(dp), dimension(0:lmax) :: Complex_SI
-  complex(dp) :: complex_argument
-  real(dp) :: scaling_factor, fnu
-  integer :: NZ, ierr, l
-
-  ! Compute I_(0.5+J) for J:1,...,lmax
-  ! NOTE: cbesi computes I_(FNU+J-1)
-  fnu = 1.5
-  scaling_factor = sqrt(PI/(2*argument))
-  ! NOTE: Complex argument is required to call I_J(x)
-  complex_argument = argument
-
-  ! Compute for l = 0
-  call cbesi(complex_argument, fnu - 1.0, 1, 1, Complex_SI(0), NZ, ierr)
-  if (ierr .ne. 0) stop 'Error in computing Bessel function of first kind'
-  ! Compute for l = 1,...,lmax
-  call cbesi(complex_argument, fnu, 1, lmax, Complex_SI(1:lmax), NZ, ierr)
-  if (ierr .ne. 0) stop 'Error in computing Bessel function of first kind'
-
-  ! Store the real part of the complex Bessel functions
-  SI = real(Complex_SI)
-  ! Converting Modified Bessel to Spherical Modified Bessel
-  do l = 0, lmax
-    SI(l) = scaling_factor*SI(l)
-  end do
-
-  ! Computation of Derivatives of SI
-  DI(0) = SI(1)
-  do l = 1,lmax
-    DI(l)= SI(l-1)-((l+1.0D0)*SI(l))/argument
-  end do
-
-  end subroutine modified_spherical_bessel_first_kind
-
-  !
-  ! Subroutine to compute the Modified Spherical Bessel function of the second kind
-  ! @param[in]  lmax     : Size
-  ! @param[in]  argument : Argument of Bessel function
-  ! @param[out] SK       : Modified Bessel function of the second kind
-  ! @param[out] DK       : Derivative of modified Bessel function of the second kind
-  subroutine modified_spherical_bessel_second_kind(lmax, argument, SK, DK)
-  use Complex_Bessel
-  implicit none
-  integer , intent(in) :: lmax
-  real(dp), intent(in) :: argument
-  real(dp), dimension(0:lmax), intent(out) :: SK, DK
-  ! Local Variables
-  ! Complex_SK     : Modified Bessel functions of the second kind
-  ! argument       : Argument for Complex_SK
-  ! scaling_factor : sqrt(pi/2x)
-  ! fnu            : Starting argument for K_J(x)
-  ! NZ             : Number of components set to zero due to underflow
-  ! ierr           : Error indicator for K_J(x)
-  ! l              : l=0,...,lmax
-  complex(dp), dimension(0:lmax) :: Complex_SK
-  complex(dp) :: complex_argument
-  real(dp) :: scaling_factor, fnu
-  integer :: NZ, ierr, l
-
-  ! Compute K_(0.5+J) for J:1,...,lmax
-  ! NOTE: cbesk computes K_(FNU+J-1)
-  fnu = 1.5
-  scaling_factor = sqrt(2/(PI*argument))
-  ! NOTE: Complex argument is required to call K_J(x)
-  complex_argument = argument
-
-  ! Compute for l = 0
-  call cbesk(complex_argument, fnu - 1.0, 1, 1, Complex_SK(0), NZ, ierr)
-  if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
-  ! Compute for l = 1,...,lmax
-  call cbesk(complex_argument, fnu, 1, lmax, Complex_SK(1:lmax), NZ, ierr)
-  if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
-
-  ! Store the real part of the complex Bessel functions
-  SK = real(Complex_SK)
-  ! Converting Modified Bessel to Spherical Modified Bessel
-  do l = 0, lmax
-    SK(l) = scaling_factor*SK(l)
-  end do
-
-  ! Computation of Derivatives of SK
-  DK(0) = -SK(1)
-  do l = 1, lmax
-    DK(l) = -SK(l-1) - ((l+1.0D0)*SK(l))/argument
-  end do
-
-  end subroutine modified_spherical_bessel_second_kind
-
   subroutine ddlpb_free(ddx_data)
   implicit none
   type(ddx_type), intent(inout) :: ddx_data
@@ -2499,8 +2225,8 @@ contains
   end if
 
 
-  if(allocated(diff_ep_adj)) then
-    deallocate(diff_ep_adj, stat=istatus)
+  if(allocated(ddx_data % constants % diff_ep_adj)) then
+    deallocate(ddx_data % constants % diff_ep_adj, stat=istatus)
     if(istatus .ne. zero) then
       write(*,*) 'ddlpb_free: [1] deallocation failed'
       stop 1

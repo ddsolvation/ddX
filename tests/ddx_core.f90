@@ -247,11 +247,11 @@ contains
 
 subroutine check_ddinit_args()
     ! Example of correct args
-    integer :: n=1, model=1, lmax=0, ngrid=1202, force=1, fmm=1, pm=0, pl=0, &
+    integer :: n=1, model=1, lmax=1, ngrid=1202, force=1, fmm=1, pm=0, pl=0, &
         & fmm_precompute=0, iprint=0, itersolver=1, maxiter=10, &
         & jacobi_ndiis=10, gmresr_j=1, gmresr_dim=0, nproc=1
     real(dp) :: charge(10), x(10), y(10), z(10), rvdw(10), se=zero, eta=1d-1, &
-        & eps=1.1d1, kappa=zero
+        & eps=1.1d1, kappa=1d0
     type(ddx_type) :: ddx_data
     integer :: info=0, i, j
     real(dp) :: tmp
@@ -297,6 +297,7 @@ subroutine check_ddinit_args()
     call ddfree(ddx_data)
     ! Check all possible models (1, 2, 3) with other correct inputs
     do i = 1, 3
+        write(*, *) "model=", i
         call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
             & pl, se, eta, eps, kappa, itersolver, &
             & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
@@ -320,7 +321,8 @@ subroutine check_ddinit_args()
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct lmax >= 0
-    do i = 0, 6
+    !do i = 0, 6
+    do i = 1, 6
         call ddinit(n, charge, x, y, z, rvdw, model, i, ngrid, force, fmm, &
             & pm, pl, se, eta, eps, kappa, &
             & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &

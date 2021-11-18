@@ -99,7 +99,8 @@ contains
 !! @param[in] model: Choose model: 1 for COSMO, 2 for PCM and 3 for LPB.
 !! @param[in] force: 1 if forces will probably be required and 0 otherwise.
 !! @param[in] eps: Relative dielectric permittivity. eps > 1.
-!! @param[in] kappa: Debye-H\"{u}ckel parameter.
+!! @param[in] kappa: Debye-H\"{u}ckel parameter. kappa > 0. Referenced
+!!      only if the model is LPB.
 !! @param[in] eta: Regularization parameter. 0 < eta <= 1.
 !! @param[in] se: Shift of the regularization. -1 for interior, 0 for
 !!      centered and 1 for outer regularization.
@@ -232,7 +233,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     end if
     params % eps = eps
     ! Debye-H\"{u}ckel parameter (only used in ddLPB)
-    if ((model .eq. 3) .and. (kappa .lt. zero)) then
+    if ((model .eq. 3) .and. (kappa .le. zero)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `kappa`"
         call print_func(params % error_message)

@@ -99,6 +99,10 @@ type ddx_constants_type
     real(dp), allocatable :: vwgrid(:, :)
     !> Values of L2P/M2P at grid points. Dimension is (vgrid_nbasis, ngrid).
     real(dp), allocatable :: vgrid2(:, :)
+    !> LPB value max of lmax and 6
+    integer :: lmax0
+    !> LPB value max of nbasis and 49
+    integer :: nbasis0
     !> LPB value w_n*U_i(x_in)*Y_lm(x_n). Dimension is (ngrid, nbasis, nsph)
     real(dp), allocatable :: coefvec(:, :, :)
     !> LPB matrix, Eq. (87) from [QSM19.SISC]. Dimension is
@@ -123,6 +127,8 @@ type ddx_constants_type
     real(dp), allocatable :: DK_ri(:, :)
     !> LPB value i'_l(r_j)/i_l(r_j). Dimension is (lmax, nsph).
     real(dp), allocatable :: termimat(:, :)
+    !> LPB value sum_{l0,m0}Pchi*coefY. Dimension is (ncav, nbasis, nsph)
+    real(dp), allocatable :: diff_ep_adj(:, :, :)
     !> Upper limit on a number of neighbours per sphere. This value is just an
     !!      upper bound that is not guaranteed to be the actual maximum.
     integer :: nngmax
@@ -239,9 +245,12 @@ subroutine constants_init(params, constants, info)
     type(ddx_constants_type), intent(out) :: constants
     integer, intent(out) :: info
     !! Local variables
-    integer :: i, alloc_size, l, indl, igrid
-    real(dp) :: rho, ctheta, stheta, cphi, sphi
-    real(dp), allocatable :: vplm(:), vcos(:), vsin(:)
+    integer :: i, alloc_size, l, indl, igrid, isph, ind, icav, l0, m0, ind0, &
+        & jsph, ibasis, ibasis0
+    real(dp) :: rho, ctheta, stheta, cphi, sphi, termi, termk, term, rijn, &
+        & sijn(3), vij(3), val
+    real(dp), allocatable :: vplm(:), vcos(:), vsin(:), vylm(:), SK_rijn(:), &
+        & DK_rijn(:)
     !! The code
     ! Check if params are OK
     if (params % error_flag .eq. 1) then
@@ -429,6 +438,131 @@ subroutine constants_init(params, constants, info)
             end do
         end do
     end if
+    ! Generate geometry-related constants (required by the LPB code)
+    call constants_geometry_init(params, constants, info)
+    ! Precompute LPB-related constants
+    if (params % model .eq. 3) then
+        constants % lmax0 = min(6, params % lmax)
+        constants % nbasis0 = min(49, constants % nbasis)
+        allocate(vylm(constants % vgrid_nbasis), &
+            & SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0), &
+            & stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_init: `vylm`, `SK_rijn` and " // &
+                & "`DK_rijn` allocations failed"
+            info = 1
+            return
+        end if
+        allocate(constants % SI_ri(0:params % lmax, params % nsph))
+        allocate(constants % DI_ri(0:params % lmax, params % nsph))
+        allocate(constants % SK_ri(0:params % lmax, params % nsph))
+        allocate(constants % DK_ri(0:params % lmax, params % nsph))
+        allocate(constants % diff_ep_adj(constants % ncav, &
+            & constants % nbasis, params % nsph))
+        allocate(constants % coefvec(params % ngrid, constants % nbasis, &
+            & params % nsph))
+        allocate(constants % Pchi(constants % nbasis, constants % nbasis0, &
+            & params % nsph))
+        allocate(constants % coefY(constants % ncav, constants % nbasis0, &
+            & params % nsph))
+        allocate(constants % C_ik(0:params % lmax, params % nsph))
+        allocate(constants % termimat(0:params % lmax, params % nsph))
+        SK_rijn = zero
+        DK_rijn = zero
+        do isph = 1, params % nsph
+            call modified_spherical_bessel_first_kind(params % lmax, &
+                & params % rsph(isph)*params % kappa,&
+                & constants % SI_ri(:, isph), constants % DI_ri(:, isph))
+            call modified_spherical_bessel_second_kind(params % lmax, &
+                & params % rsph(isph)*params % kappa, &
+                & constants % SK_ri(:, isph), constants % DK_ri(:, isph))
+            ! Compute matrix PU_i^e(x_in)
+            ! Previous implementation in update_rhs. Made it in ddinit, so as to use
+            ! it in Forces as well.
+            call mkpmat(params, constants, isph, constants % Pchi(:, :, isph))
+            ! Compute w_n*Ui(x_in)*Y_lm(s_n)
+            do igrid = 1, params % ngrid
+                if (constants % ui(igrid, isph) .gt. 0) then
+                    do ind = 1, constants % nbasis
+                        constants % coefvec(igrid, ind, isph) = &
+                            & constants % wgrid(igrid) * &
+                            & constants % ui(igrid, isph) * &
+                            & constants % vgrid(ind, igrid)
+                    end do
+                end if
+            end do
+            ! Compute i'_l(r_i)/i_l(r_i)
+            do l = 0, params % lmax
+                constants % termimat(l, isph) = constants % DI_ri(l, isph) / &
+                    & constants % SI_ri(l, isph) * params % kappa
+            end do
+            ! Compute (i'_l0/i_l0 - k'_l0/k_l0)^(-1) is computed in Eq.(97)
+            do l0 = 0, constants % lmax0
+                termi = constants % DI_ri(l0, isph) / &
+                    & constants % SI_ri(l0, isph) * params % kappa
+                termk = constants % DK_ri(l0, isph)/ &
+                    & constants % SK_ri(l0, isph) * params % kappa
+                constants % C_ik(l0, isph) = one / (termi-termk)
+            end do
+        end do
+        icav = zero
+        do isph = 1, params % nsph
+            do igrid = 1, params % ngrid
+                if(constants % ui(igrid, isph) .gt. zero) then
+                    icav = icav + 1
+                    do jsph = 1, params % nsph
+                        vij  = params % csph(:, isph) + &
+                            & params % rsph(isph)*constants % cgrid(:, igrid) - &
+                            & params % csph(:, jsph)
+                        rijn = sqrt(dot_product(vij, vij))
+                        sijn = vij / rijn
+                        ! Compute Bessel function of 2nd kind for the coordinates
+                        ! (s_ijn, r_ijn) and compute the basis function for s_ijn
+                        call modified_spherical_bessel_second_kind( &
+                            & constants % lmax0, &
+                            & rijn*params % kappa, SK_rijn, DK_rijn)
+                        call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+                            & sphi, params % lmax, constants % vscales, &
+                            & vylm, vplm, vcos, vsin)
+                        do l0 = 0, constants % lmax0
+                            term = SK_rijn(l0) / constants % SK_ri(l0, jsph)
+                            do m0 = -l0, l0
+                                ind0 = l0*l0 + l0 + m0 + 1
+                                constants % coefY(icav, ind0, jsph) = &
+                                    & constants % C_ik(l0,jsph) * term * &
+                                    & vylm(ind0)
+                            end do
+                        end do
+                    end do
+                end if
+            end do
+        end do
+        ! Compute
+        ! diff_ep_adj = Pchi * coefY
+        ! Summation over l0, m0
+        constants % diff_ep_adj = zero
+        do icav = 1, constants % ncav
+            do ibasis = 1, constants % nbasis
+                do isph = 1, params % nsph
+                    val = zero
+                    do ibasis0 = 1, constants % nbasis0
+                        val = val + constants % Pchi(ibasis, ibasis0, isph)* &
+                            & constants % coefY(icav, ibasis0, isph)
+                    end do
+                    constants % diff_ep_adj(icav, ibasis, isph) = val
+                end do
+            end do
+        end do
+        deallocate(vylm, SK_rijn, DK_rijn, stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_init: `vylm`, `SK_rijn` and " // &
+                & "`DK_rijn` deallocations failed"
+            info = 1
+            return
+        end if
+    end if
     deallocate(vplm, vcos, vsin, stat=info)
     if (info .ne. 0) then
         constants % error_flag = 1
@@ -440,9 +574,145 @@ subroutine constants_init(params, constants, info)
     ! Clean error state of constants to proceed with geometry
     constants % error_flag = 0
     constants % error_message = ""
-    ! Generate geometry-related constants
-    call constants_geometry_init(params, constants, info)
 end subroutine constants_init
+
+!
+! Subroutine to compute the Modified Spherical Bessel function of the first kind
+! @param[in]  lmax     : Data type
+! @param[in]  argument : Argument of Bessel function
+! @param[out] SI       : Modified Bessel function of the first kind
+! @param[out] DI       : Derivative of modified Bessel function of the first kind
+subroutine modified_spherical_bessel_first_kind(lmax, argument, SI, DI)
+    use Complex_Bessel
+    integer, intent(in) :: lmax
+    real(dp), intent(in) :: argument
+    real(dp), dimension(0:lmax), intent(out) :: SI, DI
+    ! Local Variables
+    ! Complex_SI     : Modified Bessel functions of the first kind
+    ! argument       : Argument for Complex_SI
+    ! scaling_factor : sqrt(pi/2x)
+    ! fnu            : Starting argument for I_J(x)
+    ! NZ             : Number of components set to zero due to underflow
+    ! ierr           : Erro indicator for I_J(x)
+    ! l              : l=0,...,lmax
+    complex(dp), dimension(0:lmax) :: Complex_SI
+    complex(dp) :: complex_argument
+    real(dp) :: scaling_factor, fnu
+    integer :: NZ, ierr, l
+    ! Compute I_(0.5+J) for J:1,...,lmax
+    ! NOTE: cbesi computes I_(FNU+J-1)
+    fnu = 1.5
+    scaling_factor = sqrt(PI/(2*argument))
+    ! NOTE: Complex argument is required to call I_J(x)
+    complex_argument = argument
+    !write(*, *) "complex_argument=", complex_argument
+    ! Compute for l = 0
+    call cbesi(complex_argument, fnu - 1.0, 1, 1, Complex_SI(0), NZ, ierr)
+    !write(*, *) "ierr=", ierr
+    if (ierr .ne. 0) stop 'Error in computing Bessel function of first kind'
+    ! Compute for l = 1,...,lmax
+    if (lmax .gt. 0) then
+        call cbesi(complex_argument, fnu, 1, lmax, Complex_SI(1:lmax), NZ, ierr)
+        !write(*, *) "ierr=", ierr
+        if (ierr .ne. 0) stop 'Error in computing Bessel function of first kind'
+    end if
+    ! Store the real part of the complex Bessel functions
+    SI = real(Complex_SI)
+    ! Converting Modified Bessel to Spherical Modified Bessel
+    do l = 0, lmax
+        SI(l) = scaling_factor*SI(l)
+    end do
+    ! Computation of Derivatives of SI
+    DI(0) = SI(1)
+    do l = 1,lmax
+        DI(l)= SI(l-1)-((l+1.0D0)*SI(l))/argument
+    end do
+end subroutine modified_spherical_bessel_first_kind
+
+!
+! Subroutine to compute the Modified Spherical Bessel function of the second kind
+! @param[in]  lmax     : Size
+! @param[in]  argument : Argument of Bessel function
+! @param[out] SK       : Modified Bessel function of the second kind
+! @param[out] DK       : Derivative of modified Bessel function of the second kind
+subroutine modified_spherical_bessel_second_kind(lmax, argument, SK, DK)
+    use Complex_Bessel
+    integer , intent(in) :: lmax
+    real(dp), intent(in) :: argument
+    real(dp), dimension(0:lmax), intent(out) :: SK, DK
+    ! Local Variables
+    ! Complex_SK     : Modified Bessel functions of the second kind
+    ! argument       : Argument for Complex_SK
+    ! scaling_factor : sqrt(pi/2x)
+    ! fnu            : Starting argument for K_J(x)
+    ! NZ             : Number of components set to zero due to underflow
+    ! ierr           : Error indicator for K_J(x)
+    ! l              : l=0,...,lmax
+    complex(dp), dimension(0:lmax) :: Complex_SK
+    complex(dp) :: complex_argument
+    real(dp) :: scaling_factor, fnu
+    integer :: NZ, ierr, l
+
+    ! Compute K_(0.5+J) for J:1,...,lmax
+    ! NOTE: cbesk computes K_(FNU+J-1)
+    fnu = 1.5
+    scaling_factor = sqrt(2/(PI*argument))
+    ! NOTE: Complex argument is required to call K_J(x)
+    complex_argument = argument
+
+    ! Compute for l = 0
+    call cbesk(complex_argument, fnu - 1.0, 1, 1, Complex_SK(0), NZ, ierr)
+    if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
+    ! Compute for l = 1,...,lmax
+    call cbesk(complex_argument, fnu, 1, lmax, Complex_SK(1:lmax), NZ, ierr)
+    if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
+
+    ! Store the real part of the complex Bessel functions
+    SK = real(Complex_SK)
+    ! Converting Modified Bessel to Spherical Modified Bessel
+    do l = 0, lmax
+    SK(l) = scaling_factor*SK(l)
+    end do
+
+    ! Computation of Derivatives of SK
+    DK(0) = -SK(1)
+    do l = 1, lmax
+    DK(l) = -SK(l-1) - ((l+1.0D0)*SK(l))/argument
+    end do
+
+end subroutine modified_spherical_bessel_second_kind
+
+!
+! Computation of P_chi
+! @param[in]  isph : Sphere number
+! @param[out] pmat : Matrix of size nbasis X (lmax0+1)^2, Fixed lmax0
+!
+subroutine mkpmat(params, constants, isph, pmat)
+    type(ddx_params_type), intent(in)  :: params
+    type(ddx_constants_type), intent(in)  :: constants
+    integer,  intent(in) :: isph
+    real(dp), dimension(constants % nbasis, constants % nbasis0), intent(inout) :: pmat
+    integer :: l, m, ind, l0, m0, ind0, its
+    real(dp)  :: f, f0
+    pmat(:,:) = zero
+    do its = 1, params % ngrid
+        if (constants % ui(its,isph).ne.0) then
+            do l = 0, params % lmax
+                ind = l*l + l + 1
+                do m = -l,l
+                    f = constants % wgrid(its) * constants % vgrid(ind+m,its) * constants % ui(its,isph)
+                    do l0 = 0, constants % lmax0
+                        ind0 = l0*l0 + l0 + 1
+                        do m0 = -l0, l0
+                            f0 = constants % vgrid(ind0+m0,its)
+                            pmat(ind+m,ind0+m0) = pmat(ind+m,ind0+m0) + f * f0
+                        end do
+                    end do
+                end do
+            end do
+        end if
+    end do
+end subroutine mkpmat
 
 !> Initialize geometry-related constants like list of neighbouring spheres
 !!
