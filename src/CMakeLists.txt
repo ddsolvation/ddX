@@ -20,7 +20,6 @@ set(SRC
     "ddx_pcm.f90"
     "ddx_lpb.f90"
     "ddx.f90"
-    "bessel.f90"
     "llgnew.f"
     "cbessel.f90")
 
@@ -29,7 +28,6 @@ set(SRC
 
 set(COVERAGE_EXCLUDES
     "${CMAKE_CURRENT_SOURCE_DIR}/llgnew.f" PARENT_SCOPE
-    "${CMAKE_CURRENT_SOURCE_DIR}/bessel.f90" PARENT_SCOPE
     "${CMAKE_CURRENT_SOURCE_DIR}/cbessel.f90" PARENT_SCOPE)
 
 list(TRANSFORM SRC PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)

@@ -172,7 +172,6 @@ contains
   !! @param[in] ddx_data : Data Type
   !!
   subroutine ddlpb_init(ddx_data)
-  use bessel
   implicit none
   type(ddx_type), intent(inout)  :: ddx_data
   integer                     :: istatus, isph, igrid, ind, icav, l, l0, m0, ind0, jsph
@@ -281,7 +280,6 @@ contains
   !! @param[out] f       : Intermediate calculation of F0
   !!
   subroutine wghpot_f(ddx_data, gradphi, f )
-  use bessel
   implicit none
   type(ddx_type), intent(in)  :: ddx_data
   real(dp), dimension(3, ddx_data % constants % ncav),       intent(in)  :: gradphi
@@ -567,7 +565,6 @@ contains
   !                       the spherical harmonic Y_l'm'. Array of size nylm
   !
   subroutine inthsp(params, constants, rijn, ri, isph, basloc, fac_hsp)
-  use bessel
   implicit none
   type(ddx_params_type), intent(in)  :: params
   type(ddx_constants_type), intent(in)  :: constants
@@ -604,7 +601,6 @@ contains
   !
   subroutine update_rhs(params, constants, rhs_cosmo_init, rhs_hsp_init, rhs_cosmo, & 
       & rhs_hsp, Xr, Xe)
-  use bessel
   implicit none
   type(ddx_params_type), intent(in)  :: params
   type(ddx_constants_type), intent(in)  :: constants
@@ -1272,7 +1268,6 @@ contains
   !                       the spherical harmonic Y_l'm'. Array of size nylm
   !
   subroutine inthsp_adj(params, constants, workspace, rjin, rj, jsph, basloc, fac_hsp)
-  use bessel
   implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1313,7 +1308,6 @@ contains
   !
   subroutine update_rhs_adj(ddx_data, rhs_r_init, rhs_e_init, rhs_r, &
       & rhs_e, Xadj_r, Xadj_e)
-  use bessel
   implicit none
   type(ddx_type), intent(in)  :: ddx_data
   real(dp), dimension(ddx_data % constants % nbasis,ddx_data % params % nsph), intent(in) :: rhs_r_init, &
@@ -1409,7 +1403,6 @@ contains
   ! @param[out] force_e   : Force of adjoint part
   subroutine fdoka_b_xe(ddx_data, isph, Xe, Xadj_e, basloc, dbasloc, &
                        & vplm, vcos, vsin, force_e)
-  use bessel
   implicit none
   type(ddx_type), intent(in) :: ddx_data
   integer,                         intent(in)    :: isph
@@ -1505,7 +1498,6 @@ contains
   ! @param[out] force_e   : Force of adjoint part
   subroutine fdokb_b_xe(ddx_data, isph, Xe, Xadj_e, basloc, dbasloc, &
                         & vplm, vcos, vsin, force_e)
-  use bessel
   implicit none
   type(ddx_type), intent(in) :: ddx_data
   integer,                         intent(in)    :: isph
