@@ -138,10 +138,12 @@ contains
   if(ddx_data % params % force .eq. 1) then
     write(*,*) 'Computation of Forces for ddLPB'
     ! Call the subroutine adjoint to solve the adjoint solution
-    call ddx_lpb_adjoint(ddx_data, psi, tol, Xadj_r, Xadj_e)
+    call ddx_lpb_adjoint(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, psi, tol, Xadj_r, Xadj_e)
     !Call the subroutine to evaluate derivatives
-    call ddx_lpb_force(ddx_data, hessianphi_cav, phi_grid, gradphi_cav, &
-                     & Xr, Xe, Xadj_r, Xadj_e, force)
+    call ddx_lpb_force(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, hessianphi_cav, phi_grid, gradphi_cav, &
+                     & Xr, Xe, Xadj_r, Xadj_e, ddx_data % zeta, force)
 
   endif
   !call ddlpb_free(ddx_data)
@@ -691,290 +693,300 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     end do
 end subroutine ddx_lpb_solve
 
-  !
-  ! Computation of Adjoint
-  ! @param[in] ddx_data: Input data file
-  ! @param[in] psi     : psi_r
-  subroutine ddx_lpb_adjoint(ddx_data, psi, tol, Xadj_r, Xadj_e)
-  implicit none
-  type(ddx_type), intent(inout)           :: ddx_data
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in) :: psi
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(out) :: Xadj_r, Xadj_e
-  real(dp), intent(in) :: tol
-  real(dp), external :: dnrm2
-  ! Local Variables
-  ! ok             : Logical expression used in Jacobi solver
-  ! istatus        : Status of allocation
-  ! isph           : Index for the sphere
-  ! ibasis         : Index for the basis
-  ! iteration      : Number of outer loop iterations
-  ! inc            : Check for convergence threshold
-  ! relative_num   : Numerator of the relative error
-  ! relative_denom : Denominator of the relative error
-  ! converged      : Convergence check for outer loop
-  logical   :: ok
-  integer   :: istatus, isph, ibasis,  iteration
-  real(dp)  :: inc, relative_num, relative_denom
-  logical   :: converged
+!
+! Computation of Adjoint
+! @param[in] ddx_data: Input data file
+! @param[in] psi     : psi_r
+subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_e)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: psi
+    real(dp), intent(in) :: tol
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
+    !! Outputs
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: Xadj_r, Xadj_e
+    real(dp), external :: dnrm2
+    !! Local Variables
+    !! xs_rel_diff : relative norm of increment of every Jacobi iteration
+    real(dp) :: xs_rel_diff(params % maxiter)
+    ! ok             : Logical expression used in Jacobi solver
+    ! istatus        : Status of allocation
+    ! isph           : Index for the sphere
+    ! ibasis         : Index for the basis
+    ! iteration      : Number of outer loop iterations
+    ! inc            : Check for convergence threshold
+    ! relative_num   : Numerator of the relative error
+    ! relative_denom : Denominator of the relative error
+    ! converged      : Convergence check for outer loop
+    logical   :: ok
+    integer   :: istatus, isph, ibasis,  iteration
+    real(dp)  :: inc, relative_num, relative_denom
+    logical   :: converged
 
-  !!
-  !! Xadj_r         : Adjoint solution of Laplace equation
-  !! Xadj_e         : Adjoint solution of HSP equation
-  !! rhs_cosmo      : RHS corresponding to Laplace equation
-  !! rhs_hsp        : RHS corresponding to HSP equation
-  !! rhs_cosmo_init : Initial RHS for Laplace, psi_r in literature
-  !! rhs_hsp_init   : Initial RHS for HSP, psi_e = 0 in literature
-  !! X_r_k_1          : Solution of previous iterative step, holds Xadj_r_k_1
-  !! X_e_k_1          : Solution of previous iterative step, holds Xadj_e_k_1
-  real(dp), allocatable :: rhs_cosmo(:,:), rhs_hsp(:,:), &
-                         & rhs_cosmo_init(:,:), rhs_hsp_init(:,:), &
-                         & X_r_k_1(:,:), X_e_k_1(:,:)
+    !!
+    !! Xadj_r         : Adjoint solution of Laplace equation
+    !! Xadj_e         : Adjoint solution of HSP equation
+    !! rhs_cosmo      : RHS corresponding to Laplace equation
+    !! rhs_hsp        : RHS corresponding to HSP equation
+    !! rhs_cosmo_init : Initial RHS for Laplace, psi_r in literature
+    !! rhs_hsp_init   : Initial RHS for HSP, psi_e = 0 in literature
+    !! X_r_k_1          : Solution of previous iterative step, holds Xadj_r_k_1
+    !! X_e_k_1          : Solution of previous iterative step, holds Xadj_e_k_1
+    real(dp), allocatable :: rhs_cosmo(:,:), rhs_hsp(:,:), &
+        & rhs_cosmo_init(:,:), rhs_hsp_init(:,:), &
+        & X_r_k_1(:,:), X_e_k_1(:,:)
 
-  ! GMRES parameters
-  integer :: info, n_iter
-  real(dp) r_norm
+    ! GMRES parameters
+    integer :: info, n_iter
+    real(dp) r_norm
 
-  ! Allocation
-  allocate(rhs_cosmo(ddx_data % constants % nbasis, ddx_data % params % nsph), &
-           & rhs_hsp(ddx_data % constants % nbasis, ddx_data % params % nsph), &
-           & rhs_cosmo_init(ddx_data % constants % nbasis, ddx_data % params % nsph), &
-           & rhs_hsp_init(ddx_data % constants % nbasis, ddx_data % params % nsph),&
-           & X_r_k_1(ddx_data % constants % nbasis, ddx_data % params % nsph),&
-           & X_e_k_1(ddx_data % constants % nbasis, ddx_data % params % nsph),&
-           & stat = istatus)
-  if(istatus .ne. 0) then
-    write(*,*) 'Allocation failed in adjoint LPB!'
-    stop
-  end if
-  ! We compute the adjoint solution first
-  write(*,*) 'Solution of adjoint system'
-  ! Set local variables
-  iteration = one
-  inc = zero
-  relative_num = zero
-  relative_denom = zero
-  X_r_k_1 = zero
-  X_e_k_1 = zero
-  ! Initial RHS
-  ! rhs_cosmo_init = psi_r
-  ! rhs_hsp_init   = psi_e (=0)
-  rhs_cosmo_init = psi
-  rhs_hsp_init = zero
-  ! Updated RHS
-  rhs_cosmo = rhs_cosmo_init
-  rhs_hsp = rhs_hsp_init
-  ! Initial Xadj_r and Xadj_e
-  Xadj_r = zero
-  Xadj_e = zero
-  ! Logical variable for the first outer iteration
-  first_out_iter = .true.
-  converged = .false.
-  ok = .false.
-  ! Solve the adjoint system
-  do while (.not.converged)
+    ! Allocation
+    allocate(rhs_cosmo(constants % nbasis, params % nsph), &
+        & rhs_hsp(constants % nbasis, params % nsph), &
+        & rhs_cosmo_init(constants % nbasis, params % nsph), &
+        & rhs_hsp_init(constants % nbasis, params % nsph),&
+        & X_r_k_1(constants % nbasis, params % nsph),&
+        & X_e_k_1(constants % nbasis, params % nsph),&
+        & stat = istatus)
+    if(istatus .ne. 0) then
+        write(*,*) 'Allocation failed in adjoint LPB!'
+        stop
+    end if
+    ! We compute the adjoint solution first
+    write(*,*) 'Solution of adjoint system'
+    ! Set local variables
+    iteration = one
+    inc = zero
+    relative_num = zero
+    relative_denom = zero
+    X_r_k_1 = zero
+    X_e_k_1 = zero
+    ! Initial RHS
+    ! rhs_cosmo_init = psi_r
+    ! rhs_hsp_init   = psi_e (=0)
+    rhs_cosmo_init = psi
+    rhs_hsp_init = zero
+    ! Updated RHS
+    rhs_cosmo = rhs_cosmo_init
+    rhs_hsp = rhs_hsp_init
+    ! Initial Xadj_r and Xadj_e
+    Xadj_r = zero
+    Xadj_e = zero
+    ! Logical variable for the first outer iteration
+    first_out_iter = .true.
+    converged = .false.
+    ok = .false.
+    ! Solve the adjoint system
+    do while (.not.converged)
     ! Solve A*X_adj_r = psi_r
     ! Set the RHS to correct form by factoring with 4Pi/2l+1
     Xadj_r = zero
-    call convert_ddcosmo(ddx_data % params, ddx_data % constants, 1, rhs_cosmo)
-    n_iter = ddx_data % params % maxiter
-    call jacobi_diis(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, tol, rhs_cosmo, Xadj_r, n_iter, &
-                    & ddx_data % xs_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
+    call convert_ddcosmo(params, constants, 1, rhs_cosmo)
+    n_iter = params % maxiter
+    call jacobi_diis(params, constants, &
+        & workspace, tol, rhs_cosmo, Xadj_r, n_iter, &
+        & xs_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
 
     ! Solve the HSP equation
     ! B*X_adj_e = psi_e
     ! For first iteration the rhs is zero for HSP equation. Hence, Xadj_e = 0
     Xadj_e = rhs_hsp
     if(iteration.ne.1) then
-      n_iter = ddx_data % params % maxiter
-      call gmresr(ddx_data % params, ddx_data % constants, &
-          & ddx_data % workspace, tol, rhs_hsp, Xadj_e, n_iter, &
-          & r_norm, bstarx, info)
+        n_iter = params % maxiter
+        call gmresr(params, constants, &
+            & workspace, tol, rhs_hsp, Xadj_e, n_iter, &
+            & r_norm, bstarx, info)
     endif
 
     ! Update the RHS
     ! |rhs_r| = |psi_r|-|C1* C1*||Xadj_r|
     ! |rhs_e| = |psi_e| |C2* C2*||Xadj_e|
-    call update_rhs_adj(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, rhs_cosmo_init, rhs_hsp_init,&
-                        & rhs_cosmo, rhs_hsp, Xadj_r, Xadj_e)
+    call update_rhs_adj(params, constants, &
+        & workspace, rhs_cosmo_init, rhs_hsp_init,&
+        & rhs_cosmo, rhs_hsp, Xadj_r, Xadj_e)
     ! Stopping Criteria.
     ! Checking the relative error of Xadj_r
     inc  = zero
-    inc = dnrm2(ddx_data % constants % n, Xadj_r + Xadj_e - X_r_k_1 - X_e_k_1, 1)/ &
-        & dnrm2(ddx_data % constants % n, Xadj_r + Xadj_e, 1)
+    inc = dnrm2(constants % n, Xadj_r + Xadj_e - X_r_k_1 - X_e_k_1, 1)/ &
+        & dnrm2(constants % n, Xadj_r + Xadj_e, 1)
 
     ! Store the previous step solution
     X_r_k_1 = Xadj_r
     X_e_k_1 = Xadj_e
     if ((iteration .gt. 1) .and. (inc.lt.tol)) then
-      write(6,*) 'Reach tolerance.'
-      converged = .true.
+        write(6,*) 'Reach tolerance.'
+        converged = .true.
     end if
     write(6,*) 'Adjoint computation :', iteration, inc
     iteration = iteration + 1
     first_out_iter = .false.
-  end do
-!  if (ddx_data % iprint .ge. 5) then
-!    call prtsph('Xadj_r', ddx_data % constants % nbasis, ddx_data % params % lmax, &
-!          & ddx_data % params % nsph, 0, Xadj_r)
-!    call prtsph('Xadj_e', ddx_data % constants % nbasis, ddx_data % params % lmax, &
-!          & ddx_data % params % nsph, 0, Xadj_e)
-!  end if
-  ! Deallocation
-  deallocate(rhs_cosmo, rhs_hsp, rhs_cosmo_init, &
-           & rhs_hsp_init, X_r_k_1, X_e_k_1, stat = istatus)
-  if(istatus .ne. 0) then
-    write(*,*) 'Deallocation failed in adjoint LPB!'
-    stop
-  end if
-  end subroutine ddx_lpb_adjoint
+    end do
+    !  if (iprint .ge. 5) then
+    !    call prtsph('Xadj_r', constants % nbasis, params % lmax, &
+    !          & params % nsph, 0, Xadj_r)
+    !    call prtsph('Xadj_e', constants % nbasis, params % lmax, &
+    !          & params % nsph, 0, Xadj_e)
+    !  end if
+    ! Deallocation
+    deallocate(rhs_cosmo, rhs_hsp, rhs_cosmo_init, &
+        & rhs_hsp_init, X_r_k_1, X_e_k_1, stat = istatus)
+    if(istatus .ne. 0) then
+        write(*,*) 'Deallocation failed in adjoint LPB!'
+        stop
+    end if
+end subroutine ddx_lpb_adjoint
 
-  !
-  ! Computation for Solvation energy
-  ! @param[in]  ddx_data   : Input data file
-  ! @param[in]  hessian    : Hessian of Psi
-  ! @param[in]  phi_grid   : Phi evaluated at the grid point
-  ! @param[in]  gradphi  : Gradient of phi
-  ! @param[in]  Xr         : Solution corresponding to COSMO
-  ! @param[in]  Xe         : Solution corresponding to HSP
-  ! @param[in]  Xadj_r     : Solution corresponding to adjoint of the COSMO
-  ! @param[in]  Xadj_e     : Solution corresponding to adjoint of the HSP
-  ! @param[out] force      : Force
-  subroutine ddx_lpb_force(ddx_data, hessian, phi_grid, gradphi, &
-                         & Xr, Xe, Xadj_r, Xadj_e, force)
-  implicit none
-  type(ddx_type), intent(inout) :: ddx_data
-  real(dp), dimension(3,3, ddx_data % constants % ncav) :: hessian
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph), intent(in) :: phi_grid
-  real(dp), dimension(3, ddx_data % constants % ncav), intent(in)    :: gradphi
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in) :: Xr, Xe
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in) :: Xadj_r, Xadj_e
-  real(dp), dimension(3, ddx_data % params % nsph), intent(out) :: force
+!
+! Computation for Solvation energy
+! @param[in]  ddx_data   : Input data file
+! @param[in]  hessian    : Hessian of Psi
+! @param[in]  phi_grid   : Phi evaluated at the grid point
+! @param[in]  gradphi  : Gradient of phi
+! @param[in]  Xr         : Solution corresponding to COSMO
+! @param[in]  Xe         : Solution corresponding to HSP
+! @param[in]  Xadj_r     : Solution corresponding to adjoint of the COSMO
+! @param[in]  Xadj_e     : Solution corresponding to adjoint of the HSP
+! @param[out] force      : Force
+subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradphi, &
+        & Xr, Xe, Xadj_r, Xadj_e, zeta, force)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), dimension(3, 3, constants % ncav), intent(in) :: hessian
+    real(dp), dimension(params % ngrid, params % nsph), intent(in) :: phi_grid
+    real(dp), dimension(3, constants % ncav), intent(in)    :: gradphi
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xr, Xe
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xadj_r, Xadj_e
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
+    !! Outputs
+    real(dp), dimension(3, params % nsph), intent(out) :: force
+    real(dp), intent(out) :: zeta(constants % ncav)
 
-  ! Local variable
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph) :: Xadj_r_sgrid, Xadj_e_sgrid
-  real(dp), dimension(3, ddx_data % constants % ncav) :: normal_hessian_cav
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph) :: diff_re
-  real(dp), dimension(ddx_data % constants % nbasis) :: basloc, vplm
-  real(dp), dimension(3, ddx_data % constants % nbasis) :: dbasloc
-  ! Local variables, used in force computation
-  ! ef : Electrostatic force using potential of spheres
-  real(dp), dimension(3, ddx_data % params % nsph) :: ef
-  real(dp), dimension(ddx_data % params % lmax + 1) :: vsin, vcos
-  !! scaled_Xr  : Reaction potential scaled by 1/(4Pi/2l+1)
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph) :: scaled_Xr
-  ! icav_gr : Index for global cavity points for Laplace
-  ! icav_ge : Index for global cavity points for HSP
-  ! ok      : Input argument for Jacobi solver
-  ! n_iter  : Number of iterative steps
-  integer                    :: isph, icav, icav_gr, icav_ge, igrid
-  integer                    :: i
-  real(dp), external :: ddot
+    ! Local variable
+    real(dp), dimension(params % ngrid, params % nsph) :: Xadj_r_sgrid, Xadj_e_sgrid
+    real(dp), dimension(3, constants % ncav) :: normal_hessian_cav
+    real(dp), dimension(constants % nbasis, params % nsph) :: diff_re
+    real(dp), dimension(constants % nbasis) :: basloc, vplm
+    real(dp), dimension(3, constants % nbasis) :: dbasloc
+    ! Local variables, used in force computation
+    ! ef : Electrostatic force using potential of spheres
+    real(dp), dimension(3, params % nsph) :: ef
+    real(dp), dimension(params % lmax + 1) :: vsin, vcos
+    !! scaled_Xr  : Reaction potential scaled by 1/(4Pi/2l+1)
+    real(dp), dimension(constants % nbasis, params % nsph) :: scaled_Xr
+    ! icav_gr : Index for global cavity points for Laplace
+    ! icav_ge : Index for global cavity points for HSP
+    ! ok      : Input argument for Jacobi solver
+    ! n_iter  : Number of iterative steps
+    integer                    :: isph, icav, icav_gr, icav_ge, igrid
+    integer                    :: i
+    real(dp), external :: ddot
 
-  Xadj_r_sgrid = zero; Xadj_e_sgrid = zero
-  diff_re = zero; normal_hessian_cav = zero
-  vsin = zero; vcos = zero; vplm = zero
-  basloc = zero; dbasloc = zero; ef = zero
-  force = zero
+    Xadj_r_sgrid = zero; Xadj_e_sgrid = zero
+    diff_re = zero; normal_hessian_cav = zero
+    vsin = zero; vcos = zero; vplm = zero
+    basloc = zero; dbasloc = zero; ef = zero
+    force = zero
 
-  ! Compute the derivative of the normal derivative of psi_0
-  icav = 0
-  do isph = 1, ddx_data % params % nsph
-    do igrid = 1, ddx_data % params % ngrid
-      if(ddx_data % constants % ui(igrid, isph) .gt. zero) then
+    ! Compute the derivative of the normal derivative of psi_0
+    icav = 0
+    do isph = 1, params % nsph
+    do igrid = 1, params % ngrid
+    if(constants % ui(igrid, isph) .gt. zero) then
         icav = icav + 1
         do i = 1, 3
-          normal_hessian_cav(:, icav) = normal_hessian_cav(:,icav) +&
-                                  & hessian(:,i,icav)*ddx_data % constants % cgrid(i,igrid)
+        normal_hessian_cav(:, icav) = normal_hessian_cav(:,icav) +&
+            & hessian(:,i,icav)*constants % cgrid(i,igrid)
         end do
-      end if
+    end if
     end do
-  end do
+    end do
 
-  ! Call dgemm to integrate the adjoint solution on the grid points
-  call dgemm('T', 'N', ddx_data % params % ngrid, ddx_data % params % nsph, &
-          & ddx_data % constants % nbasis, one, ddx_data % constants % vgrid, &
-          & ddx_data % constants % vgrid_nbasis, &
-          & Xadj_r , ddx_data % constants % nbasis, zero, Xadj_r_sgrid, &
-          & ddx_data % params % ngrid)
-  call dgemm('T', 'N', ddx_data % params % ngrid, ddx_data % params % nsph, &
-          & ddx_data % constants % nbasis, one, ddx_data % constants % vgrid, &
-          & ddx_data % constants % vgrid_nbasis, &
-          & Xadj_e , ddx_data % constants % nbasis, zero, Xadj_e_sgrid, &
-          & ddx_data % params % ngrid)
+    ! Call dgemm to integrate the adjoint solution on the grid points
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+        & constants % nbasis, one, constants % vgrid, &
+        & constants % vgrid_nbasis, &
+        & Xadj_r , constants % nbasis, zero, Xadj_r_sgrid, &
+        & params % ngrid)
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+        & constants % nbasis, one, constants % vgrid, &
+        & constants % vgrid_nbasis, &
+        & Xadj_e , constants % nbasis, zero, Xadj_e_sgrid, &
+        & params % ngrid)
 
-  ! Scale by the factor of 1/(4Pi/(2l+1))
-  scaled_Xr = Xr
-  call convert_ddcosmo(ddx_data % params, ddx_data % constants, -1, scaled_Xr)
+    ! Scale by the factor of 1/(4Pi/(2l+1))
+    scaled_Xr = Xr
+    call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
-  do isph = 1, ddx_data % params % nsph
+    do isph = 1, params % nsph
     ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
-    call fdoka(ddx_data % params, ddx_data % constants, isph, scaled_Xr, Xadj_r_sgrid(:, isph), &
-              & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
-    call fdokb(ddx_data % params, ddx_data % constants, isph, scaled_Xr, Xadj_r_sgrid, basloc, &
-              & dbasloc, vplm, vcos, vsin, force(:, isph))
+    call fdoka(params, constants, isph, scaled_Xr, Xadj_r_sgrid(:, isph), &
+        & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
+    call fdokb(params, constants, isph, scaled_Xr, Xadj_r_sgrid, basloc, &
+        & dbasloc, vplm, vcos, vsin, force(:, isph))
     ! Compute B^k*Xadj_e
-    call fdoka_b_xe(ddx_data, isph, Xe, Xadj_e_sgrid(:, isph), &
-              & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
-    call fdokb_b_xe(ddx_data, isph, Xe, Xadj_e_sgrid, &
-              & basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
+    call fdoka_b_xe(params, constants, workspace, isph, Xe, Xadj_e_sgrid(:, isph), &
+        & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
+    call fdokb_b_xe(params, constants, workspace, isph, Xe, Xadj_e_sgrid, &
+        & basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
     ! Compute C1 and C2 contributions
     diff_re = zero
-    call fdouky(ddx_data, isph, &
-                & Xr, Xe, &
-                & Xadj_r_sgrid, Xadj_e_sgrid, &
-                & Xadj_r, Xadj_e, &
-                & force(:, isph), &
-                & diff_re)
-    call derivative_P(ddx_data, isph,&
-                & Xr, Xe, &
-                & Xadj_r_sgrid, Xadj_e_sgrid, &
-                & diff_re, &
-                & force(:, isph))
+    call fdouky(params, constants, workspace, isph, &
+        & Xr, Xe, &
+        & Xadj_r_sgrid, Xadj_e_sgrid, &
+        & Xadj_r, Xadj_e, &
+        & force(:, isph), &
+        & diff_re)
+    call derivative_P(params, constants, workspace, isph,&
+        & Xr, Xe, &
+        & Xadj_r_sgrid, Xadj_e_sgrid, &
+        & diff_re, &
+        & force(:, isph))
     ! Computation of G0
-    call fdoga(ddx_data % params, ddx_data % constants, isph, Xadj_r_sgrid, phi_grid, force(:, isph))
-  end do
-  ! Computation of G0 continued
-  ! NOTE: fdoga returns a positive summation
-  force = -force
-  icav = 0
-  do isph = 1, ddx_data % params % nsph
-    do igrid = 1, ddx_data % params % ngrid
-      if(ddx_data % constants % ui(igrid, isph) .ne. zero) then
-        icav = icav + 1
-        ddx_data % zeta(icav) = -ddx_data % constants % wgrid(igrid) * &
-                      & ddx_data % constants % ui(igrid, isph) * ddot(ddx_data % constants % nbasis, &
-                      & ddx_data % constants % vgrid(1, igrid), 1, &
-                      & Xadj_r(1, isph), 1)
-        force(:, isph) = force(:, isph) + &
-                      & ddx_data % zeta(icav)*gradphi(:, icav)
-      end if
+    call fdoga(params, constants, isph, Xadj_r_sgrid, phi_grid, force(:, isph))
     end do
-  end do
-  call efld(ddx_data % constants % ncav, ddx_data % zeta, ddx_data % constants % ccav, &
-              & ddx_data % params % nsph, ddx_data % params % csph, ef)
-  do isph = 1, ddx_data % params % nsph
-    force(:, isph) = force(:, isph) - ef(:, isph)*ddx_data % params % charge(isph)
-  end do
+    ! Computation of G0 continued
+    ! NOTE: fdoga returns a positive summation
+    force = -force
+    icav = 0
+    do isph = 1, params % nsph
+    do igrid = 1, params % ngrid
+    if(constants % ui(igrid, isph) .ne. zero) then
+        icav = icav + 1
+        zeta(icav) = -constants % wgrid(igrid) * &
+            & constants % ui(igrid, isph) * ddot(constants % nbasis, &
+            & constants % vgrid(1, igrid), 1, &
+            & Xadj_r(1, isph), 1)
+        force(:, isph) = force(:, isph) + &
+            & zeta(icav)*gradphi(:, icav)
+    end if
+    end do
+    end do
+    call efld(constants % ncav, zeta, constants % ccav, &
+        & params % nsph, params % csph, ef)
+    do isph = 1, params % nsph
+    force(:, isph) = force(:, isph) - ef(:, isph)*params % charge(isph)
+    end do
 
-  icav_gr = zero
-  icav_ge = zero
-  do isph = 1, ddx_data % params % nsph
+    icav_gr = zero
+    icav_ge = zero
+    do isph = 1, params % nsph
     ! Computation of F0
-    call fdouky_f0(ddx_data, isph, Xadj_r, Xadj_r_sgrid, &
+    call fdouky_f0(params, constants, workspace, isph, Xadj_r, Xadj_r_sgrid, &
         & gradphi, force(:, isph))
-    call fdoco(ddx_data, isph, Xadj_r_sgrid, gradphi, &
-           & normal_hessian_cav, icav_gr, force(:, isph))
+    call fdoco(params, constants, workspace, isph, Xadj_r_sgrid, gradphi, &
+        & normal_hessian_cav, icav_gr, force(:, isph))
     ! Computation of F0
-    call fdouky_f0(ddx_data, isph, Xadj_e, Xadj_e_sgrid, &
+    call fdouky_f0(params, constants, workspace, isph, Xadj_e, Xadj_e_sgrid, &
         & gradphi, force(:, isph))
-    call fdoco(ddx_data, isph, Xadj_e_sgrid, gradphi, &
-           & normal_hessian_cav, icav_ge, force(:, isph))
-  end do
-  force = pt5*force
-
-  end subroutine ddx_lpb_force
+    call fdoco(params, constants, workspace, isph, Xadj_e_sgrid, gradphi, &
+        & normal_hessian_cav, icav_ge, force(:, isph))
+    end do
+    force = pt5*force
+end subroutine ddx_lpb_force
 
   !! Computation of Adjoint B, i.e., B*
   !> Apply adjoint single layer operator to spherical harmonics
@@ -1232,22 +1244,25 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   ! @param[in]  vcos      : Argument to call ylmbas
   ! @param[in]  vsin      : Argument to call ylmbas
   ! @param[out] force_e   : Force of adjoint part
-  subroutine fdoka_b_xe(ddx_data, isph, Xe, Xadj_e, basloc, dbasloc, &
+  subroutine fdoka_b_xe(params, constants, workspace, isph, Xe, Xadj_e, basloc, dbasloc, &
                        & vplm, vcos, vsin, force_e)
-  implicit none
-  type(ddx_type), intent(in) :: ddx_data
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
   integer,                         intent(in)    :: isph
-  real(dp),  dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in)   :: Xe
-  real(dp),  dimension(ddx_data % params % ngrid),       intent(in)    :: Xadj_e
-  real(dp),  dimension(ddx_data % constants % nbasis),      intent(inout) :: basloc, vplm
-  real(dp),  dimension(3, ddx_data % constants % nbasis),    intent(inout) :: dbasloc
-  real(dp),  dimension(ddx_data % params % lmax+1),      intent(inout) :: vcos, vsin
+  real(dp),  dimension(constants % nbasis, params % nsph), intent(in)   :: Xe
+  real(dp),  dimension(params % ngrid),       intent(in)    :: Xadj_e
+  real(dp),  dimension(constants % nbasis),      intent(inout) :: basloc, vplm
+  real(dp),  dimension(3, constants % nbasis),    intent(inout) :: dbasloc
+  real(dp),  dimension(params % lmax+1),      intent(inout) :: vcos, vsin
   real(dp),  dimension(3),           intent(inout) :: force_e
 
   ! Local Variables
   integer :: igrid, ineigh, jsph, l, ind, m
-  real(dp), dimension(0:ddx_data % params % lmax) :: SI_rijn
-  real(dp), dimension(0:ddx_data % params % lmax) :: DI_rijn
+  real(dp), dimension(0:params % lmax) :: SI_rijn
+  real(dp), dimension(0:params % lmax) :: DI_rijn
   ! beta   : Eq.(53) Stamm.etal.18
   ! tlow   : Lower bound for switch region
   ! thigh  : Upper bound for switch region
@@ -1262,55 +1277,55 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   SI_rijn = 0
   DI_rijn = 0
   
-  tlow  = one - pt5*(one - ddx_data % params % se)*ddx_data % params % eta
-  thigh = one + pt5*(one + ddx_data % params % se)*ddx_data % params % eta
+  tlow  = one - pt5*(one - params % se)*params % eta
+  thigh = one + pt5*(one + params % se)*params % eta
 
   ! Loop over grid points
-  do igrid = 1, ddx_data % params % ngrid
+  do igrid = 1, params % ngrid
     va = zero
-    do ineigh = ddx_data % constants % inl(isph), ddx_data % constants % inl(isph+1) - 1
-      jsph = ddx_data % constants % nl(ineigh)
-      vij  = ddx_data % params % csph(:,isph) + &
-            & ddx_data % params % rsph(isph)*ddx_data % constants % cgrid(:,igrid) - &
-            & ddx_data % params % csph(:,jsph)
+    do ineigh = constants % inl(isph), constants % inl(isph+1) - 1
+      jsph = constants % nl(ineigh)
+      vij  = params % csph(:,isph) + &
+            & params % rsph(isph)*constants % cgrid(:,igrid) - &
+            & params % csph(:,jsph)
       rijn = dnrm2(3, vij, 1)
-      tij  = rijn/ddx_data % params % rsph(jsph)
-      rj = ddx_data % params % rsph(jsph)
+      tij  = rijn/params % rsph(jsph)
+      rj = params % rsph(jsph)
 
       if (tij.ge.thigh) cycle
       ! Computation of modified spherical Bessel function values      
-      call modified_spherical_bessel_first_kind(ddx_data % params % lmax, rijn*ddx_data % params % kappa, SI_rijn, DI_rijn)
+      call modified_spherical_bessel_first_kind(params % lmax, rijn*params % kappa, SI_rijn, DI_rijn)
 
       sij  = vij/rijn
-      call dbasis(ddx_data % params, ddx_data % constants, sij, basloc, dbasloc, vplm, vcos, vsin)
+      call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
       alpha  = zero
-      do l = 0, ddx_data % params % lmax
+      do l = 0, params % lmax
         ind = l*l + l + 1
-        f1 = (DI_rijn(l)*ddx_data % params % kappa)/ddx_data % constants % SI_ri(l,jsph);
-        f2 = SI_rijn(l)/ddx_data % constants % SI_ri(l, jsph)
+        f1 = (DI_rijn(l)*params % kappa)/constants % SI_ri(l,jsph);
+        f2 = SI_rijn(l)/constants % SI_ri(l, jsph)
         do m = -l, l
           alpha(:) = alpha(:) + (f1*sij(:)*basloc(ind+m) + &
                     & (f2/rijn)*dbasloc(:,ind+m))*Xe(ind+m,jsph)
         end do
       end do
-      beta = compute_beta(ddx_data, SI_rijn, rijn, jsph, Xe(:,jsph),basloc)
-      xij = fsw(tij, ddx_data % params % se, ddx_data % params % eta)
-      if (ddx_data % constants % fi(igrid,isph).gt.one) then
-        oij = xij/ddx_data % constants % fi(igrid,isph)
-        f2  = -oij/ddx_data % constants % fi(igrid,isph)
+      beta = compute_beta(params, constants, workspace, SI_rijn, rijn, jsph, Xe(:,jsph),basloc)
+      xij = fsw(tij, params % se, params % eta)
+      if (constants % fi(igrid,isph).gt.one) then
+        oij = xij/constants % fi(igrid,isph)
+        f2  = -oij/constants % fi(igrid,isph)
       else
         oij = xij
         f2  = zero
       end if
       f1 = oij
-      va(:) = va(:) + f1*alpha(:) + beta*f2*ddx_data % constants % zi(:,igrid,isph)
+      va(:) = va(:) + f1*alpha(:) + beta*f2*constants % zi(:,igrid,isph)
       if (tij .gt. tlow) then
-        f3 = beta*dfsw(tij,ddx_data % params % se,ddx_data % params % eta)/ddx_data % params % rsph(jsph)
-        if (ddx_data % constants % fi(igrid,isph).gt.one) f3 = f3/ddx_data % constants % fi(igrid,isph)
+        f3 = beta*dfsw(tij,params % se,params % eta)/params % rsph(jsph)
+        if (constants % fi(igrid,isph).gt.one) f3 = f3/constants % fi(igrid,isph)
         va(:) = va(:) + f3*sij(:)
       end if
     end do
-  force_e = force_e - ddx_data % constants % wgrid(igrid)*Xadj_e(igrid)*va(:)
+  force_e = force_e - constants % wgrid(igrid)*Xadj_e(igrid)*va(:)
   end do
   return
   end subroutine fdoka_b_xe
@@ -1327,23 +1342,26 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   ! @param[in]  vcos      : Argument to call ylmbas
   ! @param[in]  vsin      : Argument to call ylmbas
   ! @param[out] force_e   : Force of adjoint part
-  subroutine fdokb_b_xe(ddx_data, isph, Xe, Xadj_e, basloc, dbasloc, &
+  subroutine fdokb_b_xe(params, constants, workspace, isph, Xe, Xadj_e, basloc, dbasloc, &
                         & vplm, vcos, vsin, force_e)
-  implicit none
-  type(ddx_type), intent(in) :: ddx_data
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
   integer,                         intent(in)    :: isph
-  real(dp),  dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in)    :: Xe
-  real(dp),  dimension(ddx_data % params % ngrid, ddx_data % params % nsph),  intent(in)    :: Xadj_e
-  real(dp),  dimension(ddx_data % constants % nbasis),      intent(inout) :: basloc,  vplm
-  real(dp),  dimension(3, ddx_data % constants % nbasis),   intent(inout) :: dbasloc
-  real(dp),  dimension(ddx_data % params % lmax+1),      intent(inout) :: vcos, vsin
+  real(dp),  dimension(constants % nbasis, params % nsph), intent(in)    :: Xe
+  real(dp),  dimension(params % ngrid, params % nsph),  intent(in)    :: Xadj_e
+  real(dp),  dimension(constants % nbasis),      intent(inout) :: basloc,  vplm
+  real(dp),  dimension(3, constants % nbasis),   intent(inout) :: dbasloc
+  real(dp),  dimension(params % lmax+1),      intent(inout) :: vcos, vsin
   real(dp),  dimension(3),           intent(inout) :: force_e
 
   ! Local Variables
   ! jk     : Row pointer over kth row
   integer :: igrid, jsph, ksph, ineigh, l, m, ind, jk
-  real(dp), dimension(0:ddx_data % params % lmax) :: SI_rjin, SI_rjkn
-  real(dp), dimension(0:ddx_data % params % lmax) :: DI_rjin, DI_rjkn
+  real(dp), dimension(0:params % lmax) :: SI_rjin, SI_rjkn
+  real(dp), dimension(0:params % lmax) :: DI_rjin, DI_rjkn
 
   logical :: proc
   ! fac     : \delta_fj_n*\omega^\eta_ji
@@ -1371,41 +1389,41 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   SI_rjkn = 0
   DI_rjkn = 0
 
-  tlow  = one - pt5*(one - ddx_data % params % se)*ddx_data % params % eta
-  thigh = one + pt5*(one + ddx_data % params % se)*ddx_data % params % eta
+  tlow  = one - pt5*(one - params % se)*params % eta
+  thigh = one + pt5*(one + params % se)*params % eta
 
-  do igrid = 1, ddx_data % params % ngrid
+  do igrid = 1, params % ngrid
     vb = zero
     vc = zero
-    do ineigh = ddx_data % constants % inl(isph), ddx_data % constants % inl(isph+1) - 1
-      jsph = ddx_data % constants % nl(ineigh)
-      vji  = ddx_data % params % csph(:,jsph) + &
-              & ddx_data % params % rsph(jsph)*ddx_data % constants % cgrid(:,igrid) - &
-              & ddx_data % params % csph(:,isph)
+    do ineigh = constants % inl(isph), constants % inl(isph+1) - 1
+      jsph = constants % nl(ineigh)
+      vji  = params % csph(:,jsph) + &
+              & params % rsph(jsph)*constants % cgrid(:,igrid) - &
+              & params % csph(:,isph)
       rjin = dnrm2(3, vji, 1)
-      ri = ddx_data % params % rsph(isph)
+      ri = params % rsph(isph)
       tji  = rjin/ri
 
       if (tji.gt.thigh) cycle
 
-      call modified_spherical_bessel_first_kind(ddx_data % params % lmax, rjin*ddx_data % params % kappa, SI_rjin, DI_rjin)
+      call modified_spherical_bessel_first_kind(params % lmax, rjin*params % kappa, SI_rjin, DI_rjin)
       
       sji  = vji/rjin
-      call dbasis(ddx_data % params, ddx_data % constants, sji, basloc, dbasloc, vplm, vcos, vsin)
+      call dbasis(params, constants, sji, basloc, dbasloc, vplm, vcos, vsin)
       alpha = zero
-      do l = 0, ddx_data % params % lmax
+      do l = 0, params % lmax
         ind = l*l + l + 1
-        f1 = (DI_rjin(l)*ddx_data % params % kappa)/ddx_data % constants % SI_ri(l,isph);
-        f2 = SI_rjin(l)/ddx_data % constants % SI_ri(l,isph)
+        f1 = (DI_rjin(l)*params % kappa)/constants % SI_ri(l,isph);
+        f2 = SI_rjin(l)/constants % SI_ri(l,isph)
 
         do m = -l, l
           alpha = alpha + (f1*sji*basloc(ind+m) + &
                  & (f2/rjin)*dbasloc(:,ind+m))*Xe(ind+m,isph)
         end do
       end do
-      xji = fsw(tji,ddx_data % params % se,ddx_data % params % eta)
-      if (ddx_data % constants % fi(igrid,jsph).gt.one) then
-        oji = xji/ddx_data % constants % fi(igrid,jsph)
+      xji = fsw(tji,params % se,params % eta)
+      if (constants % fi(igrid,jsph).gt.one) then
+        oji = xji/constants % fi(igrid,jsph)
       else
         oji = xji
       end if
@@ -1413,37 +1431,37 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
       vb = vb + f1*alpha*Xadj_e(igrid,jsph)
       if (tji .gt. tlow) then
         ! Compute beta_jin, i.e., Eq.(57) Stamm.etal.18
-        beta_ji = compute_beta(ddx_data, SI_rjin, rjin, isph, Xe(:,isph), basloc)
-        if (ddx_data % constants % fi(igrid,jsph) .gt. one) then
-          dj  = one/ddx_data % constants % fi(igrid,jsph)
+        beta_ji = compute_beta(params, constants, workspace, SI_rjin, rjin, isph, Xe(:,isph), basloc)
+        if (constants % fi(igrid,jsph) .gt. one) then
+          dj  = one/constants % fi(igrid,jsph)
           fac = dj*xji
           proc = .false.
           b    = zero
-          do jk = ddx_data % constants % inl(jsph), ddx_data % constants % inl(jsph+1) - 1
-            ksph = ddx_data % constants % nl(jk)
-            vjk  = ddx_data % params % csph(:,jsph) + &
-                 & ddx_data % params % rsph(jsph)*ddx_data % constants % cgrid(:,igrid) - &
-                 & ddx_data % params % csph(:,ksph)
+          do jk = constants % inl(jsph), constants % inl(jsph+1) - 1
+            ksph = constants % nl(jk)
+            vjk  = params % csph(:,jsph) + &
+                 & params % rsph(jsph)*constants % cgrid(:,igrid) - &
+                 & params % csph(:,ksph)
             rjkn = dnrm2(3, vjk, 1)
-            tjk  = rjkn/ddx_data % params % rsph(ksph)
+            tjk  = rjkn/params % rsph(ksph)
             ! Computation of modified spherical Bessel function values      
-            call modified_spherical_bessel_first_kind(ddx_data % params % lmax, rjkn*ddx_data % params % kappa, SI_rjkn, DI_rjkn)
+            call modified_spherical_bessel_first_kind(params % lmax, rjkn*params % kappa, SI_rjkn, DI_rjkn)
 
             if (ksph.ne.isph) then
               if (tjk .le. thigh) then
               proc = .true.
               sjk  = vjk/rjkn
               call ylmbas(sjk, rho, ctheta, stheta, cphi, sphi, &
-                  & ddx_data % params % lmax, ddx_data % constants % vscales, basloc, vplm, &
+                  & params % lmax, constants % vscales, basloc, vplm, &
                   & vcos, vsin)
-              beta_jk  = compute_beta(ddx_data, SI_rjkn, rjkn, ksph, Xe(:,ksph), basloc)
-              xjk = fsw(tjk, ddx_data % params % se, ddx_data % params % eta)
+              beta_jk  = compute_beta(params, constants, workspace, SI_rjkn, rjkn, ksph, Xe(:,ksph), basloc)
+              xjk = fsw(tjk, params % se, params % eta)
               b   = b + beta_jk*xjk
               end if
             end if
           end do
           if (proc) then
-            g1 = dj*dj*dfsw(tji,ddx_data % params % se,ddx_data % params % eta)/ddx_data % params % rsph(isph)
+            g1 = dj*dj*dfsw(tji,params % se,params % eta)/params % rsph(isph)
             g2 = g1*Xadj_e(igrid,jsph)*b
             vc = vc + g2*sji
           end if
@@ -1451,21 +1469,24 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
           dj  = one
           fac = zero
         end if
-        f2 = (one-fac)*dj*dfsw(tji,ddx_data % params % se,ddx_data % params % eta)/ddx_data % params % rsph(isph)
+        f2 = (one-fac)*dj*dfsw(tji,params % se,params % eta)/params % rsph(isph)
         vb = vb + f2*Xadj_e(igrid,jsph)*beta_ji*sji
       end if 
     end do
-    force_e = force_e + ddx_data % constants % wgrid(igrid)*(vb - vc)
+    force_e = force_e + constants % wgrid(igrid)*(vb - vc)
     end do
   return
   end subroutine fdokb_b_xe
   
-  real(dp) function compute_beta(ddx_data, SI_rijn, rijn, jsph, Xe, basloc)
-  implicit none
-  type(ddx_type) :: ddx_data
-  real(dp), dimension(0:ddx_data % params % lmax), intent(in) :: SI_rijn
-  real(dp), dimension(ddx_data % constants % nbasis), intent(in) :: basloc
-  real(dp), dimension(ddx_data % constants % nbasis), intent(in)   :: Xe
+  real(dp) function compute_beta(params, constants, workspace, SI_rijn, rijn, jsph, Xe, basloc)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
+  real(dp), dimension(0:params % lmax), intent(in) :: SI_rijn
+  real(dp), dimension(constants % nbasis), intent(in) :: basloc
+  real(dp), dimension(constants % nbasis), intent(in)   :: Xe
   integer, intent(in) :: jsph
   real(dp), intent(in) :: rijn
 
@@ -1474,10 +1495,10 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   ss = zero
 
   ! loop over l
-  do l = 0, ddx_data % params % lmax
+  do l = 0, params % lmax
     do m = -l, l
       ind = l*l + l + m + 1
-      fac = SI_rijn(l)/ddx_data % constants % SI_ri(l,jsph)
+      fac = SI_rijn(l)/constants % SI_ri(l,jsph)
       ss = ss + fac*basloc(ind)*Xe(ind)
     end do
   end do
@@ -1500,20 +1521,23 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   ! @param[inout] force     : Force
   ! @param[out] diff_re     : epsilon_1/epsilon_2 * l'/r_j[Xr]_jl'm' 
   !                         - (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
-  subroutine fdouky(ddx_data, ksph, Xr, Xe, &
+  subroutine fdouky(params, constants, workspace, ksph, Xr, Xe, &
                           & Xadj_r_sgrid, Xadj_e_sgrid, &
                           & Xadj_r, Xadj_e, &
                           & force, &
                           & diff_re)
-  implicit none
-  type(ddx_type), intent(in) :: ddx_data
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
   integer, intent(in) :: ksph
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in) :: Xr, Xe
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph), intent(in) :: Xadj_r_sgrid,&
+  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xr, Xe
+  real(dp), dimension(params % ngrid, params % nsph), intent(in) :: Xadj_r_sgrid,&
                                                                         & Xadj_e_sgrid
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in) :: Xadj_r, Xadj_e
+  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xadj_r, Xadj_e
   real(dp), dimension(3), intent(inout) :: force
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(out) :: diff_re
+  real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: diff_re
   real(dp), external :: dnrm2
   ! Local variable
   integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, icav
@@ -1524,30 +1548,30 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   ! f2    : Intermediate variable for derivative of coefY_der
   real(dp) :: val, f1, f2
   ! phi_in : sum_{j=1}^N diff0_j * coefY_j
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph) :: phi_in
+  real(dp), dimension(params % ngrid, params % nsph) :: phi_in
   ! diff_ep_dim3 : 3 dimensional couterpart of diff_ep
-  real(dp), dimension(3, ddx_data % constants % ncav) :: diff_ep_dim3
+  real(dp), dimension(3, constants % ncav) :: diff_ep_dim3
   ! sum_dim3 : Storage of sum
-  real(dp), dimension(3, ddx_data % constants % nbasis, ddx_data % params % nsph) :: sum_dim3
+  real(dp), dimension(3, constants % nbasis, params % nsph) :: sum_dim3
   ! coefY_der : Derivative of k_l0 and Y_l0m0
-  real(dp), dimension(3, ddx_data % constants % ncav, &
-      & ddx_data % constants % nbasis0, ddx_data % params % nsph) :: coefY_der
+  real(dp), dimension(3, constants % ncav, &
+      & constants % nbasis0, params % nsph) :: coefY_der
   ! Debug purpose
   ! These variables can be taken from the subroutine update_rhs
   ! diff0       : dot_product([PU_j]_l0m0^l'm', l'/r_j[Xr]_jl'm' -
   !                        (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm')
 
-  real(dp), dimension(ddx_data % constants % nbasis0, ddx_data % params % nsph) :: diff0
+  real(dp), dimension(constants % nbasis0, params % nsph) :: diff0
   real(dp) :: termi, termk, rijn
   ! basloc : Y_lm(s_n)
   ! vplm   : Argument to call ylmbas
-  real(dp),  dimension(ddx_data % constants % nbasis):: basloc, vplm
+  real(dp),  dimension(constants % nbasis):: basloc, vplm
   ! dbasloc : Derivative of Y_lm(s_n)
-  real(dp),  dimension(3, ddx_data % constants % nbasis):: dbasloc
+  real(dp),  dimension(3, constants % nbasis):: dbasloc
   ! vcos   : Argument to call ylmbas
   ! vsin   : Argument to call ylmbas
-  real(dp),  dimension(ddx_data % params % lmax+1):: vcos, vsin
-  real(dp), dimension(0:ddx_data % params % lmax) :: SK_rijn, DK_rijn
+  real(dp),  dimension(params % lmax+1):: vcos, vsin
+  real(dp), dimension(0:params % lmax) :: SK_rijn, DK_rijn
 
 
   ! Setting initial values to zero
@@ -1557,36 +1581,36 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
   !Compute coefY = C_ik*Y_lm(x_in)*\bar(k_l0^j(x_in))
   icav = 0
-  do isph = 1, ddx_data % params % nsph
-    do igrid = 1, ddx_data % params % ngrid
-      if (ddx_data % constants % ui(igrid,isph).gt.zero) then
+  do isph = 1, params % nsph
+    do igrid = 1, params % ngrid
+      if (constants % ui(igrid,isph).gt.zero) then
         icav = icav + 1
         ! Loop to compute Sijn
-        do jsph = 1, ddx_data % params % nsph
-          vij  = ddx_data % params % csph(:,isph) + &
-                & ddx_data % params % rsph(isph)*ddx_data % constants % cgrid(:,igrid) - &
-                & ddx_data % params % csph(:,jsph)
+        do jsph = 1, params % nsph
+          vij  = params % csph(:,isph) + &
+                & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                & params % csph(:,jsph)
           rijn = sqrt(dot_product(vij,vij))
           sij = vij/rijn
 
           call modified_spherical_bessel_second_kind( &
-              & ddx_data % constants % lmax0, &
-                                                     & rijn*ddx_data % params % kappa, &
+              & constants % lmax0, &
+                                                     & rijn*params % kappa, &
                                                      & SK_rijn, DK_rijn)
-          call dbasis(ddx_data % params, ddx_data % constants, sij, basloc, dbasloc, vplm, vcos, vsin)
+          call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
 
-          do l0 = 0, ddx_data % constants % lmax0
-            f1 = (DK_rijn(l0)*ddx_data % params % kappa)/ddx_data % constants % SK_ri(l0,jsph)
-            f2 = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
+          do l0 = 0, constants % lmax0
+            f1 = (DK_rijn(l0)*params % kappa)/constants % SK_ri(l0,jsph)
+            f2 = SK_rijn(l0)/constants % SK_ri(l0,jsph)
             do m0 = -l0, l0
               ind0 = l0**2 + l0 + m0 + 1
               ! coefY_der : Derivative of Bessel function and spherical harmonic
               ! Non-Diagonal entries
               if ((ksph .eq. isph) .and. (isph .ne. jsph)) then
-                coefY_der(:,icav,ind0,jsph) = ddx_data % constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0) + &
+                coefY_der(:,icav,ind0,jsph) = constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0) + &
                                              & (f2/rijn)*dbasloc(:,ind0))
               elseif ((ksph .eq. jsph) .and. (isph .ne. jsph)) then
-                coefY_der(:,icav,ind0,jsph) = -ddx_data % constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0)+ &
+                coefY_der(:,icav,ind0,jsph) = -constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0)+ &
                                              & (f2/rijn)*dbasloc(:,ind0))
               else
                 coefY_der(:,icav,ind0,jsph) = zero
@@ -1600,38 +1624,38 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
   diff_re = zero
   ! Compute l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
-  do jsph = 1, ddx_data % params % nsph
-    do l = 0, ddx_data % params % lmax
+  do jsph = 1, params % nsph
+    do l = 0, params % lmax
       do m = -l,l
         ind = l**2 + l + m + 1
-        diff_re(ind,jsph) = (epsp/ddx_data % params % eps)*(l/ddx_data % params % rsph(jsph)) * &
-              & Xr(ind,jsph) - ddx_data % constants % termimat(l,jsph)*Xe(ind,jsph)
+        diff_re(ind,jsph) = (epsp/params % eps)*(l/params % rsph(jsph)) * &
+              & Xr(ind,jsph) - constants % termimat(l,jsph)*Xe(ind,jsph)
       end do
     end do
   end do
 
   ! diff0 = Pchi * diff_re, linear scaling
   diff0 = zero
-  do jsph = 1, ddx_data % params % nsph
-    do ind0 = 1, ddx_data % constants % nbasis0
+  do jsph = 1, params % nsph
+    do ind0 = 1, constants % nbasis0
       diff0(ind0, jsph) = dot_product(diff_re(:,jsph), &
-          & ddx_data % constants % Pchi(:,ind0, jsph))
+          & constants % Pchi(:,ind0, jsph))
     end do
   end do
   ! phi_in = diff0 * coefY
   ! Here, summation over j takes place
   phi_in = zero
   icav = zero
-  do isph = 1, ddx_data % params % nsph
-    do igrid = 1, ddx_data % params % ngrid
-      if(ddx_data % constants % ui(igrid, isph) .gt. zero) then
+  do isph = 1, params % nsph
+    do igrid = 1, params % ngrid
+      if(constants % ui(igrid, isph) .gt. zero) then
         ! Extrenal grid point
         icav = icav + 1
         val = zero
         val_dim3(:) = zero
-        do jsph = 1, ddx_data % params % nsph 
-          do ind0 = 1, ddx_data % constants % nbasis0
-            val = val + diff0(ind0,jsph)*ddx_data % constants % coefY(icav,ind0,jsph)
+        do jsph = 1, params % nsph 
+          do ind0 = 1, constants % nbasis0
+            val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
             val_dim3(:) = val_dim3(:) + diff0(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
           end do
         end do
@@ -1641,25 +1665,25 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
     end do
   end do
   ! Computation of derivative of U_i^e(x_in)
-  call fdoga(ddx_data % params, ddx_data % constants, ksph, Xadj_r_sgrid, phi_in, force)
-  call fdoga(ddx_data % params, ddx_data % constants, ksph, Xadj_e_sgrid, phi_in, force)
+  call fdoga(params, constants, ksph, Xadj_r_sgrid, phi_in, force)
+  call fdoga(params, constants, ksph, Xadj_e_sgrid, phi_in, force)
 
   sum_dim3 = zero
   icav = zero
-  do isph = 1, ddx_data % params % nsph
-    do igrid =1, ddx_data % params % ngrid
-      if(ddx_data % constants % ui(igrid, isph) .gt. zero) then
+  do isph = 1, params % nsph
+    do igrid =1, params % ngrid
+      if(constants % ui(igrid, isph) .gt. zero) then
         icav = icav + 1
-        do ind = 1, ddx_data % constants % nbasis
+        do ind = 1, constants % nbasis
           sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) + &
-                                & ddx_data % constants % coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
+                                & constants % coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
         end do
       end if
     end do
   end do
   ! Computation of derivative of \bf(k)_j^l0(x_in)\times Y^j_l0m0(x_in)
-  do isph = 1, ddx_data % params % nsph
-    do ind = 1, ddx_data % constants % nbasis
+  do isph = 1, params % nsph
+    do ind = 1, constants % nbasis
       force = force + sum_dim3(:, ind, isph)*(Xadj_r(ind, isph) + &
              & Xadj_e(ind, isph))
     end do
@@ -1677,15 +1701,18 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   ! @param[in] sol_adj      : Adjoint solution
   ! @param[in] gradpsi      : Gradient of Psi_0
   ! @param[inout] force     : Force
-  subroutine fdouky_f0(ddx_data, ksph,&
+  subroutine fdouky_f0(params, constants, workspace, ksph,&
                           & sol_adj, sol_sgrid, gradpsi, &
                           & force)
-  implicit none
-  type(ddx_type), intent(in) :: ddx_data
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
   integer, intent(in) :: ksph
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in) :: sol_adj
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph), intent(in) :: sol_sgrid
-  real(dp), dimension(3, ddx_data % constants % ncav), intent(in) :: gradpsi
+  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: sol_adj
+  real(dp), dimension(params % ngrid, params % nsph), intent(in) :: sol_sgrid
+  real(dp), dimension(3, constants % ncav), intent(in) :: gradpsi
   real(dp), dimension(3), intent(inout) :: force
   real(dp), external :: dnrm2
   ! Local variable
@@ -1698,32 +1725,32 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   ! nderpsi : Derivative of psi on grid points
   real(dp) :: val, f1, f2, nderpsi, sum_int
   ! phi_in : sum_{j=1}^N diff0_j * coefY_j
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph) :: phi_in
+  real(dp), dimension(params % ngrid, params % nsph) :: phi_in
   ! diff_ep_dim3 : 3 dimensional couterpart of diff_ep
-  real(dp), dimension(3, ddx_data % constants % ncav) :: diff_ep_dim3
+  real(dp), dimension(3, constants % ncav) :: diff_ep_dim3
   ! sum_dim3 : Storage of sum
-  real(dp), dimension(3, ddx_data % constants % nbasis, ddx_data % params % nsph) :: sum_dim3
+  real(dp), dimension(3, constants % nbasis, params % nsph) :: sum_dim3
   ! coefY_der : Derivative of k_l0 and Y_l0m0
-  real(dp), dimension(3, ddx_data % constants % ncav, &
-      & ddx_Data % constants % nbasis0, ddx_data % params % nsph) :: coefY_der
+  real(dp), dimension(3, constants % ncav, &
+      & constants % nbasis0, params % nsph) :: coefY_der
   ! Debug purpose
   ! These variables can be taken from the subroutine update_rhs
   ! diff0       : dot_product([PU_j]_l0m0^l'm', l'/r_j[Xr]_jl'm' -
   !                        (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm')
 
-  real(dp), dimension(ddx_data % constants % nbasis0, ddx_data % params % nsph) :: diff0
+  real(dp), dimension(constants % nbasis0, params % nsph) :: diff0
   real(dp) :: termi, termk, rijn
   ! vplm   : Argument to call ylmbas
-  real(dp),  dimension(ddx_data % constants % nbasis):: basloc, vplm
-  real(dp),  dimension(3, ddx_data % constants % nbasis):: dbasloc
+  real(dp),  dimension(constants % nbasis):: basloc, vplm
+  real(dp),  dimension(3, constants % nbasis):: dbasloc
   ! vcos   : Argument to call ylmbas
   ! vsin   : Argument to call ylmbas
-  real(dp),  dimension(ddx_data % params % lmax+1):: vcos, vsin
-  real(dp), dimension(0:ddx_data % params % lmax) :: SK_rijn, DK_rijn
+  real(dp),  dimension(params % lmax+1):: vcos, vsin
+  real(dp), dimension(0:params % lmax) :: SK_rijn, DK_rijn
   ! sum_Sjin : \sum_j [S]_{jin} Eq.~(97) [QSM20.SISC]
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph) :: sum_Sjin
+  real(dp), dimension(params % ngrid, params % nsph) :: sum_Sjin
   ! c0 : \sum_{n=1}^N_g w_n U_j^{x_nj}\partial_n psi_0(x_nj)Y_{l0m0}(s_n)
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph) :: c0_d
+  real(dp), dimension(constants % nbasis, params % nsph) :: c0_d
 
   ! Setting initial values to zero
   SK_rijn = zero
@@ -1732,54 +1759,54 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   c0_d = zero
 
   icav = zero
-  do isph = 1, ddx_data % params % nsph
-    do igrid= 1, ddx_data % params % ngrid
-      if ( ddx_data % constants % ui(igrid,isph) .gt. zero ) then
+  do isph = 1, params % nsph
+    do igrid= 1, params % ngrid
+      if ( constants % ui(igrid,isph) .gt. zero ) then
         icav = icav + 1
-        nderpsi = dot_product( gradpsi(:,icav),ddx_data % constants % cgrid(:,igrid) )
+        nderpsi = dot_product( gradpsi(:,icav),constants % cgrid(:,igrid) )
         c0_d(:, isph) = c0_d(:,isph) + &
-                     & ddx_data % constants % wgrid(igrid)* &
-                     & ddx_data % constants % ui(igrid,isph)*&
+                     & constants % wgrid(igrid)* &
+                     & constants % ui(igrid,isph)*&
                      & nderpsi* &
-                     & ddx_data % constants % vgrid(:,igrid)
+                     & constants % vgrid(:,igrid)
       end if
     end do
   end do
 
   ! Compute [S]_{jin}
   icav = 0
-  do isph = 1, ddx_data % params % nsph
-    do igrid = 1, ddx_data % params % ngrid
-      if (ddx_data % constants % ui(igrid,isph).gt.zero) then
+  do isph = 1, params % nsph
+    do igrid = 1, params % ngrid
+      if (constants % ui(igrid,isph).gt.zero) then
         icav = icav + 1
         sum_int = zero
         ! Loop to compute Sijn
-        do jsph = 1, ddx_data % params % nsph
-          vij  = ddx_data % params % csph(:,isph) + &
-                & ddx_data % params % rsph(isph)*ddx_data % constants % cgrid(:,igrid) - &
-                & ddx_data % params % csph(:,jsph)
+        do jsph = 1, params % nsph
+          vij  = params % csph(:,isph) + &
+                & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                & params % csph(:,jsph)
           rijn = sqrt(dot_product(vij,vij))
           sij = vij/rijn
 
           call modified_spherical_bessel_second_kind( &
-              & ddx_data % constants % lmax0, &
-                                                     & rijn*ddx_data % params % kappa, &
+              & constants % lmax0, &
+                                                     & rijn*params % kappa, &
                                                      & SK_rijn, DK_rijn)
-          call dbasis(ddx_data % params, ddx_data % constants, sij, basloc, dbasloc, vplm, vcos, vsin)
+          call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
 
-          do l0 = 0, ddx_data % constants % lmax0
-            f1 = (DK_rijn(l0)*ddx_data % params % kappa)/ddx_data % constants % SK_ri(l0,jsph)
-            f2 = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
+          do l0 = 0, constants % lmax0
+            f1 = (DK_rijn(l0)*params % kappa)/constants % SK_ri(l0,jsph)
+            f2 = SK_rijn(l0)/constants % SK_ri(l0,jsph)
             do m0 = -l0, l0
               ind0 = l0**2 + l0 + m0 + 1
-              sum_int = sum_int + c0_d(ind0,jsph)*ddx_data % constants % coefY(icav, ind0, jsph)
+              sum_int = sum_int + c0_d(ind0,jsph)*constants % coefY(icav, ind0, jsph)
               ! coefY_der : Derivative of Bessel function and spherical harmonic
               ! Non-Diagonal entries
               if ((ksph .eq. isph) .and. (isph .ne. jsph)) then
-                coefY_der(:,icav,ind0,jsph) = ddx_data % constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0) + &
+                coefY_der(:,icav,ind0,jsph) = constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0) + &
                                              & (f2/rijn)*dbasloc(:,ind0))
               elseif ((ksph .eq. jsph) .and. (isph .ne. jsph)) then
-                coefY_der(:,icav,ind0,jsph) = -ddx_data % constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0)+ &
+                coefY_der(:,icav,ind0,jsph) = -constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0)+ &
                                              & (f2/rijn)*dbasloc(:,ind0))
               else
                 coefY_der(:,icav,ind0,jsph) = zero
@@ -1788,23 +1815,23 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
           end do ! End of l0
         end do ! End of loop jsph
       end if
-      sum_Sjin(igrid,isph) = -(epsp/ddx_data % params % eps)*sum_int
+      sum_Sjin(igrid,isph) = -(epsp/params % eps)*sum_int
     end do ! End of loop igrid
   end do ! End of loop isph
 
   ! Computation of derivative of U_i^e(x_in)
-  call fdoga(ddx_data % params, ddx_data % constants, ksph, sol_sgrid, sum_Sjin, force)
+  call fdoga(params, constants, ksph, sol_sgrid, sum_Sjin, force)
 
   ! Here, summation over j takes place
   icav = zero
-  do isph = 1, ddx_data % params % nsph
-    do igrid = 1, ddx_data % params % ngrid
-      if(ddx_data % constants % ui(igrid, isph) .gt. zero) then
+  do isph = 1, params % nsph
+    do igrid = 1, params % ngrid
+      if(constants % ui(igrid, isph) .gt. zero) then
         ! Extrenal grid point
         icav = icav + 1
         val_dim3(:) = zero
-        do jsph = 1, ddx_data % params % nsph
-          do ind0 = 1, ddx_data % constants % nbasis0
+        do jsph = 1, params % nsph
+          do ind0 = 1, constants % nbasis0
             val_dim3(:) = val_dim3(:) + c0_d(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
           end do
         end do
@@ -1815,22 +1842,22 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
   sum_dim3 = zero
   icav = zero
-  do isph = 1, ddx_data % params % nsph
-    do igrid =1, ddx_data % params % ngrid
-      if(ddx_data % constants % ui(igrid, isph) .gt. zero) then
+  do isph = 1, params % nsph
+    do igrid =1, params % ngrid
+      if(constants % ui(igrid, isph) .gt. zero) then
         icav = icav + 1
-        do ind = 1, ddx_data % constants % nbasis
+        do ind = 1, constants % nbasis
           sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) + &
-                                & -(epsp/ddx_data % params % eps)* &
-                                & ddx_data % constants % coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
+                                & -(epsp/params % eps)* &
+                                & constants % coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
         end do
       end if
     end do
   end do
 
   ! Computation of derivative of \bf(k)_j^l0(x_in)\times Y^j_l0m0(x_in)
-  do isph = 1, ddx_data % params % nsph
-    do ind = 1, ddx_data % constants % nbasis
+  do isph = 1, params % nsph
+    do ind = 1, constants % nbasis
       force = force + sum_dim3(:, ind, isph)*sol_adj(ind, isph)
     end do
   end do
@@ -1847,15 +1874,18 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   ! @param[in]  Xadj_e_sgrid : Adjoint HSP solution evaluated at grid point
   ! @param[in]  diff_re      : l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
   ! @param[out] force        : Force
-  subroutine derivative_P(ddx_data, ksph, &
+  subroutine derivative_P(params, constants, workspace, ksph, &
                           & Xr, Xe, &
                           & Xadj_r_sgrid, Xadj_e_sgrid, &
                           & diff_re, force)
-  implicit none
-  type(ddx_type) :: ddx_data
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
   integer, intent(in) :: ksph
-  real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in) :: Xr, Xe, diff_re
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph), intent(in) :: Xadj_r_sgrid, Xadj_e_sgrid
+  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xr, Xe, diff_re
+  real(dp), dimension(params % ngrid, params % nsph), intent(in) :: Xadj_r_sgrid, Xadj_e_sgrid
   real(dp), dimension(3), intent(inout) :: force
   ! Local variable
   ! igrid0: Index for grid point n0
@@ -1871,22 +1901,22 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   real(dp)  :: vij(3), sij(3)
   ! phi_n_r : Phi corresponding to Laplace problem
   ! phi_n_e : Phi corresponding to HSP problem
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph) :: phi_n_r, phi_n_e
+  real(dp), dimension(params % ngrid, params % nsph) :: phi_n_r, phi_n_e
   ! coefY_d : sum_{l0m0} C_ik*term*Y_l0m0^j(x_in)*Y_l0m0(s_n)
-  real(dp), dimension(ddx_data % constants % ncav, ddx_data % params % ngrid, ddx_data % params % nsph) :: coefY_d
+  real(dp), dimension(constants % ncav, params % ngrid, params % nsph) :: coefY_d
   ! diff_re_sgrid : diff_re evaluated at grid point
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph) :: diff_re_sgrid
+  real(dp), dimension(params % ngrid, params % nsph) :: diff_re_sgrid
   ! basloc : Y_lm(s_n)
   ! vplm   : Argument to call ylmbas
-  real(dp),  dimension(ddx_data % constants % nbasis):: basloc, vplm
+  real(dp),  dimension(constants % nbasis):: basloc, vplm
   ! dbasloc : Derivative of Y_lm(s_n)
-  real(dp),  dimension(3, ddx_data % constants % nbasis):: dbasloc
+  real(dp),  dimension(3, constants % nbasis):: dbasloc
   ! vcos   : Argument to call ylmbas
   ! vsin   : Argument to call ylmbas
-  real(dp),  dimension(ddx_data % params % lmax+1):: vcos, vsin
+  real(dp),  dimension(params % lmax+1):: vcos, vsin
   ! SK_rijn : Besssel function of first kind for rijn
   ! DK_rijn : Derivative of Besssel function of first kind for rijn
-  real(dp), dimension(0:ddx_data % params % lmax) :: SK_rijn, DK_rijn
+  real(dp), dimension(0:params % lmax) :: SK_rijn, DK_rijn
 
   ! Intial allocation of vectors
   sum_int = zero
@@ -1906,37 +1936,37 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
   ! Compute  summation over l0, m0
   ! Loop over the sphers j
-  do jsph = 1, ddx_data % params % nsph
+  do jsph = 1, params % nsph
     ! Loop over the grid points n0
-    do igrid0 = 1, ddx_data % params % ngrid
+    do igrid0 = 1, params % ngrid
       icav = zero
       ! Loop over spheres i
-      do isph = 1, ddx_data % params % nsph
+      do isph = 1, params % nsph
         ! Loop over grid points n
-        do igrid = 1, ddx_data % params % ngrid
+        do igrid = 1, params % ngrid
           ! Check for U_i^{eta}(x_in)
-          if(ddx_data % constants % ui(igrid, isph) .gt. zero) then
+          if(constants % ui(igrid, isph) .gt. zero) then
             icav = icav + 1
-            vij  = ddx_data % params % csph(:,isph) + &
-                   & ddx_data % params % rsph(isph)*ddx_data % constants % cgrid(:,igrid) - &
-                   & ddx_data % params % csph(:,jsph)
+            vij  = params % csph(:,isph) + &
+                   & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                   & params % csph(:,jsph)
             rijn = sqrt(dot_product(vij,vij))
             sij = vij/rijn
 
             call modified_spherical_bessel_second_kind( &
-                & ddx_data % constants % lmax0, rijn*ddx_data % params % kappa,&
+                & constants % lmax0, rijn*params % kappa,&
                                                      & SK_rijn, DK_rijn)
-            call dbasis(ddx_data % params, ddx_data % constants, &
+            call dbasis(params, constants, &
                 & sij, basloc, dbasloc, vplm, vcos, vsin)
             sum_int = zero
             ! Loop over l0
-            do l0 = 0, ddx_data % constants % lmax0
-              term = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
+            do l0 = 0, constants % lmax0
+              term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
               ! Loop over m0
               do m0 = -l0,l0
                 ind0 = l0**2 + l0 + m0 + 1
-                sum_int = sum_int + ddx_data % constants % C_ik(l0, jsph) *term*basloc(ind0)&
-                           & *ddx_data % constants % vgrid(ind0,igrid0)
+                sum_int = sum_int + constants % C_ik(l0, jsph) *term*basloc(ind0)&
+                           & *constants % vgrid(ind0,igrid0)
               end do ! End of loop m0
             end do! End of loop l0
             coefY_d(icav, igrid0, jsph) = sum_int
@@ -1948,22 +1978,22 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
   ! Compute phi_in
   ! Loop over spheres j
-  do jsph = 1, ddx_data % params % nsph
+  do jsph = 1, params % nsph
     ! Loop over grid points n0
-    do igrid0 = 1, ddx_data % params % ngrid
+    do igrid0 = 1, params % ngrid
       icav = zero
       sum_r = zero
       sum_e = zero
       ! Loop over sphers i
-      do isph = 1, ddx_data % params % nsph
+      do isph = 1, params % nsph
         ! Loop over grid points n
-        do igrid = 1, ddx_data % params % ngrid
-          if(ddx_data % constants % ui(igrid, isph) .gt. zero) then
+        do igrid = 1, params % ngrid
+          if(constants % ui(igrid, isph) .gt. zero) then
             icav = icav + 1
             sum_r = sum_r + coefY_d(icav, igrid0, jsph)*Xadj_r_sgrid(igrid, isph) &
-                    & * ddx_data % constants % wgrid(igrid)*ddx_data % constants % ui(igrid, isph)
+                    & * constants % wgrid(igrid)*constants % ui(igrid, isph)
             sum_e = sum_e + coefY_d(icav, igrid0, jsph)*Xadj_e_sgrid(igrid, isph) &
-                    & * ddx_data % constants % wgrid(igrid)*ddx_data % constants % ui(igrid, isph)
+                    & * constants % wgrid(igrid)*constants % ui(igrid, isph)
           end if
         end do
       end do
@@ -1973,12 +2003,12 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   end do ! End of loop igrid0
 
 
-  call dgemm('T', 'N', ddx_data % params % ngrid, ddx_data % params % nsph, &
-            & ddx_data % constants % nbasis, one, ddx_data % constants % vgrid, ddx_data % constants % vgrid_nbasis, &
-            & diff_re , ddx_data % constants % nbasis, zero, diff_re_sgrid, &
-            & ddx_data % params % ngrid)
-  call fdoga(ddx_data % params, ddx_data % constants, ksph, diff_re_sgrid, phi_n_r, force)
-  call fdoga(ddx_data % params, ddx_data % constants, ksph, diff_re_sgrid, phi_n_e, force)
+  call dgemm('T', 'N', params % ngrid, params % nsph, &
+            & constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &
+            & diff_re , constants % nbasis, zero, diff_re_sgrid, &
+            & params % ngrid)
+  call fdoga(params, constants, ksph, diff_re_sgrid, phi_n_r, force)
+  call fdoga(params, constants, ksph, diff_re_sgrid, phi_n_e, force)
   end subroutine derivative_P
 
   !
@@ -1990,13 +2020,16 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   ! @param[in]  normal_hessian_cav : Normal of the Hessian evaluated at cavity points
   ! @param[in]  icav_g             : Index of outside cavity point
   ! @param[out] force              : Force corresponding to HSP problem
-  subroutine fdoco(ddx_data, ksph, sol_sgrid, gradpsi, normal_hessian_cav, icav_g, force)
-  implicit none
-  type(ddx_type) :: ddx_data
+  subroutine fdoco(params, constants, workspace, ksph, sol_sgrid, gradpsi, normal_hessian_cav, icav_g, force)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
   integer, intent(in) :: ksph
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph), intent(in) :: sol_sgrid
-  real(dp), dimension(3, ddx_data % constants % ncav), intent(in) :: gradpsi
-  real(dp), dimension(3, ddx_data % constants % ncav), intent(in) :: normal_hessian_cav
+  real(dp), dimension(params % ngrid, params % nsph), intent(in) :: sol_sgrid
+  real(dp), dimension(3, constants % ncav), intent(in) :: gradpsi
+  real(dp), dimension(3, constants % ncav), intent(in) :: normal_hessian_cav
   integer, intent(inout) :: icav_g
   real(dp), dimension(3), intent(inout) :: force
   ! Local variable
@@ -2010,18 +2043,18 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   real(dp) :: rijn
   real(dp)  :: vij(3), sij(3)
   ! phi_n : Phi corresponding to Laplace problem
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph) :: phi_n
+  real(dp), dimension(params % ngrid, params % nsph) :: phi_n
   ! coefY_d : sum_{l0m0} C_ik*term*Y_l0m0^j(x_in)*Y_l0m0(s_n)
-  real(dp), dimension(ddx_data % constants % ncav, ddx_data % params % ngrid, ddx_data % params % nsph) :: coefY_d
+  real(dp), dimension(constants % ncav, params % ngrid, params % nsph) :: coefY_d
   ! gradpsi_grid : gradpsi evaluated at grid point
-  real(dp), dimension(ddx_data % params % ngrid, ddx_data % params % nsph) :: gradpsi_grid
+  real(dp), dimension(params % ngrid, params % nsph) :: gradpsi_grid
   ! vplm   : Argument to call ylmbas
-  real(dp),  dimension(ddx_data % constants % nbasis):: basloc, vplm
-  real(dp),  dimension(3, ddx_data % constants % nbasis):: dbasloc
+  real(dp),  dimension(constants % nbasis):: basloc, vplm
+  real(dp),  dimension(3, constants % nbasis):: dbasloc
   ! vcos   : Argument to call ylmbas
   ! vsin   : Argument to call ylmbas
-  real(dp),  dimension(ddx_data % params % lmax+1):: vcos, vsin
-  real(dp), dimension(0:ddx_data % params % lmax) :: SK_rijn, DK_rijn
+  real(dp),  dimension(params % lmax+1):: vcos, vsin
+  real(dp), dimension(0:params % lmax) :: SK_rijn, DK_rijn
 
   ! Intial allocation of vectors
   sum_int = zero
@@ -2038,38 +2071,38 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
   ! Compute  summation over l0, m0
   ! Loop over the sphers j
-  do jsph = 1, ddx_data % params % nsph
+  do jsph = 1, params % nsph
     ! Loop over the grid points n0
-    do igrid0 = 1, ddx_data % params % ngrid
+    do igrid0 = 1, params % ngrid
       icav = zero
       ! Loop over spheres i
-      do isph = 1, ddx_data % params % nsph
+      do isph = 1, params % nsph
         ! Loop over grid points n
-        do igrid = 1, ddx_data % params % ngrid
+        do igrid = 1, params % ngrid
           ! Check for U_i^{eta}(x_in)
-          if(ddx_data % constants % ui(igrid, isph) .gt. zero) then
+          if(constants % ui(igrid, isph) .gt. zero) then
             icav = icav + 1
-            vij  = ddx_data % params % csph(:,isph) + &
-                   & ddx_data % params % rsph(isph)*ddx_data % constants % cgrid(:,igrid) - &
-                   & ddx_data % params % csph(:,jsph)
+            vij  = params % csph(:,isph) + &
+                   & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                   & params % csph(:,jsph)
             rijn = sqrt(dot_product(vij,vij))
             sij = vij/rijn
 
             call modified_spherical_bessel_second_kind( &
-                & ddx_data % constants % lmax0, rijn*ddx_data % params % kappa,&
+                & constants % lmax0, rijn*params % kappa,&
                                                      & SK_rijn, DK_rijn)
-            call dbasis(ddx_data % params, ddx_data % constants, &
+            call dbasis(params, constants, &
                 & sij, basloc, dbasloc, vplm, vcos, vsin)
             sum_int = zero
             ! Loop over l0
-            do l0 = 0, ddx_data % constants % lmax0
-              term = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
+            do l0 = 0, constants % lmax0
+              term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
               ! Loop over m0
               do m0 = -l0,l0
                 ind0 = l0**2 + l0 + m0 + 1
-                sum_int = sum_int + ddx_data % constants % C_ik(l0, jsph) &
+                sum_int = sum_int + constants % C_ik(l0, jsph) &
                            & *term*basloc(ind0) &
-                           & *ddx_data % constants % vgrid(ind0,igrid0)
+                           & *constants % vgrid(ind0,igrid0)
               end do ! End of loop m0
             end do! End of loop l0
             coefY_d(icav, igrid0, jsph) = sum_int
@@ -2081,49 +2114,49 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
   ! Compute phi_in
   ! Loop over spheres j
-  do jsph = 1, ddx_data % params % nsph
+  do jsph = 1, params % nsph
     ! Loop over grid points n0
-    do igrid0 = 1, ddx_data % params % ngrid
+    do igrid0 = 1, params % ngrid
       icav = zero
       sum_int = zero
       ! Loop over sphers i
-      do isph = 1, ddx_data % params % nsph
+      do isph = 1, params % nsph
         ! Loop over grid points n
-        do igrid = 1, ddx_data % params % ngrid
-          if(ddx_data % constants % ui(igrid, isph) .gt. zero) then
+        do igrid = 1, params % ngrid
+          if(constants % ui(igrid, isph) .gt. zero) then
             icav = icav + 1
             sum_int = sum_int + coefY_d(icav, igrid0, jsph)*sol_sgrid(igrid, isph) &
-                    & * ddx_data % constants % wgrid(igrid)*ddx_data % constants % ui(igrid, isph)
+                    & * constants % wgrid(igrid)*constants % ui(igrid, isph)
           end if
         end do
       end do
-      phi_n(igrid0, jsph) = -(epsp/ddx_data % params % eps)*sum_int
+      phi_n(igrid0, jsph) = -(epsp/params % eps)*sum_int
     end do! End of loop j
   end do ! End of loop igrid
 
   icav = zero
-  do isph = 1, ddx_data % params % nsph
-    do igrid = 1, ddx_data % params % ngrid
-      if(ddx_data % constants % ui(igrid, isph) .gt. zero) then
+  do isph = 1, params % nsph
+    do igrid = 1, params % ngrid
+      if(constants % ui(igrid, isph) .gt. zero) then
         icav = icav + 1
-        nderpsi = dot_product( gradpsi(:,icav),ddx_data % constants % cgrid(:,igrid) )
+        nderpsi = dot_product( gradpsi(:,icav),constants % cgrid(:,igrid) )
         gradpsi_grid(igrid, isph) = nderpsi
       end if
     end do ! End of loop igrid
   end do ! End of loop i
 
-  call fdoga(ddx_data % params, ddx_data % constants, ksph, gradpsi_grid, phi_n, force)
+  call fdoga(params, constants, ksph, gradpsi_grid, phi_n, force)
 
   ! Compute the Hessian contributions
-  do igrid = 1, ddx_data % params % ngrid
-    if(ddx_data % constants % ui(igrid, ksph) .gt. zero) then
+  do igrid = 1, params % ngrid
+    if(constants % ui(igrid, ksph) .gt. zero) then
       icav_g = icav_g + 1
-      force = force + ddx_data % constants % wgrid(igrid)*ddx_data % constants % ui(igrid, ksph)*&
+      force = force + constants % wgrid(igrid)*constants % ui(igrid, ksph)*&
                        & phi_n(igrid, ksph)*normal_hessian_cav(:, icav_g)
     end if
   end do
 
-  call fdops(ddx_data, ksph, phi_n, force)
+  call fdops(params, constants, workspace, ksph, phi_n, force)
 
   end subroutine fdoco
 
@@ -2133,10 +2166,14 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   ! @param[in]  phi_n    : phi_n^j
   ! @param[in]  ksph     : Derivative with respect to x_k
   ! @param[out] force    : Force
-  subroutine fdops(ddx_data, ksph, phi_n, force)
-  type(ddx_type), intent(in) :: ddx_data
+  subroutine fdops(params, constants, workspace, ksph, phi_n, force)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
   integer, intent(in) :: ksph
-  real(dp),  dimension(ddx_data % params % ngrid, ddx_data % params % nsph), intent(in)    :: phi_n
+  real(dp),  dimension(params % ngrid, params % nsph), intent(in)    :: phi_n
   real(dp),  dimension(3), intent(inout) :: force
   !
   ! Local variables
@@ -2157,17 +2194,17 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
   sum_int = zero
   ! Loop over spheres
-  do jsph = 1, ddx_data % params % nsph
+  do jsph = 1, params % nsph
     ! Loop over grid points
-    do igrid = 1, ddx_data % params % ngrid
-      if(ddx_data % constants % ui(igrid, jsph) .ne. zero) then
+    do igrid = 1, params % ngrid
+      if(constants % ui(igrid, jsph) .ne. zero) then
         vij_vijT = zero
         hessianv = zero
         normal_hessian_cav = zero
         vij = zero
-        vij = ddx_data % params % csph(:, jsph) + &
-           & ddx_data % params % rsph(jsph)*ddx_data % constants % cgrid(:, igrid) - &
-           & ddx_data % params % csph(:, ksph)
+        vij = params % csph(:, jsph) + &
+           & params % rsph(jsph)*constants % cgrid(:, igrid) - &
+           & params % csph(:, ksph)
         do i = 1,3
           do j = 1,3
             vij_vijT(i,j) = vij(i)*vij(j)
@@ -2178,17 +2215,17 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
                  & identity_matrix/(rijn**3)
         do i = 1, 3
           normal_hessian_cav = normal_hessian_cav + &
-                             & hessianv(:,i)*ddx_data % constants % cgrid(i,igrid)
+                             & hessianv(:,i)*constants % cgrid(i,igrid)
         end do
         sum_int = sum_int + &
-                 & ddx_data % constants % ui(igrid, jsph)* &
-                 & ddx_data % constants % wgrid(igrid)* &
+                 & constants % ui(igrid, jsph)* &
+                 & constants % wgrid(igrid)* &
                  & phi_n(igrid, jsph)* &
                  & normal_hessian_cav
       end if
     end do
   end do
-  force = force - ddx_data % params % charge(ksph)*sum_int
+  force = force - params % charge(ksph)*sum_int
   end subroutine fdops
 
   subroutine ddlpb_free(ddx_data)
