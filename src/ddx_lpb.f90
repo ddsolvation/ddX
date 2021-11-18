@@ -28,24 +28,10 @@ real(dp),  parameter :: epsp = 1.0d0
 !!
 !! Taken from the initial version of the code by Chaoyu Quan
 !!
-!! coefvec      : w_n*U_i(x_in)*Y_lm(x_n), size : ngrid*nbasis*nsph
-!! Pchi         : Pchi matrix, Eq. (87) from [QSM19.SISC], size : nbasis*nbasis0*nsph
-!! C_ik         : (i'_l0(r_j)/i_l0(r_j)-k'_l0(r_j)/k_l0(r_j))^{-1}
-!! coefY        : Intermediate calculation in Q Matrix Eq. (91)
-!!              : C_ik*\bold{k}_l^j(x_in)*Y_lm^j(x_in)
-real(dp), allocatable :: coefvec(:,:,:), Pchi(:,:,:), &
-                         & coefY(:,:,:), C_ik(:,:)
-!! SI_ri        : Bessel' function of first kind
-!! DI_ri        : Derivative of Bessel' function of first kind
-!! SK_ri        : Bessel' function of second kind
-!! DK_ri        : Derivative of Bessel' function of second kind
 !! (Size)       : lmax*nsph
-!! termimat     : i'_l(r_j)/i_l(r_j), size : lmax*nsph
 !! tol_gmres    : Tolerance of GMRES iteration
 !! n_iter_gmres : Maximum number of GMRES iteration
 
-real(dp), allocatable :: SI_ri(:,:), DI_ri(:,:), SK_ri(:,:), &
-                              & DK_ri(:,:), termimat(:,:)
 real(dp)              :: tol_gmres
 real(dp)              :: n_iter_gmres
 
@@ -88,7 +74,7 @@ contains
   !! @param[in] phi      : Boundary conditions
   !! @param[in] psi      : Electrostatic potential vector.
   !! @param[in] gradphi  : Gradient of phi
-  !! @param[in] hessian  : Hessian of phi
+  !! @param[in] hessianphi  : Hessian of phi
   !! @param[out] esolv   : Electrostatic solvation energy
   !!
   subroutine ddlpb(ddx_data, phi, gradphi, hessianphi, psi, tol, esolv, &
@@ -188,7 +174,7 @@ contains
   subroutine ddlpb_init(ddx_data)
   use bessel
   implicit none
-  type(ddx_type), intent(in)  :: ddx_data
+  type(ddx_type), intent(inout)  :: ddx_data
   integer                     :: istatus, isph, igrid, ind, icav, l, l0, m0, ind0, jsph
   real(dp)                    :: termi, termk, term, rho, ctheta, stheta, cphi, sphi, rijn
   real(dp), dimension(3)      :: sijn ,vij
@@ -196,18 +182,18 @@ contains
   real(dp), dimension(ddx_data % params % lmax+1) :: vcos, vsin
   real(dp), dimension(0:lmax0) :: SK_rijn, DK_rijn
 
-  allocate(SI_ri(0:ddx_data % params % lmax, ddx_data % params % nsph),&
-           & DI_ri(0:ddx_data % params % lmax, ddx_data % params % nsph),&
-           & SK_ri(0:ddx_data % params % lmax, ddx_data % params % nsph), &
-           & DK_ri(0:ddx_data % params % lmax, ddx_data % params % nsph), &
+  allocate(ddx_data % constants % SI_ri(0:ddx_data % params % lmax, ddx_data % params % nsph),&
+           & ddx_data % constants % DI_ri(0:ddx_data % params % lmax, ddx_data % params % nsph),&
+           & ddx_data % constants % SK_ri(0:ddx_data % params % lmax, ddx_data % params % nsph), &
+           & ddx_data % constants % DK_ri(0:ddx_data % params % lmax, ddx_data % params % nsph), &
            & diff_ep_adj(ddx_data % constants % ncav, &
            & ddx_data % constants % nbasis, ddx_data % params % nsph), &
-           & coefvec(ddx_data % params % ngrid, &
+           & ddx_data % constants % coefvec(ddx_data % params % ngrid, &
            & ddx_data % constants % nbasis, ddx_data % params % nsph), &
-           & Pchi(ddx_data % constants % nbasis, nbasis0, ddx_data % params % nsph), &
-           & coefY(ddx_data % constants % ncav, nbasis0, ddx_data % params % nsph), &
-           & C_ik(0:ddx_data % params % lmax, ddx_data % params % nsph), &
-           & termimat(0:ddx_data % params % lmax, ddx_data % params % nsph), &
+           & ddx_data % constants % Pchi(ddx_data % constants % nbasis, nbasis0, ddx_data % params % nsph), &
+           & ddx_data % constants % coefY(ddx_data % constants % ncav, nbasis0, ddx_data % params % nsph), &
+           & ddx_data % constants % C_ik(0:ddx_data % params % lmax, ddx_data % params % nsph), &
+           & ddx_data % constants % termimat(0:ddx_data % params % lmax, ddx_data % params % nsph), &
            & stat=istatus)
 
   if (istatus.ne.0) then
@@ -220,21 +206,21 @@ contains
   do isph = 1, ddx_data % params % nsph
     call modified_spherical_bessel_first_kind(ddx_data % params % lmax, &
                      & ddx_data % params % rsph(isph)*ddx_data % params % kappa,&
-                     & SI_ri(:,isph), &
-                     & DI_ri(:,isph))
+                     & ddx_data % constants % SI_ri(:,isph), &
+                     & ddx_data % constants % DI_ri(:,isph))
     call modified_spherical_bessel_second_kind(ddx_data % params % lmax, &
                      & ddx_data % params % rsph(isph)*ddx_data % params % kappa, &
-                     & SK_ri(:,isph), &
-                     & DK_ri(:,isph))
+                     & ddx_data % constants % SK_ri(:,isph), &
+                     & ddx_data % constants % DK_ri(:,isph))
     ! Compute matrix PU_i^e(x_in)
     ! Previous implementation in update_rhs. Made it in ddinit, so as to use
     ! it in Forces as well.
-    call mkpmat(ddx_data % params, ddx_data % constants, isph, Pchi(:,:,isph))
+    call mkpmat(ddx_data % params, ddx_data % constants, isph, ddx_data % constants % Pchi(:,:,isph))
     ! Compute w_n*Ui(x_in)*Y_lm(s_n)
     do igrid = 1,ddx_data % params % ngrid
       if (ddx_data % constants % ui(igrid, isph) .gt. 0) then
         do ind  = 1, ddx_data % constants % nbasis
-          coefvec(igrid,ind,isph) = ddx_data % constants % wgrid(igrid)*&
+          ddx_data % constants % coefvec(igrid,ind,isph) = ddx_data % constants % wgrid(igrid)*&
                                   & ddx_data % constants % ui(igrid,isph)*&
                                   & ddx_data % constants % vgrid(ind,igrid)
         end do
@@ -242,13 +228,16 @@ contains
     end do
     ! Compute i'_l(r_i)/i_l(r_i)
     do l = 0, ddx_data % params % lmax
-      termimat(l,isph) = DI_ri(l,isph)/SI_ri(l,isph)*ddx_data % params % kappa
+      ddx_data % constants % termimat(l,isph) = ddx_data % constants % DI_ri(l,isph)/ &
+          & ddx_data % constants % SI_ri(l,isph)*ddx_data % params % kappa
     end do
     ! Compute (i'_l0/i_l0 - k'_l0/k_l0)^(-1) is computed in Eq.(97)
     do l0 = 0, lmax0
-      termi = DI_ri(l0,isph)/SI_ri(l0,isph)*ddx_data % params % kappa
-      termk = DK_ri(l0,isph)/SK_ri(l0,isph)*ddx_data % params % kappa
-      C_ik(l0, isph) = one/(termi - termk)
+      termi = ddx_data % constants % DI_ri(l0,isph)/ &
+          & ddx_data % constants % SI_ri(l0,isph)*ddx_data % params % kappa
+      termk = ddx_data % constants % DK_ri(l0,isph)/ &
+          & ddx_data % constants % SK_ri(l0,isph)*ddx_data % params % kappa
+      ddx_data % constants % C_ik(l0, isph) = one/(termi - termk)
     end do
   end do
 
@@ -272,10 +261,10 @@ contains
                       & sphi, ddx_data % params % lmax, ddx_data % constants % vscales, &
                       & basloc, vplm, vcos, vsin)
           do l0 = 0, lmax0
-            term = SK_rijn(l0)/SK_ri(l0,jsph)
+            term = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
             do m0 = -l0,l0
               ind0 = l0*l0 + l0 + m0 + 1
-              coefY(icav, ind0, jsph) = C_ik(l0,jsph)*term*basloc(ind0)
+              ddx_data % constants % coefY(icav, ind0, jsph) = ddx_data % constants % C_ik(l0,jsph)*term*basloc(ind0)
             end do
           end do
         end do
@@ -359,9 +348,9 @@ contains
                       & basloc, vplm, vcos, vsin)
 
           do l0 = 0,lmax0
-            term = SK_rijn(l0)/SK_ri(l0,jsph)
+            term = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
             ! coef_Ylm : (der_i_l0/i_l0 - der_k_l0/k_l0)^(-1)*k_l0(r_ijn)/k_l0(r_i)
-            coef_Ylm =  C_ik(l0,jsph)*term
+            coef_Ylm =  ddx_data % constants % C_ik(l0,jsph)*term
             do m0 = -l0, l0
               ind0 = l0**2 + l0 + m0 + 1
               sumSijn = sumSijn + c0(ind0,jsph)*coef_Ylm*basloc(ind0)
@@ -599,7 +588,7 @@ contains
   do l = 0, params % lmax
     do  m = -l, l
       ind = l*l + l + 1 + m
-      fac_hsp(ind) = SI_rijn(l)/SI_ri(l,isph)*basloc(ind)
+      fac_hsp(ind) = SI_rijn(l)/constants % SI_ri(l,isph)*basloc(ind)
     end do
   end do
   endsubroutine inthsp
@@ -641,7 +630,7 @@ contains
         ind = l**2 + l + m + 1
         diff_re_c1_c2(ind,jsph) = ((epsp/params % eps)*&
                                 & (l/params % rsph(jsph)) * &
-                                & Xr(ind,jsph) - termimat(l,jsph)*Xe(ind,jsph))
+                                & Xr(ind,jsph) - constants % termimat(l,jsph)*Xe(ind,jsph))
       end do
     end do
   end do
@@ -652,7 +641,7 @@ contains
   do jsph = 1, params % nsph
     do ind0 = 1, nbasis0
       diff0(ind0, jsph) = dot_product(diff_re_c1_c2(:,jsph), &
-          & Pchi(:,ind0, jsph))
+          & constants % Pchi(:,ind0, jsph))
     end do
   end do
 
@@ -662,7 +651,7 @@ contains
     val = zero
     do jsph = 1, params % nsph 
       do ind0 = 1, nbasis0
-        val = val + diff0(ind0,jsph)*coefY(icav,ind0,jsph)
+        val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
       end do
     end do
     diff_ep(icav) = val
@@ -676,7 +665,7 @@ contains
         icav = icav + 1
         do ind = 1, constants % nbasis
           rhs_plus(ind,isph) = rhs_plus(ind,isph) + &
-              & coefvec(igrid,ind,isph)*diff_ep(icav)
+              & constants % coefvec(igrid,ind,isph)*diff_ep(icav)
         end do
       end if
     end do
@@ -1307,7 +1296,7 @@ contains
   do l = 0, params % lmax
     do  m = -l, l
       ind = l*l + l + 1 + m
-      fac_hsp(ind) = SI_rjin(l)/SI_ri(l,jsph)*basloc(ind)
+      fac_hsp(ind) = SI_rjin(l)/constants % SI_ri(l,jsph)*basloc(ind)
     end do
   end do
   endsubroutine inthsp_adj
@@ -1356,7 +1345,7 @@ contains
         do isph = 1, ddx_data % params % nsph
           val = zero
           do ibasis0 = 1, nbasis0
-            val = val + Pchi(ibasis,ibasis0,isph)*coefY(icav,ibasis0,isph)
+            val = val + ddx_data % constants % Pchi(ibasis,ibasis0,isph)*ddx_data % constants % coefY(icav,ibasis0,isph)
           end do
           diff_ep_adj(icav, ibasis, isph) = val
         end do
@@ -1398,7 +1387,7 @@ contains
         ind = l**2 + l + m + 1
         rhs_r(ind, isph) = rhs_r_init(ind, isph) - &
                         & (epsilon_ratio*l*rhs_adj(ind, isph))/ddx_data % params % rsph(isph)
-        rhs_e(ind, isph) = rhs_e_init(ind, isph) + termimat(l,isph)*rhs_adj(ind, isph)
+        rhs_e(ind, isph) = rhs_e_init(ind, isph) + ddx_data % constants % termimat(l,isph)*rhs_adj(ind, isph)
       end do
     end do
   end do
@@ -1473,8 +1462,8 @@ contains
       alpha  = zero
       do l = 0, ddx_data % params % lmax
         ind = l*l + l + 1
-        f1 = (DI_rijn(l)*ddx_data % params % kappa)/SI_ri(l,jsph);
-        f2 = SI_rijn(l)/SI_ri(l, jsph)
+        f1 = (DI_rijn(l)*ddx_data % params % kappa)/ddx_data % constants % SI_ri(l,jsph);
+        f2 = SI_rijn(l)/ddx_data % constants % SI_ri(l, jsph)
         do m = -l, l
           alpha(:) = alpha(:) + (f1*sij(:)*basloc(ind+m) + &
                     & (f2/rijn)*dbasloc(:,ind+m))*Xe(ind+m,jsph)
@@ -1583,8 +1572,8 @@ contains
       alpha = zero
       do l = 0, ddx_data % params % lmax
         ind = l*l + l + 1
-        f1 = (DI_rjin(l)*ddx_data % params % kappa)/SI_ri(l,isph);
-        f2 = SI_rjin(l)/SI_ri(l,isph)
+        f1 = (DI_rjin(l)*ddx_data % params % kappa)/ddx_data % constants % SI_ri(l,isph);
+        f2 = SI_rjin(l)/ddx_data % constants % SI_ri(l,isph)
 
         do m = -l, l
           alpha = alpha + (f1*sji*basloc(ind+m) + &
@@ -1665,7 +1654,7 @@ contains
   do l = 0, ddx_data % params % lmax
     do m = -l, l
       ind = l*l + l + m + 1
-      fac = SI_rijn(l)/SI_ri(l,jsph)
+      fac = SI_rijn(l)/ddx_data % constants % SI_ri(l,jsph)
       ss = ss + fac*basloc(ind)*Xe(ind)
     end do
   end do
@@ -1762,17 +1751,17 @@ contains
           call dbasis(ddx_data % params, ddx_data % constants, sij, basloc, dbasloc, vplm, vcos, vsin)
 
           do l0 = 0,lmax0
-            f1 = (DK_rijn(l0)*ddx_data % params % kappa)/SK_ri(l0,jsph)
-            f2 = SK_rijn(l0)/SK_ri(l0,jsph)
+            f1 = (DK_rijn(l0)*ddx_data % params % kappa)/ddx_data % constants % SK_ri(l0,jsph)
+            f2 = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
             do m0 = -l0, l0
               ind0 = l0**2 + l0 + m0 + 1
               ! coefY_der : Derivative of Bessel function and spherical harmonic
               ! Non-Diagonal entries
               if ((ksph .eq. isph) .and. (isph .ne. jsph)) then
-                coefY_der(:,icav,ind0,jsph) = C_ik(l0,jsph)*(f1*sij*basloc(ind0) + &
+                coefY_der(:,icav,ind0,jsph) = ddx_data % constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0) + &
                                              & (f2/rijn)*dbasloc(:,ind0))
               elseif ((ksph .eq. jsph) .and. (isph .ne. jsph)) then
-                coefY_der(:,icav,ind0,jsph) = -C_ik(l0,jsph)*(f1*sij*basloc(ind0)+ &
+                coefY_der(:,icav,ind0,jsph) = -ddx_data % constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0)+ &
                                              & (f2/rijn)*dbasloc(:,ind0))
               else
                 coefY_der(:,icav,ind0,jsph) = zero
@@ -1791,7 +1780,7 @@ contains
       do m = -l,l
         ind = l**2 + l + m + 1
         diff_re(ind,jsph) = (epsp/ddx_data % params % eps)*(l/ddx_data % params % rsph(jsph)) * &
-              & Xr(ind,jsph) - termimat(l,jsph)*Xe(ind,jsph)
+              & Xr(ind,jsph) - ddx_data % constants % termimat(l,jsph)*Xe(ind,jsph)
       end do
     end do
   end do
@@ -1801,7 +1790,7 @@ contains
   do jsph = 1, ddx_data % params % nsph
     do ind0 = 1, nbasis0
       diff0(ind0, jsph) = dot_product(diff_re(:,jsph), &
-          & Pchi(:,ind0, jsph))
+          & ddx_data % constants % Pchi(:,ind0, jsph))
     end do
   end do
   ! phi_in = diff0 * coefY
@@ -1817,7 +1806,7 @@ contains
         val_dim3(:) = zero
         do jsph = 1, ddx_data % params % nsph 
           do ind0 = 1, nbasis0
-            val = val + diff0(ind0,jsph)*coefY(icav,ind0,jsph)
+            val = val + diff0(ind0,jsph)*ddx_data % constants % coefY(icav,ind0,jsph)
             val_dim3(:) = val_dim3(:) + diff0(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
           end do
         end do
@@ -1838,7 +1827,7 @@ contains
         icav = icav + 1
         do ind = 1, ddx_data % constants % nbasis
           sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) + &
-                                & coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
+                                & ddx_data % constants % coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
         end do
       end if
     end do
@@ -1952,18 +1941,18 @@ contains
           call dbasis(ddx_data % params, ddx_data % constants, sij, basloc, dbasloc, vplm, vcos, vsin)
 
           do l0 = 0,lmax0
-            f1 = (DK_rijn(l0)*ddx_data % params % kappa)/SK_ri(l0,jsph)
-            f2 = SK_rijn(l0)/SK_ri(l0,jsph)
+            f1 = (DK_rijn(l0)*ddx_data % params % kappa)/ddx_data % constants % SK_ri(l0,jsph)
+            f2 = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
             do m0 = -l0, l0
               ind0 = l0**2 + l0 + m0 + 1
-              sum_int = sum_int + c0_d(ind0,jsph)*coefY(icav, ind0, jsph)
+              sum_int = sum_int + c0_d(ind0,jsph)*ddx_data % constants % coefY(icav, ind0, jsph)
               ! coefY_der : Derivative of Bessel function and spherical harmonic
               ! Non-Diagonal entries
               if ((ksph .eq. isph) .and. (isph .ne. jsph)) then
-                coefY_der(:,icav,ind0,jsph) = C_ik(l0,jsph)*(f1*sij*basloc(ind0) + &
+                coefY_der(:,icav,ind0,jsph) = ddx_data % constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0) + &
                                              & (f2/rijn)*dbasloc(:,ind0))
               elseif ((ksph .eq. jsph) .and. (isph .ne. jsph)) then
-                coefY_der(:,icav,ind0,jsph) = -C_ik(l0,jsph)*(f1*sij*basloc(ind0)+ &
+                coefY_der(:,icav,ind0,jsph) = -ddx_data % constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0)+ &
                                              & (f2/rijn)*dbasloc(:,ind0))
               else
                 coefY_der(:,icav,ind0,jsph) = zero
@@ -2006,7 +1995,7 @@ contains
         do ind = 1, ddx_data % constants % nbasis
           sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) + &
                                 & -(epsp/ddx_data % params % eps)* &
-                                & coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
+                                & ddx_data % constants % coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
         end do
       end if
     end do
@@ -2114,11 +2103,11 @@ contains
             sum_int = zero
             ! Loop over l0
             do l0 = 0, lmax0
-              term = SK_rijn(l0)/SK_ri(l0,jsph)
+              term = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
               ! Loop over m0
               do m0 = -l0,l0
                 ind0 = l0**2 + l0 + m0 + 1
-                sum_int = sum_int + C_ik(l0, jsph) *term*basloc(ind0)&
+                sum_int = sum_int + ddx_data % constants % C_ik(l0, jsph) *term*basloc(ind0)&
                            & *ddx_data % constants % vgrid(ind0,igrid0)
               end do ! End of loop m0
             end do! End of loop l0
@@ -2245,11 +2234,11 @@ contains
             sum_int = zero
             ! Loop over l0
             do l0 = 0, lmax0
-              term = SK_rijn(l0)/SK_ri(l0,jsph)
+              term = SK_rijn(l0)/ddx_data % constants % SK_ri(l0,jsph)
               ! Loop over m0
               do m0 = -l0,l0
                 ind0 = l0**2 + l0 + m0 + 1
-                sum_int = sum_int + C_ik(l0, jsph) &
+                sum_int = sum_int + ddx_data % constants % C_ik(l0, jsph) &
                            & *term*basloc(ind0) &
                            & *ddx_data % constants % vgrid(ind0,igrid0)
               end do ! End of loop m0
@@ -2483,34 +2472,34 @@ contains
 
   subroutine ddlpb_free(ddx_data)
   implicit none
-  type(ddx_type), intent(in) :: ddx_data
+  type(ddx_type), intent(inout) :: ddx_data
   integer :: istatus
-  if(allocated(SI_ri)) then
-    deallocate(SI_ri, stat=istatus)
+  if(allocated(ddx_data % constants % SI_ri)) then
+    deallocate(ddx_data % constants % SI_ri, stat=istatus)
     if(istatus .ne. zero) then
       write(*,*) 'ddlpb_free: [1] deallocation failed'
       stop 1
     end if
   end if
 
-  if(allocated(DI_ri)) then
-    deallocate(DI_ri, stat=istatus)
+  if(allocated(ddx_data % constants % DI_ri)) then
+    deallocate(ddx_data % constants % DI_ri, stat=istatus)
     if(istatus .ne. zero) then
       write(*,*) 'ddlpb_free: [1] deallocation failed'
       stop 1
     end if
   end if
 
-  if(allocated(SK_ri)) then
-    deallocate(SK_ri, stat=istatus)
+  if(allocated(ddx_data % constants % SK_ri)) then
+    deallocate(ddx_data % constants % SK_ri, stat=istatus)
     if(istatus .ne. zero) then
       write(*,*) 'ddlpb_free: [1] deallocation failed'
       stop 1
     end if
   end if
 
-  if(allocated(DK_ri)) then
-    deallocate(DK_ri, stat=istatus)
+  if(allocated(ddx_data % constants % DK_ri)) then
+    deallocate(ddx_data % constants % DK_ri, stat=istatus)
     if(istatus .ne. zero) then
       write(*,*) 'ddlpb_free: [1] deallocation failed'
       stop 1
@@ -2527,40 +2516,40 @@ contains
   end if
 
 
-  if(allocated(termimat)) then
-    deallocate(termimat, stat=istatus)
+  if(allocated(ddx_data % constants % termimat)) then
+    deallocate(ddx_data % constants % termimat, stat=istatus)
     if(istatus .ne. zero) then
       write(*,*) 'ddlpb_free: [1] deallocation failed'
       stop 1
     end if
   end if
 
-  if(allocated(coefY)) then
-    deallocate(coefY, stat=istatus)
+  if(allocated(ddx_data % constants % coefY)) then
+    deallocate(ddx_data % constants % coefY, stat=istatus)
     if(istatus .ne. zero) then
       write(*,*) 'ddlpb_free: [1] deallocation failed'
       stop 1
     end if
   end if
 
-  if(allocated(C_ik)) then
-    deallocate(C_ik, stat=istatus)
+  if(allocated(ddx_data % constants % C_ik)) then
+    deallocate(ddx_data % constants % C_ik, stat=istatus)
     if(istatus .ne. zero) then
       write(*,*) 'ddlpb_free: [1] deallocation failed'
       stop 1
     end if
   end if
 
-  if(allocated(coefvec)) then
-    deallocate(coefvec, stat=istatus)
+  if(allocated(ddx_data % constants % coefvec)) then
+    deallocate(ddx_data % constants % coefvec, stat=istatus)
     if(istatus .ne. zero) then
       write(*,*) 'ddlpb_free: [1] deallocation failed'
       stop 1
     end if
   end if
 
-  if(allocated(Pchi)) then
-    deallocate(Pchi, stat=istatus)
+  if(allocated(ddx_data % constants % Pchi)) then
+    deallocate(ddx_data % constants % Pchi, stat=istatus)
     if(istatus .ne. zero) then
       write(*,*) 'ddlpb_free: [1] deallocation failed'
       stop 1
