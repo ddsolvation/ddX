@@ -28,6 +28,7 @@ module bessel
 implicit none
 
 real*8, parameter :: tol_zero = 1.0D-15
+real*8, parameter :: tol_comparison = 1.0D-06
 real*8, parameter :: tol_inf = 1.0D30
 contains
 
@@ -80,16 +81,16 @@ contains
             !write(*,*) 'Bessel error: too large input value for the bessel function!' 
             return
         end if
-        
-        if (X**N .lt. 1.0D0-6) then
+
+        if (X**N .lt. tol_comparison) then
             flag = .false.
         else
             flag = .true.
             !flag = .false.
         end if
-        
+
         if (flag) then
-        
+
             F0 = SI(0)
             F1 = SI(1)
             if (N .ge. 2) then

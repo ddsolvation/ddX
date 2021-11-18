@@ -44,7 +44,7 @@ if(istatus .ne. 0) call error(-1, "Allocation failed")
 ! Prepare host-code-related entities
 call mkrhs(ddx_data, 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
 ! Use the solver
-call ddsolve(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
+call ddsolve(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)
 ! Open output file for reading
 open(unit=100, file=foutname, form='formatted', access='sequential')
 ! Skip 

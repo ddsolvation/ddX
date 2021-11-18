@@ -1190,7 +1190,7 @@ subroutine check_l2p(p, alpha)
     print "(A)", repeat("=", 40)
     print "(A)", "  i | ok | err(i)"
     print "(A)", repeat("=", 40)
-    threshold = dble(p+1) * 5d-16
+    threshold = dble(p+1) * 2d-15
     ! Check against the baseline
     do i = 1, nx
         c = y(:, i)

@@ -15,6 +15,7 @@ use ddx_operators
 use ddx_solvers
 use ddx_cosmo
 use ddx_pcm
+use ddx_lpb
 implicit none
 
 contains
@@ -30,12 +31,15 @@ contains
 !! @param[in] tol
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
-subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, &
-        & info)
+subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, &
+        & esolv, force, info)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
     real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
-        & gradphi_cav(3, ddx_data % constants % ncav), psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
+        & gradphi_cav(3, ddx_data % constants % ncav), &
+        & hessianphi_cav(3, ddx_data % constants % ncav), &
+        & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
+    real(dp) :: psi_lpb(ddx_data % constants % nbasis, ddx_data % params % nsph)
     ! Outputs
     real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
     integer, intent(out) :: info
@@ -43,13 +47,19 @@ subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, &
     select case(ddx_data % params % model)
         ! COSMO model
         case (1)
-            call ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
+            call ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, &
+                & force, info)
         ! PCM model
         case (2)
-            call ddpcm(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
+            call ddpcm(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, &
+                & force, info)
         ! LPB model
         case (3)
-            stop "LPB model is not yet fully supported"
+            ! Psi shall be divided by a factor 4pi for the LPB case
+            ! It is intended to take into account this constant in the LPB
+            psi_lpb = psi / fourpi
+            call ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi_lpb, &
+                & tol, esolv, force, info)
         ! Error case
         case default
             stop "Non-supported model"
