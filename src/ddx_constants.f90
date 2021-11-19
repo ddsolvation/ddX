@@ -251,6 +251,7 @@ subroutine constants_init(params, constants, info)
         & sijn(3), vij(3), val
     real(dp), allocatable :: vplm(:), vcos(:), vsin(:), vylm(:), SK_rijn(:), &
         & DK_rijn(:)
+    complex(dp), allocatable :: bessel_work(:)
     !! The code
     ! Check if params are OK
     if (params % error_flag .eq. 1) then
@@ -446,7 +447,7 @@ subroutine constants_init(params, constants, info)
         constants % nbasis0 = min(49, constants % nbasis)
         allocate(vylm(constants % vgrid_nbasis), &
             & SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0), &
-            & stat=info)
+            & bessel_work(max(2, params % lmax+1)), stat=info)
         if (info .ne. 0) then
             constants % error_flag = 1
             constants % error_message = "constants_init: `vylm`, `SK_rijn` and " // &
@@ -473,10 +474,12 @@ subroutine constants_init(params, constants, info)
         do isph = 1, params % nsph
             call modified_spherical_bessel_first_kind(params % lmax, &
                 & params % rsph(isph)*params % kappa,&
-                & constants % SI_ri(:, isph), constants % DI_ri(:, isph))
+                & constants % SI_ri(:, isph), constants % DI_ri(:, isph), &
+                & bessel_work)
             call modified_spherical_bessel_second_kind(params % lmax, &
                 & params % rsph(isph)*params % kappa, &
-                & constants % SK_ri(:, isph), constants % DK_ri(:, isph))
+                & constants % SK_ri(:, isph), constants % DK_ri(:, isph), &
+                & bessel_work)
             ! Compute matrix PU_i^e(x_in)
             ! Previous implementation in update_rhs. Made it in ddinit, so as to use
             ! it in Forces as well.
@@ -521,7 +524,8 @@ subroutine constants_init(params, constants, info)
                         ! (s_ijn, r_ijn) and compute the basis function for s_ijn
                         call modified_spherical_bessel_second_kind( &
                             & constants % lmax0, &
-                            & rijn*params % kappa, SK_rijn, DK_rijn)
+                            & rijn*params % kappa, SK_rijn, DK_rijn, &
+                            & bessel_work)
                         call ylmbas(sijn, rho, ctheta, stheta, cphi, &
                             & sphi, params % lmax, constants % vscales, &
                             & vylm, vplm, vcos, vsin)
@@ -554,7 +558,7 @@ subroutine constants_init(params, constants, info)
                 end do
             end do
         end do
-        deallocate(vylm, SK_rijn, DK_rijn, stat=info)
+        deallocate(vylm, SK_rijn, DK_rijn, bessel_work, stat=info)
         if (info .ne. 0) then
             constants % error_flag = 1
             constants % error_message = "constants_init: `vylm`, `SK_rijn` and " // &
@@ -582,12 +586,16 @@ end subroutine constants_init
 ! @param[in]  argument : Argument of Bessel function
 ! @param[out] SI       : Modified Bessel function of the first kind
 ! @param[out] DI       : Derivative of modified Bessel function of the first kind
-subroutine modified_spherical_bessel_first_kind(lmax, argument, SI, DI)
+subroutine modified_spherical_bessel_first_kind(lmax, argument, SI, DI, work)
     use Complex_Bessel
+    !! Inputs
     integer, intent(in) :: lmax
     real(dp), intent(in) :: argument
+    !! Outputs
     real(dp), dimension(0:lmax), intent(out) :: SI, DI
-    ! Local Variables
+    !! Temporary workspace
+    complex(dp), dimension(0:max(1, lmax)), intent(out) :: work
+    !! Local Variables
     ! Complex_SI     : Modified Bessel functions of the first kind
     ! argument       : Argument for Complex_SI
     ! scaling_factor : sqrt(pi/2x)
@@ -595,37 +603,36 @@ subroutine modified_spherical_bessel_first_kind(lmax, argument, SI, DI)
     ! NZ             : Number of components set to zero due to underflow
     ! ierr           : Erro indicator for I_J(x)
     ! l              : l=0,...,lmax
-    complex(dp), dimension(0:lmax) :: Complex_SI
     complex(dp) :: complex_argument
-    real(dp) :: scaling_factor, fnu
+    real(dp) :: scaling_factor
+    real(dp), parameter :: fnu = 1.5d0
     integer :: NZ, ierr, l
     ! Compute I_(0.5+J) for J:1,...,lmax
     ! NOTE: cbesi computes I_(FNU+J-1)
-    fnu = 1.5
+    !fnu = 1.5
     scaling_factor = sqrt(PI/(2*argument))
     ! NOTE: Complex argument is required to call I_J(x)
     complex_argument = argument
-    !write(*, *) "complex_argument=", complex_argument
     ! Compute for l = 0
-    call cbesi(complex_argument, fnu - 1.0, 1, 1, Complex_SI(0), NZ, ierr)
-    !write(*, *) "ierr=", ierr
+    call cbesi(complex_argument, pt5, 1, 1, work(0), NZ, ierr)
     if (ierr .ne. 0) stop 'Error in computing Bessel function of first kind'
     ! Compute for l = 1,...,lmax
     if (lmax .gt. 0) then
-        call cbesi(complex_argument, fnu, 1, lmax, Complex_SI(1:lmax), NZ, ierr)
-        !write(*, *) "ierr=", ierr
+        call cbesi(complex_argument, fnu, 1, lmax, work(1:lmax), NZ, ierr)
+        if (ierr .ne. 0) stop 'Error in computing Bessel function of first kind'
+    ! l=1 is needed for DI(0)
+    else
+        call cbesi(complex_argument, fnu, 1, 1, work(1), NZ, ierr)
         if (ierr .ne. 0) stop 'Error in computing Bessel function of first kind'
     end if
     ! Store the real part of the complex Bessel functions
-    SI = real(Complex_SI)
+    SI = real(work(0:lmax))
     ! Converting Modified Bessel to Spherical Modified Bessel
-    do l = 0, lmax
-        SI(l) = scaling_factor*SI(l)
-    end do
+    SI = scaling_factor * SI
     ! Computation of Derivatives of SI
-    DI(0) = SI(1)
-    do l = 1,lmax
-        DI(l)= SI(l-1)-((l+1.0D0)*SI(l))/argument
+    DI(0) = scaling_factor * real(work(1))
+    do l = 1, lmax
+        DI(l)= SI(l-1) - ((l+1.0D0)*SI(l))/argument
     end do
 end subroutine modified_spherical_bessel_first_kind
 
@@ -635,11 +642,15 @@ end subroutine modified_spherical_bessel_first_kind
 ! @param[in]  argument : Argument of Bessel function
 ! @param[out] SK       : Modified Bessel function of the second kind
 ! @param[out] DK       : Derivative of modified Bessel function of the second kind
-subroutine modified_spherical_bessel_second_kind(lmax, argument, SK, DK)
+subroutine modified_spherical_bessel_second_kind(lmax, argument, SK, DK, work)
     use Complex_Bessel
+    !! Inputs
     integer , intent(in) :: lmax
     real(dp), intent(in) :: argument
+    !! Outputs
     real(dp), dimension(0:lmax), intent(out) :: SK, DK
+    !! Temporary workspace
+    complex(dp), dimension(0:max(1, lmax)), intent(out) :: work
     ! Local Variables
     ! Complex_SK     : Modified Bessel functions of the second kind
     ! argument       : Argument for Complex_SK
@@ -648,38 +659,36 @@ subroutine modified_spherical_bessel_second_kind(lmax, argument, SK, DK)
     ! NZ             : Number of components set to zero due to underflow
     ! ierr           : Error indicator for K_J(x)
     ! l              : l=0,...,lmax
-    complex(dp), dimension(0:lmax) :: Complex_SK
     complex(dp) :: complex_argument
-    real(dp) :: scaling_factor, fnu
+    real(dp) :: scaling_factor
+    real(dp), parameter :: fnu=1.5d0
     integer :: NZ, ierr, l
-
     ! Compute K_(0.5+J) for J:1,...,lmax
     ! NOTE: cbesk computes K_(FNU+J-1)
-    fnu = 1.5
     scaling_factor = sqrt(2/(PI*argument))
     ! NOTE: Complex argument is required to call K_J(x)
     complex_argument = argument
-
     ! Compute for l = 0
-    call cbesk(complex_argument, fnu - 1.0, 1, 1, Complex_SK(0), NZ, ierr)
+    call cbesk(complex_argument, pt5, 1, 1, work(0), NZ, ierr)
     if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
     ! Compute for l = 1,...,lmax
-    call cbesk(complex_argument, fnu, 1, lmax, Complex_SK(1:lmax), NZ, ierr)
-    if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
-
+    if (lmax .gt. 0) then
+        call cbesk(complex_argument, fnu, 1, lmax, work(1:lmax), NZ, ierr)
+        if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
+    ! l=1 is needed for DK(0)
+    else
+        call cbesk(complex_argument, fnu, 1, 1, work(1), NZ, ierr)
+        if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
+    end if
     ! Store the real part of the complex Bessel functions
-    SK = real(Complex_SK)
+    SK = real(work(0:lmax))
     ! Converting Modified Bessel to Spherical Modified Bessel
-    do l = 0, lmax
-    SK(l) = scaling_factor*SK(l)
-    end do
-
+    SK = scaling_factor * SK
     ! Computation of Derivatives of SK
-    DK(0) = -SK(1)
+    DK(0) = -scaling_factor * real(work(1))
     do l = 1, lmax
-    DK(l) = -SK(l-1) - ((l+1.0D0)*SK(l))/argument
+        DK(l) = -SK(l-1) - ((l+1.0D0)*SK(l))/argument
     end do
-
 end subroutine modified_spherical_bessel_second_kind
 
 !

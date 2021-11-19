@@ -36,6 +36,9 @@ type ddx_workspace_type
     !> Temporary workspace for an array of sinuses of a dimension
     !!      (vgrid_dmax+1, nproc).
     real(dp), allocatable :: tmp_vsin(:, :)
+    !> Temporary workspace for Bessel functions. Dimension is
+    !!      (max(2,lmax+1), nproc)
+    complex(dp), allocatable :: tmp_bessel(:, :)
     !> Temporary workspace for multipole coefficients of a degree up to lmax
     !!      of each sphere. Dimension is (nbasis, nsph).
     real(dp), allocatable :: tmp_sph(:, :)
@@ -288,7 +291,19 @@ subroutine workspace_init(params, constants, workspace, info)
         if (info .ne. 0) then
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_gmresr` " // &
-                & "allocations failed"
+                & "allocation failed"
+            info = 1
+            return
+        end if
+    end if
+    ! Allocations for LPB model
+    if (params % model .eq. 3) then
+        allocate(workspace % tmp_bessel(max(2, params % lmax+1), &
+            & params % nproc), stat=info)
+        if (info .ne. 0) then
+            workspace % error_flag = 1
+            workspace % error_message = "workspace_init: `tmp_bessel` " // &
+                & "allocation failed"
             info = 1
             return
         end if

@@ -20,7 +20,6 @@ implicit none
 !! first_outer_iter : Logical variable to check if the first outer iteration has been
 !!                    performed
 !! epsp             : Dielectric permittivity of the solvent. 1.0d0 is for H20
-logical :: first_out_iter
 real(dp),  parameter :: epsp = 1.0d0
 !!
 !! Local variables and their definitions that will be used throughout this file
@@ -108,20 +107,20 @@ contains
   !! @param[out] g        : Boundary conditions on solute-solvent boundary gamma_j_e
   !!
   !call wghpot(ddx_data, phi, phi_grid, g)
-  call wghpot(ddx_data % constants % ncav, phi_cav, ddx_data % params % nsph, ddx_data % params % ngrid, &
-      & ddx_data % constants % ui, phi_grid, g)
+!  call wghpot(ddx_data % constants % ncav, phi_cav, ddx_data % params % nsph, ddx_data % params % ngrid, &
+!      & ddx_data % constants % ui, phi_grid, g)
     ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
     ! and multiply it by characteristic function at cavity points ui
-!    call ddcav_to_grid_work(ddx_data % params % ngrid, ddx_data % params % nsph, &
-!        & ddx_data % constants % ncav, &
-!        & ddx_data % constants % icav_ia, ddx_data % constants % icav_ja, phi_cav, phi_grid)
-!    ddx_data % workspace % tmp_cav = phi_cav * ddx_data % constants % ui_cav
-!    call ddcav_to_grid_work(ddx_data % params % ngrid, ddx_data % params % nsph, &
-!        & ddx_data % constants % ncav, &
-!        & ddx_data % constants % icav_ia, ddx_data % constants % icav_ja, &
-!        & ddx_data % workspace % tmp_cav, &
-!        & ddx_data % workspace % tmp_grid)
-!    g = -ddx_data % workspace % tmp_grid
+    call ddcav_to_grid_work(ddx_data % params % ngrid, ddx_data % params % nsph, &
+        & ddx_data % constants % ncav, &
+        & ddx_data % constants % icav_ia, ddx_data % constants % icav_ja, phi_cav, phi_grid)
+    ddx_data % workspace % tmp_cav = phi_cav * ddx_data % constants % ui_cav
+    call ddcav_to_grid_work(ddx_data % params % ngrid, ddx_data % params % nsph, &
+        & ddx_data % constants % ncav, &
+        & ddx_data % constants % icav_ia, ddx_data % constants % icav_ja, &
+        & ddx_data % workspace % tmp_cav, &
+        & ddx_data % workspace % tmp_grid)
+    g = -ddx_data % workspace % tmp_grid
   !!
   !! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
   !!
@@ -219,7 +218,7 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
                     ! (s_ijn, r_ijn) and compute the basis function for s_ijn
                     call modified_spherical_bessel_second_kind( &
                         & constants % lmax0, rijn*params % kappa,&
-                        & SK_rijn, DK_rijn)
+                        & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
                     call ylmbas(sijn , rho, ctheta, stheta, cphi, &
                         & sphi, params % lmax, constants % vscales, &
                         & workspace % tmp_vylm, workspace % tmp_vplm, &
@@ -280,7 +279,8 @@ end subroutine wghpot_f
 
   y = zero
   do isph = 1, params % nsph
-    call calcv2_lpb(params, constants, isph, pot, x, basloc, vplm, vcos, vsin )
+    call calcv2_lpb(params, constants, isph, pot, x, basloc, vplm, vcos, vsin, &
+        & workspace % tmp_bessel(:, 1))
     ! intrhs comes from ddCOSMO
     call intrhs(1, constants % nbasis, params % ngrid, &
                 constants % vwgrid, constants % vgrid_nbasis, &
@@ -383,7 +383,8 @@ endsubroutine lpb_hsp
   ! @param[in, out] vcos   : Used to compute spherical harmonic
   ! @param[in, out] vsin   : Used to compute spherical harmonic
   !
-  subroutine calcv2_lpb (params, constants, isph, pot, x, basloc, vplm, vcos, vsin )
+  subroutine calcv2_lpb (params, constants, isph, pot, x, basloc, vplm, vcos, &
+          & vsin, bessel_work)
   type(ddx_params_type), intent(in)  :: params
   type(ddx_constants_type), intent(in)  :: constants
   integer, intent(in) :: isph
@@ -393,6 +394,7 @@ endsubroutine lpb_hsp
   real(dp), dimension(constants % nbasis), intent(inout) :: vplm
   real(dp), dimension(params % lmax+1), intent(inout) :: vcos
   real(dp), dimension(params % lmax+1), intent(inout) :: vsin
+  complex(dp), intent(out) :: bessel_work(max(2, params % lmax+1))
   real(dp), dimension(constants % nbasis) :: fac_cosmo, fac_hsp
   integer :: its, ij, jsph
   real(dp) :: rho, ctheta, stheta, cphi, sphi
@@ -416,7 +418,8 @@ endsubroutine lpb_hsp
                       & sphi, params % lmax, &
                       & constants % vscales, basloc, &
                       & vplm, vcos, vsin)
-          call inthsp(params, constants, vvij, params % rsph(jsph), jsph, basloc, fac_hsp)
+          call inthsp(params, constants, vvij, params % rsph(jsph), jsph, &
+              & basloc, fac_hsp, bessel_work)
           xij = fsw(tij, params % se, params % eta)
           if (constants % fi(its,isph).gt.one) then
             oij = xij/constants % fi(its, isph)
@@ -440,7 +443,7 @@ endsubroutine lpb_hsp
   ! @param[out] fac_hsp : Return bessel function ratio multiplied by 
   !                       the spherical harmonic Y_l'm'. Array of size nylm
   !
-  subroutine inthsp(params, constants, rijn, ri, isph, basloc, fac_hsp)
+  subroutine inthsp(params, constants, rijn, ri, isph, basloc, fac_hsp, work)
   implicit none
   type(ddx_params_type), intent(in)  :: params
   type(ddx_constants_type), intent(in)  :: constants
@@ -448,6 +451,7 @@ endsubroutine lpb_hsp
   real(dp), intent(in) :: rijn, ri
   real(dp), dimension(constants % nbasis), intent(in) :: basloc
   real(dp), dimension(constants % nbasis), intent(inout) :: fac_hsp
+  complex(dp), intent(out) :: work(max(2, params % lmax+1))
   real(dp), dimension(0:params % lmax) :: SI_rijn, DI_rijn
   integer :: l, m, ind
 
@@ -456,7 +460,8 @@ endsubroutine lpb_hsp
   fac_hsp = 0
 
   ! Computation of modified spherical Bessel function values      
-  call modified_spherical_bessel_first_kind(params % lmax, rijn*params % kappa, SI_rijn, DI_rijn)
+  call modified_spherical_bessel_first_kind(params % lmax, &
+      & rijn*params % kappa, SI_rijn, DI_rijn, work)
   
   do l = 0, params % lmax
     do  m = -l, l
@@ -624,7 +629,6 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
 
 
     ! Set values to default values
-    first_out_iter = .true.
     converged = .false.
     ok = .false.
     iteration = one
@@ -688,8 +692,6 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
         write(6,*) iteration, esolv, inc
         iteration = iteration + 1
 
-        ! to be removed
-        first_out_iter = .false.
     end do
 end subroutine ddx_lpb_solve
 
@@ -774,8 +776,6 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_
     ! Initial Xadj_r and Xadj_e
     Xadj_r = zero
     Xadj_e = zero
-    ! Logical variable for the first outer iteration
-    first_out_iter = .true.
     converged = .false.
     ok = .false.
     ! Solve the adjoint system
@@ -821,7 +821,6 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_
     end if
     write(6,*) 'Adjoint computation :', iteration, inc
     iteration = iteration + 1
-    first_out_iter = .false.
     end do
     !  if (iprint .ge. 5) then
     !    call prtsph('Xadj_r', constants % nbasis, params % lmax, &
@@ -1089,7 +1088,8 @@ end subroutine ddx_lpb_force
                       & sphi, params % lmax, &
                       & constants % vscales, basloc, &
                       & vplm, vcos, vsin)
-        call inthsp_adj(params, constants, workspace, vvji, params % rsph(isph), isph, basloc, fac_hsp)
+        call inthsp_adj(params, constants, vvji, params % rsph(isph), isph, &
+            & basloc, fac_hsp, workspace % tmp_bessel(:, 1))
         !compute \chi( t_n^ji )
         xji = fsw( tji, params % se, params % eta )
         !compute W_n^ji
@@ -1122,17 +1122,17 @@ end subroutine ddx_lpb_force
   ! @param[out] fac_hsp : Return bessel function ratio multiplied by 
   !                       the spherical harmonic Y_l'm'. Array of size nylm
   !
-  subroutine inthsp_adj(params, constants, workspace, rjin, rj, jsph, basloc, fac_hsp)
+  subroutine inthsp_adj(params, constants, rjin, rj, jsph, basloc, &
+          & fac_hsp, work)
   implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    !! Temporaries
-    type(ddx_workspace_type), intent(inout) :: workspace
   integer, intent(in) :: jsph
   real(dp), intent(in) :: rjin, rj
   real(dp), dimension(constants % nbasis), intent(in) :: basloc
   real(dp), dimension(constants % nbasis), intent(inout) :: fac_hsp
+  complex(dp), intent(out) :: work(max(2, params % lmax+1))
   real(dp), dimension(0:params % lmax) :: SI_rjin, DI_rjin
   integer :: l, m, ind
 
@@ -1141,7 +1141,8 @@ end subroutine ddx_lpb_force
   fac_hsp = 0
 
   ! Computation of modified spherical Bessel function values      
-  call modified_spherical_bessel_first_kind(params % lmax, rjin*params % kappa, SI_rjin, DI_rjin)
+  call modified_spherical_bessel_first_kind(params % lmax, &
+      & rjin*params % kappa, SI_rjin, DI_rjin, work)
   
   do l = 0, params % lmax
     do  m = -l, l
@@ -1294,7 +1295,8 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
       if (tij.ge.thigh) cycle
       ! Computation of modified spherical Bessel function values      
-      call modified_spherical_bessel_first_kind(params % lmax, rijn*params % kappa, SI_rijn, DI_rijn)
+      call modified_spherical_bessel_first_kind(params % lmax, &
+          & rijn*params % kappa, SI_rijn, DI_rijn, workspace % tmp_bessel(:, 1))
 
       sij  = vij/rijn
       call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
@@ -1406,7 +1408,8 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
       if (tji.gt.thigh) cycle
 
-      call modified_spherical_bessel_first_kind(params % lmax, rjin*params % kappa, SI_rjin, DI_rjin)
+      call modified_spherical_bessel_first_kind(params % lmax, &
+          & rjin*params % kappa, SI_rjin, DI_rjin, workspace % tmp_bessel(:, 1))
       
       sji  = vji/rjin
       call dbasis(params, constants, sji, basloc, dbasloc, vplm, vcos, vsin)
@@ -1445,7 +1448,9 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
             rjkn = dnrm2(3, vjk, 1)
             tjk  = rjkn/params % rsph(ksph)
             ! Computation of modified spherical Bessel function values      
-            call modified_spherical_bessel_first_kind(params % lmax, rjkn*params % kappa, SI_rjkn, DI_rjkn)
+            call modified_spherical_bessel_first_kind(params % lmax, &
+                & rjkn*params % kappa, SI_rjkn, DI_rjkn, &
+                & workspace % tmp_bessel(:, 1))
 
             if (ksph.ne.isph) then
               if (tjk .le. thigh) then
@@ -1594,9 +1599,8 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
           sij = vij/rijn
 
           call modified_spherical_bessel_second_kind( &
-              & constants % lmax0, &
-                                                     & rijn*params % kappa, &
-                                                     & SK_rijn, DK_rijn)
+              & constants % lmax0, rijn*params % kappa, &
+              & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
           call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
 
           do l0 = 0, constants % lmax0
@@ -1789,9 +1793,8 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
           sij = vij/rijn
 
           call modified_spherical_bessel_second_kind( &
-              & constants % lmax0, &
-                                                     & rijn*params % kappa, &
-                                                     & SK_rijn, DK_rijn)
+              & constants % lmax0, rijn*params % kappa, &
+              & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
           call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
 
           do l0 = 0, constants % lmax0
@@ -1955,7 +1958,7 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
             call modified_spherical_bessel_second_kind( &
                 & constants % lmax0, rijn*params % kappa,&
-                                                     & SK_rijn, DK_rijn)
+                & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
             call dbasis(params, constants, &
                 & sij, basloc, dbasloc, vplm, vcos, vsin)
             sum_int = zero
@@ -2090,7 +2093,7 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
             call modified_spherical_bessel_second_kind( &
                 & constants % lmax0, rijn*params % kappa,&
-                                                     & SK_rijn, DK_rijn)
+                & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
             call dbasis(params, constants, &
                 & sij, basloc, dbasloc, vplm, vcos, vsin)
             sum_int = zero
