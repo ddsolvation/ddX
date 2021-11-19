@@ -562,6 +562,117 @@ subroutine polleg_work(ctheta, stheta, p, vplm, work)
     vplm((p+1)**2) = pmm
 end subroutine polleg_work
 
+!
+! Subroutine to compute the Modified Spherical Bessel function of the first kind
+! @param[in]  lmax     : Data type
+! @param[in]  argument : Argument of Bessel function
+! @param[out] SI       : Modified Bessel function of the first kind
+! @param[out] DI       : Derivative of modified Bessel function of the first kind
+subroutine modified_spherical_bessel_first_kind(lmax, argument, SI, DI, work)
+    use Complex_Bessel
+    !! Inputs
+    integer, intent(in) :: lmax
+    real(dp), intent(in) :: argument
+    !! Outputs
+    real(dp), dimension(0:lmax), intent(out) :: SI, DI
+    !! Temporary workspace
+    complex(dp), dimension(0:max(1, lmax)), intent(out) :: work
+    !! Local Variables
+    ! Complex_SI     : Modified Bessel functions of the first kind
+    ! argument       : Argument for Complex_SI
+    ! scaling_factor : sqrt(pi/2x)
+    ! fnu            : Starting argument for I_J(x)
+    ! NZ             : Number of components set to zero due to underflow
+    ! ierr           : Erro indicator for I_J(x)
+    ! l              : l=0,...,lmax
+    complex(dp) :: complex_argument
+    real(dp) :: scaling_factor
+    real(dp), parameter :: fnu = 1.5d0
+    integer :: NZ, ierr, l
+    ! Compute I_(0.5+J) for J:1,...,lmax
+    ! NOTE: cbesi computes I_(FNU+J-1)
+    !fnu = 1.5
+    scaling_factor = sqrt(PI/(2*argument))
+    ! NOTE: Complex argument is required to call I_J(x)
+    complex_argument = argument
+    ! Compute for l = 0
+    call cbesi(complex_argument, pt5, 1, 1, work(0), NZ, ierr)
+    if (ierr .ne. 0) stop 'Error in computing Bessel function of first kind'
+    ! Compute for l = 1,...,lmax
+    if (lmax .gt. 0) then
+        call cbesi(complex_argument, fnu, 1, lmax, work(1:lmax), NZ, ierr)
+        if (ierr .ne. 0) stop 'Error in computing Bessel function of first kind'
+    ! l=1 is needed for DI(0)
+    else
+        call cbesi(complex_argument, fnu, 1, 1, work(1), NZ, ierr)
+        if (ierr .ne. 0) stop 'Error in computing Bessel function of first kind'
+    end if
+    ! Store the real part of the complex Bessel functions
+    SI = real(work(0:lmax))
+    ! Converting Modified Bessel to Spherical Modified Bessel
+    SI = scaling_factor * SI
+    ! Computation of Derivatives of SI
+    DI(0) = scaling_factor * real(work(1))
+    do l = 1, lmax
+        DI(l)= SI(l-1) - ((l+1.0D0)*SI(l))/argument
+    end do
+end subroutine modified_spherical_bessel_first_kind
+
+!
+! Subroutine to compute the Modified Spherical Bessel function of the second kind
+! @param[in]  lmax     : Size
+! @param[in]  argument : Argument of Bessel function
+! @param[out] SK       : Modified Bessel function of the second kind
+! @param[out] DK       : Derivative of modified Bessel function of the second kind
+subroutine modified_spherical_bessel_second_kind(lmax, argument, SK, DK, work)
+    use Complex_Bessel
+    !! Inputs
+    integer , intent(in) :: lmax
+    real(dp), intent(in) :: argument
+    !! Outputs
+    real(dp), dimension(0:lmax), intent(out) :: SK, DK
+    !! Temporary workspace
+    complex(dp), dimension(0:max(1, lmax)), intent(out) :: work
+    ! Local Variables
+    ! Complex_SK     : Modified Bessel functions of the second kind
+    ! argument       : Argument for Complex_SK
+    ! scaling_factor : sqrt(pi/2x)
+    ! fnu            : Starting argument for K_J(x)
+    ! NZ             : Number of components set to zero due to underflow
+    ! ierr           : Error indicator for K_J(x)
+    ! l              : l=0,...,lmax
+    complex(dp) :: complex_argument
+    real(dp) :: scaling_factor
+    real(dp), parameter :: fnu=1.5d0
+    integer :: NZ, ierr, l
+    ! Compute K_(0.5+J) for J:1,...,lmax
+    ! NOTE: cbesk computes K_(FNU+J-1)
+    scaling_factor = sqrt(2/(PI*argument))
+    ! NOTE: Complex argument is required to call K_J(x)
+    complex_argument = argument
+    ! Compute for l = 0
+    call cbesk(complex_argument, pt5, 1, 1, work(0), NZ, ierr)
+    if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
+    ! Compute for l = 1,...,lmax
+    if (lmax .gt. 0) then
+        call cbesk(complex_argument, fnu, 1, lmax, work(1:lmax), NZ, ierr)
+        if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
+    ! l=1 is needed for DK(0)
+    else
+        call cbesk(complex_argument, fnu, 1, 1, work(1), NZ, ierr)
+        if (ierr .ne. 0) stop 'Error in computing Bessel function of second kind'
+    end if
+    ! Store the real part of the complex Bessel functions
+    SK = real(work(0:lmax))
+    ! Converting Modified Bessel to Spherical Modified Bessel
+    SK = scaling_factor * SK
+    ! Computation of Derivatives of SK
+    DK(0) = -scaling_factor * real(work(1))
+    do l = 1, lmax
+        DK(l) = -SK(l-1) - ((l+1.0D0)*SK(l))/argument
+    end do
+end subroutine modified_spherical_bessel_second_kind
+
 !> Accumulate a multipole expansion induced by a particle of a given charge
 !!
 !! Computes the following sums:
@@ -937,6 +1048,225 @@ subroutine fmm_m2p_work(c, src_r, p, vscales_rel, alpha, src_m, &
         end do
     end if
 end subroutine fmm_m2p_work
+
+!> Accumulate potential, induced by multipole spherical harmonics
+!!
+!! This function relies on a user-provided temporary workspace
+!!
+!! Computes the following sum:
+!! \f[
+!!      v = \beta v + \alpha \sum_{\ell=0}^p \frac{4\pi}{\sqrt{2\ell+1}}
+!!      \left( \frac{r}{\|c\|} \right)^{\ell+1} \sum_{m=-\ell}^\ell
+!!      M_\ell^m Y_\ell^m \left( \frac{c}{\|c\|} \right),
+!! \f]
+!! where \f$ M \f$ is a vector of coefficients of input harmonics of
+!! a degree up to \f$ p \f$ inclusively with a convergence radius \f$ r \f$
+!! located at the origin, \f$ \alpha \f$ and \f$ \beta \f$ are scaling factors
+!! and \f$ c \f$ is a location of a particle.
+!!
+!! Based on normalized real spherical harmonics \f$ Y_\ell^m \f$, scaled by \f$
+!! r^{-\ell} \f$. It means corresponding coefficients are simply scaled by an
+!! additional factor \f$ r^\ell \f$.
+!!
+!! @param[in] c: Coordinates of a particle (relative to center of harmonics)
+!! @param[in] r: Radius of spherical harmonics
+!! @param[in] p: Maximal degree of multipole basis functions
+!! @param[in] vscales_rel: Relative normalization constants for
+!!      \f$ Y_\ell^m \f$. Dimension is `(p+1)**2`
+!! @param[in] alpha: Scalar multiplier for `src_m`
+!! @param[in] src_m: Multipole coefficients. Dimension is `(p+1)**2`
+!! @param[in] beta: Scalar multiplier for `v`
+!! @param[inout] v: Value of induced potential
+!! @param[out] work: Temporary workspace of size (p+1)
+subroutine fmm_m2p_bessel_first_kind_work(c, p, vscales_rel, SI_ri, &
+        & alpha, src_m, &
+        & beta, dst_v, work_complex, work)
+    use complex_bessel
+    !! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), vscales_rel((p+1)*(p+1)), alpha, &
+        & src_m((p+1)*(p+1)), beta, SI_ri(p+1)
+    !! Output
+    real(dp), intent(inout) :: dst_v
+    !! Workspace
+    complex(dp), intent(out) :: work_complex(p+1)
+    real(dp), intent(out) :: work(p+1)
+    !! Local variables
+    real(dp) :: rho, ctheta, stheta, cphi, sphi, rcoef, t, tmp, tmp1, tmp2, &
+        & tmp3, fl, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
+    real(dp) :: scaling_factor
+    complex(dp) :: complex_argument
+    integer :: l, m, indl, ierr, NZ
+    real(dp), parameter :: fnu=1.5d0
+    ! Scale output
+    if (beta .eq. zero) then
+        dst_v = zero
+    else
+        dst_v = beta * dst_v
+    end if
+    ! In case of zero alpha nothing else is required no matter what is the
+    ! value of the induced potential
+    if (alpha .eq. zero) then
+        return
+    end if
+    ! Get spherical coordinates
+    if (c(1) .eq. zero) then
+        max12 = abs(c(2))
+        ssq12 = one
+    else if (abs(c(2)) .gt. abs(c(1))) then
+        max12 = abs(c(2))
+        ssq12 = one + (c(1)/c(2))**2
+    else
+        max12 = abs(c(1))
+        ssq12 = one + (c(2)/c(1))**2
+    end if
+    ! Then we compute rho
+    if (c(3) .eq. zero) then
+        rho = max12 * sqrt(ssq12)
+    else if (abs(c(3)) .gt. max12) then
+        rho = one + ssq12 *(max12/c(3))**2
+        rho = abs(c(3)) * sqrt(rho)
+    else
+        rho = ssq12 + (c(3)/max12)**2
+        rho = max12 * sqrt(rho)
+    end if
+    ! In case of a singularity (rho=zero) induced potential is infinite and is
+    ! not taken into account.
+    if (rho .eq. zero) then
+        return
+    end if
+    ! Compute Bessel function
+    scaling_factor = alpha * sqrt(pi / (2*rho))
+    ! NOTE: Complex argument is required to call I_J(x)
+    complex_argument = rho
+    ! Compute for l = 0
+    call cbesi(complex_argument, pt5, 1, 1, work_complex(1), NZ, ierr)
+    !call modified_spherical_bessel_first_kind(p, rho, SI_rijn, DI_rijn, &
+    !    & work)
+    ! Compute for l = 1,...,p
+    if (p .gt. 0) then
+        call cbesi(complex_argument, fnu, 1, p, work_complex(2:p+1), NZ, ierr)
+    end if
+    work = scaling_factor * real(work_complex) / SI_ri
+    !SI_rijn = alpha * SI_rijn / SI_ri
+    ! Compute the actual induced potential
+    ! Length of a vector x(1:2)
+    stheta = max12 * sqrt(ssq12)
+    ! Case x(1:2) != 0
+    if (stheta .ne. zero) then
+        ! Normalize cphi and sphi
+        cphi = c(1) / stheta
+        sphi = c(2) / stheta
+        ! Normalize ctheta and stheta
+        ctheta = c(3) / rho
+        stheta = stheta / rho
+        ! Treat easy cases
+        select case(p)
+            case (0)
+                ! l = 0
+                dst_v = dst_v + work(1)*vscales_rel(1)*src_m(1)
+                return
+            case (1)
+                ! l = 0
+                tmp = work(1) * src_m(1) * vscales_rel(1)
+                ! l = 1
+                tmp2 = ctheta * src_m(3) * vscales_rel(3)
+                tmp3 = stheta * vscales_rel(4)
+                tmp2 = tmp2 - tmp3*sphi*src_m(2)
+                tmp2 = tmp2 - tmp3*cphi*src_m(4)
+                dst_v = dst_v + tmp + work(2)*tmp2
+                return
+        end select
+        ! Now p>1
+        ! Case m = 0
+        ! P_{l-2}^m which is P_0^0 now
+        pl2m = one
+        dst_v = dst_v + work(1)*src_m(1)*vscales_rel(1)
+        ! Update P_m^m for the next iteration
+        pmm = -stheta
+        ! P_{l-1}^m which is P_{m+1}^m now
+        pl1m = ctheta
+        ylm = pl1m * vscales_rel(3)
+        dst_v = dst_v + work(2)*src_m(3)*ylm
+        ! P_l^m for l>m+1
+        do l = 2, p
+            plm = dble(2*l-1)*ctheta*pl1m - dble(l-1)*pl2m
+            plm = plm / dble(l)
+            ylm = plm * vscales_rel(l*l+l+1)
+            dst_v = dst_v + work(l+1)*src_m(l*l+l+1)*ylm
+            ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+            pl2m = pl1m
+            pl1m = plm
+        end do
+        ! Prepare cos(m*phi) and sin(m*phi) for m=1
+        cmphi = cphi
+        smphi = sphi
+        ! Case 0<m<p
+        do m = 1, p-1
+            ! P_{l-2}^m which is P_m^m now
+            pl2m = pmm
+            ylm = pmm * vscales_rel((m+1)**2)
+            tmp1 = cmphi*src_m((m+1)**2) + smphi*src_m(m*m+1)
+            dst_v = dst_v + work(m+1)*ylm*tmp1
+            ! Temporary to reduce number of operations
+            tmp1 = dble(2*m+1) * pmm
+            ! Update P_m^m for the next iteration
+            pmm = -stheta * tmp1
+            ! P_{l-1}^m which is P_{m+1}^m now
+            pl1m = ctheta * tmp1
+            ylm = pl1m * vscales_rel((m+1)*(m+3))
+            tmp1 = cmphi*src_m((m+1)*(m+3)) + smphi*src_m((m+1)*(m+2)+1-m)
+            dst_v = dst_v + work(m+2)*ylm*tmp1
+            ! P_l^m for l>m+1
+            do l = m+2, p
+                plm = dble(2*l-1)*ctheta*pl1m - dble(l+m-1)*pl2m
+                plm = plm / dble(l-m)
+                ylm = plm * vscales_rel(l*l+l+1+m)
+                tmp1 = cmphi*src_m(l*l+l+1+m) + smphi*src_m(l*l+l+1-m)
+                dst_v = dst_v + work(l+1)*ylm*tmp1
+                ! Update P_{l-2}^m and P_{l-1}^m for the next iteration
+                pl2m = pl1m
+                pl1m = plm
+            end do
+            ! Update cos(m*phi) and sin(m*phi) for the next iteration
+            tmp1 = cmphi
+            cmphi = cmphi*cphi - smphi*sphi
+            smphi = tmp1*sphi + smphi*cphi
+        end do
+        ! Case m=p requires only to use P_m^m
+        ylm = pmm * vscales_rel((p+1)**2)
+        tmp1 = cmphi*src_m((p+1)**2) + smphi*src_m(p*p+1)
+        dst_v = dst_v + work(p+1)*ylm*tmp1
+    ! Case of x(1:2) = 0 and x(3) != 0
+    else
+        ! In this case Y_l^m = 0 for m != 0, so only case m = 0 is taken into
+        ! account. Y_l^0 = ctheta^l in this case where ctheta is either +1 or
+        ! -1. So, we copy sign(ctheta) into rcoef. But before that we
+        ! initialize alpha/r factor for l=0 case without taking possible sign
+        ! into account.
+        t = one
+        if (c(3) .lt. zero) then
+            ! Proceed with accumulation of a potential
+            indl = 1
+            do l = 0, p
+                ! Index of Y_l^0
+                indl = indl + 2*l
+                ! Add 4*pi/(2*l+1)*rcoef^{l+1}*Y_l^0 contribution
+                dst_v = dst_v + t*work(l+1)*src_m(indl)*vscales_rel(indl)
+                t = -t
+            end do
+        else
+            ! Proceed with accumulation of a potential
+            indl = 1
+            do l = 0, p
+                ! Index of Y_l^0
+                indl = indl + 2*l
+                ! Add 4*pi/(2*l+1)*rcoef^{l+1}*Y_l^0 contribution
+                dst_v = dst_v + work(l+1)*src_m(indl)*vscales_rel(indl)
+            end do
+        end if
+    end if
+end subroutine fmm_m2p_bessel_first_kind_work
 
 !> Adjoint M2P operation
 !!

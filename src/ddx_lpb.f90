@@ -395,13 +395,17 @@ endsubroutine lpb_hsp
   real(dp), dimension(params % lmax+1), intent(inout) :: vcos
   real(dp), dimension(params % lmax+1), intent(inout) :: vsin
   complex(dp), intent(out) :: bessel_work(max(2, params % lmax+1))
+  complex(dp) :: work_complex(params % lmax+1)
+  real(dp) :: work(params % lmax+1)
   real(dp), dimension(constants % nbasis) :: fac_cosmo, fac_hsp
+  real(dp), dimension(params % ngrid) :: pot2
   integer :: its, ij, jsph
   real(dp) :: rho, ctheta, stheta, cphi, sphi
   real(dp) :: vij(3), sij(3)
   real(dp) :: vvij, tij, xij, oij
 
   pot = zero
+  pot2 = zero
   do its = 1, params % ngrid
     if (constants % ui(its,isph).lt.one) then
       do ij = constants % inl(isph), constants % inl(isph+1)-1
@@ -414,19 +418,25 @@ endsubroutine lpb_hsp
 
         if ( tij.lt.one ) then
           sij = vij/vvij
-          call ylmbas(sij, rho, ctheta, stheta, cphi, &
-                      & sphi, params % lmax, &
-                      & constants % vscales, basloc, &
-                      & vplm, vcos, vsin)
-          call inthsp(params, constants, vvij, params % rsph(jsph), jsph, &
-              & basloc, fac_hsp, bessel_work)
           xij = fsw(tij, params % se, params % eta)
           if (constants % fi(its,isph).gt.one) then
             oij = xij/constants % fi(its, isph)
           else
             oij = xij
           end if
-          pot(its) = pot(its) + oij*dot_product(fac_hsp,x(:,jsph))
+          ! The following commented code shall be turned into a baseline
+          ! version of the following fmm_m2p call
+          !call ylmbas(sij, rho, ctheta, stheta, cphi, &
+          !            & sphi, params % lmax, &
+          !            & constants % vscales, basloc, &
+          !            & vplm, vcos, vsin)
+          !call inthsp(params, constants, vvij, params % rsph(jsph), jsph, &
+          !    & basloc, fac_hsp, bessel_work)
+          !pot(its) = pot(its) + oij*dot_product(fac_hsp,x(:,jsph))
+          call fmm_m2p_bessel_first_kind_work(vij*params % kappa, &
+              & params % lmax, constants % vscales, &
+              & constants % SI_ri(:, jsph), oij, x(:, jsph), one, &
+              & pot(its), work_complex, work)
         end if
       end do
     end if
