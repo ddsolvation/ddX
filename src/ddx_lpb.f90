@@ -267,61 +267,56 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
     end do 
 end subroutine wghpot_f
 
-  !
-  ! Subroutine used for the GMRES solver
-  ! @param[in]      n : Size of the matrix
-  ! @param[in]      x : Input vector
-  ! @param[in, out] y : y=A*x
-  !
-  subroutine bx(params, constants, workspace, x, y)
-  implicit none 
+!
+! Subroutine used for the GMRES solver
+! @param[in]      n : Size of the matrix
+! @param[in]      x : Input vector
+! @param[in, out] y : y=A*x
+!
+subroutine bx(params, constants, workspace, x, y)
+    implicit none 
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
-  real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
-  integer :: isph, istatus
-  real(dp), allocatable :: pot(:), vplm(:), basloc(:), vcos(:), vsin(:)
-  integer :: i
-  ! allocate workspaces
-  allocate( pot(params % ngrid), vplm(constants % nbasis), basloc(constants % nbasis), &
-            & vcos(params % lmax+1), vsin(params % lmax+1) , stat=istatus )
-  if ( istatus.ne.0 ) then
-    write(*,*) 'Bx: allocation failed !'
-    stop
-  endif
-  
-!  if (ddx_data % iprint .ge. 5) then
-!      call prtsph('X', ddx_data % constants % nbasis, ddx_data % params % lmax, ddx_data % params % nsph, 0, &
-!          & x)
-!  end if
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, istatus
+    real(dp), allocatable :: pot(:), vplm(:), basloc(:), vcos(:), vsin(:)
+    integer :: i, ithread
+    ! allocate workspaces
+    allocate( pot(params % ngrid), vplm(constants % nbasis), basloc(constants % nbasis), &
+              & vcos(params % lmax+1), vsin(params % lmax+1) , stat=istatus )
+    if ( istatus.ne.0 ) then
+      write(*,*) 'Bx: allocation failed !'
+      stop
+    endif
 
-  y = zero
-  do isph = 1, params % nsph
-    call calcv2_lpb(params, constants, isph, pot, x, basloc, vplm, vcos, vsin, &
-        & workspace % tmp_bessel(:, 1))
-    ! intrhs comes from ddCOSMO
-    call intrhs(1, constants % nbasis, params % ngrid, &
-                constants % vwgrid, constants % vgrid_nbasis, &
-                & pot, y(:,isph) )
-    ! Action of off-diagonal blocks
-    y(:,isph) = - y(:,isph)
-    ! Add action of diagonal block
-    y(:,isph) = y(:,isph) + x(:,isph)
-  end do
-  
-!  if (ddx_data % iprint .ge. 5) then
-!      call prtsph('Bx (off-diagonal)', ddx_data % constants % nbasis, ddx_data % params % lmax, &
-!          & ddx_data % params % nsph, 0, y)
-!  end if
-  deallocate( pot, basloc, vplm, vcos, vsin , stat=istatus )
-  if ( istatus.ne.0 ) then
-    write(*,*) 'bx: allocation failed !'
-    stop
-  endif
-  end subroutine bx
+    y = zero
+    !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+    !$omp private(isph,pot,basloc,vplm,vcos,vsin,ithread)
+    do isph = 1, params % nsph
+      ithread = omp_get_thread_num()
+      call calcv2_lpb(params, constants, isph, pot, x, basloc, vplm, vcos, vsin, &
+          & workspace % tmp_bessel(:, ithread))
+      ! intrhs comes from ddCOSMO
+      call intrhs(1, constants % nbasis, params % ngrid, &
+                  constants % vwgrid, constants % vgrid_nbasis, &
+                  & pot, y(:,isph) )
+      ! Action of off-diagonal blocks
+      y(:,isph) = - y(:,isph)
+      ! Add action of diagonal block
+      y(:,isph) = y(:,isph) + x(:,isph)
+    end do
+    !$omp end parallel do
+
+    deallocate( pot, basloc, vplm, vcos, vsin , stat=istatus )
+    if ( istatus.ne.0 ) then
+      write(*,*) 'bx: allocation failed !'
+      stop
+    endif
+end subroutine bx
 
 !!
 !! Scale the ddCOSMO solution vector
@@ -799,13 +794,13 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
 
     ! perform A^-1 * Yr
     tt0 = omp_get_wtime()
-    write(11,*) x(:,:,1)
     call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), ddcosmo_guess, &
         & n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
     ! Scale by the factor of (2l+1)/4Pi
     y(:,:,1) = ddcosmo_guess
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
     tt1 = omp_get_wtime()
+    write(6,*) '@direct@cosmo', tt1 - tt0
 
     ! perform B^-1 * Ye
     tt0 = omp_get_wtime()
@@ -813,6 +808,8 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
         & n_iter, r_norm, bx, info)
     y(:,:,2) = hsp_guess
     tt1 = omp_get_wtime()
+    write(6,*) '@direct@hsp', tt1 - tt0
+
 
 end subroutine lpb_direct_prec
 
