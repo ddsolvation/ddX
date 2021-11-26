@@ -637,21 +637,30 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     call intrhs(params % nsph, constants % nbasis, &
         & params % ngrid, constants % vwgrid, &
         & constants % vgrid_nbasis, f, rhs_e_init)
-    rhs_r_init = rhs_r_init + rhs_e_init
     tt1 = omp_get_wtime()
     write(6,*) '@direct@intrhs', tt1 - tt0
 
-    rhs(:,:,1) = rhs_r_init
-    rhs(:,:,2) = rhs_e_init
+    rhs(:,:,1) = rhs_r_init + rhs_e_init
+    rhs(:,:,2) = rhs_r_init
 
+    write(9,*) rhs
     ! guess
     call lpb_direct_prec(params, constants, workspace, rhs, x)
+    write(10,*) x
 
     ! solve LS using Jacobi/DIIS
     n_iter = params % maxiter
     call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
         & 1, params % jacobi_ndiis, 3, tol, rhs, x, n_iter, &
         & ok, lpb_direct_matvec, lpb_direct_prec)
+
+    xr = x(:,:,1)
+    xe = x(:,:,2)
+
+    esolv = zero
+    do isph = 1, params % nsph
+      esolv = esolv + pt5*params % charge(isph)*Xr(1,isph)*(one/sqrt4pi)
+    end do
 end subroutine ddx_lpb_solve
 
 ! Perform |Yr| = |C1 C2|*|Xr|
@@ -797,6 +806,7 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     tt0 = omp_get_wtime()
     call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), ddcosmo_guess, &
         & n_iter, x_rel_diff, lx, ldm1x, hnorm, info)
+    write(11,*) ddcosmo_guess
     ! Scale by the factor of (2l+1)/4Pi
     y(:,:,1) = ddcosmo_guess
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
@@ -807,6 +817,7 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     tt0 = omp_get_wtime()
     call gmresr(params, constants, workspace, inner_tol, x(:,:,1), hsp_guess, &
         & n_iter, r_norm, bx, info)
+    write(12,*) hsp_guess
     y(:,:,2) = hsp_guess
     tt1 = omp_get_wtime()
     write(6,*) '@direct@hsp', tt1 - tt0
