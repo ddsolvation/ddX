@@ -13,6 +13,7 @@ module ddx_lpb
 use ddx_core
 use ddx_operators
 use ddx_solvers
+use ddx_solvers_old, only : jacobi_diis_old
 implicit none
 !!
 !! Logical variables for iterations
@@ -620,6 +621,7 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     real(dp) :: old_esolv, inc
 
     real(dp), dimension(constants % nbasis, params % nsph, 2) :: rhs, x
+    logical :: ok
 
     ! Setting of the local variables
     old_esolv = zero; inc = zero
@@ -647,9 +649,9 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
 
     ! solve LS using Jacobi/DIIS
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, tol, x, rhs, &
-        & n_iter, x_rel_diff, lpb_direct_matvec, lpb_direct_prec, &
-        & hnorm, info)
+    call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
+        & 1, params % jacobi_ndiis, 3, tol, rhs, x, n_iter, &
+        & ok, lpb_direct_matvec, lpb_direct_prec)
 end subroutine ddx_lpb_solve
 
 ! Perform |Yr| = |C1 C2|*|Xr|
