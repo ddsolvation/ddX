@@ -42,6 +42,10 @@ project(ddX VERSION ${VERSION} LANGUAGES Fortran CXX)
 # Extend path for additional cmake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+set(CMAKE_C_COMPILER gcc)
+set(CMAKE_CPP_COMPILER g++)
+set(CMAKE_FORTRAN_COMPILER gfortran)
+
 ###############################################################################
 ##                REQUIREMENTS: OpenMP, BLAS AND LAPACK                      ##
 ###############################################################################

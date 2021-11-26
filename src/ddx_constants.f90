@@ -264,7 +264,11 @@ subroutine constants_init(params, constants, info)
     ! Maximal number of modeling spherical harmonics
     constants % nbasis = (params % lmax+1) ** 2
     ! Maximal number of modeling degrees of freedom
-    constants % n = params % nsph * constants % nbasis
+    if (params % model .eq. 3) then
+        constants % n = 2 * params % nsph * constants % nbasis
+    else
+        constants % n = params % nsph * constants % nbasis
+    end if
     ! Calculate dmax, vgrid_dmax, m2p_lmax, m2p_nbasis and grad_nbasis
     if (params % fmm .eq. 0) then
         constants % dmax = params % lmax
