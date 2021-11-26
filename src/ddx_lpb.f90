@@ -643,10 +643,8 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     rhs(:,:,1) = rhs_r_init + rhs_e_init
     rhs(:,:,2) = rhs_e_init
 
-    write(9,*) rhs
     ! guess
     call lpb_direct_prec(params, constants, workspace, rhs, x)
-    write(10,*) x
 
     ! solve LS using Jacobi/DIIS
     n_iter = params % maxiter
@@ -804,22 +802,17 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     write(11,*) x(:,:,1)
     call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), ddcosmo_guess, &
         & n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
-    write(12,*) ddcosmo_guess
     ! Scale by the factor of (2l+1)/4Pi
     y(:,:,1) = ddcosmo_guess
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
     tt1 = omp_get_wtime()
-    write(6,*) '@direct@ddcosmo', tt1 - tt0
 
     ! perform B^-1 * Ye
     tt0 = omp_get_wtime()
-    write(13,*) x(:,:,2)
     call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
         & n_iter, r_norm, bx, info)
-    write(14,*) hsp_guess
     y(:,:,2) = hsp_guess
     tt1 = omp_get_wtime()
-    write(6,*) '@direct@hsp', tt1 - tt0
 
 end subroutine lpb_direct_prec
 
