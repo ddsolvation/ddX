@@ -497,89 +497,6 @@ endsubroutine lpb_hsp
   end do
   endsubroutine inthsp
 
-  !
-  ! Update the RHS in outer iteration
-  ! @param[in] rhs_cosmo_init : G_0
-  ! @param[in] rhs_hsp_init   : F_0
-  ! @param[in, out] rhs_cosmo : -C_1*X_r^(k-1) - C_2*X_e^(k-1) + G_0 + F_0
-  ! @param[in, out] rhs_hsp   : -C_1*X_r^(k-1) - C_2*X_e^(k-1) + F_0
-  ! @param[in] Xr             : X_r^(k-1)
-  ! @param[in] Xe             : X_e^(k-1)
-  !
-  subroutine update_rhs(params, constants, rhs_cosmo_init, rhs_hsp_init, rhs_cosmo, & 
-      & rhs_hsp, Xr, Xe)
-  implicit none
-  type(ddx_params_type), intent(in)  :: params
-  type(ddx_constants_type), intent(in)  :: constants
-  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: rhs_cosmo_init, &
-      & rhs_hsp_init
-  real(dp), dimension(constants % nbasis, params % nsph), intent(inout) :: rhs_cosmo, rhs_hsp
-  real(dp), dimension(constants % nbasis, params % nsph) :: rhs_plus
-  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xr, Xe
-  integer :: isph, jsph, igrid, icav, ind, l, m, ind0, istatus
-  real(dp), dimension(3) :: vij
-  real(dp), dimension(constants % nbasis, params % nsph) :: diff_re_c1_c2
-  real(dp), dimension(constants % nbasis0, params % nsph) :: diff0
-  real(dp), dimension(constants % nbasis, constants % nbasis, params % nsph) :: smat
-  real(dp), dimension(constants % ncav) :: diff_ep
-  real(dp) :: Qval, rijn, val
-  integer :: c0, cr, c_qmat, c_init, c_ep0, c_ep1 !, nbasis_appro
-      
-  ! diff_re = epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
-  diff_re_c1_c2 = zero
-  do jsph = 1, params % nsph
-    do l = 0, params % lmax
-      do m = -l,l
-        ind = l**2 + l + m + 1
-        diff_re_c1_c2(ind,jsph) = ((epsp/params % eps)*&
-                                & (l/params % rsph(jsph)) * &
-                                & Xr(ind,jsph) - constants % termimat(l,jsph)*Xe(ind,jsph))
-      end do
-    end do
-  end do
-
-  ! diff0 = Pchi * diff_er, linear scaling
-  ! TODO: probably doing PX on the fly is better 
-  diff0 = zero 
-  do jsph = 1, params % nsph
-    do ind0 = 1, constants % nbasis0
-      diff0(ind0, jsph) = dot_product(diff_re_c1_c2(:,jsph), &
-          & constants % Pchi(:,ind0, jsph))
-    end do
-  end do
-
-  ! diff_ep = diff0 * coefY,    COST: M^2*nbasis*Nleb
-  diff_ep = zero
-  do icav = 1, constants % ncav
-    val = zero
-    do jsph = 1, params % nsph 
-      do ind0 = 1, constants % nbasis0
-        val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
-      end do
-    end do
-    diff_ep(icav) = val
-  end do
-
-  rhs_plus = zero
-  icav = 0
-  do isph = 1, params % nsph
-    do igrid = 1, params % ngrid
-      if (constants % ui(igrid,isph).gt.zero) then
-        icav = icav + 1
-        do ind = 1, constants % nbasis
-          rhs_plus(ind,isph) = rhs_plus(ind,isph) + &
-              & constants % coefvec(igrid,ind,isph)*diff_ep(icav)
-        end do
-      end if
-    end do
-  end do
-
-  rhs_cosmo = rhs_cosmo_init - rhs_plus
-  rhs_hsp = rhs_hsp_init - rhs_plus
-
-  return
-  end subroutine update_rhs  
-
 !
 ! Computation for Solvation energy
 ! @param[in]  ddx_data   : Input data file
@@ -718,7 +635,7 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
     ! avoiding N^2 storage, this code does not use the cached coefY
     tt0 = omp_get_wtime()
     y(:,:,1) = zero
-    !$omp parallel do default(none) shared(params,constants,zero, &
+    !$omp parallel do default(none) shared(params,constants, &
     !$omp diff0,y) private(isph,igrid,val,vij,rijn,sijn,SK_rijn, &
     !$omp DK_rijn,work,rho,ctheta,stheta,cphi,sphi,basloc,vplm, &
     !$omp vcos,vsin,l0,term,m0,ind0,ind)
@@ -809,7 +726,6 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     y(:,:,2) = hsp_guess
     tt1 = omp_get_wtime()
     write(6,*) '@direct@hsp', tt1 - tt0
-
 
 end subroutine lpb_direct_prec
 
