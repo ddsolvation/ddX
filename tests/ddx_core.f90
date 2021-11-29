@@ -1671,30 +1671,35 @@ subroutine check_m2m_bessel(p)
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
     real(dp) :: src_m((p+1)**2), dst_m((p+1)**2), vscales((p+1)**2), &
         & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
-        tmp(p+1)
+        tmp(p+1), work(p+1), src_sk(p+1), dst_sk(p+1)
+    complex(dp) :: work_complex(max(2, p+1))
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
     call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
     x = 75d0 * (/one, -1.1d0, one/)
-    src_c = 1.01d0 * (/zero, one, one/)
+    src_c = 1.01d0 * (/-one, one, one/)
     src_r = one
     dst_r = src_r + dnrm2(3, src_c, 1)
     src_m = zero
     do i = 3, p
-        !src_m(i*i+i+1+2) = 10d0 ** (-i)
+        !src_m(i*i+i+1) = 10d0 ** (-i)
         src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
     end do
     !src_m = one
-    call fmm_m2p_bessel_baseline(x-src_c, -one, p, vscales, one, src_m, &
+    call modified_spherical_bessel_second_kind(p, src_r, src_sk, work, &
+        & work_complex)
+    call modified_spherical_bessel_second_kind(p, dst_r, dst_sk, work, &
+        & work_complex)
+    call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
         & zero, dst_v)
-    call fmm_m2m_bessel_rotation(src_c, -one, -one, p, vscales, vcnk, one, &
+    call fmm_m2m_bessel_rotation(-src_c, src_sk, dst_sk, p, vscales, vcnk, one, &
         & src_m, zero, dst_m)
-    call fmm_m2p_bessel_baseline(x-2*src_c, -one, p, vscales, one, dst_m, zero, &
+    call fmm_m2p_bessel_baseline(x, dst_r, p, vscales, one, dst_m, zero, &
         & dst_v2)
-    call fmm_m2m_bessel_rotation(-src_c, -one, -one, p, vscales, vcnk, one, &
+    call fmm_m2m_bessel_rotation(src_c, dst_sk, src_sk, p, vscales, vcnk, one, &
         & dst_m, zero, src_m)
-    call fmm_m2p_bessel_baseline(x-src_c, -one, p, vscales, one, src_m, &
+    call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
         & zero, dst_v3)
     write(*, *) dst_v, dst_v2, dst_v3
 end subroutine check_m2m_bessel
@@ -3005,21 +3010,18 @@ subroutine fmm_m2p_bessel_baseline(c, src_r, p, vscales, alpha, &
     call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
     ! Get values of the second kind Bessel function
     rho = dnrm2(3, c, 1)
-    call modified_spherical_bessel_second_kind(p, rho, sk, dk, work)
-    !call modified_spherical_bessel_second_kind(p, src_r, src_sk, dk, work)
     ! In case of a singularity (rho=zero) induced potential is infinite and is
     ! not taken into account.
-    rho = dnrm2(3, c, 1)
     if (rho .eq. zero) then
         return
     end if
+    call modified_spherical_bessel_second_kind(p, rho, sk, dk, work)
+    call modified_spherical_bessel_second_kind(p, src_r, src_sk, dk, work)
     ! Compute the actual induced potential
     do n = 0, p
         ind = n*n + n + 1
         tmp = dot_product(vylm(ind-n:ind+n), src_m(ind-n:ind+n))
-        ! Here vscales(ind)**2 is 4*pi/sqrt(2n+1)
-        !dst_v = dst_v + alpha*sk(n+1)/src_sk(n+1)*tmp
-        dst_v = dst_v + alpha*sk(n+1)*tmp
+        dst_v = dst_v + alpha*sk(n+1)/src_sk(n+1)*tmp
     end do
 end subroutine fmm_m2p_bessel_baseline
 
