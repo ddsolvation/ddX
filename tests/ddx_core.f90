@@ -1182,7 +1182,7 @@ subroutine check_m2p_m2l(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. 4d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
@@ -1191,7 +1191,7 @@ subroutine check_m2p_m2l(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. 4d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
@@ -1201,7 +1201,7 @@ subroutine check_m2p_m2l(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. 4d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
@@ -1213,7 +1213,7 @@ subroutine check_m2p_m2l(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 3d-15
+        ok = err .lt. 4d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
@@ -1822,7 +1822,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), zero, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 1d-14
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
@@ -1831,7 +1831,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), zero, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, three*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 1d-14
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta=one
@@ -1841,7 +1841,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), one, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 1d-14
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
@@ -1851,7 +1851,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), -pt5, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, pt5*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 1d-14
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
@@ -1861,7 +1861,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), pt5, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, two*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 1d-14
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
     end do
