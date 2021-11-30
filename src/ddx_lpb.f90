@@ -13,7 +13,7 @@ module ddx_lpb
 use ddx_core
 use ddx_operators
 use ddx_solvers
-use ddx_solvers_old, only : jacobi_diis_old
+use ddx_solvers_old, only : jacobi_diis_old, gmresr_old
 implicit none
 !!
 !! Logical variables for iterations
@@ -562,6 +562,9 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     real(dp), dimension(constants % nbasis, params % nsph, 2) :: rhs, x
     logical :: ok
 
+    real(dp), dimension(2*constants % n*(2*params % gmresr_j + 2)) :: gmres_work
+    real(dp) :: gmres_resid
+
     ! Setting of the local variables
     old_esolv = zero; inc = zero
     rhs_r_init = zero; rhs_e_init = zero
@@ -591,6 +594,10 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
         & 4, params % jacobi_ndiis, 1, tol, rhs, x, n_iter, &
         & ok, lpb_direct_matvec, lpb_direct_prec)
+    !n_iter = params % maxiter
+    !call gmresr_old(params, constants, workspace, .true., 2*constants % n, &
+    !    & params % gmresr_j, 0, rhs, x, gmres_work, tol, 'rel', n_iter, &
+    !    & gmres_resid, lpb_direct_matvec_full, info)
 
     xr = x(:,:,1)
     xe = x(:,:,2)
@@ -600,6 +607,25 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
       esolv = esolv + pt5*params % charge(isph)*Xr(1,isph)*(one/sqrt4pi)
     end do
 end subroutine ddx_lpb_solve
+
+subroutine lpb_direct_matvec_full(params, constants, workspace, x, y)
+    implicit none
+
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
+    real(dp), dimension(constants % nbasis, params % nsph, 2) :: scratch
+
+    call lpb_direct_matvec(params, constants, workspace, x, y)
+    call lx(params, constants, workspace, x(:,:,1), scratch(:,:,1))
+    call bx(params, constants, workspace, x(:,:,2), scratch(:,:,2))
+    y = y + scratch
+
+end subroutine lpb_direct_matvec_full
+
 
 ! Perform |Yr| = |C1 C2|*|Xr|
 !         |Ye|   |C1 C2| |Xe|

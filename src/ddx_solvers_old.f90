@@ -469,7 +469,7 @@ end subroutine gjinv
 ! iflag  == INTEGER on output 0 - solution found within tolerance
 !                             1 - no convergence within maxits
 
-subroutine gmresr(ddx_data, oktest, n, j, mgmres, b, x, work, eps, stc,&
+subroutine gmresr_old(params, constants, workspace, oktest, n, j, mgmres, b, x, work, eps, stc,&
                 & maxits, resid, matvec, iflag)
 ! ----------------------------------------------------------
 ! subroutines used
@@ -492,12 +492,14 @@ subroutine gmresr(ddx_data, oktest, n, j, mgmres, b, x, work, eps, stc,&
 !     list of variables: arrays in alphabetical order,
 !     then other variables in alphabetical order
 
-      type(ddx_type), intent(in)  :: ddx_data
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
       logical oktest
       character*3 stc
 
       integer i,iflag,its,nits,itsinn,j,k,mgmres,n
-      real(dp) maxits
+      integer maxits
 
       double precision b(n), x(n), work(n,0 : 2*j+mgmres+2 -1), & 
                        & alpha, alphai, cknorm, ckres, ddot, dnrm2, &
@@ -550,7 +552,7 @@ subroutine gmresr(ddx_data, oktest, n, j, mgmres, b, x, work, eps, stc,&
       nits= 0
       its = 0
 !     Calculate (initial) residual norm
-      call matvec(ddx_data, n, x,work(1,workres))
+      call matvec(params, constants, workspace, x,work(1,workres))
       alpha = -1
 !
       call daxpy(n,alpha,b,1,work(1,workres),1)
@@ -609,7 +611,8 @@ subroutine gmresr(ddx_data, oktest, n, j, mgmres, b, x, work, eps, stc,&
          if (mgmres.eq.0) then
 !           u(1,k) := resid  
             call dcopy(n,work(1,workres),1,work(1,u+mod(k,j)),1)
-            call matvec(ddx_data, n, work(1,u+mod(k,j)), work(1,c+mod(k,j)))
+            call matvec(params, constants, workspace, work(1,u+mod(k,j)), &
+                & work(1,c+mod(k,j)))
             nits=nits+1
          else
 !           Solve linear system A*u(1,k)=resid by GMRES
@@ -632,7 +635,7 @@ subroutine gmresr(ddx_data, oktest, n, j, mgmres, b, x, work, eps, stc,&
 
             itsinn=mgmres
 
-            call gmres0(ddx_data, oktest, n, mgmres, &
+            call gmres0_old(params, constants, workspace, oktest, n, mgmres, &
                        & work(1,workres),work(1,u+mod(k,j)), &
                        & work(1,c+mod(k,j)),work(1,workgmre), &
                        & epsinn,itsinn,matvec)
@@ -747,9 +750,12 @@ subroutine gmresr(ddx_data, oktest, n, j, mgmres, b, x, work, eps, stc,&
 ! Please keep it in mind changing maxdim
 !-------------------------------------------------------------
 !=============================================================================
-subroutine gmres0(ddx_data, oktest, n, im, rhs, uu, cc, work0, eps, maxits, matvec)
+subroutine gmres0_old(params, constants, workspace, oktest, n, im, rhs, uu, cc, work0, &
+      & eps, maxits, matvec)
 
-      type(ddx_type), intent(in)  :: ddx_data
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
       integer maxdim,maxd1,md1max
       parameter (maxdim=20, maxd1=maxdim+1, md1max=maxdim*maxd1)
       external matvec
@@ -792,7 +798,7 @@ subroutine gmres0(ddx_data, oktest, n, im, rhs, uu, cc, work0, eps, maxits, matv
 
          ro = dnrm2 (n, work0, 1)
          if ((ro .eq. 0.0d0).or.(ro .le. eps)) then
-            call matvec(ddx_data, n, uu, cc)
+            call matvec(params, constants, workspace, uu, cc)
             eps = ro
             maxits = its 
             return
@@ -811,7 +817,7 @@ subroutine gmres0(ddx_data, oktest, n, im, rhs, uu, cc, work0, eps, maxits, matv
             i=i+1
             its = its + 1
             i1 = i + 1
-            call  matvec(ddx_data, n, work0(1,i), work0(1,i1))
+            call  matvec(params, constants, workspace, work0(1,i), work0(1,i1))
 !           -----------------------------------------
 !           modified gram - schmidt...
 !           -----------------------------------------
