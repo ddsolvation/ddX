@@ -187,13 +187,13 @@ subroutine jacobi_diis_old(params, constants, workspace, n, lprint, diis_max, no
 !       printing
         if ( lprint.gt.0 ) then
            if (norm.eq.1) then
-             write(*,110) it, 'max', max_norm_diff/max_norm
+             write(6,110) it, 'max', max_norm_diff/max_norm
            else if (norm.eq.2) then
-             write(*,110) it, 'rms', rms_norm_diff/rms_norm
+             write(6,110) it, 'rms', rms_norm_diff/rms_norm
            else if (norm.eq.3) then
-             write(*,100) it, rms_norm_diff/rms_norm, max_norm_diff/max_norm
+             write(6,100) it, rms_norm_diff/rms_norm, max_norm_diff/max_norm
            else if (norm.eq.4) then
-             write(*,120) it, rms_norm_diff/rms_norm
+             write(6,120) it, rms_norm_diff/rms_norm
            end if
          end if
   100   format(t3,'iter=',i4,' residual norm (rms,max): ', 2d14.4 )

@@ -285,38 +285,65 @@ subroutine bx(params, constants, workspace, x, y)
     integer :: isph, istatus
     real(dp), allocatable :: pot(:), vplm(:), basloc(:), vcos(:), vsin(:)
     integer :: i, ithread
-    ! allocate workspaces
-    allocate( pot(params % ngrid), vplm(constants % nbasis), basloc(constants % nbasis), &
-              & vcos(params % lmax+1), vsin(params % lmax+1) , stat=istatus )
-    if ( istatus.ne.0 ) then
-      write(*,*) 'Bx: allocation failed !'
-      stop
-    endif
 
     y = zero
-    !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-    !$omp private(isph,pot,basloc,vplm,vcos,vsin,ithread)
+    !!$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+    !!$omp private(isph,pot,basloc,vplm,vcos,vsin,ithread)
     do isph = 1, params % nsph
-      ithread = omp_get_thread_num()
-      call calcv2_lpb(params, constants, isph, pot, x, basloc, vplm, vcos, vsin, &
-          & workspace % tmp_bessel(:, ithread))
+      !!ithread = omp_get_thread_num()
+      call calcv2_lpb(params, constants, isph, workspace % tmp_grid, x, &
+          & workspace % tmp_vylm, workspace % tmp_vplm, workspace % tmp_vcos, &
+          & workspace % tmp_vsin, workspace % tmp_bessel)
       ! intrhs comes from ddCOSMO
       call intrhs(1, constants % nbasis, params % ngrid, &
                   constants % vwgrid, constants % vgrid_nbasis, &
-                  & pot, y(:,isph) )
+                  & workspace % tmp_grid, y(:,isph) )
       ! Action of off-diagonal blocks
       y(:,isph) = - y(:,isph)
       ! Add action of diagonal block
       y(:,isph) = y(:,isph) + x(:,isph)
     end do
-    !$omp end parallel do
+    !!$omp end parallel do
 
-    deallocate( pot, basloc, vplm, vcos, vsin , stat=istatus )
-    if ( istatus.ne.0 ) then
-      write(*,*) 'bx: allocation failed !'
-      stop
-    endif
 end subroutine bx
+
+subroutine bx_nodiag(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph
+
+    y = zero
+    !!$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+    !!$omp private(isph,pot,basloc,vplm,vcos,vsin,ithread)
+    do isph = 1, params % nsph
+      !!ithread = omp_get_thread_num()
+      call calcv2_lpb(params, constants, isph, workspace % tmp_grid, x, &
+          & workspace % tmp_vylm, workspace % tmp_vplm, workspace % tmp_vcos, &
+          & workspace % tmp_vsin, workspace % tmp_bessel)
+      ! intrhs comes from ddCOSMO
+      call intrhs(1, constants % nbasis, params % ngrid, &
+                  constants % vwgrid, constants % vgrid_nbasis, &
+                  & workspace % tmp_grid, y(:,isph) )
+      ! Action of off-diagonal blocks
+      y(:,isph) = - y(:,isph)
+    end do
+    !!$omp end parallel do
+end subroutine bx_nodiag
+
+subroutine bx_prec(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    y = x
+end subroutine bx_prec
+
 
 !!
 !! Scale the ddCOSMO solution vector
@@ -539,7 +566,7 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     old_esolv = zero; inc = zero
     rhs_r_init = zero; rhs_e_init = zero
     g0 = zero; f0 = zero
-    inner_tol = tol
+    inner_tol = tol/10.0d0
 
     ! integrate RHS
     tt0 = omp_get_wtime()
@@ -557,11 +584,12 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
 
     ! guess
     call lpb_direct_prec(params, constants, workspace, rhs, x)
+    x = zero
 
     ! solve LS using Jacobi/DIIS
     n_iter = params % maxiter
     call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
-        & 1, params % jacobi_ndiis, 3, tol, rhs, x, n_iter, &
+        & 4, params % jacobi_ndiis, 1, tol, rhs, x, n_iter, &
         & ok, lpb_direct_matvec, lpb_direct_prec)
 
     xr = x(:,:,1)
@@ -603,8 +631,8 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
     ! diff_re = epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
     tt0 = omp_get_wtime()
     diff_re = zero
-    !$omp parallel do default(none) shared(params,diff_re, &
-    !$omp constants,x) private(jsph,l,m,ind)
+    !!$omp parallel do default(none) shared(params,diff_re, &
+    !!$omp constants,x) private(jsph,l,m,ind)
     do jsph = 1, params % nsph
       do l = 0, params % lmax
         do m = -l,l
@@ -615,30 +643,30 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
         end do
       end do
     end do
-    !$omp end parallel do
+    !!$omp end parallel do
     tt1 = omp_get_wtime()
     write(6,*) '@direct@matvec1', tt1 - tt0
 
     ! diff0 = Pchi * diff_er, linear scaling
     tt0 = omp_get_wtime()
-    !$omp parallel do default(none) shared(constants,params, &
-    !$omp diff_re,diff0) private(jsph)
+    !!$omp parallel do default(none) shared(constants,params, &
+    !!$omp diff_re,diff0) private(jsph)
     do jsph = 1, params % nsph
       call dgemv('t', constants % nbasis, constants % nbasis0, one, &
           & constants % pchi(1,1,jsph), constants % nbasis, &
           & diff_re(1,jsph), 1, zero, diff0(1,jsph), 1)
     end do
-    !$omp end parallel do
+    !!$omp end parallel do
     tt1 = omp_get_wtime()
     write(6,*) '@direct@matvec2', tt1 - tt0
 
     ! avoiding N^2 storage, this code does not use the cached coefY
     tt0 = omp_get_wtime()
     y(:,:,1) = zero
-    !$omp parallel do default(none) shared(params,constants, &
-    !$omp diff0,y) private(isph,igrid,val,vij,rijn,sijn,SK_rijn, &
-    !$omp DK_rijn,work,rho,ctheta,stheta,cphi,sphi,basloc,vplm, &
-    !$omp vcos,vsin,l0,term,m0,ind0,ind)
+    !!$omp parallel do default(none) shared(params,constants, &
+    !!$omp diff0,y) private(isph,igrid,val,vij,rijn,sijn,SK_rijn, &
+    !!$omp DK_rijn,work,rho,ctheta,stheta,cphi,sphi,basloc,vplm, &
+    !!$omp vcos,vsin,l0,term,m0,ind0,ind)
     do isph = 1, params % nsph
       do igrid = 1, params % ngrid
         if (constants % ui(igrid,isph).gt.zero) then
@@ -678,7 +706,7 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
         end if
       end do
     end do
-    !$omp end parallel do
+    !!$omp end parallel do
     tt1 = omp_get_wtime()
     write(6,*) '@direct@matvec3', tt1 - tt0
 
@@ -711,21 +739,33 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
 
     ! perform A^-1 * Yr
     tt0 = omp_get_wtime()
+    !call prtsph('cosmo rhs', constants % nbasis, params % lmax, params % nsph, &
+    !    & 0, x(:,:,1))
     call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), ddcosmo_guess, &
         & n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
+    !call prtsph('cosmo sol', constants % nbasis, params % lmax, params % nsph, &
+    !    & 0, ddcosmo_guess)
     ! Scale by the factor of (2l+1)/4Pi
     y(:,:,1) = ddcosmo_guess
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
     tt1 = omp_get_wtime()
-    write(6,*) '@direct@cosmo', tt1 - tt0
+    write(6,*) '@direct@cosmo', tt1 - tt0, n_iter
 
     ! perform B^-1 * Ye
     tt0 = omp_get_wtime()
-    call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
-        & n_iter, r_norm, bx, info)
+    !call prtsph('hsp rhs', constants % nbasis, params % lmax, params % nsph, &
+    !    & 0, x(:,:,2))
+    !call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &
+    !    & 0, hsp_guess)
+    !call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+    !    & n_iter, r_norm, bx, info)
+    call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        & n_iter, x_rel_diff, bx_nodiag, bx_prec, hnorm, info)
+    !call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &
+    !    & 0, hsp_guess)
     y(:,:,2) = hsp_guess
     tt1 = omp_get_wtime()
-    write(6,*) '@direct@hsp', tt1 - tt0
+    write(6,*) '@direct@hsp', tt1 - tt0, n_iter
 
 end subroutine lpb_direct_prec
 
