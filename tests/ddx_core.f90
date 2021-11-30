@@ -20,7 +20,8 @@ integer :: p=30, i, j
 integer, parameter :: nx=13, nrand=10
 real(dp) :: x(3, nx)
 !real(dp) :: alpha(4)=(/1d0, -1d0, 1d-294, 1d+294/)
-real(dp) :: alpha(4)=(/1d0, -1d0, 1d-10, 1d+2/)
+!real(dp) :: alpha(4)=(/1d0, -1d0, 1d-10, 1d+2/)
+real(dp) :: alpha(2)=(/1d0, -1d0/)
 real(dp), external :: dnrm2
 
 ! Read argument (which tests to run)
