@@ -3164,7 +3164,7 @@ subroutine fmm_l2p_bessel_baseline(c, src_r, p, vscales, alpha, src_l, &
     real(dp) :: rho, vcos(p+1), vsin(p+1)
     real(dp) :: vylm((p+1)**2), vplm((p+1)**2), t, tmp
     real(dp) :: si(p+1), di(p+1), src_si(p+1)
-    complex(dp) :: work(p+1)
+    complex(dp) :: work(max(2, p+1))
     integer :: n, ind
     real(dp), external :: dnrm2
     ! Scale output
