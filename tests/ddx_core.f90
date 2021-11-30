@@ -20,7 +20,8 @@ integer :: p=30, i, j
 integer, parameter :: nx=13, nrand=10
 real(dp) :: x(3, nx)
 !real(dp) :: alpha(4)=(/1d0, -1d0, 1d-294, 1d+294/)
-real(dp) :: alpha(1)=(/1d-294/)
+!real(dp) :: alpha(4)=(/1d0, -1d0, 1d-10, 1d+2/)
+real(dp) :: alpha(2)=(/1d0, -1d0/)
 real(dp), external :: dnrm2
 
 ! Read argument (which tests to run)
@@ -36,11 +37,14 @@ else
         case ('polleg')
         case ('ylmbas')
         case ('m2p')
+        case ('m2p_bessel')
         case ('m2p_m2l')
         case ('m2p_adj')
         case ('l2p')
+        case ('l2p_bessel')
         case ('l2p_adj')
         case ('m2m')
+        case ('m2m_bessel')
         case ('m2m_adj')
         case ('l2l')
         case ('l2l_adj')
@@ -103,6 +107,15 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2p')) then
     end do
 end if
 
+! Check M2P Bessel
+if ((testname .eq. 'all') .or. (testname .eq. 'm2p_bessel')) then
+    do i = 1, size(alpha)
+        do j = 0, 20
+            call check_m2p_bessel(j, alpha(i))
+        end do
+    end do
+end if
+
 ! Check M2P against M2L with pl=0
 if ((testname .eq. 'all') .or. (testname .eq. 'm2p_m2l')) then
     do i = 1, size(alpha)
@@ -130,6 +143,15 @@ if ((testname .eq. 'all') .or. (testname .eq. 'l2p')) then
     end do
 end if
 
+! Check L2P Bessel
+if ((testname .eq. 'all') .or. (testname .eq. 'l2p_bessel')) then
+    do i = 1, size(alpha)
+        do j = 0, 20
+            call check_l2p_bessel(j, alpha(i))
+        end do
+    end do
+end if
+
 ! Check adjoint L2P
 if ((testname .eq. 'all') .or. (testname .eq. 'l2p_adj')) then
     do i = 1, size(alpha)
@@ -146,6 +168,17 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2m')) then
             call check_m2m(j, alpha(i))
         end do
     end do
+end if
+
+! Check M2M Bessel manually
+!if ((testname .eq. 'all') .or. (testname .eq. 'm2m_bessel')) then
+if (testname .eq. 'm2m_bessel') then
+    !do i = 1, size(alpha)
+    j = 20
+        !do j = 0, p
+            call check_m2m_bessel(j)
+        !end do
+    !end do
 end if
 
 ! Check adjoint M2M
@@ -985,6 +1018,104 @@ subroutine check_m2p(p, alpha)
     print "(A)", repeat("=", 40)
 end subroutine check_m2p
 
+! Check M2P Bessel
+subroutine check_m2p_bessel(p, alpha)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: alpha
+    ! Local variables
+    real(dp) :: y(3, nx), r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
+        & vscales_rel((p+1)**2), src_m((p+1)**2, nrand), dst_v(nrand), &
+        & dst_v2(nrand), err, threshold
+    logical :: ok
+    integer :: i, j, iseed(4)
+    real(dp), external :: dnrm2
+    ! Copy templated points with a proper multiplier
+    y = alpha / sqrt(13d-2) * x
+    r = abs(alpha)
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    ! Init random seed
+    iseed = (/0, 0, 0, 1/)
+    ! Generate src_m randomly
+    call dlarnv(3, iseed, nrand*((p+1)**2), src_m)
+    ! Print header
+    print "(/,A)", repeat("=", 40)
+    print "(A)", "Check M2P"
+    print "(A,I0)", " p=", p
+    print "(A,ES24.16E3)", " alpha=", alpha
+    print "(A)", repeat("=", 40)
+    print "(A)", "  i | ok | err(i)"
+    print "(A)", repeat("=", 40)
+    threshold = dble(p+3) * 3d-14
+    ! Check against the baseline, i=1 is ignored since y(:,1)=zero
+    do i = 2, nx
+        c = y(:, i)
+        ! Check alpha=beta=zero
+        do j = 1, nrand
+            call fmm_m2p_bessel(c, r, p, vscales, zero, src_m(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v2, 1)
+        ok = err .eq. zero
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha=one, beta=zero
+        do j = 1, nrand
+            call fmm_m2p_bessel_baseline(c, r, p, vscales, one, src_m(:, j), zero, &
+                & dst_v(j))
+            call fmm_m2p_bessel(c, r, p, vscales, one, src_m(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha!={zero,one}, beta=zero
+        do j = 1, nrand
+            call fmm_m2p_bessel_baseline(c, r, p, vscales, -three, src_m(:, j), &
+                & zero, dst_v(j))
+            call fmm_m2p_bessel(c, r, p, vscales, -three, src_m(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha=zero, beta=one
+        do j = 1, nrand
+            call fmm_m2p_bessel(c, r, p, vscales, zero, src_m(:, j), one, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha=zero, beta!={zero,one}
+        do j = 1, nrand
+            dst_v(j) = -pt5 * dst_v(j)
+            call fmm_m2p_bessel(c, r, p, vscales, zero, src_m(:, j), -pt5, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha!={zero,one}, beta!={zero,one}
+        do j = 1, nrand
+            call fmm_m2p_bessel_baseline(c, r, p, vscales, -three, src_m(:, j), pt5, &
+                & dst_v(j))
+            call fmm_m2p_bessel(c, r, p, vscales, -three, src_m(:, j), pt5, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+    end do
+    print "(A)", repeat("=", 40)
+end subroutine check_m2p_bessel
+
 ! Check M2P by M2L with pl=0
 subroutine check_m2p_m2l(p, alpha)
     ! Inputs
@@ -1052,7 +1183,7 @@ subroutine check_m2p_m2l(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. 4d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
@@ -1061,7 +1192,7 @@ subroutine check_m2p_m2l(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. 4d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
@@ -1071,7 +1202,7 @@ subroutine check_m2p_m2l(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. 4d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
@@ -1083,7 +1214,7 @@ subroutine check_m2p_m2l(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 3d-15
+        ok = err .lt. 4d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
@@ -1262,6 +1393,105 @@ subroutine check_l2p(p, alpha)
     print "(A)", repeat("=", 40)
 end subroutine check_l2p
 
+! Check L2P Bessel
+subroutine check_l2p_bessel(p, alpha)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: alpha
+    ! Local variables
+    real(dp) :: y(3, nx), r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
+        & vscales_rel((p+1)**2), src_l((p+1)**2, nrand), dst_v(nrand), &
+        & dst_v2(nrand), err, threshold
+    logical :: ok
+    integer :: i, j, iseed(4)
+    real(dp), external :: dnrm2
+    ! Copy templated points with a proper multiplier
+    y = 1.25d0 * alpha * x
+    r = abs(alpha)
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    ! Init random seed
+    iseed = (/0, 0, 0, 1/)
+    ! Generate src_m randomly
+    call dlarnv(3, iseed, nrand*((p+1)**2), src_l)
+    ! Print header
+    print "(/,A)", repeat("=", 40)
+    print "(A)", "Check L2P"
+    print "(A,I0)", " p=", p
+    print "(A,ES24.16E3)", " alpha=", alpha
+    print "(A)", repeat("=", 40)
+    print "(A)", "  i | ok | err(i)"
+    print "(A)", repeat("=", 40)
+    threshold = dble(p+1) * 2d-15
+    ! Check against the baseline
+    do i = 1, nx
+        c = y(:, i)
+        ! Check alpha=beta=zero
+        do j = 1, nrand
+            call fmm_l2p_bessel(c, r, p, vscales, zero, src_l(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v2, 1)
+        ok = err .eq. zero
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha=one, beta=zero
+        do j = 1, nrand
+            call fmm_l2p_bessel_baseline(c, r, p, vscales, one, src_l(:, j), zero, &
+                & dst_v(j))
+            call fmm_l2p_bessel(c, r, p, vscales, one, src_l(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha!={zero,one}, beta=zero
+        do j = 1, nrand
+            call fmm_l2p_bessel_baseline(c, r, p, vscales, -three, src_l(:, j), &
+                & zero, dst_v(j))
+            call fmm_l2p_bessel(c, r, p, vscales, -three, src_l(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha=zero, beta=one
+        do j = 1, nrand
+            call fmm_l2p_bessel(c, r, p, vscales, zero, src_l(:, j), one, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha=zero, beta!={zero,one}
+        do j = 1, nrand
+            call fmm_l2p_bessel_baseline(c, r, p, vscales, zero, src_l(:, j), -pt5, &
+                & dst_v(j))
+            call fmm_l2p_bessel(c, r, p, vscales, zero, src_l(:, j), -pt5, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha!={zero,one}, beta!={zero,one}
+        do j = 1, nrand
+            call fmm_l2p_bessel_baseline(c, r, p, vscales, -three, src_l(:, j), pt5, &
+                & dst_v(j))
+            call fmm_l2p_bessel(c, r, p, vscales, -three, src_l(:, j), pt5, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+    end do
+    print "(A)", repeat("=", 40)
+end subroutine check_l2p_bessel
+
 ! Check adjoint L2P
 subroutine check_l2p_adj(p, alpha)
     ! Inputs
@@ -1435,6 +1665,46 @@ subroutine check_m2m(p, alpha)
     print "(A)", repeat("=", 40)
 end subroutine check_m2m
 
+subroutine check_m2m_bessel(p)
+    ! Inputs
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
+    real(dp) :: src_m((p+1)**2), dst_m((p+1)**2), vscales((p+1)**2), &
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
+        tmp(p+1), work(p+1), src_sk(p+1), dst_sk(p+1)
+    complex(dp) :: work_complex(max(2, p+1))
+    real(dp), external :: dnrm2
+    integer :: i
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    x = 75d0 * (/one, -1.1d0, one/)
+    src_c = 1.01d0 * (/-one, one, one/)
+    src_r = one
+    dst_r = src_r + dnrm2(3, src_c, 1)
+    src_m = zero
+    do i = 3, p
+        !src_m(i*i+i+1) = 10d0 ** (-i)
+        src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+    end do
+    !src_m = one
+    call modified_spherical_bessel_second_kind(p, src_r, src_sk, work, &
+        & work_complex)
+    call modified_spherical_bessel_second_kind(p, dst_r, dst_sk, work, &
+        & work_complex)
+    call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
+        & zero, dst_v)
+    call fmm_m2m_bessel_rotation(-src_c, src_sk, dst_sk, p, vscales, vcnk, one, &
+        & src_m, zero, dst_m)
+    call fmm_m2p_bessel_baseline(x, dst_r, p, vscales, one, dst_m, zero, &
+        & dst_v2)
+    call fmm_m2m_bessel_rotation(src_c, dst_sk, src_sk, p, vscales, vcnk, one, &
+        & dst_m, zero, src_m)
+    call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
+        & zero, dst_v3)
+    write(*, *) dst_v, dst_v2, dst_v3
+end subroutine check_m2m_bessel
+
 ! Check adjoint M2M
 subroutine check_m2m_adj(p, alpha)
     ! Inputs
@@ -1553,7 +1823,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), zero, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 1d-14
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
@@ -1562,7 +1832,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), zero, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, three*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 1d-14
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta=one
@@ -1572,7 +1842,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), one, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 1d-14
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
@@ -1582,7 +1852,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), -pt5, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, pt5*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 1d-14
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
@@ -1592,7 +1862,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), pt5, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, two*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 1d-14
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
     end do
@@ -2616,6 +2886,58 @@ subroutine fmm_p2m_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
     end if
 end subroutine fmm_p2m_baseline
 
+subroutine fmm_p2m_bessel_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
+    ! Output
+    real(dp), intent(inout) :: dst_m((p+1)**2)
+    ! Local variables
+    real(dp) :: rho, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1), t
+    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), si(p+1), dst_sk(p+1), work(p+1)
+    real(dp), parameter :: eight=8d0
+    complex(dp) :: work_complex(max(2, p+1))
+    integer :: n, ind
+    ! Get radius and values of spherical harmonics
+    call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
+        & vcos, vsin)
+    ! Get Bessel function for the sphere
+    call modified_spherical_bessel_first_kind(p, dst_r, dst_sk, work, &
+        & work_complex)
+    ! Harmonics are available only if rho > 0
+    if (rho .ne. zero) then
+        call modified_spherical_bessel_second_kind(p, rho, si, work, &
+            & work_complex)
+        ! Ignore input `m` in case of zero scaling factor
+        if (beta .eq. zero) then
+            do n = 0, p
+                ind = n*n + n + 1
+                t = eight * src_q * si(n+1) * dst_sk(n+1)
+                dst_m(ind-n:ind+n) = t * vylm(ind-n:ind+n)
+            end do
+        ! Update `m` otherwise
+        else
+            do n = 0, p
+                ind = n*n + n + 1
+                t = eight * src_q * si(n+1) * dst_sk(n+1)
+                dst_m(ind-n:ind+n) = beta*dst_m(ind-n:ind+n) + &
+                    & t*vylm(ind-n:ind+n)
+            end do
+        end if
+    ! Naive case of rho = 0
+    else
+        ! Ignore input `m` in case of zero scaling factor
+        if (beta .eq. zero) then
+            dst_m(1) = eight * src_q * dst_sk(1)
+            dst_m(2:) = zero
+        ! Update `m` otherwise
+        else
+            dst_m(1) = beta*dst_m(1) + eight*src_q*dst_sk(1)
+            dst_m(2:) = beta * dst_m(2:)
+        end if
+    end if
+end subroutine fmm_p2m_bessel_baseline
+
 subroutine fmm_m2p_baseline(c, src_r, p, vscales, alpha, src_m, beta, dst_v)
     ! Inputs
     integer, intent(in) :: p
@@ -2658,6 +2980,51 @@ subroutine fmm_m2p_baseline(c, src_r, p, vscales, alpha, src_m, beta, dst_v)
         dst_v = dst_v + t*tmp/vscales(ind)**2
     end do
 end subroutine fmm_m2p_baseline
+
+subroutine fmm_m2p_bessel_baseline(c, src_r, p, vscales, alpha, &
+        & src_m, beta, dst_v)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_r, vscales((p+1)*(p+1)), alpha, &
+        & src_m((p+1)*(p+1)), beta
+    ! Output
+    real(dp), intent(inout) :: dst_v
+    ! Local variables
+    real(dp) :: rho, vcos(p+1), vsin(p+1)
+    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), rcoef, t, tmp
+    real(dp) :: sk(p+1), dk(p+1), src_sk(p+1)
+    complex(dp) :: work(max(2, p+1))
+    integer :: n, ind
+    real(dp), external :: dnrm2
+    ! Scale output
+    if (beta .eq. zero) then
+        dst_v = zero
+    else
+        dst_v = beta * dst_v
+    end if
+    ! In case of zero alpha nothing else is required no matter what is the
+    ! value of the induced potential
+    if (alpha .eq. zero) then
+        return
+    end if
+    ! Get radius and values of spherical harmonics
+    call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
+    ! Get values of the second kind Bessel function
+    rho = dnrm2(3, c, 1)
+    ! In case of a singularity (rho=zero) induced potential is infinite and is
+    ! not taken into account.
+    if (rho .eq. zero) then
+        return
+    end if
+    call modified_spherical_bessel_second_kind(p, rho, sk, dk, work)
+    call modified_spherical_bessel_second_kind(p, src_r, src_sk, dk, work)
+    ! Compute the actual induced potential
+    do n = 0, p
+        ind = n*n + n + 1
+        tmp = dot_product(vylm(ind-n:ind+n), src_m(ind-n:ind+n))
+        dst_v = dst_v + alpha*sk(n+1)/src_sk(n+1)*tmp
+    end do
+end subroutine fmm_m2p_bessel_baseline
 
 subroutine fmm_m2p_adj_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
     ! Inputs
@@ -2785,6 +3152,46 @@ subroutine fmm_l2p_baseline(c, src_r, p, vscales, alpha, src_l, beta, dst_v)
     end if
 end subroutine fmm_l2p_baseline
 
+subroutine fmm_l2p_bessel_baseline(c, src_r, p, vscales, alpha, src_l, &
+        & beta, dst_v)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_r, vscales((p+1)*(p+1)), alpha, &
+        & src_l((p+1)*(p+1)), beta
+    ! Output
+    real(dp), intent(inout) :: dst_v
+    ! Local variables
+    real(dp) :: rho, vcos(p+1), vsin(p+1)
+    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), t, tmp
+    real(dp) :: si(p+1), di(p+1), src_si(p+1)
+    complex(dp) :: work(max(2, p+1))
+    integer :: n, ind
+    real(dp), external :: dnrm2
+    ! Scale output
+    if (beta .eq. zero) then
+        dst_v = zero
+    else
+        dst_v = beta * dst_v
+    end if
+    ! In case of zero alpha nothing else is required no matter what is the
+    ! value of the induced potential
+    if (alpha .eq. zero) then
+        return
+    end if
+    ! Get radius and values of spherical harmonics
+    call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
+    ! Get values of the second kind Bessel function
+    rho = dnrm2(3, c, 1)
+    call modified_spherical_bessel_first_kind(p, rho, si, di, work)
+    call modified_spherical_bessel_first_kind(p, src_r, src_si, di, work)
+    ! Compute the actual induced potential
+    do n = 0, p
+        ind = n*n + n + 1
+        tmp = dot_product(vylm(ind-n:ind+n), src_l(ind-n:ind+n))
+        dst_v = dst_v + alpha*si(n+1)/src_si(n+1)*tmp
+    end do
+end subroutine fmm_l2p_bessel_baseline
+
 subroutine fmm_l2p_adj_baseline(c, src_q, dst_r, p, vscales, beta, dst_l)
     ! Inputs
     integer, intent(in) :: p
@@ -2899,9 +3306,18 @@ subroutine ylmbas_baseline(x, p, vscales, vylm, vplm, vcos, vsin)
     real(dp), dimension((p+1)**2), intent(out) :: vylm, vplm
     real(dp), dimension(p+1), intent(out) :: vcos, vsin
     integer :: l, m, ind
-    real(dp) :: y(3), cthe, sthe, cphi, sphi, plm
+    real(dp) :: y(3), r, cthe, sthe, cphi, sphi, plm
     real(dp), external :: dnrm2
-    y = x / dnrm2(3, x, 1)
+    r = dnrm2(3, x, 1)
+    ! Check zero input, fake it with vector (0,0,1) as zero radius must be
+    ! taken into account in some other routine, as spherical harmonics do not
+    ! depend on radius
+    if (r .eq. zero) then
+        y = (/zero, zero, one/)
+    ! Do normal calculations otherwise
+    else
+        y = x / r
+    end if
     cthe = y(3)
     sthe = dnrm2(2, y, 1)
     if (sthe .ne. zero) then
@@ -3033,6 +3449,128 @@ subroutine fmm_m2m_baseline(c, src_r, dst_r, p, vscales, src_m, dst_m)
         end do
     end if
 end subroutine fmm_m2m_baseline
+
+! M2M baseline translation (p^4 operations)
+! Baseline in terms of operation count: p^4
+subroutine fmm_m2m_bessel_baseline(c, src_r, dst_r, p, vscales, src_m, dst_m)
+! Parameters:
+!   c: radius-vector from new to old centers of harmonics
+!   src_r: radius of old harmonics
+!   dst_r: radius of new harmonics
+!   p: maximum degree of spherical harmonics
+!   vscales: normalization constants for Y_lm
+!   src_m: expansion in old harmonics
+!   dst_m: expansion in new harmonics
+    use complex_bessel
+    integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1))
+    real(dp), intent(in) :: src_m((p+1)*(p+1))
+    real(dp), intent(inout) :: dst_m((p+1)*(p+1))
+    real(dp) :: r, r1, r2, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
+    real(dp) :: vplm((p+1)*(p+1)), fact(2*p+1), tmpk1, tmpk2, tmpk3, tmp1
+    real(dp) :: tmp2, pow_r1(p+1), pow_r2(p+1)
+    real(dp) :: r_si(p+1), src_sk(p+1), dst_sk(p+1), work(p+1)
+    complex(dp) :: work_complex(p+1)
+    integer :: j, k, n, m, indj, indm, indn, indjn
+    real(dp), external :: dnrm2
+    stheta = dnrm2(2, c, 1)
+    r = dnrm2(3, c, 1)
+    if (r .ne. 0) then
+        ctheta = c(3) / r
+        if (stheta .ne. 0) then
+            cphi = c(1) / stheta
+            sphi = c(2) / stheta
+            stheta = stheta / r
+            call trgev(cphi, sphi, p, vcos, vsin)
+        else
+            cphi = 1
+            sphi = 0
+            vcos = 1
+            vsin = 0
+        end if
+        call polleg_baseline(ctheta, stheta, p, vplm)
+        r1 = src_r / dst_r
+        r2 = r! / dst_r
+        pow_r1(1) = r1
+        pow_r2(1) = 1
+        do j = 2, p+1
+            pow_r1(j) = pow_r1(j-1) * r1
+            pow_r2(j) = pow_r2(j-1) * r2
+        end do
+        call modified_spherical_bessel_first_kind(p, r, r_si, work, &
+            & work_complex)
+        call modified_spherical_bessel_second_kind(p, src_r, src_sk, work, &
+            & work_complex)
+        call modified_spherical_bessel_second_kind(p, dst_r, dst_sk, work, &
+            & work_complex)
+        ! Fill square roots of factorials
+        fact(1) = 1
+        do j = 2, 2*p+1
+            fact(j) = sqrt(dble(j-1)) * fact(j-1)
+        end do
+        do j = 0, p
+            indj = j*j + j + 1
+            do k = 0, j
+                tmp1 = vscales(indj) * fact(j-k+1) * fact(j+k+1)
+                if (k .ne. 0) then
+                    tmp1 = tmp1 * sqrt2
+                end if
+                do n = 0, j
+                    indn = n*n + n + 1
+                    indjn = (j-n)**2 + (j-n) + 1
+                    !tmp2 = tmp1 * pow_r1(j-n+1) * pow_r2(n+1) / &
+                    !    & vscales(indjn) / vscales(indn)
+                    tmp2 = tmp1 * & !/ src_sk(j-n+1) * dst_sk(j+1) *
+                        & r_si(n+1) / &
+                        & vscales(indjn) / vscales(indn) !/ pow_r2(n+1)
+                    !tmp2 = tmp1 * r_si(n+1) / &
+                    !    & vscales(indjn) / vscales(indn)
+                    do m = max(k+n-j, -n), min(k+j-n, n)
+                        indm = indn + abs(m)
+                        cphi = vcos(1+abs(m))
+                        sphi = vsin(1+abs(m))
+                        tmpk1 = tmp2 / fact(n-m+1) / fact(n+m+1) / &
+                            & fact(j-n-k+m+1) / fact(j-n+k-m+1) * &
+                            & vplm(indm) * vscales(indm)
+                        if (mod(abs(k-abs(m)-abs(k-m)), 4) .eq. 2) then
+                            tmpk1 = -tmpk1
+                        end if
+                        tmpk2 = src_m(indjn+abs(k-m)) * cphi
+                        if ((m .ge. 0) .and. (m .le. k)) then
+                            sphi = -sphi
+                        end if
+                        tmpk3 = -src_m(indjn+abs(k-m)) * sphi
+                        if (m .ne. 0) then
+                            tmpk1 = tmpk1 / sqrt2
+                        end if
+                        if (m .ne. k) then
+                            tmpk1 = tmpk1 / sqrt2
+                            tmpk2 = tmpk2 + src_m(indjn-abs(k-m))*sphi
+                            tmpk3 = tmpk3 + src_m(indjn-abs(k-m))*cphi
+                        end if
+                        if (m .gt. k) then
+                            tmpk3 = -tmpk3
+                        end if
+                        dst_m(indj+k) = dst_m(indj+k) + tmpk1*tmpk2
+                        if (k .ne. 0) then
+                            dst_m(indj-k) = dst_m(indj-k) + tmpk1*tmpk3
+                        end if
+                    end do
+                end do
+            end do
+        end do
+    else
+        r1 = src_r / dst_r
+        tmpk1 = r1
+        do j = 0, p
+            indj = j*j + j + 1
+            do k = indj-j, indj+j
+                dst_m(k) = dst_m(k) + src_m(k)*tmpk1
+            end do
+            tmpk1 = tmpk1 * r1
+        end do
+    end if
+end subroutine fmm_m2m_bessel_baseline
 
 ! Translate local expansion to another sphere
 ! Baseline in terms of operation count: p^4

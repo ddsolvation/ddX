@@ -193,12 +193,14 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
     !! Local variables
     integer :: isph, ig, ic, ind, ind0, jg, l, m, jsph
     real(dp) :: nderphi, sumSijn, rijn, coef_Ylm, sumSijn_pre, termi, &
-        & termk, term
+        & termk, term, tmp1, tmp2
     real(dp), dimension(3) :: sijn, vij
     real(dp) :: rho, ctheta, stheta, cphi, sphi
     real(dp), allocatable :: SK_rijn(:), DK_rijn(:)
     integer :: l0, m0, icav, istatus
-    real(dp), dimension(constants % nbasis, params % nsph) :: c0
+    real(dp), dimension(constants % nbasis, params % nsph) :: c0, c1
+    complex(dp) :: work_complex(constants % lmax0 + 1)
+    real(dp) :: work(constants % lmax0 + 1)
     allocate(SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0))
     ic = 0 ; f(:,:)=0.d0
     c0 = zero
@@ -213,6 +215,12 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
                 c0(:, isph) = c0(:, isph) + &
                     & constants % wgrid(ig)*constants % ui(ig,isph)*&
                     & nderphi*constants % vgrid(:,ig)
+                do l0 = 0, constants % lmax0
+                    ind0 = l0*l0 + 1
+                    ind = ind0 + 2*l0
+                    c1(ind0:ind, isph) = constants % C_ik(l0, isph) * &
+                        & c0(ind0:ind, isph)
+                end do
             end if
         end do
     end do
@@ -232,30 +240,40 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
                     vij  = params % csph(:,isph) + &
                         & params % rsph(isph)*constants % cgrid(:,ig) - &
                         & params % csph(:,jsph)
-                    rijn = sqrt(dot_product(vij,vij))
-                    sijn = vij/rijn
-
-                    ! Compute Bessel function of 2nd kind for the coordinates
-                    ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-                    call modified_spherical_bessel_second_kind( &
-                        & constants % lmax0, rijn*params % kappa,&
-                        & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
-                    call ylmbas(sijn , rho, ctheta, stheta, cphi, &
-                        & sphi, params % lmax, constants % vscales, &
-                        & workspace % tmp_vylm, workspace % tmp_vplm, &
-                        & workspace % tmp_vcos, workspace % tmp_vsin)
-
-                    do l0 = 0, constants % lmax0
-                        term = SK_rijn(l0) / constants % SK_ri(l0,jsph)
-                        ! coef_Ylm : (der_i_l0/i_l0 - der_k_l0/k_l0)^(-1)*k_l0(r_ijn)/k_l0(r_i)
-                        coef_Ylm = constants % C_ik(l0,jsph) * term
-                        do m0 = -l0, l0
-                            ind0 = l0**2 + l0 + m0 + 1
-                            sumSijn = sumSijn + c0(ind0,jsph)*coef_Ylm* &
-                                & workspace % tmp_vylm(ind0, 1)
-                            !coefY(icav,ind0,jsph) = coef_Ylm*basloc(ind0)
-                        end do
-                    end do
+!                    rijn = sqrt(dot_product(vij,vij))
+!                    sijn = vij/rijn
+!
+!                    ! Compute Bessel function of 2nd kind for the coordinates
+!                    ! (s_ijn, r_ijn) and compute the basis function for s_ijn
+!                    call modified_spherical_bessel_second_kind( &
+!                        & constants % lmax0, rijn*params % kappa,&
+!                        & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
+!                    call ylmbas(sijn , rho, ctheta, stheta, cphi, &
+!                        & sphi, constants % lmax0, constants % vscales, &
+!                        & workspace % tmp_vylm, workspace % tmp_vplm, &
+!                        & workspace % tmp_vcos, workspace % tmp_vsin)
+!
+!                    tmp1 = zero
+!                    do l0 = 0, constants % lmax0
+!                        term = SK_rijn(l0) / constants % SK_ri(l0,jsph)
+!                        ! coef_Ylm : (der_i_l0/i_l0 - der_k_l0/k_l0)^(-1)*k_l0(r_ijn)/k_l0(r_i)
+!                        !coef_Ylm = constants % C_ik(l0,jsph) * term
+!                        do m0 = -l0, l0
+!                            ind0 = l0**2 + l0 + m0 + 1
+!                            tmp1 = tmp1 + c1(ind0,jsph)*term* &
+!                                & workspace % tmp_vylm(ind0, 1)
+!                            !tmp1 = tmp1 + c0(ind0,jsph)*coef_Ylm* &
+!                            !    & workspace % tmp_vylm(ind0, 1)
+!                            !sumSijn = sumSijn + c0(ind0,jsph)*coef_Ylm* &
+!                            !    & workspace % tmp_vylm(ind0, 1)
+!                            !coefY(icav,ind0,jsph) = coef_Ylm*basloc(ind0)
+!                        end do
+!                    end do
+!                    sumSijn = sumSijn + tmp1
+                    call fmm_m2p_bessel_work(vij*params % kappa, &
+                        & constants % lmax0, constants % vscales, &
+                        & constants % SK_ri(:, jsph), one, &
+                        & c1(:, jsph), one, sumSijn, work_complex, work)
                 end do
                 !
                 ! Here Intermediate value of F_0 is computed Eq. (99)
@@ -468,7 +486,7 @@ endsubroutine lpb_hsp
             oij = xij
           end if
           ! The following commented code shall be turned into a baseline
-          ! version of the following fmm_m2p call
+          ! version of the following fmm_l2p call
           !call ylmbas(sij, rho, ctheta, stheta, cphi, &
           !            & sphi, params % lmax, &
           !            & constants % vscales, basloc, &
@@ -476,7 +494,7 @@ endsubroutine lpb_hsp
           !call inthsp(params, constants, vvij, params % rsph(jsph), jsph, &
           !    & basloc, fac_hsp, bessel_work)
           !pot(its) = pot(its) + oij*dot_product(fac_hsp,x(:,jsph))
-          call fmm_m2p_bessel_first_kind_work(vij*params % kappa, &
+          call fmm_l2p_bessel_work(vij*params % kappa, &
               & params % lmax, constants % vscales, &
               & constants % SI_ri(:, jsph), oij, x(:, jsph), one, &
               & pot(its), work_complex, work)
