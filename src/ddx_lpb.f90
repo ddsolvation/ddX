@@ -193,7 +193,7 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
                 nderphi = dot_product(gradphi(:, ic), constants % cgrid(:,ig))
                 c0(:, isph) = c0(:, isph) + &
                     & constants % wgrid(ig)*constants % ui(ig,isph)*&
-                    & nderphi*constants % vgrid(:,ig)
+                    & nderphi*constants % vgrid(1:constants % nbasis,ig)
                 do l0 = 0, constants % lmax0
                     ind0 = l0*l0 + 1
                     ind = ind0 + 2*l0
@@ -1051,7 +1051,7 @@ end subroutine ddx_lpb_force
       ! Loop over grid points
       do igrid = 1, params % ngrid
           xi(igrid, isph) = dot_product(x(:, isph), &
-              & constants % vgrid(:constants % nbasis, igrid))
+              & constants % vgrid(1:constants % nbasis, igrid))
       end do
   end do
   !! Compute action
@@ -1302,6 +1302,8 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   ! va    : Eq.(54) Stamm.etal.18
   real(dp)  :: vij(3), sij(3), alpha(3), va(3), rj
   real(dp), external :: dnrm2
+  real(dp) :: work(params % lmax+1)
+  complex(dp) :: work_complex(params % lmax+1)
   
   SI_rijn = 0
   DI_rijn = 0
@@ -1323,22 +1325,28 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
       if (tij.ge.thigh) cycle
       ! Computation of modified spherical Bessel function values      
-      call modified_spherical_bessel_first_kind(params % lmax, &
-          & rijn*params % kappa, SI_rijn, DI_rijn, workspace % tmp_bessel(:, 1))
-
+!      call modified_spherical_bessel_first_kind(params % lmax, &
+!          & rijn*params % kappa, SI_rijn, DI_rijn, workspace % tmp_bessel(:, 1))
+!
       sij  = vij/rijn
-      call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
-      alpha  = zero
-      do l = 0, params % lmax
-        ind = l*l + l + 1
-        f1 = (DI_rijn(l)*params % kappa)/constants % SI_ri(l,jsph);
-        f2 = SI_rijn(l)/constants % SI_ri(l, jsph)
-        do m = -l, l
-          alpha(:) = alpha(:) + (f1*sij(:)*basloc(ind+m) + &
-                    & (f2/rijn)*dbasloc(:,ind+m))*Xe(ind+m,jsph)
-        end do
-      end do
-      beta = compute_beta(params, constants, workspace, SI_rijn, rijn, jsph, Xe(:,jsph),basloc)
+!      call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
+!      alpha  = zero
+!      do l = 0, params % lmax
+!        ind = l*l + l + 1
+!        f1 = (DI_rijn(l)*params % kappa)/constants % SI_ri(l,jsph);
+!        f2 = SI_rijn(l)/constants % SI_ri(l, jsph)
+!        do m = -l, l
+!          alpha(:) = alpha(:) + (f1*sij(:)*basloc(ind+m) + &
+!                    & (f2/rijn)*dbasloc(:,ind+m))*Xe(ind+m,jsph)
+!        end do
+!      end do
+      call fmm_l2p_bessel_grad(vij*params % kappa, params % rsph(jsph)*params % kappa, &
+          & params % lmax, constants % vscales, params % kappa, Xe(:, jsph), &
+          & zero, alpha)
+!      beta = compute_beta(params, constants, workspace, SI_rijn, rijn, jsph, Xe(:,jsph),basloc)
+      call fmm_l2p_bessel_work(vij*params % kappa, params % lmax, &
+          & constants % vscales, constants % SI_ri(:, jsph), one, Xe(:, jsph), &
+          & zero, beta, work_complex, work)
       xij = fsw(tij, params % se, params % eta)
       if (constants % fi(igrid,isph).gt.one) then
         oij = xij/constants % fi(igrid,isph)
@@ -1413,6 +1421,8 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   real(dp) :: rho, ctheta, stheta, cphi, sphi, ri, arg_bessel
 
   real(dp), external :: dnrm2
+  real(dp) :: work(params % lmax+1)
+  complex(dp) :: work_complex(params % lmax+1)
   
   SI_rjin = 0
   DI_rjin = 0
@@ -1436,22 +1446,25 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
 
       if (tji.gt.thigh) cycle
 
-      call modified_spherical_bessel_first_kind(params % lmax, &
-          & rjin*params % kappa, SI_rjin, DI_rjin, workspace % tmp_bessel(:, 1))
+!      call modified_spherical_bessel_first_kind(params % lmax, &
+!          & rjin*params % kappa, SI_rjin, DI_rjin, workspace % tmp_bessel(:, 1))
       
       sji  = vji/rjin
-      call dbasis(params, constants, sji, basloc, dbasloc, vplm, vcos, vsin)
-      alpha = zero
-      do l = 0, params % lmax
-        ind = l*l + l + 1
-        f1 = (DI_rjin(l)*params % kappa)/constants % SI_ri(l,isph);
-        f2 = SI_rjin(l)/constants % SI_ri(l,isph)
-
-        do m = -l, l
-          alpha = alpha + (f1*sji*basloc(ind+m) + &
-                 & (f2/rjin)*dbasloc(:,ind+m))*Xe(ind+m,isph)
-        end do
-      end do
+!      call dbasis(params, constants, sji, basloc, dbasloc, vplm, vcos, vsin)
+!      alpha = zero
+!      do l = 0, params % lmax
+!        ind = l*l + l + 1
+!        f1 = (DI_rjin(l)*params % kappa)/constants % SI_ri(l,isph);
+!        f2 = SI_rjin(l)/constants % SI_ri(l,isph)
+!
+!        do m = -l, l
+!          alpha = alpha + (f1*sji*basloc(ind+m) + &
+!                 & (f2/rjin)*dbasloc(:,ind+m))*Xe(ind+m,isph)
+!        end do
+!      end do
+      call fmm_l2p_bessel_grad(vji*params % kappa, params % rsph(isph)*params % kappa, &
+          & params % lmax, constants % vscales, params % kappa, Xe(:, isph), &
+          & zero, alpha)
       xji = fsw(tji,params % se,params % eta)
       if (constants % fi(igrid,jsph).gt.one) then
         oji = xji/constants % fi(igrid,jsph)
@@ -1462,7 +1475,10 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
       vb = vb + f1*alpha*Xadj_e(igrid,jsph)
       if (tji .gt. tlow) then
         ! Compute beta_jin, i.e., Eq.(57) Stamm.etal.18
-        beta_ji = compute_beta(params, constants, workspace, SI_rjin, rjin, isph, Xe(:,isph), basloc)
+        !beta_ji = compute_beta(params, constants, workspace, SI_rjin, rjin, isph, Xe(:,isph), basloc
+        call fmm_l2p_bessel_work(vji*params % kappa, params % lmax, &
+            & constants % vscales, constants % SI_ri(:, isph), one, Xe(:, isph), &
+            & zero, beta_ji, work_complex, work)
         if (constants % fi(igrid,jsph) .gt. one) then
           dj  = one/constants % fi(igrid,jsph)
           fac = dj*xji
@@ -1476,18 +1492,21 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
             rjkn = dnrm2(3, vjk, 1)
             tjk  = rjkn/params % rsph(ksph)
             ! Computation of modified spherical Bessel function values      
-            call modified_spherical_bessel_first_kind(params % lmax, &
-                & rjkn*params % kappa, SI_rjkn, DI_rjkn, &
-                & workspace % tmp_bessel(:, 1))
+!            call modified_spherical_bessel_first_kind(params % lmax, &
+!                & rjkn*params % kappa, SI_rjkn, DI_rjkn, &
+!                & workspace % tmp_bessel(:, 1))
 
             if (ksph.ne.isph) then
               if (tjk .le. thigh) then
               proc = .true.
-              sjk  = vjk/rjkn
-              call ylmbas(sjk, rho, ctheta, stheta, cphi, sphi, &
-                  & params % lmax, constants % vscales, basloc, vplm, &
-                  & vcos, vsin)
-              beta_jk  = compute_beta(params, constants, workspace, SI_rjkn, rjkn, ksph, Xe(:,ksph), basloc)
+!              sjk  = vjk/rjkn
+!              call ylmbas(sjk, rho, ctheta, stheta, cphi, sphi, &
+!                  & params % lmax, constants % vscales, basloc, vplm, &
+!                  & vcos, vsin)
+!              beta_jk  = compute_beta(params, constants, workspace, SI_rjkn, rjkn, ksph, Xe(:,ksph), basloc)
+              call fmm_l2p_bessel_work(vjk*params % kappa, params % lmax, &
+                  & constants % vscales, constants % SI_ri(:, ksph), one, Xe(:, ksph), &
+                  & zero, beta_jk, work_complex, work)
               xjk = fsw(tjk, params % se, params % eta)
               b   = b + beta_jk*xjk
               end if
@@ -1847,7 +1866,7 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
                      & constants % wgrid(igrid)* &
                      & constants % ui(igrid,isph)*&
                      & nderpsi* &
-                     & constants % vgrid(:,igrid)
+                     & constants % vgrid(1:constants % nbasis,igrid)
         do l0 = 0, constants % lmax0
             ind0 = l0*l0 + l0 + 1
             c0_d1(ind0-l0:ind0+l0, isph) = c0_d(ind0-l0:ind0+l0, isph) * &
