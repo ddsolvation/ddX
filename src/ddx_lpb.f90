@@ -649,23 +649,78 @@ end subroutine lpb_direct_matvec_full
 
 subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
     implicit none
-
+    ! interface data
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
-
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
-
+    ! scratch arrays
     real(dp), dimension(params % ngrid, params % nsph) :: Xadj_sgrid
+    real(dp), dimension(constants % nbasis, params % nsph) :: scratch
+    real(dp), dimension(constants % nbasis0, params % nsph) :: scratch0
+    real(dp), dimension(0:constants % lmax0) :: SK_rijn, DK_rijn
+    real(dp), dimension(constants % nbasis) :: basloc, vplm
+    real(dp), dimension(params % lmax + 1) :: vcos, vsin
+    complex(dp) :: bessel_work(max(2, params % lmax+1))
+    !
+    integer :: isph, igrid, jsph, l, m, ind, l0, m0, ind0
+    real(dp), dimension(3) :: vij, sijn
+    real(dp) :: val, rijn, term, epsilon_ratio, rho, ctheta, stheta, cphi, sphi
 
-    real(dp) :: epsilon_ratio
     epsilon_ratio = epsp/params % eps
 
+    ! TODO: maybe use ddeval_grid for code consistency
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, &
-        x(:,:,1) + x(:,:,2), constants % nbasis, zero, Xadj_sgrid, params % ngrid)
-    
+        & one, constants % vgrid, constants % vgrid_nbasis, x(:,:,1) + x(:,:,2), &
+        & constants % nbasis, zero, Xadj_sgrid, params % ngrid)
+
+    scratch0 = zero
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph).gt.zero) then
+                val = xadj_sgrid(igrid,isph)*constants % wgrid(igrid) &
+                    & *constants % ui(igrid,isph)
+                do jsph = 1, params % nsph
+                    vij  = params % csph(:,isph) + &
+                        & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                        & params % csph(:,jsph)
+                    rijn = sqrt(dot_product(vij,vij))
+                    sijn = vij/rijn
+                    call modified_spherical_bessel_second_kind(constants % lmax0, &
+                        & rijn*params % kappa, SK_rijn, DK_rijn, bessel_work)
+                    call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+                        & sphi, params % lmax, constants % vscales, &
+                        & basloc, vplm, vcos, vsin)
+                    do l0 = 0, constants % lmax0
+                        term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+                        do m0 = -l0, l0
+                            ind0 = l0*l0 + l0 + m0 + 1
+                            scratch0(ind0,jsph) = scratch0(ind0,jsph) + &
+                                & val*constants % C_ik(l0,jsph)*term*basloc(ind0)
+                        end do
+                    end do
+                end do
+            end if
+        end do
+    end do
+
+    do jsph = 1, params % nsph
+        call dgemv('t', constants % nbasis, constants % nbasis0, one, &
+            & constants % pchi(1,1,jsph), constants % nbasis, &
+            & scratch0(1,jsph), 1, zero, scratch(1,jsph), 1)
+    end do
+
+    do isph = 1, params % nsph
+        do l = 0, params % lmax
+            do m = -l, l
+                ind = l**2 + l + m + 1
+                y(ind,isph,1) = - (epsilon_ratio*l*scratch(ind,isph)) &
+                    & /params % rsph(isph)
+                y(ind,isph,2) = constants % termimat(l,isph)*scratch(ind,isph)
+          end do
+        end do
+    end do
 
 end subroutine lpb_adjoint_matvec
 
