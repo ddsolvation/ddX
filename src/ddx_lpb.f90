@@ -1405,139 +1405,24 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), intent(in) :: rhs_r_init(constants % nbasis, params % nsph), &
         & rhs_e_init(constants % nbasis, params % nsph), &
         & Xadj_r(constants % nbasis, params % nsph), &
         & Xadj_e(constants % nbasis, params % nsph)
-    !! Temporary buffers
-    type(ddx_workspace_type), intent(inout) :: workspace
     !! Outputs
     real(dp), intent(out) :: rhs_r(constants % nbasis, params % nsph), &
         & rhs_e(constants % nbasis, params % nsph)
-    !! Local variables
-  ! Local Variables
-  ! rhs_r_adj : C_1*(Xadj_r+Xadj_e)
-  ! rhs_e_adj : C_2*(Xadj_r+Xadj_e)
-  real(dp), dimension(constants % nbasis,params % nsph) :: rhs_adj
-  real(dp), dimension(params % ngrid, params % nsph) :: Xadj_sgrid
-  integer :: isph, igrid, icav, ibasis, ibasis0, l, m, ind, jsph
-  ! epsilon_ratio : epsilon_1/epsilon_2
-  real(dp) :: epsilon_ratio
+    real(dp), dimension(constants % nbasis, params % nsph, 2) :: x, y
 
-  real(dp) :: val
-  real(dp), dimension(3) :: vij, sijn
-  real(dp) :: term, rho, ctheta, stheta, cphi, sphi, rijn
-  real(dp), dimension(constants % nbasis) :: basloc, vplm
-  real(dp), dimension(params % lmax + 1) :: vcos, vsin
-  real(dp), dimension(0:constants % lmax0) :: SK_rijn, DK_rijn
-  complex(dp)  :: work(max(2, params % lmax+1))
-  integer :: ind0, l0, m0
-  real(dp), dimension(constants % nbasis0, params % nsph) :: scratch
-  epsilon_ratio = epsp/params % eps
-
-
-  ! Call dgemm to integrate the adjoint solution on the grid points
-  ! Summation over l' and m'
-  call dgemm('T', 'N', params % ngrid, params % nsph, &
-            & constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &
-            & Xadj_r + Xadj_e , constants % nbasis, zero, Xadj_sgrid, &
-            & params % ngrid)
-
-  !rhs_adj = zero
-  !do jsph = 1, params % nsph
-  !  do ibasis = 1, constants % nbasis
-  !    icav = zero
-  !    !Summation over j and n
-  !    do isph = 1, params % nsph
-  !      do igrid = 1, params % ngrid
-  !        if (constants % ui(igrid,isph).gt.zero) then
-  !          icav = icav + 1
-  !          vij  = params % csph(:, isph) + &
-  !              & params % rsph(isph)*constants % cgrid(:, igrid) - &
-  !              & params % csph(:, jsph)
-  !          rijn = sqrt(dot_product(vij, vij))
-  !          sijn = vij / rijn
-  !          ! Compute Bessel function of 2nd kind for the coordinates
-  !          ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-  !          call modified_spherical_bessel_second_kind( &
-  !              & constants % lmax0, &
-  !              & rijn*params % kappa, SK_rijn, DK_rijn, &
-  !              & work)
-  !          call ylmbas(sijn, rho, ctheta, stheta, cphi, &
-  !              & sphi, params % lmax, constants % vscales, &
-  !              & basloc, vplm, vcos, vsin)
-  !          val = zero
-  !          do l0 = 0, constants % lmax0
-  !            term = SK_rijn(l0) / constants % SK_ri(l0, jsph)
-  !            do m0 = -l0, l0
-  !                ind0 = l0*l0 + l0 + m0 + 1
-  !                val = val + constants % pchi(ibasis, ind0, jsph) &
-  !                    & *constants % C_ik(l0,jsph) * term * basloc(ind0)
-  !            end do
-  !          end do
-  !          !write(6,*) jsph, isph, val, constants % diff_ep_adj(icav, ibasis, jsph)
-  !          rhs_adj(ibasis, jsph) = rhs_adj(ibasis, jsph) + &
-  !                      & constants % wgrid(igrid)*&
-  !                      & constants % ui(igrid, isph)*&
-  !                      & Xadj_sgrid(igrid, isph)*val
-  !          !            & constants % diff_ep_adj(icav, ibasis, jsph)
-  !        end if
-  !      end do
-  !    end do
-  !  end do
-  !end do
-
-  rhs_adj = zero
-  scratch = zero
-  do isph = 1, params % nsph
-    do igrid = 1, params % ngrid
-      if (constants % ui(igrid, isph).gt.zero) then
-        val = xadj_sgrid(igrid,isph)*constants % wgrid(igrid) &
-            & *constants % ui(igrid,isph)
-        do jsph = 1, params % nsph
-          vij  = params % csph(:,isph) + &
-            & params % rsph(isph)*constants % cgrid(:,igrid) - &
-            & params % csph(:,jsph)
-          rijn = sqrt(dot_product(vij,vij))
-          sijn = vij/rijn
-          call modified_spherical_bessel_second_kind(constants % lmax0, &
-            & rijn*params % kappa, SK_rijn, DK_rijn, work)
-          call ylmbas(sijn, rho, ctheta, stheta, cphi, &
-            & sphi, params % lmax, constants % vscales, &
-            & basloc, vplm, vcos, vsin)
-          do l0 = 0, constants % lmax0
-            term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
-            do m0 = -l0, l0
-              ind0 = l0*l0 + l0 + m0 + 1
-              scratch(ind0,jsph) = scratch(ind0,jsph) + &
-                  & val*constants % C_ik(l0,jsph)*term*basloc(ind0)
-            end do
-          end do
-        end do
-      end if
-    end do
-  end do
-
-  do jsph = 1, params % nsph
-    call dgemv('t', constants % nbasis, constants % nbasis0, one, &
-        & constants % pchi(1,1,jsph), constants % nbasis, &
-        & scratch(1,jsph), 1, zero, rhs_adj(1,jsph), 1)
-  end do
-
-  do isph = 1, params % nsph
-    do l = 0, params % lmax
-      do m = -l, l
-        ind = l**2 + l + m + 1
-        rhs_r(ind, isph) = rhs_r_init(ind, isph) &
-            & - (epsilon_ratio*l*rhs_adj(ind, isph))/params % rsph(isph)
-        rhs_e(ind, isph) = rhs_e_init(ind, isph) &
-            & + constants % termimat(l,isph)*rhs_adj(ind, isph)
-      end do
-    end do
-  end do
+    x(:,:,1) = xadj_r
+    x(:,:,2) = xadj_e
+    call lpb_adjoint_matvec(params, constants, workspace, x, y)
+    rhs_r = rhs_r_init + y(:,:,1)
+    rhs_e = rhs_e_init + y(:,:,2)
 
   end subroutine update_rhs_adj
-  
+
   !
   ! Subroutine to compute K^A counterpart for the HSP equation. Similar to fdoka.
   ! @param[in]  ddx_data  : Data type
