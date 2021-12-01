@@ -615,7 +615,6 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
         & 4, params % jacobi_ndiis, 1, tol, rhs, x, n_iter, &
         & ok, lpb_direct_matvec, lpb_direct_prec)
-    !n_iter = params % maxiter
     !call gmresr_old(params, constants, workspace, .true., 2*constants % n, &
     !    & params % gmresr_j, 0, rhs, x, gmres_work, tol, 'rel', n_iter, &
     !    & gmres_resid, lpb_direct_matvec_full, info)
@@ -850,7 +849,7 @@ subroutine lpb_adjoint_prec(params, constants, workspace, x, y)
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
     n_iter = params % maxiter
     call jacobi_diis(params, constants, workspace, inner_tol, y(:,:,1), &
-        & ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
+        & ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
     y(:,:,1) = ddcosmo_guess
     tt1 = omp_get_wtime()
     write(6,*) '@adjoint@cosmo', tt1 - tt0, n_iter
@@ -923,147 +922,36 @@ end subroutine lpb_direct_prec
 ! @param[in] ddx_data: Input data file
 ! @param[in] psi     : psi_r
 subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_e)
-    !! Inputs
+    implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: psi
     real(dp), intent(in) :: tol
-    !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
-    !! Outputs
-    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: Xadj_r, Xadj_e
-    real(dp), external :: dnrm2
-    !! Local Variables
-    !! xs_rel_diff : relative norm of increment of every Jacobi iteration
-    real(dp) :: xs_rel_diff(params % maxiter)
-    ! ok             : Logical expression used in Jacobi solver
-    ! istatus        : Status of allocation
-    ! isph           : Index for the sphere
-    ! ibasis         : Index for the basis
-    ! iteration      : Number of outer loop iterations
-    ! inc            : Check for convergence threshold
-    ! relative_num   : Numerator of the relative error
-    ! relative_denom : Denominator of the relative error
-    ! converged      : Convergence check for outer loop
-    logical   :: ok
-    integer   :: istatus, isph, ibasis,  iteration
-    real(dp)  :: inc, relative_num, relative_denom
-    logical   :: converged
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: Xadj_r, &
+        & Xadj_e
+    real(dp), dimension(constants % nbasis, params % nsph, 2) :: x, rhs
+    integer :: n_iter
+    logical :: ok
 
-    !!
-    !! Xadj_r         : Adjoint solution of Laplace equation
-    !! Xadj_e         : Adjoint solution of HSP equation
-    !! rhs_cosmo      : RHS corresponding to Laplace equation
-    !! rhs_hsp        : RHS corresponding to HSP equation
-    !! rhs_cosmo_init : Initial RHS for Laplace, psi_r in literature
-    !! rhs_hsp_init   : Initial RHS for HSP, psi_e = 0 in literature
-    !! X_r_k_1          : Solution of previous iterative step, holds Xadj_r_k_1
-    !! X_e_k_1          : Solution of previous iterative step, holds Xadj_e_k_1
-    real(dp), allocatable :: rhs_cosmo(:,:), rhs_hsp(:,:), &
-        & rhs_cosmo_init(:,:), rhs_hsp_init(:,:), &
-        & X_r_k_1(:,:), X_e_k_1(:,:)
+    ! set up the RHS
+    rhs(:,:,1) = psi
+    rhs(:,:,2) = zero
 
-    ! GMRES parameters
-    integer :: info, n_iter
-    real(dp) r_norm
+    ! guess
+    call lpb_adjoint_prec(params, constants, workspace, rhs, x)
+    ddcosmo_guess = zero
+    hsp_guess = zero
 
-    ! Allocation
-    allocate(rhs_cosmo(constants % nbasis, params % nsph), &
-        & rhs_hsp(constants % nbasis, params % nsph), &
-        & rhs_cosmo_init(constants % nbasis, params % nsph), &
-        & rhs_hsp_init(constants % nbasis, params % nsph),&
-        & X_r_k_1(constants % nbasis, params % nsph),&
-        & X_e_k_1(constants % nbasis, params % nsph),&
-        & stat = istatus)
-    if(istatus .ne. 0) then
-        write(*,*) 'Allocation failed in adjoint LPB!'
-        stop
-    end if
-    ! We compute the adjoint solution first
-    write(*,*) 'Solution of adjoint system'
-    ! Set local variables
-    iteration = one
-    inc = zero
-    relative_num = zero
-    relative_denom = zero
-    X_r_k_1 = zero
-    X_e_k_1 = zero
-    ! Initial RHS
-    ! rhs_cosmo_init = psi_r
-    ! rhs_hsp_init   = psi_e (=0)
-    rhs_cosmo_init = psi
-    rhs_hsp_init = zero
-    ! Updated RHS
-    rhs_cosmo = rhs_cosmo_init
-    rhs_hsp = rhs_hsp_init
-    ! Initial Xadj_r and Xadj_e
-    Xadj_r = zero
-    Xadj_e = zero
-    converged = .false.
-    ok = .false.
-    ! Solve the adjoint system
-    do while (.not.converged)
-    ! Solve A*X_adj_r = psi_r
-    ! Set the RHS to correct form by factoring with 4Pi/2l+1
-    Xadj_r = zero
-    tt0 = omp_get_wtime()
-    call convert_ddcosmo(params, constants, 1, rhs_cosmo)
+    ! solve adjoint LS using Jacobi/DIIS
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, &
-        & workspace, tol, rhs_cosmo, Xadj_r, n_iter, &
-        & xs_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
-    tt1 = omp_get_wtime()
-    write(6,*) '@adjoint@cosmo', tt1 - tt0, n_iter
+    call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
+        & 4, params % jacobi_ndiis, 1, tol, rhs, x, n_iter, &
+        & ok, lpb_adjoint_matvec, lpb_adjoint_prec)
 
-    ! Solve the HSP equation
-    ! B*X_adj_e = psi_e
-    ! For first iteration the rhs is zero for HSP equation. Hence, Xadj_e = 0
-    tt0 = omp_get_wtime()
-    Xadj_e = rhs_hsp
-    if(iteration.ne.1) then
-        n_iter = params % maxiter
-        call gmresr(params, constants, &
-            & workspace, tol, rhs_hsp, Xadj_e, n_iter, &
-            & r_norm, bstarx, info)
-    endif
-    tt1 = omp_get_wtime()
-    write(6,*) '@adjoint@hsp', tt1 - tt0, n_iter
-
-    ! Update the RHS
-    ! |rhs_r| = |psi_r|-|C1* C1*||Xadj_r|
-    ! |rhs_e| = |psi_e| |C2* C2*||Xadj_e|
-    call update_rhs_adj(params, constants, &
-        & workspace, rhs_cosmo_init, rhs_hsp_init,&
-        & rhs_cosmo, rhs_hsp, Xadj_r, Xadj_e)
-    ! Stopping Criteria.
-    ! Checking the relative error of Xadj_r
-    inc  = zero
-    inc = dnrm2(constants % n, Xadj_r + Xadj_e - X_r_k_1 - X_e_k_1, 1)/ &
-        & dnrm2(constants % n, Xadj_r + Xadj_e, 1)
-
-    ! Store the previous step solution
-    X_r_k_1 = Xadj_r
-    X_e_k_1 = Xadj_e
-    if ((iteration .gt. 1) .and. (inc.lt.tol)) then
-        write(6,*) 'Reach tolerance.'
-        converged = .true.
-    end if
-    write(6,*) 'Adjoint computation :', iteration, inc
-    iteration = iteration + 1
-    end do
-    !  if (iprint .ge. 5) then
-    !    call prtsph('Xadj_r', constants % nbasis, params % lmax, &
-    !          & params % nsph, 0, Xadj_r)
-    !    call prtsph('Xadj_e', constants % nbasis, params % lmax, &
-    !          & params % nsph, 0, Xadj_e)
-    !  end if
-    ! Deallocation
-    deallocate(rhs_cosmo, rhs_hsp, rhs_cosmo_init, &
-        & rhs_hsp_init, X_r_k_1, X_e_k_1, stat = istatus)
-    if(istatus .ne. 0) then
-        write(*,*) 'Deallocation failed in adjoint LPB!'
-        stop
-    end if
+    ! unpack
+    xadj_r = x(:,:,1)
+    xadj_e = x(:,:,2)
 end subroutine ddx_lpb_adjoint
 
 !
