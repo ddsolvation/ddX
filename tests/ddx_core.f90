@@ -39,6 +39,7 @@ else
         case ('m2p_bessel')
         case ('m2p_m2l')
         case ('m2p_adj')
+        case ('m2p_bessel_grad')
         case ('l2p')
         case ('l2p_bessel')
         case ('l2p_adj')
@@ -131,6 +132,17 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2p_adj')) then
             call check_m2p_adj(j, alpha(i))
         end do
     end do
+end if
+
+! Check M2P Bessel gradient
+!if ((testname .eq. 'all') .or. (testname .eq. 'm2p_bessel')) then
+if (testname .eq. 'm2p_bessel_grad') then
+    !do i = 1, size(alpha)
+        !do j = 0, 20
+            j = 5
+            call check_m2p_bessel_grad(j)
+        !end do
+    !end do
 end if
 
 ! Check L2P
@@ -1292,6 +1304,57 @@ subroutine check_m2p_adj(p, alpha)
     end do
     print "(A)", repeat("=", 40)
 end subroutine check_m2p_adj
+
+! Check M2P Bessel gradient
+subroutine check_m2p_bessel_grad(p)
+    ! Inputs
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: x(3), r, src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
+    real(dp) :: src_m((p+1)**2), dst_m((p+2)**2), vscales((p+2)**2), &
+        & vscales_rel((p+2)**2), v4pi2lp1(p+2), vcnk((2*p+3)*(p+2)), &
+        & tmp(p+2), work(p+2), src_sk(p+2), sk(p+1), dk(p+1), basloc((p+1)**2), &
+        & dbsloc(3, (p+1)**2), vplm((p+1)**2), vcos(p+1), vsin(p+1), &
+        & dst_g1(3), dst_g2(3), dst_m_grad((p+2)**2, 3)
+    complex(dp) :: work_complex(p+2)
+    real(dp), external :: dnrm2
+    integer :: i, l, m, indm
+    type(ddx_params_type) :: params
+    type(ddx_constants_type) :: constants
+    ! Set params
+    params % lmax = p
+    constants % nbasis = (p+1)**2
+    ! Compute special FMM constants
+    call ylmscale(p+1, vscales, v4pi2lp1, vscales_rel)
+    allocate(constants % vscales((p+2)**2))
+    constants % vscales = vscales
+    x = 7.5d0 * (/1.1d0, -2d0, one/)
+    r = dnrm2(3, x, 1)
+    src_r = one
+    src_m = zero
+    do i = 0, p
+        !src_m(i*i+i+1) = 10d0 ** (-i)
+        src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+    end do
+    !src_m = one
+    call modified_spherical_bessel_second_kind(p, r, sk, dk, &
+        & work_complex)
+    call modified_spherical_bessel_second_kind(p+1, src_r, src_sk, work, &
+        & work_complex)
+    call dbasis(params, constants, x/r, basloc, dbsloc, vplm, vcos, vsin)
+    dst_g1 = zero
+    do l = 0, p
+        do m = -l, l
+            indm = l*l+l+1+m
+            dst_g1 = dst_g1 + src_m(indm)/src_sk(l+1)/r*(dk(l+1)*x* &
+                & basloc(indm)+sk(l+1)*dbsloc(:, indm))
+        end do
+    end do
+    write(*, *) dst_g1
+    call fmm_m2p_bessel_grad(x, src_r, p, vscales, one, src_m, zero, dst_g2)
+    write(*, *) dst_g2
+    deallocate(constants % vscales)
+end subroutine check_m2p_bessel_grad
 
 ! Check L2P
 subroutine check_l2p(p, alpha)

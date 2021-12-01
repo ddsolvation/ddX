@@ -1314,6 +1314,29 @@ subroutine fmm_m2p_bessel_work(c, p, vscales, SK_ri, alpha, src_m, beta, &
     end if
 end subroutine fmm_m2p_bessel_work
 
+subroutine fmm_m2p_bessel_grad(c, src_r, p, vscales, alpha, src_m, beta, dst_g)
+    use complex_bessel
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_r, vscales((p+2)*(p+2)), alpha, &
+        & src_m((p+1)*(p+1)), beta
+    ! Output
+    real(dp), intent(inout) :: dst_g(3)
+    ! Temporary workspace
+    complex(dp) :: work_complex(p+2)
+    real(dp) :: work(p+2), src_sk(p+2), vcnk(1), src_m_grad((p+2)**2, 3)
+    ! Call corresponding work routine
+    call modified_spherical_bessel_second_kind(p+1, src_r, src_sk, work, &
+        & work_complex)
+    call fmm_m2m_bessel_grad(p, src_sk, vscales, vcnk, src_m, src_m_grad)
+    call fmm_m2p_bessel_work(c, p+1, vscales, src_sk, alpha, src_m_grad(:, 1), &
+        & beta, dst_g(1), work_complex, work)
+    call fmm_m2p_bessel_work(c, p+1, vscales, src_sk, alpha, src_m_grad(:, 2), &
+        & beta, dst_g(2), work_complex, work)
+    call fmm_m2p_bessel_work(c, p+1, vscales, src_sk, alpha, src_m_grad(:, 3), &
+        & beta, dst_g(3), work_complex, work)
+end subroutine fmm_m2p_bessel_grad
+
 !> Adjoint M2P operation
 !!
 !! Computes the following sum:
@@ -4184,6 +4207,286 @@ subroutine fmm_m2m_bessel_ztranslate_work(z, src_sk, dst_sk, p, vscales, vcnk, &
     end if
 end subroutine fmm_m2m_bessel_ztranslate_work
 
+!> Direct M2M translation over OZ axis
+!!
+!! Compute the following matrix-vector product:
+!! \f[
+!!      \mathrm{dst} = \beta \mathrm{dst} + \alpha M_M \mathrm{src},
+!! \f]
+!! where \f$ \mathrm{dst} \f$ is a vector of coefficients of output spherical
+!! harmonics, \f$ \mathrm{src} \f$ is a vector of coefficients of input
+!! spherical harmonics and \f$ M_M \f$ is a matrix of multipole-to-multipole
+!! translation over OZ axis.
+!!
+!!
+!! @param[in] z: OZ coordinate from old to new centers of harmonics. Standard
+!!      FMM M2M operation requires z to be OZ coordinate from new to old.
+!! @param[in] src_r: Radius of old harmonics
+!! @param[in] dst_r: Radius of new harmonics
+!! @parma[in] p: Maximal degree of spherical harmonics
+!! @param[in] vscales: Normalization constants for harmonics
+!! @param[in] vcnk: Square roots of combinatorial numbers C_n^k
+!! @param[in] alpha: Scalar multipler for `alpha`
+!! @param[in] src_m: Expansion in old harmonics
+!! @param[in] beta: Scalar multipler for `dst_m`
+!! @param[inout] dst_m: Expansion in new harmonics
+!! @param[out] work: Temporary workspace of a size (2*(p+1))
+subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
+        & alpha, src_m, beta, dst_m)
+    use complex_bessel
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: src_sk(p+2), vscales((p+2)*(p+2)), &
+        & vcnk((2*p+1)*(p+1)), alpha, src_m((p+1)*(p+1)), beta
+    ! Output
+    real(dp), intent(inout) :: dst_m((p+2)*(p+2))
+    ! Temporary workspace
+    ! Local variables
+    real(dp) :: r1, r2, tmp1, tmp2, tmp3, res1, res2, pow_r1
+    integer :: j, k, n, indj, indn, l, NZ, ierr
+    ! Pointers for temporary values of powers
+    real(dp) :: fact(2*p+1), fact2(p+2)
+    complex(dp) :: complex_argument
+    ! In case alpha is zero just do a proper scaling of output
+    if (alpha .eq. zero) then
+        if (beta .eq. zero) then
+            dst_m = zero
+        else
+            dst_m = beta * dst_m
+        end if
+        return
+    end if
+    ! Get factorials
+    fact(1) = one
+    do j = 1, 2*p
+        fact(j+1) = dble(j) * fact(j)
+    end do
+    fact2(1) = one
+    do j = 1, p+1
+        fact2(j+1) = dble(2*j+1) * fact2(j)
+    end do
+    ! Now alpha is non-zero
+    ! Do actual M2M
+    ! Overwrite output if beta is zero
+    if (beta .eq. zero) then
+        dst_m = zero
+        ! j=0, k=0, n=1, l=0
+        j = 0
+        k = 0
+        n = 1
+        l = 0
+        indj = 1
+        indn = 3
+        dst_m(1) = -vscales(3) / src_sk(2) / vscales(1) * src_sk(1) / fact2(2) * &
+            & src_m(3)
+        ! j=1..p-1
+        do j = 1, p-1
+            ! Offset for dst_m
+            indj = j*j + j + 1
+            ! k = 0
+            k = 0
+            res1 = zero
+            ! n=j-1
+            n = j-1
+            ! Offset for src_m
+            indn = n*n + n + 1
+            tmp1 = -vscales(indn) * &
+                & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+                & src_sk(n+1) / vscales(indj) * src_sk(j+1)
+            tmp3 = zero
+            ! l=n
+            l = n
+            tmp2 = (two**(-l)) / &
+                & fact(l+1)*fact(2*l+1)/ &
+                & fact(l+1)/fact(l+1)/ &
+                & fact2(j+1)
+            tmp3 = tmp3 + tmp2
+            tmp3 = tmp3 * tmp1
+            res1 = res1 + tmp3*src_m(indn)
+            ! n=j+1
+            n = j+1
+            ! Offset for src_m
+            indn = n*n + n + 1
+            tmp1 = -vscales(indn) * &
+                & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+                & src_sk(n+1) / vscales(indj) * src_sk(j+1)
+            tmp3 = zero
+            ! l=j
+            l = j
+            tmp2 = (two**(-l)) / &
+                & fact(l+1)*fact(2*l+1)/ &
+                & fact(l+1)/fact(l+1)/ &
+                & fact2(j+2)
+            tmp3 = tmp3 + tmp2
+            tmp3 = tmp3 * tmp1
+            res1 = res1 + tmp3*src_m(indn)
+            dst_m(indj) = res1
+            ! k=1..j-1
+            do k = 1, j-1
+                res1 = zero
+                res2 = zero
+                ! n=j-1
+                n = j-1
+                ! Offset for src_m
+                indn = n*n + n + 1
+                tmp1 = -vscales(indn+k) * &
+                    & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                    & src_sk(n+1) / vscales(indj+k) * src_sk(j+1)
+                tmp3 = zero
+                l = n
+                tmp2 = (two**(-l)) / &
+                    & fact(l+k+1)*fact(2*l+1)/ &
+                    & fact(l+1)/fact(l-k+1)/ &
+                    & fact2(j+1)
+                tmp3 = tmp3 + tmp2
+                tmp3 = tmp3 * tmp1
+                res1 = res1 + tmp3*src_m(indn+k)
+                res2 = res2 + tmp3*src_m(indn-k)
+                ! n=j+1
+                n = j+1
+                ! Offset for src_m
+                indn = n*n + n + 1
+                tmp1 = -vscales(indn+k) * &
+                    & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                    & src_sk(n+1) / vscales(indj+k) * src_sk(j+1)
+                tmp3 = zero
+                l = j
+                tmp2 = (two**(-l)) / &
+                    & fact(l+k+1)*fact(2*l+1)/ &
+                    & fact(l+1)/fact(l-k+1)/ &
+                    & fact2(j+2)
+                tmp3 = tmp3 + tmp2
+                tmp3 = tmp3 * tmp1
+                res1 = res1 + tmp3*src_m(indn+k)
+                res2 = res2 + tmp3*src_m(indn-k)
+                dst_m(indj+k) = res1
+                dst_m(indj-k) = res2
+            end do
+            ! k=j
+            k = j
+            res1 = zero
+            res2 = zero
+            ! n=j+1
+            n = j+1
+            ! Offset for src_m
+            indn = n*n + n + 1
+            tmp1 = -vscales(indn+k) * &
+                & dble(2*j+1) * fact(n+k+1) / &
+                & src_sk(n+1) / vscales(indj+k) * src_sk(j+1)
+            tmp3 = zero
+            l = j
+            tmp2 = (two**(-l)) / &
+                & fact(l+k+1)*fact(2*l+1)/ &
+                & fact(l+1)/ &
+                & fact2(j+2)
+            tmp3 = tmp3 + tmp2
+            tmp3 = tmp3 * tmp1
+            res1 = res1 + tmp3*src_m(indn+k)
+            res2 = res2 + tmp3*src_m(indn-k)
+            dst_m(indj+k) = res1
+            dst_m(indj-k) = res2
+        end do
+        ! j=p, n=p-1, l=p-1
+        j = p
+        n = p-1
+        ! Offset for dst_m
+        indj = j*j + j + 1
+        ! k = 0
+        k = 0
+        res1 = zero
+        ! Offset for src_m
+        indn = n*n + n + 1
+        tmp1 = -vscales(indn) * &
+            & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+            & src_sk(n+1) / vscales(indj) * src_sk(j+1)
+        tmp3 = zero
+        l = p-1
+        tmp2 = (two**(-l)) / &
+            & fact(l+1)*fact(2*l+1)/ &
+            & fact(l+1)/fact(l+1)/ &
+            & fact2(j+1)
+        tmp3 = tmp3 + tmp2
+        tmp3 = tmp3 * tmp1
+        res1 = res1 + tmp3*src_m(indn)
+        dst_m(indj) = res1
+        ! k=1..p-1
+        do k = 1, p-1
+            res1 = zero
+            res2 = zero
+            ! n=j-1
+            n = j-1
+            ! Offset for src_m
+            indn = n*n + n + 1
+            tmp1 = vscales(indn+k) * ((-one)**(j+n)) * &
+                & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                & src_sk(n+1) / vscales(indj+k) * src_sk(j+1)
+            tmp3 = zero
+            l = n
+            tmp2 = (two**(-l)) / &
+                & fact(l+k+1)*fact(2*l+1)/ &
+                & fact(l+1)/fact(l-k+1)/fact(j-l+1)/fact(n-l+1)/ &
+                & fact2(j+1)
+            tmp3 = tmp3 + tmp2
+            tmp3 = tmp3 * tmp1
+            res1 = res1 + tmp3*src_m(indn+k)
+            res2 = res2 + tmp3*src_m(indn-k)
+            dst_m(indj+k) = res1
+            dst_m(indj-k) = res2
+        end do
+        ! j=p,k=p is impossible because n=p-1 or n=p+1 is impossible
+        ! j=p+1, n=p, l=p
+        j = p+1
+        n = p
+        ! Offset for dst_m
+        indj = j*j + j + 1
+        ! k = 0
+        k = 0
+        res1 = zero
+        ! Offset for src_m
+        indn = n*n + n + 1
+        tmp1 = -vscales(indn) * &
+            & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+            & src_sk(n+1) / vscales(indj) * src_sk(j+1)
+        tmp3 = zero
+        l = n
+        tmp2 = (two**(-l)) / &
+            & fact(l+1)*fact(2*l+1)/ &
+            & fact(l+1)/fact(l+1)/fact(j-l+1)/fact(n-l+1)/ &
+            & fact2(j+1)
+        tmp3 = tmp3 + tmp2
+        tmp3 = tmp3 * tmp1
+        res1 = res1 + tmp3*src_m(indn)
+        dst_m(indj) = res1
+        ! k != 0
+        do k = 1, p
+            res1 = zero
+            res2 = zero
+            ! n=j-1
+            n = p
+            ! Offset for src_m
+            indn = n*n + n + 1
+            tmp1 = -vscales(indn+k) * &
+                & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                & src_sk(n+1) / vscales(indj+k) * src_sk(j+1)
+            tmp3 = zero
+            l = n
+            tmp2 = (two**(-l)) / &
+                & fact(l+k+1)*fact(2*l+1)/ &
+                & fact(l+1)/fact(l-k+1)/fact(j-l+1)/fact(n-l+1)/ &
+                & fact2(j+1)
+            tmp3 = tmp3 + tmp2
+            tmp3 = tmp3 * tmp1
+            res1 = res1 + tmp3*src_m(indn+k)
+            res2 = res2 + tmp3*src_m(indn-k)
+            dst_m(indj+k) = res1
+            dst_m(indj-k) = res2
+        end do
+    ! Update output if beta is non-zero
+    else
+        stop 111
+    end if
+end subroutine fmm_m2m_bessel_derivative_ztranslate_work
+
 !> Adjoint M2M translation over OZ axis
 !!
 !! Compute the following matrix-vector product:
@@ -4830,6 +5133,46 @@ subroutine fmm_m2m_rotation_adj_work(c, src_r, dst_r, p, vscales, vcnk, &
     ! Backward rotation around OZ axis (work array might appear in the future)
     call fmm_sph_rotate_oz_work(p, vcos, vsin, one, tmp_m2, beta, dst_m)
 end subroutine fmm_m2m_rotation_adj_work
+
+subroutine fmm_m2m_bessel_grad(p, sph_sk, vscales, vcnk, sph_m, sph_m_grad)
+    !! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: sph_sk(p+2), vscales((p+2)**2), vcnk((2*p+3)*(p+2)), &
+        & sph_m((p+1)**2)
+    !! Output
+    real(dp), intent(out) :: sph_m_grad((p+2)**2, 3)
+    !! Local variables
+    real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
+    real(dp) :: tmp((p+1)**2), tmp2((p+2)**2)
+    ! Set coordinate transformations
+    zx_coord_transform = zero
+    zx_coord_transform(3, 2) = one
+    zx_coord_transform(2, 3) = one
+    zx_coord_transform(1, 1) = one
+    zy_coord_transform = zero
+    zy_coord_transform(1, 2) = one
+    zy_coord_transform(2, 1) = one
+    zy_coord_transform(3, 3) = one
+    ! Transform input harmonics for OX axis
+    call fmm_sph_transform(p, zx_coord_transform, one, sph_m, zero, tmp)
+    ! Differentiate M2M along OZ
+    call fmm_m2m_bessel_derivative_ztranslate_work(sph_sk, p, vscales, vcnk, &
+        & one, tmp, zero, tmp2)
+    ! Transform into output harmonics for OX axis
+    call fmm_sph_transform(p+1, zx_coord_transform, one, tmp2, zero, &
+        & sph_m_grad(:, 1))
+    ! Transform input harmonics for OY axis
+    call fmm_sph_transform(p, zy_coord_transform, one, sph_m, zero, tmp)
+    ! Differentiate M2M along OZ
+    call fmm_m2m_bessel_derivative_ztranslate_work(sph_sk, p, vscales, vcnk, &
+        & one, tmp, zero, tmp2)
+    ! Transform into output harmonics for OY axis
+    call fmm_sph_transform(p+1, zy_coord_transform, one, tmp2, zero, &
+        & sph_m_grad(:, 2))
+    ! Differentiate for OZ axis
+    call fmm_m2m_bessel_derivative_ztranslate_work(sph_sk, p, vscales, vcnk, &
+        & one, sph_m, zero, sph_m_grad(:, 3))
+end subroutine fmm_m2m_bessel_grad
 
 !> Direct L2L translation over OZ axis
 !!
