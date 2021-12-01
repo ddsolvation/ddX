@@ -532,10 +532,10 @@ endsubroutine lpb_hsp
   DI_rijn = 0
   fac_hsp = 0
 
-  ! Computation of modified spherical Bessel function values      
+  ! Computation of modified spherical Bessel function values
   call modified_spherical_bessel_first_kind(params % lmax, &
       & rijn*params % kappa, SI_rijn, DI_rijn, work)
-  
+
   do l = 0, params % lmax
     do  m = -l, l
       ind = l*l + l + 1 + m
@@ -629,13 +629,13 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     end do
 end subroutine ddx_lpb_solve
 
+! This routine is not needed when using a Jacobi/DIIS solver for the
+! LPB linear systems. It is needed if using a GMRES solver.
 subroutine lpb_direct_matvec_full(params, constants, workspace, x, y)
     implicit none
-
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
-
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
     real(dp), dimension(constants % nbasis, params % nsph, 2) :: scratch
@@ -649,13 +649,11 @@ end subroutine lpb_direct_matvec_full
 
 subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
     implicit none
-    ! interface data
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
-    ! scratch arrays
     real(dp), dimension(params % ngrid, params % nsph) :: Xadj_sgrid
     real(dp), dimension(constants % nbasis, params % nsph) :: scratch
     real(dp), dimension(constants % nbasis0, params % nsph) :: scratch0
@@ -663,7 +661,6 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
     real(dp), dimension(constants % nbasis) :: basloc, vplm
     real(dp), dimension(params % lmax + 1) :: vcos, vsin
     complex(dp) :: bessel_work(max(2, params % lmax+1))
-    !
     integer :: isph, igrid, jsph, l, m, ind, l0, m0, ind0
     real(dp), dimension(3) :: vij, sijn
     real(dp) :: val, rijn, term, epsilon_ratio, rho, ctheta, stheta, cphi, sphi
@@ -839,14 +836,11 @@ end subroutine lpb_direct_matvec
 
 subroutine lpb_adjoint_prec(params, constants, workspace, x, y)
     implicit none
-
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
-
     real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
     real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
-
     integer :: n_iter, info
     real(dp) :: r_norm
     real(dp), dimension(params % maxiter) :: x_rel_diff
@@ -879,14 +873,11 @@ end subroutine lpb_adjoint_prec
 ! @param[out] y       : Linear system solution at current iteration
 subroutine lpb_direct_prec(params, constants, workspace, x, y)
     implicit none
-
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
-
     real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
     real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
-
     integer :: n_iter, info
     real(dp) :: r_norm
     real(dp), dimension(params % maxiter) :: x_rel_diff
