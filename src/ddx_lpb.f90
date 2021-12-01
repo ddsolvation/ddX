@@ -1377,7 +1377,7 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   real(dp), dimension(0:constants % lmax0) :: SK_rijn, DK_rijn
   complex(dp)  :: work(max(2, params % lmax+1))
   integer :: ind0, l0, m0
-
+  real(dp), dimension(constants % nbasis0, params % nsph) :: scratch
   epsilon_ratio = epsp/params % eps
 
 
@@ -1388,94 +1388,99 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
             & Xadj_r + Xadj_e , constants % nbasis, zero, Xadj_sgrid, &
             & params % ngrid)
 
-  rhs_adj = zero
-  do jsph = 1, params % nsph
-    do ibasis = 1, constants % nbasis
-      icav = zero
-      !Summation over j and n
-      do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-          if (constants % ui(igrid,isph).gt.zero) then
-            icav = icav + 1
-            vij  = params % csph(:, isph) + &
-                & params % rsph(isph)*constants % cgrid(:, igrid) - &
-                & params % csph(:, jsph)
-            rijn = sqrt(dot_product(vij, vij))
-            sijn = vij / rijn
-            ! Compute Bessel function of 2nd kind for the coordinates
-            ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-            call modified_spherical_bessel_second_kind( &
-                & constants % lmax0, &
-                & rijn*params % kappa, SK_rijn, DK_rijn, &
-                & work)
-            call ylmbas(sijn, rho, ctheta, stheta, cphi, &
-                & sphi, params % lmax, constants % vscales, &
-                & basloc, vplm, vcos, vsin)
-            val = zero
-            do l0 = 0, constants % lmax0
-              term = SK_rijn(l0) / constants % SK_ri(l0, jsph)
-              do m0 = -l0, l0
-                  ind0 = l0*l0 + l0 + m0 + 1
-                  val = val + constants % pchi(ibasis, ind0, jsph) &
-                      & *constants % C_ik(l0,jsph) * term * basloc(ind0)
-              end do
-            end do
-            !write(6,*) jsph, isph, val, constants % diff_ep_adj(icav, ibasis, jsph)
+  !rhs_adj = zero
+  !do jsph = 1, params % nsph
+  !  do ibasis = 1, constants % nbasis
+  !    icav = zero
+  !    !Summation over j and n
+  !    do isph = 1, params % nsph
+  !      do igrid = 1, params % ngrid
+  !        if (constants % ui(igrid,isph).gt.zero) then
+  !          icav = icav + 1
+  !          vij  = params % csph(:, isph) + &
+  !              & params % rsph(isph)*constants % cgrid(:, igrid) - &
+  !              & params % csph(:, jsph)
+  !          rijn = sqrt(dot_product(vij, vij))
+  !          sijn = vij / rijn
+  !          ! Compute Bessel function of 2nd kind for the coordinates
+  !          ! (s_ijn, r_ijn) and compute the basis function for s_ijn
+  !          call modified_spherical_bessel_second_kind( &
+  !              & constants % lmax0, &
+  !              & rijn*params % kappa, SK_rijn, DK_rijn, &
+  !              & work)
+  !          call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+  !              & sphi, params % lmax, constants % vscales, &
+  !              & basloc, vplm, vcos, vsin)
+  !          val = zero
+  !          do l0 = 0, constants % lmax0
+  !            term = SK_rijn(l0) / constants % SK_ri(l0, jsph)
+  !            do m0 = -l0, l0
+  !                ind0 = l0*l0 + l0 + m0 + 1
+  !                val = val + constants % pchi(ibasis, ind0, jsph) &
+  !                    & *constants % C_ik(l0,jsph) * term * basloc(ind0)
+  !            end do
+  !          end do
+  !          !write(6,*) jsph, isph, val, constants % diff_ep_adj(icav, ibasis, jsph)
+  !          rhs_adj(ibasis, jsph) = rhs_adj(ibasis, jsph) + &
+  !                      & constants % wgrid(igrid)*&
+  !                      & constants % ui(igrid, isph)*&
+  !                      & Xadj_sgrid(igrid, isph)*val
+  !          !            & constants % diff_ep_adj(icav, ibasis, jsph)
+  !        end if
+  !      end do
+  !    end do
+  !  end do
+  !end do
 
-            rhs_adj(ibasis, jsph) = rhs_adj(ibasis, jsph) + &
-                        & constants % wgrid(igrid)*&
-                        & constants % ui(igrid, isph)*&
-                        & Xadj_sgrid(igrid, isph)*val
-            !            & constants % diff_ep_adj(icav, ibasis, jsph)
-          end if
+  rhs_adj = zero
+  scratch = zero
+  do isph = 1, params % nsph
+    do igrid = 1, params % ngrid
+      if (constants % ui(igrid, isph).gt.zero) then
+        val = xadj_sgrid(igrid,isph)*constants % wgrid(igrid) &
+            & *constants % ui(igrid,isph)
+        do jsph = 1, params % nsph
+          vij  = params % csph(:,isph) + &
+            & params % rsph(isph)*constants % cgrid(:,igrid) - &
+            & params % csph(:,jsph)
+          rijn = sqrt(dot_product(vij,vij))
+          sijn = vij/rijn
+          call modified_spherical_bessel_second_kind(constants % lmax0, &
+            & rijn*params % kappa, SK_rijn, DK_rijn, work)
+          call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+            & sphi, params % lmax, constants % vscales, &
+            & basloc, vplm, vcos, vsin)
+          do l0 = 0, constants % lmax0
+            term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+            do m0 = -l0, l0
+              ind0 = l0*l0 + l0 + m0 + 1
+              scratch(ind0,jsph) = scratch(ind0,jsph) + &
+                  & val*constants % C_ik(l0,jsph)*term*basloc(ind0)
+            end do
+          end do
         end do
-      end do
+      end if
     end do
   end do
 
-  !rhs_adj = zero
-  !do jsph = 1, params % nsph
-  !  do igrid = 1, params % ngrid
-  !    if (constants % ui(igrid, jsph).gt.zero) then
-  !      ! assemble pchi * coefY
-  !      bas0_scratch = zero
-  !      do jsph = 1, params % nsph
-  !        vij  = params % csph(:,isph) + &
-  !          & params % rsph(isph)*constants % cgrid(:,igrid) - &
-  !          & params % csph(:,jsph)
-  !        rijn = sqrt(dot_product(vij,vij))
-  !        sijn = vij/rijn
-  !        call modified_spherical_bessel_second_kind(constants % lmax0, &
-  !          & rijn*params % kappa, SK_rijn, DK_rijn, work)
-  !        call ylmbas(sijn, rho, ctheta, stheta, cphi, &
-  !          & sphi, params % lmax, constants % vscales, &
-  !          & basloc, vplm, vcos, vsin)
-  !        do l0 = 0, constants % lmax0
-  !          term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
-  !          do m0 = -l0, l0
-  !            ind0 = l0*l0 + l0 + m0 + 1
-  !            bas0_scratch(ind0) = constants % C_ik(l0,jsph) &
-  !                & *term*basloc(ind0)
-  !          end do
-  !        end do
-  !        call dgemm()
-  !      end do
-  !    end if
-  !  end do
-  !end do
+  do jsph = 1, params % nsph
+    call dgemv('t', constants % nbasis, constants % nbasis0, one, &
+        & constants % pchi(1,1,jsph), constants % nbasis, &
+        & scratch(1,jsph), 1, zero, rhs_adj(1,jsph), 1)
+  end do
 
   do isph = 1, params % nsph
     do l = 0, params % lmax
       do m = -l, l
         ind = l**2 + l + m + 1
-        rhs_r(ind, isph) = rhs_r_init(ind, isph) - &
-                        & (epsilon_ratio*l*rhs_adj(ind, isph))/params % rsph(isph)
-        rhs_e(ind, isph) = rhs_e_init(ind, isph) + constants % termimat(l,isph)*rhs_adj(ind, isph)
+        rhs_r(ind, isph) = rhs_r_init(ind, isph) &
+            & - (epsilon_ratio*l*rhs_adj(ind, isph))/params % rsph(isph)
+        rhs_e(ind, isph) = rhs_e_init(ind, isph) &
+            & + constants % termimat(l,isph)*rhs_adj(ind, isph)
       end do
     end do
   end do
 
-  return
   end subroutine update_rhs_adj
   
   !
