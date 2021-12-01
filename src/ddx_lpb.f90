@@ -124,8 +124,6 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
     allocate(ddcosmo_guess(ddx_data % constants % nbasis, &
         & ddx_data % params % nsph), hsp_guess(ddx_data % constants % nbasis, &
         & ddx_data % params % nsph))
-    ddcosmo_guess = zero
-    hsp_guess = zero
 
     !!
     !! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
@@ -155,6 +153,10 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
           & ddx_data % workspace, psi, tol, Xadj_r, Xadj_e)
       t1 = omp_get_wtime()
       write(6,*) '@adjoint_ls', t1 - t0
+      write(6,*) xadj_r
+      write(6,*) xadj_e
+    end if
+    if (.false.) then
       !Call the subroutine to evaluate derivatives
       t0 = omp_get_wtime()
       call ddx_lpb_force(ddx_data % params, ddx_data % constants, &
@@ -605,7 +607,8 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
 
     ! guess
     call lpb_direct_prec(params, constants, workspace, rhs, x)
-    x = zero
+    ddcosmo_guess = zero
+    hsp_guess = zero
 
     ! solve LS using Jacobi/DIIS
     n_iter = params % maxiter
@@ -644,6 +647,27 @@ subroutine lpb_direct_matvec_full(params, constants, workspace, x, y)
 
 end subroutine lpb_direct_matvec_full
 
+subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
+    implicit none
+
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
+
+    real(dp), dimension(params % ngrid, params % nsph) :: Xadj_sgrid
+
+    real(dp) :: epsilon_ratio
+    epsilon_ratio = epsp/params % eps
+
+    call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
+        & one, constants % vgrid, constants % vgrid_nbasis, &
+        x(:,:,1) + x(:,:,2), constants % nbasis, zero, Xadj_sgrid, params % ngrid)
+    
+
+end subroutine lpb_adjoint_matvec
 
 ! Perform |Yr| = |C1 C2|*|Xr|
 !         |Ye|   |C1 C2| |Xe|
@@ -758,6 +782,39 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
 
 end subroutine lpb_direct_matvec
 
+subroutine lpb_adjoint_prec(params, constants, workspace, x, y)
+    implicit none
+
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
+    real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
+
+    integer :: n_iter, info
+    real(dp) :: r_norm
+    real(dp), dimension(params % maxiter) :: x_rel_diff
+
+    tt0 = omp_get_wtime()
+    y(:,:,1) = x(:,:,1)
+    call convert_ddcosmo(params, constants, 1, y(:,:,1))
+    n_iter = params % maxiter
+    call jacobi_diis(params, constants, workspace, inner_tol, y(:,:,1), &
+        & ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
+    y(:,:,1) = ddcosmo_guess
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@cosmo', tt1 - tt0, n_iter
+
+    tt0 = omp_get_wtime()
+    n_iter = params % maxiter
+    call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        & n_iter, r_norm, bstarx, info)
+    y(:,:,2) = hsp_guess
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@hsp', tt1 - tt0, n_iter
+
+end subroutine lpb_adjoint_prec
 
 ! apply preconditioner
 ! |Yr| = |A^-1 0 |*|Xr|
@@ -785,8 +842,8 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     tt0 = omp_get_wtime()
     !call prtsph('cosmo rhs', constants % nbasis, params % lmax, params % nsph, &
     !    & 0, x(:,:,1))
-    call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), ddcosmo_guess, &
-        & n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
+    call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), &
+        & ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
     !call prtsph('cosmo sol', constants % nbasis, params % lmax, params % nsph, &
     !    & 0, ddcosmo_guess)
     ! Scale by the factor of (2l+1)/4Pi
@@ -801,10 +858,11 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     !    & 0, x(:,:,2))
     !call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &
     !    & 0, hsp_guess)
-    !call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
-    !    & n_iter, r_norm, bx, info)
-    call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
-        & n_iter, x_rel_diff, bx_nodiag, bx_prec, hnorm, info)
+    n_iter = params % maxiter
+    call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        & n_iter, r_norm, bx, info)
+    !call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+    !    & n_iter, x_rel_diff, bx_nodiag, bx_prec, hnorm, info)
     !call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &
     !    & 0, hsp_guess)
     y(:,:,2) = hsp_guess
@@ -902,15 +960,19 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_
     ! Solve A*X_adj_r = psi_r
     ! Set the RHS to correct form by factoring with 4Pi/2l+1
     Xadj_r = zero
+    tt0 = omp_get_wtime()
     call convert_ddcosmo(params, constants, 1, rhs_cosmo)
     n_iter = params % maxiter
     call jacobi_diis(params, constants, &
         & workspace, tol, rhs_cosmo, Xadj_r, n_iter, &
         & xs_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@cosmo', tt1 - tt0, n_iter
 
     ! Solve the HSP equation
     ! B*X_adj_e = psi_e
     ! For first iteration the rhs is zero for HSP equation. Hence, Xadj_e = 0
+    tt0 = omp_get_wtime()
     Xadj_e = rhs_hsp
     if(iteration.ne.1) then
         n_iter = params % maxiter
@@ -918,6 +980,8 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_
             & workspace, tol, rhs_hsp, Xadj_e, n_iter, &
             & r_norm, bstarx, info)
     endif
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@hsp', tt1 - tt0, n_iter
 
     ! Update the RHS
     ! |rhs_r| = |psi_r|-|C1* C1*||Xadj_r|
@@ -1304,8 +1368,15 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
   integer :: isph, igrid, icav, ibasis, ibasis0, l, m, ind, jsph
   ! epsilon_ratio : epsilon_1/epsilon_2
   real(dp) :: epsilon_ratio
-  ! val_1, val_2  : Intermediate summations variable
+
   real(dp) :: val
+  real(dp), dimension(3) :: vij, sijn
+  real(dp) :: term, rho, ctheta, stheta, cphi, sphi, rijn
+  real(dp), dimension(constants % nbasis) :: basloc, vplm
+  real(dp), dimension(params % lmax + 1) :: vcos, vsin
+  real(dp), dimension(0:constants % lmax0) :: SK_rijn, DK_rijn
+  complex(dp)  :: work(max(2, params % lmax+1))
+  integer :: ind0, l0, m0
 
   epsilon_ratio = epsp/params % eps
 
@@ -1317,26 +1388,81 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
             & Xadj_r + Xadj_e , constants % nbasis, zero, Xadj_sgrid, &
             & params % ngrid)
 
-
   rhs_adj = zero
-  do isph = 1, params % nsph
+  do jsph = 1, params % nsph
     do ibasis = 1, constants % nbasis
       icav = zero
       !Summation over j and n
-      do jsph = 1, params % nsph
+      do isph = 1, params % nsph
         do igrid = 1, params % ngrid
-          if (constants % ui(igrid,jsph).gt.zero) then
+          if (constants % ui(igrid,isph).gt.zero) then
             icav = icav + 1
-            rhs_adj(ibasis, isph) = rhs_adj(ibasis, isph) + &
+            vij  = params % csph(:, isph) + &
+                & params % rsph(isph)*constants % cgrid(:, igrid) - &
+                & params % csph(:, jsph)
+            rijn = sqrt(dot_product(vij, vij))
+            sijn = vij / rijn
+            ! Compute Bessel function of 2nd kind for the coordinates
+            ! (s_ijn, r_ijn) and compute the basis function for s_ijn
+            call modified_spherical_bessel_second_kind( &
+                & constants % lmax0, &
+                & rijn*params % kappa, SK_rijn, DK_rijn, &
+                & work)
+            call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+                & sphi, params % lmax, constants % vscales, &
+                & basloc, vplm, vcos, vsin)
+            val = zero
+            do l0 = 0, constants % lmax0
+              term = SK_rijn(l0) / constants % SK_ri(l0, jsph)
+              do m0 = -l0, l0
+                  ind0 = l0*l0 + l0 + m0 + 1
+                  val = val + constants % pchi(ibasis, ind0, jsph) &
+                      & *constants % C_ik(l0,jsph) * term * basloc(ind0)
+              end do
+            end do
+            !write(6,*) jsph, isph, val, constants % diff_ep_adj(icav, ibasis, jsph)
+
+            rhs_adj(ibasis, jsph) = rhs_adj(ibasis, jsph) + &
                         & constants % wgrid(igrid)*&
-                        & constants % ui(igrid, jsph)*&
-                        & Xadj_sgrid(igrid, jsph)*&
-                        & constants % diff_ep_adj(icav, ibasis, isph)
+                        & constants % ui(igrid, isph)*&
+                        & Xadj_sgrid(igrid, isph)*val
+            !            & constants % diff_ep_adj(icav, ibasis, jsph)
           end if
         end do
       end do
     end do
   end do
+
+  !rhs_adj = zero
+  !do jsph = 1, params % nsph
+  !  do igrid = 1, params % ngrid
+  !    if (constants % ui(igrid, jsph).gt.zero) then
+  !      ! assemble pchi * coefY
+  !      bas0_scratch = zero
+  !      do jsph = 1, params % nsph
+  !        vij  = params % csph(:,isph) + &
+  !          & params % rsph(isph)*constants % cgrid(:,igrid) - &
+  !          & params % csph(:,jsph)
+  !        rijn = sqrt(dot_product(vij,vij))
+  !        sijn = vij/rijn
+  !        call modified_spherical_bessel_second_kind(constants % lmax0, &
+  !          & rijn*params % kappa, SK_rijn, DK_rijn, work)
+  !        call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+  !          & sphi, params % lmax, constants % vscales, &
+  !          & basloc, vplm, vcos, vsin)
+  !        do l0 = 0, constants % lmax0
+  !          term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+  !          do m0 = -l0, l0
+  !            ind0 = l0*l0 + l0 + m0 + 1
+  !            bas0_scratch(ind0) = constants % C_ik(l0,jsph) &
+  !                & *term*basloc(ind0)
+  !          end do
+  !        end do
+  !        call dgemm()
+  !      end do
+  !    end if
+  !  end do
+  !end do
 
   do isph = 1, params % nsph
     do l = 0, params % lmax
