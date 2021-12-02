@@ -149,7 +149,7 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
       write(*,*) 'Computation of Forces for ddLPB'
       ! Call the subroutine adjoint to solve the adjoint solution
       t0 = omp_get_wtime()
-      call ddx_lpb_adjoint_new(ddx_data % params, ddx_data % constants, &
+      call ddx_lpb_adjoint(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, psi, tol, Xadj_r, Xadj_e)
       t1 = omp_get_wtime()
       write(6,*) '@adjoint_ls', t1 - t0
@@ -610,15 +610,18 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     ddcosmo_guess = zero
     hsp_guess = zero
     x = zero
+    !rhs = one
+    call prtsph('rhs', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, rhs)
 
     ! solve LS using Jacobi/DIIS
     n_iter = params % maxiter
     call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
         & 4, params % jacobi_ndiis, 2, tol, rhs, x, n_iter, &
         & ok, lpb_direct_matvec, lpb_direct_prec)
-    !call gmresr_old(params, constants, workspace, .true., 2*constants % n, &
-    !    & params % gmresr_j, 0, rhs, x, gmres_work, tol, 'rel', n_iter, &
-    !    & gmres_resid, lpb_direct_matvec_full, info)
+    call prtsph('sol', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, x)
+
 
     xr = x(:,:,1)
     xe = x(:,:,2)
@@ -792,11 +795,8 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
       end do
     end do
     !!$omp end parallel do
-    tt1 = omp_get_wtime()
-    write(6,*) '@direct@matvec1', tt1 - tt0
 
     ! diff0 = Pchi * diff_er, linear scaling
-    tt0 = omp_get_wtime()
     !!$omp parallel do default(none) shared(constants,params, &
     !!$omp diff_re,diff0) private(jsph)
     do jsph = 1, params % nsph
@@ -805,11 +805,8 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
           & diff_re(1,jsph), 1, zero, diff0(1,jsph), 1)
     end do
     !!$omp end parallel do
-    tt1 = omp_get_wtime()
-    write(6,*) '@direct@matvec2', tt1 - tt0
 
     ! avoiding N^2 storage, this code does not use the cached coefY
-    tt0 = omp_get_wtime()
     y(:,:,1) = zero
     !!$omp parallel do default(none) shared(params,constants, &
     !!$omp diff0,y) private(isph,igrid,val,vij,rijn,sijn,SK_rijn, &
@@ -856,7 +853,7 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
     end do
     !!$omp end parallel do
     tt1 = omp_get_wtime()
-    write(6,*) '@direct@matvec3', tt1 - tt0
+    write(6,*) '@direct@matvec', tt1 - tt0
 
     y(:,:,2) = y(:,:,1)
 
