@@ -153,8 +153,6 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
           & ddx_data % workspace, psi, tol, Xadj_r, Xadj_e)
       t1 = omp_get_wtime()
       write(6,*) '@adjoint_ls', t1 - t0
-      write(6,*) xadj_r
-      write(6,*) xadj_e
     end if
     if (.false.) then
       !Call the subroutine to evaluate derivatives
@@ -1284,60 +1282,35 @@ end subroutine ddx_lpb_force
   !> Apply adjoint single layer operator to spherical harmonics
   !! implementation is similar to lstarx in ddCOSMO
   !! Diagonal blocks are not counted here.
-  subroutine bstarx(params, constants, workspace, x, y)
+subroutine bstarx(params, constants, workspace, x, y)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-  real(dp), intent(in)       :: x(constants % nbasis, params % nsph)
-  ! Output
-  real(dp), intent(out)      :: y(constants % nbasis, params % nsph)
-  ! Local variables
-  integer                    :: isph, igrid, istatus
-  real(dp), allocatable      :: xi(:,:), vplm(:), basloc(:), vcos(:), vsin(:)
-  ! Allocate workspaces
-  allocate(xi(params % ngrid, params % nsph), vplm(constants % nbasis), &
-        & basloc(constants % nbasis), vcos(params % lmax+1), &
-        & vsin(params % lmax+1), stat=istatus)
-  if (istatus .ne. 0) then
-      write(*, *) 'bstarx: allocation failed!'
-      stop
-  endif
-!  if (ddx_data % iprint .ge. 5) then
-!      call prtsph('X', ddx_data % constants % nbasis, ddx_data % params % lmax, ddx_data % params % nsph, 0, &
-!          & x)
-!  end if
-  ! Initalize
-  y = zero
-  !! Expand x over spherical harmonics
-  ! Loop over spheres
-  do isph = 1, params % nsph
-      ! Loop over grid points
-      do igrid = 1, params % ngrid
-          xi(igrid, isph) = dot_product(x(:, isph), &
-              & constants % vgrid(:constants % nbasis, igrid))
-      end do
-  end do
-  !! Compute action
-  ! Loop over spheres
-  do isph = 1, params % nsph
-      ! Compute NEGATIVE action of off-digonal blocks
-      call adjrhs_lpb(params, constants, workspace, isph, xi, y(:, isph), &
-          & basloc, vplm, vcos, vsin)
-      y(:, isph) = - y(:, isph)
-      y(:,isph)  = y(:,isph) + x(:,isph)
-  end do
-!  if (ddx_data % iprint .ge. 5) then
-!      call prtsph('B*X (off-diagonal)', ddx_data % constants % nbasis, ddx_data % params % lmax, &
-!          & ddx_data % params % nsph, 0, y)
-!  end if
-  deallocate( xi, basloc, vplm, vcos, vsin , stat=istatus )
-  if ( istatus.ne.0 ) then
-      write(*,*) 'bstarx: allocation failed !'
-      stop
-  endif
-  end subroutine bstarx
+    real(dp), intent(in)       :: x(constants % nbasis, params % nsph)
+    real(dp), intent(out)      :: y(constants % nbasis, params % nsph)
+    ! Local variables
+    integer                    :: isph, igrid, istatus
+
+    ! Initalize
+    y = zero
+    !! Expand x over spherical harmonics
+    ! Loop over spheres
+    do isph = 1, params % nsph
+        call dgemv('t', constants % nbasis, params % ngrid, one, constants % vgrid, &
+            & constants % vgrid_nbasis, x(:, isph), 1, zero, &
+            & workspace % tmp_grid(:, isph), 1)
+    end do
+    ! Loop over spheres
+    do isph = 1, params % nsph
+        ! Compute NEGATIVE action of off-digonal blocks
+        call adjrhs_lpb(params, constants, workspace, isph, workspace % tmp_grid, &
+            & y(:, isph), workspace % tmp_vylm, workspace % tmp_vplm, &
+            & workspace % tmp_vcos, workspace % tmp_vsin)
+        y(:,isph)  = - y(:,isph) + x(:,isph)
+    end do
+
+end subroutine bstarx
 
   !
   ! Taken from ddx_core routine adjrhs

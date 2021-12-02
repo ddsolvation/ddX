@@ -69,8 +69,6 @@ option(COVERAGE "Generate code coverage report" OFF)
 # Whether or not to use OpenMP
 option(OPENMP "Enable OpenMP" ON)
 
-add_compile_options(-O3)
-
 ###############################################################################
 ##                               CHECK OPTIONS                               ##
 ###############################################################################
