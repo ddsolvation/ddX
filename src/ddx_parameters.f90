@@ -242,7 +242,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     end if
     params % kappa = kappa
     ! Regularization parameter
-    if ((eta .le. zero) .or. (eta .gt. one)) then
+    if ((eta .lt. zero) .or. (eta .gt. one)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `eta`"
         call print_func(params % error_message)

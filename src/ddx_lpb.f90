@@ -477,7 +477,7 @@ endsubroutine lpb_hsp
         ! compute geometrical variables
         vij  = params % csph(:,isph) + params % rsph(isph)*constants % cgrid(:,its) - params % csph(:,jsph)
         vvij = sqrt(dot_product(vij,vij))
-        tij  = vvij/params % rsph(jsph) 
+        tij  = vvij/params % rsph(jsph)
 
         if ( tij.lt.one ) then
           sij = vij/vvij
@@ -589,7 +589,7 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     old_esolv = zero; inc = zero
     rhs_r_init = zero; rhs_e_init = zero
     g0 = zero; f0 = zero
-    inner_tol = tol/10.0d0
+    inner_tol = tol
 
     ! integrate RHS
     tt0 = omp_get_wtime()
@@ -795,6 +795,8 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
       end do
     end do
     !!$omp end parallel do
+    tt1 = omp_get_wtime()
+    write(6,*) '@direct@matvec1', tt1 - tt0
 
     ! diff0 = Pchi * diff_er, linear scaling
     !!$omp parallel do default(none) shared(constants,params, &
@@ -805,8 +807,11 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
           & diff_re(1,jsph), 1, zero, diff0(1,jsph), 1)
     end do
     !!$omp end parallel do
+    tt1 = omp_get_wtime()
+    write(6,*) '@direct@matvec2', tt1 - tt0
 
     ! avoiding N^2 storage, this code does not use the cached coefY
+    tt0 = omp_get_wtime()
     y(:,:,1) = zero
     !!$omp parallel do default(none) shared(params,constants, &
     !!$omp diff0,y) private(isph,igrid,val,vij,rijn,sijn,SK_rijn, &
@@ -853,7 +858,7 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
     end do
     !!$omp end parallel do
     tt1 = omp_get_wtime()
-    write(6,*) '@direct@matvec', tt1 - tt0
+    write(6,*) '@direct@matvec3', tt1 - tt0
 
     y(:,:,2) = y(:,:,1)
 
