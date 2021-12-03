@@ -462,7 +462,7 @@ endsubroutine lpb_hsp
   real(dp), dimension(params % ngrid) :: pot2
   integer :: its, ij, jsph
   real(dp) :: rho, ctheta, stheta, cphi, sphi
-  real(dp) :: vij(3), sij(3)
+  real(dp) :: vij(3), sij(3), vtij(3)
   real(dp) :: vvij, tij, xij, oij
 
   pot = zero
@@ -494,7 +494,9 @@ endsubroutine lpb_hsp
           !call inthsp(params, constants, vvij, params % rsph(jsph), jsph, &
           !    & basloc, fac_hsp, bessel_work)
           !pot(its) = pot(its) + oij*dot_product(fac_hsp,x(:,jsph))
-          call fmm_l2p_bessel_work(vij*params % kappa, &
+!
+          vtij = vij*params % kappa
+          call fmm_l2p_bessel_work(vtij, &
               & params % lmax, constants % vscales, &
               & constants % SI_ri(:, jsph), oij, x(:, jsph), one, &
               & pot(its), work_complex, work)
@@ -696,8 +698,10 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
     epsilon_ratio = epsp/params % eps
 
     ! TODO: maybe use ddeval_grid for code consistency
+!
+    scratch = x(:,:,1) - x(:,:,2)
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, x(:,:,1) + x(:,:,2), &
+        & one, constants % vgrid, constants % vgrid_nbasis, scratch,        &
         & constants % nbasis, zero, Xadj_sgrid, params % ngrid)
 
     scratch0 = zero
