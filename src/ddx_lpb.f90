@@ -695,11 +695,15 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
 
     epsilon_ratio = epsp/params % eps
 
+    tt0 = omp_get_wtime()
     ! TODO: maybe use ddeval_grid for code consistency
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
         & one, constants % vgrid, constants % vgrid_nbasis, x(:,:,1) + x(:,:,2), &
         & constants % nbasis, zero, Xadj_sgrid, params % ngrid)
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@matvec1', tt1 - tt0
 
+    tt0 = omp_get_wtime()
     scratch0 = zero
     do isph = 1, params % nsph
         do igrid = 1, params % ngrid
@@ -730,13 +734,19 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
             end if
         end do
     end do
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@matvec2', tt1 - tt0
 
+    tt0 = omp_get_wtime()
     do jsph = 1, params % nsph
         call dgemv('t', constants % nbasis, constants % nbasis0, one, &
             & constants % pchi(1,1,jsph), constants % nbasis, &
             & scratch0(1,jsph), 1, zero, scratch(1,jsph), 1)
     end do
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@matvec3', tt1 - tt0
 
+    tt0 = omp_get_wtime()
     do isph = 1, params % nsph
         do l = 0, params % lmax
             do m = -l, l
@@ -747,6 +757,8 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
           end do
         end do
     end do
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@matvec4', tt1 - tt0
 
 end subroutine lpb_adjoint_matvec
 
