@@ -69,6 +69,7 @@ option(COVERAGE "Generate code coverage report" OFF)
 # Whether or not to use OpenMP
 option(OPENMP "Enable OpenMP" ON)
 
+#
 ###############################################################################
 ##                               CHECK OPTIONS                               ##
 ###############################################################################
@@ -80,6 +81,9 @@ if(DOCS)
         set(DOCS OFF)
     endif()
 endif()
+
+#add_compile_options(-O3 -xHost -g -check all -traceback)
+#add_compile_options(-O0 -g -fcheck=all -fbacktrace)
 
 # Update compiler flags in case of code coverage
 if(COVERAGE)
