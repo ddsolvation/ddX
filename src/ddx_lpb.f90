@@ -151,10 +151,14 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
       write(*,*) 'Computation of Forces for ddLPB'
       ! Call the subroutine adjoint to solve the adjoint solution
       t0 = omp_get_wtime()
-      call ddx_lpb_adjoint_new(ddx_data % params, ddx_data % constants, &
+      call ddx_lpb_adjoint(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, psi, tol, Xadj_r, Xadj_e)
       t1 = omp_get_wtime()
       write(6,*) '@adjoint_ls', t1 - t0
+      call prtsph('xadj_r', ddx_data % constants % nbasis, ddx_data % params % lmax, &
+          & ddx_data % params % nsph, 0, xadj_r)
+      call prtsph('xadj_e', ddx_data % constants % nbasis, ddx_data % params % lmax, &
+          & ddx_data % params % nsph, 0, xadj_e)
     end if
     if (.false.) then
       !Call the subroutine to evaluate derivatives
@@ -961,150 +965,12 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
 
 end subroutine lpb_direct_prec
 
-subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_e)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: psi
-    real(dp), intent(in) :: tol
-    !! Temporary buffers
-    type(ddx_workspace_type), intent(inout) :: workspace
-    !! Outputs
-    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: Xadj_r, Xadj_e
-    real(dp), external :: dnrm2
-    !! Local Variables
-    !! xs_rel_diff : relative norm of increment of every Jacobi iteration
-    real(dp) :: xs_rel_diff(params % maxiter)
-    ! ok             : Logical expression used in Jacobi solver
-    ! istatus        : Status of allocation
-    ! isph           : Index for the sphere
-    ! ibasis         : Index for the basis
-    ! iteration      : Number of outer loop iterations
-    ! inc            : Check for convergence threshold
-    ! relative_num   : Numerator of the relative error
-    ! relative_denom : Denominator of the relative error
-    ! converged      : Convergence check for outer loop
-    logical   :: ok
-    integer   :: istatus, isph, ibasis,  iteration
-    real(dp)  :: inc, relative_num, relative_denom
-    logical   :: converged
-
-    !!
-    !! Xadj_r         : Adjoint solution of Laplace equation
-    !! Xadj_e         : Adjoint solution of HSP equation
-    !! rhs_cosmo      : RHS corresponding to Laplace equation
-    !! rhs_hsp        : RHS corresponding to HSP equation
-    !! rhs_cosmo_init : Initial RHS for Laplace, psi_r in literature
-    !! rhs_hsp_init   : Initial RHS for HSP, psi_e = 0 in literature
-    !! X_r_k_1          : Solution of previous iterative step, holds Xadj_r_k_1
-    !! X_e_k_1          : Solution of previous iterative step, holds Xadj_e_k_1
-    real(dp), allocatable :: rhs_cosmo(:,:), rhs_hsp(:,:), &
-        & rhs_cosmo_init(:,:), rhs_hsp_init(:,:), &
-        & X_r_k_1(:,:), X_e_k_1(:,:)
-
-    ! GMRES parameters
-    integer :: info, n_iter
-    real(dp) r_norm
-    real(dp), dimension(constants % nbasis, params % nsph, 2) :: x, rhs, scr
-
-    ! Allocation
-    allocate(rhs_cosmo(constants % nbasis, params % nsph), &
-        & rhs_hsp(constants % nbasis, params % nsph), &
-        & rhs_cosmo_init(constants % nbasis, params % nsph), &
-        & rhs_hsp_init(constants % nbasis, params % nsph),&
-        & X_r_k_1(constants % nbasis, params % nsph),&
-        & X_e_k_1(constants % nbasis, params % nsph),&
-        & stat = istatus)
-    if(istatus .ne. 0) then
-        write(*,*) 'Allocation failed in adjoint LPB!'
-        stop
-    end if
-    ! We compute the adjoint solution first
-    write(*,*) 'Solution of adjoint system'
-    ! Set local variables
-    iteration = one
-    inc = zero
-    relative_num = zero
-    relative_denom = zero
-    X_r_k_1 = zero
-    X_e_k_1 = zero
-    ! Initial RHS
-    ! rhs_cosmo_init = psi_r
-    ! rhs_hsp_init   = psi_e (=0)
-    rhs_cosmo_init = psi
-    rhs_hsp_init = zero
-    ! Updated RHS
-    rhs_cosmo = rhs_cosmo_init
-    rhs_hsp = rhs_hsp_init
-    ! Initial Xadj_r and Xadj_e
-    Xadj_r = zero
-    Xadj_e = zero
-    converged = .false.
-    ok = .false.
-    ! Solve the adjoint system
-    do while (.not.converged)
-    ! Solve A*X_adj_r = psi_r
-    ! Set the RHS to correct form by factoring with 4Pi/2l+1
-    rhs(:,:,1) = rhs_cosmo
-    rhs(:,:,2) = rhs_hsp
-    call lpb_adjoint_prec(params, constants, workspace, rhs, x)
-    Xadj_r = x(:,:,1)
-    Xadj_e = x(:,:,2)
-
-    ! Update the RHS
-    ! |rhs_r| = |psi_r|-|C1* C1*||Xadj_r|
-    ! |rhs_e| = |psi_e| |C2* C2*||Xadj_e|
-    call update_rhs_adj(params, constants, &
-        & workspace, rhs_cosmo_init, rhs_hsp_init,&
-        & rhs_cosmo, rhs_hsp, Xadj_r, Xadj_e)
-    ! Stopping Criteria.
-    ! Checking the relative error of Xadj_r
-    inc  = zero
-    inc = dnrm2(constants % n, Xadj_r + Xadj_e - X_r_k_1 - X_e_k_1, 1)/ &
-        & dnrm2(constants % n, Xadj_r + Xadj_e, 1)
-
-    ! Store the previous step solution
-    X_r_k_1 = Xadj_r
-    X_e_k_1 = Xadj_e
-    if ((iteration .gt. 1) .and. (inc.lt.tol)) then
-        write(6,*) 'Reach tolerance.'
-        converged = .true.
-    end if
-    write(6,*) 'Adjoint computation :', iteration, inc
-    iteration = iteration + 1
-    end do
-
-    ! check
-    x(:,:,1) = xadj_r
-    x(:,:,2) = xadj_e
-    rhs(:,:,1) = rhs_cosmo_init
-    rhs(:,:,2) = rhs_hsp_init
-    call lpb_adjoint_matvec_full(params, constants, workspace, x, scr)
-    call prtsph('adjoint matvec', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, scr)
-    call prtsph('adjoint rhs', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, rhs)
-
-    !  if (iprint .ge. 5) then
-    !    call prtsph('Xadj_r', constants % nbasis, params % lmax, &
-    !          & params % nsph, 0, Xadj_r)
-    !    call prtsph('Xadj_e', constants % nbasis, params % lmax, &
-    !          & params % nsph, 0, Xadj_e)
-    !  end if
-    ! Deallocation
-    deallocate(rhs_cosmo, rhs_hsp, rhs_cosmo_init, &
-        & rhs_hsp_init, X_r_k_1, X_e_k_1, stat = istatus)
-    if(istatus .ne. 0) then
-        write(*,*) 'Deallocation failed in adjoint LPB!'
-        stop
-    end if
-end subroutine ddx_lpb_adjoint
 
 !
 ! Computation of Adjoint
 ! @param[in] ddx_data: Input data file
 ! @param[in] psi     : psi_r
-subroutine ddx_lpb_adjoint_new(params, constants, workspace, psi, tol, Xadj_r, Xadj_e)
+subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_e)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1142,7 +1008,7 @@ subroutine ddx_lpb_adjoint_new(params, constants, workspace, psi, tol, Xadj_r, X
     ! unpack
     xadj_r = x(:,:,1)
     xadj_e = x(:,:,2)
-end subroutine ddx_lpb_adjoint_new
+end subroutine ddx_lpb_adjoint
 
 !
 ! Computation for Solvation energy
@@ -1433,41 +1299,7 @@ end subroutine bstarx
     end do
   end do
   endsubroutine inthsp_adj
-  
-!
-! Update the RHS in outer iteration for adjoint system
-! @param[in] rhs_r_init : psi_r
-! @param[in] rhs_e_init : psi_e = 0
-! @param[in, out] rhs_r : -C_1*\times Xadj_r^(k-1) - C_1*\times Xadj_e^(k-1)
-!                         + psi_r
-! @param[in, out] rhs_e : -C_2*\times Xadj_r^(k-1) - C_2*\times Xadj_e^(k-1)
-! @param[in] Xadj_r     : Xadj_r^(k-1)
-! @param[in] Xadj_e     : Xadj_e^(k-1)
-!
-subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
-        & rhs_e_init, rhs_r, rhs_e, Xadj_r, Xadj_e)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
-    real(dp), intent(in) :: rhs_r_init(constants % nbasis, params % nsph), &
-        & rhs_e_init(constants % nbasis, params % nsph), &
-        & Xadj_r(constants % nbasis, params % nsph), &
-        & Xadj_e(constants % nbasis, params % nsph)
-    !! Outputs
-    real(dp), intent(out) :: rhs_r(constants % nbasis, params % nsph), &
-        & rhs_e(constants % nbasis, params % nsph)
-    real(dp), dimension(constants % nbasis, params % nsph, 2) :: x, y
 
-    x(:,:,1) = xadj_r
-    x(:,:,2) = xadj_e
-    call lpb_adjoint_matvec(params, constants, workspace, x, y)
-    rhs_r = rhs_r_init + y(:,:,1)
-    rhs_e = rhs_e_init + y(:,:,2)
-
-  end subroutine update_rhs_adj
-
-  !
   ! Subroutine to compute K^A counterpart for the HSP equation. Similar to fdoka.
   ! @param[in]  ddx_data  : Data type
   ! @param[in]  isph      : Index of sphere
