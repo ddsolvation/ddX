@@ -137,10 +137,12 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
     t1 = omp_get_wtime()
     write(6,*) '@wghpot_f', t1 - t0
 
+    inner_tol = tol/10.0d0
+
     ! Call the subroutine to solve for Esolv
     t0 = omp_get_wtime()
-    call ddx_lpb_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, g, f, Xr, Xe, tol, esolv)
+    !call ddx_lpb_solve(ddx_data % params, ddx_data % constants, &
+    !    & ddx_data % workspace, g, f, Xr, Xe, tol, esolv)
     t1 = omp_get_wtime()
     write(6,*) '@direct_ls', t1 - t0
 
@@ -149,7 +151,7 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
       write(*,*) 'Computation of Forces for ddLPB'
       ! Call the subroutine adjoint to solve the adjoint solution
       t0 = omp_get_wtime()
-      call ddx_lpb_adjoint(ddx_data % params, ddx_data % constants, &
+      call ddx_lpb_adjoint_new(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, psi, tol, Xadj_r, Xadj_e)
       t1 = omp_get_wtime()
       write(6,*) '@adjoint_ls', t1 - t0
@@ -194,7 +196,7 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
     integer :: isph, ig, ic, ind, ind0, jg, l, m, jsph
     real(dp) :: nderphi, sumSijn, rijn, coef_Ylm, sumSijn_pre, termi, &
         & termk, term, tmp1, tmp2
-    real(dp), dimension(3) :: sijn, vij
+    real(dp), dimension(3) :: sijn, vij, vtij
     real(dp) :: rho, ctheta, stheta, cphi, sphi
     real(dp), allocatable :: SK_rijn(:), DK_rijn(:)
     integer :: l0, m0, icav, istatus
@@ -270,7 +272,8 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
 !                        end do
 !                    end do
 !                    sumSijn = sumSijn + tmp1
-                    call fmm_m2p_bessel_work(vij*params % kappa, &
+                    vtij = vij*params % kappa
+                    call fmm_m2p_bessel_work(vtij, &
                         & constants % lmax0, constants % vscales, &
                         & constants % SK_ri(:, jsph), one, &
                         & c1(:, jsph), one, sumSijn, work_complex, work)
@@ -589,7 +592,6 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     old_esolv = zero; inc = zero
     rhs_r_init = zero; rhs_e_init = zero
     g0 = zero; f0 = zero
-    inner_tol = tol
 
     ! integrate RHS
     tt0 = omp_get_wtime()
@@ -606,10 +608,9 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     rhs(:,:,2) = rhs_e_init
 
     ! guess
-    call lpb_direct_prec(params, constants, workspace, rhs, x)
     ddcosmo_guess = zero
     hsp_guess = zero
-    x = zero
+    call lpb_direct_prec(params, constants, workspace, rhs, x)
     !rhs = one
     call prtsph('rhs', constants % nbasis, params % lmax, &
         & 2*params % nsph, 0, rhs)
@@ -1122,9 +1123,9 @@ subroutine ddx_lpb_adjoint_new(params, constants, workspace, psi, tol, Xadj_r, X
     rhs(:,:,2) = zero
 
     ! guess
-    call lpb_adjoint_prec(params, constants, workspace, rhs, x)
     ddcosmo_guess = zero
     hsp_guess = zero
+    call lpb_adjoint_prec(params, constants, workspace, rhs, x)
 
     ! solve adjoint LS using Jacobi/DIIS
     n_iter = params % maxiter
@@ -1898,8 +1899,8 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
           end do
         end do
         diff_ep_dim3(:, icav) = val_dim3(:)
+        phi_in(igrid, isph) = val
       end if
-    phi_in(igrid, isph) = val
     end do
   end do
   ! Computation of derivative of U_i^e(x_in)
@@ -2051,8 +2052,8 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
             end do ! End of loop m0
           end do ! End of l0
         end do ! End of loop jsph
+        sum_Sjin(igrid,isph) = -(epsp/params % eps)*sum_int
       end if
-      sum_Sjin(igrid,isph) = -(epsp/params % eps)*sum_int
     end do ! End of loop igrid
   end do ! End of loop isph
 
