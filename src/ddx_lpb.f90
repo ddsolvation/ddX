@@ -141,8 +141,8 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
 
     ! Call the subroutine to solve for Esolv
     t0 = omp_get_wtime()
-    !call ddx_lpb_solve(ddx_data % params, ddx_data % constants, &
-    !    & ddx_data % workspace, g, f, Xr, Xe, tol, esolv)
+    call ddx_lpb_solve(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, g, f, Xr, Xe, tol, esolv)
     t1 = omp_get_wtime()
     write(6,*) '@direct_ls', t1 - t0
 
@@ -700,10 +700,9 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
 
     tt0 = omp_get_wtime()
     ! TODO: maybe use ddeval_grid for code consistency
-!
     scratch = x(:,:,1) - x(:,:,2)
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, scratch,        &
+        & one, constants % vgrid, constants % vgrid_nbasis, scratch, &
         & constants % nbasis, zero, Xadj_sgrid, params % ngrid)
     tt1 = omp_get_wtime()
     write(6,*) '@adjoint@matvec1', tt1 - tt0
@@ -744,7 +743,7 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
 
     tt0 = omp_get_wtime()
     do jsph = 1, params % nsph
-        call dgemv('t', constants % nbasis, constants % nbasis0, one, &
+        call dgemv('n', constants % nbasis, constants % nbasis0, one, &
             & constants % pchi(1,1,jsph), constants % nbasis, &
             & scratch0(1,jsph), 1, zero, scratch(1,jsph), 1)
     end do
