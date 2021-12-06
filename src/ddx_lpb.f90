@@ -638,7 +638,7 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     n_iter = params % maxiter
     call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
         & 4, params % jacobi_ndiis, 2, tol, rhs, x, n_iter, &
-        & ok, lpb_direct_matvec, lpb_direct_prec)
+        & ok, lpb_direct_matvec_1, lpb_direct_prec_1)
     call prtsph('sol', constants % nbasis, params % lmax, &
         & 2*params % nsph, 0, x)
 
@@ -696,6 +696,37 @@ subroutine lpb_direct_matvec_full(params, constants, workspace, x, y)
     y = y + scratch
 
 end subroutine lpb_direct_matvec_full
+
+subroutine lpb_direct_matvec_1(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
+    real(dp), dimension(constants % nbasis, params % nsph, 2) :: scratch
+
+    call lpb_direct_matvec(params, constants, workspace, x, y)
+    scratch(:,:,2) = x(:,:,1)
+    call convert_ddcosmo(params, constants, -1, scratch(:,:,2))
+    call lx_nodiag(params, constants, workspace, scratch(:,:,2), scratch(:,:,1))
+    call bx_nodiag(params, constants, workspace, x(:,:,2), scratch(:,:,2))
+    y = y + scratch
+end subroutine lpb_direct_matvec_1
+
+subroutine lpb_direct_prec_1(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
+    real(dp), dimension(constants % nbasis, params % nsph, 2) :: scratch
+
+    !call ldm1x(params, constants, workspace, x(:,:,1), y(:,:,1))
+    !call convert_ddcosmo(params, constants, 1, y(:,:,1))
+    y = x
+end subroutine lpb_direct_prec_1
 
 subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
     implicit none
