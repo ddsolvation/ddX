@@ -314,7 +314,7 @@ end subroutine wghpot_f
 ! @param[in, out] y : y=A*x
 !
 subroutine bx(params, constants, workspace, x, y)
-    implicit none 
+    implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -323,27 +323,28 @@ subroutine bx(params, constants, workspace, x, y)
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
     integer :: isph, istatus
-    real(dp), allocatable :: pot(:), vplm(:), basloc(:), vcos(:), vsin(:)
+    real(dp) :: pot(params % ngrid), vplm(constants % nbasis), &
+        & vylm(constants % nbasis), vcos(params % lmax + 1), &
+        & vsin(params % lmax + 1)
+    complex(dp) :: bessel(max(2, params % lmax + 1))
     integer :: i, ithread
 
     y = zero
-    !!$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-    !!$omp private(isph,pot,basloc,vplm,vcos,vsin,ithread)
+    !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+    !$omp private(isph,pot,vylm,vplm,vcos,vsin,bessel)
     do isph = 1, params % nsph
       !!ithread = omp_get_thread_num()
-      call calcv2_lpb(params, constants, isph, workspace % tmp_grid, x, &
-          & workspace % tmp_vylm, workspace % tmp_vplm, workspace % tmp_vcos, &
-          & workspace % tmp_vsin, workspace % tmp_bessel)
+      call calcv2_lpb(params, constants, isph, pot, x, &
+          & vylm, vplm, vcos, vsin,bessel)
       ! intrhs comes from ddCOSMO
       call intrhs(1, constants % nbasis, params % ngrid, &
                   constants % vwgrid, constants % vgrid_nbasis, &
-                  & workspace % tmp_grid, y(:,isph) )
+                  & pot, y(:,isph) )
       ! Action of off-diagonal blocks
       y(:,isph) = - y(:,isph)
       ! Add action of diagonal block
       y(:,isph) = y(:,isph) + x(:,isph)
     end do
-    !!$omp end parallel do
 
 end subroutine bx
 
@@ -638,10 +639,9 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     n_iter = params % maxiter
     call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
         & 4, params % jacobi_ndiis, 2, tol, rhs, x, n_iter, &
-        & ok, lpb_direct_matvec_1, lpb_direct_prec_1)
+        & ok, lpb_direct_matvec, lpb_direct_prec)
     call prtsph('sol', constants % nbasis, params % lmax, &
         & 2*params % nsph, 0, x)
-
 
     xr = x(:,:,1)
     xe = x(:,:,2)

@@ -129,6 +129,8 @@ type ddx_constants_type
     real(dp), allocatable :: termimat(:, :)
     !> LPB value sum_{l0,m0}Pchi*coefY. Dimension is (ncav, nbasis, nsph)
     real(dp), allocatable :: diff_ep_adj(:, :, :)
+    !> LPB B matrix for doing incore BX product
+    real(dp), allocatable :: b(:,:,:)
     !> Upper limit on a number of neighbours per sphere. This value is just an
     !!      upper bound that is not guaranteed to be the actual maximum.
     integer :: nngmax
@@ -575,6 +577,9 @@ subroutine constants_init(params, constants, info)
         info = 1
         return
     end if
+    !allocate(b(constants % nbasis, constants % nbasis, params % nsph))
+    !do isph = 1, params % nsph
+    !end do
     ! Clean error state of constants to proceed with geometry
     constants % error_flag = 0
     constants % error_message = ""
