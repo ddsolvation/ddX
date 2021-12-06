@@ -90,6 +90,21 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
 
     !! phi_grid: Phi evaluated at grid points
     real(dp), allocatable :: g(:,:), f(:,:), phi_grid(:, :)
+    !real(dp) :: matrix(2*ddx_data % constants % n, 2*ddx_data % constants % n)
+
+    !call build_matrix(ddx_data % params, ddx_data % constants, &
+    !    & ddx_data % workspace, 2*ddx_data % constants % n, matrix, &
+    !    & lpb_direct_matvec)
+    !call print_matrix('direct', 2*ddx_data % constants % n, &
+    !    & 2*ddx_data % constants % n, matrix)
+
+    !call build_matrix(ddx_data % params, ddx_data % constants, &
+    !    & ddx_data % workspace, 2*ddx_data % constants % n, matrix, &
+    !    & lpb_adjoint_matvec)
+    !call print_matrix('adjoint', 2*ddx_data % constants % n, &
+    !    & 2*ddx_data % constants % n, matrix)
+    !stop
+
     allocate(Xr(ddx_data % constants % nbasis, ddx_data % params % nsph),&
              & Xe(ddx_data % constants % nbasis, ddx_data % params % nsph), &
              & Xadj_r(ddx_data % constants % nbasis, ddx_data % params % nsph),&
@@ -704,7 +719,7 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
 
     tt0 = omp_get_wtime()
     ! TODO: maybe use ddeval_grid for code consistency
-    scratch = x(:,:,1) - x(:,:,2)
+    scratch = - x(:,:,1) - x(:,:,2)
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
         & one, constants % vgrid, constants % vgrid_nbasis, scratch, &
         & constants % nbasis, zero, Xadj_sgrid, params % ngrid)

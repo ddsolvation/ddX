@@ -22,7 +22,8 @@ set(SRC
     "ddx_lpb.f90"
     "ddx.f90"
     "llgnew.f"
-    "cbessel.f90")
+    "cbessel.f90"
+    "matrix_debug.f90")
 
 # Preprocess OPENMP directive (disabled currently)
 #set_source_files_properties("dd_core.f90" PROPERTIES COMPILE_FLAGS -cpp)
