@@ -97,7 +97,6 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
     !    & lpb_direct_matvec)
     !call print_matrix('direct', 2*ddx_data % constants % n, &
     !    & 2*ddx_data % constants % n, matrix)
-
     !call build_matrix(ddx_data % params, ddx_data % constants, &
     !    & ddx_data % workspace, 2*ddx_data % constants % n, matrix, &
     !    & lpb_adjoint_matvec)
@@ -304,8 +303,28 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
                 f(ig,isph) = -(epsp/params % eps)*constants % ui(ig,isph) * sumSijn
             end if
         end do
-    end do 
+    end do
 end subroutine wghpot_f
+
+subroutine bx_incore(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, jsph, ij
+    y = zero
+    do isph = 1, params % nsph
+        do ij = 1, constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            call dgemv('n', constants % nbasis, constants % nbasis, one, &
+                & constants % b(:,:,ij), constants % nbasis, x(:,jsph), 1, &
+                & one, y(:,isph), 1)
+        end do
+        y(:,isph) = y(:,isph) + x(:,isph)
+    end do
+end subroutine bx_incore
 
 !
 ! Subroutine used for the GMRES solver
@@ -338,7 +357,7 @@ subroutine bx(params, constants, workspace, x, y)
           & vylm, vplm, vcos, vsin,bessel)
       ! intrhs comes from ddCOSMO
       call intrhs(1, constants % nbasis, params % ngrid, &
-                  constants % vwgrid, constants % vgrid_nbasis, &
+                  & constants % vwgrid, constants % vgrid_nbasis, &
                   & pot, y(:,isph) )
       ! Action of off-diagonal blocks
       y(:,isph) = - y(:,isph)
@@ -999,8 +1018,19 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     !call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &
     !    & 0, hsp_guess)
     n_iter = params % maxiter
+    y(:,:,1) = zero
+    y(:,1,1) = one
+    call bx_nodiag(params, constants, workspace, y(:,:,1), y(:,:,2))
+    call prtsph('bx', constants % nbasis, params % lmax, params % nsph, &
+        & 0, y(:,:,2))
+    y(:,:,1) = zero
+    y(:,1,1) = one
+    call bx_incore(params, constants, workspace, y(:,:,1), y(:,:,2))
+    call prtsph('bx_incore', constants % nbasis, params % lmax, params % nsph, &
+        & 0, y(:,:,2))
+    stop
     call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
-        & n_iter, r_norm, bx, info)
+        & n_iter, r_norm, bx_incore, info)
     !call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
     !    & n_iter, x_rel_diff, bx_nodiag, bx_prec, hnorm, info)
     !call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &

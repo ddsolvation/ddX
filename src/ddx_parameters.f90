@@ -90,6 +90,8 @@ type ddx_params_type
     character(len=255) :: error_message
     !> Error printing function
     procedure(print_func_interface), pointer, nopass :: print_func
+    !> Logical Incore. Build hsp matrix to speed up matrix-vec product
+    logical incore
 end type ddx_params_type
 
 contains
@@ -413,6 +415,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     params % charge = charge
     params % csph = csph
     params % rsph = rsph
+    params % incore = .true.
     ! Set print function for errors
     params % print_func => print_func
     ! Clear error state

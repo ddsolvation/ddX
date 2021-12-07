@@ -577,14 +577,85 @@ subroutine constants_init(params, constants, info)
         info = 1
         return
     end if
-    !allocate(b(constants % nbasis, constants % nbasis, params % nsph))
-    !do isph = 1, params % nsph
-    !end do
+    ! build B matrix for doing hsp linear system
+    if (params % incore) then
+        call build_b(constants, params)
+    end if
     ! Clean error state of constants to proceed with geometry
     constants % error_flag = 0
     constants % error_message = ""
 end subroutine constants_init
 
+subroutine build_b(constants, params)
+    use omp_lib
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    integer :: isph, ij, jsph, igrid, l, m, ind
+    real(dp), dimension(3) :: vij, sij, vtij
+    real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
+        & fac
+    real(dp), dimension(constants % nbasis) :: vylm, vplm
+    real(dp), dimension(params % lmax + 1) :: vcos, vsin
+    complex(dp), dimension(constants % nbasis) :: bessel_work
+    real(dp), dimension(0:params % lmax) :: SI_rijn, DI_rijn
+    real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
+    real(dp) :: t
+    character*2 :: str
+
+    allocate(constants % b(constants % nbasis, constants % nbasis, &
+        & constants % inl(params % nsph + 1)))
+
+    t = omp_get_wtime()
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            scratch = zero
+            do igrid = 1, params % ngrid
+                vij = params % csph(:,isph) &
+                    & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                    & - params % csph(:,jsph)
+                vvij = sqrt(dot_product(vij, vij))
+                tij = vvij/params % rsph(jsph)
+                if (tij.lt.one) then
+                    sij = vij/vvij
+                    xij = fsw(tij, params % se, params % eta)
+                    if (constants % fi(igrid,isph).gt.one) then
+                        oij = xij/constants % fi(igrid, isph)
+                    else
+                        oij = xij
+                    end if
+                    call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                        & params % lmax, constants % vscales, vylm, vplm, &
+                        & vcos, vsin)
+                    SI_rijn = 0
+                    DI_rijn = 0
+                    vtij = vij*params % kappa
+                    call modified_spherical_bessel_first_kind(params % lmax, &
+                        & vvij*params % kappa, SI_rijn, DI_rijn, bessel_work)
+                    do l = 0, params % lmax
+                        fac = - oij*SI_rijn(l)/constants % SI_ri(l,isph)
+                        ind = l*l + l + 1
+                        do m = -l, l
+                            scratch(ind + m,igrid) = fac*vylm(ind + m)
+                        end do
+                    end do
+                end if
+            end do
+            call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
+                & one, constants % vwgrid, constants % nbasis, scratch, &
+                & constants % nbasis, zero, constants % b(:,:,ij), constants % nbasis)
+            !constants % b(:,:,ij) = zero
+            !do igrid = 1, constants % nbasis
+            !    constants % b(igrid, igrid, ij) = one
+            !end do
+            !write(str, '(I02)') ij
+            !call print_matrix(str, constants % nbasis, constants % nbasis, &
+            !    & constants % b(:,:,ij))
+        end do
+    end do
+    write(6,*) '@build_b', omp_get_wtime() - t
+end subroutine build_b
 
 !
 ! Computation of P_chi
