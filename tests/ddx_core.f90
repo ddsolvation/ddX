@@ -1831,11 +1831,11 @@ subroutine check_m2m_bessel(p)
         & work_complex)
     call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
         & zero, dst_v)
-    call fmm_m2m_bessel_rotation(-src_c, src_sk, dst_sk, p, vscales, vcnk, one, &
+    call fmm_m2m_bessel_rotation(src_c, src_sk, dst_sk, p, vscales, vcnk, one, &
         & src_m, zero, dst_m)
     call fmm_m2p_bessel_baseline(x, dst_r, p, vscales, one, dst_m, zero, &
         & dst_v2)
-    call fmm_m2m_bessel_rotation(src_c, dst_sk, src_sk, p, vscales, vcnk, one, &
+    call fmm_m2m_bessel_rotation(-src_c, dst_sk, src_sk, p, vscales, vcnk, one, &
         & dst_m, zero, src_m)
     call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
         & zero, dst_v3)
@@ -2035,11 +2035,11 @@ subroutine check_l2l_bessel(p)
         & work_complex)
     call fmm_l2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_l, &
         & zero, dst_v)
-    call fmm_l2l_bessel_rotation(-src_c, src_sk, dst_sk, p, vscales, vcnk, one, &
+    call fmm_l2l_bessel_rotation(src_c, src_sk, dst_sk, p, vscales, vcnk, one, &
         & src_l, zero, dst_l)
     call fmm_l2p_bessel_baseline(x, dst_r, p, vscales, one, dst_l, zero, &
         & dst_v2)
-    call fmm_l2l_bessel_rotation(src_c, dst_sk, src_sk, p, vscales, vcnk, one, &
+    call fmm_l2l_bessel_rotation(-src_c, dst_sk, src_sk, p, vscales, vcnk, one, &
         & dst_l, zero, src_l)
     call fmm_l2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_l, &
         & zero, dst_v3)

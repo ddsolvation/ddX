@@ -1329,11 +1329,11 @@ subroutine fmm_m2p_bessel_grad(c, src_r, p, vscales, alpha, src_m, beta, dst_g)
     call modified_spherical_bessel_second_kind(p+1, src_r, src_sk, work, &
         & work_complex)
     call fmm_m2m_bessel_grad(p, src_sk, vscales, vcnk, src_m, src_m_grad)
-    call fmm_m2p_bessel_work(c, p+1, vscales, src_sk, alpha, src_m_grad(:, 1), &
+    call fmm_m2p_bessel_work(c, p+1, vscales, src_sk, -alpha, src_m_grad(:, 1), &
         & beta, dst_g(1), work_complex, work)
-    call fmm_m2p_bessel_work(c, p+1, vscales, src_sk, alpha, src_m_grad(:, 2), &
+    call fmm_m2p_bessel_work(c, p+1, vscales, src_sk, -alpha, src_m_grad(:, 2), &
         & beta, dst_g(2), work_complex, work)
-    call fmm_m2p_bessel_work(c, p+1, vscales, src_sk, alpha, src_m_grad(:, 3), &
+    call fmm_m2p_bessel_work(c, p+1, vscales, src_sk, -alpha, src_m_grad(:, 3), &
         & beta, dst_g(3), work_complex, work)
 end subroutine fmm_m2p_bessel_grad
 
@@ -2227,11 +2227,11 @@ subroutine fmm_l2p_bessel_grad(c, src_r, p, vscales, alpha, src_l, beta, dst_g)
     call modified_spherical_bessel_first_kind(p+1, src_r, src_si, work, &
         & work_complex)
     call fmm_l2l_bessel_grad(p, src_si, vscales, vcnk, src_l, src_l_grad)
-    call fmm_l2p_bessel_work(c, p+1, vscales, src_si, alpha, src_l_grad(:, 1), &
+    call fmm_l2p_bessel_work(c, p+1, vscales, src_si, -alpha, src_l_grad(:, 1), &
         & beta, dst_g(1), work_complex, work)
-    call fmm_l2p_bessel_work(c, p+1, vscales, src_si, alpha, src_l_grad(:, 2), &
+    call fmm_l2p_bessel_work(c, p+1, vscales, src_si, -alpha, src_l_grad(:, 2), &
         & beta, dst_g(2), work_complex, work)
-    call fmm_l2p_bessel_work(c, p+1, vscales, src_si, alpha, src_l_grad(:, 3), &
+    call fmm_l2p_bessel_work(c, p+1, vscales, src_si, -alpha, src_l_grad(:, 3), &
         & beta, dst_g(3), work_complex, work)
 end subroutine fmm_l2p_bessel_grad
 
@@ -4156,7 +4156,7 @@ subroutine fmm_m2m_bessel_ztranslate_work(z, src_sk, dst_sk, p, vscales, vcnk, &
                 do n = 0, p
                     ! Offset for src_m
                     indn = n*n + n + 1
-                    tmp1 = vscales(indn) * ((-one)**(j+n)) * &
+                    tmp1 = vscales(indn) * &
                         & dble(2*j+1) * fact(j+1) * fact(n+1) / &
                         & src_sk(n+1) / vscales(indj) * dst_sk(j+1)
                     tmp3 = zero
@@ -4178,7 +4178,7 @@ subroutine fmm_m2m_bessel_ztranslate_work(z, src_sk, dst_sk, p, vscales, vcnk, &
                     do n = k, p
                         ! Offset for src_m
                         indn = n*n + n + 1
-                        tmp1 = vscales(indn+k) * ((-one)**(j+n)) * &
+                        tmp1 = vscales(indn+k) * &
                             & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
                             & src_sk(n+1) / vscales(indj+k) * dst_sk(j+1)
                         tmp3 = zero
@@ -4300,8 +4300,8 @@ subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
         l = 0
         indj = 1
         indn = 3
-        dst_m(1) = -vscales(3) / src_sk(2) / vscales(1) * src_sk(1) / fact2(2) * &
-            & src_m(3)
+        dst_m(1) = vscales(3) / src_sk(2) / vscales(1) * src_sk(1) / fact2(2) * &
+            & src_m(3) * alpha
         ! j=1..p-1
         do j = 1, p-1
             ! Offset for dst_m
@@ -4313,9 +4313,9 @@ subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
             n = j-1
             ! Offset for src_m
             indn = n*n + n + 1
-            tmp1 = -vscales(indn) * &
+            tmp1 = vscales(indn) * &
                 & dble(2*j+1) * fact(j+1) * fact(n+1) / &
-                & src_sk(n+1) / vscales(indj) * src_sk(j+1)
+                & src_sk(n+1) / vscales(indj) * src_sk(j+1) * alpha
             tmp3 = zero
             ! l=n
             l = n
@@ -4330,9 +4330,9 @@ subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
             n = j+1
             ! Offset for src_m
             indn = n*n + n + 1
-            tmp1 = -vscales(indn) * &
+            tmp1 = vscales(indn) * &
                 & dble(2*j+1) * fact(j+1) * fact(n+1) / &
-                & src_sk(n+1) / vscales(indj) * src_sk(j+1)
+                & src_sk(n+1) / vscales(indj) * src_sk(j+1) * alpha
             tmp3 = zero
             ! l=j
             l = j
@@ -4352,9 +4352,9 @@ subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
                 n = j-1
                 ! Offset for src_m
                 indn = n*n + n + 1
-                tmp1 = -vscales(indn+k) * &
+                tmp1 = vscales(indn+k) * &
                     & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
-                    & src_sk(n+1) / vscales(indj+k) * src_sk(j+1)
+                    & src_sk(n+1) / vscales(indj+k) * src_sk(j+1) * alpha
                 tmp3 = zero
                 l = n
                 tmp2 = (two**(-l)) / &
@@ -4369,9 +4369,9 @@ subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
                 n = j+1
                 ! Offset for src_m
                 indn = n*n + n + 1
-                tmp1 = -vscales(indn+k) * &
+                tmp1 = vscales(indn+k) * &
                     & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
-                    & src_sk(n+1) / vscales(indj+k) * src_sk(j+1)
+                    & src_sk(n+1) / vscales(indj+k) * src_sk(j+1) * alpha
                 tmp3 = zero
                 l = j
                 tmp2 = (two**(-l)) / &
@@ -4393,9 +4393,9 @@ subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
             n = j+1
             ! Offset for src_m
             indn = n*n + n + 1
-            tmp1 = -vscales(indn+k) * &
+            tmp1 = vscales(indn+k) * &
                 & dble(2*j+1) * fact(n+k+1) / &
-                & src_sk(n+1) / vscales(indj+k) * src_sk(j+1)
+                & src_sk(n+1) / vscales(indj+k) * src_sk(j+1) * alpha
             tmp3 = zero
             l = j
             tmp2 = (two**(-l)) / &
@@ -4419,9 +4419,9 @@ subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
         res1 = zero
         ! Offset for src_m
         indn = n*n + n + 1
-        tmp1 = -vscales(indn) * &
+        tmp1 = vscales(indn) * &
             & dble(2*j+1) * fact(j+1) * fact(n+1) / &
-            & src_sk(n+1) / vscales(indj) * src_sk(j+1)
+            & src_sk(n+1) / vscales(indj) * src_sk(j+1) * alpha
         tmp3 = zero
         l = p-1
         tmp2 = (two**(-l)) / &
@@ -4440,9 +4440,9 @@ subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
             n = j-1
             ! Offset for src_m
             indn = n*n + n + 1
-            tmp1 = vscales(indn+k) * ((-one)**(j+n)) * &
+            tmp1 = vscales(indn+k) * &
                 & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
-                & src_sk(n+1) / vscales(indj+k) * src_sk(j+1)
+                & src_sk(n+1) / vscales(indj+k) * src_sk(j+1) * alpha
             tmp3 = zero
             l = n
             tmp2 = (two**(-l)) / &
@@ -4467,9 +4467,9 @@ subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
         res1 = zero
         ! Offset for src_m
         indn = n*n + n + 1
-        tmp1 = -vscales(indn) * &
+        tmp1 = vscales(indn) * &
             & dble(2*j+1) * fact(j+1) * fact(n+1) / &
-            & src_sk(n+1) / vscales(indj) * src_sk(j+1)
+            & src_sk(n+1) / vscales(indj) * src_sk(j+1) * alpha
         tmp3 = zero
         l = n
         tmp2 = (two**(-l)) / &
@@ -4488,9 +4488,9 @@ subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
             n = p
             ! Offset for src_m
             indn = n*n + n + 1
-            tmp1 = -vscales(indn+k) * &
+            tmp1 = vscales(indn+k) * &
                 & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
-                & src_sk(n+1) / vscales(indj+k) * src_sk(j+1)
+                & src_sk(n+1) / vscales(indj+k) * src_sk(j+1) * alpha
             tmp3 = zero
             l = n
             tmp2 = (two**(-l)) / &
@@ -5447,9 +5447,9 @@ subroutine fmm_l2l_bessel_ztranslate_work(z, src_si, dst_si, p, vscales, vcnk, &
                 do n = 0, p
                     ! Offset for src_l
                     indn = n*n + n + 1
-                    tmp1 = vscales(indn) * &
+                    tmp1 = vscales(indn) * (-one)**(n+j) * &
                         & dble(2*j+1) * fact(j+1) * fact(n+1) / &
-                        & src_si(n+1) / vscales(indj) * dst_si(j+1)
+                        & src_si(n+1) / vscales(indj) * dst_si(j+1) * alpha
                     tmp3 = zero
                     do l = 0, min(j, n)
                         tmp2 = (two**(-l)) / &
@@ -5469,9 +5469,9 @@ subroutine fmm_l2l_bessel_ztranslate_work(z, src_si, dst_si, p, vscales, vcnk, &
                     do n = k, p
                         ! Offset for src_l
                         indn = n*n + n + 1
-                        tmp1 = vscales(indn+k) * &
+                        tmp1 = vscales(indn+k) * (-one) ** (n+j) * &
                             & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
-                            & src_si(n+1) / vscales(indj+k) * dst_si(j+1)
+                            & src_si(n+1) / vscales(indj+k) * dst_si(j+1) * alpha
                         tmp3 = zero
                         do l = k, min(j, n)
                             tmp2 = (two**(-l)) / &
@@ -5591,8 +5591,8 @@ subroutine fmm_l2l_bessel_derivative_ztranslate_work(src_si, p, vscales, vcnk, &
         l = 0
         indj = 1
         indn = 3
-        dst_l(1) = vscales(3) / src_si(2) / vscales(1) * src_si(1) / fact2(2) * &
-            & src_l(3)
+        dst_l(1) = -vscales(3) / src_si(2) / vscales(1) * src_si(1) / fact2(2) * &
+            & src_l(3) * alpha
         ! j=1..p-1
         do j = 1, p-1
             ! Offset for dst_l
@@ -5604,9 +5604,9 @@ subroutine fmm_l2l_bessel_derivative_ztranslate_work(src_si, p, vscales, vcnk, &
             n = j-1
             ! Offset for src_l
             indn = n*n + n + 1
-            tmp1 = vscales(indn) * &
+            tmp1 = -vscales(indn) * &
                 & dble(2*j+1) * fact(j+1) * fact(n+1) / &
-                & src_si(n+1) / vscales(indj) * src_si(j+1)
+                & src_si(n+1) / vscales(indj) * src_si(j+1) * alpha
             tmp3 = zero
             ! l=n
             l = n
@@ -5621,9 +5621,9 @@ subroutine fmm_l2l_bessel_derivative_ztranslate_work(src_si, p, vscales, vcnk, &
             n = j+1
             ! Offset for src_l
             indn = n*n + n + 1
-            tmp1 = vscales(indn) * &
+            tmp1 = -vscales(indn) * &
                 & dble(2*j+1) * fact(j+1) * fact(n+1) / &
-                & src_si(n+1) / vscales(indj) * src_si(j+1)
+                & src_si(n+1) / vscales(indj) * src_si(j+1) * alpha
             tmp3 = zero
             ! l=j
             l = j
@@ -5643,9 +5643,9 @@ subroutine fmm_l2l_bessel_derivative_ztranslate_work(src_si, p, vscales, vcnk, &
                 n = j-1
                 ! Offset for src_l
                 indn = n*n + n + 1
-                tmp1 = vscales(indn+k) * &
+                tmp1 = -vscales(indn+k) * &
                     & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
-                    & src_si(n+1) / vscales(indj+k) * src_si(j+1)
+                    & src_si(n+1) / vscales(indj+k) * src_si(j+1) * alpha
                 tmp3 = zero
                 l = n
                 tmp2 = (two**(-l)) / &
@@ -5660,9 +5660,9 @@ subroutine fmm_l2l_bessel_derivative_ztranslate_work(src_si, p, vscales, vcnk, &
                 n = j+1
                 ! Offset for src_l
                 indn = n*n + n + 1
-                tmp1 = vscales(indn+k) * &
+                tmp1 = -vscales(indn+k) * &
                     & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
-                    & src_si(n+1) / vscales(indj+k) * src_si(j+1)
+                    & src_si(n+1) / vscales(indj+k) * src_si(j+1) * alpha
                 tmp3 = zero
                 l = j
                 tmp2 = (two**(-l)) / &
@@ -5684,9 +5684,9 @@ subroutine fmm_l2l_bessel_derivative_ztranslate_work(src_si, p, vscales, vcnk, &
             n = j+1
             ! Offset for src_l
             indn = n*n + n + 1
-            tmp1 = vscales(indn+k) * &
+            tmp1 = -vscales(indn+k) * &
                 & dble(2*j+1) * fact(n+k+1) / &
-                & src_si(n+1) / vscales(indj+k) * src_si(j+1)
+                & src_si(n+1) / vscales(indj+k) * src_si(j+1) * alpha
             tmp3 = zero
             l = j
             tmp2 = (two**(-l)) / &
@@ -5710,9 +5710,9 @@ subroutine fmm_l2l_bessel_derivative_ztranslate_work(src_si, p, vscales, vcnk, &
         res1 = zero
         ! Offset for src_l
         indn = n*n + n + 1
-        tmp1 = vscales(indn) * &
+        tmp1 = -vscales(indn) * &
             & dble(2*j+1) * fact(j+1) * fact(n+1) / &
-            & src_si(n+1) / vscales(indj) * src_si(j+1)
+            & src_si(n+1) / vscales(indj) * src_si(j+1) * alpha
         tmp3 = zero
         l = p-1
         tmp2 = (two**(-l)) / &
@@ -5731,9 +5731,9 @@ subroutine fmm_l2l_bessel_derivative_ztranslate_work(src_si, p, vscales, vcnk, &
             n = j-1
             ! Offset for src_l
             indn = n*n + n + 1
-            tmp1 = vscales(indn+k) * &
+            tmp1 = -vscales(indn+k) * &
                 & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
-                & src_si(n+1) / vscales(indj+k) * src_si(j+1)
+                & src_si(n+1) / vscales(indj+k) * src_si(j+1) * alpha
             tmp3 = zero
             l = n
             tmp2 = (two**(-l)) / &
@@ -5760,9 +5760,9 @@ subroutine fmm_l2l_bessel_derivative_ztranslate_work(src_si, p, vscales, vcnk, &
         res1 = zero
         ! Offset for src_l
         indn = n*n + n + 1
-        tmp1 = vscales(indn) * &
+        tmp1 = -vscales(indn) * &
             & dble(2*j+1) * fact(j+1) * fact(n+1) / &
-            & src_si(n+1) / vscales(indj) * src_si(j+1)
+            & src_si(n+1) / vscales(indj) * src_si(j+1) * alpha
         tmp3 = zero
         l = n
         tmp2 = (two**(-l)) / &
@@ -5777,9 +5777,9 @@ subroutine fmm_l2l_bessel_derivative_ztranslate_work(src_si, p, vscales, vcnk, &
         do k = 1, p
             res1 = zero
             res2 = zero
-            tmp1 = vscales(indn+k) * &
+            tmp1 = -vscales(indn+k) * &
                 & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
-                & src_si(n+1) / vscales(indj+k) * src_si(j+1)
+                & src_si(n+1) / vscales(indj+k) * src_si(j+1) * alpha
             tmp3 = zero
             l = n
             tmp2 = (two**(-l)) / &
