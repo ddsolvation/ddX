@@ -511,55 +511,55 @@ subroutine constants_init(params, constants, info)
                 constants % C_ik(l0, isph) = one / (termi-termk)
             end do
         end do
-        icav = zero
-        do isph = 1, params % nsph
-            do igrid = 1, params % ngrid
-                if(constants % ui(igrid, isph) .gt. zero) then
-                    icav = icav + 1
-                    do jsph = 1, params % nsph
-                        vij  = params % csph(:, isph) + &
-                            & params % rsph(isph)*constants % cgrid(:, igrid) - &
-                            & params % csph(:, jsph)
-                        rijn = sqrt(dot_product(vij, vij))
-                        sijn = vij / rijn
-                        ! Compute Bessel function of 2nd kind for the coordinates
-                        ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-                        call modified_spherical_bessel_second_kind( &
-                            & constants % lmax0, &
-                            & rijn*params % kappa, SK_rijn, DK_rijn, &
-                            & bessel_work)
-                        call ylmbas(sijn, rho, ctheta, stheta, cphi, &
-                            & sphi, params % lmax, constants % vscales, &
-                            & vylm, vplm, vcos, vsin)
-                        do l0 = 0, constants % lmax0
-                            term = SK_rijn(l0) / constants % SK_ri(l0, jsph)
-                            do m0 = -l0, l0
-                                ind0 = l0*l0 + l0 + m0 + 1
-                                constants % coefY(icav, ind0, jsph) = &
-                                    & constants % C_ik(l0,jsph) * term * &
-                                    & vylm(ind0)
-                            end do
-                        end do
-                    end do
-                end if
-            end do
-        end do
+        !!icav = zero
+        !!do isph = 1, params % nsph
+        !!    do igrid = 1, params % ngrid
+        !!        if(constants % ui(igrid, isph) .gt. zero) then
+        !!            icav = icav + 1
+        !!            do jsph = 1, params % nsph
+        !!                vij  = params % csph(:, isph) + &
+        !!                    & params % rsph(isph)*constants % cgrid(:, igrid) - &
+        !!                    & params % csph(:, jsph)
+        !!                rijn = sqrt(dot_product(vij, vij))
+        !!                sijn = vij / rijn
+        !!                ! Compute Bessel function of 2nd kind for the coordinates
+        !!                ! (s_ijn, r_ijn) and compute the basis function for s_ijn
+        !!                call modified_spherical_bessel_second_kind( &
+        !!                    & constants % lmax0, &
+        !!                    & rijn*params % kappa, SK_rijn, DK_rijn, &
+        !!                    & bessel_work)
+        !!                call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+        !!                    & sphi, params % lmax, constants % vscales, &
+        !!                    & vylm, vplm, vcos, vsin)
+        !!                do l0 = 0, constants % lmax0
+        !!                    term = SK_rijn(l0) / constants % SK_ri(l0, jsph)
+        !!                    do m0 = -l0, l0
+        !!                        ind0 = l0*l0 + l0 + m0 + 1
+        !!                        constants % coefY(icav, ind0, jsph) = &
+        !!                            & constants % C_ik(l0,jsph) * term * &
+        !!                            & vylm(ind0)
+        !!                    end do
+        !!                end do
+        !!            end do
+        !!        end if
+        !!    end do
+        !!end do
         ! Compute
         ! diff_ep_adj = Pchi * coefY
         ! Summation over l0, m0
-        constants % diff_ep_adj = zero
-        do icav = 1, constants % ncav
-            do ibasis = 1, constants % nbasis
-                do isph = 1, params % nsph
-                    val = zero
-                    do ibasis0 = 1, constants % nbasis0
-                        val = val + constants % Pchi(ibasis, ibasis0, isph)* &
-                            & constants % coefY(icav, ibasis0, isph)
-                    end do
-                    constants % diff_ep_adj(icav, ibasis, isph) = val
-                end do
-            end do
-        end do
+        !!constants % diff_ep_adj = zero
+        !!do icav = 1, constants % ncav
+        !!    do ibasis = 1, constants % nbasis
+        !!        do isph = 1, params % nsph
+        !!            val = zero
+        !!            do ibasis0 = 1, constants % nbasis0
+        !!                val = val + constants % Pchi(ibasis, ibasis0, isph)* &
+        !!                    & constants % coefY(icav, ibasis0, isph)
+        !!            end do
+        !!            constants % diff_ep_adj(icav, ibasis, isph) = val
+        !!        end do
+        !!    end do
+        !!end do
         deallocate(vylm, SK_rijn, DK_rijn, bessel_work, stat=info)
         if (info .ne. 0) then
             constants % error_flag = 1
