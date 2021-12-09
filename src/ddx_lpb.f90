@@ -314,7 +314,9 @@ subroutine bx_incore(params, constants, workspace, x, y)
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
     integer :: isph, jsph, ij
-    y = zero
+    y = x
+    !$omp parallel do default(none) shared(params,constants,x,y) &
+    !$omp private(isph,ij,jsph)
     do isph = 1, params % nsph
         do ij = constants % inl(isph), constants % inl(isph + 1) - 1
             jsph = constants % nl(ij)
@@ -322,7 +324,6 @@ subroutine bx_incore(params, constants, workspace, x, y)
                 & constants % b(:,:,ij), constants % nbasis, x(:,jsph), 1, &
                 & one, y(:,isph), 1)
         end do
-        y(:,isph) = y(:,isph) + x(:,isph)
     end do
 end subroutine bx_incore
 
