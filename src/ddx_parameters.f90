@@ -206,6 +206,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     !! Local variables
     integer :: igrid, i
     character(len=255) :: string
+    character(len=1) :: incore
     !! The code
     ! Model, 1=COSMO, 2=PCM, 3=LPB
     if ((model .lt. 1) .or. (model .gt. 3)) then
@@ -415,7 +416,13 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     params % charge = charge
     params % csph = csph
     params % rsph = rsph
-    params % incore = .true.
+    ! temporary solution to get incore value
+    call get_environment_variable("INCORE", incore, status=info, trim_name=.true.)
+    if (incore.eq."1") then
+        params % incore = .true.
+    else
+        params % incore = .false.
+    end if
     ! Set print function for errors
     params % print_func => print_func
     ! Clear error state

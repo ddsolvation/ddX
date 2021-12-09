@@ -1013,21 +1013,6 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
 
     ! perform B^-1 * Ye
     tt0 = omp_get_wtime()
-    call prtsph('hsp rhs', constants % nbasis, params % lmax, params % nsph, &
-        & 0, x(:,:,2))
-    call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &
-        & 0, hsp_guess)
-    y(:,:,1) = zero
-    y(1,2,1) = one
-    call bx(params, constants, workspace, y(:,:,1), y(:,:,2))
-    call prtsph('bx', constants % nbasis, params % lmax, params % nsph, &
-        & 0, y(:,:,2))
-    y(:,:,1) = zero
-    y(1,2,1) = one
-    call bx_incore(params, constants, workspace, y(:,:,1), y(:,:,2))
-    call prtsph('bx_incore', constants % nbasis, params % lmax, params % nsph, &
-        & 0, y(:,:,2))
-    stop
     n_iter = params % maxiter
     if (params % incore) then
         call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &

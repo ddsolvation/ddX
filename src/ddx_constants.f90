@@ -601,8 +601,6 @@ subroutine build_b(constants, params)
     real(dp), dimension(0:params % lmax) :: SI_rijn, DI_rijn
     real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
     real(dp) :: t
-    real(dp), dimension(constants % nbasis) :: fac_cosmo, fac_hsp
-    character*2 :: str
 
     allocate(constants % b(constants % nbasis, constants % nbasis, &
         & constants % inl(params % nsph + 1)))
