@@ -508,24 +508,29 @@ endsubroutine lpb_hsp
   ! @param[in] Xr             : X_r^(k-1)
   ! @param[in] Xe             : X_e^(k-1)
   !
-  subroutine update_rhs(params, constants, rhs_cosmo_init, rhs_hsp_init, rhs_cosmo, & 
+  subroutine update_rhs(params, constants, workspace, rhs_cosmo_init, rhs_hsp_init, rhs_cosmo, & 
       & rhs_hsp, Xr, Xe)
   implicit none
   type(ddx_params_type), intent(in)  :: params
   type(ddx_constants_type), intent(in)  :: constants
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
   real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: rhs_cosmo_init, &
       & rhs_hsp_init
   real(dp), dimension(constants % nbasis, params % nsph), intent(inout) :: rhs_cosmo, rhs_hsp
   real(dp), dimension(constants % nbasis, params % nsph) :: rhs_plus
   real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xr, Xe
-  integer :: isph, jsph, igrid, icav, ind, l, m, ind0, istatus
+  integer :: isph, jsph, igrid, icav, ind, l, m, ind0, istatus, inode, indl
   real(dp), dimension(3) :: vij
   real(dp), dimension(constants % nbasis, params % nsph) :: diff_re_c1_c2
   real(dp), dimension(constants % nbasis0, params % nsph) :: diff0
   real(dp), dimension(constants % nbasis, constants % nbasis, params % nsph) :: smat
-  real(dp), dimension(constants % ncav) :: diff_ep
-  real(dp) :: Qval, rijn, val
+  real(dp), dimension(constants % ncav) :: diff_ep, diff_ep2
+  real(dp) :: Qval, rijn, val, val2, x(3)
   integer :: c0, cr, c_qmat, c_init, c_ep0, c_ep1 !, nbasis_appro
+  real(dp), external :: dnrm2
+  real(dp) :: work(constants % lmax0+1)
+  complex(dp) :: work_complex(constants % lmax0+1)
       
   ! diff_re = epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
   diff_re_c1_c2 = zero
@@ -552,15 +557,82 @@ endsubroutine lpb_hsp
 
   ! diff_ep = diff0 * coefY,    COST: M^2*nbasis*Nleb
   diff_ep = zero
-  do icav = 1, constants % ncav
-    val = zero
-    do jsph = 1, params % nsph 
-      do ind0 = 1, constants % nbasis0
-        val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
+  if (params % fmm .eq. 0) then
+      do icav = 1, constants % ncav
+        val = zero
+        do jsph = 1, params % nsph 
+          do ind0 = 1, constants % nbasis0
+            val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
+          end do
+        end do
+        diff_ep(icav) = val
       end do
+  else
+    ! Load input harmonics into tree data
+    workspace % tmp_node_m = zero
+    workspace % tmp_node_l = zero
+    workspace % tmp_sph = zero
+    do isph = 1, params % nsph
+        do l = 0, constants % lmax0
+            ind0 = l*l+l+1
+            workspace % tmp_sph(ind0-l:ind0+l, isph) = &
+                & diff0(ind0-l:ind0+l, isph) * constants % C_ik(l, isph)
+        end do
     end do
-    diff_ep(icav) = val
-  end do
+    if(constants % lmax0 .lt. params % pm) then
+        do isph = 1, params % nsph
+            inode = constants % snode(isph)
+            workspace % tmp_node_m(1:constants % nbasis0, inode) = &
+                & workspace % tmp_sph(1:constants % nbasis0, isph)
+            workspace % tmp_node_m(constants % nbasis0+1:, inode) = zero
+        end do
+    else
+        indl = (params % pm+1)**2
+        do isph = 1, params % nsph
+            inode = constants % snode(isph)
+            workspace % tmp_node_m(:, inode) = workspace % tmp_sph(1:indl, isph)
+        end do
+    end if
+    ! Do FMM operations
+    call tree_m2m_bessel_rotation(params, constants, workspace % tmp_node_m)
+    call tree_m2l_bessel_rotation(params, constants, workspace % tmp_node_m, &
+        & workspace % tmp_node_l)
+    call tree_l2l_bessel_rotation(params, constants, workspace % tmp_node_l)
+    workspace % tmp_grid = zero
+    call tree_l2p_bessel(params, constants, one, workspace % tmp_node_l, zero, &
+        & workspace % tmp_grid)
+    call tree_m2p_bessel(params, constants, constants % lmax0, one, &
+        & params % lmax, workspace % tmp_sph, one, &
+        & workspace % tmp_grid)
+      icav = 0
+      do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+          if (constants % ui(igrid,isph).gt.zero) then
+            icav = icav + 1
+            diff_ep(icav) = workspace % tmp_grid(igrid, isph)
+          end if
+        end do
+      end do
+      do icav = 1, constants % ncav
+        val = zero
+        val2 = zero
+        do jsph = 1, params % nsph 
+          do ind0 = 1, constants % nbasis0
+            val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
+          end do
+          x = constants % ccav(:, icav) - params % csph(:, jsph)
+          x = x * params % kappa
+          !call fmm_m2p_bessel_work(x, constants % lmax0, constants % vscales, &
+          !    & constants % SK_ri(:, jsph), one, &
+          !    & workspace % tmp_sph(:, jsph), one, val2, work_complex, work)
+        end do
+        diff_ep2(icav) = val - diff_ep(icav)
+        !diff_ep(icav) = val2
+      end do
+      write(*, *) "diff=", dnrm2(constants % ncav, diff_ep2, 1)/ &
+          & dnrm2(constants % ncav, diff_ep, 1)
+      write(*, *) maxval(abs(diff_ep2))
+  end if
 
   rhs_plus = zero
   icav = 0
@@ -699,7 +771,7 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
         !! Update the RHS
         !! / RHS_r \ = / g + f \ - / c1 c2 \ / X_r \
         !! \ RHS_e /   \ f     /   \ c1 c2 / \ X_e /
-        call update_rhs(params, constants, &
+        call update_rhs(params, constants, workspace, &
             & rhs_r_init, rhs_e_init, rhs_r, rhs_e, Xr, Xe)
 
         !! Compute energy
@@ -1327,7 +1399,7 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
       ! Computation of modified spherical Bessel function values      
 !      call modified_spherical_bessel_first_kind(params % lmax, &
 !          & rijn*params % kappa, SI_rijn, DI_rijn, workspace % tmp_bessel(:, 1))
-!
+
       sij  = vij/rijn
 !      call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
 !      alpha  = zero

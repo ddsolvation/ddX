@@ -115,15 +115,15 @@ type ddx_constants_type
     !> LPB value (i'_l0(r_j)/i_l0(r_j)-k'_l0(r_j)/k_l0(r_j))^{-1}. Dimension
     !!      is ???
     real(dp), allocatable :: C_ik(:, :)
-    !> LPB Bessel function of the first kind. Dimension is (lmax, nsph).
+    !> LPB Bessel function of the first kind. Dimension is (dmax+1, nsph).
     real(dp), allocatable :: SI_ri(:, :)
     !> LPB Derivative of Bessel function of the first kind. Dimension is
-    !!      (lmax, nsph).
+    !!      (dmax+1, nsph).
     real(dp), allocatable :: DI_ri(:, :)
-    !> LPB Bessel function of the second kind. Dimension is (lmax, nsph).
+    !> LPB Bessel function of the second kind. Dimension is (dmax+1, nsph).
     real(dp), allocatable :: SK_ri(:, :)
     !> LPB Derivative Bessel function of the second kind. Dimension is
-    !!      (lmax, nsph).
+    !!      (dmax+1, nsph).
     real(dp), allocatable :: DK_ri(:, :)
     !> LPB value i'_l(r_j)/i_l(r_j). Dimension is (lmax, nsph).
     real(dp), allocatable :: termimat(:, :)

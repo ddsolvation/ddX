@@ -51,6 +51,7 @@ else
         case ('l2l_bessel')
         case ('l2l_adj')
         case ('m2l')
+        case ('m2l_bessel')
         case ('m2l_adj')
         case ('tree_init')
 !        case ('tree_m2m')
@@ -255,6 +256,13 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2l')) then
             call check_m2l(j, 0, alpha(i))
         end do
     end do
+end if
+
+! Check M2L Bessel
+!if ((testname .eq. 'all') .or. (testname .eq. 'm2l_bessel')) then
+if (testname .eq. 'm2l_bessel') then
+    j = 10
+    call check_m2l_bessel(j)
 end if
 
 ! Check adjoint M2L
@@ -1809,35 +1817,32 @@ subroutine check_m2m_bessel(p)
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
     real(dp) :: src_m((p+1)**2), dst_m((p+1)**2), vscales((p+1)**2), &
         & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
-        tmp(p+1), work(p+1), src_sk(p+1), dst_sk(p+1)
+        tmp(p+1), work(p+1), kappa
     complex(dp) :: work_complex(max(2, p+1))
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
     call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
-    x = 75d0 * (/one, -1.1d0, one/)
+    x = 7.5d0 * (/one, -1.1d0, one/)
     src_c = 1.01d0 * (/-one, one, one/)
     src_r = one
     dst_r = src_r + dnrm2(3, src_c, 1)
     src_m = zero
     do i = 3, p
         !src_m(i*i+i+1) = 10d0 ** (-i)
-        src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+        !src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
     end do
-    !src_m = one
-    call modified_spherical_bessel_second_kind(p, src_r, src_sk, work, &
-        & work_complex)
-    call modified_spherical_bessel_second_kind(p, dst_r, dst_sk, work, &
-        & work_complex)
-    call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
+    src_m = one
+    kappa = 1d-2
+    call fmm_m2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_m, &
         & zero, dst_v)
-    call fmm_m2m_bessel_rotation(src_c, src_sk, dst_sk, p, vscales, vcnk, one, &
+    call fmm_m2m_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, vcnk, one, &
         & src_m, zero, dst_m)
-    call fmm_m2p_bessel_baseline(x, dst_r, p, vscales, one, dst_m, zero, &
+    call fmm_m2p_bessel_baseline(kappa*x, kappa*dst_r, p, vscales, one, dst_m, zero, &
         & dst_v2)
-    call fmm_m2m_bessel_rotation(-src_c, dst_sk, src_sk, p, vscales, vcnk, one, &
+    call fmm_m2m_bessel_rotation(-src_c, dst_r, src_r, kappa, p, vscales, vcnk, one, &
         & dst_m, zero, src_m)
-    call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
+    call fmm_m2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_m, &
         & zero, dst_v3)
     write(*, *) dst_v, dst_v2, dst_v3
 end subroutine check_m2m_bessel
@@ -2013,7 +2018,7 @@ subroutine check_l2l_bessel(p)
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
     real(dp) :: src_l((p+1)**2), dst_l((p+1)**2), vscales((p+1)**2), &
         & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
-        tmp(p+1), work(p+1), src_sk(p+1), dst_sk(p+1)
+        tmp(p+1), work(p+1), kappa
     complex(dp) :: work_complex(max(2, p+1))
     real(dp), external :: dnrm2
     integer :: i
@@ -2025,23 +2030,20 @@ subroutine check_l2l_bessel(p)
     dst_r = src_r + dnrm2(3, src_c, 1)
     src_l = zero
     do i = 0, p
-        src_l(i*i+i+1) = 10d0 ** (-i)
+        !src_l(i*i+i+1) = 10d0 ** (-i)
         !src_l(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
     end do
-    !src_l = one
-    call modified_spherical_bessel_first_kind(p, src_r, src_sk, work, &
-        & work_complex)
-    call modified_spherical_bessel_first_kind(p, dst_r, dst_sk, work, &
-        & work_complex)
-    call fmm_l2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_l, &
+    src_l = one
+    kappa = 1d-1
+    call fmm_l2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_l, &
         & zero, dst_v)
-    call fmm_l2l_bessel_rotation(src_c, src_sk, dst_sk, p, vscales, vcnk, one, &
+    call fmm_l2l_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, vcnk, one, &
         & src_l, zero, dst_l)
-    call fmm_l2p_bessel_baseline(x, dst_r, p, vscales, one, dst_l, zero, &
+    call fmm_l2p_bessel_baseline(kappa*x, kappa*dst_r, p, vscales, one, dst_l, zero, &
         & dst_v2)
-    call fmm_l2l_bessel_rotation(-src_c, dst_sk, src_sk, p, vscales, vcnk, one, &
+    call fmm_l2l_bessel_rotation(-src_c, dst_r, src_r, kappa, p, vscales, vcnk, one, &
         & dst_l, zero, src_l)
-    call fmm_l2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_l, &
+    call fmm_l2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_l, &
         & zero, dst_v3)
     write(*, *) dst_v, dst_v2, dst_v3
 end subroutine check_l2l_bessel
@@ -2282,6 +2284,40 @@ subroutine check_m2l_adj(pm, pl, alpha)
     end do
     print "(A)", repeat("=", 40)
 end subroutine check_m2l_adj
+
+subroutine check_m2l_bessel(p)
+    ! Inputs
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2
+    real(dp) :: src_m((p+1)**2), dst_l((p+1)**2), vscales((p+1)**2), &
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
+        tmp(p+1), work(p+1), kappa
+    complex(dp) :: work_complex(max(2, p+1))
+    real(dp), external :: dnrm2
+    integer :: i
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    src_c = 3d0 * (/0d0, 1d0, 0d0/)
+    src_r = one
+    x = 5d-1 * (/one, -1.1d0, one/)
+    !x = zero
+    dst_r = one
+    src_m = zero
+    do i = 0, p
+        !src_m(i*i+i+1) = 10d0 ** (-i)
+        !src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+    end do
+    src_m = one
+    kappa = 1d0
+    call fmm_m2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_m, &
+        & zero, dst_v)
+    call fmm_m2l_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, vcnk, one, &
+        & src_m, zero, dst_l)
+    call fmm_l2p_bessel_baseline(kappa*x, kappa*dst_r, p, vscales, one, dst_l, zero, &
+        & dst_v2)
+    write(*, *) dst_v, dst_v2
+end subroutine check_m2l_bessel
 
 subroutine check_tree_rib(alpha)
     real(dp), intent(in) :: alpha
