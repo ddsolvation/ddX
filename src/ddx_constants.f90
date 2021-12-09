@@ -19,6 +19,7 @@ module ddx_constants
 use ddx_parameters
 ! Get harmonics-related functions
 use ddx_harmonics
+use omp_lib, only : omp_get_wtime
 
 ! Disable implicit types
 implicit none
@@ -570,6 +571,10 @@ subroutine constants_init(params, constants, info)
             info = 1
             return
         end if
+        ! if doing incore build nonzero blocks of B
+        if (params % incore) then
+            call build_b(constants, params)
+        end if
     end if
     deallocate(vplm, vcos, vsin, stat=info)
     if (info .ne. 0) then
@@ -579,17 +584,74 @@ subroutine constants_init(params, constants, info)
         info = 1
         return
     end if
-    ! build B matrix for doing hsp linear system
+    ! if doing incore build nonzero blocks of L
     if (params % incore) then
-        call build_b(constants, params)
+        call build_l(constants, params)
     end if
     ! Clean error state of constants to proceed with geometry
     constants % error_flag = 0
     constants % error_message = ""
 end subroutine constants_init
 
+subroutine build_l(constants, params)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    integer :: isph, ij, jsph, igrid, l, m, ind
+    real(dp), dimension(3) :: vij, sij
+    real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
+        & fac, tt
+    real(dp), dimension(constants % nbasis) :: vylm, vplm
+    real(dp), dimension(params % lmax + 1) :: vcos, vsin
+    real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
+    real(dp) :: t
+
+    allocate(constants % l(constants % nbasis, constants % nbasis, &
+        & constants % inl(params % nsph + 1)))
+
+    t = omp_get_wtime()
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            scratch = zero
+            do igrid = 1, params % ngrid
+                if (constants % ui(igrid, isph).eq.one) cycle
+                vij = params % csph(:, isph) &
+                    & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                    & - params % csph(:, jsph)
+                vvij = sqrt(dot_product(vij, vij))
+                tij = vvij/params % rsph(jsph)
+                if (tij.lt.one) then
+                    sij = vij/vvij
+                    xij = fsw(tij, params % se, params % eta)
+                    if (constants % fi(igrid, isph).gt.one) then
+                        oij = xij/constants % fi(igrid, isph)
+                    else
+                        oij = xij
+                    end if
+                    call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                        & params % lmax, constants % vscales, vylm, vplm, &
+                        & vcos, vsin)
+                    tt = oij
+                    do l = 0, params % lmax
+                        ind = l*l + l + 1
+                        fac = - tt/(constants % vscales(ind)**2)
+                        do m = -l, l
+                            scratch(ind + m, igrid) = fac*vylm(ind + m)
+                        end do
+                        tt = tt*tij
+                    end do
+                end if
+            end do
+            call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
+                & one, constants % vwgrid, constants % nbasis, scratch, &
+                & constants % nbasis, zero, constants % l(:,:,ij), constants % nbasis)
+        end do
+    end do
+    write(6,*) '@build_l', omp_get_wtime() - t
+end subroutine build_l
+
 subroutine build_b(constants, params)
-    use omp_lib
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants

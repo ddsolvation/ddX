@@ -306,6 +306,27 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
     end do
 end subroutine wghpot_f
 
+subroutine lx_nodiag_incore(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, jsph, ij
+    y = zero
+    !$omp parallel do default(none) shared(params,constants,x,y) &
+    !$omp private(isph,ij,jsph)
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            call dgemv('n', constants % nbasis, constants % nbasis, one, &
+                & constants % l(:,:,ij), constants % nbasis, x(:,jsph), 1, &
+                & one, y(:,isph), 1)
+        end do
+    end do
+end subroutine lx_nodiag_incore
+
 subroutine bx_incore(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -996,16 +1017,18 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     real(dp) :: r_norm
     real(dp), dimension(params % maxiter) :: x_rel_diff
 
-    n_iter = params % maxiter
 
     ! perform A^-1 * Yr
     tt0 = omp_get_wtime()
-    !call prtsph('cosmo rhs', constants % nbasis, params % lmax, params % nsph, &
-    !    & 0, x(:,:,1))
-    call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), &
-        & ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
-    !call prtsph('cosmo sol', constants % nbasis, params % lmax, params % nsph, &
-    !    & 0, ddcosmo_guess)
+    n_iter = params % maxiter
+    if (params % incore) then
+        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), &
+            & ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag_incore, ldm1x, hnorm, info)
+    else
+        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), &
+            & ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
+    end if
+
     ! Scale by the factor of (2l+1)/4Pi
     y(:,:,1) = ddcosmo_guess
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
