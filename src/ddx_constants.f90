@@ -142,6 +142,8 @@ type ddx_constants_type
     !> List of intersecting spheres in a CSR format. Dimension is
     !!      (nsph*nngmax).
     integer, allocatable :: nl(:)
+    !> transpose list of intersecting spheres
+    integer, allocatable :: itrnl(:)
     !> Values of a characteristic function f at all grid points of all spheres.
     !!      Dimension is (ngrid, npsh).
     real(dp), allocatable :: fi(:, :)
@@ -586,12 +588,31 @@ subroutine constants_init(params, constants, info)
     end if
     ! if doing incore build nonzero blocks of L
     if (params % incore) then
+        call build_itrnl(constants, params)
         call build_l(constants, params)
     end if
     ! Clean error state of constants to proceed with geometry
     constants % error_flag = 0
     constants % error_message = ""
 end subroutine constants_init
+
+subroutine build_itrnl(constants, params)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    integer :: isph, ij, jsph, ind
+    integer, dimension(params % nsph) :: scratch
+    allocate(constants % itrnl(constants % inl(params % nsph + 1)))
+    scratch = 0
+    do isph = 1, params % nsph
+      do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+        jsph = constants % nl(ij)
+        ind = constants % inl(jsph) + scratch(jsph)
+        constants % itrnl(ind) = ij
+        scratch(jsph) = scratch(jsph) + 1
+      end do
+    end do
+end subroutine build_itrnl
 
 subroutine build_l(constants, params)
     implicit none

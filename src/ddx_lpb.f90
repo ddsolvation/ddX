@@ -165,6 +165,7 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
       write(*,*) 'Computation of Forces for ddLPB'
       ! Call the subroutine adjoint to solve the adjoint solution
       t0 = omp_get_wtime()
+      flush(6)
       call ddx_lpb_adjoint(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, psi, tol, Xadj_r, Xadj_e)
       t1 = omp_get_wtime()
@@ -327,6 +328,28 @@ subroutine lx_nodiag_incore(params, constants, workspace, x, y)
     end do
 end subroutine lx_nodiag_incore
 
+subroutine lstarx_nodiag_incore(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, jsph, ij, indmat
+    y = zero
+    !$omp parallel do default(none) shared(params,constants,x,y) &
+    !$omp private(isph,ij,jsph,indmat)
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            indmat = constants % itrnl(ij)
+            call dgemv('t', constants % nbasis, constants % nbasis, one, &
+                & constants % l(:,:,indmat), constants % nbasis, x(:,jsph), 1, &
+                & one, y(:,isph), 1)
+        end do
+    end do
+end subroutine lstarx_nodiag_incore
+
 subroutine bx_incore(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -347,6 +370,28 @@ subroutine bx_incore(params, constants, workspace, x, y)
         end do
     end do
 end subroutine bx_incore
+
+subroutine bstarx_incore(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, jsph, ij, indmat
+    y = x
+    !$omp parallel do default(none) shared(params,constants,x,y) &
+    !$omp private(isph,ij,jsph,indmat)
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            indmat = constants % itrnl(ij)
+            call dgemv('t', constants % nbasis, constants % nbasis, one, &
+                & constants % b(:,:,indmat), constants % nbasis, x(:,jsph), 1, &
+                & one, y(:,isph), 1)
+        end do
+    end do
+end subroutine bstarx_incore
 
 !
 ! Subroutine used for the GMRES solver
