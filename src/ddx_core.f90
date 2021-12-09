@@ -1710,6 +1710,7 @@ subroutine ddcav_to_grid_work(ngrid, nsph, ncav, icav_ia, icav_ja, x_cav, &
     !! The code
     do isph = 1, nsph
         igrid_old = 0
+        igrid = 0
         do icav = icav_ia(isph), icav_ia(isph+1)-1
             igrid = icav_ja(icav)
             x_grid(igrid_old+1:igrid-1, isph) = zero

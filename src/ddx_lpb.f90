@@ -626,7 +626,7 @@ endsubroutine lpb_hsp
 !          !    & constants % SK_ri(:, jsph), one, &
 !          !    & workspace % tmp_sph(:, jsph), one, val2, work_complex, work)
 !        end do
-!        diff_ep2(icav) = val - diff_ep(icav)
+!        diff_ep2(icav) = val! - diff_ep(icav)
 !        !diff_ep(icav) = val2
 !      end do
 !      write(*, *) "diff=", dnrm2(constants % ncav, diff_ep2, 1)/ &
@@ -687,7 +687,7 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     !! xs_rel_diff : relative norm of increment of every Jacobi iteration
     real(dp) :: xs_rel_diff(params % maxiter)
     integer  :: iteration, n_iter, isph, info
-    real(dp) :: old_esolv, inc
+    real(dp) :: old_esolv, inc, start_time, finish_time
     logical  :: converged, ok
 
     ! Setting of the local variables
@@ -757,9 +757,12 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
         !! @param[in]      hnorm     : Use defined norm, comes from matvec.f90
         Xr = zero
         n_iter = params % maxiter
+        !call cpu_time(start_time)
         call jacobi_diis(params, constants, &
             & workspace, tol, rhs_r, Xr, n_iter, xs_rel_diff, &
             & lx_nodiag, ldm1x, hnorm, info)
+        !call cpu_time(finish_time)
+        !write(*, *) "1 Jacobi solve in", finish_time-start_time, "seconds"
         ! Scale by the factor of (2l+1)/4Pi
         call convert_ddcosmo(params, constants, 1, Xr)
 
@@ -771,8 +774,11 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
         !! Update the RHS
         !! / RHS_r \ = / g + f \ - / c1 c2 \ / X_r \
         !! \ RHS_e /   \ f     /   \ c1 c2 / \ X_e /
+        !call cpu_time(start_time)
         call update_rhs(params, constants, workspace, &
             & rhs_r_init, rhs_e_init, rhs_r, rhs_e, Xr, Xe)
+        !call cpu_time(finish_time)
+        !write(*, *) "update_rhs in", finish_time-start_time, "seconds"
 
         !! Compute energy
         !! esolv = pt5*sprod(nsph*nylm,xr,psi)
