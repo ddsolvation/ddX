@@ -131,6 +131,8 @@ type ddx_constants_type
     real(dp), allocatable :: diff_ep_adj(:, :, :)
     !> LPB B matrix for doing incore BX product
     real(dp), allocatable :: b(:,:,:)
+    !> ddCOSMO L matrix fo doing incore LX product
+    real(dp), allocatable :: l(:,:,:)
     !> Upper limit on a number of neighbours per sphere. This value is just an
     !!      upper bound that is not guaranteed to be the actual maximum.
     integer :: nngmax
@@ -606,6 +608,10 @@ subroutine build_b(constants, params)
         & constants % inl(params % nsph + 1)))
 
     t = omp_get_wtime()
+    !$omp parallel do default(none) shared(params,constants) &
+    !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
+    !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,si_rijn,di_rijn, &
+    !$omp vvtij,l,fac,ind,m,bessel_work)
     do isph = 1, params % nsph
         do ij = constants % inl(isph), constants % inl(isph + 1) - 1
             jsph = constants % nl(ij)
@@ -645,13 +651,6 @@ subroutine build_b(constants, params)
             call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
                 & one, constants % vwgrid, constants % nbasis, scratch, &
                 & constants % nbasis, zero, constants % b(:,:,ij), constants % nbasis)
-            !constants % b(:,:,ij) = zero
-            !do igrid = 1, constants % nbasis
-            !    constants % b(igrid, igrid, ij) = one
-            !end do
-            !write(str, '(I02)') ij
-            !call print_matrix(str, constants % nbasis, constants % nbasis, &
-            !    & constants % b(:,:,ij))
         end do
     end do
     write(6,*) '@build_b', omp_get_wtime() - t
