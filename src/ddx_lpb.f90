@@ -613,25 +613,25 @@ endsubroutine lpb_hsp
           end if
         end do
       end do
-      do icav = 1, constants % ncav
-        val = zero
-        val2 = zero
-        do jsph = 1, params % nsph 
-          do ind0 = 1, constants % nbasis0
-            val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
-          end do
-          x = constants % ccav(:, icav) - params % csph(:, jsph)
-          x = x * params % kappa
-          !call fmm_m2p_bessel_work(x, constants % lmax0, constants % vscales, &
-          !    & constants % SK_ri(:, jsph), one, &
-          !    & workspace % tmp_sph(:, jsph), one, val2, work_complex, work)
-        end do
-        diff_ep2(icav) = val - diff_ep(icav)
-        !diff_ep(icav) = val2
-      end do
-      write(*, *) "diff=", dnrm2(constants % ncav, diff_ep2, 1)/ &
-          & dnrm2(constants % ncav, diff_ep, 1)
-      write(*, *) maxval(abs(diff_ep2))
+!      do icav = 1, constants % ncav
+!        val = zero
+!        val2 = zero
+!        do jsph = 1, params % nsph 
+!          do ind0 = 1, constants % nbasis0
+!            val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
+!          end do
+!          x = constants % ccav(:, icav) - params % csph(:, jsph)
+!          x = x * params % kappa
+!          !call fmm_m2p_bessel_work(x, constants % lmax0, constants % vscales, &
+!          !    & constants % SK_ri(:, jsph), one, &
+!          !    & workspace % tmp_sph(:, jsph), one, val2, work_complex, work)
+!        end do
+!        diff_ep2(icav) = val - diff_ep(icav)
+!        !diff_ep(icav) = val2
+!      end do
+!      write(*, *) "diff=", dnrm2(constants % ncav, diff_ep2, 1)/ &
+!          & dnrm2(constants % ncav, diff_ep, 1)
+!      write(*, *) maxval(abs(diff_ep2))
   end if
 
   rhs_plus = zero

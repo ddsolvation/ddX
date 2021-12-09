@@ -1819,6 +1819,8 @@ subroutine tree_m2m_bessel_rotation_work(params, constants, node_m)
     ! Output
     real(dp), intent(inout) :: node_m((params % pm+1)**2, constants % nclusters)
     ! Temporary workspace
+    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
+    complex(dp) :: work_complex(2*params % pm+1)
     ! Local variables
     integer :: i, j
     real(dp) :: c1(3), c(3), r1, r
@@ -1832,19 +1834,31 @@ subroutine tree_m2m_bessel_rotation_work(params, constants, node_m)
         j = constants % children(1, i)
         c1 = constants % cnode(:, j)
         r1 = constants % rnode(j)
-        call fmm_m2m_bessel_rotation(c1-c, r1, r, params % kappa, &
+!        call fmm_m2m_bessel_rotation(c1-c, r1, r, params % kappa, &
+!            & params % pm, &
+!            & constants % vscales, &
+!            & constants % vcnk, one, &
+!            & node_m(:, j), zero, node_m(:, i))
+        call fmm_m2m_bessel_rotation_work(params % kappa*(c1-c), &
+            & constants % SK_rnode(:, j), constants % SK_rnode(:, i), &
             & params % pm, &
             & constants % vscales, &
             & constants % vcnk, one, &
-            & node_m(:, j), zero, node_m(:, i))
+            & node_m(:, j), zero, node_m(:, i), work, work_complex)
         ! All other children update the same output
         do j = constants % children(1, i)+1, constants % children(2, i)
             c1 = constants % cnode(:, j)
             r1 = constants % rnode(j)
-            call fmm_m2m_bessel_rotation(c1-c, r1, r, params % kappa, &
+!            call fmm_m2m_bessel_rotation(c1-c, r1, r, params % kappa, &
+!                & params % pm, &
+!                & constants % vscales, constants % vcnk, one, &
+!                & node_m(:, j), one, node_m(:, i))
+            call fmm_m2m_bessel_rotation_work(params % kappa*(c1-c), &
+                & constants % SK_rnode(:, j), constants % SK_rnode(:, i), &
                 & params % pm, &
-                & constants % vscales, constants % vcnk, one, &
-                & node_m(:, j), one, node_m(:, i))
+                & constants % vscales, &
+                & constants % vcnk, one, &
+                & node_m(:, j), one, node_m(:, i), work, work_complex)
         end do
     end do
 end subroutine tree_m2m_bessel_rotation_work
@@ -1947,6 +1961,8 @@ subroutine tree_l2l_bessel_rotation_work(params, constants, node_l)
     ! Output
     real(dp), intent(inout) :: node_l((params % pl+1)**2, constants % nclusters)
     ! Temporary workspace
+    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
+    complex(dp) :: work_complex(2*params % pm+1)
     ! Local variables
     integer :: i, j
     real(dp) :: c1(3), c(3), r1, r
@@ -1957,10 +1973,15 @@ subroutine tree_l2l_bessel_rotation_work(params, constants, node_l)
         r = constants % rnode(j)
         c1 = constants % cnode(:, i)
         r1 = constants % rnode(i)
-        call fmm_l2l_bessel_rotation(c-c1, r, r1, params % kappa, &
+!        call fmm_l2l_bessel_rotation(c-c1, r, r1, params % kappa, &
+!            & params % pl, &
+!            & constants % vscales, constants % vfact, one, &
+!            & node_l(:, j), one, node_l(:, i))
+        call fmm_l2l_bessel_rotation_work(params % kappa*(c-c1), &
+            & constants % SI_rnode(:, j), constants % SI_rnode(:, i), &
             & params % pl, &
             & constants % vscales, constants % vfact, one, &
-            & node_l(:, j), one, node_l(:, i))
+            & node_l(:, j), one, node_l(:, i), work, work_complex)
     end do
 end subroutine tree_l2l_bessel_rotation_work
 
@@ -2065,6 +2086,8 @@ subroutine tree_m2l_bessel_rotation(params, constants, node_m, node_l)
     ! Output
     real(dp), intent(out) :: node_l((params % pl+1)**2, constants % nclusters)
     ! Temporary workspace
+    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
+    complex(dp) :: work_complex(2*params % pm+1)
     ! Local variables
     integer :: i, j, k, NZ, ierr
     real(dp) :: c1(3), c(3), r1, r
@@ -2081,19 +2104,29 @@ subroutine tree_m2l_bessel_rotation(params, constants, node_m, node_l)
         k = constants % far(constants % sfar(i))
         c1 = constants % cnode(:, k)
         r1 = constants % rnode(k)
-        call fmm_m2l_bessel_rotation(c1-c, r1, r, params % kappa, &
+!        call fmm_m2l_bessel_rotation(c1-c, r1, r, params % kappa, &
+!            & params % pm, &
+!            & constants % vscales, constants % vcnk, one, &
+!            & node_m(:, k), zero, node_l(:, i))
+        call fmm_m2l_bessel_rotation_work(params % kappa*(c1-c), &
+            & constants % SK_rnode(:, k), constants % SI_rnode(:, i), &
             & params % pm, &
             & constants % vscales, constants % vcnk, one, &
-            & node_m(:, k), zero, node_l(:, i))
+            & node_m(:, k), zero, node_l(:, i), work, work_complex)
         do j = constants % sfar(i)+1, constants % sfar(i+1)-1
             k = constants % far(j)
             c1 = constants % cnode(:, k)
             r1 = constants % rnode(k)
-            call fmm_m2l_bessel_rotation(c1-c, r1, r, params % kappa, &
+!            call fmm_m2l_bessel_rotation(c1-c, r1, r, params % kappa, &
+!                & params % pm, &
+!                & constants % vscales, &
+!                & constants % vcnk, one, node_m(:, k), one, &
+!                & node_l(:, i))
+            call fmm_m2l_bessel_rotation_work(params % kappa*(c1-c), &
+                & constants % SK_rnode(:, k), constants % SI_rnode(:, i), &
                 & params % pm, &
-                & constants % vscales, &
-                & constants % vcnk, one, node_m(:, k), one, &
-                & node_l(:, i))
+                & constants % vscales, constants % vcnk, one, &
+                & node_m(:, k), one, node_l(:, i), work, work_complex)
         end do
     end do
 end subroutine tree_m2l_bessel_rotation
