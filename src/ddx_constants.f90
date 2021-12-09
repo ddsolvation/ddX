@@ -592,15 +592,16 @@ subroutine build_b(constants, params)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     integer :: isph, ij, jsph, igrid, l, m, ind
-    real(dp), dimension(3) :: vij, sij, vtij
+    real(dp), dimension(3) :: vij, sij
     real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
-        & fac
+        & fac, vvtij
     real(dp), dimension(constants % nbasis) :: vylm, vplm
     real(dp), dimension(params % lmax + 1) :: vcos, vsin
-    complex(dp), dimension(constants % nbasis) :: bessel_work
+    complex(dp), dimension(max(2, params % lmax + 1)) :: bessel_work
     real(dp), dimension(0:params % lmax) :: SI_rijn, DI_rijn
     real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
     real(dp) :: t
+    real(dp), dimension(constants % nbasis) :: fac_cosmo, fac_hsp
     character*2 :: str
 
     allocate(constants % b(constants % nbasis, constants % nbasis, &
@@ -612,15 +613,16 @@ subroutine build_b(constants, params)
             jsph = constants % nl(ij)
             scratch = zero
             do igrid = 1, params % ngrid
-                vij = params % csph(:,isph) &
+                if (constants % ui(igrid, isph).eq.one) cycle
+                vij = params % csph(:, isph) &
                     & + params % rsph(isph)*constants % cgrid(:,igrid) &
-                    & - params % csph(:,jsph)
+                    & - params % csph(:, jsph)
                 vvij = sqrt(dot_product(vij, vij))
                 tij = vvij/params % rsph(jsph)
                 if (tij.lt.one) then
                     sij = vij/vvij
                     xij = fsw(tij, params % se, params % eta)
-                    if (constants % fi(igrid,isph).gt.one) then
+                    if (constants % fi(igrid, isph).gt.one) then
                         oij = xij/constants % fi(igrid, isph)
                     else
                         oij = xij
@@ -630,14 +632,14 @@ subroutine build_b(constants, params)
                         & vcos, vsin)
                     SI_rijn = 0
                     DI_rijn = 0
-                    vtij = vij*params % kappa
+                    vvtij = vvij*params % kappa
                     call modified_spherical_bessel_first_kind(params % lmax, &
-                        & vvij*params % kappa, SI_rijn, DI_rijn, bessel_work)
+                        & vvtij, SI_rijn, DI_rijn, bessel_work)
                     do l = 0, params % lmax
-                        fac = - oij*SI_rijn(l)/constants % SI_ri(l,isph)
+                        fac = - oij*SI_rijn(l)/constants % SI_ri(l, jsph)
                         ind = l*l + l + 1
                         do m = -l, l
-                            scratch(ind + m,igrid) = fac*vylm(ind + m)
+                            scratch(ind + m, igrid) = fac*vylm(ind + m)
                         end do
                     end do
                 end if

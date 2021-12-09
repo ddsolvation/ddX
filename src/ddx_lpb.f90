@@ -316,7 +316,7 @@ subroutine bx_incore(params, constants, workspace, x, y)
     integer :: isph, jsph, ij
     y = zero
     do isph = 1, params % nsph
-        do ij = 1, constants % inl(isph), constants % inl(isph + 1) - 1
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
             jsph = constants % nl(ij)
             call dgemv('n', constants % nbasis, constants % nbasis, one, &
                 & constants % b(:,:,ij), constants % nbasis, x(:,jsph), 1, &
@@ -1013,24 +1013,29 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
 
     ! perform B^-1 * Ye
     tt0 = omp_get_wtime()
-    !call prtsph('hsp rhs', constants % nbasis, params % lmax, params % nsph, &
-    !    & 0, x(:,:,2))
-    !call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &
-    !    & 0, hsp_guess)
-    n_iter = params % maxiter
+    call prtsph('hsp rhs', constants % nbasis, params % lmax, params % nsph, &
+        & 0, x(:,:,2))
+    call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &
+        & 0, hsp_guess)
     y(:,:,1) = zero
-    y(:,1,1) = one
-    call bx_nodiag(params, constants, workspace, y(:,:,1), y(:,:,2))
+    y(1,2,1) = one
+    call bx(params, constants, workspace, y(:,:,1), y(:,:,2))
     call prtsph('bx', constants % nbasis, params % lmax, params % nsph, &
         & 0, y(:,:,2))
     y(:,:,1) = zero
-    y(:,1,1) = one
+    y(1,2,1) = one
     call bx_incore(params, constants, workspace, y(:,:,1), y(:,:,2))
     call prtsph('bx_incore', constants % nbasis, params % lmax, params % nsph, &
         & 0, y(:,:,2))
     stop
-    call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
-        & n_iter, r_norm, bx_incore, info)
+    n_iter = params % maxiter
+    if (params % incore) then
+        call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+          & n_iter, r_norm, bx_incore, info)
+    else
+        call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+          & n_iter, r_norm, bx, info)
+    end if
     !call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
     !    & n_iter, x_rel_diff, bx_nodiag, bx_prec, hnorm, info)
     !call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &
