@@ -610,6 +610,9 @@ subroutine build_l(constants, params)
         & constants % inl(params % nsph + 1)))
 
     t = omp_get_wtime()
+    !$omp parallel do default(none) shared(params,constants) &
+    !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
+    !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,l,fac,ind,m,tt)
     do isph = 1, params % nsph
         do ij = constants % inl(isph), constants % inl(isph + 1) - 1
             jsph = constants % nl(ij)
