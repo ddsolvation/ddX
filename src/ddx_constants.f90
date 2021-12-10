@@ -654,7 +654,7 @@ subroutine build_l(constants, params)
     integer :: isph, ij, jsph, igrid, l, m, ind
     real(dp), dimension(3) :: vij, sij
     real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
-        & fac, tt
+        & fac, tt, thigh
     real(dp), dimension(constants % nbasis) :: vylm, vplm
     real(dp), dimension(params % lmax + 1) :: vcos, vsin
     real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
@@ -662,6 +662,8 @@ subroutine build_l(constants, params)
 
     allocate(constants % l(constants % nbasis, constants % nbasis, &
         & constants % inl(params % nsph + 1)))
+
+    thigh = one + pt5*(params % se + one)*params % eta
 
     t = omp_get_wtime()
     !$omp parallel do default(none) shared(params,constants) &
@@ -678,7 +680,7 @@ subroutine build_l(constants, params)
                     & - params % csph(:, jsph)
                 vvij = sqrt(dot_product(vij, vij))
                 tij = vvij/params % rsph(jsph)
-                if (tij.lt.one) then
+                if (tij.lt.thigh .and. tij.gt.zero) then
                     sij = vij/vvij
                     xij = fsw(tij, params % se, params % eta)
                     if (constants % fi(igrid, isph).gt.one) then
