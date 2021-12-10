@@ -40,15 +40,19 @@ else
         case ('m2p_bessel')
         case ('m2p_m2l')
         case ('m2p_adj')
+        case ('m2p_bessel_grad')
         case ('l2p')
         case ('l2p_bessel')
         case ('l2p_adj')
+        case ('l2p_bessel_grad')
         case ('m2m')
         case ('m2m_bessel')
         case ('m2m_adj')
         case ('l2l')
+        case ('l2l_bessel')
         case ('l2l_adj')
         case ('m2l')
+        case ('m2l_bessel')
         case ('m2l_adj')
         case ('tree_init')
 !        case ('tree_m2m')
@@ -134,6 +138,17 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2p_adj')) then
     end do
 end if
 
+! Check M2P Bessel gradient
+!if ((testname .eq. 'all') .or. (testname .eq. 'm2p_bessel')) then
+if (testname .eq. 'm2p_bessel_grad') then
+    !do i = 1, size(alpha)
+        !do j = 0, 20
+            j = 5
+            call check_m2p_bessel_grad(j)
+        !end do
+    !end do
+end if
+
 ! Check L2P
 if ((testname .eq. 'all') .or. (testname .eq. 'l2p')) then
     do i = 1, size(alpha)
@@ -159,6 +174,17 @@ if ((testname .eq. 'all') .or. (testname .eq. 'l2p_adj')) then
             call check_l2p_adj(j, alpha(i))
         end do
     end do
+end if
+
+! Check L2P Bessel gradient
+!if ((testname .eq. 'all') .or. (testname .eq. 'l2p_bessel_grad')) then
+if (testname .eq. 'l2p_bessel_grad') then
+    !do i = 1, size(alpha)
+        !do j = 0, 20
+            j = 5
+            call check_l2p_bessel_grad(j)
+        !end do
+    !end do
 end if
 
 ! Check M2M
@@ -199,6 +225,17 @@ if ((testname .eq. 'all') .or. (testname .eq. 'l2l')) then
     end do
 end if
 
+! Check L2L Bessel manually
+!if ((testname .eq. 'all') .or. (testname .eq. 'l2l_bessel')) then
+if (testname .eq. 'l2l_bessel') then
+    !do i = 1, size(alpha)
+    j = 10
+        !do j = 0, p
+            call check_l2l_bessel(j)
+        !end do
+    !end do
+end if
+
 ! Check adjoint L2L
 if ((testname .eq. 'all') .or. (testname .eq. 'l2l_adj')) then
     do i = 1, size(alpha)
@@ -220,6 +257,13 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2l')) then
             call check_m2l(j, 0, alpha(i))
         end do
     end do
+end if
+
+! Check M2L Bessel
+!if ((testname .eq. 'all') .or. (testname .eq. 'm2l_bessel')) then
+if (testname .eq. 'm2l_bessel') then
+    j = 10
+    call check_m2l_bessel(j)
 end if
 
 ! Check adjoint M2L
@@ -1294,6 +1338,57 @@ subroutine check_m2p_adj(p, alpha)
     print "(A)", repeat("=", 40)
 end subroutine check_m2p_adj
 
+! Check M2P Bessel gradient
+subroutine check_m2p_bessel_grad(p)
+    ! Inputs
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: x(3), r, src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
+    real(dp) :: src_m((p+1)**2), dst_m((p+2)**2), vscales((p+2)**2), &
+        & vscales_rel((p+2)**2), v4pi2lp1(p+2), vcnk((2*p+3)*(p+2)), &
+        & tmp(p+2), work(p+2), src_sk(p+2), sk(p+1), dk(p+1), basloc((p+1)**2), &
+        & dbsloc(3, (p+1)**2), vplm((p+1)**2), vcos(p+1), vsin(p+1), &
+        & dst_g1(3), dst_g2(3), dst_m_grad((p+2)**2, 3)
+    complex(dp) :: work_complex(p+2)
+    real(dp), external :: dnrm2
+    integer :: i, l, m, indm
+    type(ddx_params_type) :: params
+    type(ddx_constants_type) :: constants
+    ! Set params
+    params % lmax = p
+    constants % nbasis = (p+1)**2
+    ! Compute special FMM constants
+    call ylmscale(p+1, vscales, v4pi2lp1, vscales_rel)
+    allocate(constants % vscales((p+2)**2))
+    constants % vscales = vscales
+    x = 7.5d0 * (/1.1d0, -2d0, one/)
+    r = dnrm2(3, x, 1)
+    src_r = one
+    src_m = zero
+    do i = 0, p
+        !src_m(i*i+i+1) = 10d0 ** (-i)
+        src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+    end do
+    !src_m = one
+    call modified_spherical_bessel_second_kind(p, r, sk, dk, &
+        & work_complex)
+    call modified_spherical_bessel_second_kind(p+1, src_r, src_sk, work, &
+        & work_complex)
+    call dbasis(params, constants, x/r, basloc, dbsloc, vplm, vcos, vsin)
+    dst_g1 = zero
+    do l = 0, p
+        do m = -l, l
+            indm = l*l+l+1+m
+            dst_g1 = dst_g1 + src_m(indm)/src_sk(l+1)/r*(dk(l+1)*x* &
+                & basloc(indm)+sk(l+1)*dbsloc(:, indm))
+        end do
+    end do
+    write(*, *) dst_g1
+    call fmm_m2p_bessel_grad(x, src_r, p, vscales, one, src_m, zero, dst_g2)
+    write(*, *) dst_g2
+    deallocate(constants % vscales)
+end subroutine check_m2p_bessel_grad
+
 ! Check L2P
 subroutine check_l2p(p, alpha)
     ! Inputs
@@ -1559,6 +1654,57 @@ subroutine check_l2p_adj(p, alpha)
     print "(A)", repeat("=", 40)
 end subroutine check_l2p_adj
 
+! Check L2P Bessel gradient
+subroutine check_l2p_bessel_grad(p)
+    ! Inputs
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: x(3), r, src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
+    real(dp) :: src_l((p+1)**2), dst_l((p+2)**2), vscales((p+2)**2), &
+        & vscales_rel((p+2)**2), v4pi2lp1(p+2), vcnk((2*p+3)*(p+2)), &
+        & tmp(p+2), work(p+2), src_si(p+2), si(p+1), di(p+1), basloc((p+1)**2), &
+        & dbsloc(3, (p+1)**2), vplm((p+1)**2), vcos(p+1), vsin(p+1), &
+        & dst_g1(3), dst_g2(3), dst_l_grad((p+2)**2, 3)
+    complex(dp) :: work_complex(p+2)
+    real(dp), external :: dnrm2
+    integer :: i, l, m, indm
+    type(ddx_params_type) :: params
+    type(ddx_constants_type) :: constants
+    ! Set params
+    params % lmax = p
+    constants % nbasis = (p+1)**2
+    ! Compute special FMM constants
+    call ylmscale(p+1, vscales, v4pi2lp1, vscales_rel)
+    allocate(constants % vscales((p+2)**2))
+    constants % vscales = vscales
+    x = 7.5d-1 * (/one, zero, zero/)
+    r = dnrm2(3, x, 1)
+    src_r = one
+    src_l = zero
+    do i = 0, p
+        !src_l(i*i+i+1) = 10d0 ** (-i)
+        src_l(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+    end do
+    !src_l = one
+    call modified_spherical_bessel_first_kind(p, r, si, di, &
+        & work_complex)
+    call modified_spherical_bessel_first_kind(p+1, src_r, src_si, work, &
+        & work_complex)
+    call dbasis(params, constants, x/r, basloc, dbsloc, vplm, vcos, vsin)
+    dst_g1 = zero
+    do l = 0, p
+        do m = -l, l
+            indm = l*l+l+1+m
+            dst_g1 = dst_g1 + src_l(indm)/src_si(l+1)/r*(di(l+1)*x* &
+                & basloc(indm)+si(l+1)*dbsloc(:, indm))
+        end do
+    end do
+    write(*, *) dst_g1
+    call fmm_l2p_bessel_grad(x, src_r, p, vscales, one, src_l, zero, dst_g2)
+    write(*, *) dst_g2
+    deallocate(constants % vscales)
+end subroutine check_l2p_bessel_grad
+
 ! Check M2M
 subroutine check_m2m(p, alpha)
     ! Inputs
@@ -1672,35 +1818,32 @@ subroutine check_m2m_bessel(p)
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
     real(dp) :: src_m((p+1)**2), dst_m((p+1)**2), vscales((p+1)**2), &
         & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
-        tmp(p+1), work(p+1), src_sk(p+1), dst_sk(p+1)
+        tmp(p+1), work(p+1), kappa
     complex(dp) :: work_complex(max(2, p+1))
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
     call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
-    x = 75d0 * (/one, -1.1d0, one/)
+    x = 7.5d0 * (/one, -1.1d0, one/)
     src_c = 1.01d0 * (/-one, one, one/)
     src_r = one
     dst_r = src_r + dnrm2(3, src_c, 1)
     src_m = zero
     do i = 3, p
         !src_m(i*i+i+1) = 10d0 ** (-i)
-        src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+        !src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
     end do
-    !src_m = one
-    call modified_spherical_bessel_second_kind(p, src_r, src_sk, work, &
-        & work_complex)
-    call modified_spherical_bessel_second_kind(p, dst_r, dst_sk, work, &
-        & work_complex)
-    call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
+    src_m = one
+    kappa = 1d-2
+    call fmm_m2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_m, &
         & zero, dst_v)
-    call fmm_m2m_bessel_rotation(-src_c, src_sk, dst_sk, p, vscales, vcnk, one, &
+    call fmm_m2m_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, vcnk, one, &
         & src_m, zero, dst_m)
-    call fmm_m2p_bessel_baseline(x, dst_r, p, vscales, one, dst_m, zero, &
+    call fmm_m2p_bessel_baseline(kappa*x, kappa*dst_r, p, vscales, one, dst_m, zero, &
         & dst_v2)
-    call fmm_m2m_bessel_rotation(src_c, dst_sk, src_sk, p, vscales, vcnk, one, &
+    call fmm_m2m_bessel_rotation(-src_c, dst_r, src_r, kappa, p, vscales, vcnk, one, &
         & dst_m, zero, src_m)
-    call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
+    call fmm_m2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_m, &
         & zero, dst_v3)
     write(*, *) dst_v, dst_v2, dst_v3
 end subroutine check_m2m_bessel
@@ -1868,6 +2011,43 @@ subroutine check_l2l(p, alpha)
     end do
     print "(A)", repeat("=", 40)
 end subroutine check_l2l
+
+subroutine check_l2l_bessel(p)
+    ! Inputs
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
+    real(dp) :: src_l((p+1)**2), dst_l((p+1)**2), vscales((p+1)**2), &
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
+        tmp(p+1), work(p+1), kappa
+    complex(dp) :: work_complex(max(2, p+1))
+    real(dp), external :: dnrm2
+    integer :: i
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    x = 7.5d-1 * (/one, -1.1d0, one/)
+    src_c = 1.01d0 * (/-one, one, one/)
+    src_r = one
+    dst_r = src_r + dnrm2(3, src_c, 1)
+    src_l = zero
+    do i = 0, p
+        !src_l(i*i+i+1) = 10d0 ** (-i)
+        !src_l(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+    end do
+    src_l = one
+    kappa = 1d-1
+    call fmm_l2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_l, &
+        & zero, dst_v)
+    call fmm_l2l_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, vcnk, one, &
+        & src_l, zero, dst_l)
+    call fmm_l2p_bessel_baseline(kappa*x, kappa*dst_r, p, vscales, one, dst_l, zero, &
+        & dst_v2)
+    call fmm_l2l_bessel_rotation(-src_c, dst_r, src_r, kappa, p, vscales, vcnk, one, &
+        & dst_l, zero, src_l)
+    call fmm_l2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_l, &
+        & zero, dst_v3)
+    write(*, *) dst_v, dst_v2, dst_v3
+end subroutine check_l2l_bessel
 
 ! Check adjoint l2l
 subroutine check_l2l_adj(p, alpha)
@@ -2105,6 +2285,40 @@ subroutine check_m2l_adj(pm, pl, alpha)
     end do
     print "(A)", repeat("=", 40)
 end subroutine check_m2l_adj
+
+subroutine check_m2l_bessel(p)
+    ! Inputs
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2
+    real(dp) :: src_m((p+1)**2), dst_l((p+1)**2), vscales((p+1)**2), &
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
+        tmp(p+1), work(p+1), kappa
+    complex(dp) :: work_complex(max(2, p+1))
+    real(dp), external :: dnrm2
+    integer :: i
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    src_c = 3d0 * (/0d0, 1d0, 0d0/)
+    src_r = one
+    x = 5d-1 * (/one, -1.1d0, one/)
+    !x = zero
+    dst_r = one
+    src_m = zero
+    do i = 0, p
+        !src_m(i*i+i+1) = 10d0 ** (-i)
+        !src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+    end do
+    src_m = one
+    kappa = 1d0
+    call fmm_m2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_m, &
+        & zero, dst_v)
+    call fmm_m2l_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, vcnk, one, &
+        & src_m, zero, dst_l)
+    call fmm_l2p_bessel_baseline(kappa*x, kappa*dst_r, p, vscales, one, dst_l, zero, &
+        & dst_v2)
+    write(*, *) dst_v, dst_v2
+end subroutine check_m2l_bessel
 
 subroutine check_tree_rib(alpha)
     real(dp), intent(in) :: alpha

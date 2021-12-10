@@ -235,7 +235,7 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
                 nderphi = dot_product(gradphi(:, ic), constants % cgrid(:,ig))
                 c0(:, isph) = c0(:, isph) + &
                     & constants % wgrid(ig)*constants % ui(ig,isph)*&
-                    & nderphi*constants % vgrid(:,ig)
+                    & nderphi*constants % vgrid(1:constants % nbasis,ig)
                 do l0 = 0, constants % lmax0
                     ind0 = l0*l0 + 1
                     ind = ind0 + 2*l0
@@ -500,49 +500,6 @@ subroutine convert_ddcosmo(params, constants, direction, vector)
     end do
 end subroutine convert_ddcosmo
 
-!!
-!! Solve the HSP problem
-!! @param[in]      rhs : Right hand side for HSP
-!! @param[in, out] Xe  : Solution vector
-!!
-subroutine lpb_hsp(params, constants, workspace, tol, rhs, Xe)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: tol
-    real(dp), intent(in) :: rhs(constants % nbasis, params % nsph)
-    !! Temporaries
-    type(ddx_workspace_type), intent(inout) :: workspace
-    !! Outputs
-    real(dp), intent(inout) :: Xe(constants % nbasis, params % nsph)
-    !! Local variables
-    integer :: isph, istatus, n_iter, info, c1, c2, cr
-    real(dp) :: r_norm
-    !! The code
-    Xe = zero
-    !!
-    !! Call GMRES solver
-    !! @param[in]      Residue_print : Set to false by default. Prints the
-    !!                                 intermediate residue.
-    !! @param[in]      nsph*nylm     : Size of matrix
-    !! @param[in]      gmj           : Integer truncation parameter, Default: 25
-    !! @param[in]      gmm           : Integer dimension of the GMRES,
-    !!                                 Default: 20
-    !! @param[in]      rhs           : Right hand side
-    !! @param[in, out] Xe            : Initial guess of the problem
-    !! @param[in]      work          : Work space of size
-    !!                               : nsph*nylm X (2*gmj + gmm + 2)
-    !! @param[in]      Stopping      : Stopping criteria, Default set to
-    !!                                 'rel' for relative. Other option
-    !!                                 'abs' for absolute
-    !! @param[in]      r_norm        : Residual measure
-    !! @param[in]      bx        : Subroutine A*x. Named matabx in file
-    !! @param[in, out] info          : Flag after solve. 0 means within tolerance
-    !!                                 1 means max number of iteration
-    n_iter = params % maxiter
-    call gmresr(params, constants, workspace, tol, rhs, Xe, n_iter, r_norm, bx, info)
-endsubroutine lpb_hsp
-
   !
   ! Intermediate computation of BX_e
   ! @param[in]      isph   : Number of the sphere
@@ -653,6 +610,161 @@ endsubroutine lpb_hsp
   end do
   endsubroutine inthsp
 
+  !
+  ! Update the RHS in outer iteration
+  ! @param[in] rhs_cosmo_init : G_0
+  ! @param[in] rhs_hsp_init   : F_0
+  ! @param[in, out] rhs_cosmo : -C_1*X_r^(k-1) - C_2*X_e^(k-1) + G_0 + F_0
+  ! @param[in, out] rhs_hsp   : -C_1*X_r^(k-1) - C_2*X_e^(k-1) + F_0
+  ! @param[in] Xr             : X_r^(k-1)
+  ! @param[in] Xe             : X_e^(k-1)
+  !
+  subroutine update_rhs(params, constants, workspace, rhs_cosmo_init, rhs_hsp_init, rhs_cosmo, & 
+      & rhs_hsp, Xr, Xe)
+  implicit none
+  type(ddx_params_type), intent(in)  :: params
+  type(ddx_constants_type), intent(in)  :: constants
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
+  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: rhs_cosmo_init, &
+      & rhs_hsp_init
+  real(dp), dimension(constants % nbasis, params % nsph), intent(inout) :: rhs_cosmo, rhs_hsp
+  real(dp), dimension(constants % nbasis, params % nsph) :: rhs_plus
+  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xr, Xe
+  integer :: isph, jsph, igrid, icav, ind, l, m, ind0, istatus, inode, indl
+  real(dp), dimension(3) :: vij
+  real(dp), dimension(constants % nbasis, params % nsph) :: diff_re_c1_c2
+  real(dp), dimension(constants % nbasis0, params % nsph) :: diff0
+  real(dp), dimension(constants % nbasis, constants % nbasis, params % nsph) :: smat
+  real(dp), dimension(constants % ncav) :: diff_ep, diff_ep2
+  real(dp) :: Qval, rijn, val, val2, x(3)
+  integer :: c0, cr, c_qmat, c_init, c_ep0, c_ep1 !, nbasis_appro
+  real(dp), external :: dnrm2
+  real(dp) :: work(constants % lmax0+1)
+  complex(dp) :: work_complex(constants % lmax0+1)
+      
+  ! diff_re = epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
+  diff_re_c1_c2 = zero
+  do jsph = 1, params % nsph
+    do l = 0, params % lmax
+      do m = -l,l
+        ind = l**2 + l + m + 1
+        diff_re_c1_c2(ind,jsph) = ((epsp/params % eps)*&
+                                & (l/params % rsph(jsph)) * &
+                                & Xr(ind,jsph) - constants % termimat(l,jsph)*Xe(ind,jsph))
+      end do
+    end do
+  end do
+
+  ! diff0 = Pchi * diff_er, linear scaling
+  ! TODO: probably doing PX on the fly is better 
+  diff0 = zero 
+  do jsph = 1, params % nsph
+    do ind0 = 1, constants % nbasis0
+      diff0(ind0, jsph) = dot_product(diff_re_c1_c2(:,jsph), &
+          & constants % Pchi(:,ind0, jsph))
+    end do
+  end do
+
+  ! diff_ep = diff0 * coefY,    COST: M^2*nbasis*Nleb
+  diff_ep = zero
+  if (params % fmm .eq. 0) then
+      do icav = 1, constants % ncav
+        val = zero
+        do jsph = 1, params % nsph 
+          do ind0 = 1, constants % nbasis0
+            val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
+          end do
+        end do
+        diff_ep(icav) = val
+      end do
+  else
+    ! Load input harmonics into tree data
+    workspace % tmp_node_m = zero
+    workspace % tmp_node_l = zero
+    workspace % tmp_sph = zero
+    do isph = 1, params % nsph
+        do l = 0, constants % lmax0
+            ind0 = l*l+l+1
+            workspace % tmp_sph(ind0-l:ind0+l, isph) = &
+                & diff0(ind0-l:ind0+l, isph) * constants % C_ik(l, isph)
+        end do
+    end do
+    if(constants % lmax0 .lt. params % pm) then
+        do isph = 1, params % nsph
+            inode = constants % snode(isph)
+            workspace % tmp_node_m(1:constants % nbasis0, inode) = &
+                & workspace % tmp_sph(1:constants % nbasis0, isph)
+            workspace % tmp_node_m(constants % nbasis0+1:, inode) = zero
+        end do
+    else
+        indl = (params % pm+1)**2
+        do isph = 1, params % nsph
+            inode = constants % snode(isph)
+            workspace % tmp_node_m(:, inode) = workspace % tmp_sph(1:indl, isph)
+        end do
+    end if
+    ! Do FMM operations
+    call tree_m2m_bessel_rotation(params, constants, workspace % tmp_node_m)
+    call tree_m2l_bessel_rotation(params, constants, workspace % tmp_node_m, &
+        & workspace % tmp_node_l)
+    call tree_l2l_bessel_rotation(params, constants, workspace % tmp_node_l)
+    workspace % tmp_grid = zero
+    call tree_l2p_bessel(params, constants, one, workspace % tmp_node_l, zero, &
+        & workspace % tmp_grid)
+    call tree_m2p_bessel(params, constants, constants % lmax0, one, &
+        & params % lmax, workspace % tmp_sph, one, &
+        & workspace % tmp_grid)
+      icav = 0
+      do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+          if (constants % ui(igrid,isph).gt.zero) then
+            icav = icav + 1
+            diff_ep(icav) = workspace % tmp_grid(igrid, isph)
+          end if
+        end do
+      end do
+!      do icav = 1, constants % ncav
+!        val = zero
+!        val2 = zero
+!        do jsph = 1, params % nsph 
+!          do ind0 = 1, constants % nbasis0
+!            val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
+!          end do
+!          x = constants % ccav(:, icav) - params % csph(:, jsph)
+!          x = x * params % kappa
+!          !call fmm_m2p_bessel_work(x, constants % lmax0, constants % vscales, &
+!          !    & constants % SK_ri(:, jsph), one, &
+!          !    & workspace % tmp_sph(:, jsph), one, val2, work_complex, work)
+!        end do
+!        diff_ep2(icav) = val! - diff_ep(icav)
+!        !diff_ep(icav) = val2
+!      end do
+!      write(*, *) "diff=", dnrm2(constants % ncav, diff_ep2, 1)/ &
+!          & dnrm2(constants % ncav, diff_ep, 1)
+!      write(*, *) maxval(abs(diff_ep2))
+  end if
+
+  rhs_plus = zero
+  icav = 0
+  do isph = 1, params % nsph
+    do igrid = 1, params % ngrid
+      if (constants % ui(igrid,isph).gt.zero) then
+        icav = icav + 1
+        do ind = 1, constants % nbasis
+          rhs_plus(ind,isph) = rhs_plus(ind,isph) + &
+              & constants % coefvec(igrid,ind,isph)*diff_ep(icav)
+        end do
+      end if
+    end do
+  end do
+
+  rhs_cosmo = rhs_cosmo_init - rhs_plus
+  rhs_hsp = rhs_hsp_init - rhs_plus
+
+  return
+  end subroutine update_rhs  
+
 !
 ! Computation for Solvation energy
 ! @param[in]  ddx_data   : Input data file
@@ -686,16 +798,12 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     !! xs_rel_diff : relative norm of increment of every Jacobi iteration
     real(dp) :: x_rel_diff(params % maxiter)
     integer  :: iteration, n_iter, isph, info
-    real(dp) :: old_esolv, inc
-
     real(dp), dimension(constants % nbasis, params % nsph, 2) :: rhs, x, scr
     logical :: ok
-
     real(dp), dimension(2*constants % n*(2*params % gmresr_j + 2)) :: gmres_work
     real(dp) :: gmres_resid
 
     ! Setting of the local variables
-    old_esolv = zero; inc = zero
     rhs_r_init = zero; rhs_e_init = zero
     g0 = zero; f0 = zero
 
@@ -717,7 +825,6 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     ddcosmo_guess = zero
     hsp_guess = zero
     call lpb_direct_prec(params, constants, workspace, rhs, x)
-    !rhs = one
     call prtsph('rhs', constants % nbasis, params % lmax, &
         & 2*params % nsph, 0, rhs)
 
@@ -728,9 +835,9 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
         & ok, lpb_direct_matvec, lpb_direct_prec)
     call prtsph('sol', constants % nbasis, params % lmax, &
         & 2*params % nsph, 0, x)
-
     xr = x(:,:,1)
     xe = x(:,:,2)
+
     ! check
     call lpb_direct_matvec_full(params, constants, workspace, x, scr)
     call prtsph('matvec', constants % nbasis, params % lmax, &
@@ -1475,6 +1582,8 @@ end subroutine bstarx
   ! va    : Eq.(54) Stamm.etal.18
   real(dp)  :: vij(3), sij(3), alpha(3), va(3), rj
   real(dp), external :: dnrm2
+  real(dp) :: work(params % lmax+1)
+  complex(dp) :: work_complex(params % lmax+1)
   
   SI_rijn = 0
   DI_rijn = 0
@@ -1496,22 +1605,28 @@ end subroutine bstarx
 
       if (tij.ge.thigh) cycle
       ! Computation of modified spherical Bessel function values      
-      call modified_spherical_bessel_first_kind(params % lmax, &
-          & rijn*params % kappa, SI_rijn, DI_rijn, workspace % tmp_bessel(:, 1))
+!      call modified_spherical_bessel_first_kind(params % lmax, &
+!          & rijn*params % kappa, SI_rijn, DI_rijn, workspace % tmp_bessel(:, 1))
 
       sij  = vij/rijn
-      call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
-      alpha  = zero
-      do l = 0, params % lmax
-        ind = l*l + l + 1
-        f1 = (DI_rijn(l)*params % kappa)/constants % SI_ri(l,jsph);
-        f2 = SI_rijn(l)/constants % SI_ri(l, jsph)
-        do m = -l, l
-          alpha(:) = alpha(:) + (f1*sij(:)*basloc(ind+m) + &
-                    & (f2/rijn)*dbasloc(:,ind+m))*Xe(ind+m,jsph)
-        end do
-      end do
-      beta = compute_beta(params, constants, workspace, SI_rijn, rijn, jsph, Xe(:,jsph),basloc)
+!      call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
+!      alpha  = zero
+!      do l = 0, params % lmax
+!        ind = l*l + l + 1
+!        f1 = (DI_rijn(l)*params % kappa)/constants % SI_ri(l,jsph);
+!        f2 = SI_rijn(l)/constants % SI_ri(l, jsph)
+!        do m = -l, l
+!          alpha(:) = alpha(:) + (f1*sij(:)*basloc(ind+m) + &
+!                    & (f2/rijn)*dbasloc(:,ind+m))*Xe(ind+m,jsph)
+!        end do
+!      end do
+      call fmm_l2p_bessel_grad(vij*params % kappa, params % rsph(jsph)*params % kappa, &
+          & params % lmax, constants % vscales, params % kappa, Xe(:, jsph), &
+          & zero, alpha)
+!      beta = compute_beta(params, constants, workspace, SI_rijn, rijn, jsph, Xe(:,jsph),basloc)
+      call fmm_l2p_bessel_work(vij*params % kappa, params % lmax, &
+          & constants % vscales, constants % SI_ri(:, jsph), one, Xe(:, jsph), &
+          & zero, beta, work_complex, work)
       xij = fsw(tij, params % se, params % eta)
       if (constants % fi(igrid,isph).gt.one) then
         oij = xij/constants % fi(igrid,isph)
@@ -1586,6 +1701,8 @@ end subroutine bstarx
   real(dp) :: rho, ctheta, stheta, cphi, sphi, ri, arg_bessel
 
   real(dp), external :: dnrm2
+  real(dp) :: work(params % lmax+1)
+  complex(dp) :: work_complex(params % lmax+1)
   
   SI_rjin = 0
   DI_rjin = 0
@@ -1609,22 +1726,25 @@ end subroutine bstarx
 
       if (tji.gt.thigh) cycle
 
-      call modified_spherical_bessel_first_kind(params % lmax, &
-          & rjin*params % kappa, SI_rjin, DI_rjin, workspace % tmp_bessel(:, 1))
+!      call modified_spherical_bessel_first_kind(params % lmax, &
+!          & rjin*params % kappa, SI_rjin, DI_rjin, workspace % tmp_bessel(:, 1))
       
       sji  = vji/rjin
-      call dbasis(params, constants, sji, basloc, dbasloc, vplm, vcos, vsin)
-      alpha = zero
-      do l = 0, params % lmax
-        ind = l*l + l + 1
-        f1 = (DI_rjin(l)*params % kappa)/constants % SI_ri(l,isph);
-        f2 = SI_rjin(l)/constants % SI_ri(l,isph)
-
-        do m = -l, l
-          alpha = alpha + (f1*sji*basloc(ind+m) + &
-                 & (f2/rjin)*dbasloc(:,ind+m))*Xe(ind+m,isph)
-        end do
-      end do
+!      call dbasis(params, constants, sji, basloc, dbasloc, vplm, vcos, vsin)
+!      alpha = zero
+!      do l = 0, params % lmax
+!        ind = l*l + l + 1
+!        f1 = (DI_rjin(l)*params % kappa)/constants % SI_ri(l,isph);
+!        f2 = SI_rjin(l)/constants % SI_ri(l,isph)
+!
+!        do m = -l, l
+!          alpha = alpha + (f1*sji*basloc(ind+m) + &
+!                 & (f2/rjin)*dbasloc(:,ind+m))*Xe(ind+m,isph)
+!        end do
+!      end do
+      call fmm_l2p_bessel_grad(vji*params % kappa, params % rsph(isph)*params % kappa, &
+          & params % lmax, constants % vscales, params % kappa, Xe(:, isph), &
+          & zero, alpha)
       xji = fsw(tji,params % se,params % eta)
       if (constants % fi(igrid,jsph).gt.one) then
         oji = xji/constants % fi(igrid,jsph)
@@ -1635,7 +1755,10 @@ end subroutine bstarx
       vb = vb + f1*alpha*Xadj_e(igrid,jsph)
       if (tji .gt. tlow) then
         ! Compute beta_jin, i.e., Eq.(57) Stamm.etal.18
-        beta_ji = compute_beta(params, constants, workspace, SI_rjin, rjin, isph, Xe(:,isph), basloc)
+        !beta_ji = compute_beta(params, constants, workspace, SI_rjin, rjin, isph, Xe(:,isph), basloc
+        call fmm_l2p_bessel_work(vji*params % kappa, params % lmax, &
+            & constants % vscales, constants % SI_ri(:, isph), one, Xe(:, isph), &
+            & zero, beta_ji, work_complex, work)
         if (constants % fi(igrid,jsph) .gt. one) then
           dj  = one/constants % fi(igrid,jsph)
           fac = dj*xji
@@ -1649,18 +1772,21 @@ end subroutine bstarx
             rjkn = dnrm2(3, vjk, 1)
             tjk  = rjkn/params % rsph(ksph)
             ! Computation of modified spherical Bessel function values      
-            call modified_spherical_bessel_first_kind(params % lmax, &
-                & rjkn*params % kappa, SI_rjkn, DI_rjkn, &
-                & workspace % tmp_bessel(:, 1))
+!            call modified_spherical_bessel_first_kind(params % lmax, &
+!                & rjkn*params % kappa, SI_rjkn, DI_rjkn, &
+!                & workspace % tmp_bessel(:, 1))
 
             if (ksph.ne.isph) then
               if (tjk .le. thigh) then
               proc = .true.
-              sjk  = vjk/rjkn
-              call ylmbas(sjk, rho, ctheta, stheta, cphi, sphi, &
-                  & params % lmax, constants % vscales, basloc, vplm, &
-                  & vcos, vsin)
-              beta_jk  = compute_beta(params, constants, workspace, SI_rjkn, rjkn, ksph, Xe(:,ksph), basloc)
+!              sjk  = vjk/rjkn
+!              call ylmbas(sjk, rho, ctheta, stheta, cphi, sphi, &
+!                  & params % lmax, constants % vscales, basloc, vplm, &
+!                  & vcos, vsin)
+!              beta_jk  = compute_beta(params, constants, workspace, SI_rjkn, rjkn, ksph, Xe(:,ksph), basloc)
+              call fmm_l2p_bessel_work(vjk*params % kappa, params % lmax, &
+                  & constants % vscales, constants % SI_ri(:, ksph), one, Xe(:, ksph), &
+                  & zero, beta_jk, work_complex, work)
               xjk = fsw(tjk, params % se, params % eta)
               b   = b + beta_jk*xjk
               end if
@@ -1760,14 +1886,15 @@ end subroutine bstarx
   ! sum_dim3 : Storage of sum
   real(dp), dimension(3, constants % nbasis, params % nsph) :: sum_dim3
   ! coefY_der : Derivative of k_l0 and Y_l0m0
-  real(dp), dimension(3, constants % ncav, &
-      & constants % nbasis0, params % nsph) :: coefY_der
+  !real(dp), dimension(3, constants % ncav, &
+  !    & constants % nbasis0, params % nsph) :: coefY_der
   ! Debug purpose
   ! These variables can be taken from the subroutine update_rhs
   ! diff0       : dot_product([PU_j]_l0m0^l'm', l'/r_j[Xr]_jl'm' -
   !                        (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm')
 
   real(dp), dimension(constants % nbasis0, params % nsph) :: diff0
+  real(dp), dimension(constants % nbasis0, params % nsph) :: diff1
   real(dp) :: termi, termk, rijn
   ! basloc : Y_lm(s_n)
   ! vplm   : Argument to call ylmbas
@@ -1783,49 +1910,7 @@ end subroutine bstarx
   ! Setting initial values to zero
   SK_rijn = zero
   DK_rijn = zero
-  coefY_der = zero
-
-  !Compute coefY = C_ik*Y_lm(x_in)*\bar(k_l0^j(x_in))
-  icav = 0
-  do isph = 1, params % nsph
-    do igrid = 1, params % ngrid
-      if (constants % ui(igrid,isph).gt.zero) then
-        icav = icav + 1
-        ! Loop to compute Sijn
-        do jsph = 1, params % nsph
-          vij  = params % csph(:,isph) + &
-                & params % rsph(isph)*constants % cgrid(:,igrid) - &
-                & params % csph(:,jsph)
-          rijn = sqrt(dot_product(vij,vij))
-          sij = vij/rijn
-
-          call modified_spherical_bessel_second_kind( &
-              & constants % lmax0, rijn*params % kappa, &
-              & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
-          call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
-
-          do l0 = 0, constants % lmax0
-            f1 = (DK_rijn(l0)*params % kappa)/constants % SK_ri(l0,jsph)
-            f2 = SK_rijn(l0)/constants % SK_ri(l0,jsph)
-            do m0 = -l0, l0
-              ind0 = l0**2 + l0 + m0 + 1
-              ! coefY_der : Derivative of Bessel function and spherical harmonic
-              ! Non-Diagonal entries
-              if ((ksph .eq. isph) .and. (isph .ne. jsph)) then
-                coefY_der(:,icav,ind0,jsph) = constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0) + &
-                                             & (f2/rijn)*dbasloc(:,ind0))
-              elseif ((ksph .eq. jsph) .and. (isph .ne. jsph)) then
-                coefY_der(:,icav,ind0,jsph) = -constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0)+ &
-                                             & (f2/rijn)*dbasloc(:,ind0))
-              else
-                coefY_der(:,icav,ind0,jsph) = zero
-              endif
-            end do ! End of loop m0
-          end do ! End of l0
-        end do ! End of loop jsph
-      end if
-    end do ! End of loop igrid
-  end do ! End of loop isph
+  !coefY_der = zero
 
   diff_re = zero
   ! Compute l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
@@ -1842,15 +1927,65 @@ end subroutine bstarx
   ! diff0 = Pchi * diff_re, linear scaling
   diff0 = zero
   do jsph = 1, params % nsph
-    do ind0 = 1, constants % nbasis0
-      diff0(ind0, jsph) = dot_product(diff_re(:,jsph), &
-          & constants % Pchi(:,ind0, jsph))
+    do l0 = 0, constants % lmax0
+      do ind0 = l0*l0+1, l0*l0+2*l0+1
+        diff0(ind0, jsph) = dot_product(diff_re(:,jsph), &
+            & constants % Pchi(:,ind0, jsph))
+        diff1(ind0, jsph) = diff0(ind0, jsph) * constants % C_ik(l0, jsph)
+      end do
     end do
   end do
+
+!  !Compute coefY = C_ik*Y_lm(x_in)*\bar(k_l0^j(x_in))
+!  icav = 0
+!  do isph = 1, params % nsph
+!    do igrid = 1, params % ngrid
+!      if (constants % ui(igrid,isph).gt.zero) then
+!        icav = icav + 1
+!        ! Loop to compute Sijn
+!        do jsph = 1, params % nsph
+!          vij  = params % csph(:,isph) + &
+!                & params % rsph(isph)*constants % cgrid(:,igrid) - &
+!                & params % csph(:,jsph)
+!          rijn = sqrt(dot_product(vij,vij))
+!          sij = vij/rijn
+!
+!          call modified_spherical_bessel_second_kind( &
+!              & constants % lmax0, rijn*params % kappa, &
+!              & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
+!          call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
+!
+!          do l0 = 0, constants % lmax0
+!            f1 = (DK_rijn(l0)*params % kappa)/constants % SK_ri(l0,jsph)
+!            f2 = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+!            do m0 = -l0, l0
+!              ind0 = l0**2 + l0 + m0 + 1
+!              ! coefY_der : Derivative of Bessel function and spherical harmonic
+!              ! Non-Diagonal entries
+!              if ((ksph .eq. isph) .and. (isph .ne. jsph)) then
+!                !coefY_der(:,icav,ind0,jsph) = constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0) + &
+!                !                             & (f2/rijn)*dbasloc(:,ind0))
+!                coefY_der(:,icav,ind0,jsph) = (f1*sij*basloc(ind0) + &
+!                                             & (f2/rijn)*dbasloc(:,ind0))
+!              elseif ((ksph .eq. jsph) .and. (isph .ne. jsph)) then
+!                !coefY_der(:,icav,ind0,jsph) = -constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0)+ &
+!                !                             & (f2/rijn)*dbasloc(:,ind0))
+!                coefY_der(:,icav,ind0,jsph) = -(f1*sij*basloc(ind0)+ &
+!                                             & (f2/rijn)*dbasloc(:,ind0))
+!              else
+!                coefY_der(:,icav,ind0,jsph) = zero
+!              endif
+!            end do ! End of loop m0
+!          end do ! End of l0
+!        end do ! End of loop jsph
+!      end if
+!    end do ! End of loop igrid
+!  end do ! End of loop isph
+
   ! phi_in = diff0 * coefY
   ! Here, summation over j takes place
   phi_in = zero
-  icav = zero
+  icav = 0
   do isph = 1, params % nsph
     do igrid = 1, params % ngrid
       if(constants % ui(igrid, isph) .gt. zero) then
@@ -1861,14 +1996,57 @@ end subroutine bstarx
         do jsph = 1, params % nsph 
           do ind0 = 1, constants % nbasis0
             val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
-            val_dim3(:) = val_dim3(:) + diff0(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
+            !val_dim3(:) = val_dim3(:) + diff0(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
+            !val_dim3(:) = val_dim3(:) + diff1(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
           end do
         end do
+        ! not sure how to resolve this conflict
+        !<<<<<<< HEAD
         diff_ep_dim3(:, icav) = val_dim3(:)
         phi_in(igrid, isph) = val
+        !=======
+        !diff_ep_dim3(:, icav) = val_dim3(:)
+        !>>>>>>> muxas/improve_ddlpb
       end if
     end do
   end do
+  ! Aleksandr: my loop for the diff_ep_dim3
+  diff_ep_dim3 = zero
+  ! At first isph=ksph, jsph!=ksph
+  icav = constants % icav_ia(ksph) - 1
+  do igrid = 1, params % ngrid
+    if (constants % ui(igrid, ksph) .eq. zero) cycle
+    icav = icav + 1
+    do jsph = 1, params % nsph
+      if (jsph .eq. ksph) cycle
+        vij  = params % csph(:,ksph) + &
+            & params % rsph(ksph)*constants % cgrid(:,igrid) - &
+            & params % csph(:,jsph)
+      call fmm_m2p_bessel_grad(vij * params % kappa, &
+          & params % rsph(jsph)*params % kappa, &
+          & constants % lmax0, &
+          & constants % vscales, params % kappa, diff1(:, jsph), one, &
+          & diff_ep_dim3(:, icav))
+    end do
+  end do
+  ! Now jsph=ksph and isph!=ksph
+  do isph = 1, params % nsph
+    if (isph .eq. ksph) cycle
+    icav = constants % icav_ia(isph) - 1
+    do igrid = 1, params % ngrid
+        if (constants % ui(igrid, isph) .eq. zero) cycle
+        icav = icav + 1
+        vij  = params % csph(:,isph) + &
+            & params % rsph(isph)*constants % cgrid(:,igrid) - &
+            & params % csph(:,ksph)
+        call fmm_m2p_bessel_grad(vij * params % kappa, &
+            & params % rsph(ksph)*params % kappa, &
+            & constants % lmax0, &
+            & constants % vscales, -params % kappa, diff1(:, ksph), one, &
+            & diff_ep_dim3(:, icav))
+    end do
+  end do
+
   ! Computation of derivative of U_i^e(x_in)
   call fdoga(params, constants, ksph, Xadj_r_sgrid, phi_in, force)
   call fdoga(params, constants, ksph, Xadj_e_sgrid, phi_in, force)
@@ -1955,7 +2133,7 @@ end subroutine bstarx
   ! sum_Sjin : \sum_j [S]_{jin} Eq.~(97) [QSM20.SISC]
   real(dp), dimension(params % ngrid, params % nsph) :: sum_Sjin
   ! c0 : \sum_{n=1}^N_g w_n U_j^{x_nj}\partial_n psi_0(x_nj)Y_{l0m0}(s_n)
-  real(dp), dimension(constants % nbasis, params % nsph) :: c0_d
+  real(dp), dimension(constants % nbasis, params % nsph) :: c0_d, c0_d1
 
   ! Setting initial values to zero
   SK_rijn = zero
@@ -1973,7 +2151,12 @@ end subroutine bstarx
                      & constants % wgrid(igrid)* &
                      & constants % ui(igrid,isph)*&
                      & nderpsi* &
-                     & constants % vgrid(:,igrid)
+                     & constants % vgrid(1:constants % nbasis,igrid)
+        do l0 = 0, constants % lmax0
+            ind0 = l0*l0 + l0 + 1
+            c0_d1(ind0-l0:ind0+l0, isph) = c0_d(ind0-l0:ind0+l0, isph) * &
+                & constants % C_ik(l0, isph)
+        end do
       end if
     end do
   end do
@@ -1987,34 +2170,38 @@ end subroutine bstarx
         sum_int = zero
         ! Loop to compute Sijn
         do jsph = 1, params % nsph
-          vij  = params % csph(:,isph) + &
-                & params % rsph(isph)*constants % cgrid(:,igrid) - &
-                & params % csph(:,jsph)
-          rijn = sqrt(dot_product(vij,vij))
-          sij = vij/rijn
-
-          call modified_spherical_bessel_second_kind( &
-              & constants % lmax0, rijn*params % kappa, &
-              & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
-          call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
+!          vij  = params % csph(:,isph) + &
+!                & params % rsph(isph)*constants % cgrid(:,igrid) - &
+!                & params % csph(:,jsph)
+!          rijn = sqrt(dot_product(vij,vij))
+!          sij = vij/rijn
+!
+!          call modified_spherical_bessel_second_kind( &
+!              & constants % lmax0, rijn*params % kappa, &
+!              & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
+!          call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
 
           do l0 = 0, constants % lmax0
-            f1 = (DK_rijn(l0)*params % kappa)/constants % SK_ri(l0,jsph)
-            f2 = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+!            f1 = (DK_rijn(l0)*params % kappa)/constants % SK_ri(l0,jsph)
+!            f2 = SK_rijn(l0)/constants % SK_ri(l0,jsph)
             do m0 = -l0, l0
               ind0 = l0**2 + l0 + m0 + 1
               sum_int = sum_int + c0_d(ind0,jsph)*constants % coefY(icav, ind0, jsph)
-              ! coefY_der : Derivative of Bessel function and spherical harmonic
-              ! Non-Diagonal entries
-              if ((ksph .eq. isph) .and. (isph .ne. jsph)) then
-                coefY_der(:,icav,ind0,jsph) = constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0) + &
-                                             & (f2/rijn)*dbasloc(:,ind0))
-              elseif ((ksph .eq. jsph) .and. (isph .ne. jsph)) then
-                coefY_der(:,icav,ind0,jsph) = -constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0)+ &
-                                             & (f2/rijn)*dbasloc(:,ind0))
-              else
-                coefY_der(:,icav,ind0,jsph) = zero
-              endif
+!              ! coefY_der : Derivative of Bessel function and spherical harmonic
+!              ! Non-Diagonal entries
+!              if ((ksph .eq. isph) .and. (isph .ne. jsph)) then
+!                !coefY_der(:,icav,ind0,jsph) = constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0) + &
+!                !                             & (f2/rijn)*dbasloc(:,ind0))
+!                coefY_der(:,icav,ind0,jsph) = (f1*sij*basloc(ind0) + &
+!                                             & (f2/rijn)*dbasloc(:,ind0))
+!              elseif ((ksph .eq. jsph) .and. (isph .ne. jsph)) then
+!                !coefY_der(:,icav,ind0,jsph) = -constants % C_ik(l0,jsph)*(f1*sij*basloc(ind0)+ &
+!                !                             & (f2/rijn)*dbasloc(:,ind0))
+!                coefY_der(:,icav,ind0,jsph) = -(f1*sij*basloc(ind0)+ &
+!                                             & (f2/rijn)*dbasloc(:,ind0))
+!              else
+!                coefY_der(:,icav,ind0,jsph) = zero
+!              endif
             end do ! End of loop m0
           end do ! End of l0
         end do ! End of loop jsph
@@ -2026,23 +2213,61 @@ end subroutine bstarx
   ! Computation of derivative of U_i^e(x_in)
   call fdoga(params, constants, ksph, sol_sgrid, sum_Sjin, force)
 
-  ! Here, summation over j takes place
-  icav = zero
-  do isph = 1, params % nsph
-    do igrid = 1, params % ngrid
-      if(constants % ui(igrid, isph) .gt. zero) then
-        ! Extrenal grid point
-        icav = icav + 1
-        val_dim3(:) = zero
-        do jsph = 1, params % nsph
-          do ind0 = 1, constants % nbasis0
-            val_dim3(:) = val_dim3(:) + c0_d(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
-          end do
-        end do
-        diff_ep_dim3(:, icav) = val_dim3(:)
-      end if
+!  ! Here, summation over j takes place
+!  icav = zero
+!  do isph = 1, params % nsph
+!    do igrid = 1, params % ngrid
+!      if(constants % ui(igrid, isph) .gt. zero) then
+!        ! Extrenal grid point
+!        icav = icav + 1
+!        val_dim3(:) = zero
+!        do jsph = 1, params % nsph
+!          do ind0 = 1, constants % nbasis0
+!            val_dim3(:) = val_dim3(:) + c0_d1(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
+!          end do
+!        end do
+!        diff_ep_dim3(:, icav) = val_dim3(:)
+!      end if
+!    end do
+!  end do
+
+  ! Aleksandr: my loop for the diff_ep_dim3
+  diff_ep_dim3 = zero
+  ! At first isph=ksph, jsph!=ksph
+  icav = constants % icav_ia(ksph) - 1
+  do igrid = 1, params % ngrid
+    if (constants % ui(igrid, ksph) .eq. zero) cycle
+    icav = icav + 1
+    do jsph = 1, params % nsph
+      if (jsph .eq. ksph) cycle
+        vij  = params % csph(:,ksph) + &
+            & params % rsph(ksph)*constants % cgrid(:,igrid) - &
+            & params % csph(:,jsph)
+      call fmm_m2p_bessel_grad(vij * params % kappa, &
+          & params % rsph(jsph)*params % kappa, &
+          & constants % lmax0, &
+          & constants % vscales, params % kappa, c0_d1(:, jsph), one, &
+          & diff_ep_dim3(:, icav))
     end do
   end do
+  ! Now jsph=ksph and isph!=ksph
+  do isph = 1, params % nsph
+    if (isph .eq. ksph) cycle
+    icav = constants % icav_ia(isph) - 1
+    do igrid = 1, params % ngrid
+        if (constants % ui(igrid, isph) .eq. zero) cycle
+        icav = icav + 1
+        vij  = params % csph(:,isph) + &
+            & params % rsph(isph)*constants % cgrid(:,igrid) - &
+            & params % csph(:,ksph)
+        call fmm_m2p_bessel_grad(vij * params % kappa, &
+            & params % rsph(ksph)*params % kappa, &
+            & constants % lmax0, &
+            & constants % vscales, -params % kappa, c0_d1(:, ksph), one, &
+            & diff_ep_dim3(:, icav))
+    end do
+  end do
+  
 
   sum_dim3 = zero
   icav = zero
@@ -2121,6 +2346,8 @@ end subroutine bstarx
   ! SK_rijn : Besssel function of first kind for rijn
   ! DK_rijn : Derivative of Besssel function of first kind for rijn
   real(dp), dimension(0:params % lmax) :: SK_rijn, DK_rijn
+  real(dp) :: coef(constants % nbasis0), work(constants % lmax0+1)
+  complex(dp) :: work_complex(constants % lmax0+1)
 
   ! Intial allocation of vectors
   sum_int = zero
@@ -2157,23 +2384,28 @@ end subroutine bstarx
             rijn = sqrt(dot_product(vij,vij))
             sij = vij/rijn
 
-            call modified_spherical_bessel_second_kind( &
-                & constants % lmax0, rijn*params % kappa,&
-                & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
-            call dbasis(params, constants, &
-                & sij, basloc, dbasloc, vplm, vcos, vsin)
-            sum_int = zero
+!            call modified_spherical_bessel_second_kind( &
+!                & constants % lmax0, rijn*params % kappa,&
+!                & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
+!            call dbasis(params, constants, &
+!                & sij, basloc, dbasloc, vplm, vcos, vsin)
+!            sum_int = zero
             ! Loop over l0
             do l0 = 0, constants % lmax0
-              term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+!              term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
               ! Loop over m0
               do m0 = -l0,l0
                 ind0 = l0**2 + l0 + m0 + 1
-                sum_int = sum_int + constants % C_ik(l0, jsph) *term*basloc(ind0)&
-                           & *constants % vgrid(ind0,igrid0)
+!                sum_int = sum_int + constants % C_ik(l0, jsph) *term*basloc(ind0)&
+!                           & *constants % vgrid(ind0,igrid0)
+                coef(ind0) = constants % vgrid(ind0, igrid0) * &
+                    & constants % C_ik(l0, jsph)
               end do ! End of loop m0
             end do! End of loop l0
-            coefY_d(icav, igrid0, jsph) = sum_int
+!            coefY_d(icav, igrid0, jsph) = sum_int
+            call fmm_m2p_bessel_work(vij*params % kappa, constants % lmax0, &
+                & constants % vscales, constants % SK_ri(:, jsph), one, &
+                & coef, zero, coefY_d(icav, igrid0, jsph), work_complex, work)
           end if
         end do ! End of loop igrid
       end do! End of loop isph
@@ -2259,6 +2491,8 @@ end subroutine bstarx
   ! vsin   : Argument to call ylmbas
   real(dp),  dimension(params % lmax+1):: vcos, vsin
   real(dp), dimension(0:params % lmax) :: SK_rijn, DK_rijn
+  real(dp) :: coef(constants % nbasis0), work(constants % lmax0+1)
+  complex(dp) :: work_complex(constants % lmax0+1)
 
   ! Intial allocation of vectors
   sum_int = zero
@@ -2292,24 +2526,29 @@ end subroutine bstarx
             rijn = sqrt(dot_product(vij,vij))
             sij = vij/rijn
 
-            call modified_spherical_bessel_second_kind( &
-                & constants % lmax0, rijn*params % kappa,&
-                & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
-            call dbasis(params, constants, &
-                & sij, basloc, dbasloc, vplm, vcos, vsin)
-            sum_int = zero
+!            call modified_spherical_bessel_second_kind( &
+!                & constants % lmax0, rijn*params % kappa,&
+!                & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
+!            call dbasis(params, constants, &
+!                & sij, basloc, dbasloc, vplm, vcos, vsin)
+!            sum_int = zero
             ! Loop over l0
             do l0 = 0, constants % lmax0
-              term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+!              term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
               ! Loop over m0
               do m0 = -l0,l0
                 ind0 = l0**2 + l0 + m0 + 1
-                sum_int = sum_int + constants % C_ik(l0, jsph) &
-                           & *term*basloc(ind0) &
-                           & *constants % vgrid(ind0,igrid0)
+!                sum_int = sum_int + constants % C_ik(l0, jsph) &
+!                           & *term*basloc(ind0) &
+!                           & *constants % vgrid(ind0,igrid0)
+                coef(ind0) = constants % vgrid(ind0, igrid0) * &
+                    & constants % C_ik(l0, jsph)
               end do ! End of loop m0
             end do! End of loop l0
-            coefY_d(icav, igrid0, jsph) = sum_int
+!            coefY_d(icav, igrid0, jsph) = sum_int
+            call fmm_m2p_bessel_work(vij*params % kappa, constants % lmax0, &
+                & constants % vscales, constants % SK_ri(:, jsph), one, &
+                & coef, zero, coefY_d(icav, igrid0, jsph), work_complex, work)
           end if
         end do ! End of loop igrid
       end do! End of loop isph

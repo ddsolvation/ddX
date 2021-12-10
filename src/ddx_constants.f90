@@ -116,15 +116,15 @@ type ddx_constants_type
     !> LPB value (i'_l0(r_j)/i_l0(r_j)-k'_l0(r_j)/k_l0(r_j))^{-1}. Dimension
     !!      is ???
     real(dp), allocatable :: C_ik(:, :)
-    !> LPB Bessel function of the first kind. Dimension is (lmax, nsph).
+    !> LPB Bessel function of the first kind. Dimension is (lmax+1, nsph).
     real(dp), allocatable :: SI_ri(:, :)
     !> LPB Derivative of Bessel function of the first kind. Dimension is
-    !!      (lmax, nsph).
+    !!      (lmax+1, nsph).
     real(dp), allocatable :: DI_ri(:, :)
-    !> LPB Bessel function of the second kind. Dimension is (lmax, nsph).
+    !> LPB Bessel function of the second kind. Dimension is (lmax+1, nsph).
     real(dp), allocatable :: SK_ri(:, :)
     !> LPB Derivative Bessel function of the second kind. Dimension is
-    !!      (lmax, nsph).
+    !!      (lmax+1, nsph).
     real(dp), allocatable :: DK_ri(:, :)
     !> LPB value i'_l(r_j)/i_l(r_j). Dimension is (lmax, nsph).
     real(dp), allocatable :: termimat(:, :)
@@ -193,6 +193,12 @@ type ddx_constants_type
     !> Which leaf node contains only given input sphere. Dimension is (nsph).
     !!      This array is allocated and used only if fmm=1.
     integer, allocatable :: snode(:)
+    !> Bessel function for bounding sphere of each cluster. Dimension is
+    !!      (pm, nclusters). This array is allocated and used only if fmm=1.
+    real(dp), allocatable :: SK_rnode(:, :)
+    !> Bessel function for bounding sphere of each cluster. Dimension is
+    !!      (pm, nclusters). This array is allocated and used only if fmm=1.
+    real(dp), allocatable :: SI_rnode(:, :)
     !> Total number of far admissible pairs. Defined only if fmm=1.
     integer :: nnfar
     !> Total number of near admissible pairs. Defined only if fmm=1.
@@ -246,6 +252,7 @@ contains
 !!      = -1: params is in error state
 !!      = 1: Allocation of memory failed.
 subroutine constants_init(params, constants, info)
+    use complex_bessel
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     !! Outputs
@@ -253,12 +260,13 @@ subroutine constants_init(params, constants, info)
     integer, intent(out) :: info
     !! Local variables
     integer :: i, alloc_size, l, indl, igrid, isph, ind, icav, l0, m0, ind0, &
-        & jsph, ibasis, ibasis0
+        & jsph, ibasis, ibasis0, NZ, ierr
     real(dp) :: rho, ctheta, stheta, cphi, sphi, termi, termk, term, rijn, &
-        & sijn(3), vij(3), val
+        & sijn(3), vij(3), val, s1, s2
     real(dp), allocatable :: vplm(:), vcos(:), vsin(:), vylm(:), SK_rijn(:), &
         & DK_rijn(:)
     complex(dp), allocatable :: bessel_work(:)
+    complex(dp) :: z
     !! The code
     ! Check if params are OK
     if (params % error_flag .eq. 1) then
@@ -274,8 +282,13 @@ subroutine constants_init(params, constants, info)
     constants % n = params % nsph * constants % nbasis
     ! Calculate dmax, vgrid_dmax, m2p_lmax, m2p_nbasis and grad_nbasis
     if (params % fmm .eq. 0) then
-        constants % dmax = params % lmax
-        constants % vgrid_dmax = params % lmax
+        if (params % force .eq. 1) then
+            constants % dmax = params % lmax + 1
+            constants % vgrid_dmax = params % lmax + 1
+        else
+            constants % dmax = params % lmax
+            constants % vgrid_dmax = params % lmax
+        end if
         ! Other constants are not referenced if fmm=0
         constants % m2p_lmax = -1
         constants % m2p_nbasis = -1
@@ -454,7 +467,7 @@ subroutine constants_init(params, constants, info)
         constants % nbasis0 = min(49, constants % nbasis)
         allocate(vylm(constants % vgrid_nbasis), &
             & SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0), &
-            & bessel_work(max(2, params % lmax+1)), stat=info)
+            & bessel_work(constants % dmax+1), stat=info)
         if (info .ne. 0) then
             constants % error_flag = 1
             constants % error_message = "constants_init: `vylm`, `SK_rijn` and " // &
@@ -565,6 +578,26 @@ subroutine constants_init(params, constants, info)
         !!        end do
         !!    end do
         !!end do
+        ! Allocate arrays for the FMM acceleration
+        if (params % fmm .eq. 1) then
+            allocate(constants % SI_rnode(params % pm+1, constants % nclusters))
+            allocate(constants % SK_rnode(params % pm+1, constants % nclusters))
+            do i = 1, constants % nclusters
+                z = constants % rnode(i) * params % kappa
+                s1 = sqrt(two/(pi*real(z)))
+                s2 = sqrt(pi/(two*real(z)))
+                call cbesk(z, pt5, 1, 1, bessel_work(1), NZ, ierr)
+                constants % SK_rnode(1, i) = s1 * real(bessel_work(1))
+                call cbesi(z, pt5, 1, 1, bessel_work(1), NZ, ierr)
+                constants % SI_rnode(1, i) = s2 * real(bessel_work(1))
+                if (params % pm .gt. 0) then
+                    call cbesk(z, 1.5d0, 1, params % pm, bessel_work(2:), NZ, ierr)
+                    constants % SK_rnode(2:, i) = s1 * real(bessel_work(2:))
+                    call cbesi(z, 1.5d0, 1, params % pm, bessel_work(2:), NZ, ierr)
+                    constants % SI_rnode(2:, i) = s2 * real(bessel_work(2:))
+                end if
+            end do
+        end if
         deallocate(vylm, SK_rijn, DK_rijn, bessel_work, stat=info)
         if (info .ne. 0) then
             constants % error_flag = 1
