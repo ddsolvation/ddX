@@ -703,7 +703,7 @@ subroutine build_l(constants, params)
                 end if
             end do
             call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
-                & one, constants % vwgrid, constants % nbasis, scratch, &
+                & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
                 & constants % nbasis, zero, constants % l(:,:,ij), constants % nbasis)
         end do
     end do
@@ -770,7 +770,7 @@ subroutine build_b(constants, params)
                 end if
             end do
             call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
-                & one, constants % vwgrid, constants % nbasis, scratch, &
+                & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
                 & constants % nbasis, zero, constants % b(:,:,ij), constants % nbasis)
         end do
     end do

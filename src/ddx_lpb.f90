@@ -1136,16 +1136,26 @@ subroutine lpb_adjoint_prec(params, constants, workspace, x, y)
     y(:,:,1) = x(:,:,1)
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, inner_tol, y(:,:,1), &
-        & ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
+    if (params % incore) then
+        call jacobi_diis(params, constants, workspace, inner_tol, y(:,:,1), &
+            & ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag_incore, ldm1x, hnorm, info)
+    else
+        call jacobi_diis(params, constants, workspace, inner_tol, y(:,:,1), &
+            & ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
+    end if
     y(:,:,1) = ddcosmo_guess
     tt1 = omp_get_wtime()
     write(6,*) '@adjoint@cosmo', tt1 - tt0, n_iter
 
     tt0 = omp_get_wtime()
     n_iter = params % maxiter
-    call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
-        & n_iter, r_norm, bstarx, info)
+    if (params % incore) then
+        call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+            & n_iter, r_norm, bstarx_incore, info)
+    else
+        call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+            & n_iter, r_norm, bstarx, info)
+    end if
     y(:,:,2) = hsp_guess
     tt1 = omp_get_wtime()
     write(6,*) '@adjoint@hsp', tt1 - tt0, n_iter
@@ -1169,6 +1179,18 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     real(dp) :: r_norm
     real(dp), dimension(params % maxiter) :: x_rel_diff
 
+
+    !y(:,:,:) = zero
+    !y(1,1,1) = one
+    !write(6,*) 'here'; flush(6)
+    !call bx_incore(params, constants, workspace, y(:,:,1), y(:,:,2))
+    !call prtsph('incore', constants % nbasis, params % lmax, params % nsph, &
+    !    & 0, y(:,:,2))
+    !write(6,*) 'here'; flush(6)
+    !call bx(params, constants, workspace, y(:,:,1), y(:,:,2))
+    !call prtsph('onthefly', constants % nbasis, params % lmax, params % nsph, &
+    !    & 0, y(:,:,2))
+    !stop
 
     ! perform A^-1 * Yr
     tt0 = omp_get_wtime()
