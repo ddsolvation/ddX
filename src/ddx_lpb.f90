@@ -1239,6 +1239,8 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_
     call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
         & 4, params % jacobi_ndiis, 1, tol, rhs, x, n_iter, &
         & ok, lpb_adjoint_matvec, lpb_adjoint_prec)
+    call prtsph('adjoint sol', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, x)
 
     ! check
     call lpb_adjoint_matvec_full(params, constants, workspace, x, scr)

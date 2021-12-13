@@ -666,7 +666,7 @@ subroutine build_l(constants, params)
     thigh = one + pt5*(params % se + one)*params % eta
 
     t = omp_get_wtime()
-    !$omp parallel do default(none) shared(params,constants) &
+    !$omp parallel do default(none) shared(params,constants,thigh) &
     !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
     !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,l,fac,ind,m,tt)
     do isph = 1, params % nsph
