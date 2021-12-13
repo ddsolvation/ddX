@@ -717,7 +717,7 @@ subroutine build_b(constants, params)
     integer :: isph, ij, jsph, igrid, l, m, ind
     real(dp), dimension(3) :: vij, sij
     real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
-        & fac, vvtij
+        & fac, vvtij, thigh
     real(dp), dimension(constants % nbasis) :: vylm, vplm
     real(dp), dimension(params % lmax + 1) :: vcos, vsin
     complex(dp), dimension(max(2, params % lmax + 1)) :: bessel_work
@@ -728,8 +728,10 @@ subroutine build_b(constants, params)
     allocate(constants % b(constants % nbasis, constants % nbasis, &
         & constants % inl(params % nsph + 1)))
 
+    thigh = one + pt5*(params % se + one)*params % eta
+
     t = omp_get_wtime()
-    !$omp parallel do default(none) shared(params,constants) &
+    !$omp parallel do default(none) shared(params,constants,thigh) &
     !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
     !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,si_rijn,di_rijn, &
     !$omp vvtij,l,fac,ind,m,bessel_work)
@@ -744,7 +746,7 @@ subroutine build_b(constants, params)
                     & - params % csph(:, jsph)
                 vvij = sqrt(dot_product(vij, vij))
                 tij = vvij/params % rsph(jsph)
-                if (tij.lt.one) then
+                if (tij.lt.thigh .and. tij.gt.zero) then
                     sij = vij/vvij
                     xij = fsw(tij, params % se, params % eta)
                     if (constants % fi(igrid, isph).gt.one) then

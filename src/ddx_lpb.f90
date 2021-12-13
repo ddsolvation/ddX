@@ -543,7 +543,7 @@ end subroutine convert_ddcosmo
         vvij = sqrt(dot_product(vij,vij))
         tij  = vvij/params % rsph(jsph)
 
-        if ( tij.lt.one ) then
+        if ( tij.lt.( one + (params % se+one)/two*params % eta ) ) then
           sij = vij/vvij
           xij = fsw(tij, params % se, params % eta)
           if (constants % fi(its,isph).gt.one) then
