@@ -890,37 +890,6 @@ subroutine lpb_direct_matvec_full(params, constants, workspace, x, y)
 
 end subroutine lpb_direct_matvec_full
 
-subroutine lpb_direct_matvec_1(params, constants, workspace, x, y)
-    implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
-    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
-    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
-    real(dp), dimension(constants % nbasis, params % nsph, 2) :: scratch
-
-    call lpb_direct_matvec(params, constants, workspace, x, y)
-    scratch(:,:,2) = x(:,:,1)
-    call convert_ddcosmo(params, constants, -1, scratch(:,:,2))
-    call lx_nodiag(params, constants, workspace, scratch(:,:,2), scratch(:,:,1))
-    call bx_nodiag(params, constants, workspace, x(:,:,2), scratch(:,:,2))
-    y = y + scratch
-end subroutine lpb_direct_matvec_1
-
-subroutine lpb_direct_prec_1(params, constants, workspace, x, y)
-    implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
-    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
-    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
-    real(dp), dimension(constants % nbasis, params % nsph, 2) :: scratch
-
-    !call ldm1x(params, constants, workspace, x(:,:,1), y(:,:,1))
-    !call convert_ddcosmo(params, constants, 1, y(:,:,1))
-    y = x
-end subroutine lpb_direct_prec_1
-
 subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
