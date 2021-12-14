@@ -467,7 +467,7 @@ subroutine constants_init(params, constants, info)
         constants % nbasis0 = min(49, constants % nbasis)
         allocate(vylm(constants % vgrid_nbasis), &
             & SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0), &
-            & bessel_work(params % pm+1), stat=info)
+            & bessel_work(constants % dmax+1), stat=info)
         if (info .ne. 0) then
             constants % error_flag = 1
             constants % error_message = "constants_init: `vylm`, `SK_rijn` and " // &
