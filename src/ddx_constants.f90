@@ -592,9 +592,9 @@ subroutine constants_init(params, constants, info)
                 constants % SI_rnode(1, i) = s2 * real(bessel_work(1))
                 if (params % pm .gt. 0) then
                     call cbesk(z, 1.5d0, 1, params % pm, bessel_work(2:), NZ, ierr)
-                    constants % SK_rnode(2:, i) = s1 * real(bessel_work(2:))
+                    constants % SK_rnode(2:, i) = s1 * real(bessel_work(2:params % pm+1))
                     call cbesi(z, 1.5d0, 1, params % pm, bessel_work(2:), NZ, ierr)
-                    constants % SI_rnode(2:, i) = s2 * real(bessel_work(2:))
+                    constants % SI_rnode(2:, i) = s2 * real(bessel_work(2:params % pm+1))
                 end if
             end do
         end if

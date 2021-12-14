@@ -1902,6 +1902,31 @@ subroutine tree_m2m_rotation_adj_work(params, constants, node_m, work)
     end do
 end subroutine tree_m2m_rotation_adj_work
 
+!> Adjoint transfer multipole coefficients over a tree
+subroutine tree_m2m_bessel_rotation_adj(params, constants, node_m)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    ! Output
+    real(dp), intent(inout) :: node_m((params % pm+1)**2, constants % nclusters)
+    ! Temporary workspace
+    !real(dp), intent(out) :: work(6*params % pm**2 + 19*params % pm + 8)
+    ! Local variables
+    integer :: i, j, k
+    real(dp) :: c1(3), c(3), r1, r
+    ! Top-to-bottom pass
+    do i = 2, constants % nclusters
+        j = constants % parent(i)
+        c = constants % cnode(:, j)
+        r = constants % rnode(j)
+        c1 = constants % cnode(:, i)
+        r1 = constants % rnode(i)
+        call fmm_m2m_bessel_rotation_adj(c-c1, r, r1, params % kappa, params % pm, &
+            & constants % vscales, constants % vcnk, one, node_m(:, j), one, &
+            & node_m(:, i))
+    end do
+end subroutine tree_m2m_bessel_rotation_adj
+
 !> Transfer local coefficients over a tree
 subroutine tree_l2l_rotation(params, constants, node_l)
     ! Inputs
@@ -2035,6 +2060,48 @@ subroutine tree_l2l_rotation_adj_work(params, constants, node_l, work)
     end do
 end subroutine tree_l2l_rotation_adj_work
 
+!> Adjoint transfer local coefficients over a tree
+subroutine tree_l2l_bessel_rotation_adj(params, constants, node_l)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    ! Output
+    real(dp), intent(inout) :: node_l((params % pl+1)**2, constants % nclusters)
+    ! Temporary workspace
+    !real(dp), intent(out) :: work(6*params % pl**2 + 19*params % pl + 8)
+    ! Local variables
+    integer :: i, j, k
+    real(dp) :: c1(3), c(3), r1, r
+    ! Bottom-to-top pass
+    do i = constants % nclusters, 1, -1
+        ! Leaf node does not need any update
+        if (constants % children(1, i) == 0) cycle
+        c = constants % cnode(:, i)
+        r = constants % rnode(i)
+        ! First child initializes output
+        j = constants % children(1, i)
+        c1 = constants % cnode(:, j)
+        r1 = constants % rnode(j)
+        !call fmm_l2l_bessel_rotation_adj(c1-c, r1, r, params % pl, &
+        !    & constants % vscales, constants % vfact, one, &
+        !    & node_l(:, j), zero, node_l(:, i))
+        call fmm_m2m_bessel_rotation(c1-c, r1, r, params % kappa, params % pl, &
+            & constants % vscales, constants % vfact, one, &
+            & node_l(:, j), zero, node_l(:, i))
+        ! All other children update the same output
+        do j = constants % children(1, i)+1, constants % children(2, i)
+            c1 = constants % cnode(:, j)
+            r1 = constants % rnode(j)
+            !call fmm_l2l_bessel_rotation_adj(c1-c, r1, r, params % pl, &
+            !    & constants % vscales, constants % vfact, one, &
+            !    & node_l(:, j), one, node_l(:, i))
+            call fmm_m2m_bessel_rotation(c1-c, r1, r, params % kappa, params % pl, &
+                & constants % vscales, constants % vfact, one, &
+                & node_l(:, j), one, node_l(:, i))
+        end do
+    end do
+end subroutine tree_l2l_bessel_rotation_adj
+
 !> Transfer multipole local coefficients into local over a tree
 subroutine tree_m2l_rotation(params, constants, node_m, node_l)
     ! Inputs
@@ -2131,6 +2198,44 @@ subroutine tree_m2l_bessel_rotation(params, constants, node_m, node_l)
         end do
     end do
 end subroutine tree_m2l_bessel_rotation
+
+!> Adjoint transfer multipole local coefficients into local over a tree
+subroutine tree_m2l_bessel_rotation_adj(params, constants, node_l, node_m)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: node_l((params % pl+1)**2, constants % nclusters)
+    ! Output
+    real(dp), intent(out) :: node_m((params % pm+1)**2, constants % nclusters)
+    ! Local variables
+    integer :: i, j, k
+    real(dp) :: c1(3), c(3), r1, r
+    ! Any order of this cycle is OK
+    node_m = zero
+    do i = 1, constants % nclusters
+        ! If no far admissible pairs just set output to zero
+        if (constants % nfar(i) .eq. 0) then
+            cycle
+        end if
+        c = constants % cnode(:, i)
+        r = constants % rnode(i)
+        ! Use the first far admissible pair to initialize output
+        k = constants % far(constants % sfar(i))
+        c1 = constants % cnode(:, k)
+        r1 = constants % rnode(k)
+        call fmm_m2l_bessel_rotation_adj(c-c1, r, r1, params % kappa, params % pm, &
+            & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
+            & node_l(:, i), one, node_m(:, k))
+        do j = constants % sfar(i)+1, constants % sfar(i+1)-1
+            k = constants % far(j)
+            c1 = constants % cnode(:, k)
+            r1 = constants % rnode(k)
+            call fmm_m2l_bessel_rotation_adj(c-c1, r, r1, params % kappa, params % pm, &
+                & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
+                & node_l(:, i), one, node_m(:, k))
+        end do
+    end do
+end subroutine tree_m2l_bessel_rotation_adj
 
 !> Adjoint transfer multipole local coefficients into local over a tree
 subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)
@@ -2258,6 +2363,37 @@ subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l)
         node_l(:, inode) = node_l(:, inode) + alpha*sph_l(:, isph)
     end do
 end subroutine tree_l2p_adj
+
+subroutine tree_l2p_bessel_adj(params, constants, alpha, grid_v, beta, node_l)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: grid_v(params % ngrid, params % nsph), alpha, &
+        & beta
+    ! Output
+    real(dp), intent(inout) :: node_l((params % pl+1)**2, &
+        & constants % nclusters)
+    ! Local variables
+    real(dp) :: sph_l((params % pl+1)**2, params % nsph), c(3)
+    integer :: isph, inode
+    external :: dgemm
+    ! Init output
+    if (beta .eq. zero) then
+        node_l = zero
+    else
+        node_l = beta * node_l
+    end if
+    ! Get weights of spherical harmonics at each sphere
+    call dgemm('N', 'N', (params % pl+1)**2, params % nsph, &
+        & params % ngrid, one, constants % vgrid, constants % vgrid_nbasis, &
+        & grid_v, params % ngrid, zero, sph_l, &
+        & (params % pl+1)**2)
+    ! Get data from all clusters to spheres
+    do isph = 1, params % nsph
+        inode = constants % snode(isph)
+        node_l(:, inode) = node_l(:, inode) + alpha*sph_l(:, isph)
+    end do
+end subroutine tree_l2p_bessel_adj
 
 subroutine tree_m2p(params, constants, p, alpha, sph_m, beta, grid_v)
     ! Inputs
@@ -2390,6 +2526,51 @@ subroutine tree_m2p_adj(params, constants, p, alpha, grid_v, beta, sph_m)
         end do
     end do
 end subroutine tree_m2p_adj
+
+subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p, &
+        & sph_m)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: p, sph_p
+    real(dp), intent(in) :: grid_v(params % ngrid, params % nsph), alpha, &
+        & beta
+    ! Output
+    real(dp), intent(inout) :: sph_m((sph_p+1)**2, params % nsph)
+    ! Temporary workspace
+    real(dp) :: work(p+1)
+    ! Local variables
+    integer :: isph, inode, jnear, jnode, jsph, igrid
+    real(dp) :: c(3)
+    ! Init output
+    if (beta .eq. zero) then
+        sph_m = zero
+    else
+        sph_m = beta * sph_m
+    end if
+    ! Cycle over all spheres
+    do isph = 1, params % nsph
+        ! Cycle over all near-field admissible pairs of spheres
+        inode = constants % snode(isph)
+        do jnear = constants % snear(inode), constants % snear(inode+1)-1
+            ! Near-field interactions are possible only between leaf nodes,
+            ! which must contain only a single input sphere
+            jnode = constants % near(jnear)
+            jsph = constants % order(constants % cluster(1, jnode))
+            ! Ignore self-interaction
+            !if(isph .eq. jsph) cycle
+            ! Accumulate interaction for external grid points only
+            do igrid = 1, params % ngrid
+                if(constants % ui(igrid, isph) .eq. zero) cycle
+                c = constants % cgrid(:, igrid)*params % rsph(isph) - &
+                    & params % csph(:, jsph) + params % csph(:, isph)
+                call fmm_m2p_bessel_adj(c, alpha*grid_v(igrid, isph), &
+                    & params % rsph(jsph), params % kappa, p, constants % vscales, one, &
+                    & sph_m(:, jsph))
+            end do
+        end do
+    end do
+end subroutine tree_m2p_bessel_adj
 
 subroutine fdoka(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
     type(ddx_params_type), intent(in) :: params

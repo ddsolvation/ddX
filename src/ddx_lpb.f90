@@ -215,10 +215,10 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
     real(dp) :: nderphi, sumSijn, rijn, coef_Ylm, sumSijn_pre, termi, &
         & termk, term, tmp1, tmp2
     real(dp), dimension(3) :: sijn, vij, vtij
-    real(dp) :: rho, ctheta, stheta, cphi, sphi
+    real(dp) :: rho, ctheta, stheta, cphi, sphi, start_time, finish_time
     real(dp), allocatable :: SK_rijn(:), DK_rijn(:)
-    integer :: l0, m0, icav, istatus
-    real(dp), dimension(constants % nbasis, params % nsph) :: c0, c1
+    integer :: l0, m0, icav, istatus, indl, inode
+    real(dp), dimension(constants % nbasis0, params % nsph) :: c0, c1
     complex(dp) :: work_complex(constants % lmax0 + 1)
     real(dp) :: work(constants % lmax0 + 1)
     allocate(SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0))
@@ -234,7 +234,7 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
                 nderphi = dot_product(gradphi(:, ic), constants % cgrid(:,ig))
                 c0(:, isph) = c0(:, isph) + &
                     & constants % wgrid(ig)*constants % ui(ig,isph)*&
-                    & nderphi*constants % vgrid(1:constants % nbasis,ig)
+                    & nderphi*constants % vgrid(1:constants % nbasis0,ig)
                 do l0 = 0, constants % lmax0
                     ind0 = l0*l0 + 1
                     ind = ind0 + 2*l0
@@ -248,62 +248,95 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
 
     ! Computation of F0 using above terms
     ! icav: External grid poitns
-    icav = 0
-    do isph = 1, params % nsph
-        do ig = 1, params % ngrid
-            if (constants % ui(ig,isph).gt.zero) then
-                icav = icav + 1
-                sumSijn = zero
-                ! Loop to compute Sijn
-                do jsph = 1, params % nsph
-                    sumSijn_pre = sumSijn
-                    vij  = params % csph(:,isph) + &
-                        & params % rsph(isph)*constants % cgrid(:,ig) - &
-                        & params % csph(:,jsph)
-!                    rijn = sqrt(dot_product(vij,vij))
-!                    sijn = vij/rijn
-!
-!                    ! Compute Bessel function of 2nd kind for the coordinates
-!                    ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-!                    call modified_spherical_bessel_second_kind( &
-!                        & constants % lmax0, rijn*params % kappa,&
-!                        & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
-!                    call ylmbas(sijn , rho, ctheta, stheta, cphi, &
-!                        & sphi, constants % lmax0, constants % vscales, &
-!                        & workspace % tmp_vylm, workspace % tmp_vplm, &
-!                        & workspace % tmp_vcos, workspace % tmp_vsin)
-!
-!                    tmp1 = zero
-!                    do l0 = 0, constants % lmax0
-!                        term = SK_rijn(l0) / constants % SK_ri(l0,jsph)
-!                        ! coef_Ylm : (der_i_l0/i_l0 - der_k_l0/k_l0)^(-1)*k_l0(r_ijn)/k_l0(r_i)
-!                        !coef_Ylm = constants % C_ik(l0,jsph) * term
-!                        do m0 = -l0, l0
-!                            ind0 = l0**2 + l0 + m0 + 1
-!                            tmp1 = tmp1 + c1(ind0,jsph)*term* &
-!                                & workspace % tmp_vylm(ind0, 1)
-!                            !tmp1 = tmp1 + c0(ind0,jsph)*coef_Ylm* &
-!                            !    & workspace % tmp_vylm(ind0, 1)
-!                            !sumSijn = sumSijn + c0(ind0,jsph)*coef_Ylm* &
-!                            !    & workspace % tmp_vylm(ind0, 1)
-!                            !coefY(icav,ind0,jsph) = coef_Ylm*basloc(ind0)
-!                        end do
-!                    end do
-!                    sumSijn = sumSijn + tmp1
-                    vtij = vij*params % kappa
-                    call fmm_m2p_bessel_work(vtij, &
-                        & constants % lmax0, constants % vscales, &
-                        & constants % SK_ri(:, jsph), one, &
-                        & c1(:, jsph), one, sumSijn, work_complex, work)
-                end do
-                !
-                ! Here Intermediate value of F_0 is computed Eq. (99)
-                ! Mutilplication with Y_lm and weights will happen afterwards
-                !write(6,*) sumSijn, epsp, eps, ddx_data % constants % ui(ig,isph)
-                f(ig,isph) = -(epsp/params % eps)*constants % ui(ig,isph) * sumSijn
-            end if
-        end do
-    end do
+    if (params % fmm .eq. 0) then
+        icav = 0
+        do isph = 1, params % nsph
+            do ig = 1, params % ngrid
+                if (constants % ui(ig,isph).gt.zero) then
+                    icav = icav + 1
+                    sumSijn = zero
+                    ! Loop to compute Sijn
+                    do jsph = 1, params % nsph
+                        sumSijn_pre = sumSijn
+                        vij  = params % csph(:,isph) + &
+                            & params % rsph(isph)*constants % cgrid(:,ig) - &
+                            & params % csph(:,jsph)
+    !                    rijn = sqrt(dot_product(vij,vij))
+    !                    sijn = vij/rijn
+    !
+    !                    ! Compute Bessel function of 2nd kind for the coordinates
+    !                    ! (s_ijn, r_ijn) and compute the basis function for s_ijn
+    !                    call modified_spherical_bessel_second_kind( &
+    !                        & constants % lmax0, rijn*params % kappa,&
+    !                        & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
+    !                    call ylmbas(sijn , rho, ctheta, stheta, cphi, &
+    !                        & sphi, constants % lmax0, constants % vscales, &
+    !                        & workspace % tmp_vylm, workspace % tmp_vplm, &
+    !                        & workspace % tmp_vcos, workspace % tmp_vsin)
+    !
+    !                    tmp1 = zero
+    !                    do l0 = 0, constants % lmax0
+    !                        term = SK_rijn(l0) / constants % SK_ri(l0,jsph)
+    !                        ! coef_Ylm : (der_i_l0/i_l0 - der_k_l0/k_l0)^(-1)*k_l0(r_ijn)/k_l0(r_i)
+    !                        !coef_Ylm = constants % C_ik(l0,jsph) * term
+    !                        do m0 = -l0, l0
+    !                            ind0 = l0**2 + l0 + m0 + 1
+    !                            tmp1 = tmp1 + c1(ind0,jsph)*term* &
+    !                                & workspace % tmp_vylm(ind0, 1)
+    !                            !tmp1 = tmp1 + c0(ind0,jsph)*coef_Ylm* &
+    !                            !    & workspace % tmp_vylm(ind0, 1)
+    !                            !sumSijn = sumSijn + c0(ind0,jsph)*coef_Ylm* &
+    !                            !    & workspace % tmp_vylm(ind0, 1)
+    !                            !coefY(icav,ind0,jsph) = coef_Ylm*basloc(ind0)
+    !                        end do
+    !                    end do
+    !                    sumSijn = sumSijn + tmp1
+                        vtij = vij*params % kappa
+                        call fmm_m2p_bessel_work(vtij, &
+                            & constants % lmax0, constants % vscales, &
+                            & constants % SK_ri(:, jsph), one, &
+                            & c1(:, jsph), one, sumSijn, work_complex, work)
+                    end do
+                    !
+                    ! Here Intermediate value of F_0 is computed Eq. (99)
+                    ! Mutilplication with Y_lm and weights will happen afterwards
+                    !write(6,*) sumSijn, epsp, eps, ddx_data % constants % ui(ig,isph)
+                    f(ig,isph) = -(epsp/params % eps)*constants % ui(ig,isph) * sumSijn
+                end if
+            end do
+        end do 
+    else
+        ! Load input harmonics into tree data
+        workspace % tmp_node_m = zero
+        workspace % tmp_node_l = zero
+        workspace % tmp_sph = zero
+        workspace % tmp_sph(1:constants % nbasis0, :) = c1(:, :)
+        if(constants % lmax0 .lt. params % pm) then
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                workspace % tmp_node_m(1:constants % nbasis0, inode) = &
+                    & workspace % tmp_sph(1:constants % nbasis0, isph)
+                workspace % tmp_node_m(constants % nbasis0+1:, inode) = zero
+            end do
+        else
+            indl = (params % pm+1)**2
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                workspace % tmp_node_m(:, inode) = workspace % tmp_sph(1:indl, isph)
+            end do
+        end if
+        ! Do FMM operations
+        call tree_m2m_bessel_rotation(params, constants, workspace % tmp_node_m)
+        call tree_m2l_bessel_rotation(params, constants, workspace % tmp_node_m, &
+            & workspace % tmp_node_l)
+        call tree_l2l_bessel_rotation(params, constants, workspace % tmp_node_l)
+        call tree_l2p_bessel(params, constants, one, workspace % tmp_node_l, zero, &
+            & workspace % tmp_grid)
+        call tree_m2p_bessel(params, constants, constants % lmax0, one, &
+            & params % lmax, workspace % tmp_sph, one, &
+            & workspace % tmp_grid)
+        f = -(epsp/params % eps) * constants % ui * workspace % tmp_grid
+    end if
 end subroutine wghpot_f
 
 subroutine lx_nodiag_incore(params, constants, workspace, x, y)
@@ -639,7 +672,7 @@ end subroutine convert_ddcosmo
   real(dp) :: Qval, rijn, val, val2, x(3)
   integer :: c0, cr, c_qmat, c_init, c_ep0, c_ep1 !, nbasis_appro
   real(dp), external :: dnrm2
-  real(dp) :: work(constants % lmax0+1)
+  real(dp) :: work(constants % lmax0+1), start_time, finish_time
   complex(dp) :: work_complex(constants % lmax0+1)
       
   ! diff_re = epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
@@ -668,6 +701,7 @@ end subroutine convert_ddcosmo
   ! diff_ep = diff0 * coefY,    COST: M^2*nbasis*Nleb
   diff_ep = zero
   if (params % fmm .eq. 0) then
+      !call cpu_time(start_time)
       do icav = 1, constants % ncav
         val = zero
         do jsph = 1, params % nsph 
@@ -677,6 +711,8 @@ end subroutine convert_ddcosmo
         end do
         diff_ep(icav) = val
       end do
+      !call cpu_time(finish_time)
+      !write(*, *) "Dense time:", finish_time-start_time, "seconds"
   else
     ! Load input harmonics into tree data
     workspace % tmp_node_m = zero
@@ -704,11 +740,11 @@ end subroutine convert_ddcosmo
         end do
     end if
     ! Do FMM operations
+!    call cpu_time(start_time)
     call tree_m2m_bessel_rotation(params, constants, workspace % tmp_node_m)
     call tree_m2l_bessel_rotation(params, constants, workspace % tmp_node_m, &
         & workspace % tmp_node_l)
     call tree_l2l_bessel_rotation(params, constants, workspace % tmp_node_l)
-    workspace % tmp_grid = zero
     call tree_l2p_bessel(params, constants, one, workspace % tmp_node_l, zero, &
         & workspace % tmp_grid)
     call tree_m2p_bessel(params, constants, constants % lmax0, one, &
@@ -742,6 +778,8 @@ end subroutine convert_ddcosmo
 !      write(*, *) "diff=", dnrm2(constants % ncav, diff_ep2, 1)/ &
 !          & dnrm2(constants % ncav, diff_ep, 1)
 !      write(*, *) maxval(abs(diff_ep2))
+!    call cpu_time(finish_time)
+!    write(*, *) "FMM time:", finish_time-start_time, "seconds"
   end if
 
   rhs_plus = zero
@@ -903,9 +941,12 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
     real(dp), dimension(constants % nbasis) :: basloc, vplm
     real(dp), dimension(params % lmax + 1) :: vcos, vsin
     complex(dp) :: bessel_work(max(2, params % lmax+1))
-    integer :: isph, igrid, jsph, l, m, ind, l0, m0, ind0
-    real(dp), dimension(3) :: vij, sijn
+    complex(dp) :: work_complex(constants % lmax0+1)
+    real(dp) :: work(constants % lmax0+1)
+    integer :: isph, igrid, jsph, l, m, ind, l0, m0, ind0, indl, inode
+    real(dp), dimension(3) :: vij, sijn, vtij
     real(dp) :: val, rijn, term, epsilon_ratio, rho, ctheta, stheta, cphi, sphi
+    real(dp), external :: dnrm2
 
     epsilon_ratio = epsp/params % eps
 
@@ -913,40 +954,128 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
     ! TODO: maybe use ddeval_grid for code consistency
     scratch = - x(:,:,1) - x(:,:,2)
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, scratch, &
+        & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
         & constants % nbasis, zero, Xadj_sgrid, params % ngrid)
     tt1 = omp_get_wtime()
     write(6,*) '@adjoint@matvec1', tt1 - tt0
 
     tt0 = omp_get_wtime()
     scratch0 = zero
-    do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-            if (constants % ui(igrid, isph).gt.zero) then
-                val = xadj_sgrid(igrid,isph)*constants % wgrid(igrid) &
-                    & *constants % ui(igrid,isph)
-                ! quadratically scaling loop
-                do jsph = 1, params % nsph
-                    vij  = params % csph(:,isph) + &
-                        & params % rsph(isph)*constants % cgrid(:,igrid) - &
-                        & params % csph(:,jsph)
-                    rijn = sqrt(dot_product(vij,vij))
-                    sijn = vij/rijn
-                    call modified_spherical_bessel_second_kind(constants % lmax0, &
-                        & rijn*params % kappa, SK_rijn, DK_rijn, bessel_work)
-                    call ylmbas(sijn, rho, ctheta, stheta, cphi, &
-                        & sphi, params % lmax, constants % vscales, &
-                        & basloc, vplm, vcos, vsin)
-                    do l0 = 0, constants % lmax0
-                        term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
-                        do m0 = -l0, l0
-                            ind0 = l0*l0 + l0 + m0 + 1
-                            scratch0(ind0,jsph) = scratch0(ind0,jsph) + &
-                                & val*constants % C_ik(l0,jsph)*term*basloc(ind0)
-                        end do
+    if (params % fmm .eq. 0) then
+        do isph = 1, params % nsph
+            do igrid = 1, params % ngrid
+                if (constants % ui(igrid, isph).gt.zero) then
+                    val = xadj_sgrid(igrid,isph) &
+                        & *constants % ui(igrid,isph)
+                    ! quadratically scaling loop
+                    do jsph = 1, params % nsph
+                        vij  = params % csph(:,isph) + &
+                            & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                            & params % csph(:,jsph)
+    !                    rijn = sqrt(dot_product(vij,vij))
+    !                    sijn = vij/rijn
+    !                    call modified_spherical_bessel_second_kind(constants % lmax0, &
+    !                        & rijn*params % kappa, SK_rijn, DK_rijn, bessel_work)
+    !                    call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+    !                        & sphi, params % lmax, constants % vscales, &
+    !                        & basloc, vplm, vcos, vsin)
+    !                    do l0 = 0, constants % lmax0
+    !                        term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+    !                        do m0 = -l0, l0
+    !                            ind0 = l0*l0 + l0 + m0 + 1
+    !                            scratch0(ind0,jsph) = scratch0(ind0,jsph) + &
+    !                                & val*term*basloc(ind0)
+    !                                !& val*constants % C_ik(l0,jsph)*term*basloc(ind0)
+    !                        end do
+    !                    end do
+                        vtij = vij * params % kappa
+                        call fmm_m2p_bessel_adj_work(vtij, val, &
+                            & constants % SK_ri(:, jsph), constants % lmax0, &
+                            & constants % vscales, one, scratch0(:, jsph), &
+                            & work_complex, work)
                     end do
-                end do
-            end if
+                end if
+            end do
+        end do
+    else
+        ! Multiply by characteristic function
+        workspace % tmp_grid = xadj_sgrid * constants % ui
+        workspace % tmp_sph = zero
+        ! Do FMM operations adjointly
+        call tree_m2p_bessel_adj(params, constants, constants % lmax0, &
+            & one, workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
+        call tree_l2p_bessel_adj(params, constants, one, &
+            & workspace % tmp_grid, zero, workspace % tmp_node_l)
+        call tree_l2l_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_l)
+        call tree_m2l_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_l, workspace % tmp_node_m)
+        call tree_m2m_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_m)
+        ! Adjointly move tree multipole harmonics into output
+        if(constants % lmax0 .lt. params % pm) then
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                scratch0(:, isph) = workspace % tmp_sph(:, isph) + &
+                    & workspace % tmp_node_m(1:constants % nbasis0, inode)
+            end do
+        else
+            indl = (params % pm+1)**2
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                scratch0(1:indl, isph) = &
+                    & workspace % tmp_sph(1:indl, isph) + &
+                    & workspace % tmp_node_m(:, inode)
+                scratch0(indl+1:, isph) = zero
+            end do
+        end if
+        ! Following code is here to check accuracy in debug mode
+!        scratch = zero
+!        do isph = 1, params % nsph
+!            do igrid = 1, params % ngrid
+!                if (constants % ui(igrid, isph).gt.zero) then
+!                    val = xadj_sgrid(igrid,isph) &
+!                        & *constants % ui(igrid,isph)
+!                    ! quadratically scaling loop
+!                    do jsph = 1, params % nsph
+!                        vij  = params % csph(:,isph) + &
+!                            & params % rsph(isph)*constants % cgrid(:,igrid) - &
+!                            & params % csph(:,jsph)
+!    !                    rijn = sqrt(dot_product(vij,vij))
+!    !                    sijn = vij/rijn
+!    !                    call modified_spherical_bessel_second_kind(constants % lmax0, &
+!    !                        & rijn*params % kappa, SK_rijn, DK_rijn, bessel_work)
+!    !                    call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+!    !                        & sphi, params % lmax, constants % vscales, &
+!    !                        & basloc, vplm, vcos, vsin)
+!    !                    do l0 = 0, constants % lmax0
+!    !                        term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+!    !                        do m0 = -l0, l0
+!    !                            ind0 = l0*l0 + l0 + m0 + 1
+!    !                            scratch0(ind0,jsph) = scratch0(ind0,jsph) + &
+!    !                                & val*term*basloc(ind0)
+!    !                                !& val*constants % C_ik(l0,jsph)*term*basloc(ind0)
+!    !                        end do
+!    !                    end do
+!                        vtij = vij * params % kappa
+!                        call fmm_m2p_bessel_adj_work(vtij, val, &
+!                            & constants % SK_ri(:, jsph), constants % lmax0, &
+!                            & constants % vscales, one, scratch(:, jsph), &
+!                            & work_complex, work)
+!                    end do
+!                end if
+!            end do
+!        end do
+!        write(*, *) "diff=", dnrm2(constants % nbasis0*params % nsph, &
+!            & scratch(1:constants % nbasis0, :)-scratch0, 1) / &
+!            & dnrm2(constants % nbasis0*params % nsph, scratch0, 1)
+    end if
+    ! Scale by C_ik
+    do isph = 1, params % nsph
+        do l0 = 0, constants % lmax0
+            ind0 = l0*l0 + l0 + 1
+            scratch0(ind0-l0:ind0+l0, isph) = scratch0(ind0-l0:ind0+l0, isph) * &
+                & constants % C_ik(l0, isph)
         end do
     end do
     tt1 = omp_get_wtime()
@@ -993,12 +1122,13 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
 
     integer :: isph, jsph, igrid, icav, ind, l, m, ind0, l0, m0, istatus
-    real(dp), dimension(3) :: sijn ,vij
+    real(dp), dimension(3) :: sijn ,vij, vtij
     real(dp) :: term, rho, ctheta, stheta, cphi, sphi, rijn
     real(dp), dimension(constants % nbasis) :: basloc, vplm
     real(dp), dimension(params % lmax + 1) :: vcos, vsin
     real(dp), dimension(0:constants % lmax0) :: SK_rijn, DK_rijn
-    complex(dp)  :: work(max(2, params % lmax+1))
+    complex(dp)  :: work_complex(constants % lmax0+1)
+    real(dp) :: work(constants % lmax0+1)
     integer :: indl, inode
 
     real(dp), dimension(constants % nbasis, params % nsph) :: diff_re
@@ -1036,6 +1166,14 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
     tt1 = omp_get_wtime()
     write(6,*) '@direct@matvec2', tt1 - tt0
 
+    ! Multiply diff0 by C_ik inplace
+    do isph = 1, params % nsph
+        do l = 0, constants % lmax0
+            ind0 = l*l+l+1
+            diff0(ind0-l:ind0+l, isph) = diff0(ind0-l:ind0+l, isph) * &
+                & constants % C_ik(l, isph)
+        end do
+    end do
     ! avoiding N^2 storage, this code does not use the cached coefY
     tt0 = omp_get_wtime()
     y(:,:,1) = zero
@@ -1054,31 +1192,34 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
                         vij  = params % csph(:,isph) + &
                             & params % rsph(isph)*constants % cgrid(:,igrid) - &
                             & params % csph(:,jsph)
-                        rijn = sqrt(dot_product(vij,vij))
-                        sijn = vij/rijn
-
-                        ! Compute Bessel function of 2nd kind for the coordinates
-                        ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-                        call modified_spherical_bessel_second_kind(constants % lmax0, &
-                            & rijn*params % kappa, SK_rijn, DK_rijn, work)
-                        call ylmbas(sijn, rho, ctheta, stheta, cphi, &
-                            & sphi, params % lmax, constants % vscales, &
-                            & basloc, vplm, vcos, vsin)
-
-                        do l0 = 0, constants % lmax0
-                            term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
-                            do m0 = -l0, l0
-                                ind0 = l0*l0 + l0 + m0 + 1
-                                val = val +  diff0(ind0,jsph)*constants % C_ik(l0,jsph) &
-                                    & *term*basloc(ind0)
-                            end do
-                        end do
+                        vtij = vij * params % kappa
+                        call fmm_m2p_bessel_work(vtij, constants % lmax0, &
+                            & constants % vscales, constants % SK_ri(:, jsph), &
+                            & one, diff0(:, jsph), one, val, work_complex, work)
+!                        rijn = sqrt(dot_product(vij,vij))
+!                        sijn = vij/rijn
+!
+!                        ! Compute Bessel function of 2nd kind for the coordinates
+!                        ! (s_ijn, r_ijn) and compute the basis function for s_ijn
+!                        call modified_spherical_bessel_second_kind(constants % lmax0, &
+!                            & rijn*params % kappa, SK_rijn, DK_rijn, work_complex)
+!                        call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+!                            & sphi, params % lmax, constants % vscales, &
+!                            & basloc, vplm, vcos, vsin)
+!
+!                        do l0 = 0, constants % lmax0
+!                            term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+!                            do m0 = -l0, l0
+!                                ind0 = l0*l0 + l0 + m0 + 1
+!                                val = val +  diff0(ind0,jsph)* &
+!                                    & term*basloc(ind0)
+!                            end do
+!                        end do
                     end do
                     do ind = 1, constants % nbasis
                         y(ind,isph,1) = y(ind,isph,1) + val*&
-                          & constants % wgrid(igrid)*&
                           & constants % ui(igrid,isph)*&
-                          & constants % vgrid(ind,igrid)
+                          & constants % vwgrid(ind,igrid)
                     end do
                 end if
             end do
@@ -1092,7 +1233,7 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
             do l = 0, constants % lmax0
                 ind0 = l*l+l+1
                 workspace % tmp_sph(ind0-l:ind0+l, isph) = &
-                    & diff0(ind0-l:ind0+l, isph) * constants % C_ik(l, isph)
+                    & diff0(ind0-l:ind0+l, isph)
             end do
         end do
         if(constants % lmax0 .lt. params % pm) then
@@ -1126,9 +1267,8 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
             do igrid = 1, params % ngrid
                 do ind = 1, constants % nbasis
                     y(ind,isph,1) = y(ind,isph,1) + workspace % tmp_grid(igrid, isph)*&
-                        & constants % wgrid(igrid)*&
-                        & constants % ui(igrid,isph)*&
-                        & constants % vgrid(ind,igrid)
+                        & constants % vwgrid(ind, igrid)*&
+                        & constants % ui(igrid,isph)
                 end do
             end do
         end do
@@ -2091,13 +2231,7 @@ end subroutine bstarx
             !val_dim3(:) = val_dim3(:) + diff1(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
           end do
         end do
-        ! not sure how to resolve this conflict
-        !<<<<<<< HEAD
-        diff_ep_dim3(:, icav) = val_dim3(:)
         phi_in(igrid, isph) = val
-        !=======
-        !diff_ep_dim3(:, icav) = val_dim3(:)
-        !>>>>>>> muxas/improve_ddlpb
       end if
     end do
   end do
