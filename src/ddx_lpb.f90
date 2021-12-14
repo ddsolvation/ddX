@@ -2383,7 +2383,7 @@ end subroutine bstarx
   real(dp), dimension(3), intent(inout) :: force
   ! Local variable
   ! igrid0: Index for grid point n0
-  integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, igrid0, icav
+  integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, igrid0, icav, indl, inode
   ! term  : SK_rijn/SK_rj
   ! termi : DI_ri/SI_ri
   ! termk : DK_ri/SK_ri
@@ -2430,78 +2430,175 @@ end subroutine bstarx
   SK_rijn = zero
   DK_rijn = zero
 
-  ! Compute  summation over l0, m0
-  ! Loop over the sphers j
-  do jsph = 1, params % nsph
-    ! Loop over the grid points n0
-    do igrid0 = 1, params % ngrid
-      icav = zero
-      ! Loop over spheres i
-      do isph = 1, params % nsph
-        ! Loop over grid points n
-        do igrid = 1, params % ngrid
-          ! Check for U_i^{eta}(x_in)
-          if(constants % ui(igrid, isph) .gt. zero) then
-            icav = icav + 1
-            vij  = params % csph(:,isph) + &
-                   & params % rsph(isph)*constants % cgrid(:,igrid) - &
-                   & params % csph(:,jsph)
-            rijn = sqrt(dot_product(vij,vij))
-            sij = vij/rijn
+  if (params % fmm .eq. 0) then
+      ! Compute  summation over l0, m0
+      ! Loop over the sphers j
+      do jsph = 1, params % nsph
+        ! Loop over the grid points n0
+        do igrid0 = 1, params % ngrid
+          icav = zero
+          ! Loop over spheres i
+          do isph = 1, params % nsph
+            ! Loop over grid points n
+            do igrid = 1, params % ngrid
+              ! Check for U_i^{eta}(x_in)
+              if(constants % ui(igrid, isph) .gt. zero) then
+                icav = icav + 1
+                vij  = params % csph(:,isph) + &
+                       & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                       & params % csph(:,jsph)
+                rijn = sqrt(dot_product(vij,vij))
+                sij = vij/rijn
 
-!            call modified_spherical_bessel_second_kind( &
-!                & constants % lmax0, rijn*params % kappa,&
-!                & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
-!            call dbasis(params, constants, &
-!                & sij, basloc, dbasloc, vplm, vcos, vsin)
-!            sum_int = zero
-            ! Loop over l0
-            do l0 = 0, constants % lmax0
-!              term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
-              ! Loop over m0
-              do m0 = -l0,l0
-                ind0 = l0**2 + l0 + m0 + 1
-!                sum_int = sum_int + constants % C_ik(l0, jsph) *term*basloc(ind0)&
-!                           & *constants % vgrid(ind0,igrid0)
-                coef(ind0) = constants % vgrid(ind0, igrid0) * &
-                    & constants % C_ik(l0, jsph)
-              end do ! End of loop m0
-            end do! End of loop l0
-!            coefY_d(icav, igrid0, jsph) = sum_int
-            call fmm_m2p_bessel_work(vij*params % kappa, constants % lmax0, &
-                & constants % vscales, constants % SK_ri(:, jsph), one, &
-                & coef, zero, coefY_d(icav, igrid0, jsph), work_complex, work)
-          end if
-        end do ! End of loop igrid
-      end do! End of loop isph
-    end do ! End of loop igrid0
-  end do ! End of loop jsph
+    !            call modified_spherical_bessel_second_kind( &
+    !                & constants % lmax0, rijn*params % kappa,&
+    !                & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
+    !            call dbasis(params, constants, &
+    !                & sij, basloc, dbasloc, vplm, vcos, vsin)
+    !            sum_int = zero
+                ! Loop over l0
+                do l0 = 0, constants % lmax0
+    !              term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+                  ! Loop over m0
+                  do m0 = -l0,l0
+                    ind0 = l0**2 + l0 + m0 + 1
+    !                sum_int = sum_int + constants % C_ik(l0, jsph) *term*basloc(ind0)&
+    !                           & *constants % vgrid(ind0,igrid0)
+                    coef(ind0) = constants % vgrid(ind0, igrid0) * &
+                        & constants % C_ik(l0, jsph)
+                  end do ! End of loop m0
+                end do! End of loop l0
+    !            coefY_d(icav, igrid0, jsph) = sum_int
+                call fmm_m2p_bessel_work(vij*params % kappa, constants % lmax0, &
+                    & constants % vscales, constants % SK_ri(:, jsph), one, &
+                    & coef, zero, coefY_d(icav, igrid0, jsph), work_complex, work)
+              end if
+            end do ! End of loop igrid
+          end do! End of loop isph
+        end do ! End of loop igrid0
+      end do ! End of loop jsph
 
-  ! Compute phi_in
-  ! Loop over spheres j
-  do jsph = 1, params % nsph
-    ! Loop over grid points n0
-    do igrid0 = 1, params % ngrid
-      icav = zero
-      sum_r = zero
-      sum_e = zero
-      ! Loop over sphers i
+      ! Compute phi_in
+      ! Loop over spheres j
+      do jsph = 1, params % nsph
+        ! Loop over grid points n0
+        do igrid0 = 1, params % ngrid
+          icav = zero
+          sum_r = zero
+          sum_e = zero
+          ! Loop over sphers i
+          do isph = 1, params % nsph
+            ! Loop over grid points n
+            do igrid = 1, params % ngrid
+              if(constants % ui(igrid, isph) .gt. zero) then
+                icav = icav + 1
+                sum_r = sum_r + coefY_d(icav, igrid0, jsph)*Xadj_r_sgrid(igrid, isph) &
+                        & * constants % wgrid(igrid)*constants % ui(igrid, isph)
+                sum_e = sum_e + coefY_d(icav, igrid0, jsph)*Xadj_e_sgrid(igrid, isph) &
+                        & * constants % wgrid(igrid)*constants % ui(igrid, isph)
+              end if
+            end do
+          end do
+          phi_n_r(igrid0, jsph) = sum_r
+          phi_n_e(igrid0, jsph) = sum_e
+        end do! End of loop j
+      end do ! End of loop igrid0
+  else
+      ! Compute phi_n_r at first
+      ! Adjoint integration from spherical harmonics to grid points is not needed
+      ! here as ygrid already contains grid values, we just need to scale it by
+      ! weights of grid points
       do isph = 1, params % nsph
-        ! Loop over grid points n
-        do igrid = 1, params % ngrid
-          if(constants % ui(igrid, isph) .gt. zero) then
-            icav = icav + 1
-            sum_r = sum_r + coefY_d(icav, igrid0, jsph)*Xadj_r_sgrid(igrid, isph) &
-                    & * constants % wgrid(igrid)*constants % ui(igrid, isph)
-            sum_e = sum_e + coefY_d(icav, igrid0, jsph)*Xadj_e_sgrid(igrid, isph) &
-                    & * constants % wgrid(igrid)*constants % ui(igrid, isph)
-          end if
-        end do
+          workspace % tmp_grid(:, isph) = Xadj_r_sgrid(:, isph) * &
+              & constants % wgrid(:) * constants % ui(:, isph)
       end do
-      phi_n_r(igrid0, jsph) = sum_r
-      phi_n_e(igrid0, jsph) = sum_e
-    end do! End of loop j
-  end do ! End of loop igrid0
+      ! Adjoint FMM
+      call tree_m2p_bessel_adj(params, constants, constants % lmax0, one, &
+          & workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
+      call tree_l2p_bessel_adj(params, constants, one, workspace % tmp_grid, &
+          & zero, workspace % tmp_node_l)
+      call tree_l2l_bessel_rotation_adj(params, constants, &
+          & workspace % tmp_node_l)
+      call tree_m2l_bessel_rotation_adj(params, constants, &
+          & workspace % tmp_node_l, workspace % tmp_node_m)
+      call tree_m2m_rotation_adj(params, constants, workspace % tmp_node_m)
+      ! Properly load adjoint multipole harmonics into tmp_sph
+      if(constants % lmax0 .lt. params % pm) then
+          do isph = 1, params % nsph
+              inode = constants % snode(isph)
+              workspace % tmp_sph(:, isph) = workspace % tmp_sph(:, isph) + &
+                  & workspace % tmp_node_m(1:constants % nbasis0, inode)
+          end do
+      else
+          indl = (params % pm+1)**2
+          do isph = 1, params % nsph
+              inode = constants % snode(isph)
+              workspace % tmp_sph(1:indl, isph) = &
+                  & workspace % tmp_sph(1:indl, isph) + &
+                  & workspace % tmp_node_m(:, inode)
+          end do
+      end if
+      ! Scale by C_ik
+      do isph = 1, params % nsph
+          do l0 = 0, constants % lmax0
+              ind0 = l0*l0 + l0 + 1
+              workspace % tmp_sph(ind0-l0:ind0+l0, isph) = &
+                  & workspace % tmp_sph(ind0-l0:ind0+l0, isph) * &
+                  & constants % C_ik(l0, isph)
+          end do
+      end do
+      ! Multiply by vgrid
+      call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis0, &
+          & one, constants % vgrid, constants % vgrid_nbasis, &
+          & workspace % tmp_sph, constants % nbasis, zero, phi_n_r, params % ngrid)
+      ! Compute phi_n_e now
+      ! Adjoint integration from spherical harmonics to grid points is not needed
+      ! here as ygrid already contains grid values, we just need to scale it by
+      ! weights of grid points
+      do isph = 1, params % nsph
+          workspace % tmp_grid(:, isph) = Xadj_e_sgrid(:, isph) * &
+              & constants % wgrid(:) * constants % ui(:, isph)
+      end do
+      ! Adjoint FMM
+      call tree_m2p_bessel_adj(params, constants, constants % lmax0, one, &
+          & workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
+      call tree_l2p_bessel_adj(params, constants, one, workspace % tmp_grid, &
+          & zero, workspace % tmp_node_l)
+      call tree_l2l_bessel_rotation_adj(params, constants, &
+          & workspace % tmp_node_l)
+      call tree_m2l_bessel_rotation_adj(params, constants, &
+          & workspace % tmp_node_l, workspace % tmp_node_m)
+      call tree_m2m_rotation_adj(params, constants, workspace % tmp_node_m)
+      ! Properly load adjoint multipole harmonics into tmp_sph
+      if(constants % lmax0 .lt. params % pm) then
+          do isph = 1, params % nsph
+              inode = constants % snode(isph)
+              workspace % tmp_sph(:, isph) = workspace % tmp_sph(:, isph) + &
+                  & workspace % tmp_node_m(1:constants % nbasis0, inode)
+          end do
+      else
+          indl = (params % pm+1)**2
+          do isph = 1, params % nsph
+              inode = constants % snode(isph)
+              workspace % tmp_sph(1:indl, isph) = &
+                  & workspace % tmp_sph(1:indl, isph) + &
+                  & workspace % tmp_node_m(:, inode)
+          end do
+      end if
+      ! Scale by C_ik
+      do isph = 1, params % nsph
+          do l0 = 0, constants % lmax0
+              ind0 = l0*l0 + l0 + 1
+              workspace % tmp_sph(ind0-l0:ind0+l0, isph) = &
+                  & workspace % tmp_sph(ind0-l0:ind0+l0, isph) * &
+                  & constants % C_ik(l0, isph)
+          end do
+      end do
+      ! Multiply by vgrid
+      call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis0, &
+          & one, constants % vgrid, constants % vgrid_nbasis, &
+          & workspace % tmp_sph, constants % nbasis, zero, phi_n_e, params % ngrid)
+  end if
 
 
   call dgemm('T', 'N', params % ngrid, params % nsph, &
@@ -2651,8 +2748,7 @@ end subroutine bstarx
           workspace % tmp_grid(:, isph) = sol_sgrid(:, isph) * &
               & constants % wgrid(:) * constants % ui(:, isph)
       end do
-      ! Adjoint FMM with output tmp_sph2(:, :) which stores coefficients of
-      ! harmonics of degree up to lmax+1
+      ! Adjoint FMM
       call tree_m2p_bessel_adj(params, constants, constants % lmax0, one, &
           & workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
       call tree_l2p_bessel_adj(params, constants, one, workspace % tmp_grid, &
