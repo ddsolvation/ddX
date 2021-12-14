@@ -42,6 +42,14 @@ project(ddX VERSION ${VERSION} LANGUAGES Fortran CXX)
 # Extend path for additional cmake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+add_compile_options(-O3)
+#add_compile_options(-fcheck=all -g -fbacktrace -Og -fbounds-check)
+#add_compile_options(-Waliasing -Wampersand -Wconversion -Wsurprising -Wc-binding-type -Wintrinsics-std)
+#add_compile_options(-Wtabs -Wintrinsic-shadow -Wline-truncation -Wtarget-lifetime -Winteger-division)
+#add_compile_options(-Wreal-q-constant -Wundefined-do-loop -Wmaybe-uninitialized)
+#add_compile_options(-O0 -g -traceback -check all)
+
+
 ###############################################################################
 ##                REQUIREMENTS: OpenMP, BLAS AND LAPACK                      ##
 ###############################################################################
@@ -69,6 +77,7 @@ option(COVERAGE "Generate code coverage report" OFF)
 # Whether or not to use OpenMP
 option(OPENMP "Enable OpenMP" ON)
 
+#
 ###############################################################################
 ##                               CHECK OPTIONS                               ##
 ###############################################################################
@@ -80,6 +89,9 @@ if(DOCS)
         set(DOCS OFF)
     endif()
 endif()
+
+#add_compile_options(-O3 -xHost -g -check all -traceback)
+#add_compile_options(-O0 -g -fcheck=all -fbacktrace)
 
 # Update compiler flags in case of code coverage
 if(COVERAGE)

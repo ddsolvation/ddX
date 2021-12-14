@@ -13,6 +13,7 @@ module ddx_lpb
 use ddx_core
 use ddx_operators
 use ddx_solvers
+use ddx_solvers_old, only : jacobi_diis_old, gmresr_old
 implicit none
 !!
 !! Logical variables for iterations
@@ -51,6 +52,10 @@ real(dp),  parameter :: epsp = 1.0d0
 !! dbasloc : Derivative of Y_lm(s_n)
 !! i       : Index for dimension x,y,z
 
+real(dp) :: t0, t1, tt0, tt1
+real(dp) :: inner_tol
+real(dp), allocatable :: ddcosmo_guess(:,:), hsp_guess(:,:)
+
 contains
   !!
   !! ddLPB calculation happens here
@@ -61,54 +66,59 @@ contains
   !! @param[in] hessianphi  : Hessian of phi
   !! @param[out] esolv   : Electrostatic solvation energy
   !!
-  subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, &
-          & force, info)
-  ! main ddLPB
-  ! Inputs
-  type(ddx_type), intent(inout) :: ddx_data
-  real(dp), dimension(ddx_data % constants % ncav), intent(in)       :: phi_cav
-  real(dp), dimension(3, ddx_data % constants % ncav), intent(in)    :: gradphi_cav
-  real(dp), dimension(3,3, ddx_data % constants % ncav), intent(in)  :: hessianphi_cav
-  real(dp), dimension(ddx_data % constants % nbasis, &
-      & ddx_data % params % nsph), intent(in) :: psi
-  real(dp), intent(in) :: tol
-  ! Outputs
-  real(dp), intent(out)      :: esolv
-  real(dp), dimension(3, ddx_data % params % nsph), intent(out) :: force
-  integer, intent(out) :: info
-  integer                    :: istatus
-  !!
-  !! Xr         : Reaction potential solution (Laplace equation)
-  !! Xe         : Extended potential solution (HSP equation)
-  !!
-  real(dp), allocatable ::   Xr(:,:), Xe(:,:), Xadj_r(:,:), Xadj_e(:,:)
+subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, &
+    & force, info)
+    ! main ddLPB
+    ! Inputs
+    type(ddx_type), intent(inout) :: ddx_data
+    real(dp), dimension(ddx_data % constants % ncav), intent(in)       :: phi_cav
+    real(dp), dimension(3, ddx_data % constants % ncav), intent(in)    :: gradphi_cav
+    real(dp), dimension(3,3, ddx_data % constants % ncav), intent(in)  :: hessianphi_cav
+    real(dp), dimension(ddx_data % constants % nbasis, &
+        & ddx_data % params % nsph), intent(in) :: psi
+    real(dp), intent(in) :: tol
+    ! Outputs
+    real(dp), intent(out)      :: esolv
+    real(dp), dimension(3, ddx_data % params % nsph), intent(out) :: force
+    integer, intent(out) :: info
+    integer                    :: istatus
+    !!
+    !! Xr         : Reaction potential solution (Laplace equation)
+    !! Xe         : Extended potential solution (HSP equation)
+    !!
+    real(dp), allocatable ::   Xr(:,:), Xe(:,:), Xadj_r(:,:), Xadj_e(:,:)
 
-  !! phi_grid: Phi evaluated at grid points
-  real(dp), allocatable :: g(:,:), f(:,:), phi_grid(:, :)
-  allocate(Xr(ddx_data % constants % nbasis, ddx_data % params % nsph),&
-           & Xe(ddx_data % constants % nbasis, ddx_data % params % nsph), &
-           & Xadj_r(ddx_data % constants % nbasis, ddx_data % params % nsph),&
-           & Xadj_e(ddx_data % constants % nbasis, ddx_data % params % nsph), &
-           & g(ddx_data % params % ngrid, ddx_data % params % nsph),&
-           & f(ddx_data % params % ngrid, ddx_data % params % nsph), &
-           & phi_grid(ddx_data % params % ngrid, ddx_data % params % nsph), &
-           & stat = istatus)
-  if (istatus.ne.0) write(6,*) 'ddlpb allocation failed'
+    !! phi_grid: Phi evaluated at grid points
+    real(dp), allocatable :: g(:,:), f(:,:), phi_grid(:, :)
+    !real(dp) :: matrix(2*ddx_data % constants % n, 2*ddx_data % constants % n)
 
-  !! Setting initial values to zero
-  g = zero; f = zero
-  phi_grid = zero;
+    !call build_matrix(ddx_data % params, ddx_data % constants, &
+    !    & ddx_data % workspace, 2*ddx_data % constants % n, matrix, &
+    !    & lpb_direct_matvec)
+    !call print_matrix('direct', 2*ddx_data % constants % n, &
+    !    & 2*ddx_data % constants % n, matrix)
+    !call build_matrix(ddx_data % params, ddx_data % constants, &
+    !    & ddx_data % workspace, 2*ddx_data % constants % n, matrix, &
+    !    & lpb_adjoint_matvec)
+    !call print_matrix('adjoint', 2*ddx_data % constants % n, &
+    !    & 2*ddx_data % constants % n, matrix)
+    !stop
 
-  !! wghpot: Weigh potential at cavity points. Comes from ddCOSMO
-  !!         Intermediate computation of G_0 Eq.(77) QSM19.SISC
-  !!
-  !! @param[in]  phi      : Boundary conditions (This is psi_0 Eq.(20) QSM19.SISC)
-  !! @param[out] phi_grid : Phi evaluated at grid points
-  !! @param[out] g        : Boundary conditions on solute-solvent boundary gamma_j_e
-  !!
-  !call wghpot(ddx_data, phi, phi_grid, g)
-!  call wghpot(ddx_data % constants % ncav, phi_cav, ddx_data % params % nsph, ddx_data % params % ngrid, &
-!      & ddx_data % constants % ui, phi_grid, g)
+    allocate(Xr(ddx_data % constants % nbasis, ddx_data % params % nsph),&
+             & Xe(ddx_data % constants % nbasis, ddx_data % params % nsph), &
+             & Xadj_r(ddx_data % constants % nbasis, ddx_data % params % nsph),&
+             & Xadj_e(ddx_data % constants % nbasis, ddx_data % params % nsph), &
+             & g(ddx_data % params % ngrid, ddx_data % params % nsph),&
+             & f(ddx_data % params % ngrid, ddx_data % params % nsph), &
+             & phi_grid(ddx_data % params % ngrid, ddx_data % params % nsph), &
+             & stat = istatus)
+    if (istatus.ne.0) write(6,*) 'ddlpb allocation failed'
+
+    !! Setting initial values to zero
+    g = zero; f = zero
+    phi_grid = zero;
+
+    t0 = omp_get_wtime()
     ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
     ! and multiply it by characteristic function at cavity points ui
     call ddcav_to_grid_work(ddx_data % params % ngrid, ddx_data % params % nsph, &
@@ -121,38 +131,70 @@ contains
         & ddx_data % workspace % tmp_cav, &
         & ddx_data % workspace % tmp_grid)
     g = -ddx_data % workspace % tmp_grid
-  !!
-  !! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
-  !!
-  !! @param[in]  gradphi : Gradient of psi_0
-  !! @param[out] f       : Boundary conditions scaled by characteristic function
-  !!
-  call wghpot_f(ddx_data % params, ddx_data % constants, &
-      & ddx_data % workspace, gradphi_cav,f)
+    t1 = omp_get_wtime()
+    write(6,*) '@wghpot', t1 - t0
 
-  ! Call the subroutine to solve for Esolv
-  call ddx_lpb_solve(ddx_data % params, ddx_data % constants, &
-      & ddx_data % workspace, g, f, Xr, Xe, tol, esolv)
-  ! Start the Force computation
-  if(ddx_data % params % force .eq. 1) then
-    write(*,*) 'Computation of Forces for ddLPB'
-    ! Call the subroutine adjoint to solve the adjoint solution
-    call ddx_lpb_adjoint(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, psi, tol, Xadj_r, Xadj_e)
-    !Call the subroutine to evaluate derivatives
-    call ddx_lpb_force(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, hessianphi_cav, phi_grid, gradphi_cav, &
-                     & Xr, Xe, Xadj_r, Xadj_e, ddx_data % zeta, force)
+    ! init scratch arrays for inner solvers
+    allocate(ddcosmo_guess(ddx_data % constants % nbasis, &
+        & ddx_data % params % nsph), hsp_guess(ddx_data % constants % nbasis, &
+        & ddx_data % params % nsph))
 
-  endif
-  !call ddlpb_free(ddx_data)
-  deallocate(Xr, Xe,&
-           & Xadj_r, Xadj_e, &
-           & g, f, phi_grid, stat = istatus)
-  if (istatus.ne.0) write(6,*) 'ddlpb deallocation failed'
+    !!
+    !! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
+    !!
+    !! @param[in]  gradphi : Gradient of psi_0
+    !! @param[out] f       : Boundary conditions scaled by characteristic function
+    !!
+    t0 = omp_get_wtime()
+    call wghpot_f(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, gradphi_cav,f)
+    t1 = omp_get_wtime()
+    write(6,*) '@wghpot_f', t1 - t0
 
-  return
-  end subroutine ddlpb
+    inner_tol = tol/100.0d0
+
+    ! Call the subroutine to solve for Esolv
+    t0 = omp_get_wtime()
+    call ddx_lpb_solve(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, g, f, Xr, Xe, tol, esolv)
+    t1 = omp_get_wtime()
+    write(6,*) '@direct_ls', t1 - t0
+
+    ! Start the Force computation
+    if(ddx_data % params % force .eq. 1) then
+      write(*,*) 'Computation of Forces for ddLPB'
+      ! Call the subroutine adjoint to solve the adjoint solution
+      t0 = omp_get_wtime()
+      flush(6)
+      call ddx_lpb_adjoint(ddx_data % params, ddx_data % constants, &
+          & ddx_data % workspace, psi, tol, Xadj_r, Xadj_e)
+      t1 = omp_get_wtime()
+      write(6,*) '@adjoint_ls', t1 - t0
+      call prtsph('xadj_r', ddx_data % constants % nbasis, ddx_data % params % lmax, &
+          & ddx_data % params % nsph, 0, xadj_r)
+      call prtsph('xadj_e', ddx_data % constants % nbasis, ddx_data % params % lmax, &
+          & ddx_data % params % nsph, 0, xadj_e)
+    end if
+    if (.false.) then
+      !Call the subroutine to evaluate derivatives
+      t0 = omp_get_wtime()
+      call ddx_lpb_force(ddx_data % params, ddx_data % constants, &
+          & ddx_data % workspace, hessianphi_cav, phi_grid, gradphi_cav, &
+                       & Xr, Xe, Xadj_r, Xadj_e, ddx_data % zeta, force)
+      t1 = omp_get_wtime()
+      write(6,*) '@forces', t1 - t0
+
+    endif
+    !call ddlpb_free(ddx_data)
+    deallocate(Xr, Xe,&
+             & Xadj_r, Xadj_e, &
+             & g, f, phi_grid, stat = istatus)
+    if (istatus.ne.0) write(6,*) 'ddlpb deallocation failed'
+    deallocate(ddcosmo_guess,hsp_guess, stat = istatus)
+    if (istatus.ne.0) write(6,*) 'ddlpb deallocation failed'
+
+    return
+end subroutine ddlpb
 
 
 !!
@@ -173,7 +215,7 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
     integer :: isph, ig, ic, ind, ind0, jg, l, m, jsph
     real(dp) :: nderphi, sumSijn, rijn, coef_Ylm, sumSijn_pre, termi, &
         & termk, term, tmp1, tmp2
-    real(dp), dimension(3) :: sijn, vij
+    real(dp), dimension(3) :: sijn, vij, vtij
     real(dp) :: rho, ctheta, stheta, cphi, sphi, start_time, finish_time
     real(dp), allocatable :: SK_rijn(:), DK_rijn(:)
     integer :: l0, m0, icav, istatus, indl, inode
@@ -250,7 +292,8 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
     !                        end do
     !                    end do
     !                    sumSijn = sumSijn + tmp1
-                        call fmm_m2p_bessel_work(vij*params % kappa, &
+                        vtij = vij*params % kappa
+                        call fmm_m2p_bessel_work(vtij, &
                             & constants % lmax0, constants % vscales, &
                             & constants % SK_ri(:, jsph), one, &
                             & c1(:, jsph), one, sumSijn, work_complex, work)
@@ -297,61 +340,170 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
     end if
 end subroutine wghpot_f
 
-  !
-  ! Subroutine used for the GMRES solver
-  ! @param[in]      n : Size of the matrix
-  ! @param[in]      x : Input vector
-  ! @param[in, out] y : y=A*x
-  !
-  subroutine bx(params, constants, workspace, x, y)
-  implicit none 
+subroutine lx_nodiag_incore(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, jsph, ij
+    y = zero
+    !$omp parallel do default(none) shared(params,constants,x,y) &
+    !$omp private(isph,ij,jsph)
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            call dgemv('n', constants % nbasis, constants % nbasis, one, &
+                & constants % l(:,:,ij), constants % nbasis, x(:,jsph), 1, &
+                & one, y(:,isph), 1)
+        end do
+    end do
+end subroutine lx_nodiag_incore
+
+subroutine lstarx_nodiag_incore(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, jsph, ij, indmat
+    y = zero
+    !$omp parallel do default(none) shared(params,constants,x,y) &
+    !$omp private(isph,ij,jsph,indmat)
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            indmat = constants % itrnl(ij)
+            call dgemv('t', constants % nbasis, constants % nbasis, one, &
+                & constants % l(:,:,indmat), constants % nbasis, x(:,jsph), 1, &
+                & one, y(:,isph), 1)
+        end do
+    end do
+end subroutine lstarx_nodiag_incore
+
+subroutine bx_incore(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, jsph, ij
+    y = x
+    !$omp parallel do default(none) shared(params,constants,x,y) &
+    !$omp private(isph,ij,jsph)
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            call dgemv('n', constants % nbasis, constants % nbasis, one, &
+                & constants % b(:,:,ij), constants % nbasis, x(:,jsph), 1, &
+                & one, y(:,isph), 1)
+        end do
+    end do
+end subroutine bx_incore
+
+subroutine bstarx_incore(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, jsph, ij, indmat
+    y = x
+    !$omp parallel do default(none) shared(params,constants,x,y) &
+    !$omp private(isph,ij,jsph,indmat)
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            indmat = constants % itrnl(ij)
+            call dgemv('t', constants % nbasis, constants % nbasis, one, &
+                & constants % b(:,:,indmat), constants % nbasis, x(:,jsph), 1, &
+                & one, y(:,isph), 1)
+        end do
+    end do
+end subroutine bstarx_incore
+
+!
+! Subroutine used for the GMRES solver
+! @param[in]      n : Size of the matrix
+! @param[in]      x : Input vector
+! @param[in, out] y : y=A*x
+!
+subroutine bx(params, constants, workspace, x, y)
+    implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-  real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
-  real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
-  integer :: isph, istatus
-  real(dp), allocatable :: pot(:), vplm(:), basloc(:), vcos(:), vsin(:)
-  integer :: i
-  ! allocate workspaces
-  allocate( pot(params % ngrid), vplm(constants % nbasis), basloc(constants % nbasis), &
-            & vcos(params % lmax+1), vsin(params % lmax+1) , stat=istatus )
-  if ( istatus.ne.0 ) then
-    write(*,*) 'Bx: allocation failed !'
-    stop
-  endif
-  
-!  if (ddx_data % iprint .ge. 5) then
-!      call prtsph('X', ddx_data % constants % nbasis, ddx_data % params % lmax, ddx_data % params % nsph, 0, &
-!          & x)
-!  end if
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, istatus
+    real(dp) :: pot(params % ngrid), vplm(constants % nbasis), &
+        & vylm(constants % nbasis), vcos(params % lmax + 1), &
+        & vsin(params % lmax + 1)
+    complex(dp) :: bessel(max(2, params % lmax + 1))
+    integer :: i, ithread
 
-  y = zero
-  do isph = 1, params % nsph
-    call calcv2_lpb(params, constants, isph, pot, x, basloc, vplm, vcos, vsin, &
-        & workspace % tmp_bessel(:, 1))
-    ! intrhs comes from ddCOSMO
-    call intrhs(1, constants % nbasis, params % ngrid, &
-                constants % vwgrid, constants % vgrid_nbasis, &
-                & pot, y(:,isph) )
-    ! Action of off-diagonal blocks
-    y(:,isph) = - y(:,isph)
-    ! Add action of diagonal block
-    y(:,isph) = y(:,isph) + x(:,isph)
-  end do
-  
-!  if (ddx_data % iprint .ge. 5) then
-!      call prtsph('Bx (off-diagonal)', ddx_data % constants % nbasis, ddx_data % params % lmax, &
-!          & ddx_data % params % nsph, 0, y)
-!  end if
-  deallocate( pot, basloc, vplm, vcos, vsin , stat=istatus )
-  if ( istatus.ne.0 ) then
-    write(*,*) 'bx: allocation failed !'
-    stop
-  endif
-  end subroutine bx
+    y = zero
+    !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+    !$omp private(isph,pot,vylm,vplm,vcos,vsin,bessel)
+    do isph = 1, params % nsph
+      !!ithread = omp_get_thread_num()
+      call calcv2_lpb(params, constants, isph, pot, x, &
+          & vylm, vplm, vcos, vsin,bessel)
+      ! intrhs comes from ddCOSMO
+      call intrhs(1, constants % nbasis, params % ngrid, &
+                  & constants % vwgrid, constants % vgrid_nbasis, &
+                  & pot, y(:,isph) )
+      ! Action of off-diagonal blocks
+      y(:,isph) = - y(:,isph)
+      ! Add action of diagonal block
+      y(:,isph) = y(:,isph) + x(:,isph)
+    end do
+
+end subroutine bx
+
+subroutine bx_nodiag(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph
+
+    y = zero
+    !!$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+    !!$omp private(isph,pot,basloc,vplm,vcos,vsin,ithread)
+    do isph = 1, params % nsph
+      !!ithread = omp_get_thread_num()
+      call calcv2_lpb(params, constants, isph, workspace % tmp_grid, x, &
+          & workspace % tmp_vylm, workspace % tmp_vplm, workspace % tmp_vcos, &
+          & workspace % tmp_vsin, workspace % tmp_bessel)
+      ! intrhs comes from ddCOSMO
+      call intrhs(1, constants % nbasis, params % ngrid, &
+                  constants % vwgrid, constants % vgrid_nbasis, &
+                  & workspace % tmp_grid, y(:,isph) )
+      ! Action of off-diagonal blocks
+      y(:,isph) = - y(:,isph)
+    end do
+    !!$omp end parallel do
+end subroutine bx_nodiag
+
+subroutine bx_prec(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    y = x
+end subroutine bx_prec
+
 
 !!
 !! Scale the ddCOSMO solution vector
@@ -381,49 +533,6 @@ subroutine convert_ddcosmo(params, constants, direction, vector)
     end do
 end subroutine convert_ddcosmo
 
-!!
-!! Solve the HSP problem
-!! @param[in]      rhs : Right hand side for HSP
-!! @param[in, out] Xe  : Solution vector
-!!
-subroutine lpb_hsp(params, constants, workspace, tol, rhs, Xe)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: tol
-    real(dp), intent(in) :: rhs(constants % nbasis, params % nsph)
-    !! Temporaries
-    type(ddx_workspace_type), intent(inout) :: workspace
-    !! Outputs
-    real(dp), intent(inout) :: Xe(constants % nbasis, params % nsph)
-    !! Local variables
-    integer :: isph, istatus, n_iter, info, c1, c2, cr
-    real(dp) :: r_norm
-    !! The code
-    Xe = zero
-    !!
-    !! Call GMRES solver
-    !! @param[in]      Residue_print : Set to false by default. Prints the
-    !!                                 intermediate residue.
-    !! @param[in]      nsph*nylm     : Size of matrix
-    !! @param[in]      gmj           : Integer truncation parameter, Default: 25
-    !! @param[in]      gmm           : Integer dimension of the GMRES,
-    !!                                 Default: 20
-    !! @param[in]      rhs           : Right hand side
-    !! @param[in, out] Xe            : Initial guess of the problem
-    !! @param[in]      work          : Work space of size
-    !!                               : nsph*nylm X (2*gmj + gmm + 2)
-    !! @param[in]      Stopping      : Stopping criteria, Default set to
-    !!                                 'rel' for relative. Other option
-    !!                                 'abs' for absolute
-    !! @param[in]      r_norm        : Residual measure
-    !! @param[in]      bx        : Subroutine A*x. Named matabx in file
-    !! @param[in, out] info          : Flag after solve. 0 means within tolerance
-    !!                                 1 means max number of iteration
-    n_iter = params % maxiter
-    call gmresr(params, constants, workspace, tol, rhs, Xe, n_iter, r_norm, bx, info)
-endsubroutine lpb_hsp
-
   !
   ! Intermediate computation of BX_e
   ! @param[in]      isph   : Number of the sphere
@@ -452,7 +561,7 @@ endsubroutine lpb_hsp
   real(dp), dimension(params % ngrid) :: pot2
   integer :: its, ij, jsph
   real(dp) :: rho, ctheta, stheta, cphi, sphi
-  real(dp) :: vij(3), sij(3)
+  real(dp) :: vij(3), sij(3), vtij(3)
   real(dp) :: vvij, tij, xij, oij
 
   pot = zero
@@ -465,9 +574,9 @@ endsubroutine lpb_hsp
         ! compute geometrical variables
         vij  = params % csph(:,isph) + params % rsph(isph)*constants % cgrid(:,its) - params % csph(:,jsph)
         vvij = sqrt(dot_product(vij,vij))
-        tij  = vvij/params % rsph(jsph) 
+        tij  = vvij/params % rsph(jsph)
 
-        if ( tij.lt.one ) then
+        if ( tij.lt.( one + (params % se+one)/two*params % eta ) ) then
           sij = vij/vvij
           xij = fsw(tij, params % se, params % eta)
           if (constants % fi(its,isph).gt.one) then
@@ -484,7 +593,9 @@ endsubroutine lpb_hsp
           !call inthsp(params, constants, vvij, params % rsph(jsph), jsph, &
           !    & basloc, fac_hsp, bessel_work)
           !pot(its) = pot(its) + oij*dot_product(fac_hsp,x(:,jsph))
-          call fmm_l2p_bessel_work(vij*params % kappa, &
+!
+          vtij = vij*params % kappa
+          call fmm_l2p_bessel_work(vtij, &
               & params % lmax, constants % vscales, &
               & constants % SI_ri(:, jsph), oij, x(:, jsph), one, &
               & pot(its), work_complex, work)
@@ -520,10 +631,10 @@ endsubroutine lpb_hsp
   DI_rijn = 0
   fac_hsp = 0
 
-  ! Computation of modified spherical Bessel function values      
+  ! Computation of modified spherical Bessel function values
   call modified_spherical_bessel_first_kind(params % lmax, &
       & rijn*params % kappa, SI_rijn, DI_rijn, work)
-  
+
   do l = 0, params % lmax
     do  m = -l, l
       ind = l*l + l + 1 + m
@@ -723,262 +834,606 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     !! rhs_e      : Right hand side corresponding to HSP equation
     real(dp), dimension(constants % nbasis, params % nsph):: rhs_r, rhs_e
     !! xs_rel_diff : relative norm of increment of every Jacobi iteration
-    real(dp) :: xs_rel_diff(params % maxiter)
+    real(dp) :: x_rel_diff(params % maxiter)
     integer  :: iteration, n_iter, isph, info
-    real(dp) :: old_esolv, inc, start_time, finish_time
-    logical  :: converged, ok
+    real(dp), dimension(constants % nbasis, params % nsph, 2) :: rhs, x, scr
+    logical :: ok
+    real(dp), dimension(2*constants % n*(2*params % gmresr_j + 2)) :: gmres_work
+    real(dp) :: gmres_resid
 
     ! Setting of the local variables
-    old_esolv = zero; inc = zero
     rhs_r_init = zero; rhs_e_init = zero
     g0 = zero; f0 = zero
 
-    !!
-    !! Integrate Right hand side
-    !! rhs_r_init: g0+f0
-    !! rhs_e_init: f0
-    !!
-    !  do isph = 1, params % nsph
-    !    !! intrhs is a subroutine in ddx_operators
-    !    !! @param[in]  isph : Sphere number, used for output
-    !    !! @param[in]  g    : Intermediate right side g
-    !    !! @param[out] g0   : Integrated right side Eq.(77) in QSM19.SISC
-    !    call intrhs(iprint, params % ngrid, &
-    !                params % lmax, constants % vwgrid, constants % vgrid_nbasis, &
-    !                & isph, g(:,isph), g0)
-    !    call intrhs(iprint, params % ngrid, &
-    !                params % lmax, constants % vwgrid, constants % vgrid_nbasis, &
-    !                & isph,f(:,isph),f0)
-    !    !! rhs
-    !    rhs_r_init(:,isph) = g0 + f0
-    !    rhs_e_init(:,isph) = f0
-    !  end do
+    ! integrate RHS
+    tt0 = omp_get_wtime()
     call intrhs(params % nsph, constants % nbasis, &
         & params % ngrid, constants % vwgrid, &
         & constants % vgrid_nbasis, g, rhs_r_init)
     call intrhs(params % nsph, constants % nbasis, &
         & params % ngrid, constants % vwgrid, &
         & constants % vgrid_nbasis, f, rhs_e_init)
-    rhs_r_init = rhs_r_init + rhs_e_init
+    tt1 = omp_get_wtime()
+    write(6,*) '@direct@intrhs', tt1 - tt0
 
+    rhs(:,:,1) = rhs_r_init + rhs_e_init
+    rhs(:,:,2) = rhs_e_init
 
-    rhs_r = rhs_r_init
-    rhs_e = rhs_e_init
+    ! guess
+    ddcosmo_guess = zero
+    hsp_guess = zero
+    call lpb_direct_prec(params, constants, workspace, rhs, x)
+    call prtsph('rhs', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, rhs)
 
+    ! solve LS using Jacobi/DIIS
+    n_iter = params % maxiter
+    call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
+        & 4, params % jacobi_ndiis, 2, tol, rhs, x, n_iter, &
+        & ok, lpb_direct_matvec, lpb_direct_prec)
+    call prtsph('sol', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, x)
+    xr = x(:,:,1)
+    xe = x(:,:,2)
 
-    ! Set values to default values
-    converged = .false.
-    ok = .false.
-    iteration = one
+    ! check
+    call lpb_direct_matvec_full(params, constants, workspace, x, scr)
+    call prtsph('matvec', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, scr)
+    call prtsph('rhs', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, rhs)
 
-    do while (.not.converged)
-
-        !! Solve the ddCOSMO step
-        !! A X_r = RHS_r (= G_X+G_0)
-        !! Call Jacobi solver
-        !! @param[in]      nsph*nylm : Size of matrix
-        !! @param[in]      iprint    : Flag for printing
-        !! @param[in]      ndiis     : Number of points to be used for
-        !!                            DIIS extrapolation. Set to 25 in ddCOSMO
-        !! @param[in]      4         : Norm to be used to evaluate convergence
-        !!                             4 refers to user defined norm. Here hnorm
-        !! @param[in]      tol       : Convergence tolerance
-        !! @param[in]      rhs_r     : Right-hand side
-        !! @param[in, out] xr        : Initial guess to solution and final solution
-        !! @param[in, out] n_iter    : Number of iterative steps
-        !! @param[in, out] ok        : Boolean to check whether the solver converged
-        !! @param[in]      lx        : External subroutine to compute matrix
-        !!                             multiplication, i.e., Lx_r, comes from matvec.f90
-        !! @param[in]      ldm1x     : External subroutine to apply invert diagonal
-        !!                             matrix to vector, i.e., L^{-1}x_r, comes from
-        !!                             matvec.f90
-        !! @param[in]      hnorm     : Use defined norm, comes from matvec.f90
-        Xr = zero
-        n_iter = params % maxiter
-        !call cpu_time(start_time)
-        call jacobi_diis(params, constants, &
-            & workspace, tol, rhs_r, Xr, n_iter, xs_rel_diff, &
-            & lx_nodiag, ldm1x, hnorm, info)
-        !call cpu_time(finish_time)
-        !write(*, *) "1 Jacobi solve in", finish_time-start_time, "seconds"
-        ! Scale by the factor of (2l+1)/4Pi
-        call convert_ddcosmo(params, constants, 1, Xr)
-
-        !! Solve ddLPB step
-        !! B X_e = RHS_e (= F_0)
-        call lpb_hsp(params, constants, workspace, &
-            & tol, rhs_e, Xe)
-
-        !! Update the RHS
-        !! / RHS_r \ = / g + f \ - / c1 c2 \ / X_r \
-        !! \ RHS_e /   \ f     /   \ c1 c2 / \ X_e /
-        !call cpu_time(start_time)
-        call update_rhs(params, constants, workspace, &
-            & rhs_r_init, rhs_e_init, rhs_r, rhs_e, Xr, Xe)
-        !call cpu_time(finish_time)
-        !write(*, *) "update_rhs in", finish_time-start_time, "seconds"
-
-        !! Compute energy
-        !! esolv = pt5*sprod(nsph*nylm,xr,psi)
-        esolv = zero
-        do isph = 1, params % nsph
-            esolv = esolv + pt5*params % charge(isph)*Xr(1,isph)*(one/sqrt4pi)
-        end do
-
-        !! Check for convergence
-        inc = zero
-        inc = abs(esolv - old_esolv)/abs(esolv)
-        old_esolv = esolv
-        if ((iteration.gt.1) .and. (inc.lt.tol)) then
-            write(6,*) 'Reach tolerance.'
-            converged = .true.
-        end if
-        write(6,*) iteration, esolv, inc
-        iteration = iteration + 1
-
+    esolv = zero
+    do isph = 1, params % nsph
+      esolv = esolv + pt5*params % charge(isph)*Xr(1,isph)*(one/sqrt4pi)
     end do
 end subroutine ddx_lpb_solve
+
+! This routine is not needed when using a Jacobi/DIIS solver for the
+! LPB linear systems. It is needed if using a GMRES solver.
+subroutine lpb_adjoint_matvec_full(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
+    real(dp), dimension(constants % nbasis, params % nsph, 2) :: scratch
+
+    call lpb_adjoint_matvec(params, constants, workspace, x, y)
+    call lstarx(params, constants, workspace, x(:,:,1), scratch(:,:,1))
+    call convert_ddcosmo(params, constants, -1, scratch(:,:,1))
+    call bstarx(params, constants, workspace, x(:,:,2), scratch(:,:,2))
+    y = y + scratch
+
+end subroutine lpb_adjoint_matvec_full
+
+! This routine is not needed when using a Jacobi/DIIS solver for the
+! LPB linear systems. It is needed if using a GMRES solver.
+subroutine lpb_direct_matvec_full(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
+    real(dp), dimension(constants % nbasis, params % nsph, 2) :: scratch
+
+    call lpb_direct_matvec(params, constants, workspace, x, y)
+    scratch(:,:,2) = x(:,:,1)
+    call convert_ddcosmo(params, constants, -1, scratch(:,:,2))
+    call lx(params, constants, workspace, scratch(:,:,2), scratch(:,:,1))
+    call bx(params, constants, workspace, x(:,:,2), scratch(:,:,2))
+    y = y + scratch
+
+end subroutine lpb_direct_matvec_full
+
+subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
+    real(dp), dimension(params % ngrid, params % nsph) :: Xadj_sgrid
+    real(dp), dimension(constants % nbasis, params % nsph) :: scratch
+    real(dp), dimension(constants % nbasis0, params % nsph) :: scratch0
+    real(dp), dimension(0:constants % lmax0) :: SK_rijn, DK_rijn
+    real(dp), dimension(constants % nbasis) :: basloc, vplm
+    real(dp), dimension(params % lmax + 1) :: vcos, vsin
+    complex(dp) :: bessel_work(max(2, params % lmax+1))
+    complex(dp) :: work_complex(constants % lmax0+1)
+    real(dp) :: work(constants % lmax0+1)
+    integer :: isph, igrid, jsph, l, m, ind, l0, m0, ind0, indl, inode
+    real(dp), dimension(3) :: vij, sijn, vtij
+    real(dp) :: val, rijn, term, epsilon_ratio, rho, ctheta, stheta, cphi, sphi
+    real(dp), external :: dnrm2
+
+    epsilon_ratio = epsp/params % eps
+
+    tt0 = omp_get_wtime()
+    ! TODO: maybe use ddeval_grid for code consistency
+    scratch = - x(:,:,1) - x(:,:,2)
+    call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
+        & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
+        & constants % nbasis, zero, Xadj_sgrid, params % ngrid)
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@matvec1', tt1 - tt0
+
+    tt0 = omp_get_wtime()
+    scratch0 = zero
+    if (params % fmm .eq. 0) then
+        do isph = 1, params % nsph
+            do igrid = 1, params % ngrid
+                if (constants % ui(igrid, isph).gt.zero) then
+                    val = xadj_sgrid(igrid,isph) &
+                        & *constants % ui(igrid,isph)
+                    ! quadratically scaling loop
+                    do jsph = 1, params % nsph
+                        vij  = params % csph(:,isph) + &
+                            & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                            & params % csph(:,jsph)
+    !                    rijn = sqrt(dot_product(vij,vij))
+    !                    sijn = vij/rijn
+    !                    call modified_spherical_bessel_second_kind(constants % lmax0, &
+    !                        & rijn*params % kappa, SK_rijn, DK_rijn, bessel_work)
+    !                    call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+    !                        & sphi, params % lmax, constants % vscales, &
+    !                        & basloc, vplm, vcos, vsin)
+    !                    do l0 = 0, constants % lmax0
+    !                        term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+    !                        do m0 = -l0, l0
+    !                            ind0 = l0*l0 + l0 + m0 + 1
+    !                            scratch0(ind0,jsph) = scratch0(ind0,jsph) + &
+    !                                & val*term*basloc(ind0)
+    !                                !& val*constants % C_ik(l0,jsph)*term*basloc(ind0)
+    !                        end do
+    !                    end do
+                        vtij = vij * params % kappa
+                        call fmm_m2p_bessel_adj_work(vtij, val, &
+                            & constants % SK_ri(:, jsph), constants % lmax0, &
+                            & constants % vscales, one, scratch0(:, jsph), &
+                            & work_complex, work)
+                    end do
+                end if
+            end do
+        end do
+    else
+        ! Multiply by characteristic function
+        workspace % tmp_grid = xadj_sgrid * constants % ui
+        workspace % tmp_sph = zero
+        ! Do FMM operations adjointly
+        call tree_m2p_bessel_adj(params, constants, constants % lmax0, &
+            & one, workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
+        call tree_l2p_bessel_adj(params, constants, one, &
+            & workspace % tmp_grid, zero, workspace % tmp_node_l)
+        call tree_l2l_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_l)
+        call tree_m2l_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_l, workspace % tmp_node_m)
+        call tree_m2m_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_m)
+        ! Adjointly move tree multipole harmonics into output
+        if(constants % lmax0 .lt. params % pm) then
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                scratch0(:, isph) = workspace % tmp_sph(:, isph) + &
+                    & workspace % tmp_node_m(1:constants % nbasis0, inode)
+            end do
+        else
+            indl = (params % pm+1)**2
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                scratch0(1:indl, isph) = &
+                    & workspace % tmp_sph(1:indl, isph) + &
+                    & workspace % tmp_node_m(:, inode)
+                scratch0(indl+1:, isph) = zero
+            end do
+        end if
+        ! Following code is here to check accuracy in debug mode
+!        scratch = zero
+!        do isph = 1, params % nsph
+!            do igrid = 1, params % ngrid
+!                if (constants % ui(igrid, isph).gt.zero) then
+!                    val = xadj_sgrid(igrid,isph) &
+!                        & *constants % ui(igrid,isph)
+!                    ! quadratically scaling loop
+!                    do jsph = 1, params % nsph
+!                        vij  = params % csph(:,isph) + &
+!                            & params % rsph(isph)*constants % cgrid(:,igrid) - &
+!                            & params % csph(:,jsph)
+!    !                    rijn = sqrt(dot_product(vij,vij))
+!    !                    sijn = vij/rijn
+!    !                    call modified_spherical_bessel_second_kind(constants % lmax0, &
+!    !                        & rijn*params % kappa, SK_rijn, DK_rijn, bessel_work)
+!    !                    call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+!    !                        & sphi, params % lmax, constants % vscales, &
+!    !                        & basloc, vplm, vcos, vsin)
+!    !                    do l0 = 0, constants % lmax0
+!    !                        term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+!    !                        do m0 = -l0, l0
+!    !                            ind0 = l0*l0 + l0 + m0 + 1
+!    !                            scratch0(ind0,jsph) = scratch0(ind0,jsph) + &
+!    !                                & val*term*basloc(ind0)
+!    !                                !& val*constants % C_ik(l0,jsph)*term*basloc(ind0)
+!    !                        end do
+!    !                    end do
+!                        vtij = vij * params % kappa
+!                        call fmm_m2p_bessel_adj_work(vtij, val, &
+!                            & constants % SK_ri(:, jsph), constants % lmax0, &
+!                            & constants % vscales, one, scratch(:, jsph), &
+!                            & work_complex, work)
+!                    end do
+!                end if
+!            end do
+!        end do
+!        write(*, *) "diff=", dnrm2(constants % nbasis0*params % nsph, &
+!            & scratch(1:constants % nbasis0, :)-scratch0, 1) / &
+!            & dnrm2(constants % nbasis0*params % nsph, scratch0, 1)
+    end if
+    ! Scale by C_ik
+    do isph = 1, params % nsph
+        do l0 = 0, constants % lmax0
+            ind0 = l0*l0 + l0 + 1
+            scratch0(ind0-l0:ind0+l0, isph) = scratch0(ind0-l0:ind0+l0, isph) * &
+                & constants % C_ik(l0, isph)
+        end do
+    end do
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@matvec2', tt1 - tt0
+
+    tt0 = omp_get_wtime()
+    do jsph = 1, params % nsph
+        call dgemv('n', constants % nbasis, constants % nbasis0, one, &
+            & constants % pchi(1,1,jsph), constants % nbasis, &
+            & scratch0(1,jsph), 1, zero, scratch(1,jsph), 1)
+    end do
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@matvec3', tt1 - tt0
+
+    tt0 = omp_get_wtime()
+    do isph = 1, params % nsph
+        do l = 0, params % lmax
+            do m = -l, l
+                ind = l**2 + l + m + 1
+                y(ind,isph,1) = - (epsilon_ratio*l*scratch(ind,isph)) &
+                    & /params % rsph(isph)
+                y(ind,isph,2) = constants % termimat(l,isph)*scratch(ind,isph)
+          end do
+        end do
+    end do
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@matvec4', tt1 - tt0
+
+end subroutine lpb_adjoint_matvec
+
+! Perform |Yr| = |C1 C2|*|Xr|
+!         |Ye|   |C1 C2| |Xe|
+! @param[in] ddx_data : dd Data
+! @param[in] x        : Input array X (Xr, Xe)
+! @param[out] y       : Matrix-vector product result Y
+subroutine lpb_direct_matvec(params, constants, workspace, x, y)
+    implicit none
+
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
+
+    integer :: isph, jsph, igrid, icav, ind, l, m, ind0, l0, m0, istatus
+    real(dp), dimension(3) :: sijn ,vij, vtij
+    real(dp) :: term, rho, ctheta, stheta, cphi, sphi, rijn
+    real(dp), dimension(constants % nbasis) :: basloc, vplm
+    real(dp), dimension(params % lmax + 1) :: vcos, vsin
+    real(dp), dimension(0:constants % lmax0) :: SK_rijn, DK_rijn
+    complex(dp)  :: work_complex(constants % lmax0+1)
+    real(dp) :: work(constants % lmax0+1)
+    integer :: indl, inode
+
+    real(dp), dimension(constants % nbasis, params % nsph) :: diff_re
+    real(dp), dimension(constants % nbasis0, params % nsph) :: diff0
+    real(dp) :: val
+
+    ! diff_re = epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
+    tt0 = omp_get_wtime()
+    diff_re = zero
+    !!$omp parallel do default(none) shared(params,diff_re, &
+    !!$omp constants,x) private(jsph,l,m,ind)
+    do jsph = 1, params % nsph
+      do l = 0, params % lmax
+        do m = -l,l
+          ind = l**2 + l + m + 1
+          diff_re(ind,jsph) = (epsp/params % eps)* &
+              & (l/params % rsph(jsph))*x(ind,jsph,1) &
+              & - constants % termimat(l,jsph)*x(ind,jsph,2)
+        end do
+      end do
+    end do
+    !!$omp end parallel do
+    tt1 = omp_get_wtime()
+    write(6,*) '@direct@matvec1', tt1 - tt0
+
+    ! diff0 = Pchi * diff_er, linear scaling
+    !!$omp parallel do default(none) shared(constants,params, &
+    !!$omp diff_re,diff0) private(jsph)
+    do jsph = 1, params % nsph
+      call dgemv('t', constants % nbasis, constants % nbasis0, one, &
+          & constants % pchi(1,1,jsph), constants % nbasis, &
+          & diff_re(1,jsph), 1, zero, diff0(1,jsph), 1)
+    end do
+    !!$omp end parallel do
+    tt1 = omp_get_wtime()
+    write(6,*) '@direct@matvec2', tt1 - tt0
+
+    ! Multiply diff0 by C_ik inplace
+    do isph = 1, params % nsph
+        do l = 0, constants % lmax0
+            ind0 = l*l+l+1
+            diff0(ind0-l:ind0+l, isph) = diff0(ind0-l:ind0+l, isph) * &
+                & constants % C_ik(l, isph)
+        end do
+    end do
+    ! avoiding N^2 storage, this code does not use the cached coefY
+    tt0 = omp_get_wtime()
+    y(:,:,1) = zero
+    if (params % fmm .eq. 0) then
+        !!$omp parallel do default(none) shared(params,constants, &
+        !!$omp diff0,y) private(isph,igrid,val,vij,rijn,sijn,SK_rijn, &
+        !!$omp DK_rijn,work,rho,ctheta,stheta,cphi,sphi,basloc,vplm, &
+        !!$omp vcos,vsin,l0,term,m0,ind0,ind)
+        do isph = 1, params % nsph
+            do igrid = 1, params % ngrid
+                if (constants % ui(igrid,isph).gt.zero) then
+                    val = zero
+
+                    ! quadratically scaling loop
+                    do jsph = 1, params % nsph
+                        vij  = params % csph(:,isph) + &
+                            & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                            & params % csph(:,jsph)
+                        vtij = vij * params % kappa
+                        call fmm_m2p_bessel_work(vtij, constants % lmax0, &
+                            & constants % vscales, constants % SK_ri(:, jsph), &
+                            & one, diff0(:, jsph), one, val, work_complex, work)
+!                        rijn = sqrt(dot_product(vij,vij))
+!                        sijn = vij/rijn
+!
+!                        ! Compute Bessel function of 2nd kind for the coordinates
+!                        ! (s_ijn, r_ijn) and compute the basis function for s_ijn
+!                        call modified_spherical_bessel_second_kind(constants % lmax0, &
+!                            & rijn*params % kappa, SK_rijn, DK_rijn, work_complex)
+!                        call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+!                            & sphi, params % lmax, constants % vscales, &
+!                            & basloc, vplm, vcos, vsin)
+!
+!                        do l0 = 0, constants % lmax0
+!                            term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+!                            do m0 = -l0, l0
+!                                ind0 = l0*l0 + l0 + m0 + 1
+!                                val = val +  diff0(ind0,jsph)* &
+!                                    & term*basloc(ind0)
+!                            end do
+!                        end do
+                    end do
+                    do ind = 1, constants % nbasis
+                        y(ind,isph,1) = y(ind,isph,1) + val*&
+                          & constants % ui(igrid,isph)*&
+                          & constants % vwgrid(ind,igrid)
+                    end do
+                end if
+            end do
+        end do
+    else
+        ! Load input harmonics into tree data
+        workspace % tmp_node_m = zero
+        workspace % tmp_node_l = zero
+        workspace % tmp_sph = zero
+        do isph = 1, params % nsph
+            do l = 0, constants % lmax0
+                ind0 = l*l+l+1
+                workspace % tmp_sph(ind0-l:ind0+l, isph) = &
+                    & diff0(ind0-l:ind0+l, isph)
+            end do
+        end do
+        if(constants % lmax0 .lt. params % pm) then
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                workspace % tmp_node_m(1:constants % nbasis0, inode) = &
+                    & workspace % tmp_sph(1:constants % nbasis0, isph)
+                workspace % tmp_node_m(constants % nbasis0+1:, inode) = zero
+            end do
+        else
+            indl = (params % pm+1)**2
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                workspace % tmp_node_m(:, inode) = workspace % tmp_sph(1:indl, isph)
+            end do
+        end if
+        ! Do FMM operations
+        call tree_m2m_bessel_rotation(params, constants, workspace % tmp_node_m)
+        call tree_m2l_bessel_rotation(params, constants, workspace % tmp_node_m, &
+            & workspace % tmp_node_l)
+        call tree_l2l_bessel_rotation(params, constants, workspace % tmp_node_l)
+        workspace % tmp_grid = zero
+        call tree_l2p_bessel(params, constants, one, workspace % tmp_node_l, zero, &
+            & workspace % tmp_grid)
+        call tree_m2p_bessel(params, constants, constants % lmax0, one, &
+            & params % lmax, workspace % tmp_sph, one, &
+            & workspace % tmp_grid)
+
+        write(6,*) 'using fmm code'
+        do isph = 1, params % nsph
+            do igrid = 1, params % ngrid
+                do ind = 1, constants % nbasis
+                    y(ind,isph,1) = y(ind,isph,1) + workspace % tmp_grid(igrid, isph)*&
+                        & constants % vwgrid(ind, igrid)*&
+                        & constants % ui(igrid,isph)
+                end do
+            end do
+        end do
+    end if
+    tt1 = omp_get_wtime()
+    write(6,*) '@direct@matvec3', tt1 - tt0
+
+    y(:,:,2) = y(:,:,1)
+
+end subroutine lpb_direct_matvec
+
+subroutine lpb_adjoint_prec(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
+    real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
+    integer :: n_iter, info
+    real(dp) :: r_norm
+    real(dp), dimension(params % maxiter) :: x_rel_diff
+
+    tt0 = omp_get_wtime()
+    y(:,:,1) = x(:,:,1)
+    call convert_ddcosmo(params, constants, 1, y(:,:,1))
+    n_iter = params % maxiter
+    if (params % incore) then
+        call jacobi_diis(params, constants, workspace, inner_tol, y(:,:,1), &
+            & ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag_incore, ldm1x, hnorm, info)
+    else
+        call jacobi_diis(params, constants, workspace, inner_tol, y(:,:,1), &
+            & ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
+    end if
+    y(:,:,1) = ddcosmo_guess
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@cosmo', tt1 - tt0, n_iter
+
+    tt0 = omp_get_wtime()
+    n_iter = params % maxiter
+    if (params % incore) then
+        call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+            & n_iter, r_norm, bstarx_incore, info)
+    else
+        call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+            & n_iter, r_norm, bstarx, info)
+    end if
+    y(:,:,2) = hsp_guess
+    tt1 = omp_get_wtime()
+    write(6,*) '@adjoint@hsp', tt1 - tt0, n_iter
+
+end subroutine lpb_adjoint_prec
+
+! apply preconditioner
+! |Yr| = |A^-1 0 |*|Xr|
+! |Ye|   |0 B^-1 | |Xe|
+! @param[in] ddx_data : dd Data
+! @param[in] x        : Input array
+! @param[out] y       : Linear system solution at current iteration
+subroutine lpb_direct_prec(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
+    real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
+    integer :: n_iter, info
+    real(dp) :: r_norm
+    real(dp), dimension(params % maxiter) :: x_rel_diff
+
+
+    !y(:,:,:) = zero
+    !y(1,1,1) = one
+    !write(6,*) 'here'; flush(6)
+    !call bx_incore(params, constants, workspace, y(:,:,1), y(:,:,2))
+    !call prtsph('incore', constants % nbasis, params % lmax, params % nsph, &
+    !    & 0, y(:,:,2))
+    !write(6,*) 'here'; flush(6)
+    !call bx(params, constants, workspace, y(:,:,1), y(:,:,2))
+    !call prtsph('onthefly', constants % nbasis, params % lmax, params % nsph, &
+    !    & 0, y(:,:,2))
+    !stop
+
+    ! perform A^-1 * Yr
+    tt0 = omp_get_wtime()
+    n_iter = params % maxiter
+    if (params % incore) then
+        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), &
+            & ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag_incore, ldm1x, hnorm, info)
+    else
+        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), &
+            & ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
+    end if
+
+    ! Scale by the factor of (2l+1)/4Pi
+    y(:,:,1) = ddcosmo_guess
+    call convert_ddcosmo(params, constants, 1, y(:,:,1))
+    tt1 = omp_get_wtime()
+    write(6,*) '@direct@cosmo', tt1 - tt0, n_iter
+
+    ! perform B^-1 * Ye
+    tt0 = omp_get_wtime()
+    n_iter = params % maxiter
+    if (params % incore) then
+        call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+          & n_iter, r_norm, bx_incore, info)
+    else
+        call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+          & n_iter, r_norm, bx, info)
+    end if
+    !call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+    !    & n_iter, x_rel_diff, bx_nodiag, bx_prec, hnorm, info)
+    !call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &
+    !    & 0, hsp_guess)
+    y(:,:,2) = hsp_guess
+    tt1 = omp_get_wtime()
+    write(6,*) '@direct@hsp', tt1 - tt0, n_iter
+
+end subroutine lpb_direct_prec
+
 
 !
 ! Computation of Adjoint
 ! @param[in] ddx_data: Input data file
 ! @param[in] psi     : psi_r
 subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_e)
-    !! Inputs
+    implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: psi
     real(dp), intent(in) :: tol
-    !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
-    !! Outputs
-    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: Xadj_r, Xadj_e
-    real(dp), external :: dnrm2
-    !! Local Variables
-    !! xs_rel_diff : relative norm of increment of every Jacobi iteration
-    real(dp) :: xs_rel_diff(params % maxiter)
-    ! ok             : Logical expression used in Jacobi solver
-    ! istatus        : Status of allocation
-    ! isph           : Index for the sphere
-    ! ibasis         : Index for the basis
-    ! iteration      : Number of outer loop iterations
-    ! inc            : Check for convergence threshold
-    ! relative_num   : Numerator of the relative error
-    ! relative_denom : Denominator of the relative error
-    ! converged      : Convergence check for outer loop
-    logical   :: ok
-    integer   :: istatus, isph, ibasis,  iteration
-    real(dp)  :: inc, relative_num, relative_denom
-    logical   :: converged
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: Xadj_r, &
+        & Xadj_e
+    real(dp), dimension(constants % nbasis, params % nsph, 2) :: x, rhs, scr
+    integer :: n_iter
+    logical :: ok
 
-    !!
-    !! Xadj_r         : Adjoint solution of Laplace equation
-    !! Xadj_e         : Adjoint solution of HSP equation
-    !! rhs_cosmo      : RHS corresponding to Laplace equation
-    !! rhs_hsp        : RHS corresponding to HSP equation
-    !! rhs_cosmo_init : Initial RHS for Laplace, psi_r in literature
-    !! rhs_hsp_init   : Initial RHS for HSP, psi_e = 0 in literature
-    !! X_r_k_1          : Solution of previous iterative step, holds Xadj_r_k_1
-    !! X_e_k_1          : Solution of previous iterative step, holds Xadj_e_k_1
-    real(dp), allocatable :: rhs_cosmo(:,:), rhs_hsp(:,:), &
-        & rhs_cosmo_init(:,:), rhs_hsp_init(:,:), &
-        & X_r_k_1(:,:), X_e_k_1(:,:)
+    ! set up the RHS
+    rhs(:,:,1) = psi
+    rhs(:,:,2) = zero
 
-    ! GMRES parameters
-    integer :: info, n_iter
-    real(dp) r_norm
+    ! guess
+    ddcosmo_guess = zero
+    hsp_guess = zero
+    call lpb_adjoint_prec(params, constants, workspace, rhs, x)
 
-    ! Allocation
-    allocate(rhs_cosmo(constants % nbasis, params % nsph), &
-        & rhs_hsp(constants % nbasis, params % nsph), &
-        & rhs_cosmo_init(constants % nbasis, params % nsph), &
-        & rhs_hsp_init(constants % nbasis, params % nsph),&
-        & X_r_k_1(constants % nbasis, params % nsph),&
-        & X_e_k_1(constants % nbasis, params % nsph),&
-        & stat = istatus)
-    if(istatus .ne. 0) then
-        write(*,*) 'Allocation failed in adjoint LPB!'
-        stop
-    end if
-    ! We compute the adjoint solution first
-    write(*,*) 'Solution of adjoint system'
-    ! Set local variables
-    iteration = one
-    inc = zero
-    relative_num = zero
-    relative_denom = zero
-    X_r_k_1 = zero
-    X_e_k_1 = zero
-    ! Initial RHS
-    ! rhs_cosmo_init = psi_r
-    ! rhs_hsp_init   = psi_e (=0)
-    rhs_cosmo_init = psi
-    rhs_hsp_init = zero
-    ! Updated RHS
-    rhs_cosmo = rhs_cosmo_init
-    rhs_hsp = rhs_hsp_init
-    ! Initial Xadj_r and Xadj_e
-    Xadj_r = zero
-    Xadj_e = zero
-    converged = .false.
-    ok = .false.
-    ! Solve the adjoint system
-    do while (.not.converged)
-    ! Solve A*X_adj_r = psi_r
-    ! Set the RHS to correct form by factoring with 4Pi/2l+1
-    Xadj_r = zero
-    call convert_ddcosmo(params, constants, 1, rhs_cosmo)
+    ! solve adjoint LS using Jacobi/DIIS
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, &
-        & workspace, tol, rhs_cosmo, Xadj_r, n_iter, &
-        & xs_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
+    call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
+        & 4, params % jacobi_ndiis, 1, tol, rhs, x, n_iter, &
+        & ok, lpb_adjoint_matvec, lpb_adjoint_prec)
+    call prtsph('adjoint sol', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, x)
 
-    ! Solve the HSP equation
-    ! B*X_adj_e = psi_e
-    ! For first iteration the rhs is zero for HSP equation. Hence, Xadj_e = 0
-    Xadj_e = rhs_hsp
-    if(iteration.ne.1) then
-        n_iter = params % maxiter
-        call gmresr(params, constants, &
-            & workspace, tol, rhs_hsp, Xadj_e, n_iter, &
-            & r_norm, bstarx, info)
-    endif
+    ! check
+    call lpb_adjoint_matvec_full(params, constants, workspace, x, scr)
+    call prtsph('adjoint matvec', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, scr)
+    call prtsph('adjoint rhs', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, rhs)
 
-    ! Update the RHS
-    ! |rhs_r| = |psi_r|-|C1* C1*||Xadj_r|
-    ! |rhs_e| = |psi_e| |C2* C2*||Xadj_e|
-    call update_rhs_adj(params, constants, &
-        & workspace, rhs_cosmo_init, rhs_hsp_init,&
-        & rhs_cosmo, rhs_hsp, Xadj_r, Xadj_e)
-    ! Stopping Criteria.
-    ! Checking the relative error of Xadj_r
-    inc  = zero
-    inc = dnrm2(constants % n, Xadj_r + Xadj_e - X_r_k_1 - X_e_k_1, 1)/ &
-        & dnrm2(constants % n, Xadj_r + Xadj_e, 1)
-
-    ! Store the previous step solution
-    X_r_k_1 = Xadj_r
-    X_e_k_1 = Xadj_e
-    if ((iteration .gt. 1) .and. (inc.lt.tol)) then
-        write(6,*) 'Reach tolerance.'
-        converged = .true.
-    end if
-    write(6,*) 'Adjoint computation :', iteration, inc
-    iteration = iteration + 1
-    end do
-    !  if (iprint .ge. 5) then
-    !    call prtsph('Xadj_r', constants % nbasis, params % lmax, &
-    !          & params % nsph, 0, Xadj_r)
-    !    call prtsph('Xadj_e', constants % nbasis, params % lmax, &
-    !          & params % nsph, 0, Xadj_e)
-    !  end if
-    ! Deallocation
-    deallocate(rhs_cosmo, rhs_hsp, rhs_cosmo_init, &
-        & rhs_hsp_init, X_r_k_1, X_e_k_1, stat = istatus)
-    if(istatus .ne. 0) then
-        write(*,*) 'Deallocation failed in adjoint LPB!'
-        stop
-    end if
+    ! unpack
+    xadj_r = x(:,:,1)
+    xadj_e = x(:,:,2)
 end subroutine ddx_lpb_adjoint
 
 !
@@ -1135,60 +1590,35 @@ end subroutine ddx_lpb_force
   !> Apply adjoint single layer operator to spherical harmonics
   !! implementation is similar to lstarx in ddCOSMO
   !! Diagonal blocks are not counted here.
-  subroutine bstarx(params, constants, workspace, x, y)
+subroutine bstarx(params, constants, workspace, x, y)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-  real(dp), intent(in)       :: x(constants % nbasis, params % nsph)
-  ! Output
-  real(dp), intent(out)      :: y(constants % nbasis, params % nsph)
-  ! Local variables
-  integer                    :: isph, igrid, istatus
-  real(dp), allocatable      :: xi(:,:), vplm(:), basloc(:), vcos(:), vsin(:)
-  ! Allocate workspaces
-  allocate(xi(params % ngrid, params % nsph), vplm(constants % nbasis), &
-        & basloc(constants % nbasis), vcos(params % lmax+1), &
-        & vsin(params % lmax+1), stat=istatus)
-  if (istatus .ne. 0) then
-      write(*, *) 'bstarx: allocation failed!'
-      stop
-  endif
-!  if (ddx_data % iprint .ge. 5) then
-!      call prtsph('X', ddx_data % constants % nbasis, ddx_data % params % lmax, ddx_data % params % nsph, 0, &
-!          & x)
-!  end if
-  ! Initalize
-  y = zero
-  !! Expand x over spherical harmonics
-  ! Loop over spheres
-  do isph = 1, params % nsph
-      ! Loop over grid points
-      do igrid = 1, params % ngrid
-          xi(igrid, isph) = dot_product(x(:, isph), &
-              & constants % vgrid(1:constants % nbasis, igrid))
-      end do
-  end do
-  !! Compute action
-  ! Loop over spheres
-  do isph = 1, params % nsph
-      ! Compute NEGATIVE action of off-digonal blocks
-      call adjrhs_lpb(params, constants, workspace, isph, xi, y(:, isph), &
-          & basloc, vplm, vcos, vsin)
-      y(:, isph) = - y(:, isph)
-      y(:,isph)  = y(:,isph) + x(:,isph)
-  end do
-!  if (ddx_data % iprint .ge. 5) then
-!      call prtsph('B*X (off-diagonal)', ddx_data % constants % nbasis, ddx_data % params % lmax, &
-!          & ddx_data % params % nsph, 0, y)
-!  end if
-  deallocate( xi, basloc, vplm, vcos, vsin , stat=istatus )
-  if ( istatus.ne.0 ) then
-      write(*,*) 'bstarx: allocation failed !'
-      stop
-  endif
-  end subroutine bstarx
+    real(dp), intent(in)       :: x(constants % nbasis, params % nsph)
+    real(dp), intent(out)      :: y(constants % nbasis, params % nsph)
+    ! Local variables
+    integer                    :: isph, igrid, istatus
+
+    ! Initalize
+    y = zero
+    !! Expand x over spherical harmonics
+    ! Loop over spheres
+    do isph = 1, params % nsph
+        call dgemv('t', constants % nbasis, params % ngrid, one, constants % vgrid, &
+            & constants % vgrid_nbasis, x(:, isph), 1, zero, &
+            & workspace % tmp_grid(:, isph), 1)
+    end do
+    ! Loop over spheres
+    do isph = 1, params % nsph
+        ! Compute NEGATIVE action of off-digonal blocks
+        call adjrhs_lpb(params, constants, workspace, isph, workspace % tmp_grid, &
+            & y(:, isph), workspace % tmp_vylm, workspace % tmp_vplm, &
+            & workspace % tmp_vcos, workspace % tmp_vsin)
+        y(:,isph)  = - y(:,isph) + x(:,isph)
+    end do
+
+end subroutine bstarx
 
   !
   ! Taken from ddx_core routine adjrhs
@@ -1295,156 +1725,7 @@ end subroutine ddx_lpb_force
     end do
   end do
   endsubroutine inthsp_adj
-  
-!
-! Update the RHS in outer iteration for adjoint system
-! @param[in] rhs_r_init : psi_r
-! @param[in] rhs_e_init : psi_e = 0
-! @param[in, out] rhs_r : -C_1*\times Xadj_r^(k-1) - C_1*\times Xadj_e^(k-1)
-!                         + psi_r
-! @param[in, out] rhs_e : -C_2*\times Xadj_r^(k-1) - C_2*\times Xadj_e^(k-1)
-! @param[in] Xadj_r     : Xadj_r^(k-1)
-! @param[in] Xadj_e     : Xadj_e^(k-1)
-!
-subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
-        & rhs_e_init, rhs_r, rhs_e, Xadj_r, Xadj_e)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: rhs_r_init(constants % nbasis, params % nsph), &
-        & rhs_e_init(constants % nbasis, params % nsph), &
-        & Xadj_r(constants % nbasis, params % nsph), &
-        & Xadj_e(constants % nbasis, params % nsph)
-    !! Temporary buffers
-    type(ddx_workspace_type), intent(inout) :: workspace
-    !! Outputs
-    real(dp), intent(out) :: rhs_r(constants % nbasis, params % nsph), &
-        & rhs_e(constants % nbasis, params % nsph)
-    !! Local variables
-  ! Local Variables
-  ! rhs_r_adj : C_1*(Xadj_r+Xadj_e)
-  ! rhs_e_adj : C_2*(Xadj_r+Xadj_e)
-  real(dp), dimension(constants % nbasis,params % nsph) :: rhs_adj, rhs_adj2
-  real(dp), dimension(params % ngrid, params % nsph) :: Xadj_sgrid
-  integer :: isph, igrid, icav, ibasis, ibasis0, l, m, ind, jsph, indl, inode
-  ! epsilon_ratio : epsilon_1/epsilon_2
-  real(dp) :: epsilon_ratio
-  ! val_1, val_2  : Intermediate summations variable
-  real(dp) :: val
-  real(dp), external :: dnrm2
 
-  epsilon_ratio = epsp/params % eps
-
-
-  ! Call dgemm to integrate the adjoint solution on the grid points
-  ! Summation over l' and m'
-  call dgemm('T', 'N', params % ngrid, params % nsph, &
-            & constants % nbasis, one, constants % vwgrid, constants % vgrid_nbasis, &
-            & Xadj_r + Xadj_e , constants % nbasis, zero, Xadj_sgrid, &
-            & params % ngrid)
-
-
-    if (params % fmm .eq. 0) then
-        rhs_adj = zero
-        do isph = 1, params % nsph
-            do ibasis = 1, constants % nbasis
-                icav = zero
-                !Summation over j and n
-                do jsph = 1, params % nsph
-                    do igrid = 1, params % ngrid
-                        if (constants % ui(igrid,jsph).gt.zero) then
-                            icav = icav + 1
-                            rhs_adj(ibasis, isph) = rhs_adj(ibasis, isph) + &
-                                & constants % ui(igrid, jsph)*&
-                                & Xadj_sgrid(igrid, jsph)*&
-                                & constants % diff_ep_adj(icav, ibasis, isph)
-                        end if
-                    end do
-                end do
-            end do
-        end do
-    else
-        ! Multiply by characteristic function
-        workspace % tmp_grid = Xadj_sgrid * constants % ui
-        workspace % tmp_sph = zero
-        ! Do FMM operations adjointly
-        call tree_m2p_bessel_adj(params, constants, constants % lmax0, &
-            & one, workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
-        call tree_l2p_bessel_adj(params, constants, one, &
-            & workspace % tmp_grid, zero, workspace % tmp_node_l)
-        call tree_l2l_bessel_rotation_adj(params, constants, &
-            & workspace % tmp_node_l)
-        call tree_m2l_bessel_rotation_adj(params, constants, &
-            & workspace % tmp_node_l, workspace % tmp_node_m)
-        call tree_m2m_bessel_rotation_adj(params, constants, &
-            & workspace % tmp_node_m)
-        ! Adjointly move tree multipole harmonics into output
-        if(constants % lmax0 .lt. params % pm) then
-            do isph = 1, params % nsph
-                inode = constants % snode(isph)
-                workspace % tmp_sph(:, isph) = workspace % tmp_sph(:, isph) + &
-                    & workspace % tmp_node_m(1:constants % nbasis0, inode)
-            end do
-        else
-            indl = (params % pm+1)**2
-            do isph = 1, params % nsph
-                inode = constants % snode(isph)
-                workspace % tmp_sph(1:indl, isph) = &
-                    & workspace % tmp_sph(1:indl, isph) + &
-                    & workspace % tmp_node_m(:, inode)
-            end do
-        end if
-        do isph = 1, params % nsph
-            do l = 0, constants % lmax0
-                indl = l*l + l + 1
-                workspace % tmp_sph(indl-l:indl+l, isph) = &
-                    & workspace % tmp_sph(indl-l:indl+l, isph) * &
-                    & constants % C_ik(l, isph)
-            end do
-            do ibasis = 1, constants % nbasis
-                rhs_adj(ibasis, isph) = dot_product( &
-                    & workspace % tmp_sph(1:constants % nbasis0, isph), &
-                    & constants % Pchi(ibasis, :, isph))
-            end do
-        end do
-!        rhs_adj2 = zero
-!        do isph = 1, params % nsph
-!            do ibasis = 1, constants % nbasis
-!                icav = zero
-!                !Summation over j and n
-!                do jsph = 1, params % nsph
-!                    do igrid = 1, params % ngrid
-!                        if (constants % ui(igrid,jsph).gt.zero) then
-!                            icav = icav + 1
-!                            rhs_adj2(ibasis, isph) = rhs_adj2(ibasis, isph) + &
-!                                & constants % ui(igrid, jsph)*&
-!                                & Xadj_sgrid(igrid, jsph)*&
-!                                & constants % diff_ep_adj(icav, ibasis, isph)
-!                        end if
-!                    end do
-!                end do
-!            end do
-!        end do
-!        write(*, *) "diff=", dnrm2(constants % n, rhs_adj2-rhs_adj, 1) / dnrm2(constants %n, &
-!            & rhs_adj2, 1)
-!        rhs_adj = rhs_adj2
-    end if
-
-  do isph = 1, params % nsph
-    do l = 0, params % lmax
-      do m = -l, l
-        ind = l**2 + l + m + 1
-        rhs_r(ind, isph) = rhs_r_init(ind, isph) - &
-                        & (epsilon_ratio*l*rhs_adj(ind, isph))/params % rsph(isph)
-        rhs_e(ind, isph) = rhs_e_init(ind, isph) + constants % termimat(l,isph)*rhs_adj(ind, isph)
-      end do
-    end do
-  end do
-
-  return
-  end subroutine update_rhs_adj
-  
-  !
   ! Subroutine to compute K^A counterpart for the HSP equation. Similar to fdoka.
   ! @param[in]  ddx_data  : Data type
   ! @param[in]  isph      : Index of sphere
@@ -1903,9 +2184,8 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
             !val_dim3(:) = val_dim3(:) + diff1(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
           end do
         end do
-        !diff_ep_dim3(:, icav) = val_dim3(:)
+        phi_in(igrid, isph) = val
       end if
-    phi_in(igrid, isph) = val
     end do
   end do
   ! Aleksandr: my loop for the diff_ep_dim3
@@ -2103,8 +2383,8 @@ subroutine update_rhs_adj(params, constants, workspace, rhs_r_init, &
             end do ! End of loop m0
           end do ! End of l0
         end do ! End of loop jsph
+        sum_Sjin(igrid,isph) = -(epsp/params % eps)*sum_int
       end if
-      sum_Sjin(igrid,isph) = -(epsp/params % eps)*sum_int
     end do ! End of loop igrid
   end do ! End of loop isph
 
