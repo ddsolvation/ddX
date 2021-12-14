@@ -174,8 +174,7 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
           & ddx_data % params % nsph, 0, xadj_r)
       call prtsph('xadj_e', ddx_data % constants % nbasis, ddx_data % params % lmax, &
           & ddx_data % params % nsph, 0, xadj_e)
-    end if
-    if (.false.) then
+
       !Call the subroutine to evaluate derivatives
       t0 = omp_get_wtime()
       call ddx_lpb_force(ddx_data % params, ddx_data % constants, &
@@ -1342,6 +1341,7 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
     integer                    :: isph, icav, icav_gr, icav_ge, igrid
     integer                    :: i
     real(dp), external :: ddot
+    real(dp) :: tfdoka, tfdokb, tfdoka_xe, tfdokb_xe, tfdoga, tp, tfdouky
 
     Xadj_r_sgrid = zero; Xadj_e_sgrid = zero
     diff_re = zero; normal_hessian_cav = zero
@@ -1350,6 +1350,7 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
     force = zero
 
     ! Compute the derivative of the normal derivative of psi_0
+    tt0 = omp_get_wtime()
     icav = 0
     do isph = 1, params % nsph
     do igrid = 1, params % ngrid
@@ -1362,8 +1363,10 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
     end if
     end do
     end do
+    write(6,*) '@forces@normal_psi', omp_get_wtime() - tt0
 
     ! Call dgemm to integrate the adjoint solution on the grid points
+    tt0 = omp_get_wtime()
     call dgemm('T', 'N', params % ngrid, params % nsph, &
         & constants % nbasis, one, constants % vgrid, &
         & constants % vgrid_nbasis, &
@@ -1374,41 +1377,71 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
         & constants % vgrid_nbasis, &
         & Xadj_e , constants % nbasis, zero, Xadj_e_sgrid, &
         & params % ngrid)
+    write(6,*) '@forces@xi', omp_get_wtime() - tt0
 
     ! Scale by the factor of 1/(4Pi/(2l+1))
     scaled_Xr = Xr
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
+    tfdoka = zero
+    tfdokb = zero
+    tfdoka_xe = zero
+    tfdokb_xe = zero
+    tfdouky = zero
+    tp = zero
+    tfdoga = zero
     do isph = 1, params % nsph
-    ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
-    call fdoka(params, constants, isph, scaled_Xr, Xadj_r_sgrid(:, isph), &
-        & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
-    call fdokb(params, constants, isph, scaled_Xr, Xadj_r_sgrid, basloc, &
-        & dbasloc, vplm, vcos, vsin, force(:, isph))
-    ! Compute B^k*Xadj_e
-    call fdoka_b_xe(params, constants, workspace, isph, Xe, Xadj_e_sgrid(:, isph), &
-        & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
-    call fdokb_b_xe(params, constants, workspace, isph, Xe, Xadj_e_sgrid, &
-        & basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
-    ! Compute C1 and C2 contributions
-    diff_re = zero
-    call fdouky(params, constants, workspace, isph, &
-        & Xr, Xe, &
-        & Xadj_r_sgrid, Xadj_e_sgrid, &
-        & Xadj_r, Xadj_e, &
-        & force(:, isph), &
-        & diff_re)
-    call derivative_P(params, constants, workspace, isph,&
-        & Xr, Xe, &
-        & Xadj_r_sgrid, Xadj_e_sgrid, &
-        & diff_re, &
-        & force(:, isph))
-    ! Computation of G0
-    call fdoga(params, constants, isph, Xadj_r_sgrid, phi_grid, force(:, isph))
+        ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
+        tt1 = omp_get_wtime()
+        call fdoka(params, constants, isph, scaled_Xr, Xadj_r_sgrid(:, isph), &
+            & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
+        tfdoka = tfdoka + omp_get_wtime() - tt1
+        tt1 = omp_get_wtime()
+        call fdokb(params, constants, isph, scaled_Xr, Xadj_r_sgrid, basloc, &
+            & dbasloc, vplm, vcos, vsin, force(:, isph))
+        tfdokb = tfdokb + omp_get_wtime() - tt1
+        ! Compute B^k*Xadj_e
+        tt1 = omp_get_wtime()
+        call fdoka_b_xe(params, constants, workspace, isph, Xe, Xadj_e_sgrid(:, isph), &
+            & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
+        tfdoka_xe = tfdoka_xe + omp_get_wtime() - tt1
+        tt1 = omp_get_wtime()
+        call fdokb_b_xe(params, constants, workspace, isph, Xe, Xadj_e_sgrid, &
+            & basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
+        tfdokb_xe = tfdokb_xe + omp_get_wtime() - tt1
+        ! Compute C1 and C2 contributions
+        tt1 = omp_get_wtime()
+        diff_re = zero
+        call fdouky(params, constants, workspace, isph, &
+            & Xr, Xe, &
+            & Xadj_r_sgrid, Xadj_e_sgrid, &
+            & Xadj_r, Xadj_e, &
+            & force(:, isph), &
+            & diff_re)
+        tfdouky = tfdouky + omp_get_wtime() - tt1
+        tt1 = omp_get_wtime()
+        call derivative_P(params, constants, workspace, isph,&
+            & Xr, Xe, &
+            & Xadj_r_sgrid, Xadj_e_sgrid, &
+            & diff_re, &
+            & force(:, isph))
+        tp = tp + omp_get_wtime() - tt1
+        ! Computation of G0
+        tt1 = omp_get_wtime()
+        call fdoga(params, constants, isph, Xadj_r_sgrid, phi_grid, force(:, isph))
+        tfdoga = tfdoga + omp_get_wtime() - tt1
     end do
+    write(6,*) '@forces@fdoka', tfdoka
+    write(6,*) '@forces@fdokb', tfdokb
+    write(6,*) '@forces@fdoka_xe', tfdoka_xe
+    write(6,*) '@forces@fdoka_xe', tfdokb_xe
+    write(6,*) '@forces@fdouky', tfdouky
+    write(6,*) '@forces@p', tp
+    write(6,*) '@forces@fdoga', tfdoga
     ! Computation of G0 continued
     ! NOTE: fdoga returns a positive summation
     force = -force
+    tt0 = omp_get_wtime()
     icav = 0
     do isph = 1, params % nsph
     do igrid = 1, params % ngrid
@@ -1428,21 +1461,35 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
     do isph = 1, params % nsph
     force(:, isph) = force(:, isph) - ef(:, isph)*params % charge(isph)
     end do
+    write(6,*) '@forces@rhs', omp_get_wtime() - tt0
 
+    tfdouky = zero
+    tfdoga = zero
     icav_gr = zero
     icav_ge = zero
     do isph = 1, params % nsph
-    ! Computation of F0
-    call fdouky_f0(params, constants, workspace, isph, Xadj_r, Xadj_r_sgrid, &
-        & gradphi, force(:, isph))
-    call fdoco(params, constants, workspace, isph, Xadj_r_sgrid, gradphi, &
-        & normal_hessian_cav, icav_gr, force(:, isph))
-    ! Computation of F0
-    call fdouky_f0(params, constants, workspace, isph, Xadj_e, Xadj_e_sgrid, &
-        & gradphi, force(:, isph))
-    call fdoco(params, constants, workspace, isph, Xadj_e_sgrid, gradphi, &
-        & normal_hessian_cav, icav_ge, force(:, isph))
+        ! Computation of F0
+        tt1 = omp_get_wtime()
+        call fdouky_f0(params, constants, workspace, isph, Xadj_r, Xadj_r_sgrid, &
+            & gradphi, force(:, isph))
+        tfdouky = tfdouky + omp_get_wtime() - tt1
+        tt1 = omp_get_wtime()
+        call fdoco(params, constants, workspace, isph, Xadj_r_sgrid, gradphi, &
+            & normal_hessian_cav, icav_gr, force(:, isph))
+        tfdoga = tfdoga + omp_get_wtime() - tt1
+        ! Computation of F0
+        tt1 = omp_get_wtime()
+        call fdouky_f0(params, constants, workspace, isph, Xadj_e, Xadj_e_sgrid, &
+            & gradphi, force(:, isph))
+        tfdouky = tfdouky + omp_get_wtime() - tt1
+        tt1 = omp_get_wtime()
+        call fdoco(params, constants, workspace, isph, Xadj_e_sgrid, gradphi, &
+            & normal_hessian_cav, icav_ge, force(:, isph))
+        tfdoga = tfdoga + omp_get_wtime() - tt1
     end do
+    write(6,*) '@forces@fdouky', tfdouky
+    write(6,*) '@forces@fdoco', tfdoga
+
     force = pt5*force
 end subroutine ddx_lpb_force
 
