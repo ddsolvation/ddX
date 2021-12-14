@@ -47,12 +47,15 @@ else
         case ('m2m')
         case ('m2m_bessel')
         case ('m2m_adj')
+        case ('m2m_bessel_adj')
         case ('l2l')
         case ('l2l_bessel')
         case ('l2l_adj')
+        case ('l2l_bessel_adj')
         case ('m2l')
         case ('m2l_bessel')
         case ('m2l_adj')
+        case ('m2l_bessel_adj')
         case ('tree_init')
 !        case ('tree_m2m')
 !        case ('tree_l2l')
@@ -215,6 +218,16 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2m_adj')) then
     end do
 end if
 
+! Check adjoint M2M Bessel
+!if ((testname .eq. 'all') .or. (testname .eq. 'm2m_bessel_adj')) then
+if (testname .eq. 'm2m_bessel_adj') then
+    do i = 1, 1 !size(alpha)
+        do j = 0, p
+            call check_m2m_bessel_adj(j, alpha(i))
+        end do
+    end do
+end if
+
 ! Check L2L
 if ((testname .eq. 'all') .or. (testname .eq. 'l2l')) then
     do i = 1, size(alpha)
@@ -240,6 +253,16 @@ if ((testname .eq. 'all') .or. (testname .eq. 'l2l_adj')) then
     do i = 1, size(alpha)
         do j = 0, p
             call check_l2l_adj(j, alpha(i))
+        end do
+    end do
+end if
+
+! Check adjoint L2L Bessel
+!if ((testname .eq. 'all') .or. (testname .eq. 'l2l_bessel_adj')) then
+if (testname .eq. 'l2l_bessel_adj') then
+    do i = 1, 1 !size(alpha)
+        do j = 0, p
+            call check_l2l_bessel_adj(j, alpha(i))
         end do
     end do
 end if
@@ -274,6 +297,16 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2l_adj')) then
         do j = 1, p
             call check_m2l_adj(0, j, alpha(i))
             call check_m2l_adj(j, 0, alpha(i))
+        end do
+    end do
+end if
+
+! Check adjoint M2L Bessel
+!if ((testname .eq. 'all') .or. (testname .eq. 'm2l_bessel_adj')) then
+if (testname .eq. 'm2l_bessel_adj') then
+    do i = 1, 1 !size(alpha)
+        do j = 0, p
+            call check_m2l_bessel_adj(j, alpha(i))
         end do
     end do
 end if
@@ -1907,6 +1940,68 @@ subroutine check_m2m_adj(p, alpha)
     print "(A)", repeat("=", 40)
 end subroutine check_m2m_adj
 
+! Check adjoint M2M Bessel
+subroutine check_m2m_bessel_adj(p, alpha)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: alpha
+    ! Local variables
+    integer, parameter :: nrand=10
+    real(dp) :: y(3, nx), r, dst_r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
+        & vscales_rel((p+1)**2), vcnk((2*p+1)*(p+1)), &
+        & m2l_ztranslate_coef(p+1, 1, 1), &
+        & m2l_ztranslate_adj_coef(1, 1, p+1), &
+        & src_m((p+1)**2, nrand), src_m2((p+1)**2, nrand), &
+        & dst_m((p+1)**2, nrand), err, tmp(nrand, nrand), kappa
+    logical :: ok
+    integer :: i, j, iseed(4), ndst_m
+    real(dp), external :: dnrm2
+    real(dp), parameter :: threshold=4d-15
+    ! Copy templated points with a proper multiplier
+    y = alpha * x
+    r = abs(alpha)
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    call fmm_constants(p, p, 0, vcnk, m2l_ztranslate_coef, &
+        & m2l_ztranslate_adj_coef)
+    ! Init random seed
+    iseed = (/0, 0, 0, 1/)
+    kappa = 1d+1
+    ! Generate src_m randomly
+    ndst_m = nrand * ((p+1)**2)
+    call dlarnv(3, iseed, ndst_m, src_m)
+    ! Print header
+    print "(/,A)", repeat("=", 40)
+    print "(A)", "Check adjoint M2M Bessel"
+    print "(A,I0)", " p=", p
+    print "(A,ES24.16E3)", " alpha=", alpha
+    print "(A)", repeat("=", 40)
+    print "(A)", "  i | ok | err(i)"
+    print "(A)", repeat("=", 40)
+    ! Check against direct M
+    ! Ignore i=1 for now
+    do i = 2, nx
+        c = y(:, i)
+        dst_r = r + dnrm2(3, y(:, i), 1)
+        do j = 1, nrand
+            call fmm_m2m_bessel_rotation(c, r, dst_r, kappa, p, vscales, vcnk, one, &
+                & src_m(:, j), zero, dst_m(:, j))
+            call fmm_m2m_bessel_rotation_adj(-c, dst_r, r, kappa, p, vscales, vcnk, one, &
+                & dst_m(:, j), zero, src_m2(:, j))
+        end do
+        call dgemm('T', 'N', nrand, nrand, (p+1)**2, one, dst_m, (p+1)**2, &
+            & dst_m, (p+1)**2, zero, tmp, nrand)
+        err = dnrm2(nrand*nrand, tmp, 1)
+        call dgemm('T', 'N', nrand, nrand, (p+1)**2, -one, src_m2, (p+1)**2, &
+            & src_m, (p+1)**2, one, tmp, nrand)
+        err = dnrm2(nrand*nrand, tmp, 1) / err
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+    end do
+    print "(A)", repeat("=", 40)
+end subroutine check_m2m_bessel_adj
+
 ! Check L2L
 subroutine check_l2l(p, alpha)
     ! Inputs
@@ -2106,6 +2201,67 @@ subroutine check_l2l_adj(p, alpha)
     end do
     print "(A)", repeat("=", 40)
 end subroutine check_l2l_adj
+
+! Check adjoint l2l Bessel
+subroutine check_l2l_bessel_adj(p, alpha)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: alpha
+    ! Local variables
+    integer, parameter :: nrand=10
+    real(dp) :: y(3, nx), r, dst_r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
+        & vscales_rel((p+1)**2), vfact(2*p+1), &
+        & src_l((p+1)**2, nrand), src_l2((p+1)**2, nrand), &
+        & dst_l((p+1)**2, nrand), err, tmp(nrand, nrand), kappa
+    logical :: ok
+    integer :: i, j, iseed(4), ndst_l
+    real(dp), external :: dnrm2
+    ! Copy templated points with a proper multiplier
+    y = alpha * x
+    r = abs(alpha)
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    vfact(1) = one
+    do i = 2, 2*p+1
+        vfact(i) = vfact(i-1) * sqrt(dble(i-1))
+    end do
+    ! Init random seed
+    iseed = (/0, 0, 0, 1/)
+    kappa = 1d+1
+    ! Generate src_l randomly
+    ndst_l = nrand * ((p+1)**2)
+    call dlarnv(3, iseed, ndst_l, src_l)
+    ! Print header
+    print "(/,A)", repeat("=", 40)
+    print "(A)", "Check adjoint L2L Bessel"
+    print "(A,I0)", " p=", p
+    print "(A,ES24.16E3)", " alpha=", alpha
+    print "(A)", repeat("=", 40)
+    print "(A)", "  i | ok | err(i)"
+    print "(A)", repeat("=", 40)
+    ! Check against direct l2l
+    ! Ignore i=1 for now
+    do i = 2, nx
+        c = y(:, i)
+        dst_r = r + dnrm2(3, y(:, i), 1)
+        do j = 1, nrand
+            call fmm_l2l_bessel_rotation(c, r, dst_r, kappa, p, vscales, vfact, one, &
+                & src_l(:, j), zero, dst_l(:, j))
+            call fmm_l2l_bessel_rotation_adj(-c, dst_r, r, kappa, p, vscales, vfact, one, &
+                & dst_l(:, j), zero, src_l2(:, j))
+        end do
+        call dgemm('T', 'N', nrand, nrand, (p+1)**2, one, dst_l, (p+1)**2, &
+            & dst_l, (p+1)**2, zero, tmp, nrand)
+        err = dnrm2(nrand*nrand, tmp, 1)
+        call dgemm('T', 'N', nrand, nrand, (p+1)**2, -one, src_l2, (p+1)**2, &
+            & src_l, (p+1)**2, one, tmp, nrand)
+        err = dnrm2(nrand*nrand, tmp, 1) / err
+        ok = err .lt. 1d-14
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+    end do
+    print "(A)", repeat("=", 40)
+end subroutine check_l2l_bessel_adj
 
 ! Check M2L
 subroutine check_m2l(pm, pl, alpha)
@@ -2318,6 +2474,71 @@ subroutine check_m2l_bessel(p)
         & dst_v2)
     write(*, *) dst_v, dst_v2
 end subroutine check_m2l_bessel
+
+! Check adjoint m2l
+subroutine check_m2l_bessel_adj(p, alpha)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: alpha
+    ! Local variables
+    integer, parameter :: nrand=10
+    real(dp) :: y(3, nx), r, dst_r, c(3), vscales((2*p+1)**2), &
+        & v4pi2lp1(2*p+1), &
+        & vscales_rel((2*p+1)**2), vcnk((4*p+1)*(2*p+1)), &
+        & m2l_ztranslate_coef(p+1, p+1, p+1), &
+        & m2l_ztranslate_adj_coef(p+1, p+1, p+1), &
+        & src_m((p+1)**2, nrand), src_m2((p+1)**2, nrand), &
+        & dst_l((p+1)**2, nrand), err, tmp(nrand, nrand), threshold, kappa
+    logical :: ok
+    integer :: i, j, iseed(4), nsrc_m, ndst_l
+    real(dp), external :: dnrm2
+    ! Copy templated points with a proper multiplier
+    y = 3d0 * alpha / sqrt(13d-2) * x
+    r = abs(alpha)
+    ! Compute special FMM constants
+    call ylmscale(2*p, vscales, v4pi2lp1, vscales_rel)
+    call fmm_constants(2*p, p, p, vcnk, m2l_ztranslate_coef, &
+        & m2l_ztranslate_adj_coef)
+    ! Init random seed
+    iseed = (/0, 0, 0, 1/)
+    kappa = 1d+1
+    ! Generate src_m randomly
+    nsrc_m = nrand * ((p+1)**2)
+    ndst_l = nrand * ((p+1)**2)
+    call dlarnv(3, iseed, nsrc_m, src_m)
+    ! Print header
+    print "(/,A)", repeat("=", 40)
+    print "(A)", "Check adjoint M2L Bessel"
+    print "(A,I0)", " p=", p
+    print "(A,ES24.16E3)", " alpha=", alpha
+    print "(A)", repeat("=", 40)
+    print "(A)", "  i | ok | err(i)"
+    print "(A)", repeat("=", 40)
+    threshold = (2*p+3) * 4d-16
+    ! Check against the baseline, i=1 is ignored since it y(:,1)=zero
+    do i = 2, nx
+        c = y(:, i)
+        !dst_r = r + dnrm2(3, y(:, i), 1)
+        dst_r = r
+        do j = 1, nrand
+            call fmm_m2l_bessel_rotation(c, r, dst_r, kappa, p, vscales, &
+                & m2l_ztranslate_coef, one, src_m(:, j), zero, dst_l(:, j))
+            call fmm_m2l_bessel_rotation_adj(-c, dst_r, r, kappa, p, vscales, &
+                & m2l_ztranslate_adj_coef, one, dst_l(:, j), zero, &
+                & src_m2(:, j))
+        end do
+        call dgemm('T', 'N', nrand, nrand, (p+1)**2, one, dst_l, (p+1)**2, &
+            & dst_l, (p+1)**2, zero, tmp, nrand)
+        err = dnrm2(nrand*nrand, tmp, 1)
+        call dgemm('T', 'N', nrand, nrand, (p+1)**2, -one, src_m2, &
+            & (p+1)**2, src_m, (p+1)**2, one, tmp, nrand)
+        err = dnrm2(nrand*nrand, tmp, 1) / err
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+    end do
+    print "(A)", repeat("=", 40)
+end subroutine check_m2l_bessel_adj
 
 subroutine check_tree_rib(alpha)
     real(dp), intent(in) :: alpha
