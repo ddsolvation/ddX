@@ -121,10 +121,10 @@ type ddx_constants_type
     !> LPB Derivative of Bessel function of the first kind. Dimension is
     !!      (lmax+1, nsph).
     real(dp), allocatable :: DI_ri(:, :)
-    !> LPB Bessel function of the second kind. Dimension is (lmax+1, nsph).
+    !> LPB Bessel function of the second kind. Dimension is (lmax+2, nsph).
     real(dp), allocatable :: SK_ri(:, :)
     !> LPB Derivative Bessel function of the second kind. Dimension is
-    !!      (lmax+1, nsph).
+    !!      (lmax+2, nsph).
     real(dp), allocatable :: DK_ri(:, :)
     !> LPB value i'_l(r_j)/i_l(r_j). Dimension is (lmax, nsph).
     real(dp), allocatable :: termimat(:, :)
@@ -477,8 +477,8 @@ subroutine constants_init(params, constants, info)
         end if
         allocate(constants % SI_ri(0:params % lmax, params % nsph))
         allocate(constants % DI_ri(0:params % lmax, params % nsph))
-        allocate(constants % SK_ri(0:params % lmax, params % nsph))
-        allocate(constants % DK_ri(0:params % lmax, params % nsph))
+        allocate(constants % SK_ri(0:params % lmax+1, params % nsph))
+        allocate(constants % DK_ri(0:params % lmax+1, params % nsph))
         allocate(constants % diff_ep_adj(constants % ncav, &
             & constants % nbasis, params % nsph))
         allocate(constants % coefvec(params % ngrid, constants % nbasis, &
@@ -492,11 +492,13 @@ subroutine constants_init(params, constants, info)
         SK_rijn = zero
         DK_rijn = zero
         do isph = 1, params % nsph
+            ! We compute Bessel functions of degrees 0..lmax+1 because the
+            ! largest degree is required for forces
             call modified_spherical_bessel_first_kind(params % lmax, &
                 & params % rsph(isph)*params % kappa,&
                 & constants % SI_ri(:, isph), constants % DI_ri(:, isph), &
                 & bessel_work)
-            call modified_spherical_bessel_second_kind(params % lmax, &
+            call modified_spherical_bessel_second_kind(params % lmax+1, &
                 & params % rsph(isph)*params % kappa, &
                 & constants % SK_ri(:, isph), constants % DK_ri(:, isph), &
                 & bessel_work)
