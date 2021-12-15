@@ -2349,9 +2349,10 @@ end subroutine bstarx
   ! sum_Sjin : \sum_j [S]_{jin} Eq.~(97) [QSM20.SISC]
   real(dp), dimension(params % ngrid, params % nsph) :: sum_Sjin
   ! c0 : \sum_{n=1}^N_g w_n U_j^{x_nj}\partial_n psi_0(x_nj)Y_{l0m0}(s_n)
-  real(dp), dimension(constants % nbasis, params % nsph) :: c0_d, c0_d1
-    complex(dp) :: work_complex(constants % lmax0 + 1)
-    real(dp) :: work(constants % lmax0 + 1)
+  real(dp), dimension(constants % nbasis0, params % nsph) :: c0_d, c0_d1
+  real(dp), dimension((constants % lmax0+2)**2, 3, params % nsph) :: c0_d1_grad
+    complex(dp) :: work_complex(constants % lmax0 + 2)
+    real(dp) :: work(constants % lmax0 + 2)
 
   ! Setting initial values to zero
   SK_rijn = zero
@@ -2369,12 +2370,16 @@ end subroutine bstarx
                      & constants % wgrid(igrid)* &
                      & constants % ui(igrid,isph)*&
                      & nderpsi* &
-                     & constants % vgrid(1:constants % nbasis,igrid)
+                     & constants % vgrid(1:constants % nbasis0,igrid)
         do l0 = 0, constants % lmax0
             ind0 = l0*l0 + l0 + 1
             c0_d1(ind0-l0:ind0+l0, isph) = c0_d(ind0-l0:ind0+l0, isph) * &
                 & constants % C_ik(l0, isph)
         end do
+        ! Prepare c0_d1_grad
+        call fmm_m2m_bessel_grad(constants % lmax0, constants % SK_ri(:, isph), &
+            & constants % vscales, constants % vcnk, c0_d1(:, isph), &
+            & c0_d1_grad(:, :, isph))
       end if
     end do
   end do
@@ -2469,11 +2474,24 @@ end subroutine bstarx
             vij  = params % csph(:,ksph) + &
                 & params % rsph(ksph)*constants % cgrid(:,igrid) - &
                 & params % csph(:,jsph)
-          call fmm_m2p_bessel_grad(vij * params % kappa, &
-              & params % rsph(jsph)*params % kappa, &
-              & constants % lmax0, &
-              & constants % vscales, params % kappa, c0_d1(:, jsph), one, &
-              & diff_ep_dim3(:, icav))
+            vtij = vij * params % kappa
+            !call fmm_m2p_bessel_grad(vij * params % kappa, &
+            !    & params % rsph(jsph)*params % kappa, &
+            !    & constants % lmax0, &
+            !    & constants % vscales, params % kappa, c0_d1(:, jsph), one, &
+            !    & diff_ep_dim3(:, icav))
+            call fmm_m2p_bessel_work(vtij, constants % lmax0+1, &
+                & constants % vscales, constants % SK_ri(:, jsph), &
+                & -params % kappa, c0_d1_grad(:, 1, jsph), one, &
+                & diff_ep_dim3(1, icav), work_complex, work)
+            call fmm_m2p_bessel_work(vtij, constants % lmax0+1, &
+                & constants % vscales, constants % SK_ri(:, jsph), &
+                & -params % kappa, c0_d1_grad(:, 2, jsph), one, &
+                & diff_ep_dim3(2, icav), work_complex, work)
+            call fmm_m2p_bessel_work(vtij, constants % lmax0+1, &
+                & constants % vscales, constants % SK_ri(:, jsph), &
+                & -params % kappa, c0_d1_grad(:, 3, jsph), one, &
+                & diff_ep_dim3(3, icav), work_complex, work)
         end do
       end do
       ! Now jsph=ksph and isph!=ksph
@@ -2486,11 +2504,24 @@ end subroutine bstarx
             vij  = params % csph(:,isph) + &
                 & params % rsph(isph)*constants % cgrid(:,igrid) - &
                 & params % csph(:,ksph)
-            call fmm_m2p_bessel_grad(vij * params % kappa, &
-                & params % rsph(ksph)*params % kappa, &
-                & constants % lmax0, &
-                & constants % vscales, -params % kappa, c0_d1(:, ksph), one, &
-                & diff_ep_dim3(:, icav))
+            vtij = vij * params % kappa
+            !call fmm_m2p_bessel_grad(vij * params % kappa, &
+            !    & params % rsph(ksph)*params % kappa, &
+            !    & constants % lmax0, &
+            !    & constants % vscales, -params % kappa, c0_d1(:, ksph), one, &
+            !    & diff_ep_dim3(:, icav))
+            call fmm_m2p_bessel_work(vtij, constants % lmax0+1, &
+                & constants % vscales, constants % SK_ri(:, ksph), &
+                & params % kappa, c0_d1_grad(:, 1, ksph), one, &
+                & diff_ep_dim3(1, icav), work_complex, work)
+            call fmm_m2p_bessel_work(vtij, constants % lmax0+1, &
+                & constants % vscales, constants % SK_ri(:, ksph), &
+                & params % kappa, c0_d1_grad(:, 2, ksph), one, &
+                & diff_ep_dim3(2, icav), work_complex, work)
+            call fmm_m2p_bessel_work(vtij, constants % lmax0+1, &
+                & constants % vscales, constants % SK_ri(:, ksph), &
+                & params % kappa, c0_d1_grad(:, 3, ksph), one, &
+                & diff_ep_dim3(3, icav), work_complex, work)
         end do
       end do
       
