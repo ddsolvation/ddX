@@ -1319,9 +1319,10 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
     ! ok      : Input argument for Jacobi solver
     ! n_iter  : Number of iterative steps
     integer                    :: isph, icav, icav_gr, icav_ge, igrid
-    integer                    :: i
-    real(dp), external :: ddot
+    integer                    :: i, inode, jnear, inear, jnode, jsph
+    real(dp), external :: ddot, dnrm2
     real(dp) :: tfdoka, tfdokb, tfdoka_xe, tfdokb_xe, tfdoga, tp, tfdouky
+    real(dp) :: d(3), dnorm, tmp1, tmp2
 
     Xadj_r_sgrid = zero; Xadj_e_sgrid = zero
     diff_re = zero; normal_hessian_cav = zero
@@ -1436,11 +1437,86 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
             end if
         end do
     end do
-    call efld(constants % ncav, zeta, constants % ccav, &
-        & params % nsph, params % csph, ef)
-    do isph = 1, params % nsph
-    force(:, isph) = force(:, isph) - ef(:, isph)*params % charge(isph)
-    end do
+    !! Last term where we compute gradients of potential at centers of atoms
+    !! spawned by intermediate zeta.
+    if(params % fmm .eq. 1) then
+        !! This step can be substituted by a proper dgemm if zeta
+        !! intermediate is converted from cavity points to all grid points
+        !! with zero values at internal grid points
+        ! P2M step
+        icav = 0
+        do isph = 1, params % nsph
+            inode = constants % snode(isph)
+            workspace % tmp_node_m(:, inode) = zero
+            do igrid = 1, params % ngrid
+                if(constants % ui(igrid, isph) .eq. zero) cycle
+                icav = icav + 1
+                call fmm_p2m(constants % cgrid(:, igrid), zeta(icav), &
+                    & one, params % pm, constants % vscales, one, &
+                    & workspace % tmp_node_m(:, inode))
+            end do
+            workspace % tmp_node_m(:, inode) = workspace % tmp_node_m(:, inode) / &
+                & params % rsph(isph)
+        end do
+        ! M2M, M2L and L2L translations
+        call tree_m2m_rotation(params, constants, workspace % tmp_node_m)
+        call tree_m2l_rotation(params, constants, workspace % tmp_node_m, &
+            & workspace % tmp_node_l)
+        call tree_l2l_rotation(params, constants, workspace % tmp_node_l)
+        ! Now compute near-field FMM gradients
+        ! Cycle over all spheres
+        icav = 0
+        workspace % tmp_efld = zero
+        do isph = 1, params % nsph
+            ! Cycle over all external grid points
+            do igrid = 1, params % ngrid
+                if(constants % ui(igrid, isph) .eq. zero) cycle
+                icav = icav + 1
+                ! Cycle over all near-field admissible pairs of spheres,
+                ! including pair (isph, isph) which is a self-interaction
+                inode = constants % snode(isph)
+                do jnear = constants % snear(inode), constants % snear(inode+1)-1
+                    ! Near-field interactions are possible only between leaf
+                    ! nodes, which must contain only a single input sphere
+                    jnode = constants % near(jnear)
+                    jsph = constants % order(constants % cluster(1, jnode))
+                    d = params % csph(:, isph) + &
+                        & constants % cgrid(:, igrid)*params % rsph(isph) - &
+                        & params % csph(:, jsph)
+                    dnorm = dnrm2(3, d, 1)
+                    workspace % tmp_efld(:, jsph) = workspace % tmp_efld(:, jsph) + &
+                        & zeta(icav)*d/(dnorm**3)
+                end do
+            end do
+        end do
+        ! Take into account far-field FMM gradients only if pl > 0
+        if (params % pl .gt. 0) then
+            tmp1 = one / sqrt(3d0) / constants % vscales(1)
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                tmp2 = tmp1 / params % rsph(isph)
+                workspace % tmp_efld(3, isph) = workspace % tmp_efld(3, isph) + &
+                    & tmp2*workspace % tmp_node_l(3, inode)
+                workspace % tmp_efld(1, isph) = workspace % tmp_efld(1, isph) + &
+                    & tmp2*workspace % tmp_node_l(4, inode)
+                workspace % tmp_efld(2, isph) = workspace % tmp_efld(2, isph) + &
+                    & tmp2*workspace % tmp_node_l(2, inode)
+            end do
+        end if
+        do isph = 1, params % nsph
+            force(:, isph) = force(:, isph) + &
+                & workspace % tmp_efld(:, isph)*params % charge(isph)
+        end do
+    ! Naive quadratically scaling implementation
+    else
+        ! This routines actually computes -grad, not grad
+        call efld(constants % ncav, zeta, constants % ccav, params % nsph, &
+            & params % csph, workspace % tmp_efld)
+        do isph = 1, params % nsph
+            force(:, isph) = force(:, isph) - &
+                & workspace % tmp_efld(:, isph)*params % charge(isph)
+        end do
+    end if
     write(6,*) '@forces@rhs', omp_get_wtime() - tt0
 
     tfdouky = zero
@@ -1963,6 +2039,7 @@ end subroutine bstarx
 
   real(dp), dimension(constants % nbasis0, params % nsph) :: diff0
   real(dp), dimension(constants % nbasis0, params % nsph) :: diff1
+  real(dp), dimension((constants % lmax0+2)**2, 3, params % nsph) :: diff1_grad
   real(dp) :: termi, termk, rijn
   ! basloc : Y_lm(s_n)
   ! vplm   : Argument to call ylmbas
@@ -1973,8 +2050,8 @@ end subroutine bstarx
   ! vsin   : Argument to call ylmbas
   real(dp),  dimension(params % lmax+1):: vcos, vsin
   real(dp), dimension(0:params % lmax) :: SK_rijn, DK_rijn
-    complex(dp) :: work_complex(constants % lmax0 + 1)
-    real(dp) :: work(constants % lmax0 + 1)
+    complex(dp) :: work_complex(constants % lmax0+2)
+    real(dp) :: work(constants % lmax0+2)
 
 
   ! Setting initial values to zero
@@ -2004,6 +2081,10 @@ end subroutine bstarx
         diff1(ind0, jsph) = diff0(ind0, jsph) * constants % C_ik(l0, jsph)
       end do
     end do
+    ! Prepare diff1_grad
+    call fmm_m2m_bessel_grad(constants % lmax0, constants % SK_ri(:, jsph), &
+        & constants % vscales, constants % vcnk, diff1(:, jsph), &
+        & diff1_grad(:, :, jsph))
   end do
 
 !  !Compute coefY = C_ik*Y_lm(x_in)*\bar(k_l0^j(x_in))
@@ -2136,11 +2217,24 @@ end subroutine bstarx
             vij  = params % csph(:,ksph) + &
                 & params % rsph(ksph)*constants % cgrid(:,igrid) - &
                 & params % csph(:,jsph)
-          call fmm_m2p_bessel_grad(vij * params % kappa, &
-              & params % rsph(jsph)*params % kappa, &
-              & constants % lmax0, &
-              & constants % vscales, params % kappa, diff1(:, jsph), one, &
-              & diff_ep_dim3(:, icav))
+            vtij = vij * params % kappa
+            !call fmm_m2p_bessel_grad(vtij, &
+            !    & params % rsph(jsph)*params % kappa, &
+            !    & constants % lmax0, &
+            !    & constants % vscales, params % kappa, diff1(:, jsph), one, &
+            !    & diff_ep_dim3(:, icav))
+            call fmm_m2p_bessel_work(vtij, constants % lmax0+1, &
+                & constants % vscales, constants % SK_ri(:, jsph), &
+                & -params % kappa, diff1_grad(:, 1, jsph), one, &
+                & diff_ep_dim3(1, icav), work_complex, work)
+            call fmm_m2p_bessel_work(vtij, constants % lmax0+1, &
+                & constants % vscales, constants % SK_ri(:, jsph), &
+                & -params % kappa, diff1_grad(:, 2, jsph), one, &
+                & diff_ep_dim3(2, icav), work_complex, work)
+            call fmm_m2p_bessel_work(vtij, constants % lmax0+1, &
+                & constants % vscales, constants % SK_ri(:, jsph), &
+                & -params % kappa, diff1_grad(:, 3, jsph), one, &
+                & diff_ep_dim3(3, icav), work_complex, work)
         end do
       end do
       ! Now jsph=ksph and isph!=ksph
@@ -2153,11 +2247,24 @@ end subroutine bstarx
             vij  = params % csph(:,isph) + &
                 & params % rsph(isph)*constants % cgrid(:,igrid) - &
                 & params % csph(:,ksph)
-            call fmm_m2p_bessel_grad(vij * params % kappa, &
-                & params % rsph(ksph)*params % kappa, &
-                & constants % lmax0, &
-                & constants % vscales, -params % kappa, diff1(:, ksph), one, &
-                & diff_ep_dim3(:, icav))
+            vtij = vij * params % kappa
+            !call fmm_m2p_bessel_grad(vij * params % kappa, &
+            !    & params % rsph(ksph)*params % kappa, &
+            !    & constants % lmax0, &
+            !    & constants % vscales, -params % kappa, diff1(:, ksph), one, &
+            !    & diff_ep_dim3(:, icav))
+            call fmm_m2p_bessel_work(vtij, constants % lmax0+1, &
+                & constants % vscales, constants % SK_ri(:, ksph), &
+                & params % kappa, diff1_grad(:, 1, ksph), one, &
+                & diff_ep_dim3(1, icav), work_complex, work)
+            call fmm_m2p_bessel_work(vtij, constants % lmax0+1, &
+                & constants % vscales, constants % SK_ri(:, ksph), &
+                & params % kappa, diff1_grad(:, 2, ksph), one, &
+                & diff_ep_dim3(2, icav), work_complex, work)
+            call fmm_m2p_bessel_work(vtij, constants % lmax0+1, &
+                & constants % vscales, constants % SK_ri(:, ksph), &
+                & params % kappa, diff1_grad(:, 3, ksph), one, &
+                & diff_ep_dim3(3, icav), work_complex, work)
         end do
       end do
       sum_dim3 = zero
