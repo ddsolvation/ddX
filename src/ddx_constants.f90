@@ -116,10 +116,10 @@ type ddx_constants_type
     !> LPB value (i'_l0(r_j)/i_l0(r_j)-k'_l0(r_j)/k_l0(r_j))^{-1}. Dimension
     !!      is ???
     real(dp), allocatable :: C_ik(:, :)
-    !> LPB Bessel function of the first kind. Dimension is (lmax+1, nsph).
+    !> LPB Bessel function of the first kind. Dimension is (lmax+2, nsph).
     real(dp), allocatable :: SI_ri(:, :)
     !> LPB Derivative of Bessel function of the first kind. Dimension is
-    !!      (lmax+1, nsph).
+    !!      (lmax+2, nsph).
     real(dp), allocatable :: DI_ri(:, :)
     !> LPB Bessel function of the second kind. Dimension is (lmax+2, nsph).
     real(dp), allocatable :: SK_ri(:, :)
@@ -307,7 +307,7 @@ subroutine constants_init(params, constants, info)
             constants % m2p_lmax = params % lmax
             constants % grad_nbasis = -1
         end if
-        constants % vgrid_dmax = max(params % pl, params % lmax)
+        constants % vgrid_dmax = max(params % pl, params % lmax) + 1
         constants % m2p_nbasis = (constants % m2p_lmax+1) ** 2
     end if
     ! Compute sizes of vgrid, vfact and vscales
@@ -475,8 +475,8 @@ subroutine constants_init(params, constants, info)
             info = 1
             return
         end if
-        allocate(constants % SI_ri(0:params % lmax, params % nsph))
-        allocate(constants % DI_ri(0:params % lmax, params % nsph))
+        allocate(constants % SI_ri(0:params % lmax+1, params % nsph))
+        allocate(constants % DI_ri(0:params % lmax+1, params % nsph))
         allocate(constants % SK_ri(0:params % lmax+1, params % nsph))
         allocate(constants % DK_ri(0:params % lmax+1, params % nsph))
         allocate(constants % diff_ep_adj(constants % ncav, &
@@ -494,7 +494,7 @@ subroutine constants_init(params, constants, info)
         do isph = 1, params % nsph
             ! We compute Bessel functions of degrees 0..lmax+1 because the
             ! largest degree is required for forces
-            call modified_spherical_bessel_first_kind(params % lmax, &
+            call modified_spherical_bessel_first_kind(params % lmax+1, &
                 & params % rsph(isph)*params % kappa,&
                 & constants % SI_ri(:, isph), constants % DI_ri(:, isph), &
                 & bessel_work)
