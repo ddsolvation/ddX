@@ -1399,18 +1399,18 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
             & force(:, isph), &
             & diff_re)
         tfdouky = tfdouky + omp_get_wtime() - tt1
-        tt1 = omp_get_wtime()
-        call derivative_P(params, constants, workspace, isph,&
-            & Xr, Xe, &
-            & Xadj_r_sgrid, Xadj_e_sgrid, &
-            & diff_re, &
-            & force(:, isph))
-        tp = tp + omp_get_wtime() - tt1
         ! Computation of G0
         tt1 = omp_get_wtime()
         call fdoga(params, constants, isph, Xadj_r_sgrid, phi_grid, force(:, isph))
         tfdoga = tfdoga + omp_get_wtime() - tt1
     end do
+    tt1 = omp_get_wtime()
+    call derivative_P(params, constants, workspace, &
+        & Xr, Xe, &
+        & Xadj_r_sgrid, Xadj_e_sgrid, &
+        & diff_re, &
+        & force)
+    tp = tp + omp_get_wtime() - tt1
     write(6,*) '@forces@fdoka', tfdoka
     write(6,*) '@forces@fdokb', tfdokb
     write(6,*) '@forces@fdoka_xe', tfdoka_xe
@@ -1453,20 +1453,20 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
         call fdouky_f0(params, constants, workspace, isph, Xadj_r, Xadj_r_sgrid, &
             & gradphi, force(:, isph))
         tfdouky = tfdouky + omp_get_wtime() - tt1
-        tt1 = omp_get_wtime()
-        call fdoco(params, constants, workspace, isph, Xadj_r_sgrid, gradphi, &
-            & normal_hessian_cav, icav_gr, force(:, isph))
-        tfdoga = tfdoga + omp_get_wtime() - tt1
         ! Computation of F0
         tt1 = omp_get_wtime()
         call fdouky_f0(params, constants, workspace, isph, Xadj_e, Xadj_e_sgrid, &
             & gradphi, force(:, isph))
         tfdouky = tfdouky + omp_get_wtime() - tt1
-        tt1 = omp_get_wtime()
-        call fdoco(params, constants, workspace, isph, Xadj_e_sgrid, gradphi, &
-            & normal_hessian_cav, icav_ge, force(:, isph))
-        tfdoga = tfdoga + omp_get_wtime() - tt1
     end do
+    tt1 = omp_get_wtime()
+    call fdoco(params, constants, workspace, Xadj_r_sgrid, gradphi, &
+        & normal_hessian_cav, icav_gr, force)
+    tfdoga = tfdoga + omp_get_wtime() - tt1
+    tt1 = omp_get_wtime()
+    call fdoco(params, constants, workspace, Xadj_e_sgrid, gradphi, &
+        & normal_hessian_cav, icav_ge, force)
+    tfdoga = tfdoga + omp_get_wtime() - tt1
     write(6,*) '@forces@fdouky', tfdouky
     write(6,*) '@forces@fdoco', tfdoga
 
@@ -1943,9 +1943,9 @@ end subroutine bstarx
   real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: diff_re
   real(dp), external :: dnrm2
   ! Local variable
-  integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, icav
+  integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, icav, indl, inode
   ! val_dim3 : Intermediate value array of dimension 3
-  real(dp), dimension(3) :: sij, vij, val_dim3
+  real(dp), dimension(3) :: sij, vij, val_dim3, vtij
   ! val   : Intermediate variable to compute diff_ep
   ! f1    : Intermediate variable for derivative of coefY_der
   ! f2    : Intermediate variable for derivative of coefY_der
@@ -1976,6 +1976,8 @@ end subroutine bstarx
   ! vsin   : Argument to call ylmbas
   real(dp),  dimension(params % lmax+1):: vcos, vsin
   real(dp), dimension(0:params % lmax) :: SK_rijn, DK_rijn
+    complex(dp) :: work_complex(constants % lmax0 + 1)
+    real(dp) :: work(constants % lmax0 + 1)
 
 
   ! Setting initial values to zero
@@ -2053,64 +2055,144 @@ end subroutine bstarx
 !    end do ! End of loop igrid
 !  end do ! End of loop isph
 
-  ! phi_in = diff0 * coefY
-  ! Here, summation over j takes place
-  phi_in = zero
-  icav = 0
-  do isph = 1, params % nsph
-    do igrid = 1, params % ngrid
-      if(constants % ui(igrid, isph) .gt. zero) then
-        ! Extrenal grid point
-        icav = icav + 1
-        val = zero
-        val_dim3(:) = zero
-        do jsph = 1, params % nsph 
-          do ind0 = 1, constants % nbasis0
-            val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
-            !val_dim3(:) = val_dim3(:) + diff0(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
-            !val_dim3(:) = val_dim3(:) + diff1(ind0,jsph)*coefY_der(:, icav, ind0, jsph)
-          end do
+  if (params % fmm .eq. 0) then
+      ! phi_in = diff0 * coefY
+      ! Here, summation over j takes place
+      phi_in = zero
+      icav = 0
+      do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+          if(constants % ui(igrid, isph) .gt. zero) then
+            ! Extrenal grid point
+            icav = icav + 1
+            val = zero
+            do jsph = 1, params % nsph 
+              !do ind0 = 1, constants % nbasis0
+              !!====== This place requirs coefY, that is not precomputed anymore
+              !  val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
+              !end do
+              vij = params % csph(:, isph) + &
+                  & params % rsph(isph)*constants % cgrid(:, igrid) - &
+                  & params % csph(:, jsph)
+              vtij = vij * params % kappa
+              call fmm_m2p_bessel_work(vtij, constants % lmax0, &
+                  & constants % vscales, constants % SK_ri(:, jsph), one, &
+                  & diff1(:, jsph), one, val, work_complex, work)
+            end do
+            phi_in(igrid, isph) = val
+          end if
         end do
-        phi_in(igrid, isph) = val
-      end if
-    end do
-  end do
-  ! Aleksandr: my loop for the diff_ep_dim3
-  diff_ep_dim3 = zero
-  ! At first isph=ksph, jsph!=ksph
-  icav = constants % icav_ia(ksph) - 1
-  do igrid = 1, params % ngrid
-    if (constants % ui(igrid, ksph) .eq. zero) cycle
-    icav = icav + 1
-    do jsph = 1, params % nsph
-      if (jsph .eq. ksph) cycle
-        vij  = params % csph(:,ksph) + &
-            & params % rsph(ksph)*constants % cgrid(:,igrid) - &
-            & params % csph(:,jsph)
-      call fmm_m2p_bessel_grad(vij * params % kappa, &
-          & params % rsph(jsph)*params % kappa, &
-          & constants % lmax0, &
-          & constants % vscales, params % kappa, diff1(:, jsph), one, &
-          & diff_ep_dim3(:, icav))
-    end do
-  end do
-  ! Now jsph=ksph and isph!=ksph
-  do isph = 1, params % nsph
-    if (isph .eq. ksph) cycle
-    icav = constants % icav_ia(isph) - 1
-    do igrid = 1, params % ngrid
-        if (constants % ui(igrid, isph) .eq. zero) cycle
+      end do
+      ! Aleksandr: my loop for the diff_ep_dim3
+      diff_ep_dim3 = zero
+      ! At first isph=ksph, jsph!=ksph
+      icav = constants % icav_ia(ksph) - 1
+      do igrid = 1, params % ngrid
+        if (constants % ui(igrid, ksph) .eq. zero) cycle
         icav = icav + 1
-        vij  = params % csph(:,isph) + &
-            & params % rsph(isph)*constants % cgrid(:,igrid) - &
-            & params % csph(:,ksph)
-        call fmm_m2p_bessel_grad(vij * params % kappa, &
-            & params % rsph(ksph)*params % kappa, &
-            & constants % lmax0, &
-            & constants % vscales, -params % kappa, diff1(:, ksph), one, &
-            & diff_ep_dim3(:, icav))
-    end do
-  end do
+        do jsph = 1, params % nsph
+          if (jsph .eq. ksph) cycle
+            vij  = params % csph(:,ksph) + &
+                & params % rsph(ksph)*constants % cgrid(:,igrid) - &
+                & params % csph(:,jsph)
+          call fmm_m2p_bessel_grad(vij * params % kappa, &
+              & params % rsph(jsph)*params % kappa, &
+              & constants % lmax0, &
+              & constants % vscales, params % kappa, diff1(:, jsph), one, &
+              & diff_ep_dim3(:, icav))
+        end do
+      end do
+      ! Now jsph=ksph and isph!=ksph
+      do isph = 1, params % nsph
+        if (isph .eq. ksph) cycle
+        icav = constants % icav_ia(isph) - 1
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .eq. zero) cycle
+            icav = icav + 1
+            vij  = params % csph(:,isph) + &
+                & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                & params % csph(:,ksph)
+            call fmm_m2p_bessel_grad(vij * params % kappa, &
+                & params % rsph(ksph)*params % kappa, &
+                & constants % lmax0, &
+                & constants % vscales, -params % kappa, diff1(:, ksph), one, &
+                & diff_ep_dim3(:, icav))
+        end do
+      end do
+  else
+      ! phi_in
+      ! Load input harmonics into tree data
+      workspace % tmp_sph = zero
+      workspace % tmp_sph(1:constants % nbasis0, :) = diff1(:, :)
+      if(constants % lmax0 .lt. params % pm) then
+          do isph = 1, params % nsph
+              inode = constants % snode(isph)
+              workspace % tmp_node_m(1:constants % nbasis0, inode) = &
+                  & workspace % tmp_sph(1:constants % nbasis0, isph)
+              workspace % tmp_node_m(constants % nbasis0+1:, inode) = zero
+          end do
+      else
+          indl = (params % pm+1)**2
+          do isph = 1, params % nsph
+              inode = constants % snode(isph)
+              workspace % tmp_node_m(:, inode) = workspace % tmp_sph(1:indl, isph)
+          end do
+      end if
+      ! Do FMM operations
+      call tree_m2m_bessel_rotation(params, constants, workspace % tmp_node_m)
+      call tree_m2l_bessel_rotation(params, constants, workspace % tmp_node_m, &
+          & workspace % tmp_node_l)
+      call tree_l2l_bessel_rotation(params, constants, workspace % tmp_node_l)
+      call tree_l2p_bessel(params, constants, one, workspace % tmp_node_l, zero, &
+          & phi_in)
+      call tree_m2p_bessel(params, constants, constants % lmax0, one, &
+          & params % lmax, workspace % tmp_sph, one, &
+          & phi_in)
+      ! Make phi_in zero at internal grid points
+      do isph = 1, params % nsph
+          do igrid = 1, params % ngrid
+              if (constants % ui(igrid, isph) .eq. zero) then
+                  phi_in(igrid, isph) = zero
+              end if
+          end do
+      end do
+      ! Aleksandr: my loop for the diff_ep_dim3
+      diff_ep_dim3 = zero
+      ! At first isph=ksph, jsph!=ksph
+      icav = constants % icav_ia(ksph) - 1
+      do igrid = 1, params % ngrid
+        if (constants % ui(igrid, ksph) .eq. zero) cycle
+        icav = icav + 1
+        do jsph = 1, params % nsph
+          if (jsph .eq. ksph) cycle
+            vij  = params % csph(:,ksph) + &
+                & params % rsph(ksph)*constants % cgrid(:,igrid) - &
+                & params % csph(:,jsph)
+          call fmm_m2p_bessel_grad(vij * params % kappa, &
+              & params % rsph(jsph)*params % kappa, &
+              & constants % lmax0, &
+              & constants % vscales, params % kappa, diff1(:, jsph), one, &
+              & diff_ep_dim3(:, icav))
+        end do
+      end do
+      ! Now jsph=ksph and isph!=ksph
+      do isph = 1, params % nsph
+        if (isph .eq. ksph) cycle
+        icav = constants % icav_ia(isph) - 1
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .eq. zero) cycle
+            icav = icav + 1
+            vij  = params % csph(:,isph) + &
+                & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                & params % csph(:,ksph)
+            call fmm_m2p_bessel_grad(vij * params % kappa, &
+                & params % rsph(ksph)*params % kappa, &
+                & constants % lmax0, &
+                & constants % vscales, -params % kappa, diff1(:, ksph), one, &
+                & diff_ep_dim3(:, icav))
+        end do
+      end do
+  end if
 
   ! Computation of derivative of U_i^e(x_in)
   call fdoga(params, constants, ksph, Xadj_r_sgrid, phi_in, force)
@@ -2166,7 +2248,7 @@ end subroutine bstarx
   ! Local variable
   integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, icav
   ! val_dim3 : Intermediate value array of dimension 3
-  real(dp), dimension(3) :: sij, vij, val_dim3
+  real(dp), dimension(3) :: sij, vij, val_dim3, vtij
   ! val     : Intermediate variable to compute diff_ep
   ! f1      : Intermediate variable for derivative of coefY_der
   ! f2      : Intermediate variable for derivative of coefY_der
@@ -2199,6 +2281,8 @@ end subroutine bstarx
   real(dp), dimension(params % ngrid, params % nsph) :: sum_Sjin
   ! c0 : \sum_{n=1}^N_g w_n U_j^{x_nj}\partial_n psi_0(x_nj)Y_{l0m0}(s_n)
   real(dp), dimension(constants % nbasis, params % nsph) :: c0_d, c0_d1
+    complex(dp) :: work_complex(constants % lmax0 + 1)
+    real(dp) :: work(constants % lmax0 + 1)
 
   ! Setting initial values to zero
   SK_rijn = zero
@@ -2246,12 +2330,12 @@ end subroutine bstarx
 !              & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
 !          call dbasis(params, constants, sij, basloc, dbasloc, vplm, vcos, vsin)
 
-          do l0 = 0, constants % lmax0
+          !do l0 = 0, constants % lmax0
 !            f1 = (DK_rijn(l0)*params % kappa)/constants % SK_ri(l0,jsph)
 !            f2 = SK_rijn(l0)/constants % SK_ri(l0,jsph)
-            do m0 = -l0, l0
-              ind0 = l0**2 + l0 + m0 + 1
-              sum_int = sum_int + c0_d(ind0,jsph)*constants % coefY(icav, ind0, jsph)
+          !  do m0 = -l0, l0
+          !    ind0 = l0**2 + l0 + m0 + 1
+          !    sum_int = sum_int + c0_d(ind0,jsph)*constants % coefY(icav, ind0, jsph)
 !              ! coefY_der : Derivative of Bessel function and spherical harmonic
 !              ! Non-Diagonal entries
 !              if ((ksph .eq. isph) .and. (isph .ne. jsph)) then
@@ -2267,8 +2351,15 @@ end subroutine bstarx
 !              else
 !                coefY_der(:,icav,ind0,jsph) = zero
 !              endif
-            end do ! End of loop m0
-          end do ! End of l0
+          !  end do ! End of loop m0
+          !end do ! End of l0
+          vij = params % csph(:, isph) + &
+              & params % rsph(isph)*constants % cgrid(:, igrid) - &
+              & params % csph(:, jsph)
+          vtij = vij * params % kappa
+          call fmm_m2p_bessel_work(vtij, constants % lmax0, &
+              & constants % vscales, constants % SK_ri(:, jsph), one, &
+              & c0_d1(:, jsph), one, sum_int, work_complex, work)
         end do ! End of loop jsph
         sum_Sjin(igrid,isph) = -(epsp/params % eps)*sum_int
       end if
@@ -2361,14 +2452,13 @@ end subroutine bstarx
   !
   ! Subroutine to calculate the third derivative term in C1_C2 matrix, namely the derivative of PU_i
   ! @param[in]  ddx_data     : Input data file
-  ! @param[in]  ksph         : Derivative with respect to x_k
   ! @param[in]  Xr           : Solution of the Laplace problem
   ! @param[in]  Xe           : Solution of the HSP problem
   ! @param[in]  Xadj_r_sgrid : Adjoint Laplace solution evaluated at grid point
   ! @param[in]  Xadj_e_sgrid : Adjoint HSP solution evaluated at grid point
   ! @param[in]  diff_re      : l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
   ! @param[out] force        : Force
-  subroutine derivative_P(params, constants, workspace, ksph, &
+  subroutine derivative_P(params, constants, workspace, &
                           & Xr, Xe, &
                           & Xadj_r_sgrid, Xadj_e_sgrid, &
                           & diff_re, force)
@@ -2377,10 +2467,9 @@ end subroutine bstarx
     type(ddx_constants_type), intent(in) :: constants
     !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
-  integer, intent(in) :: ksph
   real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xr, Xe, diff_re
   real(dp), dimension(params % ngrid, params % nsph), intent(in) :: Xadj_r_sgrid, Xadj_e_sgrid
-  real(dp), dimension(3), intent(inout) :: force
+  real(dp), dimension(3, params % nsph), intent(inout) :: force
   ! Local variable
   ! igrid0: Index for grid point n0
   integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, igrid0, icav, indl, inode
@@ -2605,8 +2694,10 @@ end subroutine bstarx
             & constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &
             & diff_re , constants % nbasis, zero, diff_re_sgrid, &
             & params % ngrid)
-  call fdoga(params, constants, ksph, diff_re_sgrid, phi_n_r, force)
-  call fdoga(params, constants, ksph, diff_re_sgrid, phi_n_e, force)
+  do isph = 1, params % nsph
+      call fdoga(params, constants, isph, diff_re_sgrid, phi_n_r, force(:, isph))
+      call fdoga(params, constants, isph, diff_re_sgrid, phi_n_e, force(:, isph))
+  end do
   end subroutine derivative_P
 
   !
@@ -2618,18 +2709,17 @@ end subroutine bstarx
   ! @param[in]  normal_hessian_cav : Normal of the Hessian evaluated at cavity points
   ! @param[in]  icav_g             : Index of outside cavity point
   ! @param[out] force              : Force corresponding to HSP problem
-  subroutine fdoco(params, constants, workspace, ksph, sol_sgrid, gradpsi, normal_hessian_cav, icav_g, force)
+  subroutine fdoco(params, constants, workspace, sol_sgrid, gradpsi, normal_hessian_cav, icav_g, force)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
-  integer, intent(in) :: ksph
   real(dp), dimension(params % ngrid, params % nsph), intent(in) :: sol_sgrid
   real(dp), dimension(3, constants % ncav), intent(in) :: gradpsi
   real(dp), dimension(3, constants % ncav), intent(in) :: normal_hessian_cav
   integer, intent(inout) :: icav_g
-  real(dp), dimension(3), intent(inout) :: force
+  real(dp), dimension(3, params % nsph), intent(inout) :: force
   ! Local variable
   integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, igrid0, icav, indl, inode
   ! term  : SK_rijn/SK_rj
@@ -2802,18 +2892,20 @@ end subroutine bstarx
     end do ! End of loop igrid
   end do ! End of loop i
 
-  call fdoga(params, constants, ksph, gradpsi_grid, phi_n, force)
+  do isph = 1, params % nsph
+      call fdoga(params, constants, isph, gradpsi_grid, phi_n, force(:, isph))
 
-  ! Compute the Hessian contributions
-  do igrid = 1, params % ngrid
-    if(constants % ui(igrid, ksph) .gt. zero) then
-      icav_g = icav_g + 1
-      force = force + constants % wgrid(igrid)*constants % ui(igrid, ksph)*&
-                       & phi_n(igrid, ksph)*normal_hessian_cav(:, icav_g)
-    end if
+      ! Compute the Hessian contributions
+      do igrid = 1, params % ngrid
+        if(constants % ui(igrid, isph) .gt. zero) then
+          icav_g = icav_g + 1
+          force(:, isph) = force(:, isph) + constants % wgrid(igrid)*constants % ui(igrid, isph)*&
+                           & phi_n(igrid, isph)*normal_hessian_cav(:, icav_g)
+        end if
+      end do
+
+      call fdops(params, constants, workspace, isph, phi_n, force(:, isph))
   end do
-
-  call fdops(params, constants, workspace, ksph, phi_n, force)
 
   end subroutine fdoco
 
