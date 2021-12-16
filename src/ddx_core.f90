@@ -2572,6 +2572,51 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
     end do
 end subroutine tree_m2p_bessel_adj
 
+subroutine tree_m2p_bessel_nodiag_adj(params, constants, p, alpha, grid_v, beta, sph_p, &
+        & sph_m)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: p, sph_p
+    real(dp), intent(in) :: grid_v(params % ngrid, params % nsph), alpha, &
+        & beta
+    ! Output
+    real(dp), intent(inout) :: sph_m((sph_p+1)**2, params % nsph)
+    ! Temporary workspace
+    real(dp) :: work(p+1)
+    ! Local variables
+    integer :: isph, inode, jnear, jnode, jsph, igrid
+    real(dp) :: c(3)
+    ! Init output
+    if (beta .eq. zero) then
+        sph_m = zero
+    else
+        sph_m = beta * sph_m
+    end if
+    ! Cycle over all spheres
+    do isph = 1, params % nsph
+        ! Cycle over all near-field admissible pairs of spheres
+        inode = constants % snode(isph)
+        do jnear = constants % snear(inode), constants % snear(inode+1)-1
+            ! Near-field interactions are possible only between leaf nodes,
+            ! which must contain only a single input sphere
+            jnode = constants % near(jnear)
+            jsph = constants % order(constants % cluster(1, jnode))
+            ! Ignore self-interaction
+            if(isph .eq. jsph) cycle
+            ! Accumulate interaction for external grid points only
+            do igrid = 1, params % ngrid
+                if(constants % ui(igrid, isph) .eq. zero) cycle
+                c = constants % cgrid(:, igrid)*params % rsph(isph) - &
+                    & params % csph(:, jsph) + params % csph(:, isph)
+                call fmm_m2p_bessel_adj(c, alpha*grid_v(igrid, isph), &
+                    & params % rsph(jsph), params % kappa, p, constants % vscales, one, &
+                    & sph_m(:, jsph))
+            end do
+        end do
+    end do
+end subroutine tree_m2p_bessel_nodiag_adj
+
 subroutine fdoka(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
