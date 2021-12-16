@@ -165,15 +165,14 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
       write(*,*) 'Computation of Forces for ddLPB'
       ! Call the subroutine adjoint to solve the adjoint solution
       t0 = omp_get_wtime()
-      flush(6)
       call ddx_lpb_adjoint(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, psi, tol, Xadj_r, Xadj_e)
       t1 = omp_get_wtime()
-      write(6,*) '@adjoint_ls', t1 - t0
-      call prtsph('xadj_r', ddx_data % constants % nbasis, ddx_data % params % lmax, &
-          & ddx_data % params % nsph, 0, xadj_r)
-      call prtsph('xadj_e', ddx_data % constants % nbasis, ddx_data % params % lmax, &
-          & ddx_data % params % nsph, 0, xadj_e)
+      !write(6,*) '@adjoint_ls', t1 - t0
+      !call prtsph('xadj_r', ddx_data % constants % nbasis, ddx_data % params % lmax, &
+      !    & ddx_data % params % nsph, 0, xadj_r)
+      !call prtsph('xadj_e', ddx_data % constants % nbasis, ddx_data % params % lmax, &
+      !    & ddx_data % params % nsph, 0, xadj_e)
 
       !Call the subroutine to evaluate derivatives
       t0 = omp_get_wtime()
@@ -702,25 +701,25 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     ddcosmo_guess = zero
     hsp_guess = zero
     call lpb_direct_prec(params, constants, workspace, rhs, x)
-    call prtsph('rhs', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, rhs)
+    !call prtsph('rhs', constants % nbasis, params % lmax, &
+    !    & 2*params % nsph, 0, rhs)
 
     ! solve LS using Jacobi/DIIS
     n_iter = params % maxiter
     call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
         & 4, params % jacobi_ndiis, 2, tol, rhs, x, n_iter, &
         & ok, lpb_direct_matvec, lpb_direct_prec)
-    call prtsph('sol', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, x)
+    ! call prtsph('sol', constants % nbasis, params % lmax, &
+    !     & 2*params % nsph, 0, x)
     xr = x(:,:,1)
     xe = x(:,:,2)
 
     ! check
-    call lpb_direct_matvec_full(params, constants, workspace, x, scr)
-    call prtsph('matvec', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, scr)
-    call prtsph('rhs', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, rhs)
+    ! call lpb_direct_matvec_full(params, constants, workspace, x, scr)
+    ! call prtsph('matvec', constants % nbasis, params % lmax, &
+    !     & 2*params % nsph, 0, scr)
+    ! call prtsph('rhs', constants % nbasis, params % lmax, &
+    !     & 2*params % nsph, 0, rhs)
 
     esolv = zero
     do isph = 1, params % nsph
@@ -1260,15 +1259,15 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_
     call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
         & 4, params % jacobi_ndiis, 1, tol, rhs, x, n_iter, &
         & ok, lpb_adjoint_matvec, lpb_adjoint_prec)
-    call prtsph('adjoint sol', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, x)
+    !call prtsph('adjoint sol', constants % nbasis, params % lmax, &
+    !    & 2*params % nsph, 0, x)
 
     ! check
-    call lpb_adjoint_matvec_full(params, constants, workspace, x, scr)
-    call prtsph('adjoint matvec', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, scr)
-    call prtsph('adjoint rhs', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, rhs)
+    !call lpb_adjoint_matvec_full(params, constants, workspace, x, scr)
+    !call prtsph('adjoint matvec', constants % nbasis, params % lmax, &
+    !    & 2*params % nsph, 0, scr)
+    !call prtsph('adjoint rhs', constants % nbasis, params % lmax, &
+    !    & 2*params % nsph, 0, rhs)
 
     ! unpack
     xadj_r = x(:,:,1)
