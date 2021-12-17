@@ -402,6 +402,27 @@ subroutine bx_incore(params, constants, workspace, x, y)
     end do
 end subroutine bx_incore
 
+subroutine bx_nodiag_incore(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, jsph, ij
+    y = zero
+    !$omp parallel do default(none) shared(params,constants,x,y) &
+    !$omp private(isph,ij,jsph)
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            call dgemv('n', constants % nbasis, constants % nbasis, one, &
+                & constants % b(:,:,ij), constants % nbasis, x(:,jsph), 1, &
+                & one, y(:,isph), 1)
+        end do
+    end do
+end subroutine bx_nodiag_incore
+
 subroutine bstarx_incore(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -423,6 +444,28 @@ subroutine bstarx_incore(params, constants, workspace, x, y)
         end do
     end do
 end subroutine bstarx_incore
+
+subroutine bstarx_nodiag_incore(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, jsph, ij, indmat
+    y = zero
+    !$omp parallel do default(none) shared(params,constants,x,y) &
+    !$omp private(isph,ij,jsph,indmat)
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            indmat = constants % itrnl(ij)
+            call dgemv('t', constants % nbasis, constants % nbasis, one, &
+                & constants % b(:,:,indmat), constants % nbasis, x(:,jsph), 1, &
+                & one, y(:,isph), 1)
+        end do
+    end do
+end subroutine bstarx_nodiag_incore
 
 !
 ! Subroutine used for the GMRES solver
@@ -701,8 +744,6 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     ddcosmo_guess = zero
     hsp_guess = zero
     call lpb_direct_prec(params, constants, workspace, rhs, x)
-    !call prtsph('rhs', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, rhs)
 
     ! solve LS using Jacobi/DIIS
     n_iter = params % maxiter
@@ -1141,6 +1182,10 @@ subroutine lpb_adjoint_prec(params, constants, workspace, x, y)
         call jacobi_diis(params, constants, workspace, inner_tol, y(:,:,1), &
             & ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
     end if
+    if (info.ne.0) then
+        write(*,*) 'lpb_adjoint_prec: [1] ddCOSMO failed to converge'
+        stop 1
+    end if
     y(:,:,1) = ddcosmo_guess
     tt1 = omp_get_wtime()
     write(6,*) '@adjoint@cosmo', tt1 - tt0, n_iter
@@ -1148,11 +1193,19 @@ subroutine lpb_adjoint_prec(params, constants, workspace, x, y)
     tt0 = omp_get_wtime()
     n_iter = params % maxiter
     if (params % incore) then
-        call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
-            & n_iter, r_norm, bstarx_incore, info)
+        ! call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        !     & n_iter, r_norm, bstarx_incore, info)
+        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+            & n_iter, x_rel_diff, bstarx_nodiag_incore, bx_prec, hnorm, info)
     else
-        call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
-            & n_iter, r_norm, bstarx, info)
+        ! call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        !    & n_iter, r_norm, bstarx, info)
+        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+            & n_iter, x_rel_diff, bstarx_nodiag, bx_prec, hnorm, info)
+    end if
+    if (info.ne.0) then
+        write(*,*) 'lpb_adjoint_prec: [1] HSP failed to converge'
+        stop 1
     end if
     y(:,:,2) = hsp_guess
     tt1 = omp_get_wtime()
@@ -1200,6 +1253,10 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
         call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), &
             & ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
     end if
+    if (info.ne.0) then
+        write(*,*) 'lpb_direct_prec: [1] ddCOSMO failed to converge'
+        stop 1
+    end if
 
     ! Scale by the factor of (2l+1)/4Pi
     y(:,:,1) = ddcosmo_guess
@@ -1211,19 +1268,26 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     tt0 = omp_get_wtime()
     n_iter = params % maxiter
     if (params % incore) then
-        call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
-          & n_iter, r_norm, bx_incore, info)
+        ! call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        !    & n_iter, r_norm, bx_incore, info)
+        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+            & n_iter, x_rel_diff, bx_nodiag_incore, bx_prec, hnorm, info)
     else
-        call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
-          & n_iter, r_norm, bx, info)
+        ! call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        !  & n_iter, r_norm, bx, info)
+        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+            & n_iter, x_rel_diff, bx_nodiag, bx_prec, hnorm, info)
     end if
-    !call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
-    !    & n_iter, x_rel_diff, bx_nodiag, bx_prec, hnorm, info)
     !call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &
     !    & 0, hsp_guess)
     y(:,:,2) = hsp_guess
     tt1 = omp_get_wtime()
     write(6,*) '@direct@hsp', tt1 - tt0, n_iter
+
+    if (info.ne.0) then
+        write(*,*) 'lpb_direct_prec: [1] HSP failed to converge'
+        stop 1
+    end if
 
 end subroutine lpb_direct_prec
 
@@ -1252,7 +1316,7 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_
     ! guess
     ddcosmo_guess = zero
     hsp_guess = zero
-    call lpb_adjoint_prec(params, constants, workspace, rhs, x)
+    ! call lpb_adjoint_prec(params, constants, workspace, rhs, x)
 
     ! solve adjoint LS using Jacobi/DIIS
     n_iter = params % maxiter
@@ -1579,6 +1643,37 @@ subroutine bstarx(params, constants, workspace, x, y)
     end do
 
 end subroutine bstarx
+
+subroutine bstarx_nodiag(params, constants, workspace, x, y)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in)       :: x(constants % nbasis, params % nsph)
+    real(dp), intent(out)      :: y(constants % nbasis, params % nsph)
+    ! Local variables
+    integer                    :: isph, igrid, istatus
+
+    ! Initalize
+    y = zero
+    !! Expand x over spherical harmonics
+    ! Loop over spheres
+    do isph = 1, params % nsph
+        call dgemv('t', constants % nbasis, params % ngrid, one, constants % vgrid, &
+            & constants % vgrid_nbasis, x(:, isph), 1, zero, &
+            & workspace % tmp_grid(:, isph), 1)
+    end do
+    ! Loop over spheres
+    do isph = 1, params % nsph
+        ! Compute NEGATIVE action of off-digonal blocks
+        call adjrhs_lpb(params, constants, workspace, isph, workspace % tmp_grid, &
+            & y(:, isph), workspace % tmp_vylm, workspace % tmp_vplm, &
+            & workspace % tmp_vcos, workspace % tmp_vsin)
+        y(:,isph) = - y(:,isph)
+    end do
+
+end subroutine bstarx_nodiag
+
 
   !
   ! Taken from ddx_core routine adjrhs
