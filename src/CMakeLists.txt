@@ -8,20 +8,27 @@
 # @date 2020-02-17
 
 set(SRC
+    "ddx_definitions.f90"
+    "ddx_parameters.f90"
+    "ddx_constants.f90"
+    "ddx_workspace.f90"
+    "ddx_harmonics.f90"
     "ddx_core.f90"
     "ddx_operators.f90"
     "ddx_solvers.f90"
-    "ddx.f90"
+    "ddx_cosmo.f90"
+    "ddx_pcm.f90"
     "ddx_lpb.f90"
-    "bessel.f90"
-    "llgnew.f")
+    "ddx.f90"
+    "llgnew.f"
+    "cbessel.f90")
 
 # Preprocess OPENMP directive (disabled currently)
 #set_source_files_properties("dd_core.f90" PROPERTIES COMPILE_FLAGS -cpp)
 
 set(COVERAGE_EXCLUDES
     "${CMAKE_CURRENT_SOURCE_DIR}/llgnew.f" PARENT_SCOPE
-    "${CMAKE_CURRENT_SOURCE_DIR}/bessel.f90" PARENT_SCOPE)
+    "${CMAKE_CURRENT_SOURCE_DIR}/cbessel.f90" PARENT_SCOPE)
 
 list(TRANSFORM SRC PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)
 

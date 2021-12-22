@@ -20,7 +20,7 @@ implicit none
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
 integer :: iprint, nproc, lmax, pmax, ngrid, iconv, igrad, n, force, fmm, model
-integer :: niter, ndiis=25, fmm_precompute, itersolver, maxiter
+integer :: niter, jacobi_ndiis=25, gmresr_j=1, gmresr_dim=10, itersolver, maxiter
 logical :: ok
 real(dp) :: eps, eta, tol, se, kappa
 ! esolv       : Electrostatic Solvation Energy
@@ -41,7 +41,7 @@ real(dp), allocatable :: x(:), y(:), z(:), rvdw(:), charge(:)
 !   psi         : Electrostatic potential vector of size nylm*n
 !   xs          : (?)
 !
-real(dp), allocatable :: phi(:), gradphi(:,:), psi(:, :), xs(:, :)
+real(dp), allocatable :: phi(:), gradphi(:,:), hessianphi(:, :, :), psi(:, :), xs(:, :)
 real(dp), allocatable :: g(:, :), rhs(:, :)
 !
 ! These constants are defined in ddX library already
@@ -117,17 +117,18 @@ itersolver=1
 tol=1d-1**iconv
 maxiter=200
 call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pmax, pmax, &
-    & fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, maxiter, &
-    & ndiis, nproc, ddx_data, info)
+    & se, eta, eps, kappa, itersolver, maxiter, &
+    & jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
 
-allocate(phi(ddx_data % ncav), psi(ddx_data % nbasis,n), gradphi(3, ddx_data % ncav))
+allocate(phi(ddx_data % constants % ncav), psi(ddx_data % constants % nbasis,n), &
+    & gradphi(3, ddx_data % constants % ncav), hessianphi(3, 3, ddx_data % constants % ncav))
 
-call mkrhs(ddx_data, phi, gradphi, psi)
+call mkrhs(ddx_data, 1, phi, 1, gradphi, 1, hessianphi, psi)
 
 niter = 200
 ! Now, call the ddLPB solver
 !
-allocate (sigma(ddx_data % nbasis ,n))
+allocate (sigma(ddx_data % constants % nbasis ,n))
 !
 ! @param[in] phi      : Boundary conditions
 ! @param[in] charge   : Charge of atoms
@@ -138,10 +139,12 @@ allocate (sigma(ddx_data % nbasis ,n))
 ! @param[out] sigma   : Solution of ddLPB
 ! @param[out] esolv   : Electrostatic solvation energy
 !
-call ddlpb(ddx_data, phi, psi, gradphi, sigma, esolv, charge, ndiis, niter, iconv)
+call ddlpb(ddx_data, phi, psi, gradphi, tol, sigma, esolv, charge, &
+    & jacobi_ndiis, niter)
 !call cosmo(.false., .true., phi, xx, psi, sigma, esolv)
 !
-if (iprint.ge.3) call prtsph('Solution to the ddLPB equation',ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, sigma)
+if (iprint.ge.3) call prtsph('Solution to the ddLPB equation', &
+    & ddx_data % constants % nbasis, ddx_data % params % lmax, ddx_data % params % nsph, 0, sigma)
 !
 write (6,'(1x,a,f14.6)') 'ddLPB Electrostatic Solvation Energy (kcal/mol):', esolv*tokcal
 deallocate(phi, psi, gradphi)
