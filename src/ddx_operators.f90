@@ -50,6 +50,7 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
         & 3, 3, ddx_data % params % nsph), &
         & grid_hessian2(ddx_data % params % ngrid, 3, ddx_data % params % nsph)
     real(dp), external :: dnrm2
+    real(dp) :: t
     ! In case FMM is disabled compute phi and gradphi at cavity points by a
     ! naive double loop of a quadratic complexity
     if (ddx_data % params % fmm .eq. 0) then
@@ -89,6 +90,7 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
     ! Use the FMM otherwise
     else
         ! P2M step from centers of harmonics
+        t = omp_get_wtime()
         do isph = 1, ddx_data % params % nsph
             inode = ddx_data % constants % snode(isph)
             ddx_data % workspace % tmp_sph(1, isph) = ddx_data % params % charge(isph) / &
@@ -97,20 +99,42 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
             ddx_data % workspace % tmp_node_m(1, inode) = ddx_data % workspace % tmp_sph(1, isph)
             ddx_data % workspace % tmp_node_m(2:, inode) = zero
         end do
+        write(6,*) 'centers', omp_get_wtime() - t
         ! M2M, M2L and L2L translations
-        call tree_m2m_rotation(ddx_data % params, ddx_data % constants, ddx_data % workspace % tmp_node_m)
-        call tree_m2l_rotation(ddx_data % params, ddx_data % constants, ddx_data % workspace % tmp_node_m, &
+
+        t = omp_get_wtime()
+        call tree_m2m_rotation(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace % tmp_node_m)
+        write(6,*) 'm2m rotation', omp_get_wtime() - t
+
+        t = omp_get_wtime()
+        call tree_m2l_rotation(ddx_data % params, ddx_data % constants, & 
+            & ddx_data % workspace % tmp_node_m, ddx_data % workspace % tmp_node_l)
+        write(6,*) 'm2l rotation', omp_get_wtime() - t
+
+        t = omp_get_wtime()
+        call tree_l2l_rotation(ddx_data % params, ddx_data % constants, &
             & ddx_data % workspace % tmp_node_l)
-        call tree_l2l_rotation(ddx_data % params, ddx_data % constants, ddx_data % workspace % tmp_node_l)
-        call tree_l2p(ddx_data % params, ddx_data % constants, one, ddx_data % workspace % tmp_node_l, zero, &
-            & ddx_data % workspace % tmp_grid)
-        call tree_m2p(ddx_data % params, ddx_data % constants, ddx_data % params % lmax, one, ddx_data % workspace % tmp_sph, &
+        write(6,*) 'l2l rotation', omp_get_wtime() - t
+
+        t = omp_get_wtime()
+        call tree_l2p(ddx_data % params, ddx_data % constants, one, &
+            & ddx_data % workspace % tmp_node_l, zero, ddx_data % workspace % tmp_grid)
+        write(6,*) 'l2p', omp_get_wtime() - t
+
+        t = omp_get_wtime()
+        call tree_m2p(ddx_data % params, ddx_data % constants, & 
+            & ddx_data % params % lmax, one, ddx_data % workspace % tmp_sph, &
             & one, ddx_data % workspace % tmp_grid)
+        write(6,*) 'm2p', omp_get_wtime() - t
+
         ! Potential from each sphere to its own grid points
+        t = omp_get_wtime()
         call dgemm('T', 'N', ddx_data % params % ngrid, ddx_data % params % nsph, &
             & ddx_data % constants % nbasis, one, ddx_data % constants % vgrid2, &
             & ddx_data % constants % vgrid_nbasis, ddx_data % workspace % tmp_sph, ddx_data % constants % nbasis, &
             & one, ddx_data % workspace % tmp_grid, ddx_data % params % ngrid)
+        write(6,*) 'dgemm', omp_get_wtime() - t
         ! Rearrange potential from all grid points to external only
         icav = 0
         do isph = 1, ddx_data % params % nsph

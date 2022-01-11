@@ -1773,6 +1773,8 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
     integer :: i, j
     real(dp) :: c1(3), c(3), r1, r
     ! Bottom-to-top pass
+    !!$omp parallel do default(none) shared(constants,params,node_m) &
+    !!$omp private(i,j,c1,c,r1,r,work)
     do i = constants % nclusters, 1, -1
         ! Leaf node does not need any update
         if (constants % children(1, i) == 0) cycle
@@ -1953,6 +1955,8 @@ subroutine tree_l2l_rotation_work(params, constants, node_l, work)
     integer :: i, j
     real(dp) :: c1(3), c(3), r1, r
     ! Top-to-bottom pass
+    !!$omp parallel do default(none) shared(constants,params,node_l) &
+    !!$omp private(i,j,c1,c,r1,r,work)
     do i = 2, constants % nclusters
         j = constants % parent(i)
         c = constants % cnode(:, j)
@@ -2117,6 +2121,8 @@ subroutine tree_m2l_rotation(params, constants, node_m, node_l)
     integer :: i, j, k
     real(dp) :: c1(3), c(3), r1, r
     ! Any order of this cycle is OK
+    !$omp parallel do default(none) shared(constants,params,node_m,node_l) &
+    !$omp private(i,c,r,k,c1,r1,work)
     do i = 1, constants % nclusters
         ! If no far admissible pairs just set output to zero
         if (constants % nfar(i) .eq. 0) then
@@ -2415,6 +2421,8 @@ subroutine tree_m2p(params, constants, p, alpha, sph_m, beta, grid_v)
         grid_v = beta * grid_v
     end if
     ! Cycle over all spheres
+    !$omp parallel do default(none) shared(params,constants,grid_v,p, &
+    !$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
