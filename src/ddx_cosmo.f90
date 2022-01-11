@@ -13,6 +13,7 @@ module ddx_cosmo
 use ddx_core
 use ddx_operators
 use ddx_solvers
+use omp_lib
 implicit none
 
 contains
@@ -148,17 +149,11 @@ subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, &
         xs = zero
     end if
     ! Solve ddCOSMO system L X = -Phi with a given initial guess
-    call cpu_time(start_time)
-    !if (params % itersolver .eq. 1) then
-        call jacobi_diis(params, constants, workspace, tol, &
-            & workspace % tmp_rhs, xs, xs_niter, xs_rel_diff, lx_nodiag, &
-            & ldm1x, hnorm, info)
-    !else
-    !    call gmresr(params, constants, workspace, tol, &
-    !        & workspace % tmp_rhs, xs, xs_niter, r_norm, lx, &
-    !        & info)
-    !end if
-    call cpu_time(finish_time)
+    start_time = omp_get_wtime()
+    call jacobi_diis(params, constants, workspace, tol, &
+        & workspace % tmp_rhs, xs, xs_niter, xs_rel_diff, lx_nodiag, &
+        & ldm1x, hnorm, info)
+    finish_time = omp_get_wtime()
     xs_time = finish_time - start_time
     ! Check if solver did not converge
     if (info .ne. 0) then

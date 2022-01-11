@@ -15,6 +15,7 @@ use ddx_operators
 use ddx_solvers
 use ddx
 use ddx_lpb
+use omp_lib
 implicit none
 
 character(len=255) :: fname
@@ -36,15 +37,15 @@ allocate(phi_cav(ddx_data % constants % ncav), &
     & hessianphi_cav(3, 3, ddx_data % constants % ncav), &
     & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), &
     & force(3, ddx_data % params % nsph))
-call cpu_time(start_time)
+start_time = omp_get_wtime()
 call mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, hessian_flag, &
     & hessianphi_cav, psi)
-call cpu_time(finish_time)
+finish_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") "mkrhs time:", finish_time-start_time, " seconds"
-call cpu_time(start_time)
+start_time = omp_get_wtime()
 call ddsolve(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, &
     & force, info)
-call cpu_time(finish_time)
+finish_time = omp_get_wtime()
 ! Print info depending on iprint flag
 if (iprint .gt. 0) then
     ! Print info on the primal ddPCM system

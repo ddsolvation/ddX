@@ -42,7 +42,7 @@ project(ddX VERSION ${VERSION} LANGUAGES Fortran CXX)
 # Extend path for additional cmake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-add_compile_options(-O3)
+add_compile_options(-O3 -qopenmp)
 #add_compile_options(-fcheck=all -g -fbacktrace -Og -fbounds-check)
 #add_compile_options(-Waliasing -Wampersand -Wconversion -Wsurprising -Wc-binding-type -Wintrinsics-std)
 #add_compile_options(-Wtabs -Wintrinsic-shadow -Wline-truncation -Wtarget-lifetime -Winteger-division)
