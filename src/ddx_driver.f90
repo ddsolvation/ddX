@@ -32,11 +32,16 @@ call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol, iprint, info)
 if(info .ne. 0) stop "info != 0"
+
 allocate(phi_cav(ddx_data % constants % ncav), &
-    & gradphi_cav(3, ddx_data % constants % ncav), &
-    & hessianphi_cav(3, 3, ddx_data % constants % ncav), &
-    & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), &
-    & force(3, ddx_data % params % nsph))
+    & psi(ddx_data % constants % nbasis, ddx_data % params % nsph))
+
+if(ddx_data % params % force .eq. 1) then
+    allocate(gradphi_cav(3, ddx_data % constants % ncav), &
+        & hessianphi_cav(3, 3, ddx_data % constants % ncav), &
+        & force(3, ddx_data % params % nsph))
+end if
+
 start_time = omp_get_wtime()
 call mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, hessian_flag, &
     & hessianphi_cav, psi)
@@ -116,7 +121,10 @@ write(*, *) "Full forces"
         write(6,'(1x,i5,3ES25.16E3)') isph, force(:,isph)
     end do
 end if
-deallocate(phi_cav, gradphi_cav, hessianphi_cav, psi, force)
+deallocate(phi_cav, psi)
+if (ddx_data % params % force .eq. 1) then
+    deallocate(gradphi_cav, hessianphi_cav, force)
+end if
 call ddfree(ddx_data)
 
 end program main

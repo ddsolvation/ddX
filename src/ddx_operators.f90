@@ -45,12 +45,15 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
     ! Local variables
     integer :: isph, igrid, icav, inode, inear, jnear, jnode, jsph, i
     real(dp) :: d(3), v, tmpv, r, gradv(3), hessianv(3, 3), tmpd(3), epsp=one
-    real(dp) :: grid_grad(ddx_data % params % ngrid, 3, &
-        & ddx_data % params % nsph), grid_hessian(ddx_data % params % ngrid, &
-        & 3, 3, ddx_data % params % nsph), &
-        & grid_hessian2(ddx_data % params % ngrid, 3, ddx_data % params % nsph)
+    real(dp), allocatable :: grid_grad(:,:,:), grid_hessian(:,:,:,:), grid_hessian2(:,:,:)
     real(dp), external :: dnrm2
     real(dp) :: t
+    if (ddx_data % params % force .eq. 1) then
+        allocate(grid_grad(ddx_data % params % ngrid, 3, &
+        & ddx_data % params % nsph), grid_hessian(ddx_data % params % ngrid, &
+        & 3, 3, ddx_data % params % nsph), &
+        & grid_hessian2(ddx_data % params % ngrid, 3, ddx_data % params % nsph))
+    end if
     ! In case FMM is disabled compute phi and gradphi at cavity points by a
     ! naive double loop of a quadratic complexity
     if (ddx_data % params % fmm .eq. 0) then
@@ -226,9 +229,6 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
                     grid_hessian(:, i, :, :) = grid_hessian(:, i, :, :) + grid_hessian2
                 end do
             end if
-        else
-            grid_grad = zero
-            grid_hessian = zero
         end if
         ! Copy output for external grid points only
         icav = 0
@@ -236,8 +236,10 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
             do igrid = 1, ddx_data % params % ngrid
                 if(ddx_data % constants % ui(igrid, isph) .eq. zero) cycle
                 icav = icav + 1
-                gradphi_cav(:, icav) = grid_grad(igrid, :, isph)
-                hessianphi_cav(:, :, icav) = grid_hessian(igrid, :, :, isph)
+                if (ddx_data % params % force .eq. 1) then
+                    gradphi_cav(:, icav) = grid_grad(igrid, :, isph)
+                    hessianphi_cav(:, :, icav) = grid_hessian(igrid, :, :, isph)
+                end if
             end do
         end do
     end if
@@ -246,6 +248,9 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
     do isph = 1, ddx_data % params % nsph
         psi(1, isph) = sqrt4pi * ddx_data % params % charge(isph)
     end do
+    if (ddx_data % params % force .eq. 1) then
+        deallocate(grid_grad,grid_hessian,grid_hessian2)
+    end if
 end subroutine mkrhs
 
 !> Single layer operator matvec without diagonal blocks
