@@ -172,16 +172,22 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     csph(1, :) = x
     csph(2, :) = y
     csph(3, :) = z
+    start_time = omp_get_wtime()
     call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, fmm, &
         & pm, pl, nproc, nsph, charge, &
         & csph, rvdw, print_func_default, &
         & ddx_data % params, info)
+    write(6,*) 'params init done', omp_get_wtime() - start_time
     if (info .ne. 0) return
+    t = omp_get_wtime()
     call constants_init(ddx_data % params, ddx_data % constants, info)
+    write(6,*) 'constants init done', omp_get_wtime() - start_time
     if (info .ne. 0) return
+    t = omp_get_wtime()
     call workspace_init(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, info)
+    write(6,*) 'workspace init done', omp_get_wtime() - start_time
     if (info .ne. 0) return
     !! Per-model allocations
     ! COSMO model
@@ -466,6 +472,8 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
         & istatus
     real(dp) :: eps, se, eta, kappa
     real(dp), allocatable :: charge(:), x(:), y(:), z(:), rvdw(:)
+    real(dp) :: t
+    t = omp_get_wtime()
     !! Read all the parameters from the file
     ! Open a configuration file
     open(unit=100, file=fname, form='formatted', access='sequential')
@@ -632,6 +640,7 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     y = y * tobohr
     z = z * tobohr
     rvdw = rvdw * tobohr
+    write(6,*) 'file read', omp_get_wtime() - t
 
     ! adjust ngrid
     call closest_supported_lebedev_grid(ngrid)
