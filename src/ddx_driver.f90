@@ -21,7 +21,7 @@ implicit none
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
 integer :: iprint, info
-integer :: phi_flag=1, grad_flag=1, hessian_flag=1
+integer :: phi_flag=1, grad_flag=0, hessian_flag=0
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
     & hessianphi_cav(:, :, :), psi(:, :), force(:, :)
 real(dp) :: tol, esolv, start_time, finish_time
@@ -40,6 +40,8 @@ if(ddx_data % params % force .eq. 1) then
     allocate(gradphi_cav(3, ddx_data % constants % ncav), &
         & hessianphi_cav(3, 3, ddx_data % constants % ncav), &
         & force(3, ddx_data % params % nsph))
+    phi_flag = 1
+    hessian_flag = 1
 end if
 
 start_time = omp_get_wtime()
