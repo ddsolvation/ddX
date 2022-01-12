@@ -636,6 +636,9 @@ subroutine constants_geometry_init(params, constants, info)
         & old_lwork, icav
     integer, allocatable :: tmp_nl(:), work(:, :), tmp_work(:, :)
     !! The code
+    ! Upper bound of switch region. Defines intersection criterion for spheres
+    swthr = one + (params % se+one)*params % eta/two
+    ! Assemble neighbor list
     call neighbor_list_init(params, constants, info)
     ! Allocate space for characteristic functions fi and ui
     allocate(constants % fi(params % ngrid, params % nsph), &
