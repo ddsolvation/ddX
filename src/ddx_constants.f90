@@ -636,149 +636,6 @@ subroutine constants_geometry_init(params, constants, info)
         & old_lwork, icav
     integer, allocatable :: tmp_nl(:), work(:, :), tmp_work(:, :)
     !! The code
-    ! Upper bound of switch region. Defines intersection criterion for spheres
-    swthr = one + (params % se+one)*params % eta/two
-    ! Assemble neighbor list
-    call neighbor_list_init(params, constants, info)
-    ! Allocate space for characteristic functions fi and ui
-    allocate(constants % fi(params % ngrid, params % nsph), &
-        & constants % ui(params % ngrid, params % nsph), stat=info)
-    if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`fi` and `ui` allocations failed"
-        info = 1
-        return
-    end if
-    constants % fi = zero
-    constants % ui = zero
-    ! Allocate space for force-related arrays
-    if (params % force .eq. 1) then
-        allocate(constants % zi(3, params % ngrid, params % nsph), stat=info)
-        if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "`zi` allocation failed"
-            info = 1
-            return
-        endif
-        constants % zi = zero
-    end if
-    ! Build arrays fi, ui, zi
-    do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-            ! Loop over neighbours of i-th sphere
-            do inear = constants % inl(isph), constants % inl(isph+1)-1
-                ! Neighbour's index
-                jsph = constants % nl(inear)
-                ! Compute t_n^ij
-                v = params % csph(:, isph) - params % csph(:, jsph) + &
-                    & params % rsph(isph)*constants % cgrid(:, igrid)
-                maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
-                ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
-                vv = maxv * sqrt(ssqv)
-                t = vv / params % rsph(jsph)
-                ! Accumulate characteristic function \chi(t_n^ij)
-                constants % fi(igrid, isph) = constants % fi(igrid, isph) + &
-                    & fsw(t, params % se, params % eta)
-                ! Check if gradients are required
-                if (params % force .eq. 1) then
-                    ! Check if t_n^ij belongs to switch region
-                    if ((t .lt. swthr) .and. (t .gt. swthr-params % eta)) then
-                        ! Accumulate gradient of characteristic function \chi
-                        vv = dfsw(t, params % se, params % eta) / &
-                            & params % rsph(jsph) / vv
-                        constants % zi(:, igrid, isph) = &
-                            & constants % zi(:, igrid, isph) + vv*v
-                    end if
-                end if
-            enddo
-            ! Compute characteristic function of a molecular surface ui
-            if (constants % fi(igrid, isph) .le. one) then
-                constants % ui(igrid, isph) = one - constants % fi(igrid, isph)
-            end if
-        enddo
-    enddo
-    ! Build cavity array. At first get total count for each sphere
-    allocate(constants % ncav_sph(params % nsph), stat=info)
-    if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`ncav_sph` allocation failed"
-        info = 1
-        return
-    endif
-    do isph = 1, params % nsph
-        constants % ncav_sph(isph) = 0
-        ! Loop over integration points
-        do i = 1, params % ngrid
-            ! Positive contribution from integration point
-            if (constants % ui(i, isph) .gt. zero) then
-                constants % ncav_sph(isph) = constants % ncav_sph(isph) + 1
-            end if
-        end do
-    end do
-    constants % ncav = sum(constants % ncav_sph)
-    ! Allocate cavity array and CSR format for indexes of cavities
-    allocate(constants % ccav(3, constants % ncav), &
-        & constants % icav_ia(params % nsph+1), &
-        & constants % icav_ja(constants % ncav), stat=info)
-    if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`ccav`, `icav_ia` and " // &
-            & "`icav_ja` allocations failed"
-        info = 1
-        return
-    endif
-    ! Allocate space for characteristic functions ui at cavity points
-    allocate(constants % ui_cav(constants % ncav), stat=info)
-    if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`ui_cav` allocations failed"
-        info = 1
-        return
-    end if
-    ! Get actual cavity coordinates and indexes in CSR format and fill in
-    ! ui_cav aray
-    constants % icav_ia(1) = 1
-    icav = 1
-    do isph = 1, params % nsph
-        constants % icav_ia(isph+1) = constants % icav_ia(isph) + &
-            & constants % ncav_sph(isph)
-        ! Loop over integration points
-        do igrid = 1, params % ngrid
-            ! Ignore zero contribution
-            if (constants % ui(igrid, isph) .eq. zero) cycle
-            ! Store coordinates
-            constants % ccav(:, icav) = params % csph(:, isph) + &
-                & params % rsph(isph)* &
-                & constants % cgrid(:, igrid)
-            ! Store index
-            constants % icav_ja(icav) = igrid
-            ! Store characteristic function
-            constants % ui_cav(icav) = constants % ui(igrid, isph)
-            ! Advance cavity array index
-            icav = icav + 1
-        end do
-    end do
-    ! Compute diagonal preconditioner for PCM equations
-    if (params % model .eq. 2) then
-        allocate(constants % rx_prc( &
-            & constants % nbasis, constants % nbasis, params % nsph), &
-            & stat=info)
-        if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `rx_prc` " &
-                & // "allocation failed"
-            info = 1
-            return
-        endif
-        call mkprec(params % lmax, constants % nbasis, params % nsph, &
-            & params % ngrid, params % eps, constants % ui, &
-            & constants % wgrid, constants % vgrid, constants % vgrid_nbasis, &
-            & constants % rx_prc, info, constants % error_message)
-        if (info .ne. 0) then
-            constants % error_flag = 1
-            return
-        end if
-    end if
     ! Prepare FMM structures if needed
     if (params % fmm .eq. 1) then
         ! Allocate space for a cluster tree
@@ -950,6 +807,149 @@ subroutine constants_geometry_init(params, constants, info)
             constants % error_message = "constants_geometry_init: `work` " // &
                 & "deallocation failed"
             info = 1
+            return
+        end if
+    end if
+    ! Upper bound of switch region. Defines intersection criterion for spheres
+    swthr = one + (params % se+one)*params % eta/two
+    ! Assemble neighbor list
+    call neighbor_list_init(params, constants, info)
+    ! Allocate space for characteristic functions fi and ui
+    allocate(constants % fi(params % ngrid, params % nsph), &
+        & constants % ui(params % ngrid, params % nsph), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = "`fi` and `ui` allocations failed"
+        info = 1
+        return
+    end if
+    constants % fi = zero
+    constants % ui = zero
+    ! Allocate space for force-related arrays
+    if (params % force .eq. 1) then
+        allocate(constants % zi(3, params % ngrid, params % nsph), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "`zi` allocation failed"
+            info = 1
+            return
+        endif
+        constants % zi = zero
+    end if
+    ! Build arrays fi, ui, zi
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            ! Loop over neighbours of i-th sphere
+            do inear = constants % inl(isph), constants % inl(isph+1)-1
+                ! Neighbour's index
+                jsph = constants % nl(inear)
+                ! Compute t_n^ij
+                v = params % csph(:, isph) - params % csph(:, jsph) + &
+                    & params % rsph(isph)*constants % cgrid(:, igrid)
+                maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
+                ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
+                vv = maxv * sqrt(ssqv)
+                t = vv / params % rsph(jsph)
+                ! Accumulate characteristic function \chi(t_n^ij)
+                constants % fi(igrid, isph) = constants % fi(igrid, isph) + &
+                    & fsw(t, params % se, params % eta)
+                ! Check if gradients are required
+                if (params % force .eq. 1) then
+                    ! Check if t_n^ij belongs to switch region
+                    if ((t .lt. swthr) .and. (t .gt. swthr-params % eta)) then
+                        ! Accumulate gradient of characteristic function \chi
+                        vv = dfsw(t, params % se, params % eta) / &
+                            & params % rsph(jsph) / vv
+                        constants % zi(:, igrid, isph) = &
+                            & constants % zi(:, igrid, isph) + vv*v
+                    end if
+                end if
+            enddo
+            ! Compute characteristic function of a molecular surface ui
+            if (constants % fi(igrid, isph) .le. one) then
+                constants % ui(igrid, isph) = one - constants % fi(igrid, isph)
+            end if
+        enddo
+    enddo
+    ! Build cavity array. At first get total count for each sphere
+    allocate(constants % ncav_sph(params % nsph), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = "`ncav_sph` allocation failed"
+        info = 1
+        return
+    endif
+    do isph = 1, params % nsph
+        constants % ncav_sph(isph) = 0
+        ! Loop over integration points
+        do i = 1, params % ngrid
+            ! Positive contribution from integration point
+            if (constants % ui(i, isph) .gt. zero) then
+                constants % ncav_sph(isph) = constants % ncav_sph(isph) + 1
+            end if
+        end do
+    end do
+    constants % ncav = sum(constants % ncav_sph)
+    ! Allocate cavity array and CSR format for indexes of cavities
+    allocate(constants % ccav(3, constants % ncav), &
+        & constants % icav_ia(params % nsph+1), &
+        & constants % icav_ja(constants % ncav), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = "`ccav`, `icav_ia` and " // &
+            & "`icav_ja` allocations failed"
+        info = 1
+        return
+    endif
+    ! Allocate space for characteristic functions ui at cavity points
+    allocate(constants % ui_cav(constants % ncav), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = "`ui_cav` allocations failed"
+        info = 1
+        return
+    end if
+    ! Get actual cavity coordinates and indexes in CSR format and fill in
+    ! ui_cav aray
+    constants % icav_ia(1) = 1
+    icav = 1
+    do isph = 1, params % nsph
+        constants % icav_ia(isph+1) = constants % icav_ia(isph) + &
+            & constants % ncav_sph(isph)
+        ! Loop over integration points
+        do igrid = 1, params % ngrid
+            ! Ignore zero contribution
+            if (constants % ui(igrid, isph) .eq. zero) cycle
+            ! Store coordinates
+            constants % ccav(:, icav) = params % csph(:, isph) + &
+                & params % rsph(isph)* &
+                & constants % cgrid(:, igrid)
+            ! Store index
+            constants % icav_ja(icav) = igrid
+            ! Store characteristic function
+            constants % ui_cav(icav) = constants % ui(igrid, isph)
+            ! Advance cavity array index
+            icav = icav + 1
+        end do
+    end do
+    ! Compute diagonal preconditioner for PCM equations
+    if (params % model .eq. 2) then
+        allocate(constants % rx_prc( &
+            & constants % nbasis, constants % nbasis, params % nsph), &
+            & stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `rx_prc` " &
+                & // "allocation failed"
+            info = 1
+            return
+        endif
+        call mkprec(params % lmax, constants % nbasis, params % nsph, &
+            & params % ngrid, params % eps, constants % ui, &
+            & constants % wgrid, constants % vgrid, constants % vgrid_nbasis, &
+            & constants % rx_prc, info, constants % error_message)
+        if (info .ne. 0) then
+            constants % error_flag = 1
             return
         end if
     end if
