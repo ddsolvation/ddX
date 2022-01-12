@@ -813,7 +813,11 @@ subroutine constants_geometry_init(params, constants, info)
     ! Upper bound of switch region. Defines intersection criterion for spheres
     swthr = one + (params % se+one)*params % eta/two
     ! Assemble neighbor list
-    call neighbor_list_init(params, constants, info)
+    if (params % fmm .eq. 1) then
+        call neighbor_list_init_fmm(params, constants, info)
+    else
+        call neighbor_list_init(params, constants, info)
+    end if
     ! Allocate space for characteristic functions fi and ui
     allocate(constants % fi(params % ngrid, params % nsph), &
         & constants % ui(params % ngrid, params % nsph), stat=info)
@@ -1041,6 +1045,99 @@ subroutine neighbor_list_init(params, constants, info)
     constants % nngmax = nngmax
 end subroutine neighbor_list_init
 
+subroutine neighbor_list_init_fmm(params, constants, info)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    integer, intent(out) :: info
+    real(dp) :: swthr, v(3), maxv, ssqv, vv, r
+    integer :: nngmax, i, lnl, isph, jsph, inode, jnode, j, k
+    integer, allocatable :: tmp_nl(:)
+    ! Upper bound of switch region. Defines intersection criterion for spheres
+    swthr = one + (params % se+one)*params % eta/two
+    ! Build list of neighbours in CSR format
+    nngmax = 1
+    allocate(constants % inl(params % nsph+1), &
+        & constants % nl(params % nsph*nngmax), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = "`inl` and `nl` allocations failed"
+        info = 1
+        return
+    end if
+    i = 1
+    lnl = 0
+    ! loop over leaf clusters
+    do isph = 1, params % nsph
+        constants % inl(isph) = lnl + 1
+        inode = constants % snode(isph)
+        ! loop over near clusters
+        do j = constants % snear(inode), constants % snear(inode+1) - 1
+            jnode = constants % near(j)
+            do k = constants % cluster(1, jnode), constants % cluster(2, jnode)
+                jsph = constants % order(k)
+                if (isph .ne. jsph) then
+                    v = params % csph(:, isph)-params % csph(:, jsph)
+                    maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
+                    ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
+                    vv = maxv * sqrt(ssqv)
+                    ! Take regularization parameter into account with respect to
+                    ! shift se. It is described properly by the upper bound of a
+                    ! switch region `swthr`.
+                    r = params % rsph(isph) + swthr*params % rsph(jsph)
+                    if (vv .le. r) then
+                        constants % nl(i) = jsph
+                        i  = i + 1
+                        lnl = lnl + 1
+                        ! Extend ddx_data % nl if needed
+                        if (i .gt. params % nsph*nngmax) then
+                            allocate(tmp_nl(params % nsph*nngmax), stat=info)
+                            if (info .ne. 0) then
+                                constants % error_flag = 1
+                                constants % error_message = "`tmp_nl` " // &
+                                    & "allocation failed"
+                                info = 1
+                                return
+                            end if
+                            tmp_nl(1:params % nsph*nngmax) = &
+                                & constants % nl(1:params % nsph*nngmax)
+                            deallocate(constants % nl, stat=info)
+                            if (info .ne. 0) then
+                                constants % error_flag = 1
+                                constants % error_message = "`nl` " // &
+                                    & "deallocation failed"
+                                info = 1
+                                return
+                            end if
+                            nngmax = nngmax + 10
+                            allocate(constants % nl(params % nsph*nngmax), &
+                                & stat=info)
+                            if (info .ne. 0) then
+                                constants % error_flag = 1
+                                constants % error_message = "`nl` " // &
+                                    & "allocation failed"
+                                info = 1
+                                return
+                            end if
+                            constants % nl(1:params % nsph*(nngmax-10)) = &
+                                & tmp_nl(1:params % nsph*(nngmax-10))
+                            deallocate(tmp_nl, stat=info)
+                            if (info .ne. 0) then
+                                constants % error_flag = 1
+                                constants % error_message = "`tmp_nl` " // &
+                                    & "deallocation failed"
+                                info = 1
+                                return
+                            end if
+                        end if
+                    end if
+                end if
+            end do
+        end do
+    end do
+    constants % inl(params % nsph+1) = lnl+1
+    constants % nngmax = nngmax
+end subroutine neighbor_list_init_fmm
+
 !> Update geometry-related constants like list of neighbouring spheres
 !!
 !! This procedure simply deletes current geometry constants and initializes new
@@ -1244,7 +1341,7 @@ subroutine mkprec(lmax, nbasis, nsph, ngrid, eps, ui, wgrid, vgrid, &
         info = 1
         return
     end if
-    ! Cleanup error message if there were no error
+  ! Cleanup error message if there were no error
     error_message = ""
 end subroutine mkprec
 
