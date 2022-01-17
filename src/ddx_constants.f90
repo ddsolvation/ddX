@@ -834,8 +834,10 @@ subroutine constants_geometry_init(params, constants, info)
     integer :: i, isph, jsph, inear, igrid, iwork, jwork, lwork, &
         & old_lwork, icav
     integer, allocatable :: tmp_nl(:), work(:, :), tmp_work(:, :)
+    real(dp) :: start_time
     !! The code
     ! Prepare FMM structures if needed
+    start_time = omp_get_wtime()
     if (params % fmm .eq. 1) then
         ! Allocate space for a cluster tree
         allocate(constants % order(params % nsph), stat=info)
@@ -1009,14 +1011,17 @@ subroutine constants_geometry_init(params, constants, info)
             return
         end if
     end if
+    write(6,*) 'init fmm tree', omp_get_wtime() - start_time
     ! Upper bound of switch region. Defines intersection criterion for spheres
     swthr = one + (params % se+one)*params % eta/two
     ! Assemble neighbor list
+    start_time = omp_get_wtime()
     if (params % fmm .eq. 1) then
         call neighbor_list_init_fmm(params, constants, info)
     else
         call neighbor_list_init(params, constants, info)
     end if
+    write(6,*) 'neighbor list', omp_get_wtime() - start_time
     ! Allocate space for characteristic functions fi and ui
     allocate(constants % fi(params % ngrid, params % nsph), &
         & constants % ui(params % ngrid, params % nsph), stat=info)

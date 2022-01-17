@@ -180,11 +180,11 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & ddx_data % params, info)
     write(6,*) 'params init done', omp_get_wtime() - start_time
     if (info .ne. 0) return
-    t = omp_get_wtime()
+    start_time = omp_get_wtime()
     call constants_init(ddx_data % params, ddx_data % constants, info)
     write(6,*) 'constants init done', omp_get_wtime() - start_time
     if (info .ne. 0) return
-    t = omp_get_wtime()
+    start_time = omp_get_wtime()
     call workspace_init(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, info)
     write(6,*) 'workspace init done', omp_get_wtime() - start_time

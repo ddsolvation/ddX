@@ -48,12 +48,11 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
     real(dp), allocatable :: grid_grad(:,:,:), grid_hessian(:,:,:,:), grid_hessian2(:,:,:)
     real(dp), external :: dnrm2
     real(dp) :: t
-    if (ddx_data % params % force .eq. 1) then
-        allocate(grid_grad(ddx_data % params % ngrid, 3, &
-        & ddx_data % params % nsph), grid_hessian(ddx_data % params % ngrid, &
-        & 3, 3, ddx_data % params % nsph), &
-        & grid_hessian2(ddx_data % params % ngrid, 3, ddx_data % params % nsph))
-    end if
+    if (grad_flag .eq. 1) allocate(grid_grad(ddx_data % params % ngrid, 3, &
+        & ddx_data % params % nsph))
+    if (hessian_flag .eq. 1) allocate(grid_hessian(ddx_data % params % ngrid, &
+        & 3, 3, ddx_data % params % nsph), grid_hessian2(ddx_data % params % ngrid, &
+        3, ddx_data % params % nsph))
     ! In case FMM is disabled compute phi and gradphi at cavity points by a
     ! naive double loop of a quadratic complexity
     if (ddx_data % params % fmm .eq. 0) then
@@ -148,87 +147,85 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
                 phi_cav(icav) = ddx_data % workspace % tmp_grid(igrid, isph)
             end do
         end do
-        if (ddx_data % params % force .eq. 1) then
-            ! Now compute near-field FMM gradients and hessians
-            ! Cycle over all spheres
-            !$omp parallel do default(none) shared(ddx_data,grid_grad,grid_hessian) &
-            !$omp private(isph,igrid,inode,jnear,jnode,jsph,d,r,tmpd,tmpv) schedule(static,1)
-            do isph = 1, ddx_data % params % nsph
-                grid_grad(:, :, isph) = zero
-                grid_hessian(:, :, :, isph) = zero
-                ! Cycle over all external grid points
-                do igrid = 1, ddx_data % params % ngrid
-                    if(ddx_data % constants % ui(igrid, isph) .eq. zero) cycle
-                    ! Cycle over all near-field admissible pairs of spheres,
-                    ! including pair (isph, isph) which is a self-interaction
-                    inode = ddx_data % constants % snode(isph)
-                    do jnear = ddx_data % constants % snear(inode), ddx_data % constants % snear(inode+1)-1
-                        ! Near-field interactions are possible only between leaf
-                        ! nodes, which must contain only a single input sphere
-                        jnode = ddx_data % constants % near(jnear)
-                        jsph = ddx_data % constants % order(ddx_data % constants % cluster(1, jnode))
-                        d = ddx_data % params % csph(:, isph) + &
-                            & ddx_data % constants % cgrid(:, igrid)*ddx_data % params % rsph(isph) - &
-                            & ddx_data % params % csph(:, jsph)
-                        r = dnrm2(3, d, 1)
-                        d = d / r / r
-                        tmpv = ddx_data % params % charge(jsph) / r
-                        grid_grad(igrid, :, isph) = grid_grad(igrid, :, isph) - &
-                            & tmpv * d
-                        tmpd = three * tmpv * d
-                        tmpv = tmpv / r / r
-                        grid_hessian(igrid, 1, :, isph) = grid_hessian(igrid, 1, :, isph) + &
-                            & d(1)*tmpd
-                        grid_hessian(igrid, 2, :, isph) = grid_hessian(igrid, 2, :, isph) + &
-                            & d(2)*tmpd
-                        grid_hessian(igrid, 3, :, isph) = grid_hessian(igrid, 3, :, isph) + &
-                            & d(3)*tmpd
-                        grid_hessian(igrid, 1, 1, isph) = grid_hessian(igrid, 1, 1, isph) - tmpv
-                        grid_hessian(igrid, 2, 2, isph) = grid_hessian(igrid, 2, 2, isph) - tmpv
-                        grid_hessian(igrid, 3, 3, isph) = grid_hessian(igrid, 3, 3, isph) - tmpv
-                    end do
+        ! Now compute near-field FMM gradients and hessians
+        ! Cycle over all spheres
+        !$omp parallel do default(none) shared(ddx_data,grid_grad,grid_hessian) &
+        !$omp private(isph,igrid,inode,jnear,jnode,jsph,d,r,tmpd,tmpv) schedule(static,1)
+        do isph = 1, ddx_data % params % nsph
+            grid_grad(:, :, isph) = zero
+            grid_hessian(:, :, :, isph) = zero
+            ! Cycle over all external grid points
+            do igrid = 1, ddx_data % params % ngrid
+                if(ddx_data % constants % ui(igrid, isph) .eq. zero) cycle
+                ! Cycle over all near-field admissible pairs of spheres,
+                ! including pair (isph, isph) which is a self-interaction
+                inode = ddx_data % constants % snode(isph)
+                do jnear = ddx_data % constants % snear(inode), ddx_data % constants % snear(inode+1)-1
+                    ! Near-field interactions are possible only between leaf
+                    ! nodes, which must contain only a single input sphere
+                    jnode = ddx_data % constants % near(jnear)
+                    jsph = ddx_data % constants % order(ddx_data % constants % cluster(1, jnode))
+                    d = ddx_data % params % csph(:, isph) + &
+                        & ddx_data % constants % cgrid(:, igrid)*ddx_data % params % rsph(isph) - &
+                        & ddx_data % params % csph(:, jsph)
+                    r = dnrm2(3, d, 1)
+                    d = d / r / r
+                    tmpv = ddx_data % params % charge(jsph) / r
+                    grid_grad(igrid, :, isph) = grid_grad(igrid, :, isph) - &
+                        & tmpv * d
+                    tmpd = three * tmpv * d
+                    tmpv = tmpv / r / r
+                    grid_hessian(igrid, 1, :, isph) = grid_hessian(igrid, 1, :, isph) + &
+                        & d(1)*tmpd
+                    grid_hessian(igrid, 2, :, isph) = grid_hessian(igrid, 2, :, isph) + &
+                        & d(2)*tmpd
+                    grid_hessian(igrid, 3, :, isph) = grid_hessian(igrid, 3, :, isph) + &
+                        & d(3)*tmpd
+                    grid_hessian(igrid, 1, 1, isph) = grid_hessian(igrid, 1, 1, isph) - tmpv
+                    grid_hessian(igrid, 2, 2, isph) = grid_hessian(igrid, 2, 2, isph) - tmpv
+                    grid_hessian(igrid, 3, 3, isph) = grid_hessian(igrid, 3, 3, isph) - tmpv
                 end do
             end do
-            ! Take into account far-field FMM gradients only if pl > 0
-            if (ddx_data % params % pl .gt. 0) then
-                ! Get gradient of L2L
-                call tree_grad_l2l(ddx_data % params, ddx_data % constants, ddx_data % workspace % tmp_node_l, &
-                    & ddx_data % workspace % tmp_sph_l_grad, ddx_data % workspace % tmp_sph_l)
-                ! Apply L2P for every axis with -1 multiplier since grad over
-                ! target point is equal to grad over source point
-                call dgemm('T', 'N', ddx_data % params % ngrid, 3*ddx_data % params % nsph, &
-                    & (ddx_data % params % pl)**2, -one, ddx_data % constants % vgrid2, &
-                    & ddx_data % constants % vgrid_nbasis, ddx_data % workspace % tmp_sph_l_grad, &
-                    & (ddx_data % params % pl+1)**2, one, grid_grad, &
-                    & ddx_data % params % ngrid)
-            end if
-            ! Take into account far-field FMM hessians only if pl > 1
-            if (ddx_data % params % pl .gt. 1) then
-                do i = 1, 3
-                    ! Load previously computed gradient into leaves, since
-                    ! tree_grad_l2l currently takes local expansions of entire
-                    ! tree. In future it might be changed.
-                    do isph = 1, ddx_data % params % nsph
-                        inode = ddx_data % constants % snode(isph)
-                        ddx_data % workspace % tmp_node_l(:, inode) = ddx_data % &
-                            & workspace % tmp_sph_l_grad(:, i, isph)
-                    end do
-                    ! Get gradient of a gradient of L2L. Currently this uses input
-                    ! pl maximal degree of local harmonics but in reality we need
-                    ! only pl-1 maximal degree since coefficients of harmonics of a
-                    ! degree pl zre zeros.
-                    call tree_grad_l2l(ddx_data % params, ddx_data % constants, ddx_data % workspace % tmp_node_l, &
-                        & ddx_data % workspace % tmp_sph_l_grad2, ddx_data % workspace % tmp_sph_l)
-                    ! Apply L2P for every axis
-                    call dgemm('T', 'N', ddx_data % params % ngrid, 3*ddx_data % params % nsph, &
-                        & (ddx_data % params % pl-1)**2, one, ddx_data % constants % vgrid2, &
-                        & ddx_data % constants % vgrid_nbasis, ddx_data % workspace % tmp_sph_l_grad2, &
-                        & (ddx_data % params % pl+1)**2, zero, grid_hessian2, &
-                        & ddx_data % params % ngrid)
-                    ! Properly copy hessian
-                    grid_hessian(:, i, :, :) = grid_hessian(:, i, :, :) + grid_hessian2
+        end do
+        ! Take into account far-field FMM gradients only if pl > 0
+        if (ddx_data % params % pl .gt. 0) then
+            ! Get gradient of L2L
+            call tree_grad_l2l(ddx_data % params, ddx_data % constants, ddx_data % workspace % tmp_node_l, &
+                & ddx_data % workspace % tmp_sph_l_grad, ddx_data % workspace % tmp_sph_l)
+            ! Apply L2P for every axis with -1 multiplier since grad over
+            ! target point is equal to grad over source point
+            call dgemm('T', 'N', ddx_data % params % ngrid, 3*ddx_data % params % nsph, &
+                & (ddx_data % params % pl)**2, -one, ddx_data % constants % vgrid2, &
+                & ddx_data % constants % vgrid_nbasis, ddx_data % workspace % tmp_sph_l_grad, &
+                & (ddx_data % params % pl+1)**2, one, grid_grad, &
+                & ddx_data % params % ngrid)
+        end if
+        ! Take into account far-field FMM hessians only if pl > 1
+        if (ddx_data % params % pl .gt. 1) then
+            do i = 1, 3
+                ! Load previously computed gradient into leaves, since
+                ! tree_grad_l2l currently takes local expansions of entire
+                ! tree. In future it might be changed.
+                do isph = 1, ddx_data % params % nsph
+                    inode = ddx_data % constants % snode(isph)
+                    ddx_data % workspace % tmp_node_l(:, inode) = ddx_data % &
+                        & workspace % tmp_sph_l_grad(:, i, isph)
                 end do
-            end if
+                ! Get gradient of a gradient of L2L. Currently this uses input
+                ! pl maximal degree of local harmonics but in reality we need
+                ! only pl-1 maximal degree since coefficients of harmonics of a
+                ! degree pl zre zeros.
+                call tree_grad_l2l(ddx_data % params, ddx_data % constants, ddx_data % workspace % tmp_node_l, &
+                    & ddx_data % workspace % tmp_sph_l_grad2, ddx_data % workspace % tmp_sph_l)
+                ! Apply L2P for every axis
+                call dgemm('T', 'N', ddx_data % params % ngrid, 3*ddx_data % params % nsph, &
+                    & (ddx_data % params % pl-1)**2, one, ddx_data % constants % vgrid2, &
+                    & ddx_data % constants % vgrid_nbasis, ddx_data % workspace % tmp_sph_l_grad2, &
+                    & (ddx_data % params % pl+1)**2, zero, grid_hessian2, &
+                    & ddx_data % params % ngrid)
+                ! Properly copy hessian
+                grid_hessian(:, i, :, :) = grid_hessian(:, i, :, :) + grid_hessian2
+            end do
         end if
         ! Copy output for external grid points only
         icav = 0
@@ -248,9 +245,8 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
     do isph = 1, ddx_data % params % nsph
         psi(1, isph) = sqrt4pi * ddx_data % params % charge(isph)
     end do
-    if (ddx_data % params % force .eq. 1) then
-        deallocate(grid_grad,grid_hessian,grid_hessian2)
-    end if
+    if (grad_flag .eq. 1) deallocate(grid_grad)
+    if (hessian_flag .eq. 1) deallocate(grid_hessian, grid_hessian2)
 end subroutine mkrhs
 
 !> Single layer operator matvec without diagonal blocks
