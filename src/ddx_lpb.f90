@@ -82,6 +82,7 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
     real(dp), dimension(3, ddx_data % params % nsph), intent(out) :: force
     integer, intent(out) :: info
     integer                    :: istatus
+    integer :: isph, igrid
     !!
     !! Xr         : Reaction potential solution (Laplace equation)
     !! Xe         : Extended potential solution (HSP equation)
@@ -221,11 +222,12 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
     complex(dp) :: work_complex(constants % lmax0 + 1)
     real(dp) :: work(constants % lmax0 + 1)
     allocate(SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0))
-    ic = 0 ; f(:,:)=0.d0
+    ic = 0
+    f = zero
     c0 = zero
-    !
+    c1 = zero
+
     ! Compute c0 Eq.(98) QSM19.SISC
-    !
     do isph = 1, params % nsph
         do ig = 1, params % ngrid
             if (constants % ui(ig, isph) .ne. zero) then
