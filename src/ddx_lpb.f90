@@ -693,38 +693,22 @@ end subroutine convert_ddcosmo
 ! @param[out] Xe         : Solution corresponding to HSP
 ! @param[out] esolv      : Solvation energy
 subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
-        & Xr, Xe, tol, esolv)
-    !! Inputs
+    & Xr, Xe, tol, esolv)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    real(dp), dimension(params % ngrid, params % nsph), intent(in) :: g, f
-    real(dp), intent(in) :: tol
-    !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-    !! Outputs
+    real(dp), dimension(params % ngrid, params % nsph), intent(in) :: g, f
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: Xr, Xe
+    real(dp), intent(in) :: tol
     real(dp), intent(out) :: esolv
-    !L Local variables
-    !! g0      : Vector associated to psi_0 Eq.(77) QSM19.SISC
-    !! f0      : Vector associated to partial_n_psi_0 Eq.(99) QSM19.SISC
-    real(dp), dimension(constants % nbasis) :: g0, f0
-    ! rhs_r_init : Initial RHS for COSMO, G0
-    ! rhs_e_init : Initial RHS for HSP, F0
     real(dp), dimension(constants % nbasis, params % nsph):: rhs_r_init, rhs_e_init
-    !! rhs_r      : Right hand side corresponding to Laplace equation
-    !! rhs_e      : Right hand side corresponding to HSP equation
-    real(dp), dimension(constants % nbasis, params % nsph):: rhs_r, rhs_e
-    !! xs_rel_diff : relative norm of increment of every Jacobi iteration
-    real(dp) :: x_rel_diff(params % maxiter)
-    integer  :: iteration, n_iter, isph, info
+    integer  :: n_iter, isph
     real(dp), dimension(constants % nbasis, params % nsph, 2) :: rhs, x, scr
     logical :: ok
-    real(dp), dimension(2*constants % n*(2*params % gmresr_j + 2)) :: gmres_work
-    real(dp) :: gmres_resid
 
     ! Setting of the local variables
-    rhs_r_init = zero; rhs_e_init = zero
-    g0 = zero; f0 = zero
+    rhs_r_init = zero
+    rhs_e_init = zero
 
     ! integrate RHS
     tt0 = omp_get_wtime()
