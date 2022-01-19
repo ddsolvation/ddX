@@ -703,28 +703,26 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: Xr, Xe
     real(dp), intent(in) :: tol
     real(dp), intent(out) :: esolv
-    real(dp), dimension(constants % nbasis, params % nsph):: rhs_r_init, rhs_e_init
     integer  :: n_iter, isph
-    real(dp), dimension(constants % nbasis, params % nsph, 2) :: rhs, x, scr
+    real(dp), allocatable :: rhs(:,:,:), x(:,:,:), scr(:,:,:)
     logical :: ok
 
+    allocate(rhs(constants % nbasis, params % nsph, 2), x(constants % nbasis, params % nsph, 2))
+
     ! Setting of the local variables
-    rhs_r_init = zero
-    rhs_e_init = zero
+    rhs = zero
 
     ! integrate RHS
     tt0 = omp_get_wtime()
     call intrhs(params % nsph, constants % nbasis, &
         & params % ngrid, constants % vwgrid, &
-        & constants % vgrid_nbasis, g, rhs_r_init)
+        & constants % vgrid_nbasis, g, rhs(:,:,1))
     call intrhs(params % nsph, constants % nbasis, &
         & params % ngrid, constants % vwgrid, &
-        & constants % vgrid_nbasis, f, rhs_e_init)
+        & constants % vgrid_nbasis, f, rhs(:,:,2))
     tt1 = omp_get_wtime()
+    rhs(:,:,1) = rhs(:,:,1) + rhs(:,:,2)
     write(6,*) '@direct@intrhs', tt1 - tt0
-
-    rhs(:,:,1) = rhs_r_init + rhs_e_init
-    rhs(:,:,2) = rhs_e_init
 
     ! guess
     ddcosmo_guess = zero
@@ -752,6 +750,7 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     do isph = 1, params % nsph
       esolv = esolv + pt5*params % charge(isph)*Xr(1,isph)*(one/sqrt4pi)
     end do
+    deallocate(rhs, x)
 end subroutine ddx_lpb_solve
 
 ! This routine is not needed when using a Jacobi/DIIS solver for the
@@ -979,33 +978,31 @@ end subroutine lpb_adjoint_matvec
 ! @param[out] y       : Matrix-vector product result Y
 subroutine lpb_direct_matvec(params, constants, workspace, x, y)
     implicit none
-
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
-
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
 
-    integer :: isph, jsph, igrid, icav, ind, l, m, ind0, l0, m0, istatus
+    integer :: isph, jsph, igrid, ind, l, m, ind0
     real(dp), dimension(3) :: sijn ,vij, vtij
-    real(dp) :: term, rho, ctheta, stheta, cphi, sphi, rijn
+    real(dp) :: term, rho, ctheta, stheta, cphi, sphi, rijn, val
     real(dp), dimension(constants % nbasis) :: basloc, vplm
     real(dp), dimension(params % lmax + 1) :: vcos, vsin
-    real(dp), dimension(0:constants % lmax0) :: SK_rijn, DK_rijn
-    complex(dp)  :: work_complex(constants % lmax0+1)
-    real(dp) :: work(constants % lmax0+1)
+    real(dp), dimension(constants % lmax0 + 1) :: SK_rijn, DK_rijn
+    complex(dp) :: work_complex(constants % lmax0 + 1)
+    real(dp) :: work(constants % lmax0 + 1)
     integer :: indl, inode
-
-    real(dp), dimension(constants % nbasis, params % nsph) :: diff_re
-    real(dp), dimension(constants % nbasis0, params % nsph) :: diff0
-    real(dp) :: val
+    !real(dp), dimension(constants % nbasis, params % nsph) :: diff_re
+    !real(dp), dimension(constants % nbasis0, params % nsph) :: diff0
+    real(dp), allocatable :: diff_re(:,:), diff0(:,:)
+    allocate(diff_re(constants % nbasis, params % nsph), diff0(constants % nbasis0, params % nsph))
 
     ! diff_re = epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
     tt0 = omp_get_wtime()
     diff_re = zero
-    !!$omp parallel do default(none) shared(params,diff_re, &
-    !!$omp constants,x) private(jsph,l,m,ind)
+    !$omp parallel do default(none) shared(params,diff_re, &
+    !$omp constants,x) private(jsph,l,m,ind)
     do jsph = 1, params % nsph
       do l = 0, params % lmax
         do m = -l,l
@@ -1016,19 +1013,17 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
         end do
       end do
     end do
-    !!$omp end parallel do
     tt1 = omp_get_wtime()
     write(6,*) '@direct@matvec1', tt1 - tt0
 
     ! diff0 = Pchi * diff_er, linear scaling
-    !!$omp parallel do default(none) shared(constants,params, &
-    !!$omp diff_re,diff0) private(jsph)
+    !$omp parallel do default(none) shared(constants,params, &
+    !$omp diff_re,diff0) private(jsph)
     do jsph = 1, params % nsph
       call dgemv('t', constants % nbasis, constants % nbasis0, one, &
           & constants % pchi(1,1,jsph), constants % nbasis, &
           & diff_re(1,jsph), 1, zero, diff0(1,jsph), 1)
     end do
-    !!$omp end parallel do
     tt1 = omp_get_wtime()
     write(6,*) '@direct@matvec2', tt1 - tt0
 
@@ -1044,10 +1039,10 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
     tt0 = omp_get_wtime()
     y(:,:,1) = zero
     if (params % fmm .eq. 0) then
-        !!$omp parallel do default(none) shared(params,constants, &
-        !!$omp diff0,y) private(isph,igrid,val,vij,rijn,sijn,SK_rijn, &
-        !!$omp DK_rijn,work,rho,ctheta,stheta,cphi,sphi,basloc,vplm, &
-        !!$omp vcos,vsin,l0,term,m0,ind0,ind)
+        !$omp parallel do default(none) shared(params,constants, &
+        !$omp diff0,y) private(isph,igrid,val,vij,rijn,sijn,SK_rijn, &
+        !$omp DK_rijn,work,rho,ctheta,stheta,cphi,sphi,basloc,vplm, &
+        !$omp vcos,vsin,term,ind0,ind,vtij,work_complex)
         do isph = 1, params % nsph
             do igrid = 1, params % ngrid
                 if (constants % ui(igrid,isph).gt.zero) then
@@ -1062,25 +1057,6 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
                         call fmm_m2p_bessel_work(vtij, constants % lmax0, &
                             & constants % vscales, constants % SK_ri(:, jsph), &
                             & one, diff0(:, jsph), one, val, work_complex, work)
-!                        rijn = sqrt(dot_product(vij,vij))
-!                        sijn = vij/rijn
-!
-!                        ! Compute Bessel function of 2nd kind for the coordinates
-!                        ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-!                        call modified_spherical_bessel_second_kind(constants % lmax0, &
-!                            & rijn*params % kappa, SK_rijn, DK_rijn, work_complex)
-!                        call ylmbas(sijn, rho, ctheta, stheta, cphi, &
-!                            & sphi, params % lmax, constants % vscales, &
-!                            & basloc, vplm, vcos, vsin)
-!
-!                        do l0 = 0, constants % lmax0
-!                            term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
-!                            do m0 = -l0, l0
-!                                ind0 = l0*l0 + l0 + m0 + 1
-!                                val = val +  diff0(ind0,jsph)* &
-!                                    & term*basloc(ind0)
-!                            end do
-!                        end do
                     end do
                     do ind = 1, constants % nbasis
                         y(ind,isph,1) = y(ind,isph,1) + val*&
@@ -1143,6 +1119,7 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
     write(6,*) '@direct@matvec3', tt1 - tt0
 
     y(:,:,2) = y(:,:,1)
+    deallocate(diff_re, diff0)
 
 end subroutine lpb_direct_matvec
 
@@ -1274,7 +1251,6 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
         write(*,*) 'lpb_direct_prec: [1] HSP failed to converge'
         stop 1
     end if
-
 end subroutine lpb_direct_prec
 
 

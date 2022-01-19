@@ -120,7 +120,7 @@ subroutine jacobi_diis_old(params, constants, workspace, n, lprint, diis_max, no
       endif
 !
 !     Jacobi iterations
-!     =================
+!     =================e
       do it = 1, n_iter
 !
 !       y = rhs - O x

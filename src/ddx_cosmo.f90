@@ -42,6 +42,7 @@ subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, &
     integer, intent(out) :: info
     !! Local variables
     integer :: xs_mode, s_mode
+    write(6,*) 'here'; flush(6)
     ! Zero initial guess for the `xs`
     xs_mode = 0
     ! Get energy
@@ -150,6 +151,7 @@ subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, &
     end if
     ! Solve ddCOSMO system L X = -Phi with a given initial guess
     start_time = omp_get_wtime()
+    write(6,*) 'here'; flush(6)
     call jacobi_diis(params, constants, workspace, tol, &
         & workspace % tmp_rhs, xs, xs_niter, xs_rel_diff, lx_nodiag, &
         & ldm1x, hnorm, info)
