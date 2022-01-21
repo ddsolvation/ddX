@@ -16,6 +16,7 @@ module ddx_parameters
 
 ! Include compile-time definitions
 use ddx_definitions
+use omp_lib
 
 ! Disable implicit types
 implicit none
@@ -381,18 +382,9 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         params % pl = -2
     end if
     ! Number of OpenMP threads to be used
-    ! As of now only sequential version with nproc=1 is supported, providing
-    ! nproc=0 means it is up to ddX to decide on parallelism which is not yet
     ! available.
-    if (nproc .ne. 1 .and. nproc .ne. 0) then
-        params % error_flag = 1
-        params % error_message = "params_init: invalid value of `nproc`"
-        call print_func(params % error_message)
-        info = -1
-        return
-    end if
-    ! Only 1 thread is used (due to disabled OpenMP)
-    params % nproc = 1
+    params % nproc = nproc
+    call omp_set_num_threads(params % nproc)
     ! Number of atoms
     if (nsph .le. 0) then
         params % error_flag = 1

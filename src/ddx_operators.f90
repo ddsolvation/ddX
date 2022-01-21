@@ -261,23 +261,15 @@ subroutine lx_nodiag(params, constants, workspace, x, y)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
     integer :: isph, l, ind, iproc
-    !! Local arrays
-    ! real(dp) :: pot(params % ngrid), vplm(constants % nbasis), &
-    !     & vylm(constants % nbasis), vcos(params % lmax + 1), &
-    !     & vsin(params % lmax + 1)
-    write(6,*) 'HERE'; flush(6)
     
     !! Initialize
     y = zero
     !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
     !$omp private(isph,iproc) schedule(static,1)
     do isph = 1, params % nsph
-        iproc = omp_get_thread_num()
+        iproc = omp_get_thread_num() + 1
         ! Compute NEGATIVE action of off-digonal blocks
-        call calcv(params, constants, .false., isph, &
-            & workspace % tmp_pot(:, iproc), x, workspace % tmp_vylm(:, iproc), &
-            & workspace % tmp_vplm(:, iproc), workspace % tmp_vcos(:, iproc), &
-            & workspace % tmp_vsin(:, iproc))
+        call calcv(params, constants, isph, workspace % tmp_pot(:, iproc), x)
         call intrhs(1, constants % nbasis, params % ngrid, &
             & constants % vwgrid, constants % vgrid_nbasis, &
             & workspace % tmp_pot(:, iproc), y(:, isph))
@@ -302,9 +294,7 @@ subroutine lx(params, constants, workspace, x, y)
     y = zero
     do isph = 1, params % nsph
         ! Compute NEGATIVE action of off-digonal blocks
-        call calcv(params, constants, .false., isph, workspace % tmp_grid, &
-            & x, workspace % tmp_vylm, workspace % tmp_vplm, &
-            & workspace % tmp_vcos, workspace % tmp_vsin)
+        call calcv(params, constants, isph, workspace % tmp_grid, x)
         call intrhs(1, constants % nbasis, params % ngrid, &
             & constants % vwgrid, constants % vgrid_nbasis, &
             & workspace % tmp_grid, y(:, isph))

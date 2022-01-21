@@ -1470,112 +1470,48 @@ subroutine adjrhs(params, constants, isph, xi, vlm, basloc, vplm, vcos, vsin )
 !
 end subroutine adjrhs
 
-!------------------------------------------------------------------------
-! Purpose : compute
-!
-!   \Phi( n ) =
-!     
-!                       4 pi           l
-!     sum  W_n^ij  sum  ---- ( t_n^ij )  Y_l^m( s_n^ij ) [ \sigma_j ]_l^m
-!      j           l,m  2l+1
-!
-! which is related to the action of the COSMO matrix L in the following
-! way :
-!
-!   -   sum    L_ij \sigma_j = sum  w_n Y_l^m( s_n ) \Phi( n ) 
-!     j \ne i                   n
-!
-! This second step is performed by routine "intrhs".
-!------------------------------------------------------------------------
-!
-!> TODO
-subroutine calcv( params, constants, first, isph, pot, sigma, basloc, vplm, vcos, vsin )
-!
+subroutine calcv(params, constants, isph, pot, sigma)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-      logical,                        intent(in)    :: first
-      integer,                        intent(in)    :: isph
-      real(dp), dimension(constants % nbasis, params % nsph), intent(in)    :: sigma
-      real(dp), dimension(params % ngrid),       intent(inout) :: pot
-      real(dp), dimension(constants % nbasis),      intent(inout) :: basloc
-      real(dp), dimension(constants % nbasis),      intent(inout) :: vplm
-      real(dp), dimension(params % lmax+1),      intent(inout) :: vcos
-      real(dp), dimension(params % lmax+1),      intent(inout) :: vsin
-!
-      integer :: its, ij, jsph
-      real(dp)  :: vij(3), sij(3)
-      real(dp)  :: vvij, tij, xij, oij, stslm, stslm2, stslm3, &
-          & thigh, rho, ctheta, stheta, cphi, sphi
-      real(dp) :: work(params % lmax+1)
-!
-!------------------------------------------------------------------------
-      thigh = one + pt5*(params % se + one)*params % eta
-!
-!     initialize
-      pot(:) = zero
-!
-!     if 1st iteration of Jacobi method, then done!
-      if ( first )  return
-!
-!     loop over grid points
-      do its = 1, params % ngrid
-!
-!       contribution from integration point present
+    integer, intent(in) :: isph
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: sigma
+    real(dp), dimension(params % ngrid), intent(inout) :: pot
+    integer :: its, ij, jsph
+    real(dp)  :: vij(3), sij(3)
+    real(dp)  :: vvij, tij, xij, oij, stslm, stslm2, stslm3, &
+        & thigh, rho, ctheta, stheta, cphi, sphi
+    real(dp) :: work(params % lmax+1)
+
+    thigh = one + pt5*(params % se + one)*params % eta
+    pot(:) = zero
+    ! loop over grid points
+    do its = 1, params % ngrid
+        ! contribution from integration point present
         if ( constants % ui(its,isph).lt.one ) then
-!
-!         loop over neighbors of i-sphere
-          do ij = constants % inl(isph), constants % inl(isph+1)-1
-!
-!           neighbor is j-sphere
-            jsph = constants % nl(ij)
-!            
-!           compute t_n^ij = | r_i + \rho_i s_n - r_j | / \rho_j
-            vij  = params % csph(:,isph) + params % rsph(isph)* &
-                & constants % cgrid(:,its) - params % csph(:,jsph)
-            vvij = sqrt( dot_product( vij, vij ) )
-            tij  = vvij / params % rsph(jsph) 
-!
-!           point is INSIDE j-sphere
-!           ------------------------
-            if ( tij.lt.thigh .and. tij.gt.zero) then
-!!
-!!             compute s_n^ij = ( r_i + \rho_i s_n - r_j ) / | ... |
-!              sij = vij / vvij
-!!            
-!!             compute \chi( t_n^ij )
-              xij = fsw( tij, params % se, params % eta )
-!!
-!!             compute W_n^ij
-              if ( constants % fi(its,isph).gt.one ) then
-!!
-                oij = xij / constants % fi(its,isph)
-!!
-              else
-!!
-                oij = xij
-!!
-              endif
-!!
-!!             compute Y_l^m( s_n^ij )
-!              !call ylmbas( sij, basloc, vplm, vcos, vsin )
-!              call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, ddx_data % lmax, &
-!                  & ddx_data % vscales, basloc, vplm, vcos, vsin)
-!!                    
-!!             accumulate over j, l, m
-!              pot(its) = pot(its) + oij * intmlp( ddx_data, tij, sigma(:,jsph), basloc )
-!!              
-                call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
-                    & constants % vscales_rel, oij, sigma(:, jsph), one, pot(its), &
-                    & work)
-            endif
-          end do
+            ! loop over neighbors of i-sphere
+            do ij = constants % inl(isph), constants % inl(isph+1)-1
+                jsph = constants % nl(ij)
+                ! compute t_n^ij = | r_i + \rho_i s_n - r_j | / \rho_j
+                vij  = params % csph(:,isph) + params % rsph(isph)* &
+                    & constants % cgrid(:,its) - params % csph(:,jsph)
+                vvij = sqrt( dot_product( vij, vij ) )
+                tij  = vvij / params % rsph(jsph) 
+                ! point is INSIDE j-sphere
+                if (tij.lt.thigh .and. tij.gt.zero) then
+                    xij = fsw( tij, params % se, params % eta )
+                    if (constants % fi(its,isph).gt.one) then
+                        oij = xij / constants % fi(its,isph)
+                    else
+                        oij = xij
+                    end if
+                    call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
+                        & constants % vscales_rel, oij, sigma(:, jsph), one, &
+                        & pot(its), work)
+                end if
+            end do
         end if
-      end do
-!      
-!      
-!      
+    end do
 end subroutine calcv
-!------------------------------------------------------------------------
 
 !> Evaluate values of spherical harmonics at Lebedev grid points
 subroutine ddeval_grid(params, constants, alpha, x_sph, beta, x_grid, info)

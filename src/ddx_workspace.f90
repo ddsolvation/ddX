@@ -110,7 +110,8 @@ subroutine workspace_init(params, constants, workspace, info)
     !! Local variables
     character(len=255) :: string
     !! The code
-    allocate(workspace % tmp_pot(constants % nbasis, params % nproc), &
+    write(6,*) 'Allocating nproc', params % nproc
+    allocate(workspace % tmp_pot(params % ngrid, params % nproc), &
         & workspace % tmp_vplm(constants % vgrid_nbasis, params % nproc), &
         & workspace % tmp_vcos(constants % vgrid_dmax+1, params % nproc), &
         & workspace % tmp_vsin(constants % vgrid_dmax+1, params % nproc), &
