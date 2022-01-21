@@ -282,13 +282,8 @@ subroutine constants_init(params, constants, info)
     constants % n = params % nsph * constants % nbasis
     ! Calculate dmax, vgrid_dmax, m2p_lmax, m2p_nbasis and grad_nbasis
     if (params % fmm .eq. 0) then
-        if (params % force .eq. 1) then
-            constants % dmax = params % lmax + 1
-            constants % vgrid_dmax = params % lmax + 1
-        else
-            constants % dmax = params % lmax
-            constants % vgrid_dmax = params % lmax
-        end if
+        constants % dmax = params % lmax
+        constants % vgrid_dmax = params % lmax
         ! Other constants are not referenced if fmm=0
         constants % m2p_lmax = -1
         constants % m2p_nbasis = -1
@@ -307,7 +302,7 @@ subroutine constants_init(params, constants, info)
             constants % m2p_lmax = params % lmax
             constants % grad_nbasis = -1
         end if
-        constants % vgrid_dmax = max(params % pl, params % lmax) + 1
+        constants % vgrid_dmax = max(params % pl, params % lmax)
         constants % m2p_nbasis = (constants % m2p_lmax+1) ** 2
     end if
     ! Compute sizes of vgrid, vfact and vscales

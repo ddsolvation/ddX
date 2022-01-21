@@ -1793,7 +1793,8 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
         j = constants % children(1, i)
         c1 = constants % cnode(:, j)
         r1 = constants % rnode(j)
-        call fmm_m2m_rotation_work(c1-c, r1, r, &
+        c1 = c1 - c
+        call fmm_m2m_rotation_work(c1, r1, r, &
             & params % pm, &
             & constants % vscales, &
             & constants % vcnk, one, &
@@ -1802,7 +1803,8 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
         do j = constants % children(1, i)+1, constants % children(2, i)
             c1 = constants % cnode(:, j)
             r1 = constants % rnode(j)
-            call fmm_m2m_rotation_work(c1-c, r1, r, params % pm, &
+            c1 = c1 - c
+            call fmm_m2m_rotation_work(c1, r1, r, params % pm, &
                 & constants % vscales, constants % vcnk, one, &
                 & node_m(:, j), one, node_m(:, i), work)
         end do
@@ -1972,7 +1974,8 @@ subroutine tree_l2l_rotation_work(params, constants, node_l, work)
         r = constants % rnode(j)
         c1 = constants % cnode(:, i)
         r1 = constants % rnode(i)
-        call fmm_l2l_rotation_work(c-c1, r, r1, params % pl, &
+        c1 = c - c1
+        call fmm_l2l_rotation_work(c1, r, r1, params % pl, &
             & constants % vscales, constants % vfact, one, &
             & node_l(:, j), one, node_l(:, i), work)
     end do
@@ -2144,14 +2147,16 @@ subroutine tree_m2l_rotation(params, constants, node_m, node_l)
         k = constants % far(constants % sfar(i))
         c1 = constants % cnode(:, k)
         r1 = constants % rnode(k)
-        call fmm_m2l_rotation_work(c1-c, r1, r, params % pm, params % pl, &
+        c1 = c1 - c 
+        call fmm_m2l_rotation_work(c1, r1, r, params % pm, params % pl, &
             & constants % vscales, constants % m2l_ztranslate_coef, one, &
             & node_m(:, k), zero, node_l(:, i), work)
         do j = constants % sfar(i)+1, constants % sfar(i+1)-1
             k = constants % far(j)
             c1 = constants % cnode(:, k)
             r1 = constants % rnode(k)
-            call fmm_m2l_rotation_work(c1-c, r1, r, params % pm, &
+            c1 = c1 - c
+            call fmm_m2l_rotation_work(c1, r1, r, params % pm, &
                 & params % pl, constants % vscales, &
                 & constants % m2l_ztranslate_coef, one, node_m(:, k), one, &
                 & node_l(:, i), work)

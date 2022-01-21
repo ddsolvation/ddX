@@ -21,6 +21,9 @@ use ddx_constants
 implicit none
 
 type ddx_workspace_type
+    !> Temporary workspace for scalar at the grid points. Dimension is
+    !!      (ngrid, nproc)
+    real(dp), allocatable :: tmp_pot(:,:)
     !> Temporary workspace for associated legendre polynomials. Dimension is
     !!      (vgrid_nbasis, nproc).
     real(dp), allocatable :: tmp_vplm(:, :)
@@ -107,7 +110,8 @@ subroutine workspace_init(params, constants, workspace, info)
     !! Local variables
     character(len=255) :: string
     !! The code
-    allocate(workspace % tmp_vplm(constants % vgrid_nbasis, params % nproc), &
+    allocate(workspace % tmp_pot(constants % nbasis, params % nproc), &
+        & workspace % tmp_vplm(constants % vgrid_nbasis, params % nproc), &
         & workspace % tmp_vcos(constants % vgrid_dmax+1, params % nproc), &
         & workspace % tmp_vsin(constants % vgrid_dmax+1, params % nproc), &
         & stat=info)

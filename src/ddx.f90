@@ -43,7 +43,6 @@ subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, &
     real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
     integer, intent(out) :: info
     real(dp), allocatable :: psi_lpb(:,:)
-    write(6,*) 'here'; flush(6)
     ! Find proper model
     select case(ddx_data % params % model)
         ! COSMO model
