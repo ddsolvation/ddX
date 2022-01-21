@@ -383,7 +383,11 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     end if
     ! Number of OpenMP threads to be used
     ! available.
-    params % nproc = nproc
+    if (nproc .le. 0) then
+        params % nproc = 1
+    else
+        params % nproc = nproc
+    end if
     call omp_set_num_threads(params % nproc)
     ! Number of atoms
     if (nsph .le. 0) then
