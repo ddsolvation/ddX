@@ -319,24 +319,23 @@ subroutine lstarx_nodiag(params, constants, workspace, x, y)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
     integer :: isph, igrid, l, ind
-    !! Initilize
     y = zero
     !! Expand x over spherical harmonics
-    ! Loop over spheres      
+    !$omp parallel do default(none) shared(params,constants,workspace,x) &
+    !$omp private(isph,igrid) schedule(static,1)
     do isph = 1, params % nsph
-        ! Loop over grid points
         do igrid = 1, params % ngrid
             workspace % tmp_grid(igrid, isph) = dot_product(x(:, isph), &
                 & constants % vgrid(:constants % nbasis, igrid))
         end do
     end do
     !! Compute action
-    ! Loop over spheres
+    !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+    !$omp private(isph) schedule(static,1) 
     do isph = 1, params % nsph
         ! Compute NEGATIVE action of off-digonal blocks
         call adjrhs(params, constants, isph, workspace % tmp_grid, &
-            & y(:, isph), workspace % tmp_vylm, workspace % tmp_vplm, &
-            & workspace % tmp_vcos, workspace % tmp_vsin)
+            & y(:, isph))
         y(:, isph) = - y(:, isph)
     end do
 end subroutine lstarx_nodiag
@@ -369,8 +368,7 @@ subroutine lstarx(params, constants, workspace, x, y)
     do isph = 1, params % nsph
         ! Compute NEGATIVE action of off-digonal blocks
         call adjrhs(params, constants, isph, workspace % tmp_grid, &
-            & y(:, isph), workspace % tmp_vylm, workspace % tmp_vplm, &
-            & workspace % tmp_vcos, workspace % tmp_vsin)
+            & y(:, isph))
     end do
     ! Loop over harmonics
     do l = 0, params % lmax

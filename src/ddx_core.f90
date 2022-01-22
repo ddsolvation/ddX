@@ -1352,122 +1352,37 @@ subroutine rmsvec( n, v, vrms, vmax )
 !      
 endsubroutine rmsvec
 
-!-----------------------------------------------------------------------------------
-! Purpose : compute
-!
-!   v_l^m = v_l^m +
-!
-!               4 pi           l
-!     sum  sum  ---- ( t_n^ji )  Y_l^m( s_n^ji ) W_n^ji [ \xi_j ]_n
-!      j    n   2l+1
-!
-! which is related to the action of the adjont COSMO matrix L^* in the following
-! way. Set
-!
-!   [ \xi_j ]_n = sum  Y_l^m( s_n ) [ s_j ]_l^m
-!                 l,m
-!
-! then
-!
-!   v_l^m = -   sum    (L^*)_ij s_j
-!             j \ne i 
-!
-! The auxiliary quantity [ \xi_j ]_l^m needs to be computed explicitly.
-!-----------------------------------------------------------------------------------
-!
-!> TODO
-subroutine adjrhs(params, constants, isph, xi, vlm, basloc, vplm, vcos, vsin )
-!
-      type(ddx_params_type), intent(in) :: params
-      type(ddx_constants_type), intent(in) :: constants
-      integer,                       intent(in)    :: isph
-      real(dp), dimension(params % ngrid, params % nsph), intent(in)    :: xi
-      real(dp), dimension(constants % nbasis),     intent(inout) :: vlm
-      real(dp), dimension(constants % nbasis),     intent(inout) :: basloc, vplm
-      real(dp), dimension(params % lmax+1),     intent(inout) :: vcos, vsin
-!
-      integer :: ij, jsph, ig, l, ind, m
-      real(dp)  :: vji(3), vvji, tji, sji(3), xji, oji, fac, ffac, t
-      real(dp) :: rho, ctheta, stheta, cphi, sphi
-      real(dp) :: work(params % lmax+1)
-!      
-!-----------------------------------------------------------------------------------
-!
-!     loop over neighbors of i-sphere
-      do ij = constants % inl(isph), constants % inl(isph+1)-1
-!
-!       j-sphere is neighbor
-        jsph = constants % nl(ij)
-!
-!       loop over integration points
-        do ig = 1, params % ngrid
-!        
-!         compute t_n^ji = | r_j + \rho_j s_n - r_i | / \rho_i
-          vji  = params % csph(:,jsph) + params % rsph(jsph)* &
-              & constants % cgrid(:,ig) - params % csph(:,isph)
-          vvji = sqrt(dot_product(vji,vji))
-          tji  = vvji/params % rsph(isph)
-!
-!         point is INSIDE i-sphere (+ transition layer)
-!         ---------------------------------------------
-          if ( tji.lt.( one + (params % se+one)/two*params % eta ) ) then
-!                  
-!           compute s_n^ji
-            !sji = vji/vvji
-!
-!           compute \chi( t_n^ji )
-            xji = fsw( tji, params % se, params % eta )
-!
-!           compute W_n^ji
-            if ( constants % fi(ig,jsph).gt.one ) then
-!                    
-              oji = xji/ constants % fi(ig,jsph)
-!              
-            else
-!                    
-              oji = xji
-!              
-            endif
-!            
-!           compute Y_l^m( s_n^ji )
-            !call ylmbas(sji, rho, ctheta, stheta, cphi, sphi, &
-            !    & ddx_data % lmax, ddx_data % vscales, basloc, vplm, &
-            !    & vcos, vsin )
-!            
-!           initialize ( t_n^ji )^l
-            !t = one
-!            
-!           compute w_n * xi(n,j) * W_n^ji
-            fac = constants % wgrid(ig) * xi(ig,jsph) * oji
+subroutine adjrhs(params, constants, isph, xi, vlm)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph
+    real(dp), dimension(params % ngrid, params % nsph), intent(in) :: xi
+    real(dp), dimension(constants % nbasis), intent(inout) :: vlm
+    integer :: ij, jsph, ig, l, ind, m
+    real(dp)  :: vji(3), vvji, tji, sji(3), xji, oji, fac, ffac, t
+    real(dp) :: rho, ctheta, stheta, cphi, sphi
+    real(dp) :: work(params % lmax+1)
 
-            call fmm_l2p_adj_work(vji, fac, params % rsph(isph), &
-                & params % lmax, constants % vscales_rel, one, vlm, work)
-!            
-!           loop over l
-            !do l = 0, ddx_data % lmax
-!            
-            !  ind  = l*l + l + 1
-!
-!             compute 4pi / (2l+1) * ( t_n^ji )^l * w_n * xi(n,j) * W_n^ji
-            !  ffac = fac*t/ ddx_data % vscales(ind)**2
-!
-!             loop over m
-            !  do m = -l,l
-!              
-            !    vlm(ind+m) = vlm(ind+m) + ffac*basloc(ind+m)
-!                
-            !  enddo
-!
-!             update ( t_n^ji )^l
-            !  t = t*tji
-!              
-            !enddo
-!            
+    do ij = constants % inl(isph), constants % inl(isph+1)-1
+      jsph = constants % nl(ij)
+      do ig = 1, params % ngrid
+        vji  = params % csph(:,jsph) + params % rsph(jsph)* &
+            & constants % cgrid(:,ig) - params % csph(:,isph)
+        vvji = sqrt(dot_product(vji,vji))
+        tji  = vvji/params % rsph(isph)
+        if ( tji.lt.( one + (params % se+one)/two*params % eta ) ) then
+          xji = fsw( tji, params % se, params % eta )
+          if ( constants % fi(ig,jsph).gt.one ) then
+            oji = xji/ constants % fi(ig,jsph)
+          else
+            oji = xji
           endif
-        enddo
+          fac = constants % wgrid(ig) * xi(ig,jsph) * oji
+          call fmm_l2p_adj_work(vji, fac, params % rsph(isph), &
+              & params % lmax, constants % vscales_rel, one, vlm, work)
+        endif
       enddo
-!
-!
+    enddo
 end subroutine adjrhs
 
 subroutine calcv(params, constants, isph, pot, sigma)

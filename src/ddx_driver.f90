@@ -44,6 +44,8 @@ call mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, hessian_flag, &
     & hessianphi_cav, psi)
 finish_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") "mkrhs time:", finish_time-start_time, " seconds"
+call ptcart('rhs', ddx_data % constants % ncav, 1, 0,  phi_cav)
+
 start_time = omp_get_wtime()
 call ddsolve(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, &
     & force, info)
