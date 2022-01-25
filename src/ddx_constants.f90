@@ -1711,7 +1711,7 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div)
     lwork = -1
     call dgesvd('N', 'O', 3, n, tmp_csph, 3, s, tmp_csph, 3, tmp_csph, 3, &
         & s, lwork, info)
-    lwork = s(1)
+    lwork = int(s(1))
     allocate(work(lwork), stat=istat)
     if (istat .ne. 0) stop "allocation failed"
     ! Get right singular vectors

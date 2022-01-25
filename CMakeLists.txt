@@ -44,12 +44,12 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 #add_compile_options(-qopenmp)
 #add_compile_options(-g -debug extended -traceback -check all -fp-stack-check)
-add_compile_options(-O3)
+#add_compile_options(-O3)
 add_compile_options(-fopenmp)
-#add_compile_options(-fcheck=all -g -fbacktrace -Og -fbounds-check)
-#add_compile_options(-Waliasing -Wampersand -Wconversion -Wsurprising -Wc-binding-type -Wintrinsics-std)
-#add_compile_options(-Wtabs -Wintrinsic-shadow -Wline-truncation -Wtarget-lifetime -Winteger-division)
-#add_compile_options(-Wreal-q-constant -Wundefined-do-loop -Wmaybe-uninitialized)
+add_compile_options(-fcheck=all -g -fbacktrace -Og -fbounds-check)
+add_compile_options(-Waliasing -Wampersand -Wconversion -Wsurprising -Wc-binding-type -Wintrinsics-std)
+add_compile_options(-Wtabs -Wintrinsic-shadow -Wline-truncation -Wtarget-lifetime -Winteger-division)
+add_compile_options(-Wreal-q-constant -Wundefined-do-loop -Wmaybe-uninitialized)
 
 
 ###############################################################################
