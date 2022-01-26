@@ -33,6 +33,9 @@ type ddx_workspace_type
     !> Temporary workspace for derivatives of spherical harmomincs. Dimension is
     !!      (3, vgrid_nbasis, nproc).
     real(dp), allocatable :: tmp_vdylm(:, :, :)
+    !> Temporary workspace of size
+    !!      (vgrid_dmax + 1, nproc)
+    real(dp), allocatable :: tmp_work(:, :)
     !> Temporary workspace for an array of cosinuses of a dimension
     !!      (vgrid_dmax+1, nproc).
     real(dp), allocatable :: tmp_vcos(:, :)
@@ -115,6 +118,7 @@ subroutine workspace_init(params, constants, workspace, info)
         & workspace % tmp_vplm(constants % vgrid_nbasis, params % nproc), &
         & workspace % tmp_vcos(constants % vgrid_dmax+1, params % nproc), &
         & workspace % tmp_vsin(constants % vgrid_dmax+1, params % nproc), &
+        & workspace % tmp_work(constants % vgrid_dmax+1, params % nproc), &
         & stat=info)
     if (info .ne. 0) then
         workspace % error_flag = 1

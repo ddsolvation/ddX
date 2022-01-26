@@ -1385,17 +1385,18 @@ subroutine adjrhs(params, constants, isph, xi, vlm)
     enddo
 end subroutine adjrhs
 
-subroutine calcv(params, constants, isph, pot, sigma)
+subroutine calcv(params, constants, isph, pot, sigma, work)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: isph
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: sigma
     real(dp), dimension(params % ngrid), intent(inout) :: pot
+    real(dp), dimension(params % lmax+1), intent(inout) :: work
+
     integer :: its, ij, jsph
     real(dp)  :: vij(3), sij(3)
     real(dp)  :: vvij, tij, xij, oij, stslm, stslm2, stslm3, &
         & thigh, rho, ctheta, stheta, cphi, sphi
-    real(dp) :: work(params % lmax+1)
 
     thigh = one + pt5*(params % se + one)*params % eta
     pot(:) = zero
