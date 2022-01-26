@@ -16,7 +16,15 @@ set(TESTS
 ddx_add_test("ddx_core.f90")
 ddx_add_test("ddx_operators.f90")
 ddx_add_test("force.f90" "${CMAKE_SOURCE_DIR}/tests/Input_force.txt")
+ddx_add_test("ddx_driver.f90"
+    "${CMAKE_SOURCE_DIR}/tests/data/ddpcm_force_fmm.in
+    ${CMAKE_SOURCE_DIR}/tests/data/ddpcm_force_fmm.out 1E-12"
+    "${CMAKE_SOURCE_DIR}/tests/data/ddcosmo_force_fmm.in
+    ${CMAKE_SOURCE_DIR}/tests/data/ddcosmo_force_fmm.out 1E-12")
 ddx_add_test("force_ddlpb.f90" "${CMAKE_SOURCE_DIR}/tests/Input_ddlpb.txt")
 
 add_test(NAME driver_cosmo COMMAND ddx_driver
     "${CMAKE_SOURCE_DIR}/tests/Input_cosmo.txt")
+
+ddx_add_test("m2l.f90")
+

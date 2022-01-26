@@ -22,29 +22,29 @@ type(ddx_type) :: ddx_data
 integer :: info
 
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
-                       & hessian_cav(:,:,:), psi(:, :), &
+                       & hessianphi_cav(:,:,:), psi(:, :), &
                        & force(:, :), force_num(:, :)
 real(dp) :: esolv, esolv_plus_h, esolv_minus_h, &
-          & step = 2*1d-5, relerr
-integer :: isph, i
+          & step = 2*1d-5, relerr, tol
+integer :: isph, i, iprint
 real(dp), external :: dnrm2
 
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, info)
+call ddfromfile(fname, ddx_data, tol, iprint, info)
 if(info .ne. 0) stop "info != 0"
 
 ! Allocation for variable vectors
-allocate(phi_cav(ddx_data % ncav), gradphi_cav(3, ddx_data % ncav), &
-       & hessian_cav(3,3,ddx_data % ncav), &
-       & psi(ddx_data % nbasis, ddx_data % nsph), &
-       & force(3, ddx_data % nsph), &
-       & force_num(3, ddx_data % nsph))
+allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
+       & hessianphi_cav(3,3,ddx_data % constants % ncav), &
+       & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), &
+       & force(3, ddx_data % params % nsph), &
+       & force_num(3, ddx_data % params % nsph))
 
 gradphi_cav = zero
 phi_cav = zero
-hessian_cav = zero
+hessianphi_cav = zero
 psi = zero
 esolv = zero
 force = zero
@@ -54,17 +54,19 @@ esolv_plus_h = zero
 esolv_minus_h = zero
 
 
-call mkrhs(ddx_data, phi_cav, gradphi_cav, hessian_cav, psi)
+call mkrhs(ddx_data, 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
 
-call ddlpb(ddx_data, phi_cav, gradphi_cav, hessian_cav, psi, esolv, force)
+! Need to update PSI here
+psi = psi / fourpi
+call ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)
 
-do isph = 1, ddx_data % nsph
+do isph = 1, ddx_data % params % nsph
   do i = 1, 3
     esolv_plus_h = zero
     esolv_minus_h = zero
-    ddx_data % csph(i, isph) = ddx_data % csph(i, isph) + step
+    ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) + step
     call solve(ddx_data, esolv_plus_h)
-    ddx_data % csph(i, isph) = ddx_data % csph(i, isph) - step
+    ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) - step
     !call solve(ddx_data, esolv_minus_h)
     !write(*,*) 'esolv  :', esolv, 'esolv+h  : ', esolv_plus_h, ' , esolv : ', esolv_minus_h, ' , step :', step
     force_num(i, isph) = (esolv_plus_h - esolv) / step
@@ -72,16 +74,16 @@ do isph = 1, ddx_data % nsph
     if(abs(force(i,isph)) .le. 1d-8) force(i,isph) = zero
   end do
 end do
-relerr = dnrm2(3*ddx_data % nsph, force_num-force, 1) / &
-    & dnrm2(3*ddx_data % nsph, force, 1)
+relerr = dnrm2(3*ddx_data % params % nsph, force_num-force, 1) / &
+    & dnrm2(3*ddx_data % params % nsph, force, 1)
 
 write(6,'(2A60)') 'Analytical forces', 'Numerical forces'
-do i = 1, ddx_data % nsph
+do i = 1, ddx_data % params % nsph
   write(6,'(6E20.10)') force(1,i), force(2,i), force(3,i), force_num(1,i), &
       & force_num(2,i), force_num(3,i)
 end do
 
-deallocate(phi_cav, gradphi_cav, hessian_cav, psi, force, force_num)
+deallocate(phi_cav, gradphi_cav, hessianphi_cav, psi, force, force_num)
 
 call ddfree(ddx_data)
 
@@ -96,32 +98,32 @@ subroutine solve(ddx_data, esolv_in)
     type(ddx_type) :: ddx_data2
     real(dp), allocatable :: phi_cav2(:)
     real(dp), allocatable :: gradphi_cav2(:,:)
-    real(dp), allocatable :: hessian_cav2(:,:,:)
+    real(dp), allocatable :: hessianphi_cav2(:,:,:)
     real(dp), allocatable :: psi2(:,:)
     real(dp), allocatable :: force2(:,:)
 
+    call ddinit(ddx_data % params % nsph, ddx_data % params % charge, ddx_data % params % csph(1, :), &
+        & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
+        & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, 0, &
+        & ddx_data % params % fmm, ddx_data % params % pm, ddx_data % params % pl, &
+        & ddx_data % params % se, &
+        & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, &
+        & ddx_data % params % itersolver, ddx_data % params % maxiter, &
+        & ddx_data % params % jacobi_ndiis, ddx_data % params % gmresr_j, &
+        & ddx_data % params % gmresr_dim, ddx_data % params % nproc, ddx_data2, info)
 
-    call ddinit(ddx_data % nsph, ddx_data % charge, ddx_data % csph(1, :), &
-        & ddx_data % csph(2, :), ddx_data % csph(3, :), ddx_data % rsph, &
-        & ddx_data % model, ddx_data % lmax, ddx_data % ngrid, 0, &
-        & ddx_data % fmm, ddx_data % pm, ddx_data % pl, &
-        & ddx_data % fmm_precompute, ddx_data % iprint, ddx_data % se, &
-        & ddx_data % eta, ddx_data % eps, ddx_data % kappa, &
-        & ddx_data % itersolver, ddx_data % tol, ddx_data % maxiter, &
-        & ddx_data % ndiis, ddx_data % nproc, ddx_data2, info)
-
-    allocate(phi_cav2(ddx_data2 % ncav), gradphi_cav2(3, ddx_data2 % ncav), &
-            & hessian_cav2(3, 3, ddx_data2 % ncav), &
-            & psi2(ddx_data2 % nbasis, ddx_data2 % nsph), &
-            & force2(3, ddx_data2 % nsph))
+    allocate(phi_cav2(ddx_data2 % constants % ncav), gradphi_cav2(3, ddx_data2 % constants % ncav), &
+            & hessianphi_cav2(3, 3, ddx_data2 % constants % ncav), &
+            & psi2(ddx_data2 % constants % nbasis, ddx_data2 % params % nsph), &
+            & force2(3, ddx_data2 % params % nsph))
 
     gradphi_cav2 = zero; phi_cav2 = zero
-    hessian_cav2 = zero; psi2 = zero; force2 = zero
+    hessianphi_cav2 = zero; psi2 = zero; force2 = zero
 
-    call mkrhs(ddx_data2, phi_cav2, gradphi_cav2, hessian_cav2, psi2)
-    call ddsolve(ddx_data2, phi_cav2, gradphi_cav2, hessian_cav2, psi2, esolv_in, force2)
+    call mkrhs(ddx_data2, 1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
+    call ddsolve(ddx_data2, phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, tol, esolv_in, force2, info)
     call ddfree(ddx_data2)
-    deallocate(phi_cav2, gradphi_cav2, hessian_cav2, psi2, force2)
+    deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
     return
 end subroutine solve
 

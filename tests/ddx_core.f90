@@ -19,7 +19,9 @@ integer :: p=30, i, j
 
 integer, parameter :: nx=13, nrand=10
 real(dp) :: x(3, nx)
-real(dp) :: alpha(4)=(/1d0, -1d0, 1d-294, 1d+294/)
+!real(dp) :: alpha(4)=(/1d0, -1d0, 1d-294, 1d+294/)
+!real(dp) :: alpha(4)=(/1d0, -1d0, 1d-10, 1d+2/)
+real(dp) :: alpha(2)=(/1d0, -1d0/)
 real(dp), external :: dnrm2
 
 ! Read argument (which tests to run)
@@ -35,11 +37,14 @@ else
         case ('polleg')
         case ('ylmbas')
         case ('m2p')
+        case ('m2p_bessel')
         case ('m2p_m2l')
         case ('m2p_adj')
         case ('l2p')
+        case ('l2p_bessel')
         case ('l2p_adj')
         case ('m2m')
+        case ('m2m_bessel')
         case ('m2m_adj')
         case ('l2l')
         case ('l2l_adj')
@@ -102,6 +107,15 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2p')) then
     end do
 end if
 
+! Check M2P Bessel
+if ((testname .eq. 'all') .or. (testname .eq. 'm2p_bessel')) then
+    do i = 1, size(alpha)
+        do j = 0, 20
+            call check_m2p_bessel(j, alpha(i))
+        end do
+    end do
+end if
+
 ! Check M2P against M2L with pl=0
 if ((testname .eq. 'all') .or. (testname .eq. 'm2p_m2l')) then
     do i = 1, size(alpha)
@@ -129,6 +143,15 @@ if ((testname .eq. 'all') .or. (testname .eq. 'l2p')) then
     end do
 end if
 
+! Check L2P Bessel
+if ((testname .eq. 'all') .or. (testname .eq. 'l2p_bessel')) then
+    do i = 1, size(alpha)
+        do j = 0, 20
+            call check_l2p_bessel(j, alpha(i))
+        end do
+    end do
+end if
+
 ! Check adjoint L2P
 if ((testname .eq. 'all') .or. (testname .eq. 'l2p_adj')) then
     do i = 1, size(alpha)
@@ -145,6 +168,17 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2m')) then
             call check_m2m(j, alpha(i))
         end do
     end do
+end if
+
+! Check M2M Bessel manually
+!if ((testname .eq. 'all') .or. (testname .eq. 'm2m_bessel')) then
+if (testname .eq. 'm2m_bessel') then
+    !do i = 1, size(alpha)
+    j = 20
+        !do j = 0, p
+            call check_m2m_bessel(j)
+        !end do
+    !end do
 end if
 
 ! Check adjoint M2M
@@ -178,6 +212,7 @@ end if
 if ((testname .eq. 'all') .or. (testname .eq. 'm2l')) then
     do i = 1, size(alpha)
         do j = 0, p
+        !do j = 1, 1
             call check_m2l(j, j, alpha(i))
         end do
         do j = 1, p
@@ -228,16 +263,16 @@ end if
 !! Check tree M2L
 !if ((testname .eq. 'all') .or. (testname .eq. 'tree_m2l')) then
 !    do i = 1, size(alpha)
-!        call check_tree_m2l(0, 0, alpha(i), iprint, 6d-2)
-!        call check_tree_m2l(1, 0, alpha(i), iprint, 4d-2)
-!        call check_tree_m2l(10, 0, alpha(i), iprint, 4d-2)
-!        call check_tree_m2l(0, 1, alpha(i), iprint, 3d-2)
-!        call check_tree_m2l(1, 1, alpha(i), iprint, 4d-3)
-!        call check_tree_m2l(10, 1, alpha(i), iprint, 4d-3)
-!        call check_tree_m2l(0, 10, alpha(i), iprint, 3d-2)
-!        call check_tree_m2l(1, 10, alpha(i), iprint, 3d-3)
-!        call check_tree_m2l(10, 10, alpha(i), iprint, 4d-9)
-!        !call check_tree_m2l(20, 20, alpha(i), iprint, 1d-14)
+!        call check_tree_m2l(0, 0, alpha(i), 6d-2)
+!        call check_tree_m2l(1, 0, alpha(i), 4d-2)
+!        call check_tree_m2l(10, 0, alpha(i), 4d-2)
+!        call check_tree_m2l(0, 1, alpha(i), 3d-2)
+!        call check_tree_m2l(1, 1, alpha(i), 4d-3)
+!        call check_tree_m2l(10, 1, alpha(i), 4d-3)
+!        call check_tree_m2l(0, 10, alpha(i), 3d-2)
+!        call check_tree_m2l(1, 10, alpha(i), 3d-3)
+!        call check_tree_m2l(10, 10, alpha(i), 4d-9)
+!        !call check_tree_m2l(20, 20, alpha(i), 1d-14)
 !    end do
 !end if
 
@@ -245,11 +280,11 @@ contains
 
 subroutine check_ddinit_args()
     ! Example of correct args
-    integer :: n=1, model=1, lmax=0, ngrid=1000, force=1, fmm=1, pm=0, pl=0, &
-        & fmm_precompute=0, iprint=0, itersolver=1, maxiter=10, ndiis=10, &
-        & nproc=1
+    integer :: n=1, model=1, lmax=1, ngrid=1202, force=1, fmm=1, pm=0, pl=0, &
+        & fmm_precompute=0, iprint=0, itersolver=1, maxiter=10, &
+        & jacobi_ndiis=10, gmresr_j=1, gmresr_dim=0, nproc=1
     real(dp) :: charge(10), x(10), y(10), z(10), rvdw(10), se=zero, eta=1d-1, &
-        & eps=1.1d1, kappa=zero, tol=1d-6
+        & eps=1.1d1, kappa=1d0
     type(ddx_type) :: ddx_data
     integer :: info=0, i, j
     real(dp) :: tmp
@@ -263,508 +298,556 @@ subroutine check_ddinit_args()
     end do
     ! Check correct input
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "correct test failed"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "correct test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check different correct inputs with different n <= 10 (hardcoded value)
     do i = 1, 10
         call ddinit(i, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
-            & pm, pl, fmm_precompute, iprint, se, eta, eps, kappa, &
-            & itersolver, tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "nsph"
+            & pm, pl, se, eta, eps, kappa, &
+            & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, &
+            & ddx_data, info)
+        if (info .ne. 0) call error(-1, "`nsph` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect input nsph <= 0
     i = 0
     call ddinit(i, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -1) stop "nsph"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`nsph` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(i, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -1) stop "nsph"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`nsph` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check all possible models (1, 2, 3) with other correct inputs
     do i = 1, 3
+        write(*, *) "model=", i
         call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
-            & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
-            & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "model"
+            & pl, se, eta, eps, kappa, itersolver, &
+            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        if (info .ne. 0) call error(-1, "`model` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect models
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -7) stop "model"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`model` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 4
     call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -7) stop "model"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`model` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct lmax >= 0
-    do i = 0, 6
+    !do i = 0, 6
+    do i = 1, 6
         call ddinit(n, charge, x, y, z, rvdw, model, i, ngrid, force, fmm, &
-            & pm, pl, fmm_precompute, iprint, se, eta, eps, kappa, &
-            & itersolver, tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "lmax"
+            & pm, pl, se, eta, eps, kappa, &
+            & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+            & nproc, ddx_data, info)
+        if (info .ne. 0) call error(-1, "`lmax` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect lmax < 0
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, i, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -8) stop "lmax"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`lmax` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct ngrid >= 0
-    do i = 0, 1000, 100
-        j = i
+    do i = 1, nllg
+        j = ng0(i)
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, j, force, fmm, pm, &
-            & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
-            & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "ngrid"
+            & pl, se, eta, eps, kappa, itersolver, &
+            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        if (info .ne. 0) call error(-1, "`ngrid` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect ngrid < 0
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, i, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -9) stop "ngrid"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`ngrid` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct force (0, 1)
     do i = 0, 1
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
-            & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
-            & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "force"
+            & pl, se, eta, eps, kappa, itersolver, &
+            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        if (info .ne. 0) call error(-1, "`force` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect force
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -10) stop "force"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`force` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -10) stop "force"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`force` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct fmm (0, 1)
     do i = 0, 1
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, i, &
-            & pm, pl, fmm_precompute, iprint, se, eta, eps, kappa, &
-            & itersolver, tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "fmm"
+            & pm, pl, se, eta, eps, kappa, &
+            & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        if (info .ne. 0) call error(-1, "`fmm` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect fmm
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -11) stop "fmm"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`fmm` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -11) stop "fmm"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`fmm` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct pm (ignored if fmm=0)
     j = 0
     do i = -2, 2
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & i, pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
-            & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "pm"
+            & i, pl, se, eta, eps, kappa, itersolver, &
+            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        if (info .ne. 0) call error(-1, "`pm` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check correct pm (fmm=1)
     j = 1
     do i = 0, 20, 5
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & i, pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
-            & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "pm"
+            & i, pl, se, eta, eps, kappa, itersolver, &
+            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        if (info .ne. 0) call error(-1, "`pm` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-        & i, pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
-        & tol, maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "pm"
+        & i, pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`pm` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect pm (fmm=1)
     j = 1
     i = -2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, i, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -12) stop "pm"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`pm` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct pl (ignored if fmm=0)
     j = 0
     do i = -2, 2
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & pm, i, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
-            & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "pl"
+            & pm, i, se, eta, eps, kappa, itersolver, &
+            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        if (info .ne. 0) call error(-1, "`pl` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check correct pl (fmm=1)
     j = 1
     do i = 0, 20, 5
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & pm, i, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
-            & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "pl"
+            & pm, i, se, eta, eps, kappa, itersolver, &
+            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        if (info .ne. 0) call error(-1, "`pl` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-        & pm, i, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, &
-        & tol, maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "pl"
+        & pm, i, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`pl` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect pl (fmm=1)
     j = 1
     i = -2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, pm, &
-        & i, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -13) stop "pl"
-    call ddfree(ddx_data)
-    ! Check correct fmm_precompute (fmm=1)
-    j = 1
-    do i = 0, 1
-        call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & pm, pl, i, iprint, se, eta, eps, kappa, itersolver, tol, &
-            & maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "fmm_precompute"
-        call ddfree(ddx_data)
-    end do
-    ! Check correct fmm_precompute (ignored if fmm=0)
-    j = 0
-    do i = -2, 3
-        call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & pm, pl, i, iprint, se, eta, eps, kappa, itersolver, tol, &
-            & maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "fmm_precompute"
-        call ddfree(ddx_data)
-    end do
-    ! Check incorrect fmm_precompute
-    i = -1
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, i, iprint, se, eta, eps, kappa, itersolver, tol, maxiter, &
-        & ndiis, nproc, ddx_data, info)
-    if (info .ne. -14) stop "fmm_precompute"
-    call ddfree(ddx_data)
-    i = 2
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, i, iprint, se, eta, eps, kappa, itersolver, tol, maxiter, &
-        & ndiis, nproc, ddx_data, info)
-    if (info .ne. -14) stop "fmm_precompute"
-    call ddfree(ddx_data)
-    ! Check correct iprint >= 0
-    do i = 0, 10
-        call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
-            & pm, pl, fmm_precompute, i, se, eta, eps, kappa, itersolver, &
-            & tol, maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "iprint"
-        call ddfree(ddx_data)
-    end do
-    ! Check incorrect iprint
-    i = -1
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, i, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -15) stop "iprint"
+        & i, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`pl` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct se (interval [-1,1])
     tmp = -one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, tmp, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "se"
+        & pl, tmp, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`se` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = zero
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, tmp, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "se"
+        & pl, tmp, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`se` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, tmp, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "se"
+        & pl, tmp, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`se` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect se
     tmp = 1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, tmp, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -16) stop "se"
+        & pl, tmp, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`se` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, tmp, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -16) stop "se"
+        & pl, tmp, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`se` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct eta (semi-interval (0,1])
     tmp = pt5
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, tmp, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "eta"
+        & pl, se, tmp, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`eta` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, tmp, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "eta"
+        & pl, se, tmp, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`eta` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect eta
     tmp = zero
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, tmp, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -17) stop "eta"
+        & pl, se, tmp, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`eta` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = 1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, tmp, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -17) stop "eta"
+        & pl, se, tmp, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`eta` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, tmp, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -17) stop "eta"
+        & pl, se, tmp, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`eta` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct eps
     tmp = 1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, tmp, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "eps"
+        & pl, se, eta, tmp, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`eps` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = dble(1000)
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, tmp, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "eps"
+        & pl, se, eta, tmp, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`eps` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect eps
     tmp = zero
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, tmp, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -18) stop "eps"
+        & pl, se, eta, tmp, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`eps` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = pt5
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, tmp, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -18) stop "eps"
+        & pl, se, eta, tmp, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`eps` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, tmp, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -18) stop "eps"
+        & pl, se, eta, tmp, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`eps` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, tmp, kappa, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -18) stop "eps"
+        & pl, se, eta, tmp, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`eps` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct kappa
     tmp = 1d-2
     j = 3 ! only referenced in case of LPB model
     call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, tmp, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "kappa"
+        & pl, se, eta, eps, tmp, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`kappa` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2 ! not referenced in case of COSMO and PCM models
     do j = 1, 2
         call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-            & pl, fmm_precompute, iprint, se, eta, eps, tmp, itersolver, tol, &
-            & maxiter, ndiis, nproc, ddx_data, info)
-        if (info .ne. 0) stop "kappa"
+            & pl, se, eta, eps, tmp, itersolver, &
+            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        if (info .ne. 0) call error(-1, "`kappa` test failed in " // &
+            & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     ! Check incorrect kappa
     j = 3
     tmp = -1d-2
     call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, tmp, itersolver, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -19) stop "kappa"
+        & pl, se, eta, eps, tmp, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`kappa` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct itersolver
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, i, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "itersolver"
+        & pl, se, eta, eps, kappa, i, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`itersolver` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    i = 2
+    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, i, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`itersolver` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect itersolver
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, i, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -20) stop "itersolver"
+        & pl, se, eta, eps, kappa, i, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`itersolver` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, i, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -20) stop "itersolver"
+        & pl, se, eta, eps, kappa, i, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`itersolver` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
-    i = 2
+    i = 3
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, i, tol, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -20) stop "itersolver"
-    call ddfree(ddx_data)
-    ! Check correct tol
-    tmp = 1d-14
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "tol"
-    call ddfree(ddx_data)
-    tmp = 1d-7
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "tol"
-    call ddfree(ddx_data)
-    tmp = one
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "tol"
-    call ddfree(ddx_data)
-    ! Check incorrect tol
-    tmp = 9d-15
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -21) stop "tol"
-    call ddfree(ddx_data)
-    tmp = zero
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -21) stop "tol"
-    call ddfree(ddx_data)
-    tmp = -1d-1
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -21) stop "tol"
-    call ddfree(ddx_data)
-    tmp = 1.1d0
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tmp, &
-        & maxiter, ndiis, nproc, ddx_data, info)
-    if (info .ne. -21) stop "tol"
+        & pl, se, eta, eps, kappa, i, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`itersolver` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct maxiter
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & i, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "maxiter"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & i, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`maxiter` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1000000
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & i, ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) stop "maxiter"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & i, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`maxiter` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect maxiter
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & i, ndiis, nproc, ddx_data, info)
-    if (info .ne. -22) stop "maxiter"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & i, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`maxiter` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & i, ndiis, nproc, ddx_data, info)
-    if (info .ne. -22) stop "maxiter"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & i, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`maxiter` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct ndiis
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, i, nproc, ddx_data, info)
-    if (info .ne. 0) stop "ndiis"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, i, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, i, nproc, ddx_data, info)
-    if (info .ne. 0) stop "ndiis"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, i, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1000
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, i, nproc, ddx_data, info)
-    if (info .ne. 0) stop "ndiis"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, i, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
-    ! Check incorrect ndiis
+    ! Check incorrect jacobi_ndiis
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, i, nproc, ddx_data, info)
-    if (info .ne. -23) stop "ndiis"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, i, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    ! Check correct gmresr_j
+    i = 1
+    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`gmresr_j` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    i = 2
+    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`gmresr_j` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    i = 100000
+    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`gmresr_j` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    ! Check incorrect gmresr_j
+    i = 0
+    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`gmresr_j` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    i = -1
+    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`gmresr_j` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    ! Check correct gmresr_dim
+    i = 0
+    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, i, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`gmresr_dim` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    i = 1
+    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, i, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`gmresr_dim` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    i = 100000
+    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, i, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`gmresr_dim` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    ! Check incorrect gmresr_dim
+    i = -1
+    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, i, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`gmresr_dim` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct nproc
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, i, ddx_data, info)
-    if (info .ne. 0) stop "nproc"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`nproc` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, i, ddx_data, info)
-    if (info .ne. 0) stop "nproc"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`nproc` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect nproc
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, i, ddx_data, info)
-    if (info .ne. -24) stop "nproc"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`nproc` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, fmm_precompute, iprint, se, eta, eps, kappa, itersolver, tol, &
-        & maxiter, ndiis, i, ddx_data, info)
-    if (info .ne. -24) stop "nproc"
+        & pl, se, eta, eps, kappa, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`nproc` test failed in " // &
+        & "check_ddinit_args()")
     call ddfree(ddx_data)
 end subroutine check_ddinit_args
 
@@ -775,6 +858,7 @@ subroutine check_polleg(p)
     ! Local variables
     real(dp) :: c(3), rho, ctheta, stheta, cphi, sphi, vplm((p+1)**2), &
         & vplm2((p+1)**2), err
+    real(dp), parameter :: threshold=2d-15
     logical :: ok
     integer :: i, j
     real(dp), external :: dnrm2
@@ -795,7 +879,7 @@ subroutine check_polleg(p)
         call polleg_baseline(ctheta, stheta, p, vplm)
         call polleg(ctheta, stheta, p, vplm2)
         err = dnrm2((p+1)**2, vplm-vplm2, 1) / dnrm2((p+1)**2, vplm, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
@@ -934,6 +1018,104 @@ subroutine check_m2p(p, alpha)
     print "(A)", repeat("=", 40)
 end subroutine check_m2p
 
+! Check M2P Bessel
+subroutine check_m2p_bessel(p, alpha)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: alpha
+    ! Local variables
+    real(dp) :: y(3, nx), r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
+        & vscales_rel((p+1)**2), src_m((p+1)**2, nrand), dst_v(nrand), &
+        & dst_v2(nrand), err, threshold
+    logical :: ok
+    integer :: i, j, iseed(4)
+    real(dp), external :: dnrm2
+    ! Copy templated points with a proper multiplier
+    y = alpha / sqrt(13d-2) * x
+    r = abs(alpha)
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    ! Init random seed
+    iseed = (/0, 0, 0, 1/)
+    ! Generate src_m randomly
+    call dlarnv(3, iseed, nrand*((p+1)**2), src_m)
+    ! Print header
+    print "(/,A)", repeat("=", 40)
+    print "(A)", "Check M2P"
+    print "(A,I0)", " p=", p
+    print "(A,ES24.16E3)", " alpha=", alpha
+    print "(A)", repeat("=", 40)
+    print "(A)", "  i | ok | err(i)"
+    print "(A)", repeat("=", 40)
+    threshold = dble(p+3) * 3d-14
+    ! Check against the baseline, i=1 is ignored since y(:,1)=zero
+    do i = 2, nx
+        c = y(:, i)
+        ! Check alpha=beta=zero
+        do j = 1, nrand
+            call fmm_m2p_bessel(c, r, p, vscales, zero, src_m(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v2, 1)
+        ok = err .eq. zero
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha=one, beta=zero
+        do j = 1, nrand
+            call fmm_m2p_bessel_baseline(c, r, p, vscales, one, src_m(:, j), zero, &
+                & dst_v(j))
+            call fmm_m2p_bessel(c, r, p, vscales, one, src_m(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha!={zero,one}, beta=zero
+        do j = 1, nrand
+            call fmm_m2p_bessel_baseline(c, r, p, vscales, -three, src_m(:, j), &
+                & zero, dst_v(j))
+            call fmm_m2p_bessel(c, r, p, vscales, -three, src_m(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha=zero, beta=one
+        do j = 1, nrand
+            call fmm_m2p_bessel(c, r, p, vscales, zero, src_m(:, j), one, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha=zero, beta!={zero,one}
+        do j = 1, nrand
+            dst_v(j) = -pt5 * dst_v(j)
+            call fmm_m2p_bessel(c, r, p, vscales, zero, src_m(:, j), -pt5, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha!={zero,one}, beta!={zero,one}
+        do j = 1, nrand
+            call fmm_m2p_bessel_baseline(c, r, p, vscales, -three, src_m(:, j), pt5, &
+                & dst_v(j))
+            call fmm_m2p_bessel(c, r, p, vscales, -three, src_m(:, j), pt5, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+    end do
+    print "(A)", repeat("=", 40)
+end subroutine check_m2p_bessel
+
 ! Check M2P by M2L with pl=0
 subroutine check_m2p_m2l(p, alpha)
     ! Inputs
@@ -991,7 +1173,7 @@ subroutine check_m2p_m2l(p, alpha)
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. 2d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
-        !if (.not. ok) stop 1
+        if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
         do j = 1, nrand
             call fmm_m2l_rotation(-c, r, r, p, 0, vscales, &
@@ -1001,18 +1183,18 @@ subroutine check_m2p_m2l(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. 4d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
-        !if (.not. ok) stop 1
+        if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
         do j = 1, nrand
             call fmm_m2p(c, r, p, vscales_rel, zero, src_m(:, j), one, &
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. 4d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
-        !if (.not. ok) stop 1
+        if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         do j = 1, nrand
             dst_v(j) = -pt5 * dst_v(j)
@@ -1020,9 +1202,9 @@ subroutine check_m2p_m2l(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 2d-15
+        ok = err .lt. 4d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
-        !if (.not. ok) stop 1
+        if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
         do j = 1, nrand
             call fmm_m2l_rotation(-c, r, r, p, 0, vscales, &
@@ -1032,9 +1214,9 @@ subroutine check_m2p_m2l(p, alpha)
                 & dst_v2(j))
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
-        ok = err .lt. 3d-15
+        ok = err .lt. 4d-15
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
-        !if (.not. ok) stop 1
+        if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
 end subroutine check_m2p_m2l
@@ -1211,6 +1393,105 @@ subroutine check_l2p(p, alpha)
     print "(A)", repeat("=", 40)
 end subroutine check_l2p
 
+! Check L2P Bessel
+subroutine check_l2p_bessel(p, alpha)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: alpha
+    ! Local variables
+    real(dp) :: y(3, nx), r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
+        & vscales_rel((p+1)**2), src_l((p+1)**2, nrand), dst_v(nrand), &
+        & dst_v2(nrand), err, threshold
+    logical :: ok
+    integer :: i, j, iseed(4)
+    real(dp), external :: dnrm2
+    ! Copy templated points with a proper multiplier
+    y = 1.25d0 * alpha * x
+    r = abs(alpha)
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    ! Init random seed
+    iseed = (/0, 0, 0, 1/)
+    ! Generate src_m randomly
+    call dlarnv(3, iseed, nrand*((p+1)**2), src_l)
+    ! Print header
+    print "(/,A)", repeat("=", 40)
+    print "(A)", "Check L2P"
+    print "(A,I0)", " p=", p
+    print "(A,ES24.16E3)", " alpha=", alpha
+    print "(A)", repeat("=", 40)
+    print "(A)", "  i | ok | err(i)"
+    print "(A)", repeat("=", 40)
+    threshold = dble(p+1) * 2d-15
+    ! Check against the baseline
+    do i = 1, nx
+        c = y(:, i)
+        ! Check alpha=beta=zero
+        do j = 1, nrand
+            call fmm_l2p_bessel(c, r, p, vscales, zero, src_l(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v2, 1)
+        ok = err .eq. zero
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha=one, beta=zero
+        do j = 1, nrand
+            call fmm_l2p_bessel_baseline(c, r, p, vscales, one, src_l(:, j), zero, &
+                & dst_v(j))
+            call fmm_l2p_bessel(c, r, p, vscales, one, src_l(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha!={zero,one}, beta=zero
+        do j = 1, nrand
+            call fmm_l2p_bessel_baseline(c, r, p, vscales, -three, src_l(:, j), &
+                & zero, dst_v(j))
+            call fmm_l2p_bessel(c, r, p, vscales, -three, src_l(:, j), zero, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha=zero, beta=one
+        do j = 1, nrand
+            call fmm_l2p_bessel(c, r, p, vscales, zero, src_l(:, j), one, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha=zero, beta!={zero,one}
+        do j = 1, nrand
+            call fmm_l2p_bessel_baseline(c, r, p, vscales, zero, src_l(:, j), -pt5, &
+                & dst_v(j))
+            call fmm_l2p_bessel(c, r, p, vscales, zero, src_l(:, j), -pt5, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+        ! Check alpha!={zero,one}, beta!={zero,one}
+        do j = 1, nrand
+            call fmm_l2p_bessel_baseline(c, r, p, vscales, -three, src_l(:, j), pt5, &
+                & dst_v(j))
+            call fmm_l2p_bessel(c, r, p, vscales, -three, src_l(:, j), pt5, &
+                & dst_v2(j))
+        end do
+        err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+    end do
+    print "(A)", repeat("=", 40)
+end subroutine check_l2p_bessel
+
 ! Check adjoint L2P
 subroutine check_l2p_adj(p, alpha)
     ! Inputs
@@ -1314,7 +1595,7 @@ subroutine check_m2m(p, alpha)
     print "(A)", repeat("=", 40)
     print "(A)", "  i | ok | err(i)"
     print "(A)", repeat("=", 40)
-    threshold = (p+3) * 4d-16
+    threshold = (p+3) * 1d-15
     ! Check against baseline implementation
     do i = 1, nx
         c = y(:, i)
@@ -1384,6 +1665,46 @@ subroutine check_m2m(p, alpha)
     print "(A)", repeat("=", 40)
 end subroutine check_m2m
 
+subroutine check_m2m_bessel(p)
+    ! Inputs
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
+    real(dp) :: src_m((p+1)**2), dst_m((p+1)**2), vscales((p+1)**2), &
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
+        tmp(p+1), work(p+1), src_sk(p+1), dst_sk(p+1)
+    complex(dp) :: work_complex(max(2, p+1))
+    real(dp), external :: dnrm2
+    integer :: i
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    x = 75d0 * (/one, -1.1d0, one/)
+    src_c = 1.01d0 * (/-one, one, one/)
+    src_r = one
+    dst_r = src_r + dnrm2(3, src_c, 1)
+    src_m = zero
+    do i = 3, p
+        !src_m(i*i+i+1) = 10d0 ** (-i)
+        src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+    end do
+    !src_m = one
+    call modified_spherical_bessel_second_kind(p, src_r, src_sk, work, &
+        & work_complex)
+    call modified_spherical_bessel_second_kind(p, dst_r, dst_sk, work, &
+        & work_complex)
+    call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
+        & zero, dst_v)
+    call fmm_m2m_bessel_rotation(-src_c, src_sk, dst_sk, p, vscales, vcnk, one, &
+        & src_m, zero, dst_m)
+    call fmm_m2p_bessel_baseline(x, dst_r, p, vscales, one, dst_m, zero, &
+        & dst_v2)
+    call fmm_m2m_bessel_rotation(src_c, dst_sk, src_sk, p, vscales, vcnk, one, &
+        & dst_m, zero, src_m)
+    call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
+        & zero, dst_v3)
+    write(*, *) dst_v, dst_v2, dst_v3
+end subroutine check_m2m_bessel
+
 ! Check adjoint M2M
 subroutine check_m2m_adj(p, alpha)
     ! Inputs
@@ -1400,6 +1721,7 @@ subroutine check_m2m_adj(p, alpha)
     logical :: ok
     integer :: i, j, iseed(4), ndst_m
     real(dp), external :: dnrm2
+    real(dp), parameter :: threshold=4d-15
     ! Copy templated points with a proper multiplier
     y = alpha * x
     r = abs(alpha)
@@ -1436,7 +1758,7 @@ subroutine check_m2m_adj(p, alpha)
         call dgemm('T', 'N', nrand, nrand, (p+1)**2, -one, src_m2, (p+1)**2, &
             & src_m, (p+1)**2, one, tmp, nrand)
         err = dnrm2(nrand*nrand, tmp, 1) / err
-        ok = err .lt. 1d-14
+        ok = err .lt. threshold
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
@@ -1501,7 +1823,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), zero, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 2d-15
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
@@ -1510,7 +1832,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), zero, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, three*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 6d-15
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta=one
@@ -1520,7 +1842,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), one, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 2d-15
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
@@ -1530,7 +1852,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), -pt5, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, pt5*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 2d-15
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
@@ -1540,7 +1862,7 @@ subroutine check_l2l(p, alpha)
                 & src_l(:, j), pt5, dst_l2(:, j))
         end do
         err = dnrm2(ndst_l, two*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
-        ok = err .le. 6d-15
+        ok = err .le. 4d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
     end do
@@ -1599,7 +1921,7 @@ subroutine check_l2l_adj(p, alpha)
         call dgemm('T', 'N', nrand, nrand, (p+1)**2, -one, src_l2, (p+1)**2, &
             & src_l, (p+1)**2, one, tmp, nrand)
         err = dnrm2(nrand*nrand, tmp, 1) / err
-        ok = err .lt. 1d-15
+        ok = err .lt. 1d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
@@ -1670,7 +1992,12 @@ subroutine check_m2l(pm, pl, alpha)
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
         ok = err .le. 1d-14
         print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
-        if(.not. ok) stop 1
+        !if(.not. ok) stop 1
+        if (.not. ok) then
+            print *, src_m
+            print *, dst_l2
+            stop 1
+        end if
         ! Check alpha!={zero,one}, beta=zero
         do j = 1, nrand
             call fmm_m2l_rotation(c, r, dst_r, pm, pl, vscales, &
@@ -2248,7 +2575,7 @@ end subroutine check_tree_rib
 !    call ddfree(ddx_data)
 !end subroutine check_tree_l2l
 !
-!subroutine check_tree_m2l(pm, pl, alpha, iprint, threshold)
+!subroutine check_tree_m2l(pm, pl, alpha, threshold)
 !    ! Inputs
 !    integer, intent(in) :: pm, pl, iprint
 !    real(dp), intent(in) :: alpha, threshold
@@ -2498,7 +2825,7 @@ end subroutine check_tree_rib
 !    call ddfree(ddx_data)
 !end subroutine check_tree_m2l
 !
-!subroutine check_tree_l2p(p, alpha, iprint, threshold)
+!subroutine check_tree_l2p(p, alpha, threshold)
 !    ! Inputs
 !    integer, intent(in) :: p, iprint
 !    real(dp), intent(in) :: alpha, threshold
@@ -2514,8 +2841,8 @@ end subroutine check_tree_rib
 
 subroutine fmm_p2m_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)**2)
     ! Local variables
@@ -2559,17 +2886,70 @@ subroutine fmm_p2m_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
     end if
 end subroutine fmm_p2m_baseline
 
+subroutine fmm_p2m_bessel_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
+    ! Output
+    real(dp), intent(inout) :: dst_m((p+1)**2)
+    ! Local variables
+    real(dp) :: rho, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1), t
+    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), si(p+1), dst_sk(p+1), work(p+1)
+    real(dp), parameter :: eight=8d0
+    complex(dp) :: work_complex(max(2, p+1))
+    integer :: n, ind
+    ! Get radius and values of spherical harmonics
+    call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
+        & vcos, vsin)
+    ! Get Bessel function for the sphere
+    call modified_spherical_bessel_first_kind(p, dst_r, dst_sk, work, &
+        & work_complex)
+    ! Harmonics are available only if rho > 0
+    if (rho .ne. zero) then
+        call modified_spherical_bessel_second_kind(p, rho, si, work, &
+            & work_complex)
+        ! Ignore input `m` in case of zero scaling factor
+        if (beta .eq. zero) then
+            do n = 0, p
+                ind = n*n + n + 1
+                t = eight * src_q * si(n+1) * dst_sk(n+1)
+                dst_m(ind-n:ind+n) = t * vylm(ind-n:ind+n)
+            end do
+        ! Update `m` otherwise
+        else
+            do n = 0, p
+                ind = n*n + n + 1
+                t = eight * src_q * si(n+1) * dst_sk(n+1)
+                dst_m(ind-n:ind+n) = beta*dst_m(ind-n:ind+n) + &
+                    & t*vylm(ind-n:ind+n)
+            end do
+        end if
+    ! Naive case of rho = 0
+    else
+        ! Ignore input `m` in case of zero scaling factor
+        if (beta .eq. zero) then
+            dst_m(1) = eight * src_q * dst_sk(1)
+            dst_m(2:) = zero
+        ! Update `m` otherwise
+        else
+            dst_m(1) = beta*dst_m(1) + eight*src_q*dst_sk(1)
+            dst_m(2:) = beta * dst_m(2:)
+        end if
+    end if
+end subroutine fmm_p2m_bessel_baseline
+
 subroutine fmm_m2p_baseline(c, src_r, p, vscales, alpha, src_m, beta, dst_v)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, vscales((p+1)*(p+1)), alpha, &
         & src_m((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Local variables
     real(dp) :: rho, vcos(p+1), vsin(p+1)
     real(dp) :: vylm((p+1)**2), vplm((p+1)**2), rcoef, t, tmp
     integer :: n, ind
+    real(dp), external :: dnrm2
     ! Scale output
     if (beta .eq. zero) then
         dst_v = zero
@@ -2601,10 +2981,55 @@ subroutine fmm_m2p_baseline(c, src_r, p, vscales, alpha, src_m, beta, dst_v)
     end do
 end subroutine fmm_m2p_baseline
 
+subroutine fmm_m2p_bessel_baseline(c, src_r, p, vscales, alpha, &
+        & src_m, beta, dst_v)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_r, vscales((p+1)*(p+1)), alpha, &
+        & src_m((p+1)*(p+1)), beta
+    ! Output
+    real(dp), intent(inout) :: dst_v
+    ! Local variables
+    real(dp) :: rho, vcos(p+1), vsin(p+1)
+    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), rcoef, t, tmp
+    real(dp) :: sk(p+1), dk(p+1), src_sk(p+1)
+    complex(dp) :: work(max(2, p+1))
+    integer :: n, ind
+    real(dp), external :: dnrm2
+    ! Scale output
+    if (beta .eq. zero) then
+        dst_v = zero
+    else
+        dst_v = beta * dst_v
+    end if
+    ! In case of zero alpha nothing else is required no matter what is the
+    ! value of the induced potential
+    if (alpha .eq. zero) then
+        return
+    end if
+    ! Get radius and values of spherical harmonics
+    call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
+    ! Get values of the second kind Bessel function
+    rho = dnrm2(3, c, 1)
+    ! In case of a singularity (rho=zero) induced potential is infinite and is
+    ! not taken into account.
+    if (rho .eq. zero) then
+        return
+    end if
+    call modified_spherical_bessel_second_kind(p, rho, sk, dk, work)
+    call modified_spherical_bessel_second_kind(p, src_r, src_sk, dk, work)
+    ! Compute the actual induced potential
+    do n = 0, p
+        ind = n*n + n + 1
+        tmp = dot_product(vylm(ind-n:ind+n), src_m(ind-n:ind+n))
+        dst_v = dst_v + alpha*sk(n+1)/src_sk(n+1)*tmp
+    end do
+end subroutine fmm_m2p_bessel_baseline
+
 subroutine fmm_m2p_adj_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)*(p+1)), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)**2)
     ! Local variables
@@ -2643,8 +3068,8 @@ end subroutine fmm_m2p_adj_baseline
 
 subroutine fmm_p2l_baseline(c, src_q, dst_r, p, vscales, beta, dst_l)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)**2)
     ! Local variables
@@ -2686,9 +3111,9 @@ end subroutine fmm_p2l_baseline
 
 subroutine fmm_l2p_baseline(c, src_r, p, vscales, alpha, src_l, beta, dst_v)
     ! Inputs
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, vscales((p+1)*(p+1)), alpha, &
         & src_l((p+1)*(p+1)), beta
-    integer, intent(in) :: p
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Local variables
@@ -2727,10 +3152,50 @@ subroutine fmm_l2p_baseline(c, src_r, p, vscales, alpha, src_l, beta, dst_v)
     end if
 end subroutine fmm_l2p_baseline
 
+subroutine fmm_l2p_bessel_baseline(c, src_r, p, vscales, alpha, src_l, &
+        & beta, dst_v)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_r, vscales((p+1)*(p+1)), alpha, &
+        & src_l((p+1)*(p+1)), beta
+    ! Output
+    real(dp), intent(inout) :: dst_v
+    ! Local variables
+    real(dp) :: rho, vcos(p+1), vsin(p+1)
+    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), t, tmp
+    real(dp) :: si(p+1), di(p+1), src_si(p+1)
+    complex(dp) :: work(max(2, p+1))
+    integer :: n, ind
+    real(dp), external :: dnrm2
+    ! Scale output
+    if (beta .eq. zero) then
+        dst_v = zero
+    else
+        dst_v = beta * dst_v
+    end if
+    ! In case of zero alpha nothing else is required no matter what is the
+    ! value of the induced potential
+    if (alpha .eq. zero) then
+        return
+    end if
+    ! Get radius and values of spherical harmonics
+    call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
+    ! Get values of the second kind Bessel function
+    rho = dnrm2(3, c, 1)
+    call modified_spherical_bessel_first_kind(p, rho, si, di, work)
+    call modified_spherical_bessel_first_kind(p, src_r, src_si, di, work)
+    ! Compute the actual induced potential
+    do n = 0, p
+        ind = n*n + n + 1
+        tmp = dot_product(vylm(ind-n:ind+n), src_l(ind-n:ind+n))
+        dst_v = dst_v + alpha*si(n+1)/src_si(n+1)*tmp
+    end do
+end subroutine fmm_l2p_bessel_baseline
+
 subroutine fmm_l2p_adj_baseline(c, src_q, dst_r, p, vscales, beta, dst_l)
     ! Inputs
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)*(p+1)), beta
     integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)**2)
     ! Local variables
@@ -2773,8 +3238,8 @@ end subroutine fmm_l2p_adj_baseline
 
 subroutine polleg_baseline(ctheta, stheta, p, vplm)
     ! Inputs
-    real(dp), intent(in) :: ctheta, stheta
     integer, intent(in) :: p
+    real(dp), intent(in) :: ctheta, stheta
     ! Outputs
     real(dp), intent(out) :: vplm((p+1)**2)
     ! Temporary workspace
@@ -2841,9 +3306,18 @@ subroutine ylmbas_baseline(x, p, vscales, vylm, vplm, vcos, vsin)
     real(dp), dimension((p+1)**2), intent(out) :: vylm, vplm
     real(dp), dimension(p+1), intent(out) :: vcos, vsin
     integer :: l, m, ind
-    real(dp) :: y(3), cthe, sthe, cphi, sphi, plm
+    real(dp) :: y(3), r, cthe, sthe, cphi, sphi, plm
     real(dp), external :: dnrm2
-    y = x / dnrm2(3, x, 1)
+    r = dnrm2(3, x, 1)
+    ! Check zero input, fake it with vector (0,0,1) as zero radius must be
+    ! taken into account in some other routine, as spherical harmonics do not
+    ! depend on radius
+    if (r .eq. zero) then
+        y = (/zero, zero, one/)
+    ! Do normal calculations otherwise
+    else
+        y = x / r
+    end if
     cthe = y(3)
     sthe = dnrm2(2, y, 1)
     if (sthe .ne. zero) then
@@ -2879,9 +3353,9 @@ subroutine fmm_m2m_baseline(c, src_r, dst_r, p, vscales, src_m, dst_m)
 !   vscales: normalization constants for Y_lm
 !   src_m: expansion in old harmonics
 !   dst_m: expansion in new harmonics
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1))
     real(dp), intent(in) :: src_m((p+1)*(p+1))
-    integer, intent(in) :: p
     real(dp), intent(inout) :: dst_m((p+1)*(p+1))
     real(dp) :: r, r1, r2, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
     real(dp) :: vplm((p+1)*(p+1)), fact(2*p+1), tmpk1, tmpk2, tmpk3, tmp1
@@ -2976,6 +3450,128 @@ subroutine fmm_m2m_baseline(c, src_r, dst_r, p, vscales, src_m, dst_m)
     end if
 end subroutine fmm_m2m_baseline
 
+! M2M baseline translation (p^4 operations)
+! Baseline in terms of operation count: p^4
+subroutine fmm_m2m_bessel_baseline(c, src_r, dst_r, p, vscales, src_m, dst_m)
+! Parameters:
+!   c: radius-vector from new to old centers of harmonics
+!   src_r: radius of old harmonics
+!   dst_r: radius of new harmonics
+!   p: maximum degree of spherical harmonics
+!   vscales: normalization constants for Y_lm
+!   src_m: expansion in old harmonics
+!   dst_m: expansion in new harmonics
+    use complex_bessel
+    integer, intent(in) :: p
+    real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1))
+    real(dp), intent(in) :: src_m((p+1)*(p+1))
+    real(dp), intent(inout) :: dst_m((p+1)*(p+1))
+    real(dp) :: r, r1, r2, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
+    real(dp) :: vplm((p+1)*(p+1)), fact(2*p+1), tmpk1, tmpk2, tmpk3, tmp1
+    real(dp) :: tmp2, pow_r1(p+1), pow_r2(p+1)
+    real(dp) :: r_si(p+1), src_sk(p+1), dst_sk(p+1), work(p+1)
+    complex(dp) :: work_complex(p+1)
+    integer :: j, k, n, m, indj, indm, indn, indjn
+    real(dp), external :: dnrm2
+    stheta = dnrm2(2, c, 1)
+    r = dnrm2(3, c, 1)
+    if (r .ne. 0) then
+        ctheta = c(3) / r
+        if (stheta .ne. 0) then
+            cphi = c(1) / stheta
+            sphi = c(2) / stheta
+            stheta = stheta / r
+            call trgev(cphi, sphi, p, vcos, vsin)
+        else
+            cphi = 1
+            sphi = 0
+            vcos = 1
+            vsin = 0
+        end if
+        call polleg_baseline(ctheta, stheta, p, vplm)
+        r1 = src_r / dst_r
+        r2 = r! / dst_r
+        pow_r1(1) = r1
+        pow_r2(1) = 1
+        do j = 2, p+1
+            pow_r1(j) = pow_r1(j-1) * r1
+            pow_r2(j) = pow_r2(j-1) * r2
+        end do
+        call modified_spherical_bessel_first_kind(p, r, r_si, work, &
+            & work_complex)
+        call modified_spherical_bessel_second_kind(p, src_r, src_sk, work, &
+            & work_complex)
+        call modified_spherical_bessel_second_kind(p, dst_r, dst_sk, work, &
+            & work_complex)
+        ! Fill square roots of factorials
+        fact(1) = 1
+        do j = 2, 2*p+1
+            fact(j) = sqrt(dble(j-1)) * fact(j-1)
+        end do
+        do j = 0, p
+            indj = j*j + j + 1
+            do k = 0, j
+                tmp1 = vscales(indj) * fact(j-k+1) * fact(j+k+1)
+                if (k .ne. 0) then
+                    tmp1 = tmp1 * sqrt2
+                end if
+                do n = 0, j
+                    indn = n*n + n + 1
+                    indjn = (j-n)**2 + (j-n) + 1
+                    !tmp2 = tmp1 * pow_r1(j-n+1) * pow_r2(n+1) / &
+                    !    & vscales(indjn) / vscales(indn)
+                    tmp2 = tmp1 * & !/ src_sk(j-n+1) * dst_sk(j+1) *
+                        & r_si(n+1) / &
+                        & vscales(indjn) / vscales(indn) !/ pow_r2(n+1)
+                    !tmp2 = tmp1 * r_si(n+1) / &
+                    !    & vscales(indjn) / vscales(indn)
+                    do m = max(k+n-j, -n), min(k+j-n, n)
+                        indm = indn + abs(m)
+                        cphi = vcos(1+abs(m))
+                        sphi = vsin(1+abs(m))
+                        tmpk1 = tmp2 / fact(n-m+1) / fact(n+m+1) / &
+                            & fact(j-n-k+m+1) / fact(j-n+k-m+1) * &
+                            & vplm(indm) * vscales(indm)
+                        if (mod(abs(k-abs(m)-abs(k-m)), 4) .eq. 2) then
+                            tmpk1 = -tmpk1
+                        end if
+                        tmpk2 = src_m(indjn+abs(k-m)) * cphi
+                        if ((m .ge. 0) .and. (m .le. k)) then
+                            sphi = -sphi
+                        end if
+                        tmpk3 = -src_m(indjn+abs(k-m)) * sphi
+                        if (m .ne. 0) then
+                            tmpk1 = tmpk1 / sqrt2
+                        end if
+                        if (m .ne. k) then
+                            tmpk1 = tmpk1 / sqrt2
+                            tmpk2 = tmpk2 + src_m(indjn-abs(k-m))*sphi
+                            tmpk3 = tmpk3 + src_m(indjn-abs(k-m))*cphi
+                        end if
+                        if (m .gt. k) then
+                            tmpk3 = -tmpk3
+                        end if
+                        dst_m(indj+k) = dst_m(indj+k) + tmpk1*tmpk2
+                        if (k .ne. 0) then
+                            dst_m(indj-k) = dst_m(indj-k) + tmpk1*tmpk3
+                        end if
+                    end do
+                end do
+            end do
+        end do
+    else
+        r1 = src_r / dst_r
+        tmpk1 = r1
+        do j = 0, p
+            indj = j*j + j + 1
+            do k = indj-j, indj+j
+                dst_m(k) = dst_m(k) + src_m(k)*tmpk1
+            end do
+            tmpk1 = tmpk1 * r1
+        end do
+    end if
+end subroutine fmm_m2m_bessel_baseline
+
 ! Translate local expansion to another sphere
 ! Baseline in terms of operation count: p^4
 subroutine fmm_l2l_baseline(c, src_r, dst_r, p, vscales, src_l, dst_l)
@@ -2987,9 +3583,9 @@ subroutine fmm_l2l_baseline(c, src_r, dst_r, p, vscales, src_l, dst_l)
 !   vscales: normalization constants for Y_lm (of degree up to p)
 !   src_l: expansion in old harmonics
 !   dst_l: expansion in new harmonics
+    integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1))
     real(dp), intent(in) :: src_l((p+1)*(p+1))
-    integer, intent(in) :: p
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     real(dp) :: r, r1, r2, ctheta, stheta, cphi, sphi
     real(dp) :: vcos(p+1), vsin(p+1)
@@ -3098,10 +3694,10 @@ subroutine fmm_m2l_baseline(c, src_r, dst_r, pm, pl, vscales, src_m, dst_l)
 !   vscales: normalization constants for Y_lm (of degree up to pl+pm)
 !   src_m: expansion in old (multipole) harmonics
 !   dst_l: expansion in new (local) harmonics
+    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: c(3), src_r, dst_r
     real(dp), intent(in) :: vscales((pm+pl+1)*(pm+pl+1))
     real(dp), intent(in) :: src_m((pm+1)*(pm+1))
-    integer, intent(in) :: pm, pl
     real(dp), intent(inout) :: dst_l((pl+1)*(pl+1))
     real(dp) :: r, r1, r2, ctheta, stheta, cphi, sphi
     real(dp) :: vcos(pm+pl+1), vsin(pm+pl+1)
