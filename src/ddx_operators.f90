@@ -323,7 +323,7 @@ subroutine lstarx_nodiag(params, constants, workspace, x, y)
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
-    integer :: isph, igrid
+    integer :: isph, igrid, iproc
     y = zero
     ! Expand x over spherical harmonics
     !$omp parallel do default(none) shared(params,constants,workspace,x) &
@@ -336,10 +336,11 @@ subroutine lstarx_nodiag(params, constants, workspace, x, y)
     end do
     ! Compute action
     !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-    !$omp private(isph) schedule(static,1)
+    !$omp private(isph,iproc) schedule(static,1)
     do isph = 1, params % nsph
+        iproc = omp_get_thread_num() + 1
         call adjrhs(params, constants, isph, workspace % tmp_grid, &
-            & y(:, isph))
+            & y(:, isph), workspace % tmp_work(:, iproc))
         y(:, isph) = - y(:, isph)
     end do
 end subroutine lstarx_nodiag
@@ -355,7 +356,7 @@ subroutine lstarx(params, constants, workspace, x, y)
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
-    integer :: isph, igrid, l, ind
+    integer :: isph, igrid, l, ind, iproc
     y = zero
     ! Expand x over spherical harmonics
     !$omp parallel do default(none) shared(params,constants,workspace,x) &
@@ -368,10 +369,11 @@ subroutine lstarx(params, constants, workspace, x, y)
     end do
     ! Compute action
     !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-    !$omp private(isph) schedule(static,1)
+    !$omp private(isph,iproc) schedule(static,1)
     do isph = 1, params % nsph
+        iproc = omp_get_thread_num() + 1
         call adjrhs(params, constants, isph, workspace % tmp_grid, &
-            & y(:, isph))
+            & y(:, isph), workspace % tmp_work(:, iproc))
     end do
     ! Loop over harmonics
     do l = 0, params % lmax

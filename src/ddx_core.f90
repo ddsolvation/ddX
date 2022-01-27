@@ -1352,16 +1352,17 @@ subroutine rmsvec( n, v, vrms, vmax )
 !      
 endsubroutine rmsvec
 
-subroutine adjrhs(params, constants, isph, xi, vlm)
+subroutine adjrhs(params, constants, isph, xi, vlm, work)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: isph
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: xi
     real(dp), dimension(constants % nbasis), intent(inout) :: vlm
+    real(dp), dimension(params % lmax+1), intent(inout) :: work
+
     integer :: ij, jsph, ig, l, ind, m
     real(dp)  :: vji(3), vvji, tji, sji(3), xji, oji, fac, ffac, t
     real(dp) :: rho, ctheta, stheta, cphi, sphi
-    real(dp) :: work(params % lmax+1)
 
     do ij = constants % inl(isph), constants % inl(isph+1)-1
       jsph = constants % nl(ij)
