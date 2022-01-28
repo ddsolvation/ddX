@@ -1692,10 +1692,13 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div)
     integer, intent(inout) :: order(n)
     integer, intent(out) :: div
     ! Local variables
-    real(dp) :: c(3), tmp_csph(3, n), s(3)
-    real(dp), allocatable :: work(:)
+    real(dp) :: c(3),  s(3)
+    real(dp), allocatable :: tmp_csph(:, :), work(:)
     external :: dgesvd
-    integer :: i, l, r, lwork, info, tmp_order(n), istat
+    integer :: i, l, r, lwork, info, istat
+    integer, allocatable :: tmp_order(:)
+    allocate(tmp_csph(3, n), tmp_order(n), stat=istat)
+    if (istat .ne. 0) stop "allocation failed"
     ! Get average coordinate
     c = zero
     do i = 1, n
@@ -1743,6 +1746,8 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div)
     ! Set divider and update order
     div = r
     order = tmp_order
+    deallocate(tmp_csph, tmp_order, stat=istat)
+    if (istat .ne. 0) stop "deallocation failed"
 end subroutine tree_rib_node_bisect
 
 !> Find near and far admissible pairs of tree nodes and store it in work array
