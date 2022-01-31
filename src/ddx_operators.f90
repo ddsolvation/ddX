@@ -127,7 +127,7 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
         t = omp_get_wtime()
         call tree_l2p(ddx_data % params, ddx_data % constants, one, &
             & ddx_data % workspace % tmp_node_l, zero, &
-            & ddx_data % workspace % tmp_grid)
+            & ddx_data % workspace % tmp_grid, ddx_data % workspace % tmp_sph_l)
         write(6,*) 'l2p', omp_get_wtime() - t
 
         t = omp_get_wtime()
@@ -595,7 +595,7 @@ subroutine dx_fmm(params, constants, workspace, do_diag, x, y)
         & workspace % tmp_node_l)
     call tree_l2l_rotation(params, constants, workspace % tmp_node_l)
     call tree_l2p(params, constants, one, workspace % tmp_node_l, zero, &
-        & workspace % tmp_grid)
+        & workspace % tmp_grid, workspace % tmp_sph_l)
     call tree_m2p(params, constants, params % lmax, one, workspace % tmp_sph, one, &
         & workspace % tmp_grid)
     ! Apply diagonal contribution if needed
@@ -1413,7 +1413,7 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
         & workspace % tmp_node_l)
     call tree_l2l_rotation(params, constants, workspace % tmp_node_l)
     call tree_l2p(params, constants, one, workspace % tmp_node_l, zero, &
-        & workspace % tmp_grid)
+        & workspace % tmp_grid, workspace % tmp_sph_l)
     call tree_m2p(params, constants, params % lmax, one, &
         & workspace % tmp_sph, one, workspace % tmp_grid)
     !! Compute gradients of L2L if pl > 0

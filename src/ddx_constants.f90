@@ -1697,8 +1697,10 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div)
     external :: dgesvd
     integer :: i, l, r, lwork, info, istat
     integer, allocatable :: tmp_order(:)
+
     allocate(tmp_csph(3, n), tmp_order(n), stat=istat)
     if (istat .ne. 0) stop "allocation failed"
+
     ! Get average coordinate
     c = zero
     do i = 1, n

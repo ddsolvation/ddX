@@ -2148,7 +2148,7 @@ subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)
     end do
 end subroutine tree_m2l_rotation_adj
 
-subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v)
+subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v, sph_l)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -2156,10 +2156,14 @@ subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v)
         & alpha, beta
     ! Output
     real(dp), intent(inout) :: grid_v(params % ngrid, params % nsph)
+    ! Scratch
+    real(dp), intent(out) :: sph_l((params % pl+1)**2, params % nsph)
     ! Local variables
-    real(dp) :: sph_l((params % pl+1)**2, params % nsph), c(3)
+    real(dp) :: c(3)
     integer :: isph
     external :: dgemm
+
+
     ! Init output
     if (beta .eq. zero) then
         grid_v = zero
@@ -2175,6 +2179,7 @@ subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v)
         & (params % pl+1)**2, alpha, constants % vgrid2, &
         & constants % vgrid_nbasis, sph_l, (params % pl+1)**2, beta, grid_v, &
         & params % ngrid)
+
 end subroutine tree_l2p
 
 subroutine tree_l2p_bessel(params, constants, alpha, node_l, beta, grid_v)
