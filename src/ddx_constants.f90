@@ -1869,7 +1869,7 @@ end subroutine tree_get_farnear_work
 ! Works only for binary tree
 subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
         & nnnear, nnear, snear, near)
-! Parameters:
+!   Parameters:
 !   jwork: Total number of checked pairs in work array
 !   lwork: Total length of work array
 !   work: Work array itself
@@ -1886,7 +1886,9 @@ subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
     integer, intent(in) :: nfar(n), nnear(n)
     integer, intent(out) :: sfar(n+1), far(nnfar), snear(n+1), near(nnnear)
     integer :: i, j
-    integer :: cfar(n+1), cnear(n+1)
+    integer, allocatable :: cfar(:), cnear(:)
+
+    allocate(cfar(n+1), cnear(n+1))
     sfar(1) = 1
     snear(1) = 1
     do i = 2, n+1
@@ -1914,6 +1916,9 @@ subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
             cnear(j) = cnear(j) + 1
         end if
     end do
+
+    deallocate(cfar, cnear)
+
 end subroutine tree_get_farnear
 
 end module ddx_constants
