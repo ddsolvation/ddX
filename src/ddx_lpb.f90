@@ -78,60 +78,46 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
         & ddx_data % params % nsph), intent(in) :: psi
     real(dp), intent(in) :: tol
     ! Outputs
-    real(dp), intent(out)      :: esolv
+    real(dp), intent(out) :: esolv
     real(dp), dimension(3, ddx_data % params % nsph), intent(out) :: force
+    ! internal
     integer, intent(out) :: info
-    integer                    :: istatus
-    integer :: isph, igrid
+    integer :: isph, igrid, istatus
     !!
     !! Xr         : Reaction potential solution (Laplace equation)
     !! Xe         : Extended potential solution (HSP equation)
     !!
     real(dp), allocatable ::   Xr(:,:), Xe(:,:), Xadj_r(:,:), Xadj_e(:,:)
-
     !! phi_grid: Phi evaluated at grid points
     real(dp), allocatable :: g(:,:), f(:,:), phi_grid(:, :)
-    !real(dp) :: matrix(2*ddx_data % constants % n, 2*ddx_data % constants % n)
-
-    !call build_matrix(ddx_data % params, ddx_data % constants, &
-    !    & ddx_data % workspace, 2*ddx_data % constants % n, matrix, &
-    !    & lpb_direct_matvec)
-    !call print_matrix('direct', 2*ddx_data % constants % n, &
-    !    & 2*ddx_data % constants % n, matrix)
-    !call build_matrix(ddx_data % params, ddx_data % constants, &
-    !    & ddx_data % workspace, 2*ddx_data % constants % n, matrix, &
-    !    & lpb_adjoint_matvec)
-    !call print_matrix('adjoint', 2*ddx_data % constants % n, &
-    !    & 2*ddx_data % constants % n, matrix)
-    !stop
 
     allocate(Xr(ddx_data % constants % nbasis, ddx_data % params % nsph),&
-             & Xe(ddx_data % constants % nbasis, ddx_data % params % nsph), &
-             & Xadj_r(ddx_data % constants % nbasis, ddx_data % params % nsph),&
-             & Xadj_e(ddx_data % constants % nbasis, ddx_data % params % nsph), &
-             & g(ddx_data % params % ngrid, ddx_data % params % nsph),&
-             & f(ddx_data % params % ngrid, ddx_data % params % nsph), &
-             & phi_grid(ddx_data % params % ngrid, ddx_data % params % nsph), &
-             & stat = istatus)
+        & Xe(ddx_data % constants % nbasis, ddx_data % params % nsph), &
+        & Xadj_r(ddx_data % constants % nbasis, ddx_data % params % nsph),&
+        & Xadj_e(ddx_data % constants % nbasis, ddx_data % params % nsph), &
+        & g(ddx_data % params % ngrid, ddx_data % params % nsph),&
+        & f(ddx_data % params % ngrid, ddx_data % params % nsph), &
+        & phi_grid(ddx_data % params % ngrid, ddx_data % params % nsph), &
+        & stat = istatus)
     if (istatus.ne.0) write(6,*) 'ddlpb allocation failed'
 
     !! Setting initial values to zero
-    g = zero; f = zero
-    phi_grid = zero;
+    g = zero
+    f = zero
+    phi_grid = zero
 
     t0 = omp_get_wtime()
     ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
     ! and multiply it by characteristic function at cavity points ui
     call ddcav_to_grid_work(ddx_data % params % ngrid, ddx_data % params % nsph, &
-        & ddx_data % constants % ncav, &
-        & ddx_data % constants % icav_ia, ddx_data % constants % icav_ja, phi_cav, phi_grid)
+        & ddx_data % constants % ncav, ddx_data % constants % icav_ia, &
+        & ddx_data % constants % icav_ja, phi_cav, phi_grid)
     ddx_data % workspace % tmp_cav = phi_cav * ddx_data % constants % ui_cav
     call ddcav_to_grid_work(ddx_data % params % ngrid, ddx_data % params % nsph, &
-        & ddx_data % constants % ncav, &
-        & ddx_data % constants % icav_ia, ddx_data % constants % icav_ja, &
-        & ddx_data % workspace % tmp_cav, &
+        & ddx_data % constants % ncav, ddx_data % constants % icav_ia, &
+        & ddx_data % constants % icav_ja, ddx_data % workspace % tmp_cav, &
         & ddx_data % workspace % tmp_grid)
-    g = -ddx_data % workspace % tmp_grid
+    g = - ddx_data % workspace % tmp_grid
     t1 = omp_get_wtime()
     write(6,*) '@wghpot', t1 - t0
 
@@ -216,12 +202,15 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
         & termk, term, tmp1, tmp2
     real(dp), dimension(3) :: sijn, vij, vtij
     real(dp) :: rho, ctheta, stheta, cphi, sphi, start_time, finish_time
-    real(dp), allocatable :: SK_rijn(:), DK_rijn(:)
+    real(dp), allocatable :: SK_rijn(:), DK_rijn(:), c0(:,:), c1(:,:)
     integer :: l0, m0, icav, istatus, indl, inode
-    real(dp), dimension(constants % nbasis0, params % nsph) :: c0, c1
     complex(dp) :: work_complex(constants % lmax0 + 1)
     real(dp) :: work(constants % lmax0 + 1)
-    allocate(SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0))
+
+
+    allocate(SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0), &
+        & c0(constants % nbasis0, params % nsph), c1(constants % nbasis0, params % nsph))
+
     ic = 0
     f = zero
     c0 = zero
@@ -246,7 +235,6 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
         end do
     end do
 
-
     ! Computation of F0 using above terms
     ! icav: External grid poitns
     if (params % fmm .eq. 0) then
@@ -262,50 +250,19 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
                         vij  = params % csph(:,isph) + &
                             & params % rsph(isph)*constants % cgrid(:,ig) - &
                             & params % csph(:,jsph)
-    !                    rijn = sqrt(dot_product(vij,vij))
-    !                    sijn = vij/rijn
-    !
-    !                    ! Compute Bessel function of 2nd kind for the coordinates
-    !                    ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-    !                    call modified_spherical_bessel_second_kind( &
-    !                        & constants % lmax0, rijn*params % kappa,&
-    !                        & SK_rijn, DK_rijn, workspace % tmp_bessel(:, 1))
-    !                    call ylmbas(sijn , rho, ctheta, stheta, cphi, &
-    !                        & sphi, constants % lmax0, constants % vscales, &
-    !                        & workspace % tmp_vylm, workspace % tmp_vplm, &
-    !                        & workspace % tmp_vcos, workspace % tmp_vsin)
-    !
-    !                    tmp1 = zero
-    !                    do l0 = 0, constants % lmax0
-    !                        term = SK_rijn(l0) / constants % SK_ri(l0,jsph)
-    !                        ! coef_Ylm : (der_i_l0/i_l0 - der_k_l0/k_l0)^(-1)*k_l0(r_ijn)/k_l0(r_i)
-    !                        !coef_Ylm = constants % C_ik(l0,jsph) * term
-    !                        do m0 = -l0, l0
-    !                            ind0 = l0**2 + l0 + m0 + 1
-    !                            tmp1 = tmp1 + c1(ind0,jsph)*term* &
-    !                                & workspace % tmp_vylm(ind0, 1)
-    !                            !tmp1 = tmp1 + c0(ind0,jsph)*coef_Ylm* &
-    !                            !    & workspace % tmp_vylm(ind0, 1)
-    !                            !sumSijn = sumSijn + c0(ind0,jsph)*coef_Ylm* &
-    !                            !    & workspace % tmp_vylm(ind0, 1)
-    !                            !coefY(icav,ind0,jsph) = coef_Ylm*basloc(ind0)
-    !                        end do
-    !                    end do
-    !                    sumSijn = sumSijn + tmp1
                         vtij = vij*params % kappa
                         call fmm_m2p_bessel_work(vtij, &
                             & constants % lmax0, constants % vscales, &
                             & constants % SK_ri(:, jsph), one, &
                             & c1(:, jsph), one, sumSijn, work_complex, work)
                     end do
-                    !
                     ! Here Intermediate value of F_0 is computed Eq. (99)
                     ! Mutilplication with Y_lm and weights will happen afterwards
                     !write(6,*) sumSijn, epsp, eps, ddx_data % constants % ui(ig,isph)
                     f(ig,isph) = -(epsp/params % eps)*constants % ui(ig,isph) * sumSijn
                 end if
             end do
-        end do 
+        end do
     else
         ! Load input harmonics into tree data
         workspace % tmp_node_m = zero
@@ -338,6 +295,9 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
             & workspace % tmp_grid)
         f = -(epsp/params % eps) * constants % ui * workspace % tmp_grid
     end if
+
+    deallocate(SK_rijn, DK_rijn, c0, c1)
+
 end subroutine wghpot_f
 
 subroutine lx_nodiag_incore(params, constants, workspace, x, y)
