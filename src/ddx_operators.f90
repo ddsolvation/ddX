@@ -740,7 +740,7 @@ subroutine dstarx_fmm(params, constants, workspace, do_diag, x, y)
     call tree_m2p_adj(params, constants, params % lmax, one, workspace % tmp_grid, &
         & zero, y)
     call tree_l2p_adj(params, constants, one, workspace % tmp_grid, zero, &
-        & workspace % tmp_node_l)
+        & workspace % tmp_node_l, workspace % tmp_sph_l)
     call tree_l2l_rotation_adj(params, constants, workspace % tmp_node_l)
     call tree_m2l_rotation_adj(params, constants, workspace % tmp_node_l, &
         & workspace % tmp_node_m)
@@ -1360,7 +1360,7 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
     call tree_m2p_adj(params, constants, params % lmax+1, one, &
         & workspace % tmp_grid, zero, workspace % tmp_sph2)
     call tree_l2p_adj(params, constants, one, workspace % tmp_grid, zero, &
-        & workspace % tmp_node_l)
+        & workspace % tmp_node_l, workspace % tmp_sph_l)
     call tree_l2l_rotation_adj(params, constants, workspace % tmp_node_l)
     call tree_m2l_rotation_adj(params, constants, workspace % tmp_node_l, &
         & workspace % tmp_node_m)

@@ -2211,7 +2211,7 @@ subroutine tree_l2p_bessel(params, constants, alpha, node_l, beta, grid_v)
         & params % ngrid)
 end subroutine tree_l2p_bessel
 
-subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l)
+subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l, sph_l)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -2220,8 +2220,10 @@ subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l)
     ! Output
     real(dp), intent(inout) :: node_l((params % pl+1)**2, &
         & constants % nclusters)
+    ! Scractch
+    real(dp), intent(out) :: sph_l((params % pl+1)**2, params % nsph)
     ! Local variables
-    real(dp) :: sph_l((params % pl+1)**2, params % nsph), c(3)
+    real(dp) :: c(3)
     integer :: isph, inode
     external :: dgemm
     ! Init output
