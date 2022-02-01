@@ -127,7 +127,7 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
         & ddx_data % params % nsph), hsp_guess(ddx_data % constants % nbasis, &
         & ddx_data % params % nsph))
 
-    !! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
+    ! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
     t0 = omp_get_wtime()
     call wghpot_f(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, gradphi_cav,f)
@@ -156,20 +156,15 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
       t0 = omp_get_wtime()
       call ddx_lpb_force(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, hessianphi_cav, phi_grid, gradphi_cav, &
-                       & Xr, Xe, Xadj_r, Xadj_e, ddx_data % zeta, force)
+          & Xr, Xe, Xadj_r, Xadj_e, ddx_data % zeta, force)
       t1 = omp_get_wtime()
       write(6,*) '@forces', t1 - t0
 
     endif
-    !call ddlpb_free(ddx_data)
-    deallocate(Xr, Xe,&
-             & Xadj_r, Xadj_e, &
-             & g, f, phi_grid, stat = istatus)
-    if (istatus.ne.0) write(6,*) 'ddlpb deallocation failed'
-    deallocate(ddcosmo_guess,hsp_guess, stat = istatus)
-    if (istatus.ne.0) write(6,*) 'ddlpb deallocation failed'
 
-    return
+    deallocate(Xr, Xe, Xadj_r, Xadj_e, g, f, phi_grid, ddcosmo_guess, &
+        & hsp_guess, stat = istatus)
+
 end subroutine ddlpb
 
 
@@ -1124,19 +1119,20 @@ end subroutine lpb_direct_prec
 ! Computation of Adjoint
 ! @param[in] ddx_data: Input data file
 ! @param[in] psi     : psi_r
-subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_e)
+subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, &
+    & Xadj_e)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: psi
     real(dp), intent(in) :: tol
     type(ddx_workspace_type), intent(inout) :: workspace
-    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: Xadj_r, &
-        & Xadj_e
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: &
+        & Xadj_r, Xadj_e
     real(dp), dimension(constants % nbasis, params % nsph, 2) :: x, rhs, scr
     integer :: n_iter, info
-    logical ok
     real(dp), dimension(params % maxiter) :: x_rel_diff
+    logical ok
 
     ! set up the RHS
     rhs(:,:,1) = psi
@@ -1144,33 +1140,14 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, Xadj_
 
     ! guess
     ddcosmo_guess = zero
-    call convert_ddcosmo(params, constants, 1, rhs(:,:,1))
-    if (params % incore) then
-        call jacobi_diis(params, constants, workspace, inner_tol, rhs(:,:,1), &
-            & ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag_incore, ldm1x, hnorm, info)
-    else
-        call jacobi_diis(params, constants, workspace, inner_tol, rhs(:,:,1), &
-            & ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
-    end if
-    x(:,:,1) = ddcosmo_guess
-    call convert_ddcosmo(params, constants, -1, rhs(:,:,1))
     hsp_guess = zero
-    x(:,:,2) = zero
+    call lpb_adjoint_prec(params, constants, workspace, rhs, x)
 
     ! solve adjoint LS using Jacobi/DIIS
     n_iter = params % maxiter
-    call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
-        & 4, params % jacobi_ndiis, 1, tol, rhs, x, n_iter, &
-        & ok, lpb_adjoint_matvec, lpb_adjoint_prec)
-    !call prtsph('adjoint sol', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, x)
-
-    ! check
-    !call lpb_adjoint_matvec_full(params, constants, workspace, x, scr)
-    !call prtsph('adjoint matvec', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, scr)
-    !call prtsph('adjoint rhs', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, rhs)
+    call jacobi_diis_old(params, constants, workspace, 2*constants % n, 4, &
+        & params % jacobi_ndiis, 1, tol, rhs, x, n_iter, ok, &
+        & lpb_adjoint_matvec, lpb_adjoint_prec)
 
     ! unpack
     xadj_r = x(:,:,1)

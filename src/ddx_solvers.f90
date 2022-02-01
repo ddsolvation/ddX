@@ -104,7 +104,14 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
         diff = norm_func(params % lmax, constants % nbasis, params % nsph, x)
         norm = norm_func(params % lmax, constants % nbasis, params % nsph, &
             & workspace % tmp_x_new)
-        rel_diff = diff / norm
+
+        ! compute rel_diff using the rule 0/0 = 0
+        if (diff.eq.zero .and. norm.eq.zero) then
+            rel_diff = zero
+        else
+            rel_diff = diff / norm
+        end if
+
         x_rel_diff(it) = rel_diff
         ! Update solution
         x = workspace % tmp_x_new
