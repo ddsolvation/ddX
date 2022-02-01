@@ -1624,7 +1624,7 @@ subroutine fdoka_b_xe(params, constants, workspace, isph, Xe, Xadj_e, basloc, db
     real(dp)  :: rijn, tij, beta, tlow, thigh, xij, oij, f1, f2, f3
     ! alpha : Eq.(52) Stamm.etal.18
     ! va    : Eq.(54) Stamm.etal.18
-    real(dp)  :: vij(3), sij(3), alpha(3), va(3), rj
+    real(dp)  :: vij(3), sij(3), alpha(3), va(3), rj, vtij(3)
     real(dp), external :: dnrm2
     real(dp) :: work(params % lmax+1)
     complex(dp) :: work_complex(params % lmax+1)
@@ -1664,13 +1664,13 @@ subroutine fdoka_b_xe(params, constants, workspace, isph, Xe, Xadj_e, basloc, db
 !                      & (f2/rijn)*dbasloc(:,ind+m))*Xe(ind+m,jsph)
 !          end do
 !        end do
-        call fmm_l2p_bessel_grad(vij*params % kappa, params % rsph(jsph)*params % kappa, &
-            & params % lmax, constants % vscales, params % kappa, Xe(:, jsph), &
-            & zero, alpha)
-!        beta = compute_beta(params, constants, workspace, SI_rijn, rijn, jsph, Xe(:,jsph),basloc)
-        call fmm_l2p_bessel_work(vij*params % kappa, params % lmax, &
-            & constants % vscales, constants % SI_ri(:, jsph), one, Xe(:, jsph), &
-            & zero, beta, work_complex, work)
+        vtij = vij*params % kappa
+        call fmm_l2p_bessel_grad(vtij, params % rsph(jsph)*params % kappa, &
+            & params % lmax, constants % vscales, params % kappa, &
+            & Xe(:, jsph), zero, alpha)
+        call fmm_l2p_bessel_work(vtij, params % lmax, constants % vscales, &
+            & constants % SI_ri(:, jsph), one, Xe(:, jsph), zero, beta, &
+            & work_complex, work)
         xij = fsw(tij, params % se, params % eta)
         if (constants % fi(igrid,isph).gt.one) then
           oij = xij/constants % fi(igrid,isph)
@@ -1735,7 +1735,8 @@ subroutine fdokb_b_xe(params, constants, workspace, isph, Xe, Xadj_e, basloc, db
     ! alpha : Eq.(56) Stamm.etal.18
     ! vb    : Eq.(60) Stamm.etal.18
     ! vc    : Eq.(59) Stamm.etal.18
-    real(dp)  :: vji(3), sji(3), vjk(3), sjk(3), alpha(3), vb(3), vc(3)
+    real(dp)  :: vji(3), sji(3), vjk(3), sjk(3), alpha(3), vb(3), vc(3), &
+        & vtji(3), vtjk(3)
     ! rho    : Argument for ylmbas
     ! ctheta : Argument for ylmbas
     ! stheta : Argument for ylmbas
@@ -1769,25 +1770,11 @@ subroutine fdokb_b_xe(params, constants, workspace, isph, Xe, Xadj_e, basloc, db
 
         if (tji.gt.thigh) cycle
 
-  !      call modified_spherical_bessel_first_kind(params % lmax, &
-  !          & rjin*params % kappa, SI_rjin, DI_rjin, workspace % tmp_bessel(:, 1))
-
         sji  = vji/rjin
-  !      call dbasis(params, constants, sji, basloc, dbasloc, vplm, vcos, vsin)
-  !      alpha = zero
-  !      do l = 0, params % lmax
-  !        ind = l*l + l + 1
-  !        f1 = (DI_rjin(l)*params % kappa)/constants % SI_ri(l,isph);
-  !        f2 = SI_rjin(l)/constants % SI_ri(l,isph)
-  !
-  !        do m = -l, l
-  !          alpha = alpha + (f1*sji*basloc(ind+m) + &
-  !                 & (f2/rjin)*dbasloc(:,ind+m))*Xe(ind+m,isph)
-  !        end do
-  !      end do
-        call fmm_l2p_bessel_grad(vji*params % kappa, params % rsph(isph)*params % kappa, &
-            & params % lmax, constants % vscales, params % kappa, Xe(:, isph), &
-            & zero, alpha)
+        vtji = vji*params % kappa
+        call fmm_l2p_bessel_grad(vtji, params % rsph(isph)*params % kappa, &
+            & params % lmax, constants % vscales, params % kappa, &
+            & Xe(:, isph), zero, alpha)
         xji = fsw(tji,params % se,params % eta)
         if (constants % fi(igrid,jsph).gt.one) then
           oji = xji/constants % fi(igrid,jsph)
@@ -1797,11 +1784,9 @@ subroutine fdokb_b_xe(params, constants, workspace, isph, Xe, Xadj_e, basloc, db
         f1 = oji
         vb = vb + f1*alpha*Xadj_e(igrid,jsph)
         if (tji .gt. tlow) then
-          ! Compute beta_jin, i.e., Eq.(57) Stamm.etal.18
-          !beta_ji = compute_beta(params, constants, workspace, SI_rjin, rjin, isph, Xe(:,isph), basloc
-          call fmm_l2p_bessel_work(vji*params % kappa, params % lmax, &
-              & constants % vscales, constants % SI_ri(:, isph), one, Xe(:, isph), &
-              & zero, beta_ji, work_complex, work)
+          call fmm_l2p_bessel_work(vtji, params % lmax, constants % vscales, &
+              & constants % SI_ri(:, isph), one, Xe(:, isph), zero, beta_ji, &
+              & work_complex, work)
           if (constants % fi(igrid,jsph) .gt. one) then
             dj  = one/constants % fi(igrid,jsph)
             fac = dj*xji
@@ -1814,22 +1799,13 @@ subroutine fdokb_b_xe(params, constants, workspace, isph, Xe, Xadj_e, basloc, db
                    & params % csph(:,ksph)
               rjkn = dnrm2(3, vjk, 1)
               tjk  = rjkn/params % rsph(ksph)
-              ! Computation of modified spherical Bessel function values      
-  !            call modified_spherical_bessel_first_kind(params % lmax, &
-  !                & rjkn*params % kappa, SI_rjkn, DI_rjkn, &
-  !                & workspace % tmp_bessel(:, 1))
-
               if (ksph.ne.isph) then
                 if (tjk .le. thigh) then
                 proc = .true.
-  !              sjk  = vjk/rjkn
-  !              call ylmbas(sjk, rho, ctheta, stheta, cphi, sphi, &
-  !                  & params % lmax, constants % vscales, basloc, vplm, &
-  !                  & vcos, vsin)
-  !              beta_jk  = compute_beta(params, constants, workspace, SI_rjkn, rjkn, ksph, Xe(:,ksph), basloc)
-                call fmm_l2p_bessel_work(vjk*params % kappa, params % lmax, &
-                    & constants % vscales, constants % SI_ri(:, ksph), one, Xe(:, ksph), &
-                    & zero, beta_jk, work_complex, work)
+                vtjk = vjk*params % kappa
+                call fmm_l2p_bessel_work(vtjk, params % lmax, &
+                    & constants % vscales, constants % SI_ri(:, ksph), one, &
+                    & Xe(:, ksph), zero, beta_jk, work_complex, work)
                 xjk = fsw(tjk, params % se, params % eta)
                 b   = b + beta_jk*xjk
                 end if
@@ -1846,7 +1822,7 @@ subroutine fdokb_b_xe(params, constants, workspace, isph, Xe, Xadj_e, basloc, db
           end if
           f2 = (one-fac)*dj*dfsw(tji,params % se,params % eta)/params % rsph(isph)
           vb = vb + f2*Xadj_e(igrid,jsph)*beta_ji*sji
-        end if 
+        end if
       end do
       force_e = force_e + constants % wgrid(igrid)*(vb - vc)
     end do
@@ -1993,7 +1969,7 @@ subroutine fdouky(params, constants, workspace, Xr, Xe, &
               ! Extrenal grid point
               icav = icav + 1
               val = zero
-              do jsph = 1, params % nsph 
+              do jsph = 1, params % nsph
                 !do ind0 = 1, constants % nbasis0
                 !!====== This place requirs coefY, that is not precomputed anymore
                 !  val = val + diff0(ind0,jsph)*constants % coefY(icav,ind0,jsph)
@@ -2667,11 +2643,11 @@ subroutine fdouky_f0(params, constants, workspace, sol_adj, sol_sgrid, &
                           & Xr, Xe, &
                           & Xadj_r_sgrid, Xadj_e_sgrid, &
                           & diff_re, force)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    !! Temporary buffers
-    type(ddx_workspace_type), intent(inout) :: workspace
+  !! Inputs
+  type(ddx_params_type), intent(in) :: params
+  type(ddx_constants_type), intent(in) :: constants
+  !! Temporary buffers
+  type(ddx_workspace_type), intent(inout) :: workspace
   real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xr, Xe, diff_re
   real(dp), dimension(params % ngrid, params % nsph), intent(in) :: Xadj_r_sgrid, Xadj_e_sgrid
   real(dp), dimension(3, params % nsph), intent(inout) :: force

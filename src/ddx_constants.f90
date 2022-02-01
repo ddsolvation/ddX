@@ -64,7 +64,7 @@ type ddx_constants_type
     !> Array of square roots of combinatorial numbers C_n^k.
     !!
     !! Dimension of this array is ((2*dmax+1)*(dmax+1)). Allocated, computed
-    !! and referenced only if fmm=1.
+    !! and referenced only if fmm=1 or if force=1
     real(dp), allocatable :: vcnk(:)
     !> Array of common M2L coefficients for any OZ translation.
     !!
@@ -352,7 +352,8 @@ subroutine constants_init(params, constants, info)
     end do
     ! Allocate square roots of combinatorial numbers C_n^k and M2L OZ
     ! translation coefficients
-    if (params % fmm .eq. 1) then
+    if (params % fmm .eq. 1 .or. &
+        & (params % model .eq. 3 .and. params % force .eq. 1)) then
         alloc_size = 2*constants % dmax + 1
         alloc_size = alloc_size * (constants % dmax+1)
         ! Allocate C_n^k
