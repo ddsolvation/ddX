@@ -437,37 +437,25 @@ end subroutine bstarx_nodiag_incore
 !
 subroutine bx(params, constants, workspace, x, y)
     implicit none
-    !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    !! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
-    integer :: isph, istatus
-    real(dp) :: pot(params % ngrid), vplm(constants % nbasis), &
-        & vylm(constants % nbasis), vcos(params % lmax + 1), &
-        & vsin(params % lmax + 1)
-    complex(dp) :: bessel(max(2, params % lmax + 1))
-    integer :: i, ithread
+    integer :: isph, iproc
 
     y = zero
     !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-    !$omp private(isph,pot,vylm,vplm,vcos,vsin,bessel)
+    !$omp private(isph,iproc) schedule(static,1)
     do isph = 1, params % nsph
-      !!ithread = omp_get_thread_num()
-      call calcv2_lpb(params, constants, isph, pot, x, &
-          & vylm, vplm, vcos, vsin,bessel)
-      ! intrhs comes from ddCOSMO
-      call intrhs(1, constants % nbasis, params % ngrid, &
-                  & constants % vwgrid, constants % vgrid_nbasis, &
-                  & pot, y(:,isph) )
-      ! Action of off-diagonal blocks
-      y(:,isph) = - y(:,isph)
-      ! Add action of diagonal block
-      y(:,isph) = y(:,isph) + x(:,isph)
+      iproc = omp_get_thread_num() + 1
+      call calcv2_lpb(params, constants, isph, workspace % tmp_pot(:, iproc), x, &
+          & workspace % tmp_vylm, workspace % tmp_vplm, workspace % tmp_vcos, &
+          & workspace % tmp_vsin, workspace % tmp_bessel)
+      call intrhs(1, constants % nbasis, params % ngrid, constants % vwgrid, &
+          & constants % vgrid_nbasis, workspace % tmp_pot(:, iproc), y(:,isph))
+      y(:,isph) = - y(:,isph) + x(:,isph)
     end do
-
 end subroutine bx
 
 subroutine bx_nodiag(params, constants, workspace, x, y)
@@ -477,24 +465,20 @@ subroutine bx_nodiag(params, constants, workspace, x, y)
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
-    integer :: isph
+    integer :: isph, iproc
 
     y = zero
-    !!$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-    !!$omp private(isph,pot,basloc,vplm,vcos,vsin,ithread)
+    !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+    !$omp private(isph,iproc) schedule(static,1)
     do isph = 1, params % nsph
-      !!ithread = omp_get_thread_num()
-      call calcv2_lpb(params, constants, isph, workspace % tmp_grid, x, &
+      iproc = omp_get_thread_num() + 1
+      call calcv2_lpb(params, constants, isph, workspace % tmp_pot(:, iproc), x, &
           & workspace % tmp_vylm, workspace % tmp_vplm, workspace % tmp_vcos, &
           & workspace % tmp_vsin, workspace % tmp_bessel)
-      ! intrhs comes from ddCOSMO
-      call intrhs(1, constants % nbasis, params % ngrid, &
-                  constants % vwgrid, constants % vgrid_nbasis, &
-                  & workspace % tmp_grid, y(:,isph) )
-      ! Action of off-diagonal blocks
+      call intrhs(1, constants % nbasis, params % ngrid, constants % vwgrid, &
+          & constants % vgrid_nbasis, workspace % tmp_pot(:, iproc), y(:,isph))
       y(:,isph) = - y(:,isph)
     end do
-    !!$omp end parallel do
 end subroutine bx_nodiag
 
 subroutine bx_prec(params, constants, workspace, x, y)
