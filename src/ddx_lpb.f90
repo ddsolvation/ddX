@@ -663,11 +663,13 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: Xr, Xe
     real(dp), intent(in) :: tol
     real(dp), intent(out) :: esolv
-    integer  :: n_iter, isph
+    integer  :: n_iter, isph, istat
     real(dp), allocatable :: rhs(:,:,:), x(:,:,:), scr(:,:,:)
     logical :: ok
 
-    allocate(rhs(constants % nbasis, params % nsph, 2), x(constants % nbasis, params % nsph, 2))
+    allocate(rhs(constants % nbasis, params % nsph, 2), &
+        & x(constants % nbasis, params % nsph, 2), stat=istat)
+    if (istat.ne.0) stop 1
 
     ! Setting of the local variables
     rhs = zero
@@ -692,10 +694,8 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     ! solve LS using Jacobi/DIIS
     n_iter = params % maxiter
     call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
-        & 4, params % jacobi_ndiis, 2, tol, rhs, x, n_iter, &
-        & ok, lpb_direct_matvec, lpb_direct_prec)
-    ! call prtsph('sol', constants % nbasis, params % lmax, &
-    !     & 2*params % nsph, 0, x)
+        & 4, params % jacobi_ndiis, 2, tol, rhs, x, n_iter, ok, &
+        & lpb_direct_matvec, lpb_direct_prec)
     xr = x(:,:,1)
     xe = x(:,:,2)
 
@@ -797,22 +797,6 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
                         vij  = params % csph(:,isph) + &
                             & params % rsph(isph)*constants % cgrid(:,igrid) - &
                             & params % csph(:,jsph)
-    !                    rijn = sqrt(dot_product(vij,vij))
-    !                    sijn = vij/rijn
-    !                    call modified_spherical_bessel_second_kind(constants % lmax0, &
-    !                        & rijn*params % kappa, SK_rijn, DK_rijn, bessel_work)
-    !                    call ylmbas(sijn, rho, ctheta, stheta, cphi, &
-    !                        & sphi, params % lmax, constants % vscales, &
-    !                        & basloc, vplm, vcos, vsin)
-    !                    do l0 = 0, constants % lmax0
-    !                        term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
-    !                        do m0 = -l0, l0
-    !                            ind0 = l0*l0 + l0 + m0 + 1
-    !                            scratch0(ind0,jsph) = scratch0(ind0,jsph) + &
-    !                                & val*term*basloc(ind0)
-    !                                !& val*constants % C_ik(l0,jsph)*term*basloc(ind0)
-    !                        end do
-    !                    end do
                         vtij = vij * params % kappa
                         call fmm_m2p_bessel_adj_work(vtij, val, &
                             & constants % SK_ri(:, jsph), constants % lmax0, &
@@ -854,46 +838,6 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
                 scratch0(indl+1:, isph) = zero
             end do
         end if
-        ! Following code is here to check accuracy in debug mode
-!        scratch = zero
-!        do isph = 1, params % nsph
-!            do igrid = 1, params % ngrid
-!                if (constants % ui(igrid, isph).gt.zero) then
-!                    val = xadj_sgrid(igrid,isph) &
-!                        & *constants % ui(igrid,isph)
-!                    ! quadratically scaling loop
-!                    do jsph = 1, params % nsph
-!                        vij  = params % csph(:,isph) + &
-!                            & params % rsph(isph)*constants % cgrid(:,igrid) - &
-!                            & params % csph(:,jsph)
-!    !                    rijn = sqrt(dot_product(vij,vij))
-!    !                    sijn = vij/rijn
-!    !                    call modified_spherical_bessel_second_kind(constants % lmax0, &
-!    !                        & rijn*params % kappa, SK_rijn, DK_rijn, bessel_work)
-!    !                    call ylmbas(sijn, rho, ctheta, stheta, cphi, &
-!    !                        & sphi, params % lmax, constants % vscales, &
-!    !                        & basloc, vplm, vcos, vsin)
-!    !                    do l0 = 0, constants % lmax0
-!    !                        term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
-!    !                        do m0 = -l0, l0
-!    !                            ind0 = l0*l0 + l0 + m0 + 1
-!    !                            scratch0(ind0,jsph) = scratch0(ind0,jsph) + &
-!    !                                & val*term*basloc(ind0)
-!    !                                !& val*constants % C_ik(l0,jsph)*term*basloc(ind0)
-!    !                        end do
-!    !                    end do
-!                        vtij = vij * params % kappa
-!                        call fmm_m2p_bessel_adj_work(vtij, val, &
-!                            & constants % SK_ri(:, jsph), constants % lmax0, &
-!                            & constants % vscales, one, scratch(:, jsph), &
-!                            & work_complex, work)
-!                    end do
-!                end if
-!            end do
-!        end do
-!        write(*, *) "diff=", dnrm2(constants % nbasis0*params % nsph, &
-!            & scratch(1:constants % nbasis0, :)-scratch0, 1) / &
-!            & dnrm2(constants % nbasis0*params % nsph, scratch0, 1)
     end if
     ! Scale by C_ik
     do isph = 1, params % nsph
@@ -1153,19 +1097,6 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     real(dp) :: r_norm
     real(dp), dimension(params % maxiter) :: x_rel_diff
 
-
-    !y(:,:,:) = zero
-    !y(1,1,1) = one
-    !write(6,*) 'here'; flush(6)
-    !call bx_incore(params, constants, workspace, y(:,:,1), y(:,:,2))
-    !call prtsph('incore', constants % nbasis, params % lmax, params % nsph, &
-    !    & 0, y(:,:,2))
-    !write(6,*) 'here'; flush(6)
-    !call bx(params, constants, workspace, y(:,:,1), y(:,:,2))
-    !call prtsph('onthefly', constants % nbasis, params % lmax, params % nsph, &
-    !    & 0, y(:,:,2))
-    !stop
-
     ! perform A^-1 * Yr
     tt0 = omp_get_wtime()
     n_iter = params % maxiter
@@ -1201,8 +1132,6 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
         call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
             & n_iter, x_rel_diff, bx_nodiag, bx_prec, hnorm, info)
     end if
-    !call prtsph('hsp sol', constants % nbasis, params % lmax, params % nsph, &
-    !    & 0, hsp_guess)
     y(:,:,2) = hsp_guess
     tt1 = omp_get_wtime()
     write(6,*) '@direct@hsp', tt1 - tt0, n_iter

@@ -44,9 +44,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 #add_compile_options(-qopenmp -i8 -DINT64)
 #add_compile_options(-g -debug extended -traceback -check all -fp-stack-check)
-add_compile_options(-i8  -I"${MKLROOT}/include")
+#add_compile_options(-i8  -I"${MKLROOT}/include")
 #add_link_options(-L${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -ldl)
-add_link_options(-mkl=parallel)
+#add_link_options(-mkl=parallel)
 
 #add_compile_options(-O3)
 #add_compile_options(-fopenmp)
