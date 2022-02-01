@@ -20,7 +20,7 @@ implicit none
 !!
 !! first_outer_iter : Logical variable to check if the first outer iteration has been
 !!                    performed
-!! epsp             : Dielectric permittivity of the solvent. 1.0d0 is for H20
+!! epsp             : Dielectric permittivity of the ?
 real(dp),  parameter :: epsp = 1.0d0
 !!
 !! Local variables and their definitions that will be used throughout this file
@@ -127,12 +127,7 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
         & ddx_data % params % nsph), hsp_guess(ddx_data % constants % nbasis, &
         & ddx_data % params % nsph))
 
-    !!
     !! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
-    !!
-    !! @param[in]  gradphi : Gradient of psi_0
-    !! @param[out] f       : Boundary conditions scaled by characteristic function
-    !!
     t0 = omp_get_wtime()
     call wghpot_f(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, gradphi_cav,f)
@@ -156,11 +151,6 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
       call ddx_lpb_adjoint(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, psi, tol, Xadj_r, Xadj_e)
       t1 = omp_get_wtime()
-      !write(6,*) '@adjoint_ls', t1 - t0
-      !call prtsph('xadj_r', ddx_data % constants % nbasis, ddx_data % params % lmax, &
-      !    & ddx_data % params % nsph, 0, xadj_r)
-      !call prtsph('xadj_e', ddx_data % constants % nbasis, ddx_data % params % lmax, &
-      !    & ddx_data % params % nsph, 0, xadj_e)
 
       !Call the subroutine to evaluate derivatives
       t0 = omp_get_wtime()
@@ -1295,8 +1285,9 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
         tfdokb = tfdokb + omp_get_wtime() - tt1
         ! Compute B^k*Xadj_e
         tt1 = omp_get_wtime()
-        call fdoka_b_xe(params, constants, workspace, isph, Xe, Xadj_e_sgrid(:, isph), &
-            & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
+        call fdoka_b_xe(params, constants, workspace, isph, Xe, &
+            & Xadj_e_sgrid(:, isph), basloc, dbasloc, vplm, vcos, vsin, &
+            & force(:,isph))
         tfdoka_xe = tfdoka_xe + omp_get_wtime() - tt1
         tt1 = omp_get_wtime()
         call fdokb_b_xe(params, constants, workspace, isph, Xe, Xadj_e_sgrid, &
@@ -1304,25 +1295,19 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
         tfdokb_xe = tfdokb_xe + omp_get_wtime() - tt1
         ! Computation of G0
         tt1 = omp_get_wtime()
-        call fdoga(params, constants, isph, Xadj_r_sgrid, phi_grid, force(:, isph))
+        call fdoga(params, constants, isph, Xadj_r_sgrid, phi_grid, &
+            & force(:, isph))
         tfdoga = tfdoga + omp_get_wtime() - tt1
     end do
     ! Compute C1 and C2 contributions
     tt1 = omp_get_wtime()
     diff_re = zero
-    call fdouky(params, constants, workspace, &
-        & Xr, Xe, &
-        & Xadj_r_sgrid, Xadj_e_sgrid, &
-        & Xadj_r, Xadj_e, &
-        & force, &
-        & diff_re)
+    call fdouky(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
+        & Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re)
     tfdouky = tfdouky + omp_get_wtime() - tt1
     tt1 = omp_get_wtime()
-    call derivative_P(params, constants, workspace, &
-        & Xr, Xe, &
-        & Xadj_r_sgrid, Xadj_e_sgrid, &
-        & diff_re, &
-        & force)
+    call derivative_P(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
+        & Xadj_e_sgrid, diff_re, force)
     tp = tp + omp_get_wtime() - tt1
     write(6,*) '@forces@fdoka', tfdoka
     write(6,*) '@forces@fdokb', tfdokb
