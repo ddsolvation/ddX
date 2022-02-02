@@ -557,16 +557,6 @@ end subroutine convert_ddcosmo
           else
             oij = xij
           end if
-          ! The following commented code shall be turned into a baseline
-          ! version of the following fmm_l2p call
-          !call ylmbas(sij, rho, ctheta, stheta, cphi, &
-          !            & sphi, params % lmax, &
-          !            & constants % vscales, basloc, &
-          !            & vplm, vcos, vsin)
-          !call inthsp(params, constants, vvij, params % rsph(jsph), jsph, &
-          !    & basloc, fac_hsp, bessel_work)
-          !pot(its) = pot(its) + oij*dot_product(fac_hsp,x(:,jsph))
-!
           vtij = vij*params % kappa
           call fmm_l2p_bessel_work(vtij, &
               & params % lmax, constants % vscales, &
@@ -2105,10 +2095,6 @@ subroutine fdouky(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
                     & l2l_grad(1, 1, ksph), &
                     & (params % pl+2)**2, constants % vgrid(1, igrid), 1, &
                     & one, diff_ep_dim3(1, icav), 1)
-                !vtij = params % rsph(ksph)*constants % cgrid(:, igrid)*params % kappa
-                !call fmm_l2p_bessel_grad(vtij, params % rsph(ksph)*params % kappa, &
-                !    & params % pl, constants % vscales, params % kappa, &
-                !    & workspace % tmp_sph_l(:, ksph), one, diff_ep_dim3(:, icav))
                 ! Near-field
                 do knear = constants % snear(knode), constants % snear(knode+1)-1
                     jnode = constants % near(knear)
