@@ -1764,7 +1764,8 @@ subroutine tree_m2m_rotation_adj_work(params, constants, node_m, work)
         r = constants % rnode(j)
         c1 = constants % cnode(:, i)
         r1 = constants % rnode(i)
-        call fmm_m2m_rotation_adj_work(c-c1, r, r1, params % pm, &
+        c1 = c - c1
+        call fmm_m2m_rotation_adj_work(c1, r, r1, params % pm, &
             & constants % vscales, constants % vcnk, one, node_m(:, j), one, &
             & node_m(:, i), work)
     end do
