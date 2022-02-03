@@ -970,7 +970,6 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
             & params % lmax, workspace % tmp_sph, one, &
             & workspace % tmp_grid)
 
-        write(6,*) 'using fmm code'
         do isph = 1, params % nsph
             do igrid = 1, params % ngrid
                 do ind = 1, constants % nbasis
@@ -1415,7 +1414,7 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
 end subroutine ddx_lpb_force
 
 subroutine bstarx(params, constants, workspace, x, y)
-    !! Inputs
+    ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace

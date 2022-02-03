@@ -2056,7 +2056,8 @@ subroutine tree_m2l_bessel_rotation(params, constants, node_m, node_l)
 !            & params % pm, &
 !            & constants % vscales, constants % vcnk, one, &
 !            & node_m(:, k), zero, node_l(:, i))
-        call fmm_m2l_bessel_rotation_work(params % kappa*(c1-c), &
+        c1 = params % kappa*(c1 - c)
+        call fmm_m2l_bessel_rotation_work(c1, &
             & constants % SK_rnode(:, k), constants % SI_rnode(:, i), &
             & params % pm, &
             & constants % vscales, constants % vcnk, one, &
@@ -2070,9 +2071,9 @@ subroutine tree_m2l_bessel_rotation(params, constants, node_m, node_l)
 !                & constants % vscales, &
 !                & constants % vcnk, one, node_m(:, k), one, &
 !                & node_l(:, i))
-            call fmm_m2l_bessel_rotation_work(params % kappa*(c1-c), &
-                & constants % SK_rnode(:, k), constants % SI_rnode(:, i), &
-                & params % pm, &
+            c1 = params % kappa*(c1 - c)
+            call fmm_m2l_bessel_rotation_work(c1, constants % SK_rnode(:, k), &
+                & constants % SI_rnode(:, i), params % pm, &
                 & constants % vscales, constants % vcnk, one, &
                 & node_m(:, k), one, node_l(:, i), work, work_complex)
         end do
@@ -2103,14 +2104,16 @@ subroutine tree_m2l_bessel_rotation_adj(params, constants, node_l, node_m)
         k = constants % far(constants % sfar(i))
         c1 = constants % cnode(:, k)
         r1 = constants % rnode(k)
-        call fmm_m2l_bessel_rotation_adj(c-c1, r, r1, params % kappa, params % pm, &
+        c1 = c - c1
+        call fmm_m2l_bessel_rotation_adj(c1, r, r1, params % kappa, params % pm, &
             & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
             & node_l(:, i), one, node_m(:, k))
         do j = constants % sfar(i)+1, constants % sfar(i+1)-1
             k = constants % far(j)
             c1 = constants % cnode(:, k)
             r1 = constants % rnode(k)
-            call fmm_m2l_bessel_rotation_adj(c-c1, r, r1, params % kappa, params % pm, &
+            c1 = c - c1
+            call fmm_m2l_bessel_rotation_adj(c1, r, r1, params % kappa, params % pm, &
                 & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
                 & node_l(:, i), one, node_m(:, k))
         end do

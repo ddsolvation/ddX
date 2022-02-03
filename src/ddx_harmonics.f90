@@ -7942,7 +7942,7 @@ subroutine fmm_m2l_bessel_rotation_adj(c, src_r, dst_r, kappa, p, vscales, vcnk,
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)*(p+1))
     ! Temporary workspace
-    real(dp) :: work(6*p*p + 19*p + 8), src_sk(p+1), dst_si(p+1), s1, s2
+    real(dp) :: work(6*p*p + 19*p + 8), src_sk(p+1), dst_si(p+1), s1, s2, ck(3)
     complex(dp) :: work_complex(2*p+1), z1, z2
     integer :: NZ, ierr
     ! Compute Bessel functions
@@ -7961,8 +7961,9 @@ subroutine fmm_m2l_bessel_rotation_adj(c, src_r, dst_r, kappa, p, vscales, vcnk,
         dst_si(2:p+1) = s2 * real(work_complex(2:p+1))
     end if
     ! Call corresponding work routine
-    call fmm_m2l_bessel_rotation_adj_work(-c*kappa, dst_si, src_sk, p, vscales, vcnk, alpha, &
-        & src_m, beta, dst_l, work, work_complex)
+    ck = - c*kappa
+    call fmm_m2l_bessel_rotation_adj_work(ck, dst_si, src_sk, p, vscales, &
+        & vcnk, alpha, src_m, beta, dst_l, work, work_complex)
 end subroutine fmm_m2l_bessel_rotation_adj
 
 !> Direct M2M translation by 4 rotations and 1 translation
