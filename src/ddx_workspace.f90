@@ -266,7 +266,7 @@ subroutine workspace_init(params, constants, workspace, info)
         info = 1
         return
     end if
-    allocate(workspace % tmp_x_diis(constants % n, params % jacobi_ndiis), &
+    allocate(workspace % tmp_x_diis(constants % n, 2*params % jacobi_ndiis), &
         & stat=info)
     if (info .ne. 0) then
         workspace % error_flag = 1
@@ -275,7 +275,7 @@ subroutine workspace_init(params, constants, workspace, info)
         info = 1
         return
     end if
-    allocate(workspace % tmp_e_diis(constants % n, params % jacobi_ndiis), &
+    allocate(workspace % tmp_e_diis(constants % n, 2*params % jacobi_ndiis), &
         & stat=info)
     if (info .ne. 0) then
         workspace % error_flag = 1
@@ -284,8 +284,8 @@ subroutine workspace_init(params, constants, workspace, info)
         info = 1
         return
     end if
-    allocate(workspace % tmp_bmat(params % jacobi_ndiis+1, &
-        & params % jacobi_ndiis+1), stat=info)
+    allocate(workspace % tmp_bmat(2*params % jacobi_ndiis + 2, &
+        & 2*params % jacobi_ndiis + 2), stat=info)
     if (info .ne. 0) then
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_bmat` " // &

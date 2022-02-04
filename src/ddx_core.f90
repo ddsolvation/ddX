@@ -1228,128 +1228,72 @@ end subroutine wghpot
 
 ! Purpose : compute H-norm
 !------------------------------------------------------------------------------------------------
-!> TODO
-subroutine hsnorm(lmax, nbasis, u, unorm )
-!          
+subroutine hsnorm(lmax, nbasis, u, unorm)
     integer, intent(in) :: lmax, nbasis
-      real(dp), dimension(nbasis), intent(in)    :: u
-      real(dp),                    intent(inout) :: unorm
-!
-      integer :: l, m, ind
-      real(dp)  :: fac
-!
-!------------------------------------------------------------------------------------------------
-!
-!     initialize
-      unorm = zero
-!      
-!     loop over l
-      do l = 0, lmax
-!      
-!       first index associated to l
+    real(dp), dimension(nbasis), intent(in) :: u
+    real(dp), intent(inout) :: unorm
+    integer :: l, m, ind
+    real(dp)  :: fac
+    ! initialize
+    unorm = zero
+    do l = 0, lmax
         ind = l*l + l + 1
-!
-!       scaling factor
         fac = one/(one + dble(l))
-!
-!       loop over m
         do m = -l, l
-!
-!         accumulate
-          unorm = unorm + fac*u(ind+m)*u(ind+m)
-!          
-        enddo
-      enddo
-!
-!     the much neglected square root
-      unorm = sqrt(unorm)
-!
-      return
-!
-!
+            unorm = unorm + fac*u(ind+m)*u(ind+m)
+        end do
+    end do
+!   the much neglected square root
+    unorm = sqrt(unorm)
 end subroutine hsnorm
 
 ! compute the h^-1/2 norm of the increment on each sphere, then take the
 ! rms value.
 !-------------------------------------------------------------------------------
-!
-!> TODO
 real(dp) function hnorm(lmax, nbasis, nsph, x)
     integer, intent(in) :: lmax, nbasis, nsph
-      real(dp),  dimension(nbasis, nsph), intent(in) :: x
-!
-      integer                                     :: isph, istatus
-      real(dp)                                      :: vrms, vmax
-      real(dp), allocatable                         :: u(:)
-!
-!-------------------------------------------------------------------------------
-!
-!     allocate workspace
-      allocate( u(nsph) , stat=istatus )
-      if ( istatus.ne.0 ) then
+    real(dp),  dimension(nbasis, nsph), intent(in) :: x
+    integer                                     :: isph, istatus
+    real(dp)                                      :: vrms, vmax
+    real(dp), allocatable                         :: u(:)
+    allocate( u(nsph) , stat=istatus )
+    if ( istatus.ne.0 ) then
         write(*,*) 'hnorm: allocation failed !'
         stop
-      endif
-!
-!     loop over spheres
-      do isph = 1, nsph
-!
-!       compute norm contribution
+    endif
+    !$omp parallel do default(none) shared(nsph,lmax,nbasis,x,u) &
+    !$omp private(isph) schedule(dynamic)
+    do isph = 1, nsph
         call hsnorm(lmax, nbasis, x(:,isph), u(isph))
-      enddo
-!
-!     compute rms of norms
-      call rmsvec( nsph, u, vrms, vmax )
-!
-!     return value
-      hnorm = vrms
-!
-!     deallocate workspace
-      deallocate( u , stat=istatus )
-      if ( istatus.ne.0 ) then
+    enddo
+    call rmsvec(nsph, u, vrms, vmax)
+    hnorm = vrms
+    deallocate( u , stat=istatus )
+    if ( istatus.ne.0 ) then
         write(*,*) 'hnorm: deallocation failed !'
         stop
-      endif
-!
-!
+    endif
 end function hnorm
 
 !------------------------------------------------------------------------------
 ! Purpose : compute root-mean-square and max norm
 !------------------------------------------------------------------------------
 subroutine rmsvec( n, v, vrms, vmax )
-!
-      implicit none
-      integer,               intent(in)    :: n
-      real(dp),  dimension(n), intent(in)    :: v
-      real(dp),                intent(inout) :: vrms, vmax
-!
-      integer :: i
-      real(dp), parameter :: zero=0.0d0
-!      
-!------------------------------------------------------------------------------
-!      
-!     initialize
-      vrms = zero
-      vmax = zero
-!
-!     loop over entries
-      do i = 1,n
-!
-!       max norm
-        vmax = max(vmax,abs(v(i)))
-!
-!       rms norm
-        vrms = vrms + v(i)*v(i)
-!        
-      enddo
-!
-!     the much neglected square root
-      vrms = sqrt(vrms/dble(n))
-!      
-      return
-!      
-!      
+    implicit none
+    integer,               intent(in)    :: n
+    real(dp),  dimension(n), intent(in)    :: v
+    real(dp),                intent(inout) :: vrms, vmax
+    integer :: i
+    real(dp), parameter :: zero=0.0d0
+
+    vrms = zero
+    vmax = zero
+    do i = 1,n
+      vmax = max(vmax,abs(v(i)))
+      vrms = vrms + v(i)*v(i)
+    end do
+    ! the much neglected square root
+    vrms = sqrt(vrms/dble(n))
 endsubroutine rmsvec
 
 subroutine adjrhs(params, constants, isph, xi, vlm, work)
@@ -1395,8 +1339,8 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
     real(dp), dimension(params % lmax+1), intent(inout) :: work
 
     integer :: its, ij, jsph
-    real(dp)  :: vij(3), sij(3)
-    real(dp)  :: vvij, tij, xij, oij, stslm, stslm2, stslm3, &
+    real(dp) :: vij(3), sij(3)
+    real(dp) :: vvij, tij, xij, oij, stslm, stslm2, stslm3, &
         & thigh, rho, ctheta, stheta, cphi, sphi
 
     thigh = one + pt5*(params % se + one)*params % eta
@@ -1404,7 +1348,7 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
     ! loop over grid points
     do its = 1, params % ngrid
         ! contribution from integration point present
-        if ( constants % ui(its,isph).lt.one ) then
+        if (constants % ui(its,isph).lt.one) then
             ! loop over neighbors of i-sphere
             do ij = constants % inl(isph), constants % inl(isph+1)-1
                 jsph = constants % nl(ij)
@@ -1412,10 +1356,10 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
                 vij  = params % csph(:,isph) + params % rsph(isph)* &
                     & constants % cgrid(:,its) - params % csph(:,jsph)
                 vvij = sqrt( dot_product( vij, vij ) )
-                tij  = vvij / params % rsph(jsph) 
+                tij  = vvij / params % rsph(jsph)
                 ! point is INSIDE j-sphere
                 if (tij.lt.thigh .and. tij.gt.zero) then
-                    xij = fsw( tij, params % se, params % eta )
+                    xij = fsw(tij, params % se, params % eta)
                     if (constants % fi(its,isph).gt.one) then
                         oij = xij / constants % fi(its,isph)
                     else
@@ -2308,7 +2252,8 @@ subroutine tree_m2p(params, constants, p, alpha, sph_m, beta, grid_v)
     end if
     ! Cycle over all spheres
     !$omp parallel do default(none) shared(params,constants,grid_v,p, &
-    !$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work)
+    !$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work) &
+    !$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)

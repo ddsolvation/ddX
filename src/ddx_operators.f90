@@ -431,11 +431,16 @@ subroutine ldm1x(params, constants, workspace, x, y)
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
-    integer :: l, ind
+    integer :: isph, l, ind
     !! Loop over harmonics
-    do l = 0, params % lmax
-        ind = l*l + l + 1
-        y(ind-l:ind+l, :) = x(ind-l:ind+l, :) * (constants % vscales(ind)**2)
+    !$omp parallel do default(none) shared(params,constants,x,y) &
+    !$omp private(isph,l,ind) schedule(dynamic)
+    do isph = 1, params % nsph
+        do l = 0, params % lmax
+            ind = l*l + l + 1
+            y(ind-l:ind+l, isph) = x(ind-l:ind+l, isph) &
+                & *(constants % vscales(ind)**2)
+        end do
     end do
 end subroutine ldm1x
 

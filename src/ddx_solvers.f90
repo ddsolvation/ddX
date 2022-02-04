@@ -125,110 +125,139 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
     info = 1
 endsubroutine jacobi_diis
 
-subroutine diis(n,nmat,ndiis,x,e,b,xnew)
-implicit none
-integer,                             intent(in)    :: n, ndiis
-integer,                             intent(inout) :: nmat
-real(dp),  dimension(n,ndiis),         intent(inout) :: x, e
-real(dp),  dimension(ndiis+1,ndiis+1), intent(inout) :: b
-real(dp),  dimension(n),               intent(inout) :: xnew
+!subroutine diis_new(params, constants, workspace, nmat, xnew, x)
+!    implicit none
+!    type(ddx_params_type), intent(in) :: params
+!    type(ddx_constants_type), intent(in) :: constants
+!    type(ddx_workspace_type), intent(inout) :: workspace
+!    real(dp), intent(inout) :: xnew(constants % n)
+!    real(dp), intent(in) :: x(constants % n)
+!    integer, intent(inout) :: nmat
 !
-integer :: nmat1, i, istatus
-integer :: j, k
-logical :: ok
+!    ! add new quantities
+!    workspace % tmp_x_diis(:, nmat) = xnew
+!    workspace % tmp_e_diis(:, nmat) = xnew - x
 !
-real(dp), allocatable :: bloc(:,:), cex(:)
+!    ! if we run out of space, reset
+!    if (nmat.ge.(2*params % jacobi_ndiis)) then
+!        workspace % tmp_x_diis(:, 0:nmat) = &
+!            & workspace % tmp_x_diis(:, nmat:2*nmat)
+!        workspace % tmp_e_diis(:, 0:nmat) = &
+!            & workspace % tmp_e_diis(:, nmat:2*nmat)
+!        workspace % tmp_b_mat(0:nmat, 0:nmat) = &
+!            & workspace % tmp_b_mat(nmat:2*nmat, nmat:2*nmat)
+!    nmat = workspace % jacobi_ndiis
+!    end if
 !
-real(dp), parameter :: zero = 0.0d0, one = 1.0d0
+!    ! build B matrix of DIIS
+!    call makeb(workspace % n, nmat, 2*workspace % jacobi_ndiis, &
+!        & workspace % tmp_e_diis, workspace % tmp_b_mat)
 !
-!------------------------------------------------------------------------------
-!
-if (nmat.ge.ndiis) then
-  do j = 2, nmat - 10
-    do k = 2, nmat - 10
-      b(j,k) = b(j+10,k+10)
-    end do
-  end do
-  do j = 1, nmat - 10
-    x(:,j) = x(:,j+10)
-    e(:,j) = e(:,j+10)
-  end do
-  nmat = nmat - 10
-end if
-nmat1 = nmat + 1
-allocate (bloc(nmat1,nmat1),cex(nmat1) , stat=istatus)
-if ( istatus.ne.0 ) then 
-  write(*,*) 'diis: allocation failed!'
-  stop
-endif
+!end subroutine diis_new
 
-call makeb(n,nmat,ndiis,e,b)
-bloc   = b(1:nmat1,1:nmat1)
-cex    = zero
-cex(1) = one
-call gjinv(nmat1,1,bloc,cex,ok)
-if (.not. ok) then
-  nmat = 1
-  return
-end if
-xnew = zero
-do i = 1, nmat
-  xnew = xnew + cex(i+1)*x(:,i)
-end do
-nmat = nmat + 1
-deallocate (bloc,cex , stat=istatus)
-if ( istatus.ne.0 ) then 
-  write(*,*) 'diis: deallocation failed!'
-  stop
-endif
-!
-return
+
+subroutine diis(n, nmat, ndiis, x, e, b, xnew)
+    implicit none
+    integer, intent(in) :: n, ndiis
+    integer, intent(inout) :: nmat
+    real(dp), dimension(n,ndiis), intent(inout) :: x, e
+    real(dp), dimension(ndiis+1,ndiis+1), intent(inout) :: b
+    real(dp), dimension(n), intent(inout) :: xnew
+    integer :: nmat1, i, istatus
+    integer :: j, k
+    logical :: ok
+    real(dp), allocatable :: bloc(:,:), cex(:)
+    real(dp), parameter :: zero = 0.0d0, one = 1.0d0
+    integer, parameter :: delta = 10
+
+    if (nmat.ge.ndiis) then
+        do j = 2, nmat - delta
+            do k = 2, nmat - delta
+                b(j, k) = b(j+delta, k+delta)
+            end do
+        end do
+        do j = 1, nmat - delta
+            x(:, j) = x(:, j+delta)
+            e(:, j) = e(:, j+delta)
+        end do
+        nmat = nmat - delta
+    end if
+    nmat1 = nmat + 1
+
+    allocate(bloc(nmat1, nmat1), cex(nmat1), stat=istatus)
+    if (istatus.ne.0) then
+        write(*,*) 'diis: allocation failed!'
+        stop
+    end if
+
+    call makeb(n, nmat, ndiis, e, b)
+    bloc = b(1:nmat1, 1:nmat1)
+    cex = zero
+    cex(1) = one
+    call gjinv(nmat1, 1, bloc, cex, ok)
+    if (.not.ok) then
+        nmat = 1
+        return
+    end if
+
+    xnew = zero
+    !$omp parallel do default(none) shared(nmat,x,cex) &
+    !$omp private(i) schedule(dynamic) reduction(+:xnew)
+    do i = 1, nmat
+        xnew = xnew + cex(i+1)*x(:, i)
+    end do
+    nmat = nmat + 1
+
+    deallocate (bloc, cex, stat=istatus)
+    if (istatus.ne.0) then
+        write(*,*) 'diis: deallocation failed!'
+        stop
+    end if
 end subroutine diis
-  !
-subroutine makeb(n,nmat,ndiis,e,b)
-implicit none
-integer, intent(in) :: n, nmat, ndiis
-real(dp), dimension(n,ndiis),         intent(in) :: e
-real(dp), dimension(ndiis+1,ndiis+1), intent(inout) :: b
-!
-integer :: i
-real(dp)  :: bij
-real(dp), parameter :: zero = 0.0d0, one = 1.0d0
-  
-! 1st built
-if (nmat.eq.1) then
-!
-!       [ 0 |  1  ]
-!   b = [ --+---- ]
-!       [ 1 | e*e ]
-!
-  b(1,1) = zero
-  b(1,2) = one
-  b(2,1) = one
-  b(2,2) = dot_product(e(:,1),e(:,1))
-!
-! subsequent builts
-else
-!
-!   first, update the lagrangian line:
-  b(nmat+1,1) = one
-  b(1,nmat+1) = one
-!
-!   now, compute the new matrix elements:
-  do i = 1, nmat - 1
-    bij = dot_product(e(:,i),e(:,nmat))
-    b(nmat+1,i+1) = bij
-    b(i+1,nmat+1) = bij
-  end do
-  b(nmat+1,nmat+1) = dot_product(e(:,nmat),e(:,nmat))
-end if
-!
-return
+
+subroutine makeb(n, nmat, ndiis, e, b)
+    implicit none
+    integer, intent(in) :: n, nmat, ndiis
+    real(dp), dimension(n,ndiis), intent(in) :: e
+    real(dp), dimension(ndiis+1,ndiis+1), intent(inout) :: b
+
+    integer :: i
+    real(dp) :: bij
+    real(dp), parameter :: zero = 0.0d0, one = 1.0d0
+
+    ! 1st built
+    if (nmat.eq.1) then
+
+        !     [ 0 |  1  ]
+        ! b = [ --+---- ]
+        !     [ 1 | e*e ]
+
+        b(1,1) = zero
+        b(1,2) = one
+        b(2,1) = one
+        b(2,2) = dot_product(e(:,1),e(:,1))
+
+    ! subsequent builts
+    else
+
+        ! first, update the lagrangian line:
+        b(nmat+1,1) = one
+        b(1,nmat+1) = one
+
+        ! now, compute the new matrix elements:
+        !$omp parallel do default(none) shared(nmat,e,b) &
+        !$omp private(i,bij) schedule(dynamic)
+        do i = 1, nmat - 1
+            bij = dot_product(e(:,i), e(:,nmat))
+            b(nmat+1, i+1) = bij
+            b(i+1, nmat+1) = bij
+        end do
+        b(nmat+1,nmat+1) = dot_product(e(:,nmat),e(:,nmat))
+    end if
 end subroutine makeb
-!
+
 subroutine gjinv(n,nrhs,a,b,ok)
 implicit none
-!
 integer,                    intent(in)    :: n, nrhs
 logical,                    intent(inout) :: ok
 real(dp),  dimension(n,n),    intent(inout) :: a
@@ -281,10 +310,10 @@ do i = 1, n
   if (irow.ne.icol) then
     scr         = a(irow,:)
     a(irow,:)   = a(icol,:)
-    a(icol,:)   = scr  
+    a(icol,:)   = scr
     scr(1:nrhs) = b(irow,:)
     b(irow,:)   = b(icol,:)
-    b(icol,:)   = scr(1:nrhs)       
+    b(icol,:)   = scr(1:nrhs)
   end if
 !
   indxr(i) = irow
@@ -309,7 +338,7 @@ do i = 1, n
     end if
   end do
 end do
-!
+
 do j = n, 1, -1
   if (indxr(j) .ne. indxc(j)) then
     scr           = a(:,indxr(j))
@@ -317,7 +346,7 @@ do j = n, 1, -1
     a(:,indxc(j)) = scr
   end if
 end do
-!
+
 ok = .true.
 deallocate (indxr,indxc,piv,scr , stat=istatus)
 if ( istatus.ne.0 ) then
@@ -325,9 +354,9 @@ if ( istatus.ne.0 ) then
   stop
 endif
 
-return
 1000 format (' warning: singular matrix in gjinv!')
 end subroutine gjinv
+
 !*********************************************************
 ! GMRESR algorithm to solve linear system Ax = b
 !
