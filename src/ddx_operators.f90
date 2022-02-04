@@ -165,7 +165,7 @@ subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
             if (hessian_flag.eq.1) grid_hessian(:, :, :, :) = zero
             !$omp parallel do default(none) shared(ddx_data,grid_grad,grid_hessian, &
             !$omp grad_flag,hessian_flag) private(isph,igrid,inode,jnear,jnode, &
-            !$omp jsph,d,r,tmpd,tmpv) schedule(static,1)
+            !$omp jsph,d,r,tmpd,tmpv) schedule(dynamic)
             do isph = 1, ddx_data % params % nsph
                 ! Cycle over all external grid points
                 do igrid = 1, ddx_data % params % ngrid
@@ -300,7 +300,7 @@ subroutine lx_nodiag(params, constants, workspace, x, y)
     !! Initialize
     y = zero
     !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-    !$omp private(isph,iproc) schedule(static,1)
+    !$omp private(isph,iproc) schedule(dynamic)
     do isph = 1, params % nsph
         iproc = omp_get_thread_num() + 1
         ! Compute NEGATIVE action of off-digonal blocks

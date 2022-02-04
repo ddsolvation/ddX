@@ -1041,6 +1041,8 @@ subroutine constants_geometry_init(params, constants, info)
         constants % zi = zero
     end if
     ! Build arrays fi, ui, zi
+    !$omp parallel do default(none) shared(params,constants,swthr) &
+    !$omp private(isph,igrid,jsph,v,maxv,ssqv,vv,t) schedule(dynamic)
     do isph = 1, params % nsph
         do igrid = 1, params % ngrid
             ! Loop over neighbours of i-th sphere
@@ -1083,6 +1085,8 @@ subroutine constants_geometry_init(params, constants, info)
         info = 1
         return
     endif
+    !$omp parallel do default(none) shared(params,constants) &
+    !$omp private(isph,i) schedule(dynamic)
     do isph = 1, params % nsph
         constants % ncav_sph(isph) = 0
         ! Loop over integration points

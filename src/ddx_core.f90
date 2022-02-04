@@ -1994,7 +1994,7 @@ subroutine tree_m2l_rotation(params, constants, node_m, node_l)
     real(dp) :: c1(3), c(3), r1, r
     ! Any order of this cycle is OK
     !$omp parallel do default(none) shared(constants,params,node_m,node_l) &
-    !$omp private(i,c,r,k,c1,r1,work)
+    !$omp private(i,c,r,k,c1,r1,work) schedule(dynamic)
     do i = 1, constants % nclusters
         ! If no far admissible pairs just set output to zero
         if (constants % nfar(i) .eq. 0) then
@@ -2007,7 +2007,7 @@ subroutine tree_m2l_rotation(params, constants, node_m, node_l)
         k = constants % far(constants % sfar(i))
         c1 = constants % cnode(:, k)
         r1 = constants % rnode(k)
-        c1 = c1 - c 
+        c1 = c1 - c
         call fmm_m2l_rotation_work(c1, r1, r, params % pm, params % pl, &
             & constants % vscales, constants % m2l_ztranslate_coef, one, &
             & node_m(:, k), zero, node_l(:, i), work)
@@ -2181,6 +2181,8 @@ subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v, sph_l)
         grid_v = beta * grid_v
     end if
     ! Get data from all clusters to spheres
+    !$omp parallel do default(none) shared(params,constants,node_l,sph_l) &
+    !$omp private(isph) schedule(dynamic)
     do isph = 1, params % nsph
         sph_l(:, isph) = node_l(:, constants % snode(isph))
     end do
