@@ -5,7 +5,7 @@ Using the common interface, all three methods are accessible from a host-code th
 
 For the above methods, ddX computes the electrostatic contribution to the solvation energy, the corresponding contribution to the forces and/or the contribution to the Fock- or DFT Kohn-Sham-matrix.
 
-## Documentaton
+## Documentation
 The code is documented through the Doxygen.
 
 ## License [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
