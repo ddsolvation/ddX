@@ -2292,6 +2292,8 @@ subroutine fdouky_f0(params, constants, workspace, sol_adj, sol_sgrid, &
     DK_rijn = zero
     coefY_der = zero
     c0_d = zero
+    c0_d1 = zero
+    c0_d1_grad = zero
 
     icav = zero
     do isph = 1, params % nsph
