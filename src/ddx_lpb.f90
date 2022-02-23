@@ -646,6 +646,9 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     rhs(:,:,1) = rhs(:,:,1) + rhs(:,:,2)
     write(6,*) '@direct@intrhs', tt1 - tt0
 
+    call prtsph('direct rhs', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, rhs)
+
     ! guess
     ddcosmo_guess = zero
     hsp_guess = zero
@@ -658,6 +661,9 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
         & lpb_direct_matvec, lpb_direct_prec)
     xr = x(:,:,1)
     xe = x(:,:,2)
+
+    call prtsph('direct sol', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, x)
 
     ! check
     ! call lpb_direct_matvec_full(params, constants, workspace, x, scr)
@@ -1127,6 +1133,9 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, &
     rhs(:,:,1) = psi
     rhs(:,:,2) = zero
 
+    call prtsph('adjoint rhs', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, rhs)
+
     ! guess
     ddcosmo_guess = zero
     hsp_guess = zero
@@ -1141,6 +1150,10 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, &
     ! unpack
     xadj_r = x(:,:,1)
     xadj_e = x(:,:,2)
+
+    call prtsph('adjoint sol', constants % nbasis, params % lmax, &
+        & 2*params % nsph, 0, x)
+
 end subroutine ddx_lpb_adjoint
 
 !
