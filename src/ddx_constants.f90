@@ -635,17 +635,19 @@ subroutine build_itrnl(constants, params)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
-    integer :: isph, ij, jsph, ind
-    integer, dimension(params % nsph) :: scratch
-    allocate(constants % itrnl(constants % inl(params % nsph + 1)))
-    scratch = 0
+    integer :: isph, ij, jsph, ji, istat
+
+    allocate(constants % itrnl(constants % inl(params % nsph + 1)), stat=istat)
+    if (istat.ne.0) stop 1
+
     do isph = 1, params % nsph
-      do ij = constants % inl(isph), constants % inl(isph + 1) - 1
-        jsph = constants % nl(ij)
-        ind = constants % inl(jsph) + scratch(jsph)
-        constants % itrnl(ind) = ij
-        scratch(jsph) = scratch(jsph) + 1
-      end do
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            do ji = constants % inl(jsph), constants % inl(jsph + 1) - 1
+                if (constants % nl(ji) .eq. isph) exit
+            end do
+            constants % itrnl(ij) = ji
+        end do
     end do
 end subroutine build_itrnl
 
