@@ -13,375 +13,74 @@
 module ddx_operators
 ! Use underlying core routines
 use ddx_core
+use ddx_lpb_core
+use ddx_solvers
 implicit none
 
 contains
 
-!> Compute potential, its gradient and hessian in cavity points
-!!
-!! If ddx_data is FMM-ready then approximate output is computed by the FMM.
-!!
-!! @param[in] ddx_data: ddX object
-!! @param[in] phi_flag: 1 if need to produce output potential
-!! @param[out] phi_cav: Potential at cavity points. Referenced only if
-!!      phi_flag=1
-!! @param[in] grad_flag: 1 if need to produce gradient of potential
-!! @param[out] gradphi_cav: Potential at cavity points. Referenced only if
-!!      grad_flag=1
-!! @param[in] hessian_flag: 1 if need to produce hessian of potential
-!! @param[out] hessianphi_cav: Potential at cavity points. Referenced only if
-!!      hessian_flag=1
-subroutine mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, &
-        & hessian_flag, hessianphi_cav, psi)
-    ! Inputs
-    type(ddx_type), intent(inout) :: ddx_data
-    integer, intent(in) :: phi_flag, grad_flag, hessian_flag
-    ! Outputs
-    real(dp), intent(out) :: phi_cav(ddx_data % constants % ncav)
-    real(dp), intent(out) :: gradphi_cav(3, ddx_data % constants % ncav)
-    real(dp), intent(out) :: hessianphi_cav(3, 3, ddx_data % constants % ncav)
-    real(dp), intent(out) :: psi(ddx_data % constants % nbasis, &
-        & ddx_data % params % nsph)
-    ! Local variables
-    integer :: isph, igrid, icav, inode, inear, jnear, jnode, jsph, i
-    real(dp) :: d(3), v, tmpv, r, gradv(3), hessianv(3, 3), tmpd(3), epsp=one
-    real(dp), allocatable :: grid_grad(:,:,:), grid_hessian(:,:,:,:), &
-        & grid_hessian2(:,:,:)
-    real(dp), external :: dnrm2
-    real(dp) :: t
+!> Single layer operator matvec
+subroutine lx(params, constants, workspace, x, y)
+    implicit none
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
+    !! Temporaries
+    type(ddx_workspace_type), intent(inout) :: workspace
+    !! Output
+    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
+    !! Local variables
+    integer :: isph, jsph, ij, l, ind, iproc
 
-    if (grad_flag .eq. 1) allocate(grid_grad(ddx_data % params % ngrid, 3, &
-        & ddx_data % params % nsph))
-    if (hessian_flag .eq. 1) allocate(grid_hessian(ddx_data % params % ngrid, &
-        & 3, 3, ddx_data % params % nsph), grid_hessian2(ddx_data % params % ngrid, &
-        & 3, ddx_data % params % nsph))
-
-    ! In case FMM is disabled compute phi and gradphi at cavity points by a
-    ! naive double loop of a quadratic complexity
-    if (ddx_data % params % fmm .eq. 0) then
-        do icav = 1, ddx_data % constants % ncav
-            v = zero
-            gradv = zero
-            hessianv = zero
-            do isph = 1, ddx_data % params % nsph
-                d = ddx_data % constants % ccav(:, icav) - &
-                    & ddx_data % params % csph(:, isph)
-                r = dnrm2(3, d, 1)
-                d = d / r
-                tmpv = ddx_data % params % charge(isph) / r
-                v = v + tmpv
-                tmpv = tmpv / r
-                tmpd = tmpv * d
-                tmpv = tmpv / r
-                gradv = gradv - tmpd
-                tmpd = three / r * tmpd
-                hessianv(:, 1) = hessianv(:, 1) + tmpd*d(1)
-                hessianv(:, 2) = hessianv(:, 2) + tmpd*d(2)
-                hessianv(:, 3) = hessianv(:, 3) + tmpd*d(3)
-                hessianv(1, 1) = hessianv(1, 1) - tmpv
-                hessianv(2, 2) = hessianv(2, 2) - tmpv
-                hessianv(3, 3) = hessianv(3, 3) - tmpv
+    !! Initialize
+    y = zero
+!
+!   incore code:
+!
+    if (params % incore) then
+        !$omp parallel do default(none) shared(params,constants,x,y) &
+        !$omp private(isph,ij,jsph) schedule(dynamic)
+        do isph = 1, params % nsph
+            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+                jsph = constants % nl(ij)
+                call dgemv('n', constants % nbasis, constants % nbasis, one, &
+                    & constants % l(:,:,ij), constants % nbasis, x(:,jsph), 1, &
+                    & one, y(:,isph), 1)
             end do
-            if (phi_flag .eq. 1) then
-                phi_cav(icav) = v
-            end if
-            if (grad_flag .eq. 1) then
-                gradphi_cav(:, icav) = gradv
-            end if
-            if (hessian_flag .eq. 1) then
-                hessianphi_cav(:, :, icav) = hessianv
-            end if
         end do
-    ! Use the FMM otherwise
     else
-        ! P2M step from centers of harmonics
-        t = omp_get_wtime()
-        do isph = 1, ddx_data % params % nsph
-            inode = ddx_data % constants % snode(isph)
-            ddx_data % workspace % tmp_sph(1, isph) = &
-                & ddx_data % params % charge(isph) &
-                & / ddx_data % params % rsph(isph) / sqrt4pi
-            ddx_data % workspace % tmp_sph(2:, isph) = zero
-            ddx_data % workspace % tmp_node_m(1, inode) = &
-                & ddx_data % workspace % tmp_sph(1, isph)
-            ddx_data % workspace % tmp_node_m(2:, inode) = zero
+        !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+        !$omp private(isph,iproc) schedule(dynamic)
+        do isph = 1, params % nsph
+            iproc = omp_get_thread_num() + 1
+            ! Compute NEGATIVE action of off-digonal blocks
+            call calcv(params, constants, isph, workspace % tmp_pot(:, iproc), x, &
+                & workspace % tmp_work(:, iproc))
+            call intrhs(1, constants % nbasis, params % ngrid, &
+                & constants % vwgrid, constants % vgrid_nbasis, &
+                & workspace % tmp_pot(:, iproc), y(:, isph))
+            ! now, fix the sign.
+            y(:, isph) = - y(:, isph)
         end do
-        write(6,*) 'centers', omp_get_wtime() - t
-        ! M2M, M2L and L2L translations
-
-        t = omp_get_wtime()
-        call tree_m2m_rotation(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace % tmp_node_m)
-        write(6,*) 'm2m rotation', omp_get_wtime() - t
-
-        t = omp_get_wtime()
-        call tree_m2l_rotation(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace % tmp_node_m, ddx_data % workspace % tmp_node_l)
-        write(6,*) 'm2l rotation', omp_get_wtime() - t
-
-        t = omp_get_wtime()
-        call tree_l2l_rotation(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace % tmp_node_l)
-        write(6,*) 'l2l rotation', omp_get_wtime() - t
-
-        t = omp_get_wtime()
-        call tree_l2p(ddx_data % params, ddx_data % constants, one, &
-            & ddx_data % workspace % tmp_node_l, zero, &
-            & ddx_data % workspace % tmp_grid, ddx_data % workspace % tmp_sph_l)
-        write(6,*) 'l2p', omp_get_wtime() - t
-
-        t = omp_get_wtime()
-        call tree_m2p(ddx_data % params, ddx_data % constants, &
-            & ddx_data % params % lmax, one, ddx_data % workspace % tmp_sph, &
-            & one, ddx_data % workspace % tmp_grid)
-        write(6,*) 'm2p', omp_get_wtime() - t
-
-        ! Potential from each sphere to its own grid points
-        t = omp_get_wtime()
-        call dgemm('T', 'N', ddx_data % params % ngrid, ddx_data % params % nsph, &
-            & ddx_data % constants % nbasis, one, ddx_data % constants % vgrid2, &
-            & ddx_data % constants % vgrid_nbasis, ddx_data % workspace % tmp_sph, &
-            & ddx_data % constants % nbasis, one, ddx_data % workspace % tmp_grid, &
-            & ddx_data % params % ngrid)
-        write(6,*) 'dgemm', omp_get_wtime() - t
-
-        ! Rearrange potential from all grid points to external only
-        if (phi_flag.eq.1) then
-            icav = 0
-            do isph = 1, ddx_data % params % nsph
-                do igrid = 1, ddx_data % params % ngrid
-                    ! Do not count internal grid points
-                    if(ddx_data % constants % ui(igrid, isph) .eq. zero) cycle
-                    icav = icav + 1
-                    phi_cav(icav) = ddx_data % workspace % tmp_grid(igrid, isph)
-                end do
-            end do
-        end if
-
-        ! Now compute near-field FMM gradients and hessians
-        ! Cycle over all spheres
-        if (grad_flag.eq.1 .or. hessian_flag.eq.1) then
-            if (grad_flag.eq.1) grid_grad(:, :, :) = zero
-            if (hessian_flag.eq.1) grid_hessian(:, :, :, :) = zero
-            !$omp parallel do default(none) shared(ddx_data,grid_grad,grid_hessian, &
-            !$omp grad_flag,hessian_flag) private(isph,igrid,inode,jnear,jnode, &
-            !$omp jsph,d,r,tmpd,tmpv) schedule(dynamic)
-            do isph = 1, ddx_data % params % nsph
-                ! Cycle over all external grid points
-                do igrid = 1, ddx_data % params % ngrid
-                    if(ddx_data % constants % ui(igrid, isph) .eq. zero) cycle
-                    ! Cycle over all near-field admissible pairs of spheres,
-                    ! including pair (isph, isph) which is a self-interaction
-                    inode = ddx_data % constants % snode(isph)
-                    do jnear = ddx_data % constants % snear(inode), &
-                        & ddx_data % constants % snear(inode+1) - 1
-                        ! Near-field interactions are possible only between leaf
-                        ! nodes, which must contain only a single input sphere
-                        jnode = ddx_data % constants % near(jnear)
-                        jsph = ddx_data % constants % order( &
-                            & ddx_data % constants % cluster(1, jnode))
-                        d = ddx_data % params % csph(:, isph) + &
-                            & ddx_data % constants % cgrid(:, igrid) &
-                            & *ddx_data % params % rsph(isph) &
-                            & - ddx_data % params % csph(:, jsph)
-                        r = dnrm2(3, d, 1)
-                        d = d / r / r
-                        tmpv = ddx_data % params % charge(jsph) / r
-                        if (grad_flag.eq.1) grid_grad(igrid, :, isph) = &
-                            & grid_grad(igrid, :, isph) - tmpv * d
-                        tmpd = three * tmpv * d
-                        tmpv = tmpv / r / r
-                        if (hessian_flag.eq.1) then
-                            grid_hessian(igrid, 1, :, isph) = &
-                                & grid_hessian(igrid, 1, :, isph) + d(1)*tmpd
-                            grid_hessian(igrid, 2, :, isph) = &
-                                & grid_hessian(igrid, 2, :, isph) + d(2)*tmpd
-                            grid_hessian(igrid, 3, :, isph) = &
-                                & grid_hessian(igrid, 3, :, isph) + d(3)*tmpd
-                            grid_hessian(igrid, 1, 1, isph) = &
-                                & grid_hessian(igrid, 1, 1, isph) - tmpv
-                            grid_hessian(igrid, 2, 2, isph) = &
-                                & grid_hessian(igrid, 2, 2, isph) - tmpv
-                            grid_hessian(igrid, 3, 3, isph) = &
-                                & grid_hessian(igrid, 3, 3, isph) - tmpv
-                        end if
-                    end do
-                end do
-            end do
-        end if
-
-        ! Take into account far-field FMM gradients only if pl > 0
-        if ((ddx_data % params % pl .gt. 0) .and. (grad_flag.eq.1)) then
-            ! Get gradient of L2L
-            call tree_grad_l2l(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace % tmp_node_l, &
-                & ddx_data % workspace % tmp_sph_l_grad, &
-                & ddx_data % workspace % tmp_sph_l)
-            ! Apply L2P for every axis with -1 multiplier since grad over
-            ! target point is equal to grad over source point
-            call dgemm('T', 'N', ddx_data % params % ngrid, &
-                & 3*ddx_data % params % nsph, (ddx_data % params % pl)**2, &
-                & -one, ddx_data % constants % vgrid2, &
-                & ddx_data % constants % vgrid_nbasis, &
-                & ddx_data % workspace % tmp_sph_l_grad, &
-                & (ddx_data % params % pl+1)**2, one, grid_grad, &
-                & ddx_data % params % ngrid)
-        end if
-        ! Take into account far-field FMM hessians only if pl > 1
-        if ((ddx_data % params % pl .gt. 1) .and. (hessian_flag.eq.1)) then
-            do i = 1, 3
-                ! Load previously computed gradient into leaves, since
-                ! tree_grad_l2l currently takes local expansions of entire
-                ! tree. In future it might be changed.
-                do isph = 1, ddx_data % params % nsph
-                    inode = ddx_data % constants % snode(isph)
-                    ddx_data % workspace % tmp_node_l(:, inode) = ddx_data % &
-                        & workspace % tmp_sph_l_grad(:, i, isph)
-                end do
-                ! Get gradient of a gradient of L2L. Currently this uses input
-                ! pl maximal degree of local harmonics but in reality we need
-                ! only pl-1 maximal degree since coefficients of harmonics of a
-                ! degree pl are zeros.
-                call tree_grad_l2l(ddx_data % params, ddx_data % constants, &
-                    & ddx_data % workspace % tmp_node_l, &
-                    & ddx_data % workspace % tmp_sph_l_grad2, &
-                    & ddx_data % workspace % tmp_sph_l)
-                ! Apply L2P for every axis
-                call dgemm('T', 'N', ddx_data % params % ngrid, &
-                    & 3*ddx_data % params % nsph, (ddx_data % params % pl-1)**2, &
-                    & one, ddx_data % constants % vgrid2, &
-                    & ddx_data % constants % vgrid_nbasis, &
-                    & ddx_data % workspace % tmp_sph_l_grad2, &
-                    & (ddx_data % params % pl+1)**2, zero, grid_hessian2, &
-                    & ddx_data % params % ngrid)
-                ! Properly copy hessian
-                grid_hessian(:, i, :, :) = grid_hessian(:, i, :, :) + grid_hessian2
-            end do
-        end if
-
-        ! Copy output for external grid points only
-        icav = 0
-        do isph = 1, ddx_data % params % nsph
-            do igrid = 1, ddx_data % params % ngrid
-                if(ddx_data % constants % ui(igrid, isph) .eq. zero) cycle
-                icav = icav + 1
-                if (grad_flag .eq. 1) gradphi_cav(:, icav) = &
-                    & grid_grad(igrid, :, isph)
-                if (hessian_flag .eq. 1) hessianphi_cav(:, :, icav) = &
-                    & grid_hessian(igrid, :, :, isph)
+    end if
+!
+!   if required, add the diagonal.
+!
+    if (constants % dodiag) then 
+        do isph = 1, params % nsph
+            do l = 0, params % lmax
+                ind = l*l + l + 1
+                y(ind-l:ind+l, isph) = y(ind-l:ind+l, isph) + &
+                     x(ind-l:ind+l, isph) / (constants % vscales(ind)**2)
             end do
         end do
     end if
-
-    ! Vector psi
-    psi(2:, :) = zero
-    do isph = 1, ddx_data % params % nsph
-        psi(1, isph) = sqrt4pi * ddx_data % params % charge(isph)
-    end do
-
-    ! deallocate temporary
-    if (grad_flag .eq. 1) deallocate(grid_grad)
-    if (hessian_flag .eq. 1) deallocate(grid_hessian, grid_hessian2)
-end subroutine mkrhs
-
-!> Single layer operator matvec without diagonal blocks
-subroutine lx_nodiag(params, constants, workspace, x, y)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    !! Temporaries
-    type(ddx_workspace_type), intent(inout) :: workspace
-    !! Output
-    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    !! Local variables
-    integer :: isph, iproc
-
-    !! Initialize
-    y = zero
-    !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-    !$omp private(isph,iproc) schedule(dynamic)
-    do isph = 1, params % nsph
-        iproc = omp_get_thread_num() + 1
-        ! Compute NEGATIVE action of off-digonal blocks
-        call calcv(params, constants, isph, workspace % tmp_pot(:, iproc), x, &
-            & workspace % tmp_work(:, iproc))
-        call intrhs(1, constants % nbasis, params % ngrid, &
-            & constants % vwgrid, constants % vgrid_nbasis, &
-            & workspace % tmp_pot(:, iproc), y(:, isph))
-        ! Action of off-diagonal blocks
-        y(:, isph) = - y(:, isph)
-    end do
-end subroutine lx_nodiag
-
-!> Single layer operator matvec with diagonal blocks
-subroutine lx(params, constants, workspace, x, y)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    !! Temporaries
-    type(ddx_workspace_type), intent(inout) :: workspace
-    !! Output
-    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    !! Local variables
-    integer :: isph, l, ind, iproc
-
-    !! Initialize
-    y = zero
-    !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-    !$omp private(isph,iproc) schedule(static,1)
-    do isph = 1, params % nsph
-        iproc = omp_get_thread_num() + 1
-        ! Compute NEGATIVE action of off-digonal blocks
-        call calcv(params, constants, isph, workspace % tmp_pot(:, iproc), x, &
-            & workspace % tmp_work(:, iproc))
-        call intrhs(1, constants % nbasis, params % ngrid, &
-            & constants % vwgrid, constants % vgrid_nbasis, &
-            & workspace % tmp_pot(:, iproc), y(:, isph))
-    end do
-    do l = 0, params % lmax
-        ind = l*l + l + 1
-        y(ind-l:ind+l, :) = -y(ind-l:ind+l, :) + &
-            & x(ind-l:ind+l, :) / (constants % vscales(ind)**2)
-    end do
 end subroutine lx
 
-!> Adjoint single layer operator matvec without diagonal blocks
-subroutine lstarx_nodiag(params, constants, workspace, x, y)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    !! Temporaries
-    type(ddx_workspace_type), intent(inout) :: workspace
-    !! Output
-    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    !! Local variables
-    integer :: isph, igrid, iproc
-    y = zero
-    ! Expand x over spherical harmonics
-    !$omp parallel do default(none) shared(params,constants,workspace,x) &
-    !$omp private(isph,igrid) schedule(static,1)
-    do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-            workspace % tmp_grid(igrid, isph) = dot_product(x(:, isph), &
-                & constants % vgrid(:constants % nbasis, igrid))
-        end do
-    end do
-    ! Compute action
-    !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-    !$omp private(isph,iproc) schedule(static,1)
-    do isph = 1, params % nsph
-        iproc = omp_get_thread_num() + 1
-        call adjrhs(params, constants, isph, workspace % tmp_grid, &
-            & y(:, isph), workspace % tmp_work(:, iproc))
-        y(:, isph) = - y(:, isph)
-    end do
-end subroutine lstarx_nodiag
-
-!> Adjoint single layer operator matvec without diagonal blocks
+!> Adjoint single layer operator matvec 
 subroutine lstarx(params, constants, workspace, x, y)
+    implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -391,37 +90,59 @@ subroutine lstarx(params, constants, workspace, x, y)
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
-    integer :: isph, igrid, l, ind, iproc
+    integer :: isph, jsph, ij, indmat, igrid, l, ind, iproc
     y = zero
-    ! Expand x over spherical harmonics
-    !$omp parallel do default(none) shared(params,constants,workspace,x) &
-    !$omp private(isph,igrid) schedule(static,1)
-    do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-            workspace % tmp_grid(igrid, isph) = dot_product(x(:, isph), &
-                & constants % vgrid(:constants % nbasis, igrid))
+    if (params % incore) then
+        !$omp parallel do default(none) shared(params,constants,x,y) &
+        !$omp private(isph,ij,jsph,indmat) schedule(dynamic)
+        do isph = 1, params % nsph
+            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+                jsph = constants % nl(ij)
+                indmat = constants % itrnl(ij)
+                call dgemv('t', constants % nbasis, constants % nbasis, one, &
+                    & constants % l(:,:,indmat), constants % nbasis, x(:,jsph), 1, &
+                    & one, y(:,isph), 1)
+            end do
         end do
-    end do
-    ! Compute action
-    !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-    !$omp private(isph,iproc) schedule(static,1)
-    do isph = 1, params % nsph
-        iproc = omp_get_thread_num() + 1
-        call adjrhs(params, constants, isph, workspace % tmp_grid, &
-            & y(:, isph), workspace % tmp_work(:, iproc))
-    end do
+    else
+        ! Expand x over spherical harmonics
+        !$omp parallel do default(none) shared(params,constants,workspace,x) &
+        !$omp private(isph,igrid) schedule(dynamic)
+        do isph = 1, params % nsph
+            do igrid = 1, params % ngrid
+                workspace % tmp_grid(igrid, isph) = dot_product(x(:, isph), &
+                    & constants % vgrid(:constants % nbasis, igrid))
+            end do
+        end do
+        ! Compute (negative) action
+        !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+        !$omp private(isph,iproc) schedule(dynamic)
+        do isph = 1, params % nsph
+            iproc = omp_get_thread_num() + 1
+            call adjrhs(params, constants, isph, workspace % tmp_grid, &
+                & y(:, isph), workspace % tmp_work(:, iproc))
+    
+            ! fix the sign
+            y(:, isph) = - y(:, isph)
+        end do
+    end if
+    if (constants % dodiag) then
     ! Loop over harmonics
-    do l = 0, params % lmax
-        ind = l*l + l + 1
-        y(ind-l:ind+l, :) = -y(ind-l:ind+l, :) + &
-            & x(ind-l:ind+l, :) / (constants % vscales(ind)**2)
-    end do
+        do isph = 1, params % nsph
+            do l = 0, params % lmax
+                ind = l*l + l + 1
+                y(ind-l:ind+l, isph) = y(ind-l:ind+l, isph) + &
+                    & x(ind-l:ind+l, isph) / (constants % vscales(ind)**2)
+            end do
+        end do
+    end if
 end subroutine lstarx
 
 !> Diagonal preconditioning for Lx operator
 !!
 !! Applies inverse diagonal (block) of the L matrix
 subroutine ldm1x(params, constants, workspace, x, y)
+    implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -445,26 +166,8 @@ subroutine ldm1x(params, constants, workspace, x, y)
 end subroutine ldm1x
 
 !> Double layer operator matvec without diagonal blocks
-subroutine dx_nodiag(params, constants, workspace, x, y)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
-    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    !! Output
-    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    !! Local parameter
-    integer, parameter :: do_diag=0
-    !! Select implementation
-    if (params % fmm .eq. 0) then
-        call dx_dense(params, constants, workspace, do_diag, x, y)
-    else
-        call dx_fmm(params, constants, workspace, do_diag, x, y)
-    end if
-end subroutine dx_nodiag
-
-!> Double layer operator matvec with diagonal blocks
 subroutine dx(params, constants, workspace, x, y)
+    implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -473,7 +176,10 @@ subroutine dx(params, constants, workspace, x, y)
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local parameter
-    integer, parameter :: do_diag=1
+    integer :: do_diag
+    !! initialize do_diag
+    do_diag = 0
+    if (constants % dodiag) do_diag = 1
     !! Select implementation
     if (params % fmm .eq. 0) then
         call dx_dense(params, constants, workspace, do_diag, x, y)
@@ -484,6 +190,7 @@ end subroutine dx
 
 !> Baseline implementation of double layer operator
 subroutine dx_dense(params, constants, workspace, do_diag, x, y)
+    implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -560,6 +267,7 @@ end subroutine dx_dense
 
 !> FMM-accelerated implementation of double layer operator
 subroutine dx_fmm(params, constants, workspace, do_diag, x, y)
+    implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -619,28 +327,9 @@ subroutine dx_fmm(params, constants, workspace, do_diag, x, y)
         & params % ngrid, zero, y, constants % nbasis)
 end subroutine dx_fmm
 
-!> Adjoint double layer operator matvec without diagonal blocks
-subroutine dstarx_nodiag(params, constants, workspace, x, y)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    !! Temporaries
-    type(ddx_workspace_type), intent(inout) :: workspace
-    !! Output
-    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    !! Local variables
-    integer, parameter :: do_diag=0
-    !! Select implementation
-    if (params % fmm .eq. 0) then
-        call dstarx_dense(params, constants, workspace, do_diag, x, y)
-    else
-        call dstarx_fmm(params, constants, workspace, do_diag, x, y)
-    end if
-end subroutine dstarx_nodiag
-
-!> Adjoint double layer operator matvec with diagonal blocks
+!> Adjoint double layer operator matvec 
 subroutine dstarx(params, constants, workspace, x, y)
+    implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -650,7 +339,10 @@ subroutine dstarx(params, constants, workspace, x, y)
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
-    integer, parameter :: do_diag=1
+    integer :: do_diag
+    !! initialize do_diag
+    do_diag = 0
+    if (constants % dodiag) do_diag = 1
     !! Select implementation
     if (params % fmm .eq. 0) then
         call dstarx_dense(params, constants, workspace, do_diag, x, y)
@@ -661,6 +353,7 @@ end subroutine dstarx
 
 !> Baseline implementation of adjoint double layer operator
 subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)
+    implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -723,6 +416,7 @@ end subroutine dstarx_dense
 
 !> FMM-accelerated implementation of adjoint double layer operator
 subroutine dstarx_fmm(params, constants, workspace, do_diag, x, y)
+    implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -781,51 +475,12 @@ subroutine dstarx_fmm(params, constants, workspace, do_diag, x, y)
     end if
 end subroutine dstarx_fmm
 
-!> Apply \f$ R \f$ operator to spherical harmonics
-!!
-!! Compute \f$ y = R x = - D x \f$ with excluded diagonal influence (blocks
-!! D_ii are assumed to be zero).
-subroutine rx(params, constants, workspace, x, y)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    !! Temporaries
-    type(ddx_workspace_type), intent(inout) :: workspace
-    !! Output
-    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    !! Local variables
-    real(dp) :: fac
-    !! Output `y` is cleaned here
-    call dx_nodiag(params, constants, workspace, x, y)
-    y = -y
-end subroutine rx
-
-!> Apply \f$ R^* \f$ operator to spherical harmonics
-!!
-!! Compute \f$ y = R^* x = - D^* x \f$ with excluded diagonal influence (blocks
-!! D_ii are assumed to be zero).
-subroutine rstarx(params, constants, workspace, x, y)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    !! Temporaries
-    type(ddx_workspace_type), intent(inout) :: workspace
-    !! Output
-    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    !! Local variables
-    real(dp) :: fac
-    !! Output `y` is cleaned here
-    call dstarx_nodiag(params, constants, workspace, x, y)
-    y = -y
-end subroutine rstarx
-
 !> Apply \f$ R_\varepsilon \f$ operator to spherical harmonics
 !!
 !! Compute \f$ y = R_\varepsilon x = (2\pi(\varepsilon + 1) / (\varepsilon
 !! - 1) - D) x \f$.
 subroutine repsx(params, constants, workspace, x, y)
+    implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -838,9 +493,12 @@ subroutine repsx(params, constants, workspace, x, y)
     real(dp) :: fac
     !! Output `y` is cleaned here
     call dx(params, constants, workspace, x, y)
+    y = - y
+    if (constants % dodiag) then
     ! Apply diagonal
-    fac = twopi * (params % eps + one) / (params % eps - one)
-    y = fac*x - y
+        fac = twopi * (params % eps + one) / (params % eps - one)
+        y = fac*x + y
+    end if
 end subroutine repsx
 
 !> Apply \f$ R_\varepsilon^* \f$ operator to spherical harmonics
@@ -848,6 +506,7 @@ end subroutine repsx
 !! Compute \f$ y = R^*_\varepsilon x = (2\pi(\varepsilon + 1) / (\varepsilon
 !! - 1) - D) x \f$.
 subroutine rstarepsx(params, constants, workspace, x, y)
+    implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -860,9 +519,12 @@ subroutine rstarepsx(params, constants, workspace, x, y)
     real(dp) :: fac
     ! Output `y` is cleaned here
     call dstarx(params, constants, workspace, x, y)
+    y = - y
     ! Apply diagonal
-    fac = twopi * (params % eps + one) / (params % eps - one)
-    y = fac*x - y
+    if (constants % dodiag) then 
+        fac = twopi * (params % eps + one) / (params % eps - one)
+        y = fac*x + y
+    end if
 end subroutine rstarepsx
 
 !> Apply \f$ R_\infty \f$ operator to spherical harmonics
@@ -873,6 +535,7 @@ end subroutine rstarepsx
 !! @param[in] x:
 !! @param[out] y:
 subroutine rinfx(params, constants, workspace, x, y)
+    implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -897,6 +560,7 @@ end subroutine rinfx
 !! @param[in] x:
 !! @param[out] y:
 subroutine rstarinfx(params, constants, workspace, x, y)
+    implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -915,6 +579,7 @@ end subroutine rstarinfx
 
 !> Apply preconditioner for 
 subroutine apply_repsx_prec(params, constants, workspace, x, y)
+    implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -925,8 +590,8 @@ subroutine apply_repsx_prec(params, constants, workspace, x, y)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     integer :: isph
     ! simply do a matrix-vector product with the transposed preconditioner 
-    ! !!$omp parallel do default(shared) schedule(dynamic) &
-    ! !!$omp private(isph)
+    !$omp parallel do default(shared) schedule(static,1) &
+    !$omp private(isph)
     do isph = 1, params % nsph
         call dgemm('N', 'N', constants % nbasis, 1, constants % nbasis, one, &
             & constants % rx_prc(:, :, isph), constants % nbasis, x(:, isph), &
@@ -938,6 +603,7 @@ end subroutine apply_repsx_prec
 
 !> Apply preconditioner for 
 subroutine apply_rstarepsx_prec(params, constants, workspace, x, y)
+    implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -949,8 +615,8 @@ subroutine apply_rstarepsx_prec(params, constants, workspace, x, y)
     ! Local variables
     integer :: isph
     ! simply do a matrix-vector product with the transposed preconditioner 
-    ! !!$omp parallel do default(shared) schedule(dynamic) &
-    ! !!$omp private(isph)
+    !$omp parallel do default(shared) schedule(static,1) &
+    !$omp private(isph)
     do isph = 1, params % nsph
         call dgemm('T', 'N', constants % nbasis, 1, constants % nbasis, one, &
             & constants % rx_prc(:, :, isph), constants % nbasis, x(:, isph), &
@@ -961,6 +627,7 @@ subroutine apply_rstarepsx_prec(params, constants, workspace, x, y)
 end subroutine apply_rstarepsx_prec
 
 subroutine gradr(params, constants, workspace, g, ygrid, fx)
+    implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -979,6 +646,7 @@ subroutine gradr(params, constants, workspace, g, ygrid, fx)
 end subroutine gradr
 
 subroutine gradr_dense(params, constants, workspace, g, ygrid, fx)
+    implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1002,6 +670,7 @@ end subroutine gradr_dense
 
 subroutine gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
         & dbsloc, g, ygrid, fx)
+    implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1305,6 +974,7 @@ end subroutine gradr_sph
 
 ! Compute PCM portion of forces (2 matvecs)
 subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
+    implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1534,6 +1204,455 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
         end do
     end do
 end subroutine gradr_fmm
+!
+subroutine bstarx(params, constants, workspace, x, y)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
+    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
+    ! Local variables
+    integer :: isph, jsph, ij, indmat, igrid, iproc
+    y = zero
+    if (params % incore) then 
+        !$omp parallel do default(none) shared(params,constants,x,y) &
+        !$omp private(isph,ij,jsph,indmat) schedule(dynamic)
+        do isph = 1, params % nsph
+            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+                jsph = constants % nl(ij)
+                indmat = constants % itrnl(ij)
+                call dgemv('t', constants % nbasis, constants % nbasis, one, &
+                    & constants % b(:,:,indmat), constants % nbasis, x(:,jsph), 1, &
+                    & one, y(:,isph), 1)
+            end do
+        end do
+    else 
+        !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+        !$omp private(isph) schedule(static,1)
+        do isph = 1, params % nsph
+            call dgemv('t', constants % nbasis, params % ngrid, one, constants % vgrid, &
+                & constants % vgrid_nbasis, x(:, isph), 1, zero, &
+                & workspace % tmp_grid(:, isph), 1)
+        end do
+        !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+        !$omp private(isph,iproc) schedule(dynamic)
+        do isph = 1, params % nsph
+            iproc = omp_get_thread_num() + 1
+            call adjrhs_lpb(params, constants, workspace, isph, workspace % tmp_grid, &
+                & y(:, isph), workspace % tmp_vylm(:, iproc), workspace % tmp_vplm(:, iproc), &
+                & workspace % tmp_vcos(:, iproc), workspace % tmp_vsin(:, iproc), &
+                & workspace % tmp_bessel(:, iproc))
+            y(:,isph)  = - y(:,isph)
+        end do
+    end if
 
+    ! add the diagonal if required
+    if (constants % dodiag) y = y + x
+end subroutine bstarx
+
+!
+! Subroutine used for the GMRES solver
+! @param[in]      n : Size of the matrix
+! @param[in]      x : Input vector
+! @param[in, out] y : y=A*x
+!
+subroutine bx(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    integer :: isph, jsph, ij, iproc
+
+    y = zero
+    if (params % incore) then
+        !$omp parallel do default(none) shared(params,constants,x,y) &
+        !$omp private(isph,ij,jsph) schedule(dynamic)
+        do isph = 1, params % nsph
+            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+                jsph = constants % nl(ij)
+                call dgemv('n', constants % nbasis, constants % nbasis, one, &
+                    & constants % b(:,:,ij), constants % nbasis, x(:,jsph), 1, &
+                    & one, y(:,isph), 1)
+            end do
+        end do
+    else 
+        !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
+        !$omp private(isph,iproc) schedule(dynamic)
+        do isph = 1, params % nsph
+          iproc = omp_get_thread_num() + 1
+          call calcv2_lpb(params, constants, isph, workspace % tmp_pot(:, iproc), x, &
+              & workspace % tmp_vylm, workspace % tmp_vplm, workspace % tmp_vcos, &
+              & workspace % tmp_vsin, workspace % tmp_bessel)
+          call intrhs(1, constants % nbasis, params % ngrid, constants % vwgrid, &
+              & constants % vgrid_nbasis, workspace % tmp_pot(:, iproc), y(:,isph))
+          y(:,isph) = - y(:,isph) 
+        end do
+    end if
+    if (constants % dodiag) y = y + x
+end subroutine bx
+
+subroutine bx_prec(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    y = x
+end subroutine bx_prec
+
+subroutine lpb_adjoint_prec(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
+    real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
+    integer :: n_iter, info
+    real(dp) :: r_norm
+    real(dp), dimension(params % maxiter) :: x_rel_diff
+
+    y(:,:,1) = x(:,:,1)
+    call convert_ddcosmo(params, constants, 1, y(:,:,1))
+    n_iter = params % maxiter
+    if (params % itersolver .eq. 1) then 
+        call jacobi_diis(params, constants, workspace, constants % inner_tol, y(:,:,1), &
+            & workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, ldm1x, hnorm, info)
+    else
+        call gmresr(params, constants, workspace, constants % inner_tol, y(:,:,1), &
+            & workspace % ddcosmo_guess, n_iter, r_norm, lstarx, info)
+    end if
+    if (info.ne.0) then
+        write(*,*) 'lpb_adjoint_prec: [1] ddCOSMO failed to converge'
+        stop 1
+    end if
+    y(:,:,1) = workspace % ddcosmo_guess
+
+    n_iter = params % maxiter
+    if (params % itersolver .eq. 1) then
+        call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
+            & n_iter, x_rel_diff, bstarx, bx_prec, hnorm, info)
+    else
+        call gmresr(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
+           & n_iter, r_norm, bstarx, info)
+    end if
+    if (info.ne.0) then
+        write(*,*) 'lpb_adjoint_prec: [1] HSP failed to converge'
+        stop 1
+    end if
+    y(:,:,2) = workspace % hsp_guess
+
+end subroutine lpb_adjoint_prec
+!
+! apply preconditioner
+! |Yr| = |A^-1 0 |*|Xr|
+! |Ye|   |0 B^-1 | |Xe|
+! @param[in] ddx_data : dd Data
+! @param[in] x        : Input array
+! @param[out] y       : Linear system solution at current iteration
+subroutine lpb_direct_prec(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
+    real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
+    integer :: n_iter, info
+    real(dp) :: r_norm
+    real(dp), dimension(params % maxiter) :: x_rel_diff
+
+    ! perform A^-1 * Yr
+    n_iter = params % maxiter
+    if (params % itersolver .eq. 1) then
+        call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,1), &
+            & workspace % ddcosmo_guess, n_iter, x_rel_diff, lx, ldm1x, hnorm, info)
+    else
+        call gmresr(params, constants, workspace, constants % inner_tol, x(:,:,1), &
+            & workspace % ddcosmo_guess, n_iter, r_norm, lx, info)
+    end if
+    if (info.ne.0) then
+        write(*,*) 'lpb_direct_prec: [1] ddCOSMO failed to converge'
+        stop 1
+    end if
+
+    ! Scale by the factor of (2l+1)/4Pi
+    y(:,:,1) = workspace % ddcosmo_guess
+    call convert_ddcosmo(params, constants, 1, y(:,:,1))
+
+    ! perform B^-1 * Ye
+    n_iter = params % maxiter
+    if (params % itersolver .eq. 1) then
+        call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
+            & n_iter, x_rel_diff, bx, bx_prec, hnorm, info)
+    else
+        call gmresr(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
+         & n_iter, r_norm, bx, info)
+    end if
+    y(:,:,2) = workspace % hsp_guess
+
+    if (info.ne.0) then
+        write(*,*) 'lpb_direct_prec: [1] HSP failed to converge'
+        stop 1
+    end if
+end subroutine lpb_direct_prec
+!
+subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
+    implicit none
+    ! input/output
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
+    ! local
+    real(dp), dimension(0:constants % lmax0) :: SK_rijn, DK_rijn
+    real(dp), dimension(constants % nbasis) :: basloc, vplm
+    real(dp), dimension(params % lmax + 1) :: vcos, vsin
+    complex(dp) :: bessel_work(max(2, params % lmax+1))
+    complex(dp) :: work_complex(constants % lmax0+1)
+    real(dp) :: work(constants % lmax0+1)
+    integer :: isph, igrid, jsph, ind, l0, m0, ind0, indl, inode, l, m
+    real(dp), dimension(3) :: vij, vtij
+    real(dp) :: val, epsilon_ratio
+    real(dp), allocatable :: scratch(:,:), scratch0(:,:)
+
+    allocate(scratch(constants % nbasis, params % nsph), &
+        & scratch0(constants % nbasis0, params % nsph))
+
+    epsilon_ratio = params % epsp/params % eps
+
+    ! TODO: maybe use ddeval_grid for code consistency
+    scratch = - x(:,:,1) - x(:,:,2)
+    call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
+        & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
+        & constants % nbasis, zero, workspace % tmp_grid, params % ngrid)
+
+    scratch0 = zero
+    if (params % fmm .eq. 0) then
+        do isph = 1, params % nsph
+            do igrid = 1, params % ngrid
+                if (constants % ui(igrid, isph).gt.zero) then
+                    val = workspace % tmp_grid(igrid,isph) &
+                        & *constants % ui(igrid,isph)
+                    ! quadratically scaling loop
+                    do jsph = 1, params % nsph
+                        vij  = params % csph(:,isph) + &
+                            & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                            & params % csph(:,jsph)
+                        vtij = vij * params % kappa
+                        call fmm_m2p_bessel_adj_work(vtij, val, &
+                            & constants % SK_ri(:, jsph), constants % lmax0, &
+                            & constants % vscales, one, scratch0(:, jsph), &
+                            & work_complex, work)
+                    end do
+                end if
+            end do
+        end do
+    else
+        ! Multiply by characteristic function
+        workspace % tmp_grid = workspace % tmp_grid * constants % ui
+        workspace % tmp_sph = zero
+        ! Do FMM operations adjointly
+        call tree_m2p_bessel_adj(params, constants, constants % lmax0, &
+            & one, workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
+        call tree_l2p_bessel_adj(params, constants, one, &
+            & workspace % tmp_grid, zero, workspace % tmp_node_l)
+        call tree_l2l_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_l)
+        call tree_m2l_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_l, workspace % tmp_node_m)
+        call tree_m2m_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_m)
+        ! Adjointly move tree multipole harmonics into output
+        if(constants % lmax0 .lt. params % pm) then
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                scratch0(:, isph) = workspace % tmp_sph(1:constants % nbasis0, isph) + &
+                    & workspace % tmp_node_m(1:constants % nbasis0, inode)
+            end do
+        else
+            indl = (params % pm+1)**2
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                scratch0(1:indl, isph) = &
+                    & workspace % tmp_sph(1:indl, isph) + &
+                    & workspace % tmp_node_m(:, inode)
+                scratch0(indl+1:, isph) = zero
+            end do
+        end if
+    end if
+    ! Scale by C_ik
+    do isph = 1, params % nsph
+        do l0 = 0, constants % lmax0
+            ind0 = l0*l0 + l0 + 1
+            scratch0(ind0-l0:ind0+l0, isph) = scratch0(ind0-l0:ind0+l0, isph) * &
+                & constants % C_ik(l0, isph)
+        end do
+    end do
+
+    do jsph = 1, params % nsph
+        call dgemv('n', constants % nbasis, constants % nbasis0, one, &
+            & constants % pchi(1,1,jsph), constants % nbasis, &
+            & scratch0(1,jsph), 1, zero, scratch(1,jsph), 1)
+    end do
+
+    do isph = 1, params % nsph
+        do l = 0, params % lmax
+            do m = -l, l
+                ind = l**2 + l + m + 1
+                y(ind,isph,1) = - (epsilon_ratio*l*scratch(ind,isph)) &
+                    & /params % rsph(isph)
+                y(ind,isph,2) = constants % termimat(l,isph)*scratch(ind,isph)
+          end do
+        end do
+    end do
+
+end subroutine lpb_adjoint_matvec
+!
+! Perform |Yr| = |C1 C2|*|Xr|
+!         |Ye|   |C1 C2| |Xe|
+! @param[in] ddx_data : dd Data
+! @param[in] x        : Input array X (Xr, Xe)
+! @param[out] y       : Matrix-vector product result Y
+subroutine lpb_direct_matvec(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
+
+    integer :: isph, jsph, igrid, ind, l, m, ind0
+    real(dp), dimension(3) :: sijn ,vij, vtij
+    real(dp) :: term, rho, ctheta, stheta, cphi, sphi, rijn, val
+    real(dp), dimension(constants % nbasis) :: basloc, vplm
+    real(dp), dimension(params % lmax + 1) :: vcos, vsin
+    real(dp), dimension(constants % lmax0 + 1) :: SK_rijn, DK_rijn
+    complex(dp) :: work_complex(constants % lmax0 + 1)
+    real(dp) :: work(constants % lmax0 + 1)
+    integer :: indl, inode
+
+    real(dp), allocatable :: diff_re(:,:), diff0(:,:)
+    allocate(diff_re(constants % nbasis, params % nsph), &
+        & diff0(constants % nbasis0, params % nsph))
+
+    ! diff_re = params % epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
+    diff_re = zero
+    !$omp parallel do default(none) shared(params,diff_re, &
+    !$omp constants,x) private(jsph,l,m,ind)
+    do jsph = 1, params % nsph
+      do l = 0, params % lmax
+        do m = -l,l
+          ind = l**2 + l + m + 1
+          diff_re(ind,jsph) = (params % epsp/params % eps)* &
+              & (l/params % rsph(jsph))*x(ind,jsph,1) &
+              & - constants % termimat(l,jsph)*x(ind,jsph,2)
+        end do
+      end do
+    end do
+
+    ! diff0 = Pchi * diff_er, linear scaling
+    !$omp parallel do default(none) shared(constants,params, &
+    !$omp diff_re,diff0) private(jsph)
+    do jsph = 1, params % nsph
+      call dgemv('t', constants % nbasis, constants % nbasis0, one, &
+          & constants % pchi(1,1,jsph), constants % nbasis, &
+          & diff_re(1,jsph), 1, zero, diff0(1,jsph), 1)
+    end do
+
+    ! Multiply diff0 by C_ik inplace
+    do isph = 1, params % nsph
+        do l = 0, constants % lmax0
+            ind0 = l*l+l+1
+            diff0(ind0-l:ind0+l, isph) = diff0(ind0-l:ind0+l, isph) * &
+                & constants % C_ik(l, isph)
+        end do
+    end do
+    ! avoiding N^2 storage, this code does not use the cached coefY
+    y(:,:,1) = zero
+    if (params % fmm .eq. 0) then
+        !$omp parallel do default(none) shared(params,constants, &
+        !$omp diff0,y) private(isph,igrid,val,vij,rijn,sijn,SK_rijn, &
+        !$omp DK_rijn,work,rho,ctheta,stheta,cphi,sphi,basloc,vplm, &
+        !$omp vcos,vsin,term,ind0,ind,vtij,work_complex)
+        do isph = 1, params % nsph
+            do igrid = 1, params % ngrid
+                if (constants % ui(igrid,isph).gt.zero) then
+                    val = zero
+
+                    ! quadratically scaling loop
+                    do jsph = 1, params % nsph
+                        vij  = params % csph(:,isph) + &
+                            & params % rsph(isph)*constants % cgrid(:,igrid) - &
+                            & params % csph(:,jsph)
+                        vtij = vij * params % kappa
+                        call fmm_m2p_bessel_work(vtij, constants % lmax0, &
+                            & constants % vscales, constants % SK_ri(:, jsph), &
+                            & one, diff0(:, jsph), one, val, work_complex, work)
+                    end do
+                    do ind = 1, constants % nbasis
+                        y(ind,isph,1) = y(ind,isph,1) + val*&
+                          & constants % ui(igrid,isph)*&
+                          & constants % vwgrid(ind,igrid)
+                    end do
+                end if
+            end do
+        end do
+    else
+        ! Load input harmonics into tree data
+        workspace % tmp_node_m = zero
+        workspace % tmp_node_l = zero
+        workspace % tmp_sph = zero
+        do isph = 1, params % nsph
+            do l = 0, constants % lmax0
+                ind0 = l*l+l+1
+                workspace % tmp_sph(ind0-l:ind0+l, isph) = &
+                    & diff0(ind0-l:ind0+l, isph)
+            end do
+        end do
+        if(constants % lmax0 .lt. params % pm) then
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                workspace % tmp_node_m(1:constants % nbasis0, inode) = &
+                    & workspace % tmp_sph(1:constants % nbasis0, isph)
+                workspace % tmp_node_m(constants % nbasis0+1:, inode) = zero
+            end do
+        else
+            indl = (params % pm+1)**2
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                workspace % tmp_node_m(:, inode) = workspace % tmp_sph(1:indl, isph)
+            end do
+        end if
+        ! Do FMM operations
+        call tree_m2m_bessel_rotation(params, constants, workspace % tmp_node_m)
+        call tree_m2l_bessel_rotation(params, constants, workspace % tmp_node_m, &
+            & workspace % tmp_node_l)
+        call tree_l2l_bessel_rotation(params, constants, workspace % tmp_node_l)
+        workspace % tmp_grid = zero
+        call tree_l2p_bessel(params, constants, one, workspace % tmp_node_l, zero, &
+            & workspace % tmp_grid)
+        call tree_m2p_bessel(params, constants, constants % lmax0, one, &
+            & params % lmax, workspace % tmp_sph, one, &
+            & workspace % tmp_grid)
+
+        do isph = 1, params % nsph
+            do igrid = 1, params % ngrid
+                do ind = 1, constants % nbasis
+                    y(ind,isph,1) = y(ind,isph,1) + workspace % tmp_grid(igrid, isph)*&
+                        & constants % vwgrid(ind, igrid)*&
+                        & constants % ui(igrid,isph)
+                end do
+            end do
+        end do
+    end if
+
+    y(:,:,2) = y(:,:,1)
+    deallocate(diff_re, diff0)
+
+end subroutine lpb_direct_matvec
 end module ddx_operators
 

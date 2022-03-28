@@ -150,9 +150,14 @@ subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, &
     end if
     ! Solve ddCOSMO system L X = -Phi with a given initial guess
     start_time = omp_get_wtime()
-    call jacobi_diis(params, constants, workspace, tol, &
-        & workspace % tmp_rhs, xs, xs_niter, xs_rel_diff, lx_nodiag, &
-        & ldm1x, hnorm, info)
+    if (params % itersolver .eq. 1) then
+        call jacobi_diis(params, constants, workspace, tol, &
+            & workspace % tmp_rhs, xs, xs_niter, xs_rel_diff, lx, &
+            & ldm1x, hnorm, info)
+    else 
+        call gmresr(params, constants, workspace, tol, &
+            & workspace % tmp_rhs, xs, xs_niter, r_norm, lx, info)
+    end if
     finish_time = omp_get_wtime()
     xs_time = finish_time - start_time
     ! Check if solver did not converge
@@ -221,13 +226,13 @@ subroutine ddcosmo_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
         s = zero
     end if
     call cpu_time(start_time)
-    !if (params % itersolver .eq. 1) then
+    if (params % itersolver .eq. 1) then
         call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
-            & s_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
-    !else
-    !    call gmresr(params, constants, workspace, tol, &
-    !        & psi, s, s_niter, r_norm, lstarx, info)
-    !end if
+            & s_rel_diff, lstarx, ldm1x, hnorm, info)
+    else
+        call gmresr(params, constants, workspace, tol, &
+            & psi, s, s_niter, r_norm, lstarx, info)
+    end if
     call cpu_time(finish_time)
     s_time = finish_time - start_time
     ! Check if solver did not converge
