@@ -546,8 +546,13 @@ subroutine rinfx(params, constants, workspace, x, y)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
     real(dp) :: fac
-    ! Output `y` is cleaned here
-    call dx(params, constants, workspace, x, y)
+    !! note do_diag hardcoded to 1.
+    !! Select implementation
+    if (params % fmm .eq. 0) then
+        call dx_dense(params, constants, workspace, 1, x, y)
+    else
+        call dx_fmm(params, constants, workspace, 1, x, y)
+    end if
     ! Apply diagonal
     y = twopi*x - y
 end subroutine rinfx

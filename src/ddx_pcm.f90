@@ -150,6 +150,7 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
         & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
         & one, workspace % tmp_grid, zero, phi)
     ! Compute Phi_infty
+    ! force dx called from rinfx to add the diagonal
     call rinfx(params, constants, workspace, phi, phiinf)
     ! Select initial guess for the ddPCM system
     select case (phieps_mode)
