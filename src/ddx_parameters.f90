@@ -188,8 +188,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     !
     ! If this value is -1 then no far-field FMM interactions are performed.
     integer, intent(in) :: pl
-    ! Number of OpenMP threads to be used. Currently, only nproc=1 is
-    !      supported as the ddX is sequential right now.
+    ! Number of OpenMP threads to be used. 
     integer, intent(in) :: nproc
     ! Number of atoms in the molecule.
     integer, intent(in) :: nsph
@@ -246,7 +245,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     end if
     params % kappa = kappa
     ! Regularization parameter
-    if ((eta .lt. zero) .or. (eta .gt. one)) then
+    if ((eta .le. zero) .or. (eta .gt. one)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `eta`"
         call print_func(params % error_message)
@@ -383,7 +382,13 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     end if
     ! Number of OpenMP threads to be used
     ! available.
-    if (nproc .le. 0) then
+    if (nproc .lt. 0) then
+        params % error_flag = 1
+        params % error_message = "params_init: invalid value of `nproc`"
+        call print_func(params % error_message)
+        info = -1
+        return
+    else if (nproc .eq. 0) then
         params % nproc = 1
     else
         params % nproc = nproc
@@ -553,7 +558,7 @@ subroutine error(code, message)
     integer, intent(in) :: code
     character(len=*), intent(in) :: message
     write(0, "(A,A)") "ERROR: ", message
-    write(0, "(A,A)") "CODE: ", code
+    write(0, "(A,I2)") "CODE:  ", code
     stop -1
 end subroutine
 

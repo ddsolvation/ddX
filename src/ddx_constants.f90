@@ -300,7 +300,7 @@ subroutine constants_init(params, constants, info)
             constants % dmax = max(params % pm+params % pl, &
                 & params % lmax+1)
             constants % m2p_lmax = params % lmax + 1
-            constants % grad_nbasis = (min(params % lmax, 6) + 2)**2
+            constants % grad_nbasis = (params % lmax+2) ** 2
         else
             constants % dmax = max(params % pm+params % pl, &
                 & params % lmax)

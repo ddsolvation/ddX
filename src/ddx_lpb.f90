@@ -793,7 +793,7 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
         if(constants % lmax0 .lt. params % pm) then
             do isph = 1, params % nsph
                 inode = constants % snode(isph)
-                scratch0(:, isph) = workspace % tmp_sph(:, isph) + &
+                scratch0(:, isph) = workspace % tmp_sph(1:constants % nbasis0, isph) + &
                     & workspace % tmp_node_m(1:constants % nbasis0, inode)
             end do
         else
@@ -2732,7 +2732,8 @@ subroutine derivative_P(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
         if(constants % lmax0 .lt. params % pm) then
             do isph = 1, params % nsph
                 inode = constants % snode(isph)
-                workspace % tmp_sph(:, isph) = workspace % tmp_sph(:, isph) + &
+                workspace % tmp_sph(1:constants % nbasis0, isph) = &
+                    & workspace % tmp_sph(1:constants % nbasis0, isph) + &
                     & workspace % tmp_node_m(1:constants % nbasis0, inode)
             end do
         else
@@ -2779,7 +2780,8 @@ subroutine derivative_P(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
         if(constants % lmax0 .lt. params % pm) then
             do isph = 1, params % nsph
                 inode = constants % snode(isph)
-                workspace % tmp_sph(:, isph) = workspace % tmp_sph(:, isph) + &
+                workspace % tmp_sph(1:constants % nbasis0, isph) = &
+                    & workspace % tmp_sph(1:constants % nbasis0, isph) + &
                     & workspace % tmp_node_m(1:constants % nbasis0, inode)
             end do
         else
@@ -2968,7 +2970,8 @@ subroutine fdoco(params, constants, workspace, sol_sgrid, gradpsi, &
         if(constants % lmax0 .lt. params % pm) then
             do isph = 1, params % nsph
                 inode = constants % snode(isph)
-                workspace % tmp_sph(:, isph) = workspace % tmp_sph(:, isph) + &
+                workspace % tmp_sph(1:constants % nbasis0, isph) = &
+                    & workspace % tmp_sph(1:constants % nbasis0, isph) + &
                     & workspace % tmp_node_m(1:constants % nbasis0, inode)
             end do
         else

@@ -916,7 +916,7 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
-    if (info .eq. 0) call error(-1, "`nproc` test failed in " // &
+    if (info .ne. 0) call error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
