@@ -84,6 +84,8 @@ type ddx_params_type
     real(dp), allocatable :: csph(:, :)
     !> Array of radii of atoms of a dimension (nsph).
     real(dp), allocatable :: rsph(:)
+    !> Dielectric permittivity of the cavity (used by ddLPB), hardcoded to one
+    real(dp) :: epsp = 1.0_dp
     !> Error state. 0 in case of no error or 1 if there were errors and 2 if
     !! the object is not initialised.
     integer :: error_flag = 2

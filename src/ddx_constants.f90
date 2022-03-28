@@ -236,6 +236,8 @@ type ddx_constants_type
     !!      computation of forces (gradients). Allocated and used only if
     !!      fmm=1.
     integer :: grad_nbasis
+    !> Inner tolerance for microiterations done when using ddLPB
+    real(dp) :: inner_tol
     !> Flag if there were an error
     integer :: error_flag = 2
     !> Last error message

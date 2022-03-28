@@ -17,11 +17,6 @@ implicit none
 !!
 !! Logical variables for iterations
 !!
-!! first_outer_iter : Logical variable to check if the first outer iteration has been
-!!                    performed
-!! epsp             : Dielectric permittivity of the ?
-real(dp),  parameter :: epsp = 1.0d0
-!!
 !! Local variables and their definitions that will be used throughout this file
 !! isph    : Index for the sphere i
 !! jsph    : Index for the sphere j
@@ -52,8 +47,6 @@ real(dp),  parameter :: epsp = 1.0d0
 !! i       : Index for dimension x,y,z
 
 real(dp) :: t0, t1, tt0, tt1
-real(dp) :: inner_tol
-real(dp), allocatable :: ddcosmo_guess(:,:), hsp_guess(:,:)
 
 contains
 
@@ -83,19 +76,17 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
     ! internal
     integer, intent(out) :: info
     integer :: isph, igrid, istatus
-    !!
-    !! Xr         : Reaction potential solution (Laplace equation)
-    !! Xe         : Extended potential solution (HSP equation)
-    !!
-    real(dp), allocatable ::   Xr(:,:), Xe(:,:), Xadj_r(:,:), Xadj_e(:,:)
-    !! phi_grid: Phi evaluated at grid points
+    !
+    ! x(:,:,1): X_r Reaction potential solution (Laplace equation)
+    ! x(:,:,2): X_e Extended potential solution (HSP equation)
+    !
+    real(dp), allocatable :: x(:,:,:), x_adj(:,:,:)
+    ! phi_grid: Phi evaluated at grid points
     real(dp), allocatable :: g(:,:), f(:,:), phi_grid(:, :)
 
-    allocate(Xr(ddx_data % constants % nbasis, ddx_data % params % nsph),&
-        & Xe(ddx_data % constants % nbasis, ddx_data % params % nsph), &
-        & Xadj_r(ddx_data % constants % nbasis, ddx_data % params % nsph),&
-        & Xadj_e(ddx_data % constants % nbasis, ddx_data % params % nsph), &
-        & g(ddx_data % params % ngrid, ddx_data % params % nsph),&
+    allocate(x(ddx_data % constants % nbasis, ddx_data % params % nsph, 2), &
+        & x_adj(ddx_data % constants % nbasis, ddx_data % params % nsph, 2), &
+        & g(ddx_data % params % ngrid, ddx_data % params % nsph), &
         & f(ddx_data % params % ngrid, ddx_data % params % nsph), &
         & phi_grid(ddx_data % params % ngrid, ddx_data % params % nsph), &
         & stat = istatus)
@@ -121,11 +112,6 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
     t1 = omp_get_wtime()
     write(6,*) '@wghpot', t1 - t0
 
-    ! init scratch arrays for inner solvers
-    allocate(ddcosmo_guess(ddx_data % constants % nbasis, &
-        & ddx_data % params % nsph), hsp_guess(ddx_data % constants % nbasis, &
-        & ddx_data % params % nsph))
-
     ! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
     t0 = omp_get_wtime()
     call wghpot_f(ddx_data % params, ddx_data % constants, &
@@ -133,12 +119,13 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
     t1 = omp_get_wtime()
     write(6,*) '@wghpot_f', t1 - t0
 
-    inner_tol = tol/100.0d0
+    ! use a tighter tolerance for microiterations
+    ddx_data % constants % inner_tol =  tol/100.0d0
 
     ! Call the subroutine to solve for Esolv
     t0 = omp_get_wtime()
     call ddx_lpb_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, g, f, Xr, Xe, tol, esolv)
+        & ddx_data % workspace, g, f, x, tol, esolv)
     t1 = omp_get_wtime()
     write(6,*) '@direct_ls', t1 - t0
 
@@ -148,21 +135,21 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
       ! Call the subroutine adjoint to solve the adjoint solution
       t0 = omp_get_wtime()
       call ddx_lpb_adjoint(ddx_data % params, ddx_data % constants, &
-          & ddx_data % workspace, psi, tol, Xadj_r, Xadj_e)
+          & ddx_data % workspace, psi, tol, x_adj)
       t1 = omp_get_wtime()
 
       !Call the subroutine to evaluate derivatives
       t0 = omp_get_wtime()
       call ddx_lpb_force(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, hessianphi_cav, phi_grid, gradphi_cav, &
-          & Xr, Xe, Xadj_r, Xadj_e, ddx_data % zeta, force)
+          & x, x_adj, ddx_data % zeta, force)
       t1 = omp_get_wtime()
       write(6,*) '@forces', t1 - t0
 
     endif
 
-    deallocate(Xr, Xe, Xadj_r, Xadj_e, g, f, phi_grid, ddcosmo_guess, &
-        & hsp_guess, stat = istatus)
+    deallocate(x, x_adj, g, f, phi_grid, stat = istatus)
+    if (istatus.ne.0) write(6,*) 'ddlpb deallocation failed'
 
 end subroutine ddlpb
 
@@ -244,7 +231,7 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
                     ! Here Intermediate value of F_0 is computed Eq. (99)
                     ! Mutilplication with Y_lm and weights will happen afterwards
                     !write(6,*) sumSijn, epsp, eps, ddx_data % constants % ui(ig,isph)
-                    f(ig,isph) = -(epsp/params % eps)*constants % ui(ig,isph) * sumSijn
+                    f(ig,isph) = -(params % epsp/params % eps)*constants % ui(ig,isph) * sumSijn
                 end if
             end do
         end do
@@ -278,7 +265,7 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
         call tree_m2p_bessel(params, constants, constants % lmax0, one, &
             & params % lmax, workspace % tmp_sph, one, &
             & workspace % tmp_grid)
-        f = -(epsp/params % eps) * constants % ui * workspace % tmp_grid
+        f = -(params % epsp/params % eps) * constants % ui * workspace % tmp_grid
     end if
 
     deallocate(SK_rijn, DK_rijn, c0, c1)
@@ -610,23 +597,21 @@ end subroutine convert_ddcosmo
 ! @param[in]  ddx_data   : Input data file
 ! @param[in]  g          : Intermediate matrix for computation of g0
 ! @param[in]  f          : Intermediate matrix for computation of f0
-! @param[out] Xr         : Solution corresponding to COSMO
-! @param[out] Xe         : Solution corresponding to HSP
+! @param[out] x          : Solution
 ! @param[out] esolv      : Solvation energy
 subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
-    & Xr, Xe, tol, esolv)
+    & x, tol, esolv)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: g, f
-    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: Xr, Xe
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: x
     real(dp), intent(in) :: tol
     real(dp), intent(out) :: esolv
     integer  :: n_iter, isph, istat, info
-    real(dp), allocatable :: rhs(:,:,:), x(:,:,:), scr(:,:,:)
+    real(dp), allocatable :: rhs(:,:,:)
 
-    allocate(rhs(constants % nbasis, params % nsph, 2), &
-        & x(constants % nbasis, params % nsph, 2), stat=istat)
+    allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
     if (istat.ne.0) stop 1
 
     ! Setting of the local variables
@@ -644,36 +629,28 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     rhs(:,:,1) = rhs(:,:,1) + rhs(:,:,2)
     write(6,*) '@direct@intrhs', tt1 - tt0
 
-    call prtsph('direct rhs', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, rhs)
+    ! call prtsph('direct rhs', constants % nbasis, params % lmax, &
+    !    & 2*params % nsph, 0, rhs)
 
     ! guess
-    ddcosmo_guess = zero
-    hsp_guess = zero
+    workspace % ddcosmo_guess = zero
+    workspace % hsp_guess = zero
     call lpb_direct_prec(params, constants, workspace, rhs, x)
 
     ! solve LS using Jacobi/DIIS
     n_iter = params % maxiter
     call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
         & tol, rhs, x, n_iter, lpb_direct_matvec, lpb_direct_prec, rmsnorm, info)
-    xr = x(:,:,1)
-    xe = x(:,:,2)
 
-    call prtsph('direct sol', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, x)
-
-    ! check
-    ! call lpb_direct_matvec_full(params, constants, workspace, x, scr)
-    ! call prtsph('matvec', constants % nbasis, params % lmax, &
-    !     & 2*params % nsph, 0, scr)
-    ! call prtsph('rhs', constants % nbasis, params % lmax, &
-    !     & 2*params % nsph, 0, rhs)
+    ! call prtsph('direct sol', constants % nbasis, params % lmax, &
+    !    & 2*params % nsph, 0, x)
 
     esolv = zero
     do isph = 1, params % nsph
-      esolv = esolv + pt5*params % charge(isph)*Xr(1,isph)*(one/sqrt4pi)
+      esolv = esolv + pt5*params % charge(isph)*x(1,isph,1)*(one/sqrt4pi)
     end do
-    deallocate(rhs, x)
+    deallocate(rhs)
+    if (istat.ne.0) stop 1
 end subroutine ddx_lpb_solve
 
 ! This routine is not needed when using a Jacobi/DIIS solver for the
@@ -738,7 +715,7 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
     allocate(scratch(constants % nbasis, params % nsph), &
         & scratch0(constants % nbasis0, params % nsph))
 
-    epsilon_ratio = epsp/params % eps
+    epsilon_ratio = params % epsp/params % eps
 
     tt0 = omp_get_wtime()
     ! TODO: maybe use ddeval_grid for code consistency
@@ -867,7 +844,7 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
     allocate(diff_re(constants % nbasis, params % nsph), &
         & diff0(constants % nbasis0, params % nsph))
 
-    ! diff_re = epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
+    ! diff_re = params % epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
     tt0 = omp_get_wtime()
     diff_re = zero
     !$omp parallel do default(none) shared(params,diff_re, &
@@ -876,7 +853,7 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
       do l = 0, params % lmax
         do m = -l,l
           ind = l**2 + l + m + 1
-          diff_re(ind,jsph) = (epsp/params % eps)* &
+          diff_re(ind,jsph) = (params % epsp/params % eps)* &
               & (l/params % rsph(jsph))*x(ind,jsph,1) &
               & - constants % termimat(l,jsph)*x(ind,jsph,2)
         end do
@@ -1007,38 +984,38 @@ subroutine lpb_adjoint_prec(params, constants, workspace, x, y)
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
     n_iter = params % maxiter
     if (params % incore) then
-        call jacobi_diis(params, constants, workspace, inner_tol, y(:,:,1), &
-            & ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag_incore, ldm1x, hnorm, info)
+        call jacobi_diis(params, constants, workspace, constants % inner_tol, y(:,:,1), &
+            & workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag_incore, ldm1x, hnorm, info)
     else
-        call jacobi_diis(params, constants, workspace, inner_tol, y(:,:,1), &
-            & ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
+        call jacobi_diis(params, constants, workspace, constants % inner_tol, y(:,:,1), &
+            & workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
     end if
     if (info.ne.0) then
         write(*,*) 'lpb_adjoint_prec: [1] ddCOSMO failed to converge'
         stop 1
     end if
-    y(:,:,1) = ddcosmo_guess
+    y(:,:,1) = workspace % ddcosmo_guess
     tt1 = omp_get_wtime()
     write(6,*) '@adjoint@cosmo', tt1 - tt0, n_iter
 
     tt0 = omp_get_wtime()
     n_iter = params % maxiter
     if (params % incore) then
-        ! call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        ! call gmresr(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
         !     & n_iter, r_norm, bstarx_incore, info)
-        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
             & n_iter, x_rel_diff, bstarx_nodiag_incore, bx_prec, hnorm, info)
     else
-        ! call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        ! call gmresr(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
         !    & n_iter, r_norm, bstarx, info)
-        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
             & n_iter, x_rel_diff, bstarx_nodiag, bx_prec, hnorm, info)
     end if
     if (info.ne.0) then
         write(*,*) 'lpb_adjoint_prec: [1] HSP failed to converge'
         stop 1
     end if
-    y(:,:,2) = hsp_guess
+    y(:,:,2) = workspace % hsp_guess
     tt1 = omp_get_wtime()
     write(6,*) '@adjoint@hsp', tt1 - tt0, n_iter
 
@@ -1065,11 +1042,11 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     tt0 = omp_get_wtime()
     n_iter = params % maxiter
     if (params % incore) then
-        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), &
-            & ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag_incore, ldm1x, hnorm, info)
+        call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,1), &
+            & workspace % ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag_incore, ldm1x, hnorm, info)
     else
-        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,1), &
-            & ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
+        call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,1), &
+            & workspace % ddcosmo_guess, n_iter, x_rel_diff, lx_nodiag, ldm1x, hnorm, info)
     end if
     if (info.ne.0) then
         write(*,*) 'lpb_direct_prec: [1] ddCOSMO failed to converge'
@@ -1077,7 +1054,7 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     end if
 
     ! Scale by the factor of (2l+1)/4Pi
-    y(:,:,1) = ddcosmo_guess
+    y(:,:,1) = workspace % ddcosmo_guess
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
     tt1 = omp_get_wtime()
     write(6,*) '@direct@cosmo', tt1 - tt0, n_iter
@@ -1086,17 +1063,17 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     tt0 = omp_get_wtime()
     n_iter = params % maxiter
     if (params % incore) then
-        ! call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        ! call gmresr(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
         !    & n_iter, r_norm, bx_incore, info)
-        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
             & n_iter, x_rel_diff, bx_nodiag_incore, bx_prec, hnorm, info)
     else
-        ! call gmresr(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        ! call gmresr(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
         !  & n_iter, r_norm, bx, info)
-        call jacobi_diis(params, constants, workspace, inner_tol, x(:,:,2), hsp_guess, &
+        call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
             & n_iter, x_rel_diff, bx_nodiag, bx_prec, hnorm, info)
     end if
-    y(:,:,2) = hsp_guess
+    y(:,:,2) = workspace % hsp_guess
     tt1 = omp_get_wtime()
     write(6,*) '@direct@hsp', tt1 - tt0, n_iter
 
@@ -1111,43 +1088,43 @@ end subroutine lpb_direct_prec
 ! Computation of Adjoint
 ! @param[in] ddx_data: Input data file
 ! @param[in] psi     : psi_r
-subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, &
-    & Xadj_e)
+subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, x_adj)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: psi
     real(dp), intent(in) :: tol
     type(ddx_workspace_type), intent(inout) :: workspace
-    real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: &
-        & Xadj_r, Xadj_e
-    real(dp), dimension(constants % nbasis, params % nsph, 2) :: x, rhs, scr
-    integer :: n_iter, info
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: x_adj
+    real(dp), allocatable :: rhs(:,:,:)
+    integer :: n_iter, info, istat
     real(dp), dimension(params % maxiter) :: x_rel_diff
+
+    allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
+    if (istat.ne.0) stop 1
 
     ! set up the RHS
     rhs(:,:,1) = psi
     rhs(:,:,2) = zero
 
-    call prtsph('adjoint rhs', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, rhs)
+    ! call prtsph('adjoint rhs', constants % nbasis, params % lmax, &
+    !    & 2*params % nsph, 0, rhs)
 
     ! guess
-    ddcosmo_guess = zero
-    hsp_guess = zero
-    call lpb_adjoint_prec(params, constants, workspace, rhs, x)
+    workspace % ddcosmo_guess = zero
+    workspace % hsp_guess = zero
+    call lpb_adjoint_prec(params, constants, workspace, rhs, x_adj)
 
     ! solve adjoint LS using Jacobi/DIIS
     n_iter = params % maxiter
     call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
-        & tol, rhs, x, n_iter, lpb_adjoint_matvec, lpb_adjoint_prec, rmsnorm, info)
+        & tol, rhs, x_adj, n_iter, lpb_adjoint_matvec, lpb_adjoint_prec, rmsnorm, info)
 
-    ! unpack
-    xadj_r = x(:,:,1)
-    xadj_e = x(:,:,2)
+    ! call prtsph('adjoint sol', constants % nbasis, params % lmax, &
+    !    & 2*params % nsph, 0, x_adj)
 
-    call prtsph('adjoint sol', constants % nbasis, params % lmax, &
-        & 2*params % nsph, 0, x)
+    deallocate(rhs)
+    if (istat.ne.0) stop 1
 
 end subroutine ddx_lpb_adjoint
 
@@ -1163,7 +1140,7 @@ end subroutine ddx_lpb_adjoint
 ! @param[in]  Xadj_e     : Solution corresponding to adjoint of the HSP
 ! @param[out] force      : Force
 subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradphi, &
-        & Xr, Xe, Xadj_r, Xadj_e, zeta, force)
+        & x, x_adj, zeta, force)
     !! input/output
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1172,8 +1149,7 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
     real(dp), dimension(3, 3, constants % ncav), intent(in) :: hessian
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: phi_grid
     real(dp), dimension(3, constants % ncav), intent(in)    :: gradphi
-    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xr, &
-        & Xe, Xadj_r, Xadj_e
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x, x_adj
     real(dp), dimension(3, params % nsph), intent(out) :: force
     real(dp), intent(out) :: zeta(constants % ncav)
 
@@ -1228,15 +1204,15 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
     ! Call dgemm to integrate the adjoint solution on the grid points
     tt0 = omp_get_wtime()
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, Xadj_r, &
+        & one, constants % vgrid, constants % vgrid_nbasis, x_adj(:,:,1), &
         & constants % nbasis, zero, Xadj_r_sgrid, params % ngrid)
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, Xadj_e, &
+        & one, constants % vgrid, constants % vgrid_nbasis, x_adj(:,:,2), &
         & constants % nbasis, zero, Xadj_e_sgrid, params % ngrid)
     write(6,*) '@forces@xi', omp_get_wtime() - tt0
 
     ! Scale by the factor of 1/(4Pi/(2l+1))
-    scaled_Xr = Xr
+    scaled_Xr = x(:,:,1)
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
     tfdoka = zero
@@ -1258,12 +1234,12 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
         tfdokb = tfdokb + omp_get_wtime() - tt1
         ! Compute B^k*Xadj_e
         tt1 = omp_get_wtime()
-        call fdoka_b_xe(params, constants, workspace, isph, Xe, &
+        call fdoka_b_xe(params, constants, workspace, isph, x(:,:,2), &
             & Xadj_e_sgrid(:, isph), basloc, dbasloc, vplm, vcos, vsin, &
             & force(:,isph))
         tfdoka_xe = tfdoka_xe + omp_get_wtime() - tt1
         tt1 = omp_get_wtime()
-        call fdokb_b_xe(params, constants, workspace, isph, Xe, Xadj_e_sgrid, &
+        call fdokb_b_xe(params, constants, workspace, isph, x(:,:,2), Xadj_e_sgrid, &
             & basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
         tfdokb_xe = tfdokb_xe + omp_get_wtime() - tt1
         ! Computation of G0
@@ -1275,11 +1251,11 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
     ! Compute C1 and C2 contributions
     tt1 = omp_get_wtime()
     diff_re = zero
-    call fdouky(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
-        & Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re)
+    call fdouky(params, constants, workspace, x(:,:,1), x(:,:,2), Xadj_r_sgrid, &
+        & Xadj_e_sgrid, x_adj(:,:,1), x_adj(:,:,2), force, diff_re)
     tfdouky = tfdouky + omp_get_wtime() - tt1
     tt1 = omp_get_wtime()
-    call derivative_P(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
+    call derivative_P(params, constants, workspace, x(:,:,1), x(:,:,2), Xadj_r_sgrid, &
         & Xadj_e_sgrid, diff_re, force)
     tp = tp + omp_get_wtime() - tt1
     write(6,*) '@forces@fdoka', tfdoka
@@ -1301,7 +1277,7 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
                 zeta(icav) = -constants % wgrid(igrid) * &
                     & constants % ui(igrid, isph) * ddot(constants % nbasis, &
                     & constants % vgrid(1, igrid), 1, &
-                    & Xadj_r(1, isph), 1)
+                    & x_adj(1, isph, 1), 1)
                 force(:, isph) = force(:, isph) + &
                     & zeta(icav)*gradphi(:, icav)
             end if
@@ -1395,12 +1371,12 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
     icav_ge = zero
     ! Computation of F0
     tt1 = omp_get_wtime()
-    call fdouky_f0(params, constants, workspace, Xadj_r, Xadj_r_sgrid, &
+    call fdouky_f0(params, constants, workspace, x_adj(:,:,1), Xadj_r_sgrid, &
         & gradphi, force)
     tfdouky = tfdouky + omp_get_wtime() - tt1
     ! Computation of F0
     tt1 = omp_get_wtime()
-    call fdouky_f0(params, constants, workspace, Xadj_e, Xadj_e_sgrid, &
+    call fdouky_f0(params, constants, workspace, x_adj(:,:,2), Xadj_e_sgrid, &
         & gradphi, force)
     tfdouky = tfdouky + omp_get_wtime() - tt1
     tt1 = omp_get_wtime()
@@ -1922,7 +1898,7 @@ subroutine fdouky(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
       do l = 0, params % lmax
         do m = -l,l
           ind = l**2 + l + m + 1
-          diff_re(ind,jsph) = (epsp/params % eps)*(l/params % rsph(jsph)) * &
+          diff_re(ind,jsph) = (params % epsp/params % eps)*(l/params % rsph(jsph)) * &
                 & Xr(ind,jsph) - constants % termimat(l,jsph)*Xe(ind,jsph)
         end do
       end do
@@ -2332,7 +2308,7 @@ subroutine fdouky_f0(params, constants, workspace, sol_adj, sol_sgrid, &
                     & constants % vscales, constants % SK_ri(:, jsph), one, &
                     & c0_d1(:, jsph), one, sum_int, work_complex, work)
               end do ! End of loop jsph
-              sum_Sjin(igrid,isph) = -(epsp/params % eps)*sum_int
+              sum_Sjin(igrid,isph) = -(params % epsp/params % eps)*sum_int
             end if
           end do ! End of loop igrid
         end do ! End of loop isph
@@ -2359,9 +2335,9 @@ subroutine fdouky_f0(params, constants, workspace, sol_adj, sol_sgrid, &
         call tree_m2l_bessel_rotation(params, constants, workspace % tmp_node_m, &
             & workspace % tmp_node_l)
         call tree_l2l_bessel_rotation(params, constants, workspace % tmp_node_l)
-        call tree_l2p_bessel(params, constants, -epsp/params % eps, workspace % tmp_node_l, zero, &
+        call tree_l2p_bessel(params, constants, -params % epsp/params % eps, workspace % tmp_node_l, zero, &
             & sum_Sjin)
-        call tree_m2p_bessel(params, constants, constants % lmax0, -epsp/params % eps, &
+        call tree_m2p_bessel(params, constants, constants % lmax0, -params % epsp/params % eps, &
             & params % lmax, workspace % tmp_sph, one, &
             & sum_Sjin)
         ! Make phi_in zero at internal grid points
@@ -2490,7 +2466,7 @@ subroutine fdouky_f0(params, constants, workspace, sol_adj, sol_sgrid, &
                 icav = icav + 1
                 do ind = 1, constants % nbasis
                     sum_dim3(:,ind,ksph) = sum_dim3(:,ind,ksph) + &
-                        & -(epsp/params % eps)* &
+                        & -(params % epsp/params % eps)* &
                         & constants % coefvec(igrid, ind, ksph)*diff_ep_dim3(:,icav)
                 end do
             end if
@@ -2536,7 +2512,7 @@ subroutine fdouky_f0(params, constants, workspace, sol_adj, sol_sgrid, &
                   icav = icav + 1
                   do ind = 1, constants % nbasis
                     sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) + &
-                                          & -(epsp/params % eps)* &
+                                          & -(params % epsp/params % eps)* &
                                           & constants % coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
                   end do
                 end if
@@ -2550,7 +2526,7 @@ subroutine fdouky_f0(params, constants, workspace, sol_adj, sol_sgrid, &
               end do
             end do
         else
-            call dgemv('T', (constants % lmax0+2)**2, 3, -epsp/params % eps*params % kappa, &
+            call dgemv('T', (constants % lmax0+2)**2, 3, -params % epsp/params % eps*params % kappa, &
                 & c0_d1_grad(1, 1, ksph), (constants % lmax0+2)**2, &
                 & workspace % tmp_sph2(1, ksph), 1, one, force(1, ksph), 1)
         end if
@@ -2940,7 +2916,7 @@ subroutine fdoco(params, constants, workspace, sol_sgrid, gradpsi, &
                 end if
               end do
             end do
-            phi_n(igrid0, jsph) = -(epsp/params % eps)*sum_int
+            phi_n(igrid0, jsph) = -(params % epsp/params % eps)*sum_int
           end do! End of loop j
         end do ! End of loop igrid
     else
@@ -2989,7 +2965,7 @@ subroutine fdoco(params, constants, workspace, sol_sgrid, gradpsi, &
         end do
         ! Multiply by vgrid
         call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis0, &
-            & -epsp/params % eps, constants % vgrid, constants % vgrid_nbasis, &
+            & -params % epsp/params % eps, constants % vgrid, constants % vgrid_nbasis, &
             & workspace % tmp_sph, constants % nbasis, zero, phi_n, params % ngrid)
     end if
     icav = zero

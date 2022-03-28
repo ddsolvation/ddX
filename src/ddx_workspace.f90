@@ -95,6 +95,8 @@ type ddx_workspace_type
     real(dp), allocatable :: tmp_bmat(:, :)
     !> GMRESR temporary workspace. Dimension is (n, 2*gmres_j+gmres_dim+2)
     real(dp), allocatable :: tmp_gmresr(:, :)
+    !> ddLPB solutions for the microiterations
+    real(dp), allocatable :: ddcosmo_guess(:,:), hsp_guess(:,:)
     !> Flag if there were an error
     integer :: error_flag = 2
     !> Last error message
@@ -308,7 +310,8 @@ subroutine workspace_init(params, constants, workspace, info)
     ! Allocations for LPB model
     if (params % model .eq. 3) then
         allocate(workspace % tmp_bessel(max(2, params % lmax+1), &
-            & params % nproc), stat=info)
+            & params % nproc), workspace % ddcosmo_guess(constants % nbasis, params % nsph), &
+            & workspace % hsp_guess(constants % nbasis, params % nsph), stat=info)
         if (info .ne. 0) then
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_bessel` " // &
