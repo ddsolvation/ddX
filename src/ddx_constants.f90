@@ -1055,7 +1055,7 @@ end subroutine constants_geometry_update
 !!
 !! This is an implementation of \f$ \chi(t) \f$ with a shift \f$ se \f$:
 !! \f[
-!!      \chi(t) = \left\{ \begin{array}{ll} 0, & \text{if} \quad x \geq
+!!      \chi_\eta(t) = \left\{ \begin{array}{ll} 0, & \text{if} \quad x \geq
 !!      1 \\ p_\eta(x), & \text{if} \quad 1-\eta < x < 1 \\ 1, & \text{if}
 !!      \quad x \leq 1-\eta \end{array} \right.
 !! \f]
@@ -1065,13 +1065,13 @@ end subroutine constants_geometry_update
 !!      -15\eta+6))
 !! \f]
 !! is a smoothing polynomial of the 5th degree.
-!! In the case shift \f$ se=1 \f$ the switch function \f$ \chi(t) \f$ is 1 for
+!! In the case shift \f$ se=1 \f$ the switch function \f$ \chi_\eta(t) \f$ is 1 for
 !! \f$ t \in [0,1] \f$, is 0 for \f$ t \in [1+\eta, \infty) \f$ and varies in
 !! \f$ [1, 1+\eta] \f$ which is an external shift.
-!! In the case shift \f$ se=-1 \f$ the switch function \f$ \chi(t) \f$ is 1 for
+!! In the case shift \f$ se=-1 \f$ the switch function \f$ \chi_\eta(t) \f$ is 1 for
 !! \f$ t \in [0,1-\eta] \f$, is 0 for \f$ t \in [1, \infty) \f$ and varies in
 !! \f$ [1-\eta, 1] \f$ which is an internal shift.
-!! In the case shift \f$ se=0 \f$ the switch function \f$ \chi(t) \f$ is 1 for
+!! In the case shift \f$ se=0 \f$ the switch function \f$ \chi_\eta(t) \f$ is 1 for
 !! \f$ t \in [0,1-\eta/2] \f$, is 0 for \f$ t \in [1+\eta/2, \infty) \f$ and
 !! varies in \f$ [1-\eta/2, 1+\eta/2] \f$ which is a centered shift.
 !!
@@ -1111,7 +1111,7 @@ end function fsw
 !!
 !! This is an implementation of \f$ \chi'(t) \f$ with a shift \f$ se \f$:
 !! \f[
-!!      \chi'(t) = \left\{ \begin{array}{ll} 0, & \text{if} \quad x \geq
+!!      \chi_\eta'(t) = \left\{ \begin{array}{ll} 0, & \text{if} \quad x \geq
 !!      1 \\ p'_\eta(x), & \text{if} \quad 1-\eta < x < 1 \\ 0, & \text{if}
 !!      \quad x \leq 1-\eta \end{array} \right.
 !! \f]
@@ -1120,13 +1120,13 @@ end function fsw
 !!      p'_\eta(x) = -\frac{30}{\eta^5} (1-t)^2 (t-1+\eta)^2
 !! \f]
 !! is a derivative of the smoothing polynomial.
-!! In the case shift \f$ se=1 \f$ the derivative \f$ \chi'(t) \f$ is 0 for
+!! In the case shift \f$ se=1 \f$ the derivative \f$ \chi_\eta'(t) \f$ is 0 for
 !! \f$ t \in [0,1] \cup [1+\eta, \infty) \f$ and varies in
 !! \f$ [1, 1+\eta] \f$ which is an external shift.
-!! In the case shift \f$ se=-1 \f$ the derivative \f$ \chi'(t) \f$ is 0 for
+!! In the case shift \f$ se=-1 \f$ the derivative \f$ \chi_\eta'(t) \f$ is 0 for
 !! \f$ t \in [0,1-\eta] \cup [1, \infty) \f$ and varies in
 !! \f$ [1-\eta, 1] \f$ which is an internal shift.
-!! In the case shift \f$ se=0 \f$ the derivative \f$ \chi'(t) \f$ is 0 for
+!! In the case shift \f$ se=0 \f$ the derivative \f$ \chi_\eta'(t) \f$ is 0 for
 !! \f$ t \in [0,1-\eta/2] \cup [1+\eta/2, \infty) \f$ and
 !! varies in \f$ [1-\eta/2, 1+\eta/2] \f$ which is a centered shift.
 !!

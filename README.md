@@ -1,38 +1,19 @@
 # ddX
 ## General information
-ddX is an open-source software package for continuum solvation models based on the domain decomposition paradigm. It contains a common interface for the three different methods ddCOSMO, ddPCM and ddLPB for the numerical solution to the COSMO, PCM and LPB solvation models. 
-Using the common interface, all three methods are accessible from a host-code that is used to model the solute and which can be on the level of QM, QM/MM, polarizable MM or MM.
-
-For the above methods, ddX computes the electrostatic contribution to the solvation energy, the corresponding contribution to the forces and/or the contribution to the Fock- or DFT Kohn-Sham-matrix.
+dX is an open-source software package for continuum solvation models based on the domain decomposition paradigm. It contains a common interface for the three different methods ddCOSMO, ddPCM and ddLPB for the numerical solution to the COSMO, PCM and LPB solvation models. 
+ddX computes for these methods the electrostatic contribution to the solvation energy, the corresponding contribution to the forces and/or the contribution to the Fock- or DFT Kohn-Sham-matrix.
+Using the common interface, all three methods are accessible from a host-code that is used to model the solute and which can be on the level of QM, QM/MM, polarizable MM or MM, or as a standalone application.
 
 ## Documentation
-The code is documented through the Doxygen.
+The code is documented through the Doxygen, visit XXX.
 
-## License [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
+## License 
 ddX: an open-source software package for continuum solvation models based on the domain decomposition paradigm.
 
-Copyright (c) 2021 The ddX Developers.
+Copyright (c) 2022 The ddX Developers.
 
-ddX is free software; you can redistribute it and/or modify it under the terms of the MIT Licence.
+ddX is free software; you can redistribute it and/or modify it under the terms of the LGPL-2.1 License.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 
 ## References
 The relevant literature for the ddCOSMO, ddPCM and ddLPB method is listed below. If you're using one of the methods through the ddX-library, please cite the corresponding paper(s).
@@ -61,4 +42,6 @@ The relevant literature for the ddCOSMO, ddPCM and ddLPB method is listed below.
 
 #### ddLPB: 
 [11] Ch. Quan, B. Stamm, Y. Maday, A Domain Decomposition Method for the Poisson-Boltzmann Solvation Models, SIAM J. Sci. Comput., Vol. 41, No. 2, pp. B320-B350, (2019)
+
+[12] A. Jha, M. Nottoli, Ch. Quan, B. Stamm, Computation of forces arising from the linear Poisson--Boltzmann method in the domain-decomposition paradigm, arXiv 2203.00552 (2022)
 
