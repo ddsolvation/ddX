@@ -13,7 +13,6 @@ module ddx_lpb
 use ddx_core
 use ddx_operators
 use ddx_solvers
-use ddx_solvers_old, only : jacobi_diis_old, gmresr_old
 implicit none
 !!
 !! Logical variables for iterations
@@ -623,9 +622,8 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: Xr, Xe
     real(dp), intent(in) :: tol
     real(dp), intent(out) :: esolv
-    integer  :: n_iter, isph, istat
+    integer  :: n_iter, isph, istat, info
     real(dp), allocatable :: rhs(:,:,:), x(:,:,:), scr(:,:,:)
-    logical :: ok
 
     allocate(rhs(constants % nbasis, params % nsph, 2), &
         & x(constants % nbasis, params % nsph, 2), stat=istat)
@@ -656,9 +654,8 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
 
     ! solve LS using Jacobi/DIIS
     n_iter = params % maxiter
-    call jacobi_diis_old(params, constants, workspace, 2*constants % n, &
-        & 4, params % jacobi_ndiis, 2, tol, rhs, x, n_iter, ok, &
-        & lpb_direct_matvec, lpb_direct_prec)
+    call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
+        & tol, rhs, x, n_iter, lpb_direct_matvec, lpb_direct_prec, rmsnorm, info)
     xr = x(:,:,1)
     xe = x(:,:,2)
 
@@ -1127,7 +1124,6 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, &
     real(dp), dimension(constants % nbasis, params % nsph, 2) :: x, rhs, scr
     integer :: n_iter, info
     real(dp), dimension(params % maxiter) :: x_rel_diff
-    logical ok
 
     ! set up the RHS
     rhs(:,:,1) = psi
@@ -1143,9 +1139,8 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, Xadj_r, &
 
     ! solve adjoint LS using Jacobi/DIIS
     n_iter = params % maxiter
-    call jacobi_diis_old(params, constants, workspace, 2*constants % n, 4, &
-        & params % jacobi_ndiis, 1, tol, rhs, x, n_iter, ok, &
-        & lpb_adjoint_matvec, lpb_adjoint_prec)
+    call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
+        & tol, rhs, x, n_iter, lpb_adjoint_matvec, lpb_adjoint_prec, rmsnorm, info)
 
     ! unpack
     xadj_r = x(:,:,1)

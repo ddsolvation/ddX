@@ -1274,6 +1274,20 @@ real(dp) function hnorm(lmax, nbasis, nsph, x)
         stop
     endif
 end function hnorm
+!
+real(dp) function rmsnorm(lmax, nbasis, nsph, x)
+    integer,                            intent(in) :: lmax, nbasis, nsph
+    real(dp),  dimension(nbasis, nsph), intent(in) :: x
+!
+    integer  :: n
+    real(dp) :: vrms, vmax
+!
+    n = nbasis*nsph
+    call rmsvec(n,x,vrms,vmax)
+!
+    rmsnorm = vrms
+  
+end function rmsnorm
 
 !------------------------------------------------------------------------------
 ! Purpose : compute root-mean-square and max norm
