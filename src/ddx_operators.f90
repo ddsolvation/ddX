@@ -11,10 +11,10 @@
 
 !> Operators shared among ddX methods
 module ddx_operators
-! Use underlying core routines
-use ddx_core
-use ddx_lpb_core
+! Get the solver-module
 use ddx_solvers
+! Get lpb core-module
+use ddx_lpb_core
 implicit none
 
 contains

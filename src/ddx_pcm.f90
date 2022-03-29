@@ -11,9 +11,8 @@
 
 !> High-level subroutines for ddpcm
 module ddx_pcm
-use ddx_core
+! Get ddx-operators
 use ddx_operators
-use ddx_solvers
 implicit none
 
 contains

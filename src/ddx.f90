@@ -11,12 +11,11 @@
 
 !> High-level module of the ddX software
 module ddx
-! Get core routines and parameters of the ddX software
-use ddx_core
-use ddx_operators
-use ddx_solvers
+! Get ddcosmo-module
 use ddx_cosmo
+! Get ddpcm-module
 use ddx_pcm
+! Get ddlpb-module
 use ddx_lpb
 implicit none
 

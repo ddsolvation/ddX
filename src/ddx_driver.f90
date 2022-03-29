@@ -11,11 +11,9 @@
 
 !> Standalone application of ddX
 program main
-use ddx_core
-use ddx_operators
-use ddx_solvers
+! Get the high-level ddX-module 
 use ddx
-use ddx_lpb
+! Enable OpenMP
 use omp_lib
 implicit none
 

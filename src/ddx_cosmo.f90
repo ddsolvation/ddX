@@ -11,10 +11,8 @@
 
 !> High-level subroutines for ddcosmo
 module ddx_cosmo
-use ddx_core
+! Get ddx-operators
 use ddx_operators
-use ddx_solvers
-use omp_lib
 implicit none
 
 contains
