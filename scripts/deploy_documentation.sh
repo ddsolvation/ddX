@@ -23,14 +23,14 @@ head=$(git rev-parse HEAD)
 git checkout -B gh-pages refs/remotes/origin/gh-pages
 
 rm -rf dev
+rm -f .gitignore
 cp -a build/docs/html dev
+cd dev
+git add .
+
 
 find .
-
-git add dev
 git commit -m "Documentation build from $head" dev
-
-
 if [ "$branch" != "main" ]; then
     echo "Skipping deployment as not on main."
     exit 0
