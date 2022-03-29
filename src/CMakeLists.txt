@@ -26,9 +26,6 @@ set(SRC
     "cbessel.f90"
     "matrix_debug.f90")
 
-# Preprocess OPENMP directive (disabled currently)
-#set_source_files_properties("dd_core.f90" PROPERTIES COMPILE_FLAGS -cpp)
-
 set(COVERAGE_EXCLUDES
     "${CMAKE_CURRENT_SOURCE_DIR}/llgnew.f" PARENT_SCOPE
     "${CMAKE_CURRENT_SOURCE_DIR}/cbessel.f90" PARENT_SCOPE)
@@ -40,9 +37,7 @@ add_library(ddx SHARED ${SRC})
 # Link against BLAS and LAPACK
 target_link_libraries(ddx PUBLIC ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 # OpenMP linkage
-if(OPENMP)
-    target_link_libraries(ddx PUBLIC OpenMP::OpenMP_Fortran)
-endif()
+target_link_libraries(ddx PUBLIC OpenMP::OpenMP_Fortran)
 
 # Define ddx driver executable
 add_executable(ddx_driver "ddx_driver.f90")
