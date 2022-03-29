@@ -9,6 +9,7 @@
 !! @author Aleksandr Mikhalev
 !! @date 2021-02-25
 
+!> High-level subroutines for ddcosmo
 module ddx_cosmo
 use ddx_core
 use ddx_operators

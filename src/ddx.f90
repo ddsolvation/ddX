@@ -9,7 +9,9 @@
 !! @author Aleksandr Mikhalev
 !! @date 2021-02-25
 
+!> High-level module of the ddX software
 module ddx
+! Get core routines and parameters of the ddX software
 use ddx_core
 use ddx_operators
 use ddx_solvers
@@ -27,7 +29,7 @@ contains
 !! @param[in] ddx_data: ddX object with all input information
 !! @param[in] phi_cav: Potential at cavity points
 !! @param[in] gradphi_cav: Gradient of a potential at cavity points
-!! @param[in] psi: TODO
+!! @param[in] psi: RHS of the adjoint problem
 !! @param[in] tol
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces

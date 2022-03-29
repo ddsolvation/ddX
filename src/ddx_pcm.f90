@@ -9,6 +9,7 @@
 !! @author Aleksandr Mikhalev
 !! @date 2021-02-25
 
+!> High-level subroutines for ddpcm
 module ddx_pcm
 use ddx_core
 use ddx_operators

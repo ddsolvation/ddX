@@ -9,6 +9,7 @@
 !! @author Aleksandr Mikhalev
 !! @date 2021-02-25
 
+!> Standalone application of ddX
 program main
 use ddx_core
 use ddx_operators

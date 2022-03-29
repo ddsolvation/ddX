@@ -9,6 +9,7 @@
 !! @author Abhinav Jha and Michele Nottoli
 !! @date 2021-02-25
 
+!> High-level subroutines for ddlpb
 module ddx_lpb
 use ddx_core
 use ddx_operators
