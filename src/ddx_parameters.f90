@@ -576,5 +576,40 @@ subroutine print_func_default(string)
     print "(A)", string
 end subroutine
 
+subroutine params_free(params, info)
+    implicit none
+    type(ddx_params_type), intent(out) :: params
+    integer, intent(out) :: info
+    integer :: istat
+
+    istat = 0
+    info = 0
+
+    if (allocated(params % charge)) then
+        deallocate(params % charge, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`charge` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(params % csph)) then
+        deallocate(params % csph, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`csph` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(params % rsph)) then
+        deallocate(params % rsph, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`rsph` deallocation failed!"
+            stop 1
+        end if
+    end if
+end subroutine params_free
+
 end module ddx_parameters
 

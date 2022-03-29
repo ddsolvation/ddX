@@ -1947,5 +1947,416 @@ subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
 
 end subroutine tree_get_farnear
 
+subroutine constants_free(constants, info)
+    implicit none
+    type(ddx_constants_type), intent(out) :: constants
+    integer, intent(out) :: info
+    integer :: istat
+
+    istat = 0
+    info = 0
+
+    if (allocated(constants % vscales)) then
+        deallocate(constants % vscales, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`vscales` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % v4pi2lp1)) then
+        deallocate(constants % v4pi2lp1, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`v4pi2lp1` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % vscales_rel)) then
+        deallocate(constants % vscales_rel, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`vscales_rel` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % vfact)) then
+        deallocate(constants % vfact, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`vfact` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % vcnk)) then
+        deallocate(constants % vcnk, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`vcnk` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % m2l_ztranslate_coef)) then
+        deallocate(constants % m2l_ztranslate_coef, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`m2l_ztranslate_coef` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % m2l_ztranslate_adj_coef)) then
+        deallocate(constants % m2l_ztranslate_adj_coef, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`m2l_ztranslate_adj_coef` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % cgrid)) then
+        deallocate(constants % cgrid, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`cgrid` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % wgrid)) then
+        deallocate(constants % wgrid, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`wgrid` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % vgrid)) then
+        deallocate(constants % vgrid, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`vgrid` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % vwgrid)) then
+        deallocate(constants % vwgrid, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`vwgrid` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % vgrid2)) then
+        deallocate(constants % vgrid2, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`vgrid2` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % coefvec)) then
+        deallocate(constants % coefvec, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`coefvec` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % pchi)) then
+        deallocate(constants % pchi, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`pchi` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % c_ik)) then
+        deallocate(constants % c_ik, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`c_ik` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % si_ri)) then
+        deallocate(constants % si_ri, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`si_ri` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % di_ri)) then
+        deallocate(constants % di_ri, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`di_ri` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % sk_ri)) then
+        deallocate(constants % sk_ri, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`sk_ri` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % dk_ri)) then
+        deallocate(constants % dk_ri, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`dk_ri` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % termimat)) then
+        deallocate(constants % termimat, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`termimat` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % diff_ep_adj)) then
+         deallocate(constants % diff_ep_adj, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`diff_ep_adj` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % b)) then
+        deallocate(constants % b, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`b` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % l)) then
+        deallocate(constants % l, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`l` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % inl)) then
+        deallocate(constants % inl, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`inl` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % nl)) then
+        deallocate(constants % nl, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`nl` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % itrnl)) then
+        deallocate(constants % itrnl, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`itrnl` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % fi)) then
+        deallocate(constants % fi, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`fi` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % ui)) then
+        deallocate(constants % ui, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`ui` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % ui_cav)) then
+        deallocate(constants % ui_cav, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`ui_cav` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % zi)) then
+        deallocate(constants % zi, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`zi` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % ncav_sph)) then
+        deallocate(constants % ncav_sph, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`ncav_sph` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % ccav)) then
+        deallocate(constants % ccav, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`ccav` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % icav_ia)) then
+        deallocate(constants % icav_ia, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`icav_ia` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % icav_ja)) then
+        deallocate(constants % icav_ja, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`icav_ja` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % rx_prc)) then
+        deallocate(constants % rx_prc, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`rx_prc` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % order)) then
+        deallocate(constants % order, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`order` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % cluster)) then
+        deallocate(constants % cluster, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`cluster` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % children)) then
+        deallocate(constants % children, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`children` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % parent)) then
+        deallocate(constants % parent, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`parent` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % cnode)) then
+        deallocate(constants % cnode, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`cnode` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % rnode)) then
+        deallocate(constants % rnode, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`rnode` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % snode)) then
+        deallocate(constants % snode, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`snode` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % sk_rnode)) then
+        deallocate(constants % sk_rnode, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`sk_rnode` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % si_rnode)) then
+        deallocate(constants % si_rnode, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`si_rnode` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % nfar)) then
+        deallocate(constants % nfar, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`nfar` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % nnear)) then
+        deallocate(constants % nnear, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`nnear` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % far)) then
+        deallocate(constants % far, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`far` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % near)) then
+        deallocate(constants % near, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`near` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % sfar)) then
+        deallocate(constants % sfar, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`sfar` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(constants % snear)) then
+        deallocate(constants % snear, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`snear` deallocation failed!"
+            stop 1
+        end if
+    end if
+end subroutine constants_free
+
 end module ddx_constants
 
