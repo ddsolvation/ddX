@@ -28,7 +28,12 @@ cp -a build/docs/html dev
 cd dev
 git add .
 
+echo
+git status
+echo
 find .
+echo
+
 git commit -m "Documentation build from $head"
 if [ "$branch" != "main" ]; then
     echo "Skipping deployment as not on main."
