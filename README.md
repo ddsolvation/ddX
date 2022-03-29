@@ -5,7 +5,7 @@ ddX computes for these methods the electrostatic contribution to the solvation e
 Using the common interface, all three methods are accessible from a host-code that is used to model the solute and which can be on the level of QM, QM/MM, polarizable MM or MM, or as a standalone application.
 
 ## Documentation
-The code is documented through the Doxygen, visit [doc].
+The code is documented through the Doxygen, visit the [ddX-documentation](https://acom-computational-mathematics.github.io/ddX/dev/).
 
 ## License 
 ddX: an open-source software package for continuum solvation models based on the domain decomposition paradigm.
@@ -13,5 +13,3 @@ ddX: an open-source software package for continuum solvation models based on the
 Copyright (c) 2022 The ddX Developers.
 
 ddX is free software; you can redistribute it and/or modify it under the terms of the LGPL-2.1 License.
-
-[doc]: https://acom-computational-mathematics.github.io/ddX/dev/ "ddX-Documentation"
