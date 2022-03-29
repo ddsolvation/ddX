@@ -28,12 +28,15 @@ cp -a build/docs/html dev
 cd dev
 git add .
 
-if ! git status | grep -q 'up to date'; then
+if [ "$branch" != "main" ]; then
+    echo "Skipping deployment as not on main."
+    exit 0
+fi
+if git status | grep -q 'up to date'; then
+    echo "Documentation did not update ... skipping deployment"
+    exit 0
+else
     git commit -m "Documentation build from $head"
-    if [ "$branch" != "main" ]; then
-        echo "Skipping deployment as not on main."
-        exit 0
-    fi
     git push -f origin gh-pages
     git checkout $head
 fi
