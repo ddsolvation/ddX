@@ -42,6 +42,8 @@ real(dp), allocatable :: random_vector_n_one(:), &
                        & random_vector_n_two(:), &
                        & random_vector_n_three(:), &
                        & random_vector_n_four(:), &
+                       & random_vector_C_one(:,:,:),&
+                       & random_vector_C_two(:,:,:),&
                        & vector_A_one(:), &
                        & vector_A_two(:), &
                        & vector_A_three(:), &
@@ -54,6 +56,8 @@ real(dp), allocatable :: random_vector_n_one(:), &
                        & vector_C1_two(:,:), &
                        & vector_C2_one(:,:), &
                        & vector_C2_two(:,:), &
+                       & vector_C_one(:,:,:), &
+                       & vector_C_two(:,:,:), &
                        & vector_A_star_one(:), &
                        & vector_A_star_two(:), &
                        & vector_A_star_three(:), &
@@ -65,7 +69,9 @@ real(dp), allocatable :: random_vector_n_one(:), &
                        & vector_C1_star_one(:,:), &
                        & vector_C1_star_two(:,:), &
                        & vector_C2_star_one(:,:), &
-                       & vector_C2_star_two(:,:)
+                       & vector_C2_star_two(:,:), &
+                       & vector_C_star_one(:,:,:), &
+                       & vector_C_star_two(:,:,:)
 real(dp) :: lmax0, nbasis0
 
 ! Read input file name
@@ -89,6 +95,10 @@ allocate(random_vector_nbasis_nsph_one(ddx_data % constants % nbasis, &
     & ddx_data % params % nsph), &
     & random_vector_nbasis_nsph_four(ddx_data % constants % nbasis, &
     & ddx_data % params % nsph), &
+    & random_vector_C_one(ddx_data % constants % nbasis, &
+    & ddx_data % params % nsph, 2), &
+    & random_vector_C_two(ddx_data % constants % nbasis, &
+    & ddx_data % params % nsph, 2), &
     & random_vector_n_one(ddx_data % constants % n), &
     & random_vector_n_two(ddx_data % constants % n), &
     & random_vector_n_three(ddx_data % constants % n), &
@@ -109,6 +119,10 @@ allocate(random_vector_nbasis_nsph_one(ddx_data % constants % nbasis, &
     & ddx_data % params % nsph), &
     & vector_C2_two(ddx_data % constants % nbasis, &
     & ddx_data % params % nsph), &
+    & vector_C_one(ddx_data % constants % nbasis, &
+    & ddx_data % params % nsph, 2), &
+    & vector_C_two(ddx_data % constants % nbasis, &
+    & ddx_data % params % nsph, 2), &
     & vector_A_star_one(ddx_data % constants % n), &
     & vector_A_star_two(ddx_data % constants % n), &
     & vector_A_star_three(ddx_data % constants % n), &
@@ -125,6 +139,10 @@ allocate(random_vector_nbasis_nsph_one(ddx_data % constants % nbasis, &
     & ddx_data % params % nsph), &
     & vector_C2_star_two(ddx_data % constants % nbasis, &
     & ddx_data % params % nsph), &
+    & vector_C_star_one(ddx_data % constants % nbasis, &
+    & ddx_data % params % nsph, 2), &
+    & vector_C_star_two(ddx_data % constants % nbasis, &
+    & ddx_data % params % nsph, 2), &
     & zero_vector(ddx_data % constants %  nbasis, ddx_data % params % nsph))
 
 ! Initialise
@@ -140,6 +158,8 @@ vector_C1_one = one
 vector_C1_two = one
 vector_C2_one = one
 vector_C2_two = one
+vector_C_one = one
+vector_C_two = one
 vector_A_star_one = one
 vector_A_star_two = one
 vector_A_star_three = one
@@ -152,6 +172,8 @@ vector_C1_star_one = one
 vector_C1_star_two = one
 vector_C2_star_one = one
 vector_C2_star_two = one
+vector_C_star_one = one
+vector_C_star_two = one
 zero_vector = zero
 
 check_A_one = zero
@@ -205,6 +227,11 @@ random_vector_nbasis_nsph_four(1,1) = 0.0
 random_vector_nbasis_nsph_four(2,1) = 0.0
 random_vector_nbasis_nsph_four(3,1) = 0.0
 
+random_vector_C_one(:,:,1) = random_vector_nbasis_nsph_one(:,:)
+random_vector_C_one(:,:,2) = random_vector_nbasis_nsph_two(:,:)
+random_vector_C_two(:,:,1) = random_vector_nbasis_nsph_three(:,:)
+random_vector_C_two(:,:,2) = random_vector_nbasis_nsph_four(:,:)
+
 ! Call for matrix A
 call lx(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, random_vector_n_one, vector_A_one)
@@ -231,16 +258,15 @@ call bx(ddx_data % params, ddx_data % constants, &
       & random_vector_n_four, vector_B_four)
 
 ! Call for C1 and C2
-call update_rhs(ddx_data % params, ddx_data % constants, &
-                 & zero_vector, zero_vector, &
-                 & vector_C1_one, vector_C2_one, &
-                 & random_vector_nbasis_nsph_one, &
-                 & random_vector_nbasis_nsph_two)
-call update_rhs(ddx_data % params, ddx_data % constants, &
-                 & zero_vector, zero_vector, &
-                 & vector_C1_two, vector_C2_two, &
-                 & random_vector_nbasis_nsph_one, &
-                 & random_vector_nbasis_nsph_three)
+call lpb_direct_matvec(ddx_data % params, ddx_data % constants, &
+                 & ddx_data % workspace, &
+                 & random_vector_C_one, &
+                 & vector_C_one)
+
+call lpb_direct_matvec(ddx_data % params, ddx_data % constants, &
+                 & ddx_data % workspace, &
+                 & random_vector_C_two, &
+                 & vector_C_two)
 ! Call for matrix Astar
 call lstarx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
@@ -272,18 +298,15 @@ call bstarx(ddx_data % params, ddx_data % constants, &
 ! Call for C1 and C2 star
 ! |C1* C1*||X3|
 ! |C2* C2*||X4|
-call update_rhs_adj(ddx_data % params, ddx_data % constants, &
+call lpb_adjoint_matvec(ddx_data % params, ddx_data % constants, &
                  & ddx_data % workspace, &
-                 & zero_vector, zero_vector, &
-                 & vector_C1_star_one, vector_C2_star_one, &
-                 & random_vector_nbasis_nsph_three, &
-                 & random_vector_nbasis_nsph_four)
-call update_rhs_adj(ddx_data % params, ddx_data % constants, &
+                 & random_vector_C_two, &
+                 & vector_C_star_one)
+
+call lpb_adjoint_matvec(ddx_data % params, ddx_data % constants, &
                  & ddx_data % workspace, &
-                 & zero_vector, zero_vector, &
-                 & vector_C1_star_two, vector_C2_star_two, &
-                 & random_vector_nbasis_nsph_two, &
-                 & random_vector_nbasis_nsph_four)
+                 & random_vector_C_one, &
+                 & vector_C_star_two)
 
 !Compute the contraction
 do i = 1, ddx_data % constants % n
@@ -316,24 +339,24 @@ end do
 
 do ibasis = 1, ddx_data % constants % nbasis
   do isph = 1, ddx_data % params % nsph
-    check_C_one = check_C_one + random_vector_nbasis_nsph_three(ibasis, isph) &
-                & * vector_C1_one(ibasis, isph) + &
-                & random_vector_nbasis_nsph_four(ibasis, isph) &
-                & * vector_C2_one(ibasis, isph)
-    check_C_two = check_C_two + random_vector_nbasis_nsph_two(ibasis, isph) &
-                & * vector_C1_two(ibasis, isph) + &
-                & random_vector_nbasis_nsph_four(ibasis, isph) &
-                & * vector_C2_two(ibasis, isph)
+    check_C_one = check_C_one + random_vector_C_two(ibasis, isph, 1) &
+                & * vector_C_one(ibasis, isph, 1) + &
+                & random_vector_C_two(ibasis, isph, 2) &
+                & * vector_C_one(ibasis, isph, 2)
+    check_C_two = check_C_two + random_vector_C_one(ibasis, isph, 1) &
+                & * vector_C_two(ibasis, isph, 1) + &
+                & random_vector_C_one(ibasis, isph, 2) &
+                & * vector_C_two(ibasis, isph, 2)
     check_C_star_one = check_C_star_one + &
-                & random_vector_nbasis_nsph_one(ibasis, isph) &
-                & * vector_C1_star_one(ibasis, isph) + &
-                & random_vector_nbasis_nsph_two(ibasis, isph) &
-                & * vector_C2_star_one(ibasis, isph)
+                & random_vector_C_one(ibasis, isph, 1) &
+                & * vector_C_star_one(ibasis, isph, 1) + &
+                & random_vector_C_one(ibasis, isph, 2) &
+                & * vector_C_star_one(ibasis, isph, 2)
     check_C_star_two = check_C_star_two + &
-                & random_vector_nbasis_nsph_one(ibasis, isph) &
-                & * vector_C1_star_two(ibasis, isph) + &
-                & random_vector_nbasis_nsph_three(ibasis, isph) &
-                & * vector_C2_star_two(ibasis, isph)
+                & random_vector_C_two(ibasis, isph, 1) &
+                & * vector_C_star_two(ibasis, isph, 1) + &
+                & random_vector_C_two(ibasis, isph, 2) &
+                & * vector_C_star_two(ibasis, isph, 2)
   end do
 end do
 
@@ -346,6 +369,8 @@ deallocate(random_vector_nbasis_nsph_two, &
            & random_vector_n_two, &
            & random_vector_n_three, &
            & random_vector_n_four, &
+           & random_vector_C_one, &
+           & random_vector_C_two, &
            & vector_A_one, &
            & vector_A_two, &
            & vector_A_three, &
@@ -366,10 +391,14 @@ deallocate(random_vector_nbasis_nsph_two, &
            & vector_C1_two, &
            & vector_C2_one, &
            & vector_C2_two, &
+           & vector_C_one, &
+           & vector_C_two, &
            & vector_C1_star_one, &
            & vector_C1_star_two, &
            & vector_C2_star_one, &
            & vector_C2_star_two, &
+           & vector_C_star_one, &
+           & vector_C_star_two, &
            & zero_vector)
 call ddfree(ddx_data)
 

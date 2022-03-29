@@ -159,28 +159,29 @@ do isph = 1, ddx_data % params % nsph
   call fdoga(ddx_data % params, ddx_data % constants, &
             & isph, vector_ngrid_nsph, vector_ngrid_nsph, &
             & derivative_Ui(:, isph))
-  ! Computation for matrix C1_C2
-  call fdouky(ddx_data % params, ddx_data % constants, &
+end do
+
+! Computation for matrix C1_C2
+call fdouky(ddx_data % params, ddx_data % constants, &
              & ddx_data % workspace, &
-             & isph, &
              & random_vector_nbasis_nsph_one, &
              & random_vector_nbasis_nsph_one, &
              & random_vector_two_evaluated_at_grid, &
              & random_vector_two_evaluated_at_grid, &
              & random_vector_nbasis_nsph_two, &
              & random_vector_nbasis_nsph_two, &
-             & derivative_C1_C2(:, isph), &
+             & derivative_C1_C2, &
              & diff_re)
-  call derivative_P(ddx_data % params, ddx_data % constants, &
+
+
+call derivative_P(ddx_data % params, ddx_data % constants, &
                   & ddx_data % workspace, &
-                  & isph,&
                   & random_vector_nbasis_nsph_one,&
                   & random_vector_nbasis_nsph_one,&
                   & random_vector_two_evaluated_at_grid,&
                   & random_vector_two_evaluated_at_grid,&
                   & diff_re, &
-                  & derivative_C1_C2(:, isph) )
-end do
+                  & derivative_C1_C2 )
 
 do isph = 1, ddx_data % params % nsph
     do i = 1, 3
@@ -306,8 +307,9 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
                              & random_vector_n_two(:), &
                              & random_vector_nbasis_nsph_one(:,:), &
                              & random_vector_nbasis_nsph_two(:,:), &
+                             & random_vector_C_one(:,:, :), &
                              & vector_cosmo(:), vector_lpb(:),&
-                             & vector_e_c1_c2(:,:), vector_r_c1_c2(:,:),&
+                             & vector_c1_c2(:,:, :),&
                              & zero_vector(:,:)
     ! i      : Index for n
     ! isph   : Index for number of sphers
@@ -331,7 +333,7 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
         & ddx_data % params % se, &
         & ddx_data % params % eta, &
         & ddx_data % params % eps, &
-        &ddx_data % params % kappa, &
+        &ddx_data % params % kappa, 0, &
         & ddx_data % params % itersolver, ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, ddx_data % params % gmresr_j, &
         & ddx_data % params % gmresr_dim, &
@@ -343,10 +345,12 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
              & ddx_data2 % params % nsph),&
              & random_vector_nbasis_nsph_two(ddx_data2 % constants % nbasis,&
              & ddx_data2 % params % nsph),&
+             & random_vector_C_one(ddx_data2 % constants % nbasis,&
+             & ddx_data2 % params % nsph, 2),&
              & vector_cosmo(ddx_data2 % constants % n), &
              & vector_lpb(ddx_data2 % constants % n), &
-             & vector_r_c1_c2(ddx_data2 % constants % nbasis, ddx_data2 % params % nsph), &
-             & vector_e_c1_c2(ddx_data2 % constants % nbasis, ddx_data2 % params % nsph), &
+             & vector_c1_c2(ddx_data2 % constants % nbasis, &
+             &  ddx_data2 % params % nsph, 2), &
              & zero_vector(ddx_data2 % constants%  nbasis, &
              & ddx_data2 % params % nsph))
     ! Intialisation
@@ -360,10 +364,13 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     random_vector_nbasis_nsph_one(1,1) = two
     random_vector_nbasis_nsph_two(2,1) = three
 
+    random_vector_C_one(:,:,1) = random_vector_nbasis_nsph_one
+    random_vector_C_one(:,:,2) = random_vector_nbasis_nsph_one
+
+
     vector_cosmo = one
     vector_lpb = one
-    vector_e_c1_c2 = zero
-    vector_r_c1_c2 = zero
+    vector_c1_c2 = zero
     zero_vector = zero
     ! Call for matrix A
     call lx(ddx_data2 % params, ddx_data2 % constants, &
@@ -372,11 +379,10 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     call bx(ddx_data2 % params, ddx_data2 % constants, &
               & ddx_data2 % workspace, &
               & random_vector_n_one, vector_lpb)
-    call update_rhs(ddx_data2 % params, ddx_data2 % constants, &
-                 & zero_vector, zero_vector, &
-                 & vector_r_c1_c2, vector_e_c1_c2, &
-                 & random_vector_nbasis_nsph_one, &
-                 & random_vector_nbasis_nsph_one)
+    call lpb_direct_matvec(ddx_data2 % params, ddx_data2 % constants, &
+                 & ddx_data2 % workspace, &
+                 & random_vector_C_one, &
+                 & vector_c1_c2)
     ! Sum for U_i^e(x_in)
     do isph = 1,ddx_data2 %  params % nsph
       do igrid = 1,ddx_data2 %  params % ngrid
@@ -390,10 +396,10 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     do ibasis = 1, ddx_data2 % constants % nbasis
       do isph = 1, ddx_data2 %  params % nsph
         sum_der_C1_C2 = sum_der_C1_C2 &
-                    & - random_vector_nbasis_nsph_two(ibasis, isph)* &
-                    & vector_e_c1_c2(ibasis, isph)&
-                    & - random_vector_nbasis_nsph_two(ibasis, isph)* &
-                    & vector_r_c1_c2(ibasis, isph)
+                    & + random_vector_nbasis_nsph_two(ibasis, isph)* &
+                    & vector_c1_c2(ibasis, isph, 1)&
+                    & + random_vector_nbasis_nsph_two(ibasis, isph)* &
+                    & vector_c1_c2(ibasis, isph, 2)
       end do
     end do
     ! Sum for matrix A and matrix B
@@ -406,8 +412,8 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
                & random_vector_n_two, &
                & random_vector_nbasis_nsph_one, &
                & random_vector_nbasis_nsph_two, &
-               & vector_lpb, vector_r_c1_c2,&
-               & vector_e_c1_c2)
+               & random_vector_C_one, &
+               & vector_lpb, vector_c1_c2)
 end subroutine solve
 
 end program main
