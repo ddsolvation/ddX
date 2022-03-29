@@ -1,0 +1,24 @@
+name: Deploy documentation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+      branches:
+          - main
+
+jobs:
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install Doxygen
+      run: sudo apt-get install doxygen -y
+      shell: bash
+    - name: Deploy docs
+      run: scripts/deploy_documentation.sh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
