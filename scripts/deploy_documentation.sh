@@ -4,8 +4,8 @@ THISDIR=$(dirname "${BASH_SOURCE[0]}")
 cd "$THISDIR/.."
 
 if [ -d build ]; then
-	echo "Delete build dir before running this script" >&2
-	exit 1
+    echo "Delete build dir before running this script" >&2
+    exit 1
 fi
 
 mkdir build
@@ -15,11 +15,6 @@ make docs
 popd
 
 branch=$(git branch --show-current)
-if [ "$branch" != "main" ]; then
-	echo "Skipping deployment as not on main."
-	exit 0
-fi
-
 git config user.name "GitHub Actions Bot"
 git config user.email "<>"
 
@@ -31,5 +26,11 @@ rm -rf dev
 cp -a build/docs/html dev
 git add dev
 git commit -m "Documentation build from $head" dev
+
+
+if [ "$branch" != "main" ]; then
+    echo "Skipping deployment as not on main."
+    exit 0
+fi
 git push -f origin gh-pages
 git checkout $head
