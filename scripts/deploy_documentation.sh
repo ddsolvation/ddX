@@ -24,6 +24,9 @@ git checkout -B gh-pages refs/remotes/origin/gh-pages
 
 rm -rf dev
 cp -a build/docs/html dev
+
+find .
+
 git add dev
 git commit -m "Documentation build from $head" dev
 
