@@ -1,13 +1,16 @@
 var searchData=
 [
-  ['repsx_227',['repsx',['../namespaceddx__operators.html#ace05a424bd4e0a226b635723aba4389c',1,'ddx_operators']]],
-  ['rinfx_228',['rinfx',['../namespaceddx__operators.html#ad322bb8c91dfbed143be683333be9430',1,'ddx_operators']]],
-  ['rnode_229',['rnode',['../structddx__constants_1_1ddx__constants__type.html#a788e0a5e5d17fd38ce59d4645b56e470',1,'ddx_constants::ddx_constants_type']]],
-  ['rsph_230',['rsph',['../structddx__parameters_1_1ddx__params__type.html#abe71e052d5d12291443925042789b288',1,'ddx_parameters::ddx_params_type']]],
-  ['rstarepsx_231',['rstarepsx',['../namespaceddx__operators.html#a7a4642f3b72feb282fbe0f045d0d4bd0',1,'ddx_operators']]],
-  ['rstarinfx_232',['rstarinfx',['../namespaceddx__operators.html#a9c02c21086e56924eec13cc33a96eebb',1,'ddx_operators']]],
-  ['rstarx_233',['rstarx',['../namespaceddx__operators.html#a74ee56f961569a40258a7d71388ea35b',1,'ddx_operators']]],
-  ['run_20as_20standalone_234',['Run as standalone',['../label_run_as_standalone.html',1,'']]],
-  ['rx_235',['rx',['../namespaceddx__operators.html#afa842aa38a4197cf53b2b4f14b4803d7',1,'ddx_operators']]],
-  ['rx_5fprc_236',['rx_prc',['../structddx__constants_1_1ddx__constants__type.html#a2799cd679f2de3cae4cfebbb01c4c4aa',1,'ddx_constants::ddx_constants_type']]]
+  ['s_259',['s',['../structddx__core_1_1ddx__type.html#a36a59d9a21aa64f1f8eeefcef5deedf3',1,'ddx_core::ddx_type']]],
+  ['s_5fniter_260',['s_niter',['../structddx__core_1_1ddx__type.html#aede10d0164c83515d792f5d8ea6dc63f',1,'ddx_core::ddx_type']]],
+  ['s_5frel_5fdiff_261',['s_rel_diff',['../structddx__core_1_1ddx__type.html#a2332d718e5c71767df8b7939cdbb2b4c',1,'ddx_core::ddx_type']]],
+  ['s_5ftime_262',['s_time',['../structddx__core_1_1ddx__type.html#a273e1e0d5c090e04d5a48bd408f8ffee',1,'ddx_core::ddx_type']]],
+  ['se_263',['se',['../structddx__parameters_1_1ddx__params__type.html#a3d1b4ea5f5d59a994f9cdb1047f58dfb',1,'ddx_parameters::ddx_params_type']]],
+  ['sfar_264',['sfar',['../structddx__constants_1_1ddx__constants__type.html#a2ec840374e5e3927ffea4ca808ff318a',1,'ddx_constants::ddx_constants_type']]],
+  ['sgrid_265',['sgrid',['../structddx__core_1_1ddx__type.html#ae9811cb83909bdf210e2cba53c39aa29',1,'ddx_core::ddx_type']]],
+  ['si_5fri_266',['si_ri',['../structddx__constants_1_1ddx__constants__type.html#ae2c77084066d8ba0950e6a393b968265',1,'ddx_constants::ddx_constants_type']]],
+  ['si_5frnode_267',['si_rnode',['../structddx__constants_1_1ddx__constants__type.html#a524f309acbdbd8c919cb8d38e4563ed7',1,'ddx_constants::ddx_constants_type']]],
+  ['sk_5fri_268',['sk_ri',['../structddx__constants_1_1ddx__constants__type.html#a4d003e524a00cb32d950212429455968',1,'ddx_constants::ddx_constants_type']]],
+  ['sk_5frnode_269',['sk_rnode',['../structddx__constants_1_1ddx__constants__type.html#a99f316059b3996cedfb85c459cedb478',1,'ddx_constants::ddx_constants_type']]],
+  ['snear_270',['snear',['../structddx__constants_1_1ddx__constants__type.html#aaed03088419058747039a86bb256ed51',1,'ddx_constants::ddx_constants_type']]],
+  ['snode_271',['snode',['../structddx__constants_1_1ddx__constants__type.html#acf8f02c845a47be22bdb2eb7613f29cf',1,'ddx_constants::ddx_constants_type']]]
 ];

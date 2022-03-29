@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['intrhs_441',['intrhs',['../namespaceddx__core.html#a90d894d6d2087fcceda88ab3bc320f44',1,'ddx_core']]]
+  ['ldm1x_495',['ldm1x',['../namespaceddx__operators.html#a73668d47230f4292955012f9910e4ecc',1,'ddx_operators']]],
+  ['lstarx_496',['lstarx',['../namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52',1,'ddx_operators']]],
+  ['lx_497',['lx',['../namespaceddx__operators.html#ac2a84b8394941ee2bf6d8f3e44127be3',1,'ddx_operators']]]
 ];

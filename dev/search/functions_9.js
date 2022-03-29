@@ -1,8 +1,12 @@
 var searchData=
 [
-  ['ldm1x_443',['ldm1x',['../namespaceddx__operators.html#a73668d47230f4292955012f9910e4ecc',1,'ddx_operators']]],
-  ['lstarx_444',['lstarx',['../namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52',1,'ddx_operators']]],
-  ['lstarx_5fnodiag_445',['lstarx_nodiag',['../namespaceddx__operators.html#aa2a30ccc9fa6ca8f110f7bca47e4cce2',1,'ddx_operators']]],
-  ['lx_446',['lx',['../namespaceddx__operators.html#ac2a84b8394941ee2bf6d8f3e44127be3',1,'ddx_operators']]],
-  ['lx_5fnodiag_447',['lx_nodiag',['../namespaceddx__operators.html#ae13d53ef2e359efd7c46f68abeebc146',1,'ddx_operators']]]
+  ['params_5fdeinit_499',['params_deinit',['../namespaceddx__parameters.html#a41f19aa9b4b7798b5374fa3f6a03ea00',1,'ddx_parameters']]],
+  ['params_5finit_500',['params_init',['../namespaceddx__parameters.html#a37d40289550bb6eb8e049fb4ca227c2c',1,'ddx_parameters']]],
+  ['params_5fprint_501',['params_print',['../namespaceddx__parameters.html#ab58f264af44239d745e1a571c1850576',1,'ddx_parameters']]],
+  ['polleg_502',['polleg',['../namespaceddx__harmonics.html#a7fcf9715c6a0d3dd5c291cafffaa5d1f',1,'ddx_harmonics']]],
+  ['polleg_5fwork_503',['polleg_work',['../namespaceddx__harmonics.html#a43b882cf0333a0ee0bf062501a03ff01',1,'ddx_harmonics']]],
+  ['print_5fddvector_504',['print_ddvector',['../namespaceddx__core.html#a7ee983451a2d6b52ce89801a59fb33e6',1,'ddx_core']]],
+  ['print_5ffunc_5fdefault_505',['print_func_default',['../namespaceddx__parameters.html#a63f973043b80c39c6f905fba9bd2aa09',1,'ddx_parameters']]],
+  ['prtsph_506',['prtsph',['../namespaceddx__core.html#aef2cb28c5d456b67e986403ce443696e',1,'ddx_core']]],
+  ['ptcart_507',['ptcart',['../namespaceddx__core.html#a72a28423c5bbb2d84ac6e584ac743553',1,'ddx_core']]]
 ];

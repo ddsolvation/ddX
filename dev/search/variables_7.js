@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['kappa_516',['kappa',['../structddx__parameters_1_1ddx__params__type.html#a32dadee391df6c4b3d4e2b433b5c8b59',1,'ddx_parameters::ddx_params_type']]]
+  ['jacobi_5fndiis_577',['jacobi_ndiis',['../structddx__parameters_1_1ddx__params__type.html#ab5e2812004c30ce302f6c0cb4d9c6426',1,'ddx_parameters::ddx_params_type']]]
 ];

@@ -2,8 +2,13 @@ var ddx__constants_8f90 =
 [
     [ "ddx_constants_type", "structddx__constants_1_1ddx__constants__type.html", "structddx__constants_1_1ddx__constants__type" ],
     [ "constants_init", "ddx__constants_8f90.html#aa10b4ebb5a70e2cac960a9f0a955b29a", null ],
+    [ "build_itrnl", "ddx__constants_8f90.html#ac2f7e9e3cf53501601684b98199d97eb", null ],
+    [ "build_l", "ddx__constants_8f90.html#a82cd03b034a0452e6ca6a495408fed03", null ],
+    [ "build_b", "ddx__constants_8f90.html#a224edbeb3786b8d69a5dbbe6856a0df1", null ],
     [ "mkpmat", "ddx__constants_8f90.html#af5826bc847008b2eb36949c6b05b3e5d", null ],
     [ "constants_geometry_init", "ddx__constants_8f90.html#ad201f9bbff917677cd4aeb165d296fad", null ],
+    [ "neighbor_list_init", "ddx__constants_8f90.html#a2e8004415b03c502f25cffc06095f7f7", null ],
+    [ "neighbor_list_init_fmm", "ddx__constants_8f90.html#a4dac7789e6c13db2e1faaf356c3bd465", null ],
     [ "constants_geometry_update", "ddx__constants_8f90.html#abb90d5f168551ac11b842a8166c8b859", null ],
     [ "fsw", "ddx__constants_8f90.html#abb0c060445e3b2d40b770eda26d20fdb", null ],
     [ "dfsw", "ddx__constants_8f90.html#a66fd73de84672f0f78f4c9c4e2c620b5", null ],

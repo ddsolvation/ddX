@@ -1,8 +1,13 @@
 var searchData=
 [
-  ['di_5fri_493',['di_ri',['../structddx__constants_1_1ddx__constants__type.html#a2184facdb8e08edf1654faebd30f9f20',1,'ddx_constants::ddx_constants_type']]],
-  ['diff_5fep_5fadj_494',['diff_ep_adj',['../structddx__constants_1_1ddx__constants__type.html#ab87ac9dc36bb28bb0b0d779386de5d7c',1,'ddx_constants::ddx_constants_type']]],
-  ['dk_5fri_495',['dk_ri',['../structddx__constants_1_1ddx__constants__type.html#a736c3708eaa9a18d0bdb0e4e57d141f4',1,'ddx_constants::ddx_constants_type']]],
-  ['dmax_496',['dmax',['../structddx__constants_1_1ddx__constants__type.html#a07b544b3af4f5e5d85d2c9c8afcabb5d',1,'ddx_constants::ddx_constants_type']]],
-  ['dp_497',['dp',['../namespaceddx__definitions.html#a6e62179e6ac303908858a873e4db49c2',1,'ddx_definitions']]]
+  ['c_5fik_539',['c_ik',['../structddx__constants_1_1ddx__constants__type.html#a7edefe62fc488968584c2f2e5b03124d',1,'ddx_constants::ddx_constants_type']]],
+  ['ccav_540',['ccav',['../structddx__constants_1_1ddx__constants__type.html#a3922d7e505e296ba217b97fd2ceefe48',1,'ddx_constants::ddx_constants_type']]],
+  ['cgrid_541',['cgrid',['../structddx__constants_1_1ddx__constants__type.html#a4ebf594439b516499634e8f3d0a3993b',1,'ddx_constants::ddx_constants_type']]],
+  ['charge_542',['charge',['../structddx__parameters_1_1ddx__params__type.html#a1a68508c403efd05374f725709d73caa',1,'ddx_parameters::ddx_params_type']]],
+  ['children_543',['children',['../structddx__constants_1_1ddx__constants__type.html#ac58ac40fe1faec6ed685f6dbf049ba6a',1,'ddx_constants::ddx_constants_type']]],
+  ['cluster_544',['cluster',['../structddx__constants_1_1ddx__constants__type.html#a3460ae17cafa4159e6b7d61f4e1ccf54',1,'ddx_constants::ddx_constants_type']]],
+  ['cnode_545',['cnode',['../structddx__constants_1_1ddx__constants__type.html#a22bc6781bc52228876914a09793b498c',1,'ddx_constants::ddx_constants_type']]],
+  ['coefvec_546',['coefvec',['../structddx__constants_1_1ddx__constants__type.html#a6097205a097406b3065e2cd259249aab',1,'ddx_constants::ddx_constants_type']]],
+  ['coefy_547',['coefy',['../structddx__constants_1_1ddx__constants__type.html#a3a5cc487f47e021fc12acf7769e3798d',1,'ddx_constants::ddx_constants_type']]],
+  ['csph_548',['csph',['../structddx__parameters_1_1ddx__params__type.html#ae8f332ff28e787d8bc0b30cd5f36bbb4',1,'ddx_parameters::ddx_params_type']]]
 ];

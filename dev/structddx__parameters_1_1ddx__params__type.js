@@ -21,7 +21,9 @@ var structddx__parameters_1_1ddx__params__type =
     [ "charge", "structddx__parameters_1_1ddx__params__type.html#a1a68508c403efd05374f725709d73caa", null ],
     [ "csph", "structddx__parameters_1_1ddx__params__type.html#ae8f332ff28e787d8bc0b30cd5f36bbb4", null ],
     [ "rsph", "structddx__parameters_1_1ddx__params__type.html#abe71e052d5d12291443925042789b288", null ],
+    [ "epsp", "structddx__parameters_1_1ddx__params__type.html#a9372351d69cecd8013f7bf9f93590fef", null ],
     [ "error_flag", "structddx__parameters_1_1ddx__params__type.html#a8f06c900e28484ed13ae3451e8649dfa", null ],
     [ "error_message", "structddx__parameters_1_1ddx__params__type.html#a3b61f56fc7c29be3f952c1cb1b98c49a", null ],
-    [ "print_func", "structddx__parameters_1_1ddx__params__type.html#a0d0bc766c6012c19888e22174fd06beb", null ]
+    [ "print_func", "structddx__parameters_1_1ddx__params__type.html#a0d0bc766c6012c19888e22174fd06beb", null ],
+    [ "matvecmem", "structddx__parameters_1_1ddx__params__type.html#aff335b17a4bd5435a7d7ef8ea618e19a", null ]
 ];

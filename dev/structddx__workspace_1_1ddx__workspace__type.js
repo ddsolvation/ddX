@@ -1,8 +1,10 @@
 var structddx__workspace_1_1ddx__workspace__type =
 [
+    [ "tmp_pot", "structddx__workspace_1_1ddx__workspace__type.html#a7483e839a8de3c6ec72200b8ee0c5a78", null ],
     [ "tmp_vplm", "structddx__workspace_1_1ddx__workspace__type.html#aebf5d2c2ee52f1c2874caf8c3ba0280b", null ],
     [ "tmp_vylm", "structddx__workspace_1_1ddx__workspace__type.html#a12f23087d9ada629348489705280a6f7", null ],
     [ "tmp_vdylm", "structddx__workspace_1_1ddx__workspace__type.html#afb187d10df7de980e20613424af8e4e8", null ],
+    [ "tmp_work", "structddx__workspace_1_1ddx__workspace__type.html#a1bf07d8d5d56894f1702547079f28666", null ],
     [ "tmp_vcos", "structddx__workspace_1_1ddx__workspace__type.html#ad4499dd67712501a7516547d6ccddb23", null ],
     [ "tmp_vsin", "structddx__workspace_1_1ddx__workspace__type.html#a7d59ddbc80da47dcf7a6b1689def6efe", null ],
     [ "tmp_bessel", "structddx__workspace_1_1ddx__workspace__type.html#a6f29a7f1304ccd2ecfc96a5d205817d3", null ],
@@ -25,6 +27,8 @@ var structddx__workspace_1_1ddx__workspace__type =
     [ "tmp_e_diis", "structddx__workspace_1_1ddx__workspace__type.html#a1582a68a60eff8398f2a1d4e610a69e2", null ],
     [ "tmp_bmat", "structddx__workspace_1_1ddx__workspace__type.html#af404a9cb66c05e2c538f2a60d5c4b816", null ],
     [ "tmp_gmresr", "structddx__workspace_1_1ddx__workspace__type.html#a6a7c4fb6d2c4563150f0b1e48e3915b2", null ],
+    [ "ddcosmo_guess", "structddx__workspace_1_1ddx__workspace__type.html#a470cbf62f970d8254fceacba85dd717f", null ],
+    [ "hsp_guess", "structddx__workspace_1_1ddx__workspace__type.html#a993b3bfb2eee51daa0b38dbb76e896d9", null ],
     [ "error_flag", "structddx__workspace_1_1ddx__workspace__type.html#ac92fe40596e92fc39b23a1d1825bf4b3", null ],
     [ "error_message", "structddx__workspace_1_1ddx__workspace__type.html#abe103eff7a30b01a2009699804684656", null ]
 ];

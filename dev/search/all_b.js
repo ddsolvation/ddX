@@ -1,11 +1,14 @@
 var searchData=
 [
-  ['ldm1x_162',['ldm1x',['../namespaceddx__operators.html#a73668d47230f4292955012f9910e4ecc',1,'ddx_operators']]],
-  ['licence_163',['Licence',['../label_licence.html',1,'']]],
-  ['lmax_164',['lmax',['../structddx__parameters_1_1ddx__params__type.html#a8e2ce496c887282074254c263edd2bf1',1,'ddx_parameters::ddx_params_type']]],
-  ['lmax0_165',['lmax0',['../structddx__constants_1_1ddx__constants__type.html#a5ef7114578fe8d72b39508c1b33ad896',1,'ddx_constants::ddx_constants_type']]],
-  ['lstarx_166',['lstarx',['../namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52',1,'ddx_operators']]],
-  ['lstarx_5fnodiag_167',['lstarx_nodiag',['../namespaceddx__operators.html#aa2a30ccc9fa6ca8f110f7bca47e4cce2',1,'ddx_operators']]],
-  ['lx_168',['lx',['../namespaceddx__operators.html#ac2a84b8394941ee2bf6d8f3e44127be3',1,'ddx_operators']]],
-  ['lx_5fnodiag_169',['lx_nodiag',['../namespaceddx__operators.html#ae13d53ef2e359efd7c46f68abeebc146',1,'ddx_operators']]]
+  ['m2l_5fztranslate_5fadj_5fcoef_193',['m2l_ztranslate_adj_coef',['../structddx__constants_1_1ddx__constants__type.html#a16d238b1fcb0edafabaa44fda3bba6a7',1,'ddx_constants::ddx_constants_type']]],
+  ['m2l_5fztranslate_5fcoef_194',['m2l_ztranslate_coef',['../structddx__constants_1_1ddx__constants__type.html#a79b1c2cf58ec69bd663250541a2ed5b8',1,'ddx_constants::ddx_constants_type']]],
+  ['m2p_5flmax_195',['m2p_lmax',['../structddx__constants_1_1ddx__constants__type.html#a6dbe071a2da1a7be4b65b1a26f62d4be',1,'ddx_constants::ddx_constants_type']]],
+  ['m2p_5fnbasis_196',['m2p_nbasis',['../structddx__constants_1_1ddx__constants__type.html#aed70d3ebd199989fce11847a8a43709a',1,'ddx_constants::ddx_constants_type']]],
+  ['matvec_5finterface_197',['matvec_interface',['../interfaceddx__solvers_1_1matvec__interface.html',1,'ddx_solvers']]],
+  ['matvec_5finterface_5fexternal_198',['matvec_interface_external',['../interfaceddx__solvers_1_1matvec__interface__external.html',1,'ddx_solvers']]],
+  ['matvecmem_199',['matvecmem',['../structddx__parameters_1_1ddx__params__type.html#aff335b17a4bd5435a7d7ef8ea618e19a',1,'ddx_parameters::ddx_params_type']]],
+  ['maxiter_200',['maxiter',['../structddx__parameters_1_1ddx__params__type.html#a144db6ae7b0003dc11d822b59df51fbf',1,'ddx_parameters::ddx_params_type']]],
+  ['mkprec_201',['mkprec',['../namespaceddx__constants.html#a5d1fc3f2c16984ceaa0e1ed9de8fb548',1,'ddx_constants']]],
+  ['model_202',['model',['../structddx__parameters_1_1ddx__params__type.html#a1c894bf3f401534f58322ee913f205f4',1,'ddx_parameters::ddx_params_type']]],
+  ['model_5fstr_203',['model_str',['../namespaceddx__definitions.html#a27faa3db3323ba2c6427084fcbf7b953',1,'ddx_definitions']]]
 ];

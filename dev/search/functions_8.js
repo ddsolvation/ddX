@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['jacobi_5fdiis_442',['jacobi_diis',['../namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a',1,'ddx_solvers']]]
+  ['mkprec_498',['mkprec',['../namespaceddx__constants.html#a5d1fc3f2c16984ceaa0e1ed9de8fb548',1,'ddx_constants']]]
 ];

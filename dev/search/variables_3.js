@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['far_502',['far',['../structddx__constants_1_1ddx__constants__type.html#a8b8aa3f8b2d2960ca81bc8f2116a51a6',1,'ddx_constants::ddx_constants_type']]],
-  ['fi_503',['fi',['../structddx__constants_1_1ddx__constants__type.html#a4567cc4f3c43fb8d86f0ccbfb40ef60a',1,'ddx_constants::ddx_constants_type']]],
-  ['fmm_504',['fmm',['../structddx__parameters_1_1ddx__params__type.html#ae371e5372cfe4451853cbca04e83813d',1,'ddx_parameters::ddx_params_type']]],
-  ['force_505',['force',['../structddx__parameters_1_1ddx__params__type.html#a75c5b5e4ae578211113bdc7c7c0bde10',1,'ddx_parameters::ddx_params_type']]]
+  ['eps_557',['eps',['../structddx__parameters_1_1ddx__params__type.html#ac4ba0a49d9b5f61ec46e93272748cb17',1,'ddx_parameters::ddx_params_type']]],
+  ['epsp_558',['epsp',['../structddx__parameters_1_1ddx__params__type.html#a9372351d69cecd8013f7bf9f93590fef',1,'ddx_parameters::ddx_params_type']]],
+  ['error_5fflag_559',['error_flag',['../structddx__parameters_1_1ddx__params__type.html#a8f06c900e28484ed13ae3451e8649dfa',1,'ddx_parameters::ddx_params_type::error_flag()'],['../structddx__constants_1_1ddx__constants__type.html#a2135d96d0743464945e212ce1eb91382',1,'ddx_constants::ddx_constants_type::error_flag()'],['../structddx__workspace_1_1ddx__workspace__type.html#ac92fe40596e92fc39b23a1d1825bf4b3',1,'ddx_workspace::ddx_workspace_type::error_flag()'],['../structddx__core_1_1ddx__type.html#a3e3f24814f68ec3f80f2f67f1eb00551',1,'ddx_core::ddx_type::error_flag()']]],
+  ['error_5fmessage_560',['error_message',['../structddx__parameters_1_1ddx__params__type.html#a3b61f56fc7c29be3f952c1cb1b98c49a',1,'ddx_parameters::ddx_params_type::error_message()'],['../structddx__constants_1_1ddx__constants__type.html#a66afc406a33e77c97bc16bf6453f9b79',1,'ddx_constants::ddx_constants_type::error_message()'],['../structddx__workspace_1_1ddx__workspace__type.html#abe103eff7a30b01a2009699804684656',1,'ddx_workspace::ddx_workspace_type::error_message()'],['../structddx__core_1_1ddx__type.html#aad61ddf589790a931a0c544adc4db37c',1,'ddx_core::ddx_type::error_message()']]],
+  ['eta_561',['eta',['../structddx__parameters_1_1ddx__params__type.html#adafa9467289900fd0bb501da75e53642',1,'ddx_parameters::ddx_params_type']]]
 ];
