@@ -1,4 +1,4 @@
-name: Large testing on PR into the main branch (Ubuntu)
+name: CI
 
 on:
   pull_request:
