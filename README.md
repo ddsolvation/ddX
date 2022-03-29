@@ -14,4 +14,4 @@ Copyright (c) 2022 The ddX Developers.
 
 ddX is free software; you can redistribute it and/or modify it under the terms of the LGPL-2.1 License.
 
-[doc]: https://acom-computational-mathematics.github.io/ddX/dev/
+[doc]: https://acom-computational-mathematics.github.io/ddX/dev/ "ddX-Documentation"
