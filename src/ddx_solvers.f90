@@ -11,6 +11,7 @@
 
 !> Core routines and parameters of ddX software
 module ddx_solvers
+! Get the core-routines
 use ddx_core
 
 ! Disable implicit types

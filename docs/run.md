@@ -70,7 +70,7 @@ Line number  | Type           | Description
 7           ! Max degree of multipole spherical harmonics for the FMM
 6           ! Max degree of local spherical harmonics for the FMM
 12          ! Number of spheres of the atomic structure
--0.04192   0.00000   2.29035   1.32281   4.00253    ! partial charge [a.u.], x [Å], y [Å], z [Å], radius [Å]
+-0.04192   0.00000   2.29035   1.32281   4.00253    ! partial charge[a.u.], x[Å], y[Å], z[Å], radius[Å]
 -0.04192   0.00000   2.29035  -1.32281   4.00253
 -0.04198   0.00000   0.00000  -2.64562   4.00253
 -0.04192   0.00000  -2.29035  -1.32281   4.00253

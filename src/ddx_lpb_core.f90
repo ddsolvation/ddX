@@ -1,5 +1,17 @@
+!> @copyright (c) 2020-2021 RWTH Aachen. All rights reserved.
+!!
+!! ddX software
+!!
+!! @file src/ddx_cosmo.f90
+!! COSMO solver
+!!
+!! @version 1.0.0
+!! @author Aleksandr Mikhalev
+!! @date 2021-02-25
+
+!> Core routines and parameters specific to ddLPB
 module ddx_lpb_core
-!
+! Get the core-routines
 use ddx_core
 !
 contains

@@ -11,10 +11,8 @@
 
 !> High-level subroutines for ddlpb
 module ddx_lpb
-use ddx_core
-use ddx_lpb_core
+! Get ddx-operators
 use ddx_operators
-use ddx_solvers
 implicit none
 !!
 !! Logical variables for iterations

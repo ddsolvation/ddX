@@ -13,9 +13,9 @@
 
 !> Module to treat properly user input parameters
 module ddx_parameters
-
 ! Include compile-time definitions
 use ddx_definitions
+! Enable OpenMP 
 use omp_lib
 
 ! Disable implicit types
