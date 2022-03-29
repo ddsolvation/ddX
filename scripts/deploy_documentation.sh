@@ -15,11 +15,11 @@ make docs
 popd
 
 branch=$(git branch --show-current)
+head=$(git rev-parse HEAD)
 git config user.name "GitHub Actions Bot"
 git config user.email "<>"
 
 git fetch
-head=$(git rev-parse HEAD)
 git checkout -B gh-pages refs/remotes/origin/gh-pages
 
 rm -rf dev
@@ -28,16 +28,12 @@ cp -a build/docs/html dev
 cd dev
 git add .
 
-echo
-git status
-echo
-find .
-echo
-
-git commit -m "Documentation build from $head"
-if [ "$branch" != "main" ]; then
-    echo "Skipping deployment as not on main."
-    exit 0
+if ! git status | grep -q 'up to date'; then
+    git commit -m "Documentation build from $head"
+    if [ "$branch" != "main" ]; then
+        echo "Skipping deployment as not on main."
+        exit 0
+    fi
+    git push -f origin gh-pages
+    git checkout $head
 fi
-git push -f origin gh-pages
-git checkout $head
