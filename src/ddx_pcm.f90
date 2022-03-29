@@ -114,7 +114,7 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
         & phieps_time
     integer, intent(out) :: info
     !! Local variables
-    real(dp) :: start_time, finish_time
+    real(dp) :: start_time, finish_time, r_norm
     character(len=255) :: string
     real(dp), external :: ddot
     !! The code
@@ -151,6 +151,7 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
         & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
         & one, workspace % tmp_grid, zero, phi)
     ! Compute Phi_infty
+    ! force dx called from rinfx to add the diagonal
     call rinfx(params, constants, workspace, phi, phiinf)
     ! Select initial guess for the ddPCM system
     select case (phieps_mode)
@@ -164,8 +165,13 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
     end select
     ! Solve ddPCM system R_eps Phi_epsilon = Phi_infty
     call cpu_time(start_time)
-    call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
-        & phieps_niter, phieps_rel_diff, rx, apply_repsx_prec, hnorm, info)
+    if (params % itersolver .eq. 1) then 
+        call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
+            & phieps_niter, phieps_rel_diff, repsx, apply_repsx_prec, hnorm, info)
+    else
+        call gmresr(params, constants, workspace, tol, phiinf, phieps, phieps_niter, &
+            & r_norm, repsx, info)
+    end if
     call cpu_time(finish_time)
     phieps_time = finish_time - start_time
     ! Check if solver did not converge
@@ -183,8 +189,13 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
     ! Solve ddCOSMO system L X = -Phi_epsilon with a proper initial guess
     info = params % maxiter
     call cpu_time(start_time)
-    call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
-        & xs, xs_niter, xs_rel_diff, lx_nodiag, ldm1x, hnorm, info)
+    if (params % itersolver .eq. 1) then
+        call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
+            & xs, xs_niter, xs_rel_diff, lx, ldm1x, hnorm, info)
+    else
+        call gmresr(params, constants, workspace, tol, workspace % tmp_rhs, &
+            & xs, xs_niter, r_norm, lx, info)
+    end if
     call cpu_time(finish_time)
     xs_time = finish_time - start_time
     ! Check if solver did not converge
@@ -218,7 +229,7 @@ subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
         & s_time, y_time
     integer, intent(out) :: info
     !! Local variables
-    real(dp) :: start_time, finish_time
+    real(dp) :: start_time, finish_time, r_norm
     character(len=255) :: string
     !! The code
     ! Zero initialize `s` if needed
@@ -227,8 +238,13 @@ subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
     end if
     ! Solve the adjoint ddCOSMO system
     call cpu_time(start_time)
-    call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
-        & s_rel_diff, lstarx_nodiag, ldm1x, hnorm, info)
+    if (params % itersolver .eq. 1) then 
+        call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
+            & s_rel_diff, lstarx, ldm1x, hnorm, info)
+    else
+        call gmresr(params, constants, workspace, tol, psi, s, s_niter, &
+            & r_norm, lstarx, info)
+    end if
     call cpu_time(finish_time)
     s_time = finish_time - start_time
     ! Check if solver did not converge
@@ -244,8 +260,13 @@ subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
     end if
     ! Solve adjoint ddPCM system
     call cpu_time(start_time)
-    call jacobi_diis(params, constants, workspace, tol, s, y, y_niter, &
-        & y_rel_diff, rstarx, apply_rstarepsx_prec, hnorm, info)
+    if (params % itersolver .eq. 1) then 
+        call jacobi_diis(params, constants, workspace, tol, s, y, y_niter, &
+            & y_rel_diff, rstarepsx, apply_rstarepsx_prec, hnorm, info)
+    else
+        call gmresr(params, constants, workspace, tol, s, y, y_niter, &
+            & r_norm, rstarepsx, info)
+    end if
     call cpu_time(finish_time)
     y_time = finish_time - start_time
     ! Check if solver did not converge

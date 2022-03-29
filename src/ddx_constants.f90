@@ -19,6 +19,7 @@ module ddx_constants
 use ddx_parameters
 ! Get harmonics-related functions
 use ddx_harmonics
+use omp_lib, only : omp_get_wtime
 
 ! Disable implicit types
 implicit none
@@ -63,7 +64,7 @@ type ddx_constants_type
     !> Array of square roots of combinatorial numbers C_n^k.
     !!
     !! Dimension of this array is ((2*dmax+1)*(dmax+1)). Allocated, computed
-    !! and referenced only if fmm=1.
+    !! and referenced only if fmm=1 or if force=1
     real(dp), allocatable :: vcnk(:)
     !> Array of common M2L coefficients for any OZ translation.
     !!
@@ -115,20 +116,24 @@ type ddx_constants_type
     !> LPB value (i'_l0(r_j)/i_l0(r_j)-k'_l0(r_j)/k_l0(r_j))^{-1}. Dimension
     !!      is ???
     real(dp), allocatable :: C_ik(:, :)
-    !> LPB Bessel function of the first kind. Dimension is (lmax, nsph).
+    !> LPB Bessel function of the first kind. Dimension is (dmax+1, nsph).
     real(dp), allocatable :: SI_ri(:, :)
     !> LPB Derivative of Bessel function of the first kind. Dimension is
-    !!      (lmax, nsph).
+    !!      (dmax+1, nsph).
     real(dp), allocatable :: DI_ri(:, :)
-    !> LPB Bessel function of the second kind. Dimension is (lmax, nsph).
+    !> LPB Bessel function of the second kind. Dimension is (lmax+2, nsph).
     real(dp), allocatable :: SK_ri(:, :)
     !> LPB Derivative Bessel function of the second kind. Dimension is
-    !!      (lmax, nsph).
+    !!      (lmax+2, nsph).
     real(dp), allocatable :: DK_ri(:, :)
     !> LPB value i'_l(r_j)/i_l(r_j). Dimension is (lmax, nsph).
     real(dp), allocatable :: termimat(:, :)
     !> LPB value sum_{l0,m0}Pchi*coefY. Dimension is (ncav, nbasis, nsph)
     real(dp), allocatable :: diff_ep_adj(:, :, :)
+    !> LPB B matrix for doing incore BX product
+    real(dp), allocatable :: b(:,:,:)
+    !> ddCOSMO L matrix fo doing incore LX product
+    real(dp), allocatable :: l(:,:,:)
     !> Upper limit on a number of neighbours per sphere. This value is just an
     !!      upper bound that is not guaranteed to be the actual maximum.
     integer :: nngmax
@@ -137,6 +142,8 @@ type ddx_constants_type
     !> List of intersecting spheres in a CSR format. Dimension is
     !!      (nsph*nngmax).
     integer, allocatable :: nl(:)
+    !> transpose list of intersecting spheres
+    integer, allocatable :: itrnl(:)
     !> Values of a characteristic function f at all grid points of all spheres.
     !!      Dimension is (ngrid, npsh).
     real(dp), allocatable :: fi(:, :)
@@ -186,6 +193,12 @@ type ddx_constants_type
     !> Which leaf node contains only given input sphere. Dimension is (nsph).
     !!      This array is allocated and used only if fmm=1.
     integer, allocatable :: snode(:)
+    !> Bessel function for bounding sphere of each cluster. Dimension is
+    !!      (pm, nclusters). This array is allocated and used only if fmm=1.
+    real(dp), allocatable :: SK_rnode(:, :)
+    !> Bessel function for bounding sphere of each cluster. Dimension is
+    !!      (pm, nclusters). This array is allocated and used only if fmm=1.
+    real(dp), allocatable :: SI_rnode(:, :)
     !> Total number of far admissible pairs. Defined only if fmm=1.
     integer :: nnfar
     !> Total number of near admissible pairs. Defined only if fmm=1.
@@ -223,6 +236,14 @@ type ddx_constants_type
     !!      computation of forces (gradients). Allocated and used only if
     !!      fmm=1.
     integer :: grad_nbasis
+    !> Inner tolerance for microiterations done when using ddLPB
+    real(dp) :: inner_tol
+    !> Whether the diagonal of the matrices has to be used in the mvp for
+    !!       ddCOSMO, ddPCM or inner ddLPB iterations
+    logical  :: dodiag
+    !> Whether the diagonal of the matrices has to be used in the mvp for 
+    !!       ddLPB external iterations
+    logical  :: dodiag_external
     !> Flag if there were an error
     integer :: error_flag = 2
     !> Last error message
@@ -239,6 +260,7 @@ contains
 !!      = -1: params is in error state
 !!      = 1: Allocation of memory failed.
 subroutine constants_init(params, constants, info)
+    use complex_bessel
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     !! Outputs
@@ -246,12 +268,13 @@ subroutine constants_init(params, constants, info)
     integer, intent(out) :: info
     !! Local variables
     integer :: i, alloc_size, l, indl, igrid, isph, ind, icav, l0, m0, ind0, &
-        & jsph, ibasis, ibasis0
+        & jsph, ibasis, ibasis0, NZ, ierr
     real(dp) :: rho, ctheta, stheta, cphi, sphi, termi, termk, term, rijn, &
-        & sijn(3), vij(3), val
+        & sijn(3), vij(3), val, s1, s2
     real(dp), allocatable :: vplm(:), vcos(:), vsin(:), vylm(:), SK_rijn(:), &
         & DK_rijn(:)
     complex(dp), allocatable :: bessel_work(:)
+    complex(dp) :: z
     !! The code
     ! Check if params are OK
     if (params % error_flag .eq. 1) then
@@ -261,14 +284,23 @@ subroutine constants_init(params, constants, info)
         info = -1
         return
     end if
+    ! activate inner iterations diagonal in mvp for gmres only:
+    constants % dodiag = params % itersolver .eq. 2
+    constants % dodiag_external = .false.
+    
     ! Maximal number of modeling spherical harmonics
     constants % nbasis = (params % lmax+1) ** 2
     ! Maximal number of modeling degrees of freedom
     constants % n = params % nsph * constants % nbasis
     ! Calculate dmax, vgrid_dmax, m2p_lmax, m2p_nbasis and grad_nbasis
     if (params % fmm .eq. 0) then
-        constants % dmax = params % lmax
-        constants % vgrid_dmax = params % lmax
+        if (params % force .eq. 1) then
+            constants % dmax = params % lmax + 1
+            constants % vgrid_dmax = params % lmax + 1
+        else
+            constants % dmax = params % lmax
+            constants % vgrid_dmax = params % lmax
+        end if
         ! Other constants are not referenced if fmm=0
         constants % m2p_lmax = -1
         constants % m2p_nbasis = -1
@@ -337,7 +369,8 @@ subroutine constants_init(params, constants, info)
     end do
     ! Allocate square roots of combinatorial numbers C_n^k and M2L OZ
     ! translation coefficients
-    if (params % fmm .eq. 1) then
+    if (params % fmm .eq. 1 .or. &
+        & (params % model .eq. 3 .and. params % force .eq. 1)) then
         alloc_size = 2*constants % dmax + 1
         alloc_size = alloc_size * (constants % dmax+1)
         ! Allocate C_n^k
@@ -447,7 +480,7 @@ subroutine constants_init(params, constants, info)
         constants % nbasis0 = min(49, constants % nbasis)
         allocate(vylm(constants % vgrid_nbasis), &
             & SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0), &
-            & bessel_work(max(2, params % lmax+1)), stat=info)
+            & bessel_work(constants % dmax+2), stat=info)
         if (info .ne. 0) then
             constants % error_flag = 1
             constants % error_message = "constants_init: `vylm`, `SK_rijn` and " // &
@@ -455,10 +488,10 @@ subroutine constants_init(params, constants, info)
             info = 1
             return
         end if
-        allocate(constants % SI_ri(0:params % lmax, params % nsph))
-        allocate(constants % DI_ri(0:params % lmax, params % nsph))
-        allocate(constants % SK_ri(0:params % lmax, params % nsph))
-        allocate(constants % DK_ri(0:params % lmax, params % nsph))
+        allocate(constants % SI_ri(0:constants % dmax+1, params % nsph))
+        allocate(constants % DI_ri(0:constants % dmax+1, params % nsph))
+        allocate(constants % SK_ri(0:params % lmax+1, params % nsph))
+        allocate(constants % DK_ri(0:params % lmax+1, params % nsph))
         allocate(constants % diff_ep_adj(constants % ncav, &
             & constants % nbasis, params % nsph))
         allocate(constants % coefvec(params % ngrid, constants % nbasis, &
@@ -472,11 +505,13 @@ subroutine constants_init(params, constants, info)
         SK_rijn = zero
         DK_rijn = zero
         do isph = 1, params % nsph
-            call modified_spherical_bessel_first_kind(params % lmax, &
+            ! We compute Bessel functions of degrees 0..lmax+1 because the
+            ! largest degree is required for forces
+            call modified_spherical_bessel_first_kind(constants % dmax+1, &
                 & params % rsph(isph)*params % kappa,&
                 & constants % SI_ri(:, isph), constants % DI_ri(:, isph), &
                 & bessel_work)
-            call modified_spherical_bessel_second_kind(params % lmax, &
+            call modified_spherical_bessel_second_kind(params % lmax+1, &
                 & params % rsph(isph)*params % kappa, &
                 & constants % SK_ri(:, isph), constants % DK_ri(:, isph), &
                 & bessel_work)
@@ -489,9 +524,8 @@ subroutine constants_init(params, constants, info)
                 if (constants % ui(igrid, isph) .gt. 0) then
                     do ind = 1, constants % nbasis
                         constants % coefvec(igrid, ind, isph) = &
-                            & constants % wgrid(igrid) * &
                             & constants % ui(igrid, isph) * &
-                            & constants % vgrid(ind, igrid)
+                            & constants % vwgrid(ind, igrid)
                     end do
                 end if
             end do
@@ -509,55 +543,75 @@ subroutine constants_init(params, constants, info)
                 constants % C_ik(l0, isph) = one / (termi-termk)
             end do
         end do
-        icav = zero
-        do isph = 1, params % nsph
-            do igrid = 1, params % ngrid
-                if(constants % ui(igrid, isph) .gt. zero) then
-                    icav = icav + 1
-                    do jsph = 1, params % nsph
-                        vij  = params % csph(:, isph) + &
-                            & params % rsph(isph)*constants % cgrid(:, igrid) - &
-                            & params % csph(:, jsph)
-                        rijn = sqrt(dot_product(vij, vij))
-                        sijn = vij / rijn
-                        ! Compute Bessel function of 2nd kind for the coordinates
-                        ! (s_ijn, r_ijn) and compute the basis function for s_ijn
-                        call modified_spherical_bessel_second_kind( &
-                            & constants % lmax0, &
-                            & rijn*params % kappa, SK_rijn, DK_rijn, &
-                            & bessel_work)
-                        call ylmbas(sijn, rho, ctheta, stheta, cphi, &
-                            & sphi, params % lmax, constants % vscales, &
-                            & vylm, vplm, vcos, vsin)
-                        do l0 = 0, constants % lmax0
-                            term = SK_rijn(l0) / constants % SK_ri(l0, jsph)
-                            do m0 = -l0, l0
-                                ind0 = l0*l0 + l0 + m0 + 1
-                                constants % coefY(icav, ind0, jsph) = &
-                                    & constants % C_ik(l0,jsph) * term * &
-                                    & vylm(ind0)
-                            end do
-                        end do
-                    end do
-                end if
-            end do
-        end do
+        !!icav = zero
+        !!do isph = 1, params % nsph
+        !!    do igrid = 1, params % ngrid
+        !!        if(constants % ui(igrid, isph) .gt. zero) then
+        !!            icav = icav + 1
+        !!            do jsph = 1, params % nsph
+        !!                vij  = params % csph(:, isph) + &
+        !!                    & params % rsph(isph)*constants % cgrid(:, igrid) - &
+        !!                    & params % csph(:, jsph)
+        !!                rijn = sqrt(dot_product(vij, vij))
+        !!                sijn = vij / rijn
+        !!                ! Compute Bessel function of 2nd kind for the coordinates
+        !!                ! (s_ijn, r_ijn) and compute the basis function for s_ijn
+        !!                call modified_spherical_bessel_second_kind( &
+        !!                    & constants % lmax0, &
+        !!                    & rijn*params % kappa, SK_rijn, DK_rijn, &
+        !!                    & bessel_work)
+        !!                call ylmbas(sijn, rho, ctheta, stheta, cphi, &
+        !!                    & sphi, params % lmax, constants % vscales, &
+        !!                    & vylm, vplm, vcos, vsin)
+        !!                do l0 = 0, constants % lmax0
+        !!                    term = SK_rijn(l0) / constants % SK_ri(l0, jsph)
+        !!                    do m0 = -l0, l0
+        !!                        ind0 = l0*l0 + l0 + m0 + 1
+        !!                        constants % coefY(icav, ind0, jsph) = &
+        !!                            & constants % C_ik(l0,jsph) * term * &
+        !!                            & vylm(ind0)
+        !!                    end do
+        !!                end do
+        !!            end do
+        !!        end if
+        !!    end do
+        !!end do
         ! Compute
         ! diff_ep_adj = Pchi * coefY
         ! Summation over l0, m0
-        constants % diff_ep_adj = zero
-        do icav = 1, constants % ncav
-            do ibasis = 1, constants % nbasis
-                do isph = 1, params % nsph
-                    val = zero
-                    do ibasis0 = 1, constants % nbasis0
-                        val = val + constants % Pchi(ibasis, ibasis0, isph)* &
-                            & constants % coefY(icav, ibasis0, isph)
-                    end do
-                    constants % diff_ep_adj(icav, ibasis, isph) = val
-                end do
+        !!constants % diff_ep_adj = zero
+        !!do icav = 1, constants % ncav
+        !!    do ibasis = 1, constants % nbasis
+        !!        do isph = 1, params % nsph
+        !!            val = zero
+        !!            do ibasis0 = 1, constants % nbasis0
+        !!                val = val + constants % Pchi(ibasis, ibasis0, isph)* &
+        !!                    & constants % coefY(icav, ibasis0, isph)
+        !!            end do
+        !!            constants % diff_ep_adj(icav, ibasis, isph) = val
+        !!        end do
+        !!    end do
+        !!end do
+        ! Allocate arrays for the FMM acceleration
+        if (params % fmm .eq. 1) then
+            allocate(constants % SI_rnode(params % pm+1, constants % nclusters))
+            allocate(constants % SK_rnode(params % pm+1, constants % nclusters))
+            do i = 1, constants % nclusters
+                z = constants % rnode(i) * params % kappa
+                s1 = sqrt(two/(pi*real(z)))
+                s2 = sqrt(pi/(two*real(z)))
+                call cbesk(z, pt5, 1, 1, bessel_work(1), NZ, ierr)
+                constants % SK_rnode(1, i) = s1 * real(bessel_work(1))
+                call cbesi(z, pt5, 1, 1, bessel_work(1), NZ, ierr)
+                constants % SI_rnode(1, i) = s2 * real(bessel_work(1))
+                if (params % pm .gt. 0) then
+                    call cbesk(z, 1.5d0, 1, params % pm, bessel_work(2:), NZ, ierr)
+                    constants % SK_rnode(2:, i) = s1 * real(bessel_work(2:params % pm+1))
+                    call cbesi(z, 1.5d0, 1, params % pm, bessel_work(2:), NZ, ierr)
+                    constants % SI_rnode(2:, i) = s2 * real(bessel_work(2:params % pm+1))
+                end if
             end do
-        end do
+        end if
         deallocate(vylm, SK_rijn, DK_rijn, bessel_work, stat=info)
         if (info .ne. 0) then
             constants % error_flag = 1
@@ -565,6 +619,10 @@ subroutine constants_init(params, constants, info)
                 & "`DK_rijn` deallocations failed"
             info = 1
             return
+        end if
+        ! if doing incore build nonzero blocks of B
+        if (params % matvecmem .eq. 1) then
+            call build_b(constants, params)
         end if
     end if
     deallocate(vplm, vcos, vsin, stat=info)
@@ -575,11 +633,167 @@ subroutine constants_init(params, constants, info)
         info = 1
         return
     end if
+    ! if doing incore build nonzero blocks of L
+    if (params % matvecmem .eq. 1) then
+        call build_itrnl(constants, params)
+        call build_l(constants, params)
+    end if
     ! Clean error state of constants to proceed with geometry
     constants % error_flag = 0
     constants % error_message = ""
 end subroutine constants_init
 
+subroutine build_itrnl(constants, params)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    integer :: isph, ij, jsph, ji, istat
+
+    allocate(constants % itrnl(constants % inl(params % nsph + 1)), stat=istat)
+    if (istat.ne.0) stop 1
+
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            do ji = constants % inl(jsph), constants % inl(jsph + 1) - 1
+                if (constants % nl(ji) .eq. isph) exit
+            end do
+            constants % itrnl(ij) = ji
+        end do
+    end do
+end subroutine build_itrnl
+
+subroutine build_l(constants, params)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    integer :: isph, ij, jsph, igrid, l, m, ind
+    real(dp), dimension(3) :: vij, sij
+    real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
+        & fac, tt, thigh
+    real(dp), dimension(constants % nbasis) :: vylm, vplm
+    real(dp), dimension(params % lmax + 1) :: vcos, vsin
+    real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
+    real(dp) :: t
+
+    allocate(constants % l(constants % nbasis, constants % nbasis, &
+        & constants % inl(params % nsph + 1)))
+
+    thigh = one + pt5*(params % se + one)*params % eta
+
+    t = omp_get_wtime()
+    !$omp parallel do default(none) shared(params,constants,thigh) &
+    !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
+    !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,l,fac,ind,m,tt)
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            scratch = zero
+            do igrid = 1, params % ngrid
+                if (constants % ui(igrid, isph).eq.one) cycle
+                vij = params % csph(:, isph) &
+                    & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                    & - params % csph(:, jsph)
+                vvij = sqrt(dot_product(vij, vij))
+                tij = vvij/params % rsph(jsph)
+                if (tij.lt.thigh .and. tij.gt.zero) then
+                    sij = vij/vvij
+                    xij = fsw(tij, params % se, params % eta)
+                    if (constants % fi(igrid, isph).gt.one) then
+                        oij = xij/constants % fi(igrid, isph)
+                    else
+                        oij = xij
+                    end if
+                    call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                        & params % lmax, constants % vscales, vylm, vplm, &
+                        & vcos, vsin)
+                    tt = oij
+                    do l = 0, params % lmax
+                        ind = l*l + l + 1
+                        fac = - tt/(constants % vscales(ind)**2)
+                        do m = -l, l
+                            scratch(ind + m, igrid) = fac*vylm(ind + m)
+                        end do
+                        tt = tt*tij
+                    end do
+                end if
+            end do
+            call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
+                & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
+                & constants % nbasis, zero, constants % l(:,:,ij), constants % nbasis)
+        end do
+    end do
+    write(6,*) '@build_l', omp_get_wtime() - t
+end subroutine build_l
+
+subroutine build_b(constants, params)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    integer :: isph, ij, jsph, igrid, l, m, ind
+    real(dp), dimension(3) :: vij, sij
+    real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
+        & fac, vvtij, thigh
+    real(dp), dimension(constants % nbasis) :: vylm, vplm
+    real(dp), dimension(params % lmax + 1) :: vcos, vsin
+    complex(dp), dimension(max(2, params % lmax + 1)) :: bessel_work
+    real(dp), dimension(0:params % lmax) :: SI_rijn, DI_rijn
+    real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
+    real(dp) :: t
+
+    allocate(constants % b(constants % nbasis, constants % nbasis, &
+        & constants % inl(params % nsph + 1)))
+
+    thigh = one + pt5*(params % se + one)*params % eta
+
+    t = omp_get_wtime()
+    !$omp parallel do default(none) shared(params,constants,thigh) &
+    !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
+    !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,si_rijn,di_rijn, &
+    !$omp vvtij,l,fac,ind,m,bessel_work)
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+            jsph = constants % nl(ij)
+            scratch = zero
+            do igrid = 1, params % ngrid
+                if (constants % ui(igrid, isph).eq.one) cycle
+                vij = params % csph(:, isph) &
+                    & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                    & - params % csph(:, jsph)
+                vvij = sqrt(dot_product(vij, vij))
+                tij = vvij/params % rsph(jsph)
+                if (tij.lt.thigh .and. tij.gt.zero) then
+                    sij = vij/vvij
+                    xij = fsw(tij, params % se, params % eta)
+                    if (constants % fi(igrid, isph).gt.one) then
+                        oij = xij/constants % fi(igrid, isph)
+                    else
+                        oij = xij
+                    end if
+                    call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                        & params % lmax, constants % vscales, vylm, vplm, &
+                        & vcos, vsin)
+                    SI_rijn = 0
+                    DI_rijn = 0
+                    vvtij = vvij*params % kappa
+                    call modified_spherical_bessel_first_kind(params % lmax, &
+                        & vvtij, SI_rijn, DI_rijn, bessel_work)
+                    do l = 0, params % lmax
+                        fac = - oij*SI_rijn(l)/constants % SI_ri(l, jsph)
+                        ind = l*l + l + 1
+                        do m = -l, l
+                            scratch(ind + m, igrid) = fac*vylm(ind + m)
+                        end do
+                    end do
+                end if
+            end do
+            call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
+                & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
+                & constants % nbasis, zero, constants % b(:,:,ij), constants % nbasis)
+        end do
+    end do
+    write(6,*) '@build_b', omp_get_wtime() - t
+end subroutine build_b
 
 !
 ! Computation of P_chi
@@ -632,227 +846,13 @@ subroutine constants_geometry_init(params, constants, info)
     integer, intent(out) :: info
     !! Local variables
     real(dp) :: swthr, v(3), maxv, ssqv, vv, r, t
-    integer :: nngmax, i, lnl, isph, jsph, inear, igrid, iwork, jwork, lwork, &
+    integer :: i, isph, jsph, inear, igrid, iwork, jwork, lwork, &
         & old_lwork, icav
     integer, allocatable :: tmp_nl(:), work(:, :), tmp_work(:, :)
+    real(dp) :: start_time
     !! The code
-    ! Upper bound of switch region. Defines intersection criterion for spheres
-    swthr = one + (params % se+one)*params % eta/two
-    ! Build list of neighbours in CSR format
-    nngmax = 1
-    allocate(constants % inl(params % nsph+1), &
-        & constants % nl(params % nsph*nngmax), stat=info)
-    if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`inl` and `nl` allocations failed"
-        info = 1
-        return
-    end if
-    i = 1
-    lnl = 0
-    do isph = 1, params % nsph
-        constants % inl(isph) = lnl + 1
-        do jsph = 1, params % nsph
-            if (isph .ne. jsph) then
-                v = params % csph(:, isph)-params % csph(:, jsph)
-                maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
-                ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
-                vv = maxv * sqrt(ssqv)
-                ! Take regularization parameter into account with respect to
-                ! shift se. It is described properly by the upper bound of a
-                ! switch region `swthr`.
-                r = params % rsph(isph) + swthr*params % rsph(jsph)
-                if (vv .le. r) then
-                    constants % nl(i) = jsph
-                    i  = i + 1
-                    lnl = lnl + 1
-                    ! Extend ddx_data % nl if needed
-                    if (i .gt. params % nsph*nngmax) then
-                        allocate(tmp_nl(params % nsph*nngmax), stat=info)
-                        if (info .ne. 0) then
-                            constants % error_flag = 1
-                            constants % error_message = "`tmp_nl` " // &
-                                & "allocation failed"
-                            info = 1
-                            return
-                        end if
-                        tmp_nl(1:params % nsph*nngmax) = &
-                            & constants % nl(1:params % nsph*nngmax)
-                        deallocate(constants % nl, stat=info)
-                        if (info .ne. 0) then
-                            constants % error_flag = 1
-                            constants % error_message = "`nl` " // &
-                                & "deallocation failed"
-                            info = 1
-                            return
-                        end if
-                        nngmax = nngmax + 10
-                        allocate(constants % nl(params % nsph*nngmax), &
-                            & stat=info)
-                        if (info .ne. 0) then
-                            constants % error_flag = 1
-                            constants % error_message = "`nl` " // &
-                                & "allocation failed"
-                            info = 1
-                            return
-                        end if
-                        constants % nl(1:params % nsph*(nngmax-10)) = &
-                            & tmp_nl(1:params % nsph*(nngmax-10))
-                        deallocate(tmp_nl, stat=info)
-                        if (info .ne. 0) then
-                            constants % error_flag = 1
-                            constants % error_message = "`tmp_nl` " // &
-                                & "deallocation failed"
-                            info = 1
-                            return
-                        end if
-                    end if
-                end if
-            end if
-        end do
-    end do
-    constants % inl(params % nsph+1) = lnl+1
-    constants % nngmax = nngmax
-    ! Allocate space for characteristic functions fi and ui
-    allocate(constants % fi(params % ngrid, params % nsph), &
-        & constants % ui(params % ngrid, params % nsph), stat=info)
-    if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`fi` and `ui` allocations failed"
-        info = 1
-        return
-    end if
-    constants % fi = zero
-    constants % ui = zero
-    ! Allocate space for force-related arrays
-    if (params % force .eq. 1) then
-        allocate(constants % zi(3, params % ngrid, params % nsph), stat=info)
-        if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "`zi` allocation failed"
-            info = 1
-            return
-        endif
-        constants % zi = zero
-    end if
-    ! Build arrays fi, ui, zi
-    do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-            ! Loop over neighbours of i-th sphere
-            do inear = constants % inl(isph), constants % inl(isph+1)-1
-                ! Neighbour's index
-                jsph = constants % nl(inear)
-                ! Compute t_n^ij
-                v = params % csph(:, isph) - params % csph(:, jsph) + &
-                    & params % rsph(isph)*constants % cgrid(:, igrid)
-                maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
-                ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
-                vv = maxv * sqrt(ssqv)
-                t = vv / params % rsph(jsph)
-                ! Accumulate characteristic function \chi(t_n^ij)
-                constants % fi(igrid, isph) = constants % fi(igrid, isph) + &
-                    & fsw(t, params % se, params % eta)
-                ! Check if gradients are required
-                if (params % force .eq. 1) then
-                    ! Check if t_n^ij belongs to switch region
-                    if ((t .lt. swthr) .and. (t .gt. swthr-params % eta)) then
-                        ! Accumulate gradient of characteristic function \chi
-                        vv = dfsw(t, params % se, params % eta) / &
-                            & params % rsph(jsph) / vv
-                        constants % zi(:, igrid, isph) = &
-                            & constants % zi(:, igrid, isph) + vv*v
-                    end if
-                end if
-            enddo
-            ! Compute characteristic function of a molecular surface ui
-            if (constants % fi(igrid, isph) .le. one) then
-                constants % ui(igrid, isph) = one - constants % fi(igrid, isph)
-            end if
-        enddo
-    enddo
-    ! Build cavity array. At first get total count for each sphere
-    allocate(constants % ncav_sph(params % nsph), stat=info)
-    if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`ncav_sph` allocation failed"
-        info = 1
-        return
-    endif
-    do isph = 1, params % nsph
-        constants % ncav_sph(isph) = 0
-        ! Loop over integration points
-        do i = 1, params % ngrid
-            ! Positive contribution from integration point
-            if (constants % ui(i, isph) .gt. zero) then
-                constants % ncav_sph(isph) = constants % ncav_sph(isph) + 1
-            end if
-        end do
-    end do
-    constants % ncav = sum(constants % ncav_sph)
-    ! Allocate cavity array and CSR format for indexes of cavities
-    allocate(constants % ccav(3, constants % ncav), &
-        & constants % icav_ia(params % nsph+1), &
-        & constants % icav_ja(constants % ncav), stat=info)
-    if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`ccav`, `icav_ia` and " // &
-            & "`icav_ja` allocations failed"
-        info = 1
-        return
-    endif
-    ! Allocate space for characteristic functions ui at cavity points
-    allocate(constants % ui_cav(constants % ncav), stat=info)
-    if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`ui_cav` allocations failed"
-        info = 1
-        return
-    end if
-    ! Get actual cavity coordinates and indexes in CSR format and fill in
-    ! ui_cav aray
-    constants % icav_ia(1) = 1
-    icav = 1
-    do isph = 1, params % nsph
-        constants % icav_ia(isph+1) = constants % icav_ia(isph) + &
-            & constants % ncav_sph(isph)
-        ! Loop over integration points
-        do igrid = 1, params % ngrid
-            ! Ignore zero contribution
-            if (constants % ui(igrid, isph) .eq. zero) cycle
-            ! Store coordinates
-            constants % ccav(:, icav) = params % csph(:, isph) + &
-                & params % rsph(isph)* &
-                & constants % cgrid(:, igrid)
-            ! Store index
-            constants % icav_ja(icav) = igrid
-            ! Store characteristic function
-            constants % ui_cav(icav) = constants % ui(igrid, isph)
-            ! Advance cavity array index
-            icav = icav + 1
-        end do
-    end do
-    ! Compute diagonal preconditioner for PCM equations
-    if (params % model .eq. 2) then
-        allocate(constants % rx_prc( &
-            & constants % nbasis, constants % nbasis, params % nsph), &
-            & stat=info)
-        if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `rx_prc` " &
-                & // "allocation failed"
-            info = 1
-            return
-        endif
-        call mkprec(params % lmax, constants % nbasis, params % nsph, &
-            & params % ngrid, params % eps, constants % ui, &
-            & constants % wgrid, constants % vgrid, constants % vgrid_nbasis, &
-            & constants % rx_prc, info, constants % error_message)
-        if (info .ne. 0) then
-            constants % error_flag = 1
-            return
-        end if
-    end if
     ! Prepare FMM structures if needed
+    start_time = omp_get_wtime()
     if (params % fmm .eq. 1) then
         ! Allocate space for a cluster tree
         allocate(constants % order(params % nsph), stat=info)
@@ -1026,7 +1026,340 @@ subroutine constants_geometry_init(params, constants, info)
             return
         end if
     end if
+    write(6,*) 'init fmm tree', omp_get_wtime() - start_time
+    ! Upper bound of switch region. Defines intersection criterion for spheres
+    swthr = one + (params % se+one)*params % eta/two
+    ! Assemble neighbor list
+    start_time = omp_get_wtime()
+    if (params % fmm .eq. 1) then
+        call neighbor_list_init_fmm(params, constants, info)
+    else
+        call neighbor_list_init(params, constants, info)
+    end if
+    write(6,*) 'neighbor list', omp_get_wtime() - start_time
+    ! Allocate space for characteristic functions fi and ui
+    allocate(constants % fi(params % ngrid, params % nsph), &
+        & constants % ui(params % ngrid, params % nsph), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = "`fi` and `ui` allocations failed"
+        info = 1
+        return
+    end if
+    constants % fi = zero
+    constants % ui = zero
+    ! Allocate space for force-related arrays
+    if (params % force .eq. 1) then
+        allocate(constants % zi(3, params % ngrid, params % nsph), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "`zi` allocation failed"
+            info = 1
+            return
+        endif
+        constants % zi = zero
+    end if
+    ! Build arrays fi, ui, zi
+    !$omp parallel do default(none) shared(params,constants,swthr) &
+    !$omp private(isph,igrid,jsph,v,maxv,ssqv,vv,t) schedule(dynamic)
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            ! Loop over neighbours of i-th sphere
+            do inear = constants % inl(isph), constants % inl(isph+1)-1
+                ! Neighbour's index
+                jsph = constants % nl(inear)
+                ! Compute t_n^ij
+                v = params % csph(:, isph) - params % csph(:, jsph) + &
+                    & params % rsph(isph)*constants % cgrid(:, igrid)
+                maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
+                ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
+                vv = maxv * sqrt(ssqv)
+                t = vv / params % rsph(jsph)
+                ! Accumulate characteristic function \chi(t_n^ij)
+                constants % fi(igrid, isph) = constants % fi(igrid, isph) + &
+                    & fsw(t, params % se, params % eta)
+                ! Check if gradients are required
+                if (params % force .eq. 1) then
+                    ! Check if t_n^ij belongs to switch region
+                    if ((t .lt. swthr) .and. (t .gt. swthr-params % eta)) then
+                        ! Accumulate gradient of characteristic function \chi
+                        vv = dfsw(t, params % se, params % eta) / &
+                            & params % rsph(jsph) / vv
+                        constants % zi(:, igrid, isph) = &
+                            & constants % zi(:, igrid, isph) + vv*v
+                    end if
+                end if
+            enddo
+            ! Compute characteristic function of a molecular surface ui
+            if (constants % fi(igrid, isph) .le. one) then
+                constants % ui(igrid, isph) = one - constants % fi(igrid, isph)
+            end if
+        enddo
+    enddo
+    ! Build cavity array. At first get total count for each sphere
+    allocate(constants % ncav_sph(params % nsph), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = "`ncav_sph` allocation failed"
+        info = 1
+        return
+    endif
+    !$omp parallel do default(none) shared(params,constants) &
+    !$omp private(isph,i) schedule(dynamic)
+    do isph = 1, params % nsph
+        constants % ncav_sph(isph) = 0
+        ! Loop over integration points
+        do i = 1, params % ngrid
+            ! Positive contribution from integration point
+            if (constants % ui(i, isph) .gt. zero) then
+                constants % ncav_sph(isph) = constants % ncav_sph(isph) + 1
+            end if
+        end do
+    end do
+    constants % ncav = sum(constants % ncav_sph)
+    ! Allocate cavity array and CSR format for indexes of cavities
+    allocate(constants % ccav(3, constants % ncav), &
+        & constants % icav_ia(params % nsph+1), &
+        & constants % icav_ja(constants % ncav), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = "`ccav`, `icav_ia` and " // &
+            & "`icav_ja` allocations failed"
+        info = 1
+        return
+    endif
+    ! Allocate space for characteristic functions ui at cavity points
+    allocate(constants % ui_cav(constants % ncav), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = "`ui_cav` allocations failed"
+        info = 1
+        return
+    end if
+    ! Get actual cavity coordinates and indexes in CSR format and fill in
+    ! ui_cav aray
+    constants % icav_ia(1) = 1
+    icav = 1
+    do isph = 1, params % nsph
+        constants % icav_ia(isph+1) = constants % icav_ia(isph) + &
+            & constants % ncav_sph(isph)
+        ! Loop over integration points
+        do igrid = 1, params % ngrid
+            ! Ignore zero contribution
+            if (constants % ui(igrid, isph) .eq. zero) cycle
+            ! Store coordinates
+            constants % ccav(:, icav) = params % csph(:, isph) + &
+                & params % rsph(isph)* &
+                & constants % cgrid(:, igrid)
+            ! Store index
+            constants % icav_ja(icav) = igrid
+            ! Store characteristic function
+            constants % ui_cav(icav) = constants % ui(igrid, isph)
+            ! Advance cavity array index
+            icav = icav + 1
+        end do
+    end do
+    ! Compute diagonal preconditioner for PCM equations
+    if (params % model .eq. 2) then
+        allocate(constants % rx_prc( &
+            & constants % nbasis, constants % nbasis, params % nsph), &
+            & stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: `rx_prc` " &
+                & // "allocation failed"
+            info = 1
+            return
+        endif
+        call mkprec(params % lmax, constants % nbasis, params % nsph, &
+            & params % ngrid, params % eps, constants % ui, &
+            & constants % wgrid, constants % vgrid, constants % vgrid_nbasis, &
+            & constants % rx_prc, info, constants % error_message)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            return
+        end if
+    end if
 end subroutine constants_geometry_init
+
+subroutine neighbor_list_init(params, constants, info)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    integer, intent(out) :: info
+    real(dp) :: swthr, v(3), maxv, ssqv, vv, r
+    integer :: nngmax, i, lnl, isph, jsph
+    integer, allocatable :: tmp_nl(:)
+    ! Upper bound of switch region. Defines intersection criterion for spheres
+    swthr = one + (params % se+one)*params % eta/two
+    ! Build list of neighbours in CSR format
+    nngmax = 1
+    allocate(constants % inl(params % nsph+1), &
+        & constants % nl(params % nsph*nngmax), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = "`inl` and `nl` allocations failed"
+        info = 1
+        return
+    end if
+    i = 1
+    lnl = 0
+    do isph = 1, params % nsph
+        constants % inl(isph) = lnl + 1
+        do jsph = 1, params % nsph
+            if (isph .ne. jsph) then
+                v = params % csph(:, isph)-params % csph(:, jsph)
+                maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
+                ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
+                vv = maxv * sqrt(ssqv)
+                ! Take regularization parameter into account with respect to
+                ! shift se. It is described properly by the upper bound of a
+                ! switch region `swthr`.
+                r = params % rsph(isph) + swthr*params % rsph(jsph)
+                if (vv .le. r) then
+                    constants % nl(i) = jsph
+                    i  = i + 1
+                    lnl = lnl + 1
+                    ! Extend ddx_data % nl if needed
+                    if (i .gt. params % nsph*nngmax) then
+                        allocate(tmp_nl(params % nsph*nngmax), stat=info)
+                        if (info .ne. 0) then
+                            constants % error_flag = 1
+                            constants % error_message = "`tmp_nl` " // &
+                                & "allocation failed"
+                            info = 1
+                            return
+                        end if
+                        tmp_nl(1:params % nsph*nngmax) = &
+                            & constants % nl(1:params % nsph*nngmax)
+                        deallocate(constants % nl, stat=info)
+                        if (info .ne. 0) then
+                            constants % error_flag = 1
+                            constants % error_message = "`nl` " // &
+                                & "deallocation failed"
+                            info = 1
+                            return
+                        end if
+                        nngmax = nngmax + 10
+                        allocate(constants % nl(params % nsph*nngmax), &
+                            & stat=info)
+                        if (info .ne. 0) then
+                            constants % error_flag = 1
+                            constants % error_message = "`nl` " // &
+                                & "allocation failed"
+                            info = 1
+                            return
+                        end if
+                        constants % nl(1:params % nsph*(nngmax-10)) = &
+                            & tmp_nl(1:params % nsph*(nngmax-10))
+                        deallocate(tmp_nl, stat=info)
+                        if (info .ne. 0) then
+                            constants % error_flag = 1
+                            constants % error_message = "`tmp_nl` " // &
+                                & "deallocation failed"
+                            info = 1
+                            return
+                        end if
+                    end if
+                end if
+            end if
+        end do
+    end do
+    constants % inl(params % nsph+1) = lnl+1
+    constants % nngmax = nngmax
+end subroutine neighbor_list_init
+
+subroutine neighbor_list_init_fmm(params, constants, info)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    integer, intent(out) :: info
+    real(dp) :: swthr, v(3), maxv, ssqv, vv, r
+    integer :: nngmax, i, lnl, isph, jsph, inode, jnode, j, k
+    integer, allocatable :: tmp_nl(:)
+    ! Upper bound of switch region. Defines intersection criterion for spheres
+    swthr = one + (params % se+one)*params % eta/two
+    ! Build list of neighbours in CSR format
+    nngmax = 1
+    allocate(constants % inl(params % nsph+1), &
+        & constants % nl(params % nsph*nngmax), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = "`inl` and `nl` allocations failed"
+        info = 1
+        return
+    end if
+    i = 1
+    lnl = 0
+    ! loop over leaf clusters
+    do isph = 1, params % nsph
+        constants % inl(isph) = lnl + 1
+        inode = constants % snode(isph)
+        ! loop over near clusters
+        do j = constants % snear(inode), constants % snear(inode+1) - 1
+            jnode = constants % near(j)
+            do k = constants % cluster(1, jnode), constants % cluster(2, jnode)
+                jsph = constants % order(k)
+                if (isph .ne. jsph) then
+                    v = params % csph(:, isph)-params % csph(:, jsph)
+                    maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
+                    ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
+                    vv = maxv * sqrt(ssqv)
+                    ! Take regularization parameter into account with respect to
+                    ! shift se. It is described properly by the upper bound of a
+                    ! switch region `swthr`.
+                    r = params % rsph(isph) + swthr*params % rsph(jsph)
+                    if (vv .le. r) then
+                        constants % nl(i) = jsph
+                        i  = i + 1
+                        lnl = lnl + 1
+                        ! Extend ddx_data % nl if needed
+                        if (i .gt. params % nsph*nngmax) then
+                            allocate(tmp_nl(params % nsph*nngmax), stat=info)
+                            if (info .ne. 0) then
+                                constants % error_flag = 1
+                                constants % error_message = "`tmp_nl` " // &
+                                    & "allocation failed"
+                                info = 1
+                                return
+                            end if
+                            tmp_nl(1:params % nsph*nngmax) = &
+                                & constants % nl(1:params % nsph*nngmax)
+                            deallocate(constants % nl, stat=info)
+                            if (info .ne. 0) then
+                                constants % error_flag = 1
+                                constants % error_message = "`nl` " // &
+                                    & "deallocation failed"
+                                info = 1
+                                return
+                            end if
+                            nngmax = nngmax + 10
+                            allocate(constants % nl(params % nsph*nngmax), &
+                                & stat=info)
+                            if (info .ne. 0) then
+                                constants % error_flag = 1
+                                constants % error_message = "`nl` " // &
+                                    & "allocation failed"
+                                info = 1
+                                return
+                            end if
+                            constants % nl(1:params % nsph*(nngmax-10)) = &
+                                & tmp_nl(1:params % nsph*(nngmax-10))
+                            deallocate(tmp_nl, stat=info)
+                            if (info .ne. 0) then
+                                constants % error_flag = 1
+                                constants % error_message = "`tmp_nl` " // &
+                                    & "deallocation failed"
+                                info = 1
+                                return
+                            end if
+                        end if
+                    end if
+                end if
+            end do
+        end do
+    end do
+    constants % inl(params % nsph+1) = lnl+1
+    constants % nngmax = nngmax
+end subroutine neighbor_list_init_fmm
 
 !> Update geometry-related constants like list of neighbouring spheres
 !!
@@ -1231,7 +1564,7 @@ subroutine mkprec(lmax, nbasis, nsph, ngrid, eps, ui, wgrid, vgrid, &
         info = 1
         return
     end if
-    ! Cleanup error message if there were no error
+  ! Cleanup error message if there were no error
     error_message = ""
 end subroutine mkprec
 
@@ -1383,10 +1716,15 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div)
     integer, intent(inout) :: order(n)
     integer, intent(out) :: div
     ! Local variables
-    real(dp) :: c(3), tmp_csph(3, n), s(3)
-    real(dp), allocatable :: work(:)
+    real(dp) :: c(3),  s(3)
+    real(dp), allocatable :: tmp_csph(:, :), work(:)
     external :: dgesvd
-    integer :: i, l, r, lwork, info, tmp_order(n), istat
+    integer :: i, l, r, lwork, info, istat
+    integer, allocatable :: tmp_order(:)
+
+    allocate(tmp_csph(3, n), tmp_order(n), stat=istat)
+    if (istat .ne. 0) stop "allocation failed"
+
     ! Get average coordinate
     c = zero
     do i = 1, n
@@ -1402,7 +1740,7 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div)
     lwork = -1
     call dgesvd('N', 'O', 3, n, tmp_csph, 3, s, tmp_csph, 3, tmp_csph, 3, &
         & s, lwork, info)
-    lwork = s(1)
+    lwork = int(s(1))
     allocate(work(lwork), stat=istat)
     if (istat .ne. 0) stop "allocation failed"
     ! Get right singular vectors
@@ -1434,6 +1772,8 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div)
     ! Set divider and update order
     div = r
     order = tmp_order
+    deallocate(tmp_csph, tmp_order, stat=istat)
+    if (istat .ne. 0) stop "deallocation failed"
 end subroutine tree_rib_node_bisect
 
 !> Find near and far admissible pairs of tree nodes and store it in work array
@@ -1555,7 +1895,7 @@ end subroutine tree_get_farnear_work
 ! Works only for binary tree
 subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
         & nnnear, nnear, snear, near)
-! Parameters:
+!   Parameters:
 !   jwork: Total number of checked pairs in work array
 !   lwork: Total length of work array
 !   work: Work array itself
@@ -1572,7 +1912,9 @@ subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
     integer, intent(in) :: nfar(n), nnear(n)
     integer, intent(out) :: sfar(n+1), far(nnfar), snear(n+1), near(nnnear)
     integer :: i, j
-    integer :: cfar(n+1), cnear(n+1)
+    integer, allocatable :: cfar(:), cnear(:)
+
+    allocate(cfar(n+1), cnear(n+1))
     sfar(1) = 1
     snear(1) = 1
     do i = 2, n+1
@@ -1600,6 +1942,9 @@ subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
             cnear(j) = cnear(j) + 1
         end if
     end do
+
+    deallocate(cfar, cnear)
+
 end subroutine tree_get_farnear
 
 end module ddx_constants

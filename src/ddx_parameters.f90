@@ -16,6 +16,7 @@ module ddx_parameters
 
 ! Include compile-time definitions
 use ddx_definitions
+use omp_lib
 
 ! Disable implicit types
 implicit none
@@ -83,6 +84,8 @@ type ddx_params_type
     real(dp), allocatable :: csph(:, :)
     !> Array of radii of atoms of a dimension (nsph).
     real(dp), allocatable :: rsph(:)
+    !> Dielectric permittivity of the cavity (used by ddLPB), hardcoded to one
+    real(dp) :: epsp = 1.0_dp
     !> Error state. 0 in case of no error or 1 if there were errors and 2 if
     !! the object is not initialised.
     integer :: error_flag = 2
@@ -90,6 +93,8 @@ type ddx_params_type
     character(len=255) :: error_message
     !> Error printing function
     procedure(print_func_interface), pointer, nopass :: print_func
+    !> integer matvecmem. Build hsp matrix to speed up matrix-vec product
+    integer :: matvecmem
 end type ddx_params_type
 
 contains
@@ -107,6 +112,8 @@ contains
 !! @param[in] lmax: Maximal degree of modeling spherical harmonics.
 !!      `lmax` >= 0.
 !! @param[in] ngrid: Number of Lebedev grid points `ngrid` >= 0.
+!! @param[in] matvecmem: handling of sparse matrices. 1 for precomputing them 
+!!      and keeping them in memory, 0 for direct matrix-vector products.
 !! @param[in] itersolver: Iterative solver to be used. 1 for Jacobi iterative
 !!      solver. Other solvers might be added later.
 !! @param[in] maxiter: Maximum number of iterations for an iterative solver.
@@ -138,8 +145,8 @@ contains
 !!          params % error_message
 !!      = 1: Allocation of memory to copy geometry data failed.
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, fmm, &
-        & pm, pl, nproc, nsph, charge, &
+        & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+        & fmm, pm, pl, nproc, nsph, charge, &
         & csph, rsph, print_func, params, info)
     !! Inputs
     ! Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
@@ -159,8 +166,10 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     integer, intent(in) :: lmax
     ! Number of Lebedev grid points on each sphere.
     integer, intent(in) :: ngrid
+    ! handling of sparse matrix. 1 for precomputing them and keeping them in
+    ! memory, 0 for assembling the mvps on-the-fly.
+    integer, intent(in) :: matvecmem
     ! Iterative solver to be used. 1 for Jacobi/DIIS, 2 for GMRES.
-    !
     ! Other solvers might be added later.
     integer, intent(in) :: itersolver
     ! Maximum number of iterations for the iterative solver.
@@ -185,8 +194,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     !
     ! If this value is -1 then no far-field FMM interactions are performed.
     integer, intent(in) :: pl
-    ! Number of OpenMP threads to be used. Currently, only nproc=1 is
-    !      supported as the ddX is sequential right now.
+    ! Number of OpenMP threads to be used. 
     integer, intent(in) :: nproc
     ! Number of atoms in the molecule.
     integer, intent(in) :: nsph
@@ -378,18 +386,19 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         params % pl = -2
     end if
     ! Number of OpenMP threads to be used
-    ! As of now only sequential version with nproc=1 is supported, providing
-    ! nproc=0 means it is up to ddX to decide on parallelism which is not yet
     ! available.
-    if (nproc .ne. 1 .and. nproc .ne. 0) then
+    if (nproc .lt. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `nproc`"
         call print_func(params % error_message)
         info = -1
         return
+    else if (nproc .eq. 0) then
+        params % nproc = 1
+    else
+        params % nproc = nproc
     end if
-    ! Only 1 thread is used (due to disabled OpenMP)
-    params % nproc = 1
+    call omp_set_num_threads(params % nproc)
     ! Number of atoms
     if (nsph .le. 0) then
         params % error_flag = 1
@@ -413,6 +422,15 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     params % charge = charge
     params % csph = csph
     params % rsph = rsph
+    if (matvecmem.eq.0 .or. matvecmem.eq.1) then
+        params % matvecmem = matvecmem
+    else
+        params % error_flag = 1
+        params % error_message = "params_init: invalid value of `matvecmem`"
+        call print_func(params % error_message)
+        info = -1
+        return
+    end if
     ! Set print function for errors
     params % print_func => print_func
     ! Clear error state
@@ -547,7 +565,7 @@ subroutine error(code, message)
     integer, intent(in) :: code
     character(len=*), intent(in) :: message
     write(0, "(A,A)") "ERROR: ", message
-    write(0, "(A,A)") "CODE: ", code
+    write(0, "(A,I2)") "CODE:  ", code
     stop -1
 end subroutine
 

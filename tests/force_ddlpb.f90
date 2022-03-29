@@ -25,7 +25,7 @@ real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
                        & hessianphi_cav(:,:,:), psi(:, :), &
                        & force(:, :), force_num(:, :)
 real(dp) :: esolv, esolv_plus_h, esolv_minus_h, &
-          & step = 2*1d-5, relerr, tol
+          & step = 2.d-5, relerr, tol
 integer :: isph, i, iprint
 real(dp), external :: dnrm2
 
@@ -70,8 +70,8 @@ do isph = 1, ddx_data % params % nsph
     !call solve(ddx_data, esolv_minus_h)
     !write(*,*) 'esolv  :', esolv, 'esolv+h  : ', esolv_plus_h, ' , esolv : ', esolv_minus_h, ' , step :', step
     force_num(i, isph) = (esolv_plus_h - esolv) / step
-    if(abs(force_num(i,isph)) .le. 1d-8) force_num(i,isph) = zero
-    if(abs(force(i,isph)) .le. 1d-8) force(i,isph) = zero
+    if(abs(force_num(i,isph)) .le. 1.d-8) force_num(i,isph) = zero
+    if(abs(force(i,isph)) .le. 1.d-8) force(i,isph) = zero
   end do
 end do
 relerr = dnrm2(3*ddx_data % params % nsph, force_num-force, 1) / &
@@ -88,7 +88,7 @@ deallocate(phi_cav, gradphi_cav, hessianphi_cav, psi, force, force_num)
 call ddfree(ddx_data)
 
 write(*, *) "Rel.error of forces:", relerr
-if (relerr .gt. 1d-6) stop 1
+if (relerr .gt. 1.d-5) stop 1
 contains
 
 subroutine solve(ddx_data, esolv_in)
@@ -108,7 +108,7 @@ subroutine solve(ddx_data, esolv_in)
         & ddx_data % params % fmm, ddx_data % params % pm, ddx_data % params % pl, &
         & ddx_data % params % se, &
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, &
-        & ddx_data % params % itersolver, ddx_data % params % maxiter, &
+        & ddx_data % params % matvecmem, ddx_data % params % itersolver, ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, ddx_data % params % gmresr_j, &
         & ddx_data % params % gmresr_dim, ddx_data % params % nproc, ddx_data2, info)
 

@@ -332,7 +332,8 @@ subroutine solve(ddx_data, sum_esolv, sum_char, Xadj_r, Xadj_e)
         & ddx_data % fmm, ddx_data % pm, ddx_data % pl, &
         & ddx_data % fmm_precompute, ddx_data % iprint, ddx_data % se, &
         & ddx_data % eta, ddx_data % eps, ddx_data % kappa, &
-        & ddx_data % itersolver, ddx_data % tol, ddx_data % maxiter, &
+        & ddx_data % matvecmem, ddx_data % itersolver, &
+        & ddx_data % tol, ddx_data % maxiter, &
         & ddx_data % ndiis, ddx_data % nproc, ddx_data2, info)
     ! Allocation
     allocate(unit_vector_n(ddx_data2 % n), vector_cosmo(ddx_data2 % n), vector_lpb(ddx_data2 % n), &

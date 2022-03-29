@@ -32,6 +32,21 @@ interface
         real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     end subroutine matvec_interface
 
+    ! Interface for the matrix-vector product function for external jacobi_diis.
+    ! note that the dimension of x and y is double for ddlpb.
+    subroutine matvec_interface_external(params, constants, workspace, x, y)
+        !! Add definitions for derived types
+        use ddx_core
+        !! Inputs
+        type(ddx_params_type), intent(in) :: params
+        type(ddx_constants_type), intent(in) :: constants
+        real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
+        !! Temporaries
+        type(ddx_workspace_type), intent(inout) :: workspace
+        ! Output
+        real(dp), intent(out) :: y(constants % nbasis, params % nsph, 2)
+    end subroutine matvec_interface_external
+
     ! Interface for the norm calculating function
     real(dp) function norm_interface(lmax, nbasis, nsph, x)
         !! Add definition for real(dp)
@@ -104,7 +119,14 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
         diff = norm_func(params % lmax, constants % nbasis, params % nsph, x)
         norm = norm_func(params % lmax, constants % nbasis, params % nsph, &
             & workspace % tmp_x_new)
-        rel_diff = diff / norm
+
+        ! compute rel_diff using the rule 0/0 = 0
+        if (diff.eq.zero .and. norm.eq.zero) then
+            rel_diff = zero
+        else
+            rel_diff = diff / norm
+        end if
+
         x_rel_diff(it) = rel_diff
         ! Update solution
         x = workspace % tmp_x_new
@@ -118,110 +140,139 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
     info = 1
 endsubroutine jacobi_diis
 
-subroutine diis(n,nmat,ndiis,x,e,b,xnew)
-implicit none
-integer,                             intent(in)    :: n, ndiis
-integer,                             intent(inout) :: nmat
-real(dp),  dimension(n,ndiis),         intent(inout) :: x, e
-real(dp),  dimension(ndiis+1,ndiis+1), intent(inout) :: b
-real(dp),  dimension(n),               intent(inout) :: xnew
+!subroutine diis_new(params, constants, workspace, nmat, xnew, x)
+!    implicit none
+!    type(ddx_params_type), intent(in) :: params
+!    type(ddx_constants_type), intent(in) :: constants
+!    type(ddx_workspace_type), intent(inout) :: workspace
+!    real(dp), intent(inout) :: xnew(constants % n)
+!    real(dp), intent(in) :: x(constants % n)
+!    integer, intent(inout) :: nmat
 !
-integer :: nmat1, i, istatus
-integer :: j, k
-logical :: ok
+!    ! add new quantities
+!    workspace % tmp_x_diis(:, nmat) = xnew
+!    workspace % tmp_e_diis(:, nmat) = xnew - x
 !
-real(dp), allocatable :: bloc(:,:), cex(:)
+!    ! if we run out of space, reset
+!    if (nmat.ge.(2*params % jacobi_ndiis)) then
+!        workspace % tmp_x_diis(:, 0:nmat) = &
+!            & workspace % tmp_x_diis(:, nmat:2*nmat)
+!        workspace % tmp_e_diis(:, 0:nmat) = &
+!            & workspace % tmp_e_diis(:, nmat:2*nmat)
+!        workspace % tmp_b_mat(0:nmat, 0:nmat) = &
+!            & workspace % tmp_b_mat(nmat:2*nmat, nmat:2*nmat)
+!    nmat = workspace % jacobi_ndiis
+!    end if
 !
-real(dp), parameter :: zero = 0.0d0, one = 1.0d0
+!    ! build B matrix of DIIS
+!    call makeb(workspace % n, nmat, 2*workspace % jacobi_ndiis, &
+!        & workspace % tmp_e_diis, workspace % tmp_b_mat)
 !
-!------------------------------------------------------------------------------
-!
-if (nmat.ge.ndiis) then
-  do j = 2, nmat - 10
-    do k = 2, nmat - 10
-      b(j,k) = b(j+10,k+10)
-    end do
-  end do
-  do j = 1, nmat - 10
-    x(:,j) = x(:,j+10)
-    e(:,j) = e(:,j+10)
-  end do
-  nmat = nmat - 10
-end if
-nmat1 = nmat + 1
-allocate (bloc(nmat1,nmat1),cex(nmat1) , stat=istatus)
-if ( istatus.ne.0 ) then 
-  write(*,*) 'diis: allocation failed!'
-  stop
-endif
+!end subroutine diis_new
 
-call makeb(n,nmat,ndiis,e,b)
-bloc   = b(1:nmat1,1:nmat1)
-cex    = zero
-cex(1) = one
-call gjinv(nmat1,1,bloc,cex,ok)
-if (.not. ok) then
-  nmat = 1
-  return
-end if
-xnew = zero
-do i = 1, nmat
-  xnew = xnew + cex(i+1)*x(:,i)
-end do
-nmat = nmat + 1
-deallocate (bloc,cex , stat=istatus)
-if ( istatus.ne.0 ) then 
-  write(*,*) 'diis: deallocation failed!'
-  stop
-endif
-!
-return
+
+subroutine diis(n, nmat, ndiis, x, e, b, xnew)
+    implicit none
+    integer, intent(in) :: n, ndiis
+    integer, intent(inout) :: nmat
+    real(dp), dimension(n,ndiis), intent(inout) :: x, e
+    real(dp), dimension(ndiis+1,ndiis+1), intent(inout) :: b
+    real(dp), dimension(n), intent(inout) :: xnew
+    integer :: nmat1, i, istatus
+    integer :: j, k
+    logical :: ok
+    real(dp), allocatable :: bloc(:,:), cex(:)
+    real(dp), parameter :: zero = 0.0d0, one = 1.0d0
+    integer, parameter :: delta = 10
+
+    if (nmat.ge.ndiis) then
+        do j = 2, nmat - delta
+            do k = 2, nmat - delta
+                b(j, k) = b(j+delta, k+delta)
+            end do
+        end do
+        do j = 1, nmat - delta
+            x(:, j) = x(:, j+delta)
+            e(:, j) = e(:, j+delta)
+        end do
+        nmat = nmat - delta
+    end if
+    nmat1 = nmat + 1
+
+    allocate(bloc(nmat1, nmat1), cex(nmat1), stat=istatus)
+    if (istatus.ne.0) then
+        write(*,*) 'diis: allocation failed!'
+        stop
+    end if
+
+    call makeb(n, nmat, ndiis, e, b)
+    bloc = b(1:nmat1, 1:nmat1)
+    cex = zero
+    cex(1) = one
+    call gjinv(nmat1, 1, bloc, cex, ok)
+    if (.not.ok) then
+        nmat = 1
+        return
+    end if
+
+    xnew = zero
+    !$omp parallel do default(none) shared(nmat,x,cex) &
+    !$omp private(i) schedule(dynamic) reduction(+:xnew)
+    do i = 1, nmat
+        xnew = xnew + cex(i+1)*x(:, i)
+    end do
+    nmat = nmat + 1
+
+    deallocate (bloc, cex, stat=istatus)
+    if (istatus.ne.0) then
+        write(*,*) 'diis: deallocation failed!'
+        stop
+    end if
 end subroutine diis
-  !
-subroutine makeb(n,nmat,ndiis,e,b)
-implicit none
-integer, intent(in) :: n, nmat, ndiis
-real(dp), dimension(n,ndiis),         intent(in) :: e
-real(dp), dimension(ndiis+1,ndiis+1), intent(inout) :: b
-!
-integer :: i
-real(dp)  :: bij
-real(dp), parameter :: zero = 0.0d0, one = 1.0d0
-  
-! 1st built
-if (nmat.eq.1) then
-!
-!       [ 0 |  1  ]
-!   b = [ --+---- ]
-!       [ 1 | e*e ]
-!
-  b(1,1) = zero
-  b(1,2) = one
-  b(2,1) = one
-  b(2,2) = dot_product(e(:,1),e(:,1))
-!
-! subsequent builts
-else
-!
-!   first, update the lagrangian line:
-  b(nmat+1,1) = one
-  b(1,nmat+1) = one
-!
-!   now, compute the new matrix elements:
-  do i = 1, nmat - 1
-    bij = dot_product(e(:,i),e(:,nmat))
-    b(nmat+1,i+1) = bij
-    b(i+1,nmat+1) = bij
-  end do
-  b(nmat+1,nmat+1) = dot_product(e(:,nmat),e(:,nmat))
-end if
-!
-return
+
+subroutine makeb(n, nmat, ndiis, e, b)
+    implicit none
+    integer, intent(in) :: n, nmat, ndiis
+    real(dp), dimension(n,ndiis), intent(in) :: e
+    real(dp), dimension(ndiis+1,ndiis+1), intent(inout) :: b
+
+    integer :: i
+    real(dp) :: bij
+    real(dp), parameter :: zero = 0.0d0, one = 1.0d0
+
+    ! 1st built
+    if (nmat.eq.1) then
+
+        !     [ 0 |  1  ]
+        ! b = [ --+---- ]
+        !     [ 1 | e*e ]
+
+        b(1,1) = zero
+        b(1,2) = one
+        b(2,1) = one
+        b(2,2) = dot_product(e(:,1),e(:,1))
+
+    ! subsequent builts
+    else
+
+        ! first, update the lagrangian line:
+        b(nmat+1,1) = one
+        b(1,nmat+1) = one
+
+        ! now, compute the new matrix elements:
+        !$omp parallel do default(none) shared(nmat,e,b) &
+        !$omp private(i,bij) schedule(dynamic)
+        do i = 1, nmat - 1
+            bij = dot_product(e(:,i), e(:,nmat))
+            b(nmat+1, i+1) = bij
+            b(i+1, nmat+1) = bij
+        end do
+        b(nmat+1,nmat+1) = dot_product(e(:,nmat),e(:,nmat))
+    end if
 end subroutine makeb
-!
+
 subroutine gjinv(n,nrhs,a,b,ok)
 implicit none
-!
 integer,                    intent(in)    :: n, nrhs
 logical,                    intent(inout) :: ok
 real(dp),  dimension(n,n),    intent(inout) :: a
@@ -274,10 +325,10 @@ do i = 1, n
   if (irow.ne.icol) then
     scr         = a(irow,:)
     a(irow,:)   = a(icol,:)
-    a(icol,:)   = scr  
+    a(icol,:)   = scr
     scr(1:nrhs) = b(irow,:)
     b(irow,:)   = b(icol,:)
-    b(icol,:)   = scr(1:nrhs)       
+    b(icol,:)   = scr(1:nrhs)
   end if
 !
   indxr(i) = irow
@@ -302,7 +353,7 @@ do i = 1, n
     end if
   end do
 end do
-!
+
 do j = n, 1, -1
   if (indxr(j) .ne. indxc(j)) then
     scr           = a(:,indxr(j))
@@ -310,7 +361,7 @@ do j = n, 1, -1
     a(:,indxc(j)) = scr
   end if
 end do
-!
+
 ok = .true.
 deallocate (indxr,indxc,piv,scr , stat=istatus)
 if ( istatus.ne.0 ) then
@@ -318,9 +369,9 @@ if ( istatus.ne.0 ) then
   stop
 endif
 
-return
 1000 format (' warning: singular matrix in gjinv!')
 end subroutine gjinv
+
 !*********************************************************
 ! GMRESR algorithm to solve linear system Ax = b
 !
@@ -759,5 +810,131 @@ subroutine gmres0(params, constants, workspace, n, rhs, uu, cc, work0, eps, nite
       return
 !------------------------------- end of gmres0 ----------------------
       end
+!
+!     jacobi_diis_solver_external
+!
+!     WARNING: code duplication is bad, but here it makes a very specific sense.
+!
+!     in ddLPB, we are solving a linear system with Jacobi DIIS also to apply the
+!     preconditioner. As calling a solver recursively is a terrible idea, we
+!     create a copy of jacobi_diis that 
+!
+!     - takes as an input the size of the system to be solved (no hardcoded dependence
+!       on nsph)
+!     - uses copies of the norm subroutine, so that it can also be called with 
+!       a user-given size for arrays
+!
+subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_iter, &
+          & matvec, dm1vec, norm_func, info)
+      type(ddx_params_type),    intent(in)    :: params
+      type(ddx_constants_type), intent(in)    :: constants
+      type(ddx_workspace_type), intent(inout) :: workspace
+      ! Inputs
+      integer,                  intent(in)    :: n
+      real(dp),                 intent(in)    :: tol
+      real(dp),  dimension(n),  intent(in)    :: rhs
+      ! Outputs
+      real(dp),  dimension(n),  intent(inout) :: x
+      integer,                  intent(inout) :: n_iter, info
+!
+      external                                :: matvec, dm1vec
+      procedure(norm_interface)               :: norm_func
+      ! Local variables
+      integer  :: it, nmat, istatus, lenb, nsph_u
+      real(dp) :: diff, norm, rel_diff
+      logical  :: dodiis
+!
+      real(dp), allocatable :: x_new(:), y(:), x_diis(:,:), e_diis(:,:), bmat(:,:)
+!
+!---------------------------------------------------------------------------------------------
+!
+!
+!     DIIS extrapolation flag
+      dodiis = (params%jacobi_ndiis.gt.0)
+!
+!     extrapolation required
+      if (dodiis) then
+!
+!       allocate workspaces
+        lenb = params % jacobi_ndiis + 1
+        allocate( x_diis(n,params % jacobi_ndiis), e_diis(n,params % jacobi_ndiis), bmat(lenb,lenb) , stat=istatus )
+        if (istatus .ne. 0) then
+          write(*,*) ' jacobi_diis: [1] failed allocation (diis)'
+          stop
+        endif
+!        
+!       initialize the number of points for diis to one.
+!       note that nmat is updated by diis.
+        nmat = 1
+!        
+      endif
+!
+!     allocate workspaces
+      allocate( x_new(n), y(n) , stat=istatus )
+      if (istatus .ne. 0) then
+        write(*,*) ' jacobi_diis: [2] failed allocation (scratch)' 
+        stop
+      endif
+!
+!     Jacobi iterations
+!     =================e
+      do it = 1, n_iter
+!
+!       y = rhs - O x
+        call matvec(params, constants, workspace, x, y )
+        y = rhs - y
+!
+!       x_new = D^-1 y
+        call dm1vec(params, constants, workspace, y, x_new)
+!
+!       DIIS extrapolation
+!       ==================
+        if (dodiis) then
+!
+          x_diis(:,nmat) = x_new
+          e_diis(:,nmat) = x_new - x
+!
+          call diis(n,nmat,params % jacobi_ndiis,x_diis,e_diis,bmat,x_new)
+!
+        endif
+!
+!       increment
+        x = x_new - x
+!
+!       warning: in the following, we use a quick and dirty hack to pass 
+!       to the norm function arrays double the size than in non ddlpb calculations
+!       by defining a fake number of spheres with is n/nbasis (i.e., 2*nsph in 
+!       ddlpb).
+!
+        nsph_u = n/constants % nbasis
+        diff = norm_func(params % lmax, constants % nbasis, nsph_u, x)
+        norm = norm_func(params % lmax, constants % nbasis, nsph_u, x_new)
+        ! compute rel_diff using the rule 0/0 = 0
+        if (diff.eq.zero .and. norm.eq.zero) then
+            rel_diff = zero
+        else
+            rel_diff = diff / norm
+        end if
+!
+!       update
+        x = x_new
+!
+!       EXIT Jacobi loop here
+!       =====================
+        if (rel_diff .le. tol) then
+            info = 0
+            n_iter = it
+            return
+        end if
+!
+      enddo
+!
+!     something went wrong...
+      info = 1
+!
+      return
+!
+!
+endsubroutine jacobi_diis_external
 
 end module ddx_solvers

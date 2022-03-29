@@ -125,6 +125,9 @@ contains
 !! @param[in] eta: Regularization parameter. 0 < eta <= 1.
 !! @param[in] eps: Relative dielectric permittivity. eps > 1.
 !! @param[in] kappa: Debye-H\"{u}ckel parameter
+!! @param[in] matvecmem: handling of the sparse matrices. 1 for precomputin
+!!      them and keeping them in memory, 0 for assembling the matrix-vector
+!!      product on-the-fly. 
 !! @param[in] itersolver: Iterative solver to be used. 1 for Jacobi iterative
 !!      solver. Other solvers might be added later.
 !! @param[in] maxiter: Maximum number of iterations for an iterative solver.
@@ -144,11 +147,12 @@ contains
 !!      = 2: Deallocation of a temporary buffer failed
 subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, se, eta, eps, kappa, &
-        & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, &
-        & ddx_data, info)
+        & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+        & nproc, ddx_data, info)
     ! Inputs
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
-        & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, ngrid
+        & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, &
+        & gmresr_dim, ngrid
     real(dp), intent(in):: charge(nsph), x(nsph), y(nsph), z(nsph), &
         & rvdw(nsph), se, eta, eps, kappa
     ! Output
@@ -173,8 +177,8 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     csph(2, :) = y
     csph(3, :) = z
     call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, fmm, &
-        & pm, pl, nproc, nsph, charge, &
+        & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+        & fmm, pm, pl, nproc, nsph, charge, &
         & csph, rvdw, print_func_default, &
         & ddx_data % params, info)
     if (info .ne. 0) return
@@ -462,10 +466,12 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     integer, intent(out) :: iprint, info
     ! Local variables
     integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
-        & nsph, i, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
-        & istatus
+        & nsph, i, matvecmem, itersolver, maxiter, jacobi_ndiis, &
+        & gmresr_j, gmresr_dim, istatus
     real(dp) :: eps, se, eta, kappa
     real(dp), allocatable :: charge(:), x(:), y(:), z(:), rvdw(:)
+    real(dp) :: t
+    t = omp_get_wtime()
     !! Read all the parameters from the file
     ! Open a configuration file
     open(unit=100, file=fname, form='formatted', access='sequential')
@@ -532,31 +538,38 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
             & ": `kappa` must be a non-negative floating point value."
         stop 1
     end if
+    ! whether the (sparse) matrices are precomputed and kept in memory (1) or not (0).
+    read(100, *) matvecmem 
+    if((matvecmem.lt. 0) .or. (matvecmem .gt. 1)) then
+        write(*, "(3A)") "Error on the 10th line of a config file ", fname, &
+            & ": `matvecmem` must be an integer value of a value 0 or 1."
+        stop 1
+    end if
     ! Iterative solver of choice. Only one is supported as of now.
     read(100, *) itersolver
     if((itersolver .lt. 1) .or. (itersolver .gt. 2)) then
-        write(*, "(3A)") "Error on the 10th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 11th line of a config file ", fname, &
             & ": `itersolver` must be an integer value of a value 1 or 2."
         stop 1
     end if
     ! Relative convergence threshold for the iterative solver
     read(100, *) tol
     if((tol .lt. 1d-14) .or. (tol .gt. one)) then
-        write(*, "(3A)") "Error on the 11th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 12th line of a config file ", fname, &
             & ": `tol` must be a floating point value in a range [1d-14, 1]."
         stop 1
     end if
     ! Maximum number of iterations for the iterative solver
     read(100, *) maxiter
     if((maxiter .le. 0)) then
-        write(*, "(3A)") "Error on the 12th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 13th line of a config file ", fname, &
             & ": `maxiter` must be a positive integer value."
         stop 1
     end if
     ! Number of extrapolation points for Jacobi/DIIS solver
     read(100, *) jacobi_ndiis
     if((jacobi_ndiis .lt. 0)) then
-        write(*, "(3A)") "Error on the 13th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 14th line of a config file ", fname, &
             & ": `jacobi_ndiis` must be a non-negative integer value."
         stop 1
     end if
@@ -564,7 +577,7 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     !      solver is used.
     read(100, *) gmresr_j
     if((gmresr_j .lt. 1)) then
-        write(*, "(3A)") "Error on the 14th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 15th line of a config file ", fname, &
             & ": `gmresr_j` must be a non-negative integer value."
         stop 1
     end if
@@ -573,7 +586,7 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     !      GMRESR solver is used.
     read(100, *) gmresr_dim
     if((gmresr_dim .lt. 0)) then
-        write(*, "(3A)") "Error on the 15th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 16th line of a config file ", fname, &
             & ": `gmresr_dim` must be a non-negative integer value."
         stop 1
     end if
@@ -583,35 +596,35 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     ! Whether to compute (1) or not (0) forces as analytical gradients
     read(100, *) force
     if((force .lt. 0) .or. (force .gt. 1)) then
-        write(*, "(3A)") "Error on the 16th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 17th line of a config file ", fname, &
             & ": `force` must be an integer value of a value 0 or 1."
         stop 1
     end if
     ! Whether to use (1) or not (0) the FMM to accelerate computations
     read(100, *) fmm
     if((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        write(*, "(3A)") "Error on the 17th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 18th line of a config file ", fname, &
             & ": `fmm` must be an integer value of a value 0 or 1."
         stop 1
     end if
     ! Max degree of multipole spherical harmonics for the FMM
     read(100, *) pm
     if(pm .lt. 0) then
-        write(*, "(3A)") "Error on the 18th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 19th line of a config file ", fname, &
             & ": `pm` must be a non-negative integer value."
         stop 1
     end if
     ! Max degree of local spherical harmonics for the FMM
     read(100, *) pl
     if(pl .lt. 0) then
-        write(*, "(3A)") "Error on the 19th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 20th line of a config file ", fname, &
             & ": `pl` must be a non-negative integer value."
         stop 1
     end if
     ! Number of input spheres
     read(100, *) nsph
     if(nsph .le. 0) then
-        write(*, "(3A)") "Error on the 20th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 21th line of a config file ", fname, &
             & ": `nsph` must be a positive integer value."
         stop 1
     end if
@@ -632,13 +645,14 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     y = y * tobohr
     z = z * tobohr
     rvdw = rvdw * tobohr
+    write(6,*) 'file read', omp_get_wtime() - t
 
     ! adjust ngrid
     call closest_supported_lebedev_grid(ngrid)
 
     !! Initialize ddx_data object
     call ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
-        & pm, pl, se, eta, eps, kappa, itersolver, &
+        & pm, pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     !! Clean local temporary data
     deallocate(charge, x, y, z, rvdw, stat=istatus)
@@ -1219,354 +1233,165 @@ end subroutine wghpot
 
 ! Purpose : compute H-norm
 !------------------------------------------------------------------------------------------------
-!> TODO
-subroutine hsnorm(lmax, nbasis, u, unorm )
-!          
+subroutine hsnorm(lmax, nbasis, u, unorm)
     integer, intent(in) :: lmax, nbasis
-      real(dp), dimension(nbasis), intent(in)    :: u
-      real(dp),                    intent(inout) :: unorm
-!
-      integer :: l, m, ind
-      real(dp)  :: fac
-!
-!------------------------------------------------------------------------------------------------
-!
-!     initialize
-      unorm = zero
-!      
-!     loop over l
-      do l = 0, lmax
-!      
-!       first index associated to l
+    real(dp), dimension(nbasis), intent(in) :: u
+    real(dp), intent(inout) :: unorm
+    integer :: l, m, ind
+    real(dp)  :: fac
+    ! initialize
+    unorm = zero
+    do l = 0, lmax
         ind = l*l + l + 1
-!
-!       scaling factor
         fac = one/(one + dble(l))
-!
-!       loop over m
         do m = -l, l
-!
-!         accumulate
-          unorm = unorm + fac*u(ind+m)*u(ind+m)
-!          
-        enddo
-      enddo
-!
-!     the much neglected square root
-      unorm = sqrt(unorm)
-!
-      return
-!
-!
+            unorm = unorm + fac*u(ind+m)*u(ind+m)
+        end do
+    end do
+!   the much neglected square root
+    unorm = sqrt(unorm)
 end subroutine hsnorm
 
 ! compute the h^-1/2 norm of the increment on each sphere, then take the
 ! rms value.
 !-------------------------------------------------------------------------------
-!
-!> TODO
 real(dp) function hnorm(lmax, nbasis, nsph, x)
     integer, intent(in) :: lmax, nbasis, nsph
-      real(dp),  dimension(nbasis, nsph), intent(in) :: x
-!
-      integer                                     :: isph, istatus
-      real(dp)                                      :: vrms, vmax
-      real(dp), allocatable                         :: u(:)
-!
-!-------------------------------------------------------------------------------
-!
-!     allocate workspace
-      allocate( u(nsph) , stat=istatus )
-      if ( istatus.ne.0 ) then
+    real(dp),  dimension(nbasis, nsph), intent(in) :: x
+    integer                                     :: isph, istatus
+    real(dp)                                      :: vrms, vmax
+    real(dp), allocatable                         :: u(:)
+    allocate( u(nsph) , stat=istatus )
+    if ( istatus.ne.0 ) then
         write(*,*) 'hnorm: allocation failed !'
         stop
-      endif
-!
-!     loop over spheres
-      do isph = 1, nsph
-!
-!       compute norm contribution
+    endif
+    !$omp parallel do default(none) shared(nsph,lmax,nbasis,x,u) &
+    !$omp private(isph) schedule(dynamic)
+    do isph = 1, nsph
         call hsnorm(lmax, nbasis, x(:,isph), u(isph))
-      enddo
-!
-!     compute rms of norms
-      call rmsvec( nsph, u, vrms, vmax )
-!
-!     return value
-      hnorm = vrms
-!
-!     deallocate workspace
-      deallocate( u , stat=istatus )
-      if ( istatus.ne.0 ) then
+    enddo
+    call rmsvec(nsph, u, vrms, vmax)
+    hnorm = vrms
+    deallocate( u , stat=istatus )
+    if ( istatus.ne.0 ) then
         write(*,*) 'hnorm: deallocation failed !'
         stop
-      endif
-!
-!
+    endif
 end function hnorm
+!
+real(dp) function rmsnorm(lmax, nbasis, nsph, x)
+    integer,                            intent(in) :: lmax, nbasis, nsph
+    real(dp),  dimension(nbasis, nsph), intent(in) :: x
+!
+    integer  :: n
+    real(dp) :: vrms, vmax
+!
+    n = nbasis*nsph
+    call rmsvec(n,x,vrms,vmax)
+!
+    rmsnorm = vrms
+  
+end function rmsnorm
 
 !------------------------------------------------------------------------------
 ! Purpose : compute root-mean-square and max norm
 !------------------------------------------------------------------------------
 subroutine rmsvec( n, v, vrms, vmax )
-!
-      implicit none
-      integer,               intent(in)    :: n
-      real(dp),  dimension(n), intent(in)    :: v
-      real(dp),                intent(inout) :: vrms, vmax
-!
-      integer :: i
-      real(dp), parameter :: zero=0.0d0
-!      
-!------------------------------------------------------------------------------
-!      
-!     initialize
-      vrms = zero
-      vmax = zero
-!
-!     loop over entries
-      do i = 1,n
-!
-!       max norm
-        vmax = max(vmax,abs(v(i)))
-!
-!       rms norm
-        vrms = vrms + v(i)*v(i)
-!        
-      enddo
-!
-!     the much neglected square root
-      vrms = sqrt(vrms/dble(n))
-!      
-      return
-!      
-!      
+    implicit none
+    integer,               intent(in)    :: n
+    real(dp),  dimension(n), intent(in)    :: v
+    real(dp),                intent(inout) :: vrms, vmax
+    integer :: i
+    real(dp), parameter :: zero=0.0d0
+
+    vrms = zero
+    vmax = zero
+    do i = 1,n
+      vmax = max(vmax,abs(v(i)))
+      vrms = vrms + v(i)*v(i)
+    end do
+    ! the much neglected square root
+    vrms = sqrt(vrms/dble(n))
 endsubroutine rmsvec
 
-!-----------------------------------------------------------------------------------
-! Purpose : compute
-!
-!   v_l^m = v_l^m +
-!
-!               4 pi           l
-!     sum  sum  ---- ( t_n^ji )  Y_l^m( s_n^ji ) W_n^ji [ \xi_j ]_n
-!      j    n   2l+1
-!
-! which is related to the action of the adjont COSMO matrix L^* in the following
-! way. Set
-!
-!   [ \xi_j ]_n = sum  Y_l^m( s_n ) [ s_j ]_l^m
-!                 l,m
-!
-! then
-!
-!   v_l^m = -   sum    (L^*)_ij s_j
-!             j \ne i 
-!
-! The auxiliary quantity [ \xi_j ]_l^m needs to be computed explicitly.
-!-----------------------------------------------------------------------------------
-!
-!> TODO
-subroutine adjrhs(params, constants, isph, xi, vlm, basloc, vplm, vcos, vsin )
-!
-      type(ddx_params_type), intent(in) :: params
-      type(ddx_constants_type), intent(in) :: constants
-      integer,                       intent(in)    :: isph
-      real(dp), dimension(params % ngrid, params % nsph), intent(in)    :: xi
-      real(dp), dimension(constants % nbasis),     intent(inout) :: vlm
-      real(dp), dimension(constants % nbasis),     intent(inout) :: basloc, vplm
-      real(dp), dimension(params % lmax+1),     intent(inout) :: vcos, vsin
-!
-      integer :: ij, jsph, ig, l, ind, m
-      real(dp)  :: vji(3), vvji, tji, sji(3), xji, oji, fac, ffac, t
-      real(dp) :: rho, ctheta, stheta, cphi, sphi
-      real(dp) :: work(params % lmax+1)
-!      
-!-----------------------------------------------------------------------------------
-!
-!     loop over neighbors of i-sphere
-      do ij = constants % inl(isph), constants % inl(isph+1)-1
-!
-!       j-sphere is neighbor
-        jsph = constants % nl(ij)
-!
-!       loop over integration points
-        do ig = 1, params % ngrid
-!        
-!         compute t_n^ji = | r_j + \rho_j s_n - r_i | / \rho_i
-          vji  = params % csph(:,jsph) + params % rsph(jsph)* &
-              & constants % cgrid(:,ig) - params % csph(:,isph)
-          vvji = sqrt(dot_product(vji,vji))
-          tji  = vvji/params % rsph(isph)
-!
-!         point is INSIDE i-sphere (+ transition layer)
-!         ---------------------------------------------
-          if ( tji.lt.( one + (params % se+one)/two*params % eta ) ) then
-!                  
-!           compute s_n^ji
-            !sji = vji/vvji
-!
-!           compute \chi( t_n^ji )
-            xji = fsw( tji, params % se, params % eta )
-!
-!           compute W_n^ji
-            if ( constants % fi(ig,jsph).gt.one ) then
-!                    
-              oji = xji/ constants % fi(ig,jsph)
-!              
-            else
-!                    
-              oji = xji
-!              
-            endif
-!            
-!           compute Y_l^m( s_n^ji )
-            !call ylmbas(sji, rho, ctheta, stheta, cphi, sphi, &
-            !    & ddx_data % lmax, ddx_data % vscales, basloc, vplm, &
-            !    & vcos, vsin )
-!            
-!           initialize ( t_n^ji )^l
-            !t = one
-!            
-!           compute w_n * xi(n,j) * W_n^ji
-            fac = constants % wgrid(ig) * xi(ig,jsph) * oji
-
-            call fmm_l2p_adj_work(vji, fac, params % rsph(isph), &
-                & params % lmax, constants % vscales_rel, one, vlm, work)
-!            
-!           loop over l
-            !do l = 0, ddx_data % lmax
-!            
-            !  ind  = l*l + l + 1
-!
-!             compute 4pi / (2l+1) * ( t_n^ji )^l * w_n * xi(n,j) * W_n^ji
-            !  ffac = fac*t/ ddx_data % vscales(ind)**2
-!
-!             loop over m
-            !  do m = -l,l
-!              
-            !    vlm(ind+m) = vlm(ind+m) + ffac*basloc(ind+m)
-!                
-            !  enddo
-!
-!             update ( t_n^ji )^l
-            !  t = t*tji
-!              
-            !enddo
-!            
-          endif
-        enddo
-      enddo
-!
-!
-end subroutine adjrhs
-
-!------------------------------------------------------------------------
-! Purpose : compute
-!
-!   \Phi( n ) =
-!     
-!                       4 pi           l
-!     sum  W_n^ij  sum  ---- ( t_n^ij )  Y_l^m( s_n^ij ) [ \sigma_j ]_l^m
-!      j           l,m  2l+1
-!
-! which is related to the action of the COSMO matrix L in the following
-! way :
-!
-!   -   sum    L_ij \sigma_j = sum  w_n Y_l^m( s_n ) \Phi( n ) 
-!     j \ne i                   n
-!
-! This second step is performed by routine "intrhs".
-!------------------------------------------------------------------------
-!
-!> TODO
-subroutine calcv( params, constants, first, isph, pot, sigma, basloc, vplm, vcos, vsin )
-!
+subroutine adjrhs(params, constants, isph, xi, vlm, work)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-      logical,                        intent(in)    :: first
-      integer,                        intent(in)    :: isph
-      real(dp), dimension(constants % nbasis, params % nsph), intent(in)    :: sigma
-      real(dp), dimension(params % ngrid),       intent(inout) :: pot
-      real(dp), dimension(constants % nbasis),      intent(inout) :: basloc
-      real(dp), dimension(constants % nbasis),      intent(inout) :: vplm
-      real(dp), dimension(params % lmax+1),      intent(inout) :: vcos
-      real(dp), dimension(params % lmax+1),      intent(inout) :: vsin
-!
-      integer :: its, ij, jsph
-      real(dp)  :: vij(3), sij(3)
-      real(dp)  :: vvij, tij, xij, oij, stslm, stslm2, stslm3, &
-          & thigh, rho, ctheta, stheta, cphi, sphi
-      real(dp) :: work(params % lmax+1)
-!
-!------------------------------------------------------------------------
-      thigh = one + pt5*(params % se + one)*params % eta
-!
-!     initialize
-      pot(:) = zero
-!
-!     if 1st iteration of Jacobi method, then done!
-      if ( first )  return
-!
-!     loop over grid points
-      do its = 1, params % ngrid
-!
-!       contribution from integration point present
-        if ( constants % ui(its,isph).lt.one ) then
-!
-!         loop over neighbors of i-sphere
-          do ij = constants % inl(isph), constants % inl(isph+1)-1
-!
-!           neighbor is j-sphere
-            jsph = constants % nl(ij)
-!            
-!           compute t_n^ij = | r_i + \rho_i s_n - r_j | / \rho_j
-            vij  = params % csph(:,isph) + params % rsph(isph)* &
-                & constants % cgrid(:,its) - params % csph(:,jsph)
-            vvij = sqrt( dot_product( vij, vij ) )
-            tij  = vvij / params % rsph(jsph) 
-!
-!           point is INSIDE j-sphere
-!           ------------------------
-            if ( tij.lt.thigh .and. tij.gt.zero) then
-!!
-!!             compute s_n^ij = ( r_i + \rho_i s_n - r_j ) / | ... |
-!              sij = vij / vvij
-!!            
-!!             compute \chi( t_n^ij )
-              xij = fsw( tij, params % se, params % eta )
-!!
-!!             compute W_n^ij
-              if ( constants % fi(its,isph).gt.one ) then
-!!
-                oij = xij / constants % fi(its,isph)
-!!
-              else
-!!
-                oij = xij
-!!
-              endif
-!!
-!!             compute Y_l^m( s_n^ij )
-!              !call ylmbas( sij, basloc, vplm, vcos, vsin )
-!              call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, ddx_data % lmax, &
-!                  & ddx_data % vscales, basloc, vplm, vcos, vsin)
-!!                    
-!!             accumulate over j, l, m
-!              pot(its) = pot(its) + oij * intmlp( ddx_data, tij, sigma(:,jsph), basloc )
-!!              
-                call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
-                    & constants % vscales_rel, oij, sigma(:, jsph), one, pot(its), &
-                    & work)
-            endif
-          end do
+    integer, intent(in) :: isph
+    real(dp), dimension(params % ngrid, params % nsph), intent(in) :: xi
+    real(dp), dimension(constants % nbasis), intent(inout) :: vlm
+    real(dp), dimension(params % lmax+1), intent(inout) :: work
+
+    integer :: ij, jsph, ig, l, ind, m
+    real(dp)  :: vji(3), vvji, tji, sji(3), xji, oji, fac, ffac, t
+    real(dp) :: rho, ctheta, stheta, cphi, sphi
+
+    do ij = constants % inl(isph), constants % inl(isph+1)-1
+      jsph = constants % nl(ij)
+      do ig = 1, params % ngrid
+        vji  = params % csph(:,jsph) + params % rsph(jsph)* &
+            & constants % cgrid(:,ig) - params % csph(:,isph)
+        vvji = sqrt(dot_product(vji,vji))
+        tji  = vvji/params % rsph(isph)
+        if ( tji.lt.( one + (params % se+one)/two*params % eta ) ) then
+          xji = fsw( tji, params % se, params % eta )
+          if ( constants % fi(ig,jsph).gt.one ) then
+            oji = xji/ constants % fi(ig,jsph)
+          else
+            oji = xji
+          endif
+          fac = constants % wgrid(ig) * xi(ig,jsph) * oji
+          call fmm_l2p_adj_work(vji, fac, params % rsph(isph), &
+              & params % lmax, constants % vscales_rel, one, vlm, work)
+        endif
+      enddo
+    enddo
+end subroutine adjrhs
+
+subroutine calcv(params, constants, isph, pot, sigma, work)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: sigma
+    real(dp), dimension(params % ngrid), intent(inout) :: pot
+    real(dp), dimension(params % lmax+1), intent(inout) :: work
+
+    integer :: its, ij, jsph
+    real(dp) :: vij(3), sij(3)
+    real(dp) :: vvij, tij, xij, oij, stslm, stslm2, stslm3, &
+        & thigh, rho, ctheta, stheta, cphi, sphi
+
+    thigh = one + pt5*(params % se + one)*params % eta
+    pot(:) = zero
+    ! loop over grid points
+    do its = 1, params % ngrid
+        ! contribution from integration point present
+        if (constants % ui(its,isph).lt.one) then
+            ! loop over neighbors of i-sphere
+            do ij = constants % inl(isph), constants % inl(isph+1)-1
+                jsph = constants % nl(ij)
+                ! compute t_n^ij = | r_i + \rho_i s_n - r_j | / \rho_j
+                vij  = params % csph(:,isph) + params % rsph(isph)* &
+                    & constants % cgrid(:,its) - params % csph(:,jsph)
+                vvij = sqrt( dot_product( vij, vij ) )
+                tij  = vvij / params % rsph(jsph)
+                ! point is INSIDE j-sphere
+                if (tij.lt.thigh .and. tij.gt.zero) then
+                    xij = fsw(tij, params % se, params % eta)
+                    if (constants % fi(its,isph).gt.one) then
+                        oij = xij / constants % fi(its,isph)
+                    else
+                        oij = xij
+                    end if
+                    call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
+                        & constants % vscales_rel, oij, sigma(:, jsph), one, &
+                        & pot(its), work)
+                end if
+            end do
         end if
-      end do
-!      
-!      
-!      
+    end do
 end subroutine calcv
-!------------------------------------------------------------------------
 
 !> Evaluate values of spherical harmonics at Lebedev grid points
 subroutine ddeval_grid(params, constants, alpha, x_sph, beta, x_grid, info)
@@ -1710,6 +1535,7 @@ subroutine ddcav_to_grid_work(ngrid, nsph, ncav, icav_ia, icav_ja, x_cav, &
     !! The code
     do isph = 1, nsph
         igrid_old = 0
+        igrid = 0
         do icav = icav_ia(isph), icav_ia(isph+1)-1
             igrid = icav_ja(icav)
             x_grid(igrid_old+1:igrid-1, isph) = zero
@@ -1772,6 +1598,8 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
     integer :: i, j
     real(dp) :: c1(3), c(3), r1, r
     ! Bottom-to-top pass
+    !!$omp parallel do default(none) shared(constants,params,node_m) &
+    !!$omp private(i,j,c1,c,r1,r,work)
     do i = constants % nclusters, 1, -1
         ! Leaf node does not need any update
         if (constants % children(1, i) == 0) cycle
@@ -1781,7 +1609,8 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
         j = constants % children(1, i)
         c1 = constants % cnode(:, j)
         r1 = constants % rnode(j)
-        call fmm_m2m_rotation_work(c1-c, r1, r, &
+        c1 = c1 - c
+        call fmm_m2m_rotation_work(c1, r1, r, &
             & params % pm, &
             & constants % vscales, &
             & constants % vcnk, one, &
@@ -1790,12 +1619,81 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
         do j = constants % children(1, i)+1, constants % children(2, i)
             c1 = constants % cnode(:, j)
             r1 = constants % rnode(j)
-            call fmm_m2m_rotation_work(c1-c, r1, r, params % pm, &
+            c1 = c1 - c
+            call fmm_m2m_rotation_work(c1, r1, r, params % pm, &
                 & constants % vscales, constants % vcnk, one, &
                 & node_m(:, j), one, node_m(:, i), work)
         end do
     end do
 end subroutine tree_m2m_rotation_work
+
+!> Transfer multipole coefficients over a tree
+subroutine tree_m2m_bessel_rotation(params, constants, node_m)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    ! Output
+    real(dp), intent(inout) :: node_m((params % pm+1)**2, constants % nclusters)
+    ! Temporary workspace
+    !real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
+    ! Call corresponding work routine
+    call tree_m2m_bessel_rotation_work(params, constants, node_m)
+end subroutine tree_m2m_bessel_rotation
+
+!> Transfer multipole coefficients over a tree
+subroutine tree_m2m_bessel_rotation_work(params, constants, node_m)
+    use complex_bessel
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    ! Output
+    real(dp), intent(inout) :: node_m((params % pm+1)**2, constants % nclusters)
+    ! Temporary workspace
+    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
+    complex(dp) :: work_complex(2*params % pm+1)
+    ! Local variables
+    integer :: i, j
+    real(dp) :: c1(3), c(3), r1, r
+    ! Bottom-to-top pass
+    do i = constants % nclusters, 1, -1
+        ! Leaf node does not need any update
+        if (constants % children(1, i) == 0) cycle
+        c = constants % cnode(:, i)
+        r = constants % rnode(i)
+        ! First child initializes output
+        j = constants % children(1, i)
+        c1 = constants % cnode(:, j)
+        r1 = constants % rnode(j)
+!        call fmm_m2m_bessel_rotation(c1-c, r1, r, params % kappa, &
+!            & params % pm, &
+!            & constants % vscales, &
+!            & constants % vcnk, one, &
+!            & node_m(:, j), zero, node_m(:, i))
+        c1 = params % kappa*(c1 - c)
+        call fmm_m2m_bessel_rotation_work(c1, &
+            & constants % SK_rnode(:, j), constants % SK_rnode(:, i), &
+            & params % pm, &
+            & constants % vscales, &
+            & constants % vcnk, one, &
+            & node_m(:, j), zero, node_m(:, i), work, work_complex)
+        ! All other children update the same output
+        do j = constants % children(1, i)+1, constants % children(2, i)
+            c1 = constants % cnode(:, j)
+            r1 = constants % rnode(j)
+!            call fmm_m2m_bessel_rotation(c1-c, r1, r, params % kappa, &
+!                & params % pm, &
+!                & constants % vscales, constants % vcnk, one, &
+!                & node_m(:, j), one, node_m(:, i))
+            c1 = params % kappa*(c1 - c)
+            call fmm_m2m_bessel_rotation_work(c1, &
+                & constants % SK_rnode(:, j), constants % SK_rnode(:, i), &
+                & params % pm, &
+                & constants % vscales, &
+                & constants % vcnk, one, &
+                & node_m(:, j), one, node_m(:, i), work, work_complex)
+        end do
+    end do
+end subroutine tree_m2m_bessel_rotation_work
 
 !> Adjoint transfer multipole coefficients over a tree
 subroutine tree_m2m_rotation_adj(params, constants, node_m)
@@ -1829,11 +1727,38 @@ subroutine tree_m2m_rotation_adj_work(params, constants, node_m, work)
         r = constants % rnode(j)
         c1 = constants % cnode(:, i)
         r1 = constants % rnode(i)
-        call fmm_m2m_rotation_adj_work(c-c1, r, r1, params % pm, &
+        c1 = c - c1
+        call fmm_m2m_rotation_adj_work(c1, r, r1, params % pm, &
             & constants % vscales, constants % vcnk, one, node_m(:, j), one, &
             & node_m(:, i), work)
     end do
 end subroutine tree_m2m_rotation_adj_work
+
+!> Adjoint transfer multipole coefficients over a tree
+subroutine tree_m2m_bessel_rotation_adj(params, constants, node_m)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    ! Output
+    real(dp), intent(inout) :: node_m((params % pm+1)**2, constants % nclusters)
+    ! Temporary workspace
+    !real(dp), intent(out) :: work(6*params % pm**2 + 19*params % pm + 8)
+    ! Local variables
+    integer :: i, j, k
+    real(dp) :: c1(3), c(3), r1, r
+    ! Top-to-bottom pass
+    do i = 2, constants % nclusters
+        j = constants % parent(i)
+        c = constants % cnode(:, j)
+        r = constants % rnode(j)
+        c1 = constants % cnode(:, i)
+        r1 = constants % rnode(i)
+        c1 = c - c1
+        call fmm_m2m_bessel_rotation_adj(c1, r, r1, params % kappa, &
+            & params % pm, constants % vscales, constants % vcnk, one, &
+            & node_m(:, j), one, node_m(:, i))
+    end do
+end subroutine tree_m2m_bessel_rotation_adj
 
 !> Transfer local coefficients over a tree
 subroutine tree_l2l_rotation(params, constants, node_l)
@@ -1861,17 +1786,67 @@ subroutine tree_l2l_rotation_work(params, constants, node_l, work)
     integer :: i, j
     real(dp) :: c1(3), c(3), r1, r
     ! Top-to-bottom pass
+    !!$omp parallel do default(none) shared(constants,params,node_l) &
+    !!$omp private(i,j,c1,c,r1,r,work)
     do i = 2, constants % nclusters
         j = constants % parent(i)
         c = constants % cnode(:, j)
         r = constants % rnode(j)
         c1 = constants % cnode(:, i)
         r1 = constants % rnode(i)
-        call fmm_l2l_rotation_work(c-c1, r, r1, params % pl, &
+        c1 = c - c1
+        call fmm_l2l_rotation_work(c1, r, r1, params % pl, &
             & constants % vscales, constants % vfact, one, &
             & node_l(:, j), one, node_l(:, i), work)
     end do
 end subroutine tree_l2l_rotation_work
+
+!> Transfer local coefficients over a tree
+subroutine tree_l2l_bessel_rotation(params, constants, node_l)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    ! Output
+    real(dp), intent(inout) :: node_l((params % pl+1)**2, constants % nclusters)
+    ! Temporary workspace
+    !real(dp) :: work(6*params % pl**2 + 19*params % pl + 8)
+    ! Call corresponding work routine
+    call tree_l2l_bessel_rotation_work(params, constants, node_l)
+end subroutine tree_l2l_bessel_rotation
+
+!> Transfer local coefficients over a tree
+subroutine tree_l2l_bessel_rotation_work(params, constants, node_l)
+    use complex_bessel
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    ! Output
+    real(dp), intent(inout) :: node_l((params % pl+1)**2, constants % nclusters)
+    ! Temporary workspace
+    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
+    complex(dp) :: work_complex(2*params % pm+1)
+    ! Local variables
+    integer :: i, j
+    real(dp) :: c1(3), c(3), r1, r
+    ! Top-to-bottom pass
+    do i = 2, constants % nclusters
+        j = constants % parent(i)
+        c = constants % cnode(:, j)
+        r = constants % rnode(j)
+        c1 = constants % cnode(:, i)
+        r1 = constants % rnode(i)
+!        call fmm_l2l_bessel_rotation(c-c1, r, r1, params % kappa, &
+!            & params % pl, &
+!            & constants % vscales, constants % vfact, one, &
+!            & node_l(:, j), one, node_l(:, i))
+        c1 = params % kappa*(c - c1)
+        call fmm_l2l_bessel_rotation_work(c1, &
+            & constants % SI_rnode(:, j), constants % SI_rnode(:, i), &
+            & params % pl, &
+            & constants % vscales, constants % vfact, one, &
+            & node_l(:, j), one, node_l(:, i), work, work_complex)
+    end do
+end subroutine tree_l2l_bessel_rotation_work
 
 !> Adjoint transfer local coefficients over a tree
 subroutine tree_l2l_rotation_adj(params, constants, node_l)
@@ -1922,6 +1897,50 @@ subroutine tree_l2l_rotation_adj_work(params, constants, node_l, work)
     end do
 end subroutine tree_l2l_rotation_adj_work
 
+!> Adjoint transfer local coefficients over a tree
+subroutine tree_l2l_bessel_rotation_adj(params, constants, node_l)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    ! Output
+    real(dp), intent(inout) :: node_l((params % pl+1)**2, constants % nclusters)
+    ! Temporary workspace
+    !real(dp), intent(out) :: work(6*params % pl**2 + 19*params % pl + 8)
+    ! Local variables
+    integer :: i, j, k
+    real(dp) :: c1(3), c(3), r1, r
+    ! Bottom-to-top pass
+    do i = constants % nclusters, 1, -1
+        ! Leaf node does not need any update
+        if (constants % children(1, i) == 0) cycle
+        c = constants % cnode(:, i)
+        r = constants % rnode(i)
+        ! First child initializes output
+        j = constants % children(1, i)
+        c1 = constants % cnode(:, j)
+        r1 = constants % rnode(j)
+        !call fmm_l2l_bessel_rotation_adj(c1-c, r1, r, params % pl, &
+        !    & constants % vscales, constants % vfact, one, &
+        !    & node_l(:, j), zero, node_l(:, i))
+        c1 = c1 - c
+        call fmm_m2m_bessel_rotation(c1, r1, r, params % kappa, params % pl, &
+            & constants % vscales, constants % vfact, one, &
+            & node_l(:, j), zero, node_l(:, i))
+        ! All other children update the same output
+        do j = constants % children(1, i)+1, constants % children(2, i)
+            c1 = constants % cnode(:, j)
+            r1 = constants % rnode(j)
+            !call fmm_l2l_bessel_rotation_adj(c1-c, r1, r, params % pl, &
+            !    & constants % vscales, constants % vfact, one, &
+            !    & node_l(:, j), one, node_l(:, i))
+            c1 = c1 - c
+            call fmm_m2m_bessel_rotation(c1, r1, r, params % kappa, params % pl, &
+                & constants % vscales, constants % vfact, one, &
+                & node_l(:, j), one, node_l(:, i))
+        end do
+    end do
+end subroutine tree_l2l_bessel_rotation_adj
+
 !> Transfer multipole local coefficients into local over a tree
 subroutine tree_m2l_rotation(params, constants, node_m, node_l)
     ! Inputs
@@ -1937,6 +1956,8 @@ subroutine tree_m2l_rotation(params, constants, node_m, node_l)
     integer :: i, j, k
     real(dp) :: c1(3), c(3), r1, r
     ! Any order of this cycle is OK
+    !$omp parallel do default(none) shared(constants,params,node_m,node_l) &
+    !$omp private(i,c,r,k,c1,r1,work) schedule(dynamic)
     do i = 1, constants % nclusters
         ! If no far admissible pairs just set output to zero
         if (constants % nfar(i) .eq. 0) then
@@ -1949,20 +1970,118 @@ subroutine tree_m2l_rotation(params, constants, node_m, node_l)
         k = constants % far(constants % sfar(i))
         c1 = constants % cnode(:, k)
         r1 = constants % rnode(k)
-        call fmm_m2l_rotation_work(c1-c, r1, r, params % pm, params % pl, &
+        c1 = c1 - c
+        call fmm_m2l_rotation_work(c1, r1, r, params % pm, params % pl, &
             & constants % vscales, constants % m2l_ztranslate_coef, one, &
             & node_m(:, k), zero, node_l(:, i), work)
         do j = constants % sfar(i)+1, constants % sfar(i+1)-1
             k = constants % far(j)
             c1 = constants % cnode(:, k)
             r1 = constants % rnode(k)
-            call fmm_m2l_rotation_work(c1-c, r1, r, params % pm, &
+            c1 = c1 - c
+            call fmm_m2l_rotation_work(c1, r1, r, params % pm, &
                 & params % pl, constants % vscales, &
                 & constants % m2l_ztranslate_coef, one, node_m(:, k), one, &
                 & node_l(:, i), work)
         end do
     end do
 end subroutine tree_m2l_rotation
+
+!> Transfer multipole local coefficients into local over a tree
+subroutine tree_m2l_bessel_rotation(params, constants, node_m, node_l)
+    use complex_bessel
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: node_m((params % pm+1)**2, constants % nclusters)
+    ! Output
+    real(dp), intent(out) :: node_l((params % pl+1)**2, constants % nclusters)
+    ! Temporary workspace
+    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
+    complex(dp) :: work_complex(2*params % pm+1)
+    ! Local variables
+    integer :: i, j, k, NZ, ierr
+    real(dp) :: c1(3), c(3), r1, r
+    ! Any order of this cycle is OK
+    do i = 1, constants % nclusters
+        ! If no far admissible pairs just set output to zero
+        if (constants % nfar(i) .eq. 0) then
+            node_l(:, i) = zero
+            cycle
+        end if
+        c = constants % cnode(:, i)
+        r = constants % rnode(i)
+        ! Use the first far admissible pair to initialize output
+        k = constants % far(constants % sfar(i))
+        c1 = constants % cnode(:, k)
+        r1 = constants % rnode(k)
+!        call fmm_m2l_bessel_rotation(c1-c, r1, r, params % kappa, &
+!            & params % pm, &
+!            & constants % vscales, constants % vcnk, one, &
+!            & node_m(:, k), zero, node_l(:, i))
+        c1 = params % kappa*(c1 - c)
+        call fmm_m2l_bessel_rotation_work(c1, &
+            & constants % SK_rnode(:, k), constants % SI_rnode(:, i), &
+            & params % pm, &
+            & constants % vscales, constants % vcnk, one, &
+            & node_m(:, k), zero, node_l(:, i), work, work_complex)
+        do j = constants % sfar(i)+1, constants % sfar(i+1)-1
+            k = constants % far(j)
+            c1 = constants % cnode(:, k)
+            r1 = constants % rnode(k)
+!            call fmm_m2l_bessel_rotation(c1-c, r1, r, params % kappa, &
+!                & params % pm, &
+!                & constants % vscales, &
+!                & constants % vcnk, one, node_m(:, k), one, &
+!                & node_l(:, i))
+            c1 = params % kappa*(c1 - c)
+            call fmm_m2l_bessel_rotation_work(c1, constants % SK_rnode(:, k), &
+                & constants % SI_rnode(:, i), params % pm, &
+                & constants % vscales, constants % vcnk, one, &
+                & node_m(:, k), one, node_l(:, i), work, work_complex)
+        end do
+    end do
+end subroutine tree_m2l_bessel_rotation
+
+!> Adjoint transfer multipole local coefficients into local over a tree
+subroutine tree_m2l_bessel_rotation_adj(params, constants, node_l, node_m)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: node_l((params % pl+1)**2, constants % nclusters)
+    ! Output
+    real(dp), intent(out) :: node_m((params % pm+1)**2, constants % nclusters)
+    ! Local variables
+    integer :: i, j, k
+    real(dp) :: c1(3), c(3), r1, r
+    ! Any order of this cycle is OK
+    node_m = zero
+    do i = 1, constants % nclusters
+        ! If no far admissible pairs just set output to zero
+        if (constants % nfar(i) .eq. 0) then
+            cycle
+        end if
+        c = constants % cnode(:, i)
+        r = constants % rnode(i)
+        ! Use the first far admissible pair to initialize output
+        k = constants % far(constants % sfar(i))
+        c1 = constants % cnode(:, k)
+        r1 = constants % rnode(k)
+        c1 = c - c1
+        call fmm_m2l_bessel_rotation_adj(c1, r, r1, params % kappa, params % pm, &
+            & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
+            & node_l(:, i), one, node_m(:, k))
+        do j = constants % sfar(i)+1, constants % sfar(i+1)-1
+            k = constants % far(j)
+            c1 = constants % cnode(:, k)
+            r1 = constants % rnode(k)
+            c1 = c - c1
+            call fmm_m2l_bessel_rotation_adj(c1, r, r1, params % kappa, params % pm, &
+                & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
+                & node_l(:, i), one, node_m(:, k))
+        end do
+    end do
+end subroutine tree_m2l_bessel_rotation_adj
 
 !> Adjoint transfer multipole local coefficients into local over a tree
 subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)
@@ -2002,7 +2121,43 @@ subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)
     end do
 end subroutine tree_m2l_rotation_adj
 
-subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v)
+subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v, sph_l)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: node_l((params % pl+1)**2, constants % nclusters), &
+        & alpha, beta
+    ! Output
+    real(dp), intent(inout) :: grid_v(params % ngrid, params % nsph)
+    ! Scratch
+    real(dp), intent(out) :: sph_l((params % pl+1)**2, params % nsph)
+    ! Local variables
+    real(dp) :: c(3)
+    integer :: isph
+    external :: dgemm
+
+
+    ! Init output
+    if (beta .eq. zero) then
+        grid_v = zero
+    else
+        grid_v = beta * grid_v
+    end if
+    ! Get data from all clusters to spheres
+    !$omp parallel do default(none) shared(params,constants,node_l,sph_l) &
+    !$omp private(isph) schedule(dynamic)
+    do isph = 1, params % nsph
+        sph_l(:, isph) = node_l(:, constants % snode(isph))
+    end do
+    ! Get values at grid points
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+        & (params % pl+1)**2, alpha, constants % vgrid2, &
+        & constants % vgrid_nbasis, sph_l, (params % pl+1)**2, beta, grid_v, &
+        & params % ngrid)
+
+end subroutine tree_l2p
+
+subroutine tree_l2p_bessel(params, constants, alpha, node_l, beta, grid_v)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -2026,12 +2181,45 @@ subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v)
     end do
     ! Get values at grid points
     call dgemm('T', 'N', params % ngrid, params % nsph, &
-        & (params % pl+1)**2, alpha, constants % vgrid2, &
+        & (params % pl+1)**2, alpha, constants % vgrid, &
         & constants % vgrid_nbasis, sph_l, (params % pl+1)**2, beta, grid_v, &
         & params % ngrid)
-end subroutine tree_l2p
+end subroutine tree_l2p_bessel
 
-subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l)
+subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l, sph_l)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: grid_v(params % ngrid, params % nsph), alpha, &
+        & beta
+    ! Output
+    real(dp), intent(inout) :: node_l((params % pl+1)**2, &
+        & constants % nclusters)
+    ! Scractch
+    real(dp), intent(out) :: sph_l((params % pl+1)**2, params % nsph)
+    ! Local variables
+    real(dp) :: c(3)
+    integer :: isph, inode
+    external :: dgemm
+    ! Init output
+    if (beta .eq. zero) then
+        node_l = zero
+    else
+        node_l = beta * node_l
+    end if
+    ! Get weights of spherical harmonics at each sphere
+    call dgemm('N', 'N', (params % pl+1)**2, params % nsph, &
+        & params % ngrid, one, constants % vgrid2, constants % vgrid_nbasis, &
+        & grid_v, params % ngrid, zero, sph_l, &
+        & (params % pl+1)**2)
+    ! Get data from all clusters to spheres
+    do isph = 1, params % nsph
+        inode = constants % snode(isph)
+        node_l(:, inode) = node_l(:, inode) + alpha*sph_l(:, isph)
+    end do
+end subroutine tree_l2p_adj
+
+subroutine tree_l2p_bessel_adj(params, constants, alpha, grid_v, beta, node_l)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -2052,7 +2240,7 @@ subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l)
     end if
     ! Get weights of spherical harmonics at each sphere
     call dgemm('N', 'N', (params % pl+1)**2, params % nsph, &
-        & params % ngrid, one, constants % vgrid2, constants % vgrid_nbasis, &
+        & params % ngrid, one, constants % vgrid, constants % vgrid_nbasis, &
         & grid_v, params % ngrid, zero, sph_l, &
         & (params % pl+1)**2)
     ! Get data from all clusters to spheres
@@ -2060,7 +2248,7 @@ subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l)
         inode = constants % snode(isph)
         node_l(:, inode) = node_l(:, inode) + alpha*sph_l(:, isph)
     end do
-end subroutine tree_l2p_adj
+end subroutine tree_l2p_bessel_adj
 
 subroutine tree_m2p(params, constants, p, alpha, sph_m, beta, grid_v)
     ! Inputs
@@ -2082,6 +2270,9 @@ subroutine tree_m2p(params, constants, p, alpha, sph_m, beta, grid_v)
         grid_v = beta * grid_v
     end if
     ! Cycle over all spheres
+    !$omp parallel do default(none) shared(params,constants,grid_v,p, &
+    !$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work) &
+    !$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
@@ -2104,6 +2295,51 @@ subroutine tree_m2p(params, constants, p, alpha, sph_m, beta, grid_v)
         end do
     end do
 end subroutine tree_m2p
+
+subroutine tree_m2p_bessel(params, constants, p, alpha, sph_p, sph_m, beta, grid_v)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: p, sph_p
+    real(dp), intent(in) :: sph_m((sph_p+1)**2, params % nsph), alpha, beta
+    ! Output
+    real(dp), intent(inout) :: grid_v(params % ngrid, params % nsph)
+    ! Local variables
+    integer :: isph, inode, jnear, jnode, jsph, igrid
+    real(dp) :: c(3)
+    ! Temporary workspace
+    real(dp) :: work(p+1)
+    complex(dp) :: work_complex(p+1)
+    ! Init output
+    if (beta .eq. zero) then
+        grid_v = zero
+    else
+        grid_v = beta * grid_v
+    end if
+    ! Cycle over all spheres
+    do isph = 1, params % nsph
+        ! Cycle over all near-field admissible pairs of spheres
+        inode = constants % snode(isph)
+        do jnear = constants % snear(inode), constants % snear(inode+1)-1
+            ! Near-field interactions are possible only between leaf nodes,
+            ! which must contain only a single input sphere
+            jnode = constants % near(jnear)
+            jsph = constants % order(constants % cluster(1, jnode))
+            ! Ignore self-interaction
+            !if(isph .eq. jsph) cycle
+            ! Accumulate interaction for external grid points only
+            do igrid = 1, params % ngrid
+                if(constants % ui(igrid, isph) .eq. zero) cycle
+                c = constants % cgrid(:, igrid)*params % rsph(isph) - &
+                    & params % csph(:, jsph) + params % csph(:, isph)
+                c = c * params % kappa
+                call fmm_m2p_bessel_work(c, p, constants % vscales, &
+                    & constants % SK_ri(:, jsph), alpha, sph_m(:, jsph), one, &
+                    & grid_v(igrid, isph), work_complex, work)
+            end do
+        end do
+    end do
+end subroutine tree_m2p_bessel
 
 subroutine tree_m2p_adj(params, constants, p, alpha, grid_v, beta, sph_m)
     ! Inputs
@@ -2148,6 +2384,96 @@ subroutine tree_m2p_adj(params, constants, p, alpha, grid_v, beta, sph_m)
         end do
     end do
 end subroutine tree_m2p_adj
+
+subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p, &
+        & sph_m)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: p, sph_p
+    real(dp), intent(in) :: grid_v(params % ngrid, params % nsph), alpha, &
+        & beta
+    ! Output
+    real(dp), intent(inout) :: sph_m((sph_p+1)**2, params % nsph)
+    ! Temporary workspace
+    real(dp) :: work(p+1)
+    ! Local variables
+    integer :: isph, inode, jnear, jnode, jsph, igrid
+    real(dp) :: c(3)
+    ! Init output
+    if (beta .eq. zero) then
+        sph_m = zero
+    else
+        sph_m = beta * sph_m
+    end if
+    ! Cycle over all spheres
+    do isph = 1, params % nsph
+        ! Cycle over all near-field admissible pairs of spheres
+        inode = constants % snode(isph)
+        do jnear = constants % snear(inode), constants % snear(inode+1)-1
+            ! Near-field interactions are possible only between leaf nodes,
+            ! which must contain only a single input sphere
+            jnode = constants % near(jnear)
+            jsph = constants % order(constants % cluster(1, jnode))
+            ! Ignore self-interaction
+            !if(isph .eq. jsph) cycle
+            ! Accumulate interaction for external grid points only
+            do igrid = 1, params % ngrid
+                if(constants % ui(igrid, isph) .eq. zero) cycle
+                c = constants % cgrid(:, igrid)*params % rsph(isph) - &
+                    & params % csph(:, jsph) + params % csph(:, isph)
+                call fmm_m2p_bessel_adj(c, alpha*grid_v(igrid, isph), &
+                    & params % rsph(jsph), params % kappa, p, constants % vscales, one, &
+                    & sph_m(:, jsph))
+            end do
+        end do
+    end do
+end subroutine tree_m2p_bessel_adj
+
+subroutine tree_m2p_bessel_nodiag_adj(params, constants, p, alpha, grid_v, beta, sph_p, &
+        & sph_m)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: p, sph_p
+    real(dp), intent(in) :: grid_v(params % ngrid, params % nsph), alpha, &
+        & beta
+    ! Output
+    real(dp), intent(inout) :: sph_m((sph_p+1)**2, params % nsph)
+    ! Temporary workspace
+    real(dp) :: work(p+1)
+    ! Local variables
+    integer :: isph, inode, jnear, jnode, jsph, igrid
+    real(dp) :: c(3)
+    ! Init output
+    if (beta .eq. zero) then
+        sph_m = zero
+    else
+        sph_m = beta * sph_m
+    end if
+    ! Cycle over all spheres
+    do isph = 1, params % nsph
+        ! Cycle over all near-field admissible pairs of spheres
+        inode = constants % snode(isph)
+        do jnear = constants % snear(inode), constants % snear(inode+1)-1
+            ! Near-field interactions are possible only between leaf nodes,
+            ! which must contain only a single input sphere
+            jnode = constants % near(jnear)
+            jsph = constants % order(constants % cluster(1, jnode))
+            ! Ignore self-interaction
+            if(isph .eq. jsph) cycle
+            ! Accumulate interaction for external grid points only
+            do igrid = 1, params % ngrid
+                if(constants % ui(igrid, isph) .eq. zero) cycle
+                c = constants % cgrid(:, igrid)*params % rsph(isph) - &
+                    & params % csph(:, jsph) + params % csph(:, isph)
+                call fmm_m2p_bessel_adj(c, alpha*grid_v(igrid, isph), &
+                    & params % rsph(jsph), params % kappa, p, constants % vscales, one, &
+                    & sph_m(:, jsph))
+            end do
+        end do
+    end do
+end subroutine tree_m2p_bessel_nodiag_adj
 
 subroutine fdoka(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
     type(ddx_params_type), intent(in) :: params

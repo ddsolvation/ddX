@@ -21,6 +21,9 @@ use ddx_constants
 implicit none
 
 type ddx_workspace_type
+    !> Temporary workspace for scalar at the grid points. Dimension is
+    !!      (ngrid, nproc)
+    real(dp), allocatable :: tmp_pot(:,:)
     !> Temporary workspace for associated legendre polynomials. Dimension is
     !!      (vgrid_nbasis, nproc).
     real(dp), allocatable :: tmp_vplm(:, :)
@@ -30,6 +33,9 @@ type ddx_workspace_type
     !> Temporary workspace for derivatives of spherical harmomincs. Dimension is
     !!      (3, vgrid_nbasis, nproc).
     real(dp), allocatable :: tmp_vdylm(:, :, :)
+    !> Temporary workspace of size
+    !!      (vgrid_dmax + 1, nproc)
+    real(dp), allocatable :: tmp_work(:, :)
     !> Temporary workspace for an array of cosinuses of a dimension
     !!      (vgrid_dmax+1, nproc).
     real(dp), allocatable :: tmp_vcos(:, :)
@@ -89,6 +95,8 @@ type ddx_workspace_type
     real(dp), allocatable :: tmp_bmat(:, :)
     !> GMRESR temporary workspace. Dimension is (n, 2*gmres_j+gmres_dim+2)
     real(dp), allocatable :: tmp_gmresr(:, :)
+    !> ddLPB solutions for the microiterations
+    real(dp), allocatable :: ddcosmo_guess(:,:), hsp_guess(:,:)
     !> Flag if there were an error
     integer :: error_flag = 2
     !> Last error message
@@ -107,9 +115,12 @@ subroutine workspace_init(params, constants, workspace, info)
     !! Local variables
     character(len=255) :: string
     !! The code
-    allocate(workspace % tmp_vplm(constants % vgrid_nbasis, params % nproc), &
+    write(6,*) 'Allocating nproc', params % nproc
+    allocate(workspace % tmp_pot(params % ngrid, params % nproc), &
+        & workspace % tmp_vplm(constants % vgrid_nbasis, params % nproc), &
         & workspace % tmp_vcos(constants % vgrid_dmax+1, params % nproc), &
         & workspace % tmp_vsin(constants % vgrid_dmax+1, params % nproc), &
+        & workspace % tmp_work(constants % vgrid_dmax+1, params % nproc), &
         & stat=info)
     if (info .ne. 0) then
         workspace % error_flag = 1
@@ -257,7 +268,7 @@ subroutine workspace_init(params, constants, workspace, info)
         info = 1
         return
     end if
-    allocate(workspace % tmp_x_diis(constants % n, params % jacobi_ndiis), &
+    allocate(workspace % tmp_x_diis(constants % n, 2*params % jacobi_ndiis), &
         & stat=info)
     if (info .ne. 0) then
         workspace % error_flag = 1
@@ -266,7 +277,7 @@ subroutine workspace_init(params, constants, workspace, info)
         info = 1
         return
     end if
-    allocate(workspace % tmp_e_diis(constants % n, params % jacobi_ndiis), &
+    allocate(workspace % tmp_e_diis(constants % n, 2*params % jacobi_ndiis), &
         & stat=info)
     if (info .ne. 0) then
         workspace % error_flag = 1
@@ -275,8 +286,8 @@ subroutine workspace_init(params, constants, workspace, info)
         info = 1
         return
     end if
-    allocate(workspace % tmp_bmat(params % jacobi_ndiis+1, &
-        & params % jacobi_ndiis+1), stat=info)
+    allocate(workspace % tmp_bmat(2*params % jacobi_ndiis + 2, &
+        & 2*params % jacobi_ndiis + 2), stat=info)
     if (info .ne. 0) then
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_bmat` " // &
@@ -299,7 +310,8 @@ subroutine workspace_init(params, constants, workspace, info)
     ! Allocations for LPB model
     if (params % model .eq. 3) then
         allocate(workspace % tmp_bessel(max(2, params % lmax+1), &
-            & params % nproc), stat=info)
+            & params % nproc), workspace % ddcosmo_guess(constants % nbasis, params % nsph), &
+            & workspace % hsp_guess(constants % nbasis, params % nsph), stat=info)
         if (info .ne. 0) then
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_bessel` " // &

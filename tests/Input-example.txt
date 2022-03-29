@@ -8,6 +8,7 @@
 0.0         ! Shift of the regularized characteristic function
 0.1         ! Regularization parameter
 0.0         ! Debye Hückel parameter
+0           ! incore handling of matrix-vector products (0: no, 1: yes)
 2           ! Iterative solver for linear systems: 1: Jacobi/DIIS , 2: GMRESR solver
 1d-8        ! The relative threshold for the iterative solver
 200         ! Maximum number of iterations

@@ -42,6 +42,21 @@ project(ddX VERSION ${VERSION} LANGUAGES Fortran CXX)
 # Extend path for additional cmake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+#add_compile_options(-qopenmp -i8 -DINT64)
+#add_compile_options(-g -debug extended -traceback -check all -fp-stack-check)
+#add_compile_options(-i8  -I"${MKLROOT}/include")
+#add_link_options(-L${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -ldl)
+#add_link_options(-mkl=parallel)
+
+#add_compile_options(-O3)
+#add_compile_options(-fopenmp)
+#add_compile_options(-fdefault-integer-8)
+#add_compile_options(-fcheck=all -g -fbacktrace -Og -fbounds-check)
+#add_compile_options(-Waliasing -Wampersand -Wconversion -Wsurprising -Wc-binding-type -Wintrinsics-std)
+#add_compile_options(-Wtabs -Wintrinsic-shadow -Wline-truncation -Wtarget-lifetime -Winteger-division)
+#add_compile_options(-Wreal-q-constant -Wundefined-do-loop -Wmaybe-uninitialized)
+
+
 ###############################################################################
 ##                REQUIREMENTS: OpenMP, BLAS AND LAPACK                      ##
 ###############################################################################
@@ -69,6 +84,7 @@ option(COVERAGE "Generate code coverage report" OFF)
 # Whether or not to use OpenMP
 option(OPENMP "Enable OpenMP" ON)
 
+#
 ###############################################################################
 ##                               CHECK OPTIONS                               ##
 ###############################################################################
@@ -80,6 +96,9 @@ if(DOCS)
         set(DOCS OFF)
     endif()
 endif()
+
+#add_compile_options(-O3 -xHost -g -check all -traceback)
+#add_compile_options(-O0 -g -fcheck=all -fbacktrace)
 
 # Update compiler flags in case of code coverage
 if(COVERAGE)

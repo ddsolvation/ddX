@@ -40,16 +40,23 @@ else
         case ('m2p_bessel')
         case ('m2p_m2l')
         case ('m2p_adj')
+        case ('m2p_bessel_grad')
         case ('l2p')
         case ('l2p_bessel')
         case ('l2p_adj')
+        case ('l2p_bessel_grad')
         case ('m2m')
         case ('m2m_bessel')
         case ('m2m_adj')
+        case ('m2m_bessel_adj')
         case ('l2l')
+        case ('l2l_bessel')
         case ('l2l_adj')
+        case ('l2l_bessel_adj')
         case ('m2l')
+        case ('m2l_bessel')
         case ('m2l_adj')
+        case ('m2l_bessel_adj')
         case ('tree_init')
 !        case ('tree_m2m')
 !        case ('tree_l2l')
@@ -134,6 +141,17 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2p_adj')) then
     end do
 end if
 
+! Check M2P Bessel gradient
+!if ((testname .eq. 'all') .or. (testname .eq. 'm2p_bessel')) then
+if (testname .eq. 'm2p_bessel_grad') then
+    !do i = 1, size(alpha)
+        !do j = 0, 20
+            j = 5
+            call check_m2p_bessel_grad(j)
+        !end do
+    !end do
+end if
+
 ! Check L2P
 if ((testname .eq. 'all') .or. (testname .eq. 'l2p')) then
     do i = 1, size(alpha)
@@ -159,6 +177,17 @@ if ((testname .eq. 'all') .or. (testname .eq. 'l2p_adj')) then
             call check_l2p_adj(j, alpha(i))
         end do
     end do
+end if
+
+! Check L2P Bessel gradient
+!if ((testname .eq. 'all') .or. (testname .eq. 'l2p_bessel_grad')) then
+if (testname .eq. 'l2p_bessel_grad') then
+    !do i = 1, size(alpha)
+        !do j = 0, 20
+            j = 5
+            call check_l2p_bessel_grad(j)
+        !end do
+    !end do
 end if
 
 ! Check M2M
@@ -190,6 +219,16 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2m_adj')) then
     end do
 end if
 
+! Check adjoint M2M Bessel
+!if ((testname .eq. 'all') .or. (testname .eq. 'm2m_bessel_adj')) then
+if (testname .eq. 'm2m_bessel_adj') then
+    do i = 1, 1 !size(alpha)
+        do j = 0, p
+            call check_m2m_bessel_adj(j, alpha(i))
+        end do
+    end do
+end if
+
 ! Check L2L
 if ((testname .eq. 'all') .or. (testname .eq. 'l2l')) then
     do i = 1, size(alpha)
@@ -199,11 +238,32 @@ if ((testname .eq. 'all') .or. (testname .eq. 'l2l')) then
     end do
 end if
 
+! Check L2L Bessel manually
+!if ((testname .eq. 'all') .or. (testname .eq. 'l2l_bessel')) then
+if (testname .eq. 'l2l_bessel') then
+    !do i = 1, size(alpha)
+    j = 10
+        !do j = 0, p
+            call check_l2l_bessel(j)
+        !end do
+    !end do
+end if
+
 ! Check adjoint L2L
 if ((testname .eq. 'all') .or. (testname .eq. 'l2l_adj')) then
     do i = 1, size(alpha)
         do j = 0, p
             call check_l2l_adj(j, alpha(i))
+        end do
+    end do
+end if
+
+! Check adjoint L2L Bessel
+!if ((testname .eq. 'all') .or. (testname .eq. 'l2l_bessel_adj')) then
+if (testname .eq. 'l2l_bessel_adj') then
+    do i = 1, 1 !size(alpha)
+        do j = 0, p
+            call check_l2l_bessel_adj(j, alpha(i))
         end do
     end do
 end if
@@ -222,6 +282,13 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2l')) then
     end do
 end if
 
+! Check M2L Bessel
+!if ((testname .eq. 'all') .or. (testname .eq. 'm2l_bessel')) then
+if (testname .eq. 'm2l_bessel') then
+    j = 10
+    call check_m2l_bessel(j)
+end if
+
 ! Check adjoint M2L
 if ((testname .eq. 'all') .or. (testname .eq. 'm2l_adj')) then
     do i = 1, size(alpha)
@@ -231,6 +298,16 @@ if ((testname .eq. 'all') .or. (testname .eq. 'm2l_adj')) then
         do j = 1, p
             call check_m2l_adj(0, j, alpha(i))
             call check_m2l_adj(j, 0, alpha(i))
+        end do
+    end do
+end if
+
+! Check adjoint M2L Bessel
+!if ((testname .eq. 'all') .or. (testname .eq. 'm2l_bessel_adj')) then
+if (testname .eq. 'm2l_bessel_adj') then
+    do i = 1, 1 !size(alpha)
+        do j = 0, p
+            call check_m2l_bessel_adj(j, alpha(i))
         end do
     end do
 end if
@@ -281,7 +358,7 @@ contains
 subroutine check_ddinit_args()
     ! Example of correct args
     integer :: n=1, model=1, lmax=1, ngrid=1202, force=1, fmm=1, pm=0, pl=0, &
-        & fmm_precompute=0, iprint=0, itersolver=1, maxiter=10, &
+        & fmm_precompute=0, iprint=0, matvecmem=0, itersolver=1, maxiter=10, &
         & jacobi_ndiis=10, gmresr_j=1, gmresr_dim=0, nproc=1
     real(dp) :: charge(10), x(10), y(10), z(10), rvdw(10), se=zero, eta=1d-1, &
         & eps=1.1d1, kappa=1d0
@@ -298,7 +375,7 @@ subroutine check_ddinit_args()
     end do
     ! Check correct input
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "correct test failed in " // &
         & "check_ddinit_args()")
@@ -306,7 +383,7 @@ subroutine check_ddinit_args()
     ! Check different correct inputs with different n <= 10 (hardcoded value)
     do i = 1, 10
         call ddinit(i, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
-            & pm, pl, se, eta, eps, kappa, &
+            & pm, pl, se, eta, eps, kappa, matvecmem, &
             & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, &
             & ddx_data, info)
         if (info .ne. 0) call error(-1, "`nsph` test failed in " // &
@@ -316,14 +393,14 @@ subroutine check_ddinit_args()
     ! Check incorrect input nsph <= 0
     i = 0
     call ddinit(i, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`nsph` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(i, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`nsph` test failed in " // &
         & "check_ddinit_args()")
@@ -332,7 +409,7 @@ subroutine check_ddinit_args()
     do i = 1, 3
         write(*, *) "model=", i
         call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
-            & pl, se, eta, eps, kappa, itersolver, &
+            & pl, se, eta, eps, kappa, matvecmem, itersolver, &
             & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`model` test failed in " // &
             & "check_ddinit_args()")
@@ -341,14 +418,14 @@ subroutine check_ddinit_args()
     ! Check incorrect models
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`model` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 4
     call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`model` test failed in " // &
         & "check_ddinit_args()")
@@ -358,7 +435,7 @@ subroutine check_ddinit_args()
     do i = 1, 6
         call ddinit(n, charge, x, y, z, rvdw, model, i, ngrid, force, fmm, &
             & pm, pl, se, eta, eps, kappa, &
-            & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+            & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
             & nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`lmax` test failed in " // &
             & "check_ddinit_args()")
@@ -367,7 +444,7 @@ subroutine check_ddinit_args()
     ! Check incorrect lmax < 0
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, i, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`lmax` test failed in " // &
         & "check_ddinit_args()")
@@ -376,7 +453,7 @@ subroutine check_ddinit_args()
     do i = 1, nllg
         j = ng0(i)
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, j, force, fmm, pm, &
-            & pl, se, eta, eps, kappa, itersolver, &
+            & pl, se, eta, eps, kappa, matvecmem, itersolver, &
             & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`ngrid` test failed in " // &
             & "check_ddinit_args()")
@@ -385,7 +462,7 @@ subroutine check_ddinit_args()
     ! Check incorrect ngrid < 0
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, i, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`ngrid` test failed in " // &
         & "check_ddinit_args()")
@@ -393,7 +470,7 @@ subroutine check_ddinit_args()
     ! Check correct force (0, 1)
     do i = 0, 1
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
-            & pl, se, eta, eps, kappa, itersolver, &
+            & pl, se, eta, eps, kappa, matvecmem, itersolver, &
             & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`force` test failed in " // &
             & "check_ddinit_args()")
@@ -402,14 +479,14 @@ subroutine check_ddinit_args()
     ! Check incorrect force
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`force` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`force` test failed in " // &
         & "check_ddinit_args()")
@@ -418,7 +495,7 @@ subroutine check_ddinit_args()
     do i = 0, 1
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, i, &
             & pm, pl, se, eta, eps, kappa, &
-            & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+            & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`fmm` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
@@ -426,14 +503,14 @@ subroutine check_ddinit_args()
     ! Check incorrect fmm
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`fmm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`fmm` test failed in " // &
         & "check_ddinit_args()")
@@ -442,7 +519,7 @@ subroutine check_ddinit_args()
     j = 0
     do i = -2, 2
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & i, pl, se, eta, eps, kappa, itersolver, &
+            & i, pl, se, eta, eps, kappa, matvecmem, itersolver, &
             & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`pm` test failed in " // &
             & "check_ddinit_args()")
@@ -452,7 +529,7 @@ subroutine check_ddinit_args()
     j = 1
     do i = 0, 20, 5
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & i, pl, se, eta, eps, kappa, itersolver, &
+            & i, pl, se, eta, eps, kappa, matvecmem, itersolver, &
             & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`pm` test failed in " // &
             & "check_ddinit_args()")
@@ -460,7 +537,7 @@ subroutine check_ddinit_args()
     end do
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-        & i, pl, se, eta, eps, kappa, itersolver, &
+        & i, pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`pm` test failed in " // &
         & "check_ddinit_args()")
@@ -469,7 +546,7 @@ subroutine check_ddinit_args()
     j = 1
     i = -2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, i, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`pm` test failed in " // &
         & "check_ddinit_args()")
@@ -478,7 +555,7 @@ subroutine check_ddinit_args()
     j = 0
     do i = -2, 2
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & pm, i, se, eta, eps, kappa, itersolver, &
+            & pm, i, se, eta, eps, kappa, matvecmem, itersolver, &
             & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`pl` test failed in " // &
             & "check_ddinit_args()")
@@ -488,7 +565,7 @@ subroutine check_ddinit_args()
     j = 1
     do i = 0, 20, 5
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & pm, i, se, eta, eps, kappa, itersolver, &
+            & pm, i, se, eta, eps, kappa, matvecmem, itersolver, &
             & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`pl` test failed in " // &
             & "check_ddinit_args()")
@@ -496,7 +573,7 @@ subroutine check_ddinit_args()
     end do
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-        & pm, i, se, eta, eps, kappa, itersolver, &
+        & pm, i, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`pl` test failed in " // &
         & "check_ddinit_args()")
@@ -505,7 +582,7 @@ subroutine check_ddinit_args()
     j = 1
     i = -2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, pm, &
-        & i, se, eta, eps, kappa, itersolver, &
+        & i, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`pl` test failed in " // &
         & "check_ddinit_args()")
@@ -513,21 +590,21 @@ subroutine check_ddinit_args()
     ! Check correct se (interval [-1,1])
     tmp = -one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, tmp, eta, eps, kappa, itersolver, &
+        & pl, tmp, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = zero
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, tmp, eta, eps, kappa, itersolver, &
+        & pl, tmp, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, tmp, eta, eps, kappa, itersolver, &
+        & pl, tmp, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
@@ -535,14 +612,14 @@ subroutine check_ddinit_args()
     ! Check incorrect se
     tmp = 1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, tmp, eta, eps, kappa, itersolver, &
+        & pl, tmp, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, tmp, eta, eps, kappa, itersolver, &
+        & pl, tmp, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
@@ -550,14 +627,14 @@ subroutine check_ddinit_args()
     ! Check correct eta (semi-interval (0,1])
     tmp = pt5
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, tmp, eps, kappa, itersolver, &
+        & pl, se, tmp, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, tmp, eps, kappa, itersolver, &
+        & pl, se, tmp, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
@@ -565,21 +642,21 @@ subroutine check_ddinit_args()
     ! Check incorrect eta
     tmp = zero
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, tmp, eps, kappa, itersolver, &
+        & pl, se, tmp, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = 1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, tmp, eps, kappa, itersolver, &
+        & pl, se, tmp, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, tmp, eps, kappa, itersolver, &
+        & pl, se, tmp, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
@@ -587,14 +664,14 @@ subroutine check_ddinit_args()
     ! Check correct eps
     tmp = 1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, tmp, kappa, itersolver, &
+        & pl, se, eta, tmp, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = dble(1000)
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, tmp, kappa, itersolver, &
+        & pl, se, eta, tmp, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
@@ -602,28 +679,28 @@ subroutine check_ddinit_args()
     ! Check incorrect eps
     tmp = zero
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, tmp, kappa, itersolver, &
+        & pl, se, eta, tmp, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = pt5
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, tmp, kappa, itersolver, &
+        & pl, se, eta, tmp, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, tmp, kappa, itersolver, &
+        & pl, se, eta, tmp, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, tmp, kappa, itersolver, &
+        & pl, se, eta, tmp, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
@@ -632,7 +709,7 @@ subroutine check_ddinit_args()
     tmp = 1d-2
     j = 3 ! only referenced in case of LPB model
     call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, tmp, itersolver, &
+        & pl, se, eta, eps, tmp, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`kappa` test failed in " // &
         & "check_ddinit_args()")
@@ -640,7 +717,7 @@ subroutine check_ddinit_args()
     tmp = -1d-2 ! not referenced in case of COSMO and PCM models
     do j = 1, 2
         call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-            & pl, se, eta, eps, tmp, itersolver, &
+            & pl, se, eta, eps, tmp, matvecmem, itersolver, &
             & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`kappa` test failed in " // &
             & "check_ddinit_args()")
@@ -650,22 +727,51 @@ subroutine check_ddinit_args()
     j = 3
     tmp = -1d-2
     call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, tmp, itersolver, &
+        & pl, se, eta, eps, tmp, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`kappa` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    ! Check correct matvecmem
+    i = 0
+    call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, i, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`matvecmem` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    i = 1
+    call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, i, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .ne. 0) call error(-1, "`matvecmem` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    i = -1
+    call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, i, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`matvecmem` test failed in " // &
+        & "check_ddinit_args()")
+    call ddfree(ddx_data)
+    i = 2
+    call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, i, itersolver, &
+        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    if (info .eq. 0) call error(-1, "`matvecmem` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct itersolver
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, i, &
+        & pl, se, eta, eps, kappa, matvecmem, i, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`itersolver` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, i, &
+        & pl, se, eta, eps, kappa, matvecmem, i, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`itersolver` test failed in " // &
         & "check_ddinit_args()")
@@ -673,21 +779,21 @@ subroutine check_ddinit_args()
     ! Check incorrect itersolver
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, i, &
+        & pl, se, eta, eps, kappa, matvecmem, i, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`itersolver` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, i, &
+        & pl, se, eta, eps, kappa, matvecmem, i, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`itersolver` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 3
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, i, &
+        & pl, se, eta, eps, kappa, matvecmem, i, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`itersolver` test failed in " // &
         & "check_ddinit_args()")
@@ -695,14 +801,14 @@ subroutine check_ddinit_args()
     ! Check correct maxiter
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & i, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1000000
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & i, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
@@ -710,14 +816,14 @@ subroutine check_ddinit_args()
     ! Check incorrect maxiter
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & i, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & i, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
@@ -725,21 +831,21 @@ subroutine check_ddinit_args()
     ! Check correct ndiis
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, i, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, i, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1000
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, i, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
@@ -747,7 +853,7 @@ subroutine check_ddinit_args()
     ! Check incorrect jacobi_ndiis
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, i, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
@@ -755,21 +861,21 @@ subroutine check_ddinit_args()
     ! Check correct gmresr_j
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`gmresr_j` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`gmresr_j` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 100000
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`gmresr_j` test failed in " // &
         & "check_ddinit_args()")
@@ -777,14 +883,14 @@ subroutine check_ddinit_args()
     ! Check incorrect gmresr_j
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`gmresr_j` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`gmresr_j` test failed in " // &
         & "check_ddinit_args()")
@@ -792,21 +898,21 @@ subroutine check_ddinit_args()
     ! Check correct gmresr_dim
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, i, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`gmresr_dim` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, i, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`gmresr_dim` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 100000
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, i, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`gmresr_dim` test failed in " // &
         & "check_ddinit_args()")
@@ -814,7 +920,7 @@ subroutine check_ddinit_args()
     ! Check incorrect gmresr_dim
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, i, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`gmresr_dim` test failed in " // &
         & "check_ddinit_args()")
@@ -822,14 +928,14 @@ subroutine check_ddinit_args()
     ! Check correct nproc
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
     if (info .ne. 0) call error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
     if (info .ne. 0) call error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
@@ -837,14 +943,14 @@ subroutine check_ddinit_args()
     ! Check incorrect nproc
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
-    if (info .eq. 0) call error(-1, "`nproc` test failed in " // &
+    if (info .ne. 0) call error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, itersolver, &
+        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
     if (info .eq. 0) call error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
@@ -1294,6 +1400,57 @@ subroutine check_m2p_adj(p, alpha)
     print "(A)", repeat("=", 40)
 end subroutine check_m2p_adj
 
+! Check M2P Bessel gradient
+subroutine check_m2p_bessel_grad(p)
+    ! Inputs
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: x(3), r, src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
+    real(dp) :: src_m((p+1)**2), dst_m((p+2)**2), vscales((p+2)**2), &
+        & vscales_rel((p+2)**2), v4pi2lp1(p+2), vcnk((2*p+3)*(p+2)), &
+        & tmp(p+2), work(p+2), src_sk(p+2), sk(p+1), dk(p+1), basloc((p+1)**2), &
+        & dbsloc(3, (p+1)**2), vplm((p+1)**2), vcos(p+1), vsin(p+1), &
+        & dst_g1(3), dst_g2(3), dst_m_grad((p+2)**2, 3)
+    complex(dp) :: work_complex(p+2)
+    real(dp), external :: dnrm2
+    integer :: i, l, m, indm
+    type(ddx_params_type) :: params
+    type(ddx_constants_type) :: constants
+    ! Set params
+    params % lmax = p
+    constants % nbasis = (p+1)**2
+    ! Compute special FMM constants
+    call ylmscale(p+1, vscales, v4pi2lp1, vscales_rel)
+    allocate(constants % vscales((p+2)**2))
+    constants % vscales = vscales
+    x = 7.5d0 * (/1.1d0, -2d0, one/)
+    r = dnrm2(3, x, 1)
+    src_r = one
+    src_m = zero
+    do i = 0, p
+        !src_m(i*i+i+1) = 10d0 ** (-i)
+        src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+    end do
+    !src_m = one
+    call modified_spherical_bessel_second_kind(p, r, sk, dk, &
+        & work_complex)
+    call modified_spherical_bessel_second_kind(p+1, src_r, src_sk, work, &
+        & work_complex)
+    call dbasis(params, constants, x/r, basloc, dbsloc, vplm, vcos, vsin)
+    dst_g1 = zero
+    do l = 0, p
+        do m = -l, l
+            indm = l*l+l+1+m
+            dst_g1 = dst_g1 + src_m(indm)/src_sk(l+1)/r*(dk(l+1)*x* &
+                & basloc(indm)+sk(l+1)*dbsloc(:, indm))
+        end do
+    end do
+    write(*, *) dst_g1
+    call fmm_m2p_bessel_grad(x, src_r, p, vscales, one, src_m, zero, dst_g2)
+    write(*, *) dst_g2
+    deallocate(constants % vscales)
+end subroutine check_m2p_bessel_grad
+
 ! Check L2P
 subroutine check_l2p(p, alpha)
     ! Inputs
@@ -1559,6 +1716,57 @@ subroutine check_l2p_adj(p, alpha)
     print "(A)", repeat("=", 40)
 end subroutine check_l2p_adj
 
+! Check L2P Bessel gradient
+subroutine check_l2p_bessel_grad(p)
+    ! Inputs
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: x(3), r, src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
+    real(dp) :: src_l((p+1)**2), dst_l((p+2)**2), vscales((p+2)**2), &
+        & vscales_rel((p+2)**2), v4pi2lp1(p+2), vcnk((2*p+3)*(p+2)), &
+        & tmp(p+2), work(p+2), src_si(p+2), si(p+1), di(p+1), basloc((p+1)**2), &
+        & dbsloc(3, (p+1)**2), vplm((p+1)**2), vcos(p+1), vsin(p+1), &
+        & dst_g1(3), dst_g2(3), dst_l_grad((p+2)**2, 3)
+    complex(dp) :: work_complex(p+2)
+    real(dp), external :: dnrm2
+    integer :: i, l, m, indm
+    type(ddx_params_type) :: params
+    type(ddx_constants_type) :: constants
+    ! Set params
+    params % lmax = p
+    constants % nbasis = (p+1)**2
+    ! Compute special FMM constants
+    call ylmscale(p+1, vscales, v4pi2lp1, vscales_rel)
+    allocate(constants % vscales((p+2)**2))
+    constants % vscales = vscales
+    x = 7.5d-1 * (/one, zero, zero/)
+    r = dnrm2(3, x, 1)
+    src_r = one
+    src_l = zero
+    do i = 0, p
+        !src_l(i*i+i+1) = 10d0 ** (-i)
+        src_l(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+    end do
+    !src_l = one
+    call modified_spherical_bessel_first_kind(p, r, si, di, &
+        & work_complex)
+    call modified_spherical_bessel_first_kind(p+1, src_r, src_si, work, &
+        & work_complex)
+    call dbasis(params, constants, x/r, basloc, dbsloc, vplm, vcos, vsin)
+    dst_g1 = zero
+    do l = 0, p
+        do m = -l, l
+            indm = l*l+l+1+m
+            dst_g1 = dst_g1 + src_l(indm)/src_si(l+1)/r*(di(l+1)*x* &
+                & basloc(indm)+si(l+1)*dbsloc(:, indm))
+        end do
+    end do
+    write(*, *) dst_g1
+    call fmm_l2p_bessel_grad(x, src_r, p, vscales, one, src_l, zero, dst_g2)
+    write(*, *) dst_g2
+    deallocate(constants % vscales)
+end subroutine check_l2p_bessel_grad
+
 ! Check M2M
 subroutine check_m2m(p, alpha)
     ! Inputs
@@ -1672,35 +1880,32 @@ subroutine check_m2m_bessel(p)
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
     real(dp) :: src_m((p+1)**2), dst_m((p+1)**2), vscales((p+1)**2), &
         & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
-        tmp(p+1), work(p+1), src_sk(p+1), dst_sk(p+1)
+        tmp(p+1), work(p+1), kappa
     complex(dp) :: work_complex(max(2, p+1))
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
     call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
-    x = 75d0 * (/one, -1.1d0, one/)
+    x = 7.5d0 * (/one, -1.1d0, one/)
     src_c = 1.01d0 * (/-one, one, one/)
     src_r = one
     dst_r = src_r + dnrm2(3, src_c, 1)
     src_m = zero
     do i = 3, p
         !src_m(i*i+i+1) = 10d0 ** (-i)
-        src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+        !src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
     end do
-    !src_m = one
-    call modified_spherical_bessel_second_kind(p, src_r, src_sk, work, &
-        & work_complex)
-    call modified_spherical_bessel_second_kind(p, dst_r, dst_sk, work, &
-        & work_complex)
-    call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
+    src_m = one
+    kappa = 1d-2
+    call fmm_m2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_m, &
         & zero, dst_v)
-    call fmm_m2m_bessel_rotation(-src_c, src_sk, dst_sk, p, vscales, vcnk, one, &
+    call fmm_m2m_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, vcnk, one, &
         & src_m, zero, dst_m)
-    call fmm_m2p_bessel_baseline(x, dst_r, p, vscales, one, dst_m, zero, &
+    call fmm_m2p_bessel_baseline(kappa*x, kappa*dst_r, p, vscales, one, dst_m, zero, &
         & dst_v2)
-    call fmm_m2m_bessel_rotation(src_c, dst_sk, src_sk, p, vscales, vcnk, one, &
+    call fmm_m2m_bessel_rotation(-src_c, dst_r, src_r, kappa, p, vscales, vcnk, one, &
         & dst_m, zero, src_m)
-    call fmm_m2p_bessel_baseline(x-src_c, src_r, p, vscales, one, src_m, &
+    call fmm_m2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_m, &
         & zero, dst_v3)
     write(*, *) dst_v, dst_v2, dst_v3
 end subroutine check_m2m_bessel
@@ -1764,6 +1969,68 @@ subroutine check_m2m_adj(p, alpha)
     end do
     print "(A)", repeat("=", 40)
 end subroutine check_m2m_adj
+
+! Check adjoint M2M Bessel
+subroutine check_m2m_bessel_adj(p, alpha)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: alpha
+    ! Local variables
+    integer, parameter :: nrand=10
+    real(dp) :: y(3, nx), r, dst_r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
+        & vscales_rel((p+1)**2), vcnk((2*p+1)*(p+1)), &
+        & m2l_ztranslate_coef(p+1, 1, 1), &
+        & m2l_ztranslate_adj_coef(1, 1, p+1), &
+        & src_m((p+1)**2, nrand), src_m2((p+1)**2, nrand), &
+        & dst_m((p+1)**2, nrand), err, tmp(nrand, nrand), kappa
+    logical :: ok
+    integer :: i, j, iseed(4), ndst_m
+    real(dp), external :: dnrm2
+    real(dp), parameter :: threshold=4d-15
+    ! Copy templated points with a proper multiplier
+    y = alpha * x
+    r = abs(alpha)
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    call fmm_constants(p, p, 0, vcnk, m2l_ztranslate_coef, &
+        & m2l_ztranslate_adj_coef)
+    ! Init random seed
+    iseed = (/0, 0, 0, 1/)
+    kappa = 1d+1
+    ! Generate src_m randomly
+    ndst_m = nrand * ((p+1)**2)
+    call dlarnv(3, iseed, ndst_m, src_m)
+    ! Print header
+    print "(/,A)", repeat("=", 40)
+    print "(A)", "Check adjoint M2M Bessel"
+    print "(A,I0)", " p=", p
+    print "(A,ES24.16E3)", " alpha=", alpha
+    print "(A)", repeat("=", 40)
+    print "(A)", "  i | ok | err(i)"
+    print "(A)", repeat("=", 40)
+    ! Check against direct M
+    ! Ignore i=1 for now
+    do i = 2, nx
+        c = y(:, i)
+        dst_r = r + dnrm2(3, y(:, i), 1)
+        do j = 1, nrand
+            call fmm_m2m_bessel_rotation(c, r, dst_r, kappa, p, vscales, vcnk, one, &
+                & src_m(:, j), zero, dst_m(:, j))
+            call fmm_m2m_bessel_rotation_adj(-c, dst_r, r, kappa, p, vscales, vcnk, one, &
+                & dst_m(:, j), zero, src_m2(:, j))
+        end do
+        call dgemm('T', 'N', nrand, nrand, (p+1)**2, one, dst_m, (p+1)**2, &
+            & dst_m, (p+1)**2, zero, tmp, nrand)
+        err = dnrm2(nrand*nrand, tmp, 1)
+        call dgemm('T', 'N', nrand, nrand, (p+1)**2, -one, src_m2, (p+1)**2, &
+            & src_m, (p+1)**2, one, tmp, nrand)
+        err = dnrm2(nrand*nrand, tmp, 1) / err
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+    end do
+    print "(A)", repeat("=", 40)
+end subroutine check_m2m_bessel_adj
 
 ! Check L2L
 subroutine check_l2l(p, alpha)
@@ -1869,6 +2136,43 @@ subroutine check_l2l(p, alpha)
     print "(A)", repeat("=", 40)
 end subroutine check_l2l
 
+subroutine check_l2l_bessel(p)
+    ! Inputs
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
+    real(dp) :: src_l((p+1)**2), dst_l((p+1)**2), vscales((p+1)**2), &
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
+        tmp(p+1), work(p+1), kappa
+    complex(dp) :: work_complex(max(2, p+1))
+    real(dp), external :: dnrm2
+    integer :: i
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    x = 7.5d-1 * (/one, -1.1d0, one/)
+    src_c = 1.01d0 * (/-one, one, one/)
+    src_r = one
+    dst_r = src_r + dnrm2(3, src_c, 1)
+    src_l = zero
+    do i = 0, p
+        !src_l(i*i+i+1) = 10d0 ** (-i)
+        !src_l(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+    end do
+    src_l = one
+    kappa = 1d-1
+    call fmm_l2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_l, &
+        & zero, dst_v)
+    call fmm_l2l_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, vcnk, one, &
+        & src_l, zero, dst_l)
+    call fmm_l2p_bessel_baseline(kappa*x, kappa*dst_r, p, vscales, one, dst_l, zero, &
+        & dst_v2)
+    call fmm_l2l_bessel_rotation(-src_c, dst_r, src_r, kappa, p, vscales, vcnk, one, &
+        & dst_l, zero, src_l)
+    call fmm_l2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_l, &
+        & zero, dst_v3)
+    write(*, *) dst_v, dst_v2, dst_v3
+end subroutine check_l2l_bessel
+
 ! Check adjoint l2l
 subroutine check_l2l_adj(p, alpha)
     ! Inputs
@@ -1927,6 +2231,67 @@ subroutine check_l2l_adj(p, alpha)
     end do
     print "(A)", repeat("=", 40)
 end subroutine check_l2l_adj
+
+! Check adjoint l2l Bessel
+subroutine check_l2l_bessel_adj(p, alpha)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: alpha
+    ! Local variables
+    integer, parameter :: nrand=10
+    real(dp) :: y(3, nx), r, dst_r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
+        & vscales_rel((p+1)**2), vfact(2*p+1), &
+        & src_l((p+1)**2, nrand), src_l2((p+1)**2, nrand), &
+        & dst_l((p+1)**2, nrand), err, tmp(nrand, nrand), kappa
+    logical :: ok
+    integer :: i, j, iseed(4), ndst_l
+    real(dp), external :: dnrm2
+    ! Copy templated points with a proper multiplier
+    y = alpha * x
+    r = abs(alpha)
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    vfact(1) = one
+    do i = 2, 2*p+1
+        vfact(i) = vfact(i-1) * sqrt(dble(i-1))
+    end do
+    ! Init random seed
+    iseed = (/0, 0, 0, 1/)
+    kappa = 1d+1
+    ! Generate src_l randomly
+    ndst_l = nrand * ((p+1)**2)
+    call dlarnv(3, iseed, ndst_l, src_l)
+    ! Print header
+    print "(/,A)", repeat("=", 40)
+    print "(A)", "Check adjoint L2L Bessel"
+    print "(A,I0)", " p=", p
+    print "(A,ES24.16E3)", " alpha=", alpha
+    print "(A)", repeat("=", 40)
+    print "(A)", "  i | ok | err(i)"
+    print "(A)", repeat("=", 40)
+    ! Check against direct l2l
+    ! Ignore i=1 for now
+    do i = 2, nx
+        c = y(:, i)
+        dst_r = r + dnrm2(3, y(:, i), 1)
+        do j = 1, nrand
+            call fmm_l2l_bessel_rotation(c, r, dst_r, kappa, p, vscales, vfact, one, &
+                & src_l(:, j), zero, dst_l(:, j))
+            call fmm_l2l_bessel_rotation_adj(-c, dst_r, r, kappa, p, vscales, vfact, one, &
+                & dst_l(:, j), zero, src_l2(:, j))
+        end do
+        call dgemm('T', 'N', nrand, nrand, (p+1)**2, one, dst_l, (p+1)**2, &
+            & dst_l, (p+1)**2, zero, tmp, nrand)
+        err = dnrm2(nrand*nrand, tmp, 1)
+        call dgemm('T', 'N', nrand, nrand, (p+1)**2, -one, src_l2, (p+1)**2, &
+            & src_l, (p+1)**2, one, tmp, nrand)
+        err = dnrm2(nrand*nrand, tmp, 1) / err
+        ok = err .lt. 1d-14
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+    end do
+    print "(A)", repeat("=", 40)
+end subroutine check_l2l_bessel_adj
 
 ! Check M2L
 subroutine check_m2l(pm, pl, alpha)
@@ -2105,6 +2470,105 @@ subroutine check_m2l_adj(pm, pl, alpha)
     end do
     print "(A)", repeat("=", 40)
 end subroutine check_m2l_adj
+
+subroutine check_m2l_bessel(p)
+    ! Inputs
+    integer, intent(in) :: p
+    ! Local variables
+    real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2
+    real(dp) :: src_m((p+1)**2), dst_l((p+1)**2), vscales((p+1)**2), &
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
+        tmp(p+1), work(p+1), kappa
+    complex(dp) :: work_complex(max(2, p+1))
+    real(dp), external :: dnrm2
+    integer :: i
+    ! Compute special FMM constants
+    call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
+    src_c = 3d0 * (/0d0, 1d0, 0d0/)
+    src_r = one
+    x = 5d-1 * (/one, -1.1d0, one/)
+    !x = zero
+    dst_r = one
+    src_m = zero
+    do i = 0, p
+        !src_m(i*i+i+1) = 10d0 ** (-i)
+        !src_m(i*i+1:i*i+2*i+1) = 10d0 ** (-i)
+    end do
+    src_m = one
+    kappa = 1d0
+    call fmm_m2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_m, &
+        & zero, dst_v)
+    call fmm_m2l_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, vcnk, one, &
+        & src_m, zero, dst_l)
+    call fmm_l2p_bessel_baseline(kappa*x, kappa*dst_r, p, vscales, one, dst_l, zero, &
+        & dst_v2)
+    write(*, *) dst_v, dst_v2
+end subroutine check_m2l_bessel
+
+! Check adjoint m2l
+subroutine check_m2l_bessel_adj(p, alpha)
+    ! Inputs
+    integer, intent(in) :: p
+    real(dp), intent(in) :: alpha
+    ! Local variables
+    integer, parameter :: nrand=10
+    real(dp) :: y(3, nx), r, dst_r, c(3), vscales((2*p+1)**2), &
+        & v4pi2lp1(2*p+1), &
+        & vscales_rel((2*p+1)**2), vcnk((4*p+1)*(2*p+1)), &
+        & m2l_ztranslate_coef(p+1, p+1, p+1), &
+        & m2l_ztranslate_adj_coef(p+1, p+1, p+1), &
+        & src_m((p+1)**2, nrand), src_m2((p+1)**2, nrand), &
+        & dst_l((p+1)**2, nrand), err, tmp(nrand, nrand), threshold, kappa
+    logical :: ok
+    integer :: i, j, iseed(4), nsrc_m, ndst_l
+    real(dp), external :: dnrm2
+    ! Copy templated points with a proper multiplier
+    y = 3d0 * alpha / sqrt(13d-2) * x
+    r = abs(alpha)
+    ! Compute special FMM constants
+    call ylmscale(2*p, vscales, v4pi2lp1, vscales_rel)
+    call fmm_constants(2*p, p, p, vcnk, m2l_ztranslate_coef, &
+        & m2l_ztranslate_adj_coef)
+    ! Init random seed
+    iseed = (/0, 0, 0, 1/)
+    kappa = 1d+1
+    ! Generate src_m randomly
+    nsrc_m = nrand * ((p+1)**2)
+    ndst_l = nrand * ((p+1)**2)
+    call dlarnv(3, iseed, nsrc_m, src_m)
+    ! Print header
+    print "(/,A)", repeat("=", 40)
+    print "(A)", "Check adjoint M2L Bessel"
+    print "(A,I0)", " p=", p
+    print "(A,ES24.16E3)", " alpha=", alpha
+    print "(A)", repeat("=", 40)
+    print "(A)", "  i | ok | err(i)"
+    print "(A)", repeat("=", 40)
+    threshold = (2*p+3) * 4d-16
+    ! Check against the baseline, i=1 is ignored since it y(:,1)=zero
+    do i = 2, nx
+        c = y(:, i)
+        !dst_r = r + dnrm2(3, y(:, i), 1)
+        dst_r = r
+        do j = 1, nrand
+            call fmm_m2l_bessel_rotation(c, r, dst_r, kappa, p, vscales, &
+                & m2l_ztranslate_coef, one, src_m(:, j), zero, dst_l(:, j))
+            call fmm_m2l_bessel_rotation_adj(-c, dst_r, r, kappa, p, vscales, &
+                & m2l_ztranslate_adj_coef, one, dst_l(:, j), zero, &
+                & src_m2(:, j))
+        end do
+        call dgemm('T', 'N', nrand, nrand, (p+1)**2, one, dst_l, (p+1)**2, &
+            & dst_l, (p+1)**2, zero, tmp, nrand)
+        err = dnrm2(nrand*nrand, tmp, 1)
+        call dgemm('T', 'N', nrand, nrand, (p+1)**2, -one, src_m2, &
+            & (p+1)**2, src_m, (p+1)**2, one, tmp, nrand)
+        err = dnrm2(nrand*nrand, tmp, 1) / err
+        ok = err .lt. threshold
+        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        if (.not. ok) stop 1
+    end do
+    print "(A)", repeat("=", 40)
+end subroutine check_m2l_bessel_adj
 
 subroutine check_tree_rib(alpha)
     real(dp), intent(in) :: alpha
