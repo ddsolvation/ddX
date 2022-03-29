@@ -110,20 +110,20 @@ $(document).ready(function(){initNavTree('label_run_as_standalone.html',''); ini
 <td class="markdownTableBodyNone">3 </td><td class="markdownTableBodyNone">Integer </td><td class="markdownTableBodyNone">Specification of the model <br  />
  1: COSMO, 2: PCM, 3: LPB  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">4 </td><td class="markdownTableBodyNone">Bool </td><td class="markdownTableBodyNone">Whether to compute and store sparse matrices (1) or apply the matrix-vector product on the fly (0) <br  />
+<td class="markdownTableBodyNone">4 </td><td class="markdownTableBodyNone">Integer </td><td class="markdownTableBodyNone">Maximal degree \(\ell_{\max}\) of modeling spherical harmonics  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">5 </td><td class="markdownTableBodyNone">Integer </td><td class="markdownTableBodyNone">Approximate number of Lebedev grid points  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">6 </td><td class="markdownTableBodyNone">Float </td><td class="markdownTableBodyNone">Dielectric permittivity constant \(\varepsilon_s\) of the bulk solvent  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">7 </td><td class="markdownTableBodyNone">Float </td><td class="markdownTableBodyNone">Shift \(s\) of the regularized characteristic function \(\chi_\eta\), range=[-1,1]  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">8 </td><td class="markdownTableBodyNone">Float </td><td class="markdownTableBodyNone">Regularization parameter \(\eta\) of the smoothing function \(\chi_\eta\), range=[0,1]  </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">9 </td><td class="markdownTableBodyNone">Float </td><td class="markdownTableBodyNone">Debye Hückel parameter \(\kappa_s\) of the bulk solvent  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">10 </td><td class="markdownTableBodyNone">Integer </td><td class="markdownTableBodyNone">Whether to compute and store sparse matrices (1) or apply the matrix-vector product on the fly (0), range={0,1} <br  />
  The sparse matrices are the solution matrix of ddCOSMO referred to as \(L\) used in ddCOSMO and ddPCM, and the matrices \(A\) and \(B\) in ddLPB.  </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">5 </td><td class="markdownTableBodyNone">Integer </td><td class="markdownTableBodyNone">Maximal degree \(\ell_{\max}\) of modeling spherical harmonics  </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">6 </td><td class="markdownTableBodyNone">Integer </td><td class="markdownTableBodyNone">Approximate number of Lebedev grid points  </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">7 </td><td class="markdownTableBodyNone">Float </td><td class="markdownTableBodyNone">Dielectric permittivity constant \(\varepsilon_s\) of the bulk solvent  </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">8 </td><td class="markdownTableBodyNone">Float </td><td class="markdownTableBodyNone">Shift \(s\) of the regularized characteristic function \(\chi_\eta\), range=[-1,1]  </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">9 </td><td class="markdownTableBodyNone">Float </td><td class="markdownTableBodyNone">Regularization parameter \(\eta\) of the smoothing function \(\chi_\eta\), range=[0,1]  </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">10 </td><td class="markdownTableBodyNone">Float </td><td class="markdownTableBodyNone">Debye Hückel parameter \(\kappa_s\) of the bulk solvent  </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">11 </td><td class="markdownTableBodyNone">Integer </td><td class="markdownTableBodyNone">Iterative solver for linear systems <br  />
  1: Jacobi/DIIS, 2: GMRESR<sup>[1]</sup>  </td></tr>
@@ -138,9 +138,9 @@ $(document).ready(function(){initNavTree('label_run_as_standalone.html',''); ini
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">16 </td><td class="markdownTableBodyNone">Integer </td><td class="markdownTableBodyNone">Dimension of GMRESR<sup>[3]</sup>  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">17 </td><td class="markdownTableBodyNone">Bool </td><td class="markdownTableBodyNone">Whether to compute (1) or not (0) the forces  </td></tr>
+<td class="markdownTableBodyNone">17 </td><td class="markdownTableBodyNone">Integer </td><td class="markdownTableBodyNone">Whether to compute (1) or not (0) the forces, range={0,1}  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">18 </td><td class="markdownTableBodyNone">Bool ` </td><td class="markdownTableBodyNone">Whether to use (1) or not (0) the FMM  </td></tr>
+<td class="markdownTableBodyNone">18 </td><td class="markdownTableBodyNone">Integer </td><td class="markdownTableBodyNone">Whether to use (1) or not (0) the FMM, range={0,1}  </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">19 </td><td class="markdownTableBodyNone">Integer </td><td class="markdownTableBodyNone">Max degree of multipole spherical harmonics \(\tilde\ell_{\max}\) for the FMM (recommended value \(\tilde\ell_{\max}=\ell_{\max}\))  </td></tr>
 <tr class="markdownTableRowEven">
@@ -148,9 +148,9 @@ $(document).ready(function(){initNavTree('label_run_as_standalone.html',''); ini
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">21 </td><td class="markdownTableBodyNone">Integer </td><td class="markdownTableBodyNone">Number of spheres of the atomic structure  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">22&ndash;END </td><td class="markdownTableBodyNone">Float[5] </td><td class="markdownTableBodyNone">The flollowing lines specify for each atom (should be consistent with entry on line 20) the values c,x,y,z,r where the partial charge (c), x-coordinate (x), y-coordinate (y), z-coordinate (z), radius (r) are listed (see example below). (units???)  </td></tr>
+<td class="markdownTableBodyNone">22&ndash;END </td><td class="markdownTableBodyNone">Float[5] </td><td class="markdownTableBodyNone">The flollowing lines specify for each atom (should be consistent with entry on line 20) the values c,x,y,z,r where the partial charge (c), x-coordinate (x), y-coordinate (y), z-coordinate (z), radius (r) are listed (see example below). The charges are in <em>atomic units</em> and the coordinates and the radii in <em>Ångstrom</em>.  </td></tr>
 </table>
-<p><sup>[1]</sup>: H.A. van der Vorst, C. Vuik, "GMRESR: a Family of Nested GMRES Methods", Num. Lin. Alg. Appl., vol. 1(4), 369&ndash;386 (1994): <a href="https://webspace.science.uu.nl/~vorst102/gmresr.f">[linke to file]</a></p>
+<p><sup>[1]</sup>: H.A. van der Vorst, C. Vuik, "GMRESR: a Family of Nested GMRES Methods", Num. Lin. Alg. Appl., vol. 1(4), 369&ndash;386 (1994): <a href="https://webspace.science.uu.nl/~vorst102/gmresr.f">[link to file]</a></p>
 <p><sup>[2]</sup>: corresponds to the agrument <em>mgmres</em> in <sup>[1]</sup>.</p>
 <p><sup>[3]</sup>: corresponds to the agrument <em>j</em> in <sup>[1]</sup>.</p>
 <p><b>Remarks:</b></p><ol type="1">
@@ -159,25 +159,25 @@ $(document).ready(function(){initNavTree('label_run_as_standalone.html',''); ini
 <p><b>Example of an input file:</b> </p><div class="fragment"><div class="line">1           ! Printing flag. The larger the value[integer], the more verbose the output</div>
 <div class="line">1           ! Number of OpenMP cores to be used</div>
 <div class="line">1           ! Specification of the model: 1 for COSMO, 2 for PCM and 3 for LPB</div>
-<div class="line">1           ! Whether to compute and store sparse matrices (1) or not (0)</div>
 <div class="line">7           ! Maximal degree of modeling spherical harmonics</div>
 <div class="line">302         ! Approximate number of Lebedev grid points</div>
 <div class="line">78.3553     ! Dielectric permittivity constant</div>
 <div class="line">0.0         ! Shift of the regularized characteristic function</div>
 <div class="line">0.1         ! Regularization parameter</div>
 <div class="line">0.0         ! Debye Hückel parameter</div>
+<div class="line">0           ! Whether to compute and store sparse matrices (1) or not (0)</div>
 <div class="line">2           ! Iterative solver for linear systems: 1: Jacobi/DIIS , 2: GMRESR solver</div>
 <div class="line">1d-8        ! The relative threshold for the iterative solver</div>
-<div class="line">200         ! Maximum number of iterations</div>
-<div class="line">25          ! Number of Jacobi DIIS extrapolation points</div>
+<div class="line">100         ! Maximum number of iterations</div>
+<div class="line">20          ! Number of Jacobi DIIS extrapolation points</div>
 <div class="line">1           ! Number of last vectors GMRESR works with</div>
 <div class="line">0           ! Dimension of GMRESR</div>
 <div class="line">1           ! Whether to compute (1) or not (0) forces</div>
 <div class="line">1           ! Whether to use (1) or not (0) the FMM</div>
-<div class="line">20          ! Max degree of multipole spherical harmonics for the FMM</div>
-<div class="line">20          ! Max degree of local spherical harmonics for the FMM</div>
+<div class="line">7           ! Max degree of multipole spherical harmonics for the FMM</div>
+<div class="line">6           ! Max degree of local spherical harmonics for the FMM</div>
 <div class="line">12          ! Number of spheres of the atomic structure</div>
-<div class="line">-0.04192   0.00000   2.29035   1.32281   4.00253    ! partial charge, x, y, z, radius[UNIT?????]</div>
+<div class="line">-0.04192   0.00000   2.29035   1.32281   4.00253    ! partial charge [a.u.], x [Å], y [Å], z [Å], radius [Å]</div>
 <div class="line">-0.04192   0.00000   2.29035  -1.32281   4.00253</div>
 <div class="line">-0.04198   0.00000   0.00000  -2.64562   4.00253</div>
 <div class="line">-0.04192   0.00000  -2.29035  -1.32281   4.00253</div>
