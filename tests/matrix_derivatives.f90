@@ -37,7 +37,7 @@ real(dp) :: step, relerr_A = zero, relerr_B = zero, relerr_Ui = zero,&
 ! isph   : Index for number of spheres
 ! i      : Index for derivative components (i = 1,2,3)
 ! ibasis : Index for number of basis
-integer :: isph = 1, i = 1, ibasis = 1, iprint = 1
+integer :: isph, i, ibasis, iprint
 ! vsin, vcos, vplm : Values used in basloc
 ! basloc : Y_lm
 ! dbasloc : Derivatives of Y_lm
@@ -48,7 +48,7 @@ real(dp), allocatable :: vsin(:), vcos(:), vplm(:), basloc(:), dbsloc(:,:)
 ! vector_nbasis_nsph       : Vector of size nbasis \times nsph
 real(dp), allocatable:: random_vector_two_evaluated_at_grid(:,:),&
                         & vector_ngrid_nsph(:,:), &
-                        & random_vector_nbasis_nsph_one(:,:), &
+                        & random_vector_nbasis_nsph_one(:,:), lpb_vector(:,:), &
                         & random_vector_nbasis_nsph_two(:,:)
 ! derivative_A     : Analytic derivative of matrix A
 ! derivative_B     : Analytic derivative of matrix B
@@ -70,7 +70,7 @@ real(dp), allocatable:: derivative_A(:,:), derivative_B(:,:), &
 real(dp) :: sum_A_plus_h, sum_B_plus_h, sum_A_minus_h, sum_B_minus_h,&
             & sum_Ui_minus_h, &
             & sum_Ui_plus_h, sum_C_minus_h, sum_C_plus_h, &
-            & lmax0 = 0, nbasis0 =  0
+            & lmax0, nbasis0
 real(dp), external :: dnrm2, ddot
 
 ! Read input file name
@@ -124,23 +124,6 @@ derivative_A = zero
 derivative_B = zero
 derivative_Ui = zero
 derivative_C1_C2 = zero
-diff_re = zero
-
-derivative_num_A  = zero
-derivative_num_B = zero
-derivative_num_Ui = zero
-derivative_num_C = zero
-
-vsin = zero
-vcos = zero
-vplm = zero
-basloc = zero
-dbsloc = zero
-
-random_vector_two_evaluated_at_grid = zero
-vector_ngrid_nsph = zero
-random_vector_nbasis_nsph_one = zero
-random_vector_nbasis_nsph_two = zero
 
 step = 1d-7
 
@@ -310,7 +293,7 @@ contains
 
 subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     type(ddx_type), intent(inout) :: ddx_data
-    real(dp), intent(out) :: sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2
+    real(dp), intent(inout) :: sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2
     ! Local variables
     ! ddx_data2  : New ddx_data with new coordinates
     type(ddx_type) :: ddx_data2
@@ -383,11 +366,6 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
 
     random_vector_C_one(:,:,1) = random_vector_nbasis_nsph_one
     random_vector_C_one(:,:,2) = random_vector_nbasis_nsph_one
-
-    sum_der_A = zero
-    sum_der_B = zero
-    sum_der_C1_C2 = zero
-    sum_der_Ui = zero
 
 
     vector_cosmo = one
