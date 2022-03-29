@@ -31,7 +31,7 @@ type ddx_type
     type(ddx_workspace_type) :: workspace
     !! High-level entities to be stored and accessed by users
     !> Potential at all grid points. Dimension is (ngrid, nsph). Allocated
-    !!      and used by COSMO (model=1) and PCM (model=2) models.
+    !!      and used by all models.
     real(dp), allocatable :: phi_grid(:, :)
     !> Variable \f$ \Phi \f$ of a dimension (nbasis, nsph). Allocated and used
     !!      by COSMO (model=1) and PCM (model=2) models.
@@ -93,6 +93,18 @@ type ddx_type
     real(dp), allocatable :: qgrid(:, :)
     !> Zeta intermediate for forces. Dimension is (ncav)
     real(dp), allocatable :: zeta(:)
+    !> Solution to the ddLPB linear system. Dimension is (nbasis,nsph,2). Allocated
+    !! and used only by LPB (model=3) model
+    real(dp), allocatable :: x_lpb(:,:,:)
+    !> Solution to the ddLPB ajoint system. Dimension is (nbasis,nsph,2). Allocated
+    !! and used only by LPB (model=3) model
+    real(dp), allocatable :: x_adj_lpb(:,:,:)
+    !> g intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only
+    !! by LPB (model=3) model
+    real(dp), allocatable :: g_lpb(:,:)
+    !> d intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only
+    !! by LPB (model=3) model
+    real(dp), allocatable :: f_lpb(:,:)
     !> Flag if there were an error
     integer :: error_flag
     !> Last error message
@@ -446,6 +458,42 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             info = 1
             return
         end if
+        allocate(ddx_data % x_lpb(ddx_data % constants % nbasis, ddx_data % params % nsph, 2), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            ddx_data % error_flag = 1
+            ddx_data % error_message = "ddinit: `x_lpb` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
+        allocate(ddx_data % x_adj_lpb(ddx_data % constants % nbasis, ddx_data % params % nsph, 2), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            ddx_data % error_flag = 1
+            ddx_data % error_message = "ddinit: `x_adj_lpb` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
+        allocate(ddx_data % g_lpb(ddx_data % params % ngrid, ddx_data % params % nsph), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            ddx_data % error_flag = 1
+            ddx_data % error_message = "ddinit: `g_lpb` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
+        allocate(ddx_data % f_lpb(ddx_data % params % ngrid, ddx_data % params % nsph), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            ddx_data % error_flag = 1
+            ddx_data % error_message = "ddinit: `f_lpb` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
     end if
 end subroutine ddinit
 
@@ -645,7 +693,6 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     y = y * tobohr
     z = z * tobohr
     rvdw = rvdw * tobohr
-    write(6,*) 'file read', omp_get_wtime() - t
 
     ! adjust ngrid
     call closest_supported_lebedev_grid(ngrid)
@@ -722,6 +769,34 @@ subroutine ddfree(ddx_data)
     end if
     if (allocated(ddx_data % g)) then
         deallocate(ddx_data % g, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "ddfree: [36] deallocation failed!"
+            stop 1
+        endif
+    end if
+    if (allocated(ddx_data % x_lpb)) then
+        deallocate(ddx_data % x_lpb, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "ddfree: [36] deallocation failed!"
+            stop 1
+        endif
+    end if
+    if (allocated(ddx_data % x_adj_lpb)) then
+        deallocate(ddx_data % x_adj_lpb, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "ddfree: [36] deallocation failed!"
+            stop 1
+        endif
+    end if
+    if (allocated(ddx_data % g_lpb)) then
+        deallocate(ddx_data % g_lpb, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "ddfree: [36] deallocation failed!"
+            stop 1
+        endif
+    end if
+    if (allocated(ddx_data % f_lpb)) then
+        deallocate(ddx_data % f_lpb, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "ddfree: [36] deallocation failed!"
             stop 1
@@ -2870,6 +2945,105 @@ subroutine tree_grad_l2l(params, constants, node_l, sph_l_grad, work)
     indi = l*l + l + 1
     sph_l_grad(indi-l:indi+l, :, :) = zero
 end subroutine tree_grad_l2l
-
+!
+!> small routine to print a tidy header with various info on the calculation.
+subroutine print_header(iprint,params)
+    implicit none
+    integer,               intent(in) :: iprint
+    type(ddx_params_type), intent(in) :: params
+!
+    character (len=255) :: string
+!
+    1010 format (t5,a,3x,i20)
+    1020 format (t5,a,3x,f20.10)
+    string = " "
+    call params % print_func(string)
+    string = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    call params % print_func(string)
+    string = "!                                                                             !"
+    call params % print_func(string)
+    string = "!                                                                             !"
+    call params % print_func(string)
+    string = "!                              888      888 Y8b    d8Y                        !"
+    call params % print_func(string)
+    string = "!                              888      888  Y8b  d8Y                         !"
+    call params % print_func(string)
+    string = "!                              888      888   Y8888Y                          !"
+    call params % print_func(string)
+    string = "!                          .d88888  .d88888    Y88Y                           !"
+    call params % print_func(string)
+    string = "!                         d88  888 d88  888    d88b                           !"
+    call params % print_func(string)
+    string = "!                         888  888 888  888   d8888b                          !"
+    call params % print_func(string)
+    string = "!                         Y88b 888 Y88b 888  d8Y  Y8b                         !"
+    call params % print_func(string)
+    string = "!                           Y88888   Y88888 d8Y    Y8b                        !"
+    call params % print_func(string)
+    string = "!                                                                             !"
+    call params % print_func(string)
+    string = "!                                                                             !"
+    call params % print_func(string)
+    string = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    call params % print_func(string)
+    string = " "
+    call params % print_func(string)
+    if (params % model .eq. 1) then
+        if (params % force .eq. 0) then 
+            string = " performing a ddCOSMO solvation energy calculation"
+        else if (params % force .eq. 1) then
+            string = " performing a ddCOSMO solvation energy and forces calculation"
+        end if
+    else if (params % model .eq. 2) then
+        if (params % force .eq. 0) then 
+            string = " performing a ddPCM solvation energy calculation"
+        else if (params % force .eq. 1) then
+            string = " performing a ddPCM solvation energy and forces calculation"
+        end if
+    else if (params % model .eq. 3) then
+        if (params % force .eq. 0) then 
+            string = " performing a ddLPB solvation energy calculation"
+        else if (params % force .eq. 1) then
+            string = " performing a ddLPB solvation energy and forces calculation"
+        end if
+    end if
+    call params % print_func(string)
+!
+    if (params % model .eq. 3) then 
+        write (string,'(t3,A,F10.4,A,F10.4)') 'dielectric constant: ', params % eps, &
+                                           ' Debye-Hueckel constant: ', params % kappa
+    else
+        write (string,'(t3,A,F10.4)') 'dielectric constant: ', params % eps
+    end if
+!
+    if (params % fmm .eq. 1) then
+        string = " using the fast multipole method to accelerate the calculation"
+        call params % print_func(string)
+    end if
+!
+    if (iprint.gt.0) then 
+        string = " using the following numerical parameters for the calculation:"
+        call params % print_func(string)
+        write(string,1010) 'maximal degree of spherical harmonics for the model:',params % lmax
+        call params % print_func(string)
+        write(string,1010) 'number of lebedev points:                           ',params % ngrid
+        call params % print_func(string)
+        if (params % fmm .eq. 1) then 
+            write(string,1010) 'maximal degree of FMM multipolar expansions:         ',params % pm
+            call params % print_func(string)
+            write(string,1010) 'maximal degree of FMM local expansions:              ',params % pl
+            call params % print_func(string)
+        end if
+    end if
+!
+    if (params % itersolver .eq. 1) then
+        string = " using the Jacobi-DIIS iterative solver"
+    else
+        string = " using the GMRES iterative solver"
+    end if
+    call params % print_func(string)
+    string = " "
+    call params % print_func(string)
+end subroutine print_header
 end module ddx_core
 

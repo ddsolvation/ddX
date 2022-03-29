@@ -723,7 +723,6 @@ subroutine build_l(constants, params)
                 & constants % nbasis, zero, constants % l(:,:,ij), constants % nbasis)
         end do
     end do
-    write(6,*) '@build_l', omp_get_wtime() - t
 end subroutine build_l
 
 subroutine build_b(constants, params)
@@ -792,7 +791,6 @@ subroutine build_b(constants, params)
                 & constants % nbasis, zero, constants % b(:,:,ij), constants % nbasis)
         end do
     end do
-    write(6,*) '@build_b', omp_get_wtime() - t
 end subroutine build_b
 
 !
@@ -1026,7 +1024,6 @@ subroutine constants_geometry_init(params, constants, info)
             return
         end if
     end if
-    write(6,*) 'init fmm tree', omp_get_wtime() - start_time
     ! Upper bound of switch region. Defines intersection criterion for spheres
     swthr = one + (params % se+one)*params % eta/two
     ! Assemble neighbor list
@@ -1036,7 +1033,6 @@ subroutine constants_geometry_init(params, constants, info)
     else
         call neighbor_list_init(params, constants, info)
     end if
-    write(6,*) 'neighbor list', omp_get_wtime() - start_time
     ! Allocate space for characteristic functions fi and ui
     allocate(constants % fi(params % ngrid, params % nsph), &
         & constants % ui(params % ngrid, params % nsph), stat=info)
@@ -1835,15 +1831,12 @@ subroutine tree_get_farnear_work(n, children, cnode, rnode, lwork, iwork, &
             & max(1, children(2, j(2))-children(1, j(2))+1)
         if (d .ge. r) then
             ! Mark as far admissible pair
-            !write(*,*) "FAR:", j
             work(3, iwork) = 1
         else if (npairs .eq. 1) then
             ! Mark as near admissible pair if both nodes are leaves
-            !write(*,*) "NEAR:", j
             work(3, iwork) = 2
         else if (jwork+npairs .gt. lwork) then
             ! Exit procedure, since work array was too small
-            !write(*,*) "SMALL LWORK"
             return
         else
             ! Mark as non-admissible pair and check all pairs of children nodes
@@ -1873,7 +1866,6 @@ subroutine tree_get_farnear_work(n, children, cnode, rnode, lwork, iwork, &
                     end do
                 end do
             end if
-            !write(*,*) "NON:", j
         end if
         iwork = iwork + 1
     end do
