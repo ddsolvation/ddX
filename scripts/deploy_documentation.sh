@@ -23,6 +23,7 @@ fi
 git config user.name "GitHub Actions Bot"
 git config user.email "<>"
 
+git fetch
 head=$(git rev-parse HEAD)
 git checkout -B gh-pages refs/remotes/origin/gh-pages
 
