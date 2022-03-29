@@ -1,6 +1,7 @@
 1           ! Printing flag. The larger the value[integer], the more verbose the output
 1           ! Number of OpenMP cores to be used
 1           ! Specification of the model: 1 for COSMO, 2 for PCM and 3 for LPB
+1           ! Whether to compute and store sparse matrices (1) or not (0)
 7           ! Maximal degree of modeling spherical harmonics
 302         ! Approximate number of Lebedev grid points
 78.3553     ! Dielectric permittivity constant
