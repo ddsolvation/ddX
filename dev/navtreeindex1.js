@@ -1,5 +1,7 @@
 var NAVTREEINDEX1 =
 {
+"ddx__pcm_8f90.html#a19ab940964247fa03a1c809cdfec148e":[8,0,0,12,1],
+"ddx__pcm_8f90.html#a62de0aa1e5d4aa55c5be06995a8a69e4":[8,0,0,12,2],
 "ddx__pcm_8f90.html#a7234dc09b64e50bf9338bca4281fc815":[8,0,0,12,0],
 "ddx__pcm_8f90_source.html":[8,0,0,12],
 "ddx__solvers_8f90.html":[8,0,0,13],
@@ -12,6 +14,7 @@ var NAVTREEINDEX1 =
 "ddx__solvers_8f90.html#aef00b2fe9f0483a0c91b8313a1fa5590":[8,0,0,13,7],
 "ddx__solvers_8f90_source.html":[8,0,0,13],
 "ddx__workspace_8f90.html":[8,0,0,14],
+"ddx__workspace_8f90.html#a9b29bf3cf034023a930acef60b6f334e":[8,0,0,14,2],
 "ddx__workspace_8f90.html#acc7b33b392f2c189c90d0d4e6ad76fab":[8,0,0,14,1],
 "ddx__workspace_8f90_source.html":[8,0,0,14],
 "dir_68267d1309a1af8e8297ef4c3efbcdba.html":[8,0,0],
@@ -41,8 +44,8 @@ var NAVTREEINDEX1 =
 "namespaceddx.html":[6,0,0],
 "namespaceddx__constants.html":[7,0,0],
 "namespaceddx__constants.html":[6,0,1],
-"namespaceddx__core.html":[6,0,2],
 "namespaceddx__core.html":[7,0,1],
+"namespaceddx__core.html":[6,0,2],
 "namespaceddx__cosmo.html":[6,0,3],
 "namespaceddx__definitions.html":[6,0,4],
 "namespaceddx__harmonics.html":[6,0,5],

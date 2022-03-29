@@ -16,5 +16,6 @@ var ddx__constants_8f90 =
     [ "tree_rib_build", "ddx__constants_8f90.html#a71a53ad578c20da9306b93deda562aeb", null ],
     [ "tree_rib_node_bisect", "ddx__constants_8f90.html#a7c5d6aebc32c85aa05d4a74678ff95f7", null ],
     [ "tree_get_farnear_work", "ddx__constants_8f90.html#a3e9f0301398a1007b912f94c7239dffd", null ],
-    [ "tree_get_farnear", "ddx__constants_8f90.html#afa4961d4e2731a6ade2dd395d00a87d9", null ]
+    [ "tree_get_farnear", "ddx__constants_8f90.html#afa4961d4e2731a6ade2dd395d00a87d9", null ],
+    [ "constants_free", "ddx__constants_8f90.html#a585af3a4fe1789337b34397ffcb34d45", null ]
 ];

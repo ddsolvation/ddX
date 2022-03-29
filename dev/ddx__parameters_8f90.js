@@ -7,5 +7,6 @@ var ddx__parameters_8f90 =
     [ "params_deinit", "ddx__parameters_8f90.html#a41f19aa9b4b7798b5374fa3f6a03ea00", null ],
     [ "closest_supported_lebedev_grid", "ddx__parameters_8f90.html#a1b84e0732491759d44bb63d14f7c77a5", null ],
     [ "error", "ddx__parameters_8f90.html#ab4ce0e49948cbfb16876f79a8e753bac", null ],
-    [ "print_func_default", "ddx__parameters_8f90.html#a63f973043b80c39c6f905fba9bd2aa09", null ]
+    [ "print_func_default", "ddx__parameters_8f90.html#a63f973043b80c39c6f905fba9bd2aa09", null ],
+    [ "params_free", "ddx__parameters_8f90.html#a614dba0082e404515273ec7a251e4902", null ]
 ];
