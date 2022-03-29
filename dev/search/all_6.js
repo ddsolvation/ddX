@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['g_170',['g',['../structddx__core_1_1ddx__type.html#a0cfc659d93c923d1be68831aaefc6150',1,'ddx_core::ddx_type']]],
-  ['gmresr_5fdim_171',['gmresr_dim',['../structddx__parameters_1_1ddx__params__type.html#a1e55d2c520260179672519557151ffff',1,'ddx_parameters::ddx_params_type']]],
-  ['gmresr_5fj_172',['gmresr_j',['../structddx__parameters_1_1ddx__params__type.html#afd7788e66709265e61de3f659fafdb24',1,'ddx_parameters::ddx_params_type']]],
-  ['grad_5fnbasis_173',['grad_nbasis',['../structddx__constants_1_1ddx__constants__type.html#abb5604ad358c7fa12ecb58a01df52bcc',1,'ddx_constants::ddx_constants_type']]],
-  ['general_20information_174',['General information',['../index.html',1,'']]]
+  ['g_171',['g',['../structddx__core_1_1ddx__type.html#a0cfc659d93c923d1be68831aaefc6150',1,'ddx_core::ddx_type']]],
+  ['gmresr_5fdim_172',['gmresr_dim',['../structddx__parameters_1_1ddx__params__type.html#a1e55d2c520260179672519557151ffff',1,'ddx_parameters::ddx_params_type']]],
+  ['gmresr_5fj_173',['gmresr_j',['../structddx__parameters_1_1ddx__params__type.html#afd7788e66709265e61de3f659fafdb24',1,'ddx_parameters::ddx_params_type']]],
+  ['grad_5fnbasis_174',['grad_nbasis',['../structddx__constants_1_1ddx__constants__type.html#abb5604ad358c7fa12ecb58a01df52bcc',1,'ddx_constants::ddx_constants_type']]],
+  ['general_20information_175',['General information',['../index.html',1,'']]]
 ];
