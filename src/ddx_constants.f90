@@ -621,7 +621,7 @@ subroutine constants_init(params, constants, info)
             return
         end if
         ! if doing incore build nonzero blocks of B
-        if (params % incore) then
+        if (params % matvecmem .eq. 1) then
             call build_b(constants, params)
         end if
     end if
@@ -634,7 +634,7 @@ subroutine constants_init(params, constants, info)
         return
     end if
     ! if doing incore build nonzero blocks of L
-    if (params % incore) then
+    if (params % matvecmem .eq. 1) then
         call build_itrnl(constants, params)
         call build_l(constants, params)
     end if

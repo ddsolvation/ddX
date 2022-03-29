@@ -21,6 +21,7 @@ character(len=255) :: fname
 type(ddx_type) :: ddx_data
 integer :: iprint, nproc, lmax, pmax, ngrid, iconv, igrad, n, force, fmm, model
 integer :: niter, jacobi_ndiis=25, gmresr_j=1, gmresr_dim=10, itersolver, maxiter
+integer :: matvecmem
 logical :: ok
 real(dp) :: eps, eta, tol, se, kappa
 ! esolv       : Electrostatic Solvation Energy
@@ -113,11 +114,12 @@ model=3
 force=0
 fmm=0
 se=-one
+matvecmem=0
 itersolver=1
 tol=1d-1**iconv
 maxiter=200
 call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pmax, pmax, &
-    & se, eta, eps, kappa, itersolver, maxiter, &
+    & se, eta, eps, kappa, matvecmem, itersolver, maxiter, &
     & jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
 
 allocate(phi(ddx_data % constants % ncav), psi(ddx_data % constants % nbasis,n), &

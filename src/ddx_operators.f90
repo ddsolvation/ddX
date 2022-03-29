@@ -38,7 +38,7 @@ subroutine lx(params, constants, workspace, x, y)
 !
 !   incore code:
 !
-    if (params % incore) then
+    if (params % matvecmem .eq. 1) then
         !$omp parallel do default(none) shared(params,constants,x,y) &
         !$omp private(isph,ij,jsph) schedule(dynamic)
         do isph = 1, params % nsph
@@ -92,7 +92,7 @@ subroutine lstarx(params, constants, workspace, x, y)
     !! Local variables
     integer :: isph, jsph, ij, indmat, igrid, l, ind, iproc
     y = zero
-    if (params % incore) then
+    if (params % matvecmem .eq. 1) then
         !$omp parallel do default(none) shared(params,constants,x,y) &
         !$omp private(isph,ij,jsph,indmat) schedule(dynamic)
         do isph = 1, params % nsph
@@ -1220,7 +1220,7 @@ subroutine bstarx(params, constants, workspace, x, y)
     ! Local variables
     integer :: isph, jsph, ij, indmat, igrid, iproc
     y = zero
-    if (params % incore) then 
+    if (params % matvecmem .eq. 1) then 
         !$omp parallel do default(none) shared(params,constants,x,y) &
         !$omp private(isph,ij,jsph,indmat) schedule(dynamic)
         do isph = 1, params % nsph
@@ -1272,7 +1272,7 @@ subroutine bx(params, constants, workspace, x, y)
     integer :: isph, jsph, ij, iproc
 
     y = zero
-    if (params % incore) then
+    if (params % matvecmem .eq. 1) then
         !$omp parallel do default(none) shared(params,constants,x,y) &
         !$omp private(isph,ij,jsph) schedule(dynamic)
         do isph = 1, params % nsph

@@ -93,8 +93,8 @@ type ddx_params_type
     character(len=255) :: error_message
     !> Error printing function
     procedure(print_func_interface), pointer, nopass :: print_func
-    !> Logical Incore. Build hsp matrix to speed up matrix-vec product
-    logical incore
+    !> integer matvecmem. Build hsp matrix to speed up matrix-vec product
+    integer :: matvecmem
 end type ddx_params_type
 
 contains
@@ -112,6 +112,8 @@ contains
 !! @param[in] lmax: Maximal degree of modeling spherical harmonics.
 !!      `lmax` >= 0.
 !! @param[in] ngrid: Number of Lebedev grid points `ngrid` >= 0.
+!! @param[in] matvecmem: handling of sparse matrices. 1 for precomputing them 
+!!      and keeping them in memory, 0 for direct matrix-vector products.
 !! @param[in] itersolver: Iterative solver to be used. 1 for Jacobi iterative
 !!      solver. Other solvers might be added later.
 !! @param[in] maxiter: Maximum number of iterations for an iterative solver.
@@ -143,8 +145,8 @@ contains
 !!          params % error_message
 !!      = 1: Allocation of memory to copy geometry data failed.
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, fmm, &
-        & pm, pl, nproc, nsph, charge, &
+        & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+        & fmm, pm, pl, nproc, nsph, charge, &
         & csph, rsph, print_func, params, info)
     !! Inputs
     ! Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
@@ -164,8 +166,10 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     integer, intent(in) :: lmax
     ! Number of Lebedev grid points on each sphere.
     integer, intent(in) :: ngrid
+    ! handling of sparse matrix. 1 for precomputing them and keeping them in
+    ! memory, 0 for assembling the mvps on-the-fly.
+    integer, intent(in) :: matvecmem
     ! Iterative solver to be used. 1 for Jacobi/DIIS, 2 for GMRES.
-    !
     ! Other solvers might be added later.
     integer, intent(in) :: itersolver
     ! Maximum number of iterations for the iterative solver.
@@ -208,7 +212,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     !! Local variables
     integer :: igrid, i
     character(len=255) :: string
-    character(len=1) :: incore
     !! The code
     ! Model, 1=COSMO, 2=PCM, 3=LPB
     if ((model .lt. 1) .or. (model .gt. 3)) then
@@ -419,12 +422,14 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     params % charge = charge
     params % csph = csph
     params % rsph = rsph
-    ! temporary solution to get incore value
-    call get_environment_variable("INCORE", incore, status=info, trim_name=.true.)
-    if (incore.eq."1") then
-        params % incore = .true.
+    if (matvecmem.eq.0 .or. matvecmem.eq.1) then
+        params % matvecmem = matvecmem
     else
-        params % incore = .false.
+        params % error_flag = 1
+        params % error_message = "params_init: invalid value of `matvecmem`"
+        call print_func(params % error_message)
+        info = -1
+        return
     end if
     ! Set print function for errors
     params % print_func => print_func

@@ -125,6 +125,9 @@ contains
 !! @param[in] eta: Regularization parameter. 0 < eta <= 1.
 !! @param[in] eps: Relative dielectric permittivity. eps > 1.
 !! @param[in] kappa: Debye-H\"{u}ckel parameter
+!! @param[in] matvecmem: handling of the sparse matrices. 1 for precomputin
+!!      them and keeping them in memory, 0 for assembling the matrix-vector
+!!      product on-the-fly. 
 !! @param[in] itersolver: Iterative solver to be used. 1 for Jacobi iterative
 !!      solver. Other solvers might be added later.
 !! @param[in] maxiter: Maximum number of iterations for an iterative solver.
@@ -144,11 +147,12 @@ contains
 !!      = 2: Deallocation of a temporary buffer failed
 subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, se, eta, eps, kappa, &
-        & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, &
-        & ddx_data, info)
+        & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+        & nproc, ddx_data, info)
     ! Inputs
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
-        & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, ngrid
+        & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, &
+        & gmresr_dim, ngrid
     real(dp), intent(in):: charge(nsph), x(nsph), y(nsph), z(nsph), &
         & rvdw(nsph), se, eta, eps, kappa
     ! Output
@@ -172,22 +176,16 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     csph(1, :) = x
     csph(2, :) = y
     csph(3, :) = z
-    start_time = omp_get_wtime()
     call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, fmm, &
-        & pm, pl, nproc, nsph, charge, &
+        & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+        & fmm, pm, pl, nproc, nsph, charge, &
         & csph, rvdw, print_func_default, &
         & ddx_data % params, info)
-    write(6,*) 'params init done', omp_get_wtime() - start_time
     if (info .ne. 0) return
-    start_time = omp_get_wtime()
     call constants_init(ddx_data % params, ddx_data % constants, info)
-    write(6,*) 'constants init done', omp_get_wtime() - start_time
     if (info .ne. 0) return
-    start_time = omp_get_wtime()
     call workspace_init(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, info)
-    write(6,*) 'workspace init done', omp_get_wtime() - start_time
     if (info .ne. 0) return
     !! Per-model allocations
     ! COSMO model
@@ -468,8 +466,8 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     integer, intent(out) :: iprint, info
     ! Local variables
     integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
-        & nsph, i, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
-        & istatus
+        & nsph, i, matvecmem, itersolver, maxiter, jacobi_ndiis, &
+        & gmresr_j, gmresr_dim, istatus
     real(dp) :: eps, se, eta, kappa
     real(dp), allocatable :: charge(:), x(:), y(:), z(:), rvdw(:)
     real(dp) :: t
@@ -540,31 +538,38 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
             & ": `kappa` must be a non-negative floating point value."
         stop 1
     end if
+    ! whether the (sparse) matrices are precomputed and kept in memory (1) or not (0).
+    read(100, *) matvecmem 
+    if((matvecmem.lt. 0) .or. (matvecmem .gt. 1)) then
+        write(*, "(3A)") "Error on the 10th line of a config file ", fname, &
+            & ": `matvecmem` must be an integer value of a value 0 or 1."
+        stop 1
+    end if
     ! Iterative solver of choice. Only one is supported as of now.
     read(100, *) itersolver
     if((itersolver .lt. 1) .or. (itersolver .gt. 2)) then
-        write(*, "(3A)") "Error on the 10th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 11th line of a config file ", fname, &
             & ": `itersolver` must be an integer value of a value 1 or 2."
         stop 1
     end if
     ! Relative convergence threshold for the iterative solver
     read(100, *) tol
     if((tol .lt. 1d-14) .or. (tol .gt. one)) then
-        write(*, "(3A)") "Error on the 11th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 12th line of a config file ", fname, &
             & ": `tol` must be a floating point value in a range [1d-14, 1]."
         stop 1
     end if
     ! Maximum number of iterations for the iterative solver
     read(100, *) maxiter
     if((maxiter .le. 0)) then
-        write(*, "(3A)") "Error on the 12th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 13th line of a config file ", fname, &
             & ": `maxiter` must be a positive integer value."
         stop 1
     end if
     ! Number of extrapolation points for Jacobi/DIIS solver
     read(100, *) jacobi_ndiis
     if((jacobi_ndiis .lt. 0)) then
-        write(*, "(3A)") "Error on the 13th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 14th line of a config file ", fname, &
             & ": `jacobi_ndiis` must be a non-negative integer value."
         stop 1
     end if
@@ -572,7 +577,7 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     !      solver is used.
     read(100, *) gmresr_j
     if((gmresr_j .lt. 1)) then
-        write(*, "(3A)") "Error on the 14th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 15th line of a config file ", fname, &
             & ": `gmresr_j` must be a non-negative integer value."
         stop 1
     end if
@@ -581,7 +586,7 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     !      GMRESR solver is used.
     read(100, *) gmresr_dim
     if((gmresr_dim .lt. 0)) then
-        write(*, "(3A)") "Error on the 15th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 16th line of a config file ", fname, &
             & ": `gmresr_dim` must be a non-negative integer value."
         stop 1
     end if
@@ -591,35 +596,35 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     ! Whether to compute (1) or not (0) forces as analytical gradients
     read(100, *) force
     if((force .lt. 0) .or. (force .gt. 1)) then
-        write(*, "(3A)") "Error on the 16th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 17th line of a config file ", fname, &
             & ": `force` must be an integer value of a value 0 or 1."
         stop 1
     end if
     ! Whether to use (1) or not (0) the FMM to accelerate computations
     read(100, *) fmm
     if((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        write(*, "(3A)") "Error on the 17th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 18th line of a config file ", fname, &
             & ": `fmm` must be an integer value of a value 0 or 1."
         stop 1
     end if
     ! Max degree of multipole spherical harmonics for the FMM
     read(100, *) pm
     if(pm .lt. 0) then
-        write(*, "(3A)") "Error on the 18th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 19th line of a config file ", fname, &
             & ": `pm` must be a non-negative integer value."
         stop 1
     end if
     ! Max degree of local spherical harmonics for the FMM
     read(100, *) pl
     if(pl .lt. 0) then
-        write(*, "(3A)") "Error on the 19th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 20th line of a config file ", fname, &
             & ": `pl` must be a non-negative integer value."
         stop 1
     end if
     ! Number of input spheres
     read(100, *) nsph
     if(nsph .le. 0) then
-        write(*, "(3A)") "Error on the 20th line of a config file ", fname, &
+        write(*, "(3A)") "Error on the 21th line of a config file ", fname, &
             & ": `nsph` must be a positive integer value."
         stop 1
     end if
@@ -647,7 +652,7 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
 
     !! Initialize ddx_data object
     call ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
-        & pm, pl, se, eta, eps, kappa, itersolver, &
+        & pm, pl, se, eta, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
     !! Clean local temporary data
     deallocate(charge, x, y, z, rvdw, stat=istatus)
