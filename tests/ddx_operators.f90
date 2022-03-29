@@ -100,8 +100,10 @@ subroutine check_mkrhs(ddx_data, pm, pl, iprint, threshold)
     if(info .ne. 0) call error(-1, "Allocation failed")
     ! Dense operator mkrhs is trusted to have no errors, this must be somehow
     ! checked in the future.
-    call mkrhs(ddx_data, 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
-    call mkrhs(ddx_data_fmm, 1, phi2_cav, 1, gradphi2_cav, 1, &
+    call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
+        & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
+    call mkrhs(ddx_data_fmm % params, ddx_data_fmm % constants, &
+        & ddx_data_fmm % workspace, 1, phi2_cav, 1, gradphi2_cav, 1, &
         & hessianphi2_cav, psi2)
     ! Compare potentials
     phi2_cav = phi2_cav - phi_cav

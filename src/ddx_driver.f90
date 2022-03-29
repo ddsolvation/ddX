@@ -11,11 +11,9 @@
 
 !> Standalone application of ddX
 program main
-use ddx_core
-use ddx_operators
-use ddx_solvers
+! Get the high-level ddX-module 
 use ddx
-use ddx_lpb
+! Enable OpenMP
 use omp_lib
 implicit none
 
@@ -58,8 +56,9 @@ allocate(phi_cav(ddx_data % constants % ncav), &
     & psi(ddx_data % constants % nbasis, ddx_data % params % nsph))
 
 start_time = omp_get_wtime()
-call mkrhs(ddx_data, phi_flag, phi_cav, grad_flag, gradphi_cav, hessian_flag, &
-    & hessianphi_cav, psi)
+call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
+    & phi_flag, phi_cav, grad_flag, gradphi_cav, hessian_flag, hessianphi_cav, &
+    & psi)
 finish_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") " mkrhs time:", finish_time-start_time, " seconds"
 

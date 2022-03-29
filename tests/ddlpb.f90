@@ -165,7 +165,8 @@ step = 0.00001
 ! Initialise SI, DI, SK, and DK in the ddLPB unit
 call ddlpb_init(ddx_data)
 
-call mkrhs(ddx_data, phi_cav, gradphi_cav, hessian_cav, psi)
+call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
+    & phi_cav, gradphi_cav, hessian_cav, psi)
 call wghpot(ddx_data, phi_cav, ddx_data % phi_grid, ddx_data % tmp_grid)
 icav = 0
 do isph = 1, ddx_data % nsph
@@ -449,7 +450,8 @@ subroutine solve(ddx_data, sum_cosmo, sum_lpb, sum_char, sum_der_u, sum_g0, sum_
                & unit_vector_nbasis_nsph)
 
     ! Call for G0
-    call mkrhs(ddx_data2, phi_cav2, gradphi_cav2, hessian_cav2, psi2)
+    call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
+        & phi_cav2, gradphi_cav2, hessian_cav2, psi2)
     call wghpot(ddx_data2, phi_cav2, ddx_data2 % phi_grid, ddx_data2 % tmp_grid)
     ! Call for F0
     call wghpot_debug(ddx_data2, gradphi_cav2, tmp_grid2)

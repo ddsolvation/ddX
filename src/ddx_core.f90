@@ -718,59 +718,137 @@ subroutine ddfree(ddx_data)
     type(ddx_type), intent(inout) :: ddx_data
     ! Local variables
     integer :: istatus
+    call workspace_free(ddx_data % workspace, istatus)
+    if (istatus .ne. 0) then
+        write(*, *) "workspace_free failed!"
+        stop 1
+    end if
+    call constants_free(ddx_data % constants, istatus)
+    if (istatus .ne. 0) then
+        write(*, *) "constants_free failed!"
+        stop 1
+    end if
+    call params_free(ddx_data % params, istatus)
+    if (istatus .ne. 0) then
+        write(*, *) "params_free failed!"
+        stop 1
+    end if
+    if (allocated(ddx_data % phi_grid)) then
+        deallocate(ddx_data % phi_grid, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "`phi_grid` deallocation failed!"
+            stop 1
+        endif
+    end if
     if (allocated(ddx_data % phi)) then
         deallocate(ddx_data % phi, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
+            write(*, *) "`phi` deallocation failed!"
             stop 1
         endif
     end if
     if (allocated(ddx_data % phiinf)) then
         deallocate(ddx_data % phiinf, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
+            write(*, *) "`phiinf` deallocation failed!"
             stop 1
         endif
     end if
     if (allocated(ddx_data % phieps)) then
         deallocate(ddx_data % phieps, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
+            write(*, *) "`phieps` deallocation failed!"
+            stop 1
+        endif
+    end if
+    if (allocated(ddx_data % phieps_rel_diff)) then
+        deallocate(ddx_data % phieps_rel_diff, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "`phieps_rel_diff` deallocation failed!"
             stop 1
         endif
     end if
     if (allocated(ddx_data % xs)) then
         deallocate(ddx_data % xs, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
+            write(*, *) "`xs` deallocation failed!"
+            stop 1
+        endif
+    end if
+    if (allocated(ddx_data % xs_rel_diff)) then
+        deallocate(ddx_data % xs_rel_diff, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "`xs_rel_diff` deallocation failed!"
             stop 1
         endif
     end if
     if (allocated(ddx_data % s)) then
         deallocate(ddx_data % s, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
+            write(*, *) "`s` deallocation failed!"
+            stop 1
+        endif
+    end if
+    if (allocated(ddx_data % s_rel_diff)) then
+        deallocate(ddx_data % s_rel_diff, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "`s_rel_diff` deallocation failed!"
+            stop 1
+        endif
+    end if
+    if (allocated(ddx_data % sgrid)) then
+        deallocate(ddx_data % sgrid, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "`sgrid` deallocation failed!"
             stop 1
         endif
     end if
     if (allocated(ddx_data % y)) then
         deallocate(ddx_data % y, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
+            write(*, *) "`y` deallocation failed!"
+            stop 1
+        endif
+    end if
+    if (allocated(ddx_data % y_rel_diff)) then
+        deallocate(ddx_data % y_rel_diff, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "`y_rel_diff` deallocation failed!"
             stop 1
         endif
     end if
     if (allocated(ddx_data % ygrid)) then
         deallocate(ddx_data % ygrid, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
+            write(*, *) "`ygrid` deallocation failed!"
             stop 1
         endif
     end if
     if (allocated(ddx_data % g)) then
         deallocate(ddx_data % g, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
+            write(*, *) "`g` deallocation failed!"
+            stop 1
+        endif
+    end if
+    if (allocated(ddx_data % q)) then
+        deallocate(ddx_data % q, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "`q` deallocation failed!"
+            stop 1
+        endif
+    end if
+    if (allocated(ddx_data % qgrid)) then
+        deallocate(ddx_data % qgrid, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "`qgrid` deallocation failed!"
+            stop 1
+        endif
+    end if
+    if (allocated(ddx_data % zeta)) then
+        deallocate(ddx_data % zeta, stat=istatus)
+        if (istatus .ne. 0) then
+            write(*, *) "`zeta` deallocation failed!"
             stop 1
         endif
     end if

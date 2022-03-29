@@ -125,7 +125,8 @@ call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pmax, pmax
 allocate(phi(ddx_data % constants % ncav), psi(ddx_data % constants % nbasis,n), &
     & gradphi(3, ddx_data % constants % ncav), hessianphi(3, 3, ddx_data % constants % ncav))
 
-call mkrhs(ddx_data, 1, phi, 1, gradphi, 1, hessianphi, psi)
+call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, phi, &
+    & 1, gradphi, 1, hessianphi, psi)
 
 niter = 200
 ! Now, call the ddLPB solver

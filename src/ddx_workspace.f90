@@ -325,5 +325,240 @@ subroutine workspace_init(params, constants, workspace, info)
     workspace % error_message = ""
 end subroutine workspace_init
 
+subroutine workspace_free(workspace, info)
+    implicit none
+    type(ddx_workspace_type), intent(out) :: workspace
+    integer, intent(out) :: info
+    integer :: istat
+
+    istat = 0
+    info = 0
+
+    if (allocated(workspace % tmp_pot)) then
+        deallocate(workspace % tmp_pot, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_pot` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_vplm)) then
+        deallocate(workspace % tmp_vplm, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_vplm` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_vcos)) then
+        deallocate(workspace % tmp_vcos, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_vcos` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_vsin)) then
+        deallocate(workspace % tmp_vsin, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_vsin` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_work)) then
+        deallocate(workspace % tmp_work, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_work` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_vylm)) then
+        deallocate(workspace % tmp_vylm, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_vylm` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_vdylm)) then
+        deallocate(workspace % tmp_vdylm, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_vdylm` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_sph)) then
+        deallocate(workspace % tmp_sph, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_sph` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_sph2)) then
+        deallocate(workspace % tmp_sph2, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_sph2` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_sph_grad)) then
+        deallocate(workspace % tmp_sph_grad, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_sph_grad` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_sph_l)) then
+        deallocate(workspace % tmp_sph_l, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_sph_l` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_sph_l_grad)) then
+        deallocate(workspace % tmp_sph_l_grad, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_sph_l_grad` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_sph_l_grad2)) then
+        deallocate(workspace % tmp_sph_l_grad2, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_sph_l_grad2` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_node_m)) then
+        deallocate(workspace % tmp_node_m, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_node_m` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_node_l)) then
+        deallocate(workspace % tmp_node_l, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_node_l` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_grid)) then
+        deallocate(workspace % tmp_grid, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_grid` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_grid2)) then
+        deallocate(workspace % tmp_grid2, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_grid2` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_cav)) then
+        deallocate(workspace % tmp_cav, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_cav` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_efld)) then
+        deallocate(workspace % tmp_efld, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_efld` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_x_new)) then
+        deallocate(workspace % tmp_x_new, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_x_new` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_y)) then
+        deallocate(workspace % tmp_y, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_y` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_x_diis)) then
+        deallocate(workspace % tmp_x_diis, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_x_diis` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_e_diis)) then
+        deallocate(workspace % tmp_e_diis, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_e_diis` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_bmat)) then
+        deallocate(workspace % tmp_bmat, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_bmat` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_gmresr)) then
+        deallocate(workspace % tmp_gmresr, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_gmresr` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % tmp_bessel)) then
+        deallocate(workspace % tmp_bessel, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_bessel` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % ddcosmo_guess)) then
+        deallocate(workspace % ddcosmo_guess, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`ddcosmo_guess` deallocation failed!"
+            stop 1
+        end if
+    end if
+    if (allocated(workspace % hsp_guess)) then
+        deallocate(workspace % hsp_guess, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`hsp_guess` deallocation failed!"
+            stop 1
+        end if
+    end if
+end subroutine workspace_free
+
 end module
 
