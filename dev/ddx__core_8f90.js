@@ -56,5 +56,6 @@ var ddx__core_8f90 =
     [ "fdoga", "ddx__core_8f90.html#a816289aebd58c26cbcd49bca42c9d959", null ],
     [ "efld", "ddx__core_8f90.html#a3c8789fc01ba244fdaa0d4fef8e9d725", null ],
     [ "tree_grad_m2m", "ddx__core_8f90.html#a86f701c3486a5b26c650d5b157b6e213", null ],
-    [ "tree_grad_l2l", "ddx__core_8f90.html#a0bbe738fff5a4d15f744dfa0b26938cf", null ]
+    [ "tree_grad_l2l", "ddx__core_8f90.html#a0bbe738fff5a4d15f744dfa0b26938cf", null ],
+    [ "print_header", "ddx__core_8f90.html#a1c6e9bf18af65b25aa115da10bb2e749", null ]
 ];

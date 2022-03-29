@@ -28,6 +28,10 @@ var structddx__core_1_1ddx__type =
     [ "q", "structddx__core_1_1ddx__type.html#a02ae32035759003449e0fc2b31623327", null ],
     [ "qgrid", "structddx__core_1_1ddx__type.html#aa90389d833794366cfa81a878cd39e02", null ],
     [ "zeta", "structddx__core_1_1ddx__type.html#a51abea0c2fd5047e4afe17eb504dcc4a", null ],
+    [ "x_lpb", "structddx__core_1_1ddx__type.html#acef2c334de9708c1cd1a655de0c610fe", null ],
+    [ "x_adj_lpb", "structddx__core_1_1ddx__type.html#a806b960effdc3f142100fc90a3ea61f7", null ],
+    [ "g_lpb", "structddx__core_1_1ddx__type.html#a0466ac7e500e86a4e4a89d422677da72", null ],
+    [ "f_lpb", "structddx__core_1_1ddx__type.html#a2704c7cf2ffd5e38799f24b7d87964be", null ],
     [ "error_flag", "structddx__core_1_1ddx__type.html#a3e3f24814f68ec3f80f2f67f1eb00551", null ],
     [ "error_message", "structddx__core_1_1ddx__type.html#aad61ddf589790a931a0c544adc4db37c", null ]
 ];

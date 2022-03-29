@@ -559,46 +559,47 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160; </div>
 <div class="line"><a name="l00574"></a><span class="lineno">  574</span>&#160;<span class="keyword">subroutine </span><a class="code" href="namespaceddx__parameters.html#a63f973043b80c39c6f905fba9bd2aa09">print_func_default</a>(string)</div>
 <div class="line"><a name="l00575"></a><span class="lineno"><a class="line" href="namespaceddx__parameters.html#a63f973043b80c39c6f905fba9bd2aa09">  575</a></span>&#160;    <span class="keywordtype">character(len=255)</span>, <span class="keywordtype">intent(in)</span> :: string</div>
-<div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;    print <span class="stringliteral">&quot;(A)&quot;</span>, string</div>
-<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;<span class="keyword">end subroutine</span></div>
-<div class="line"><a name="l00578"></a><span class="lineno">  578</span>&#160; </div>
-<div class="line"><a name="l00579"></a><span class="lineno">  579</span>&#160;<span class="keyword">subroutine </span>params_free(params, info)</div>
-<div class="line"><a name="l00580"></a><span class="lineno">  580</span>&#160;    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a name="l00581"></a><span class="lineno">  581</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), <span class="keywordtype">intent(out)</span> :: params</div>
-<div class="line"><a name="l00582"></a><span class="lineno">  582</span>&#160;    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(out)</span> :: info</div>
-<div class="line"><a name="l00583"></a><span class="lineno">  583</span>&#160;    <span class="keywordtype">integer</span> :: istat</div>
-<div class="line"><a name="l00584"></a><span class="lineno">  584</span>&#160; </div>
-<div class="line"><a name="l00585"></a><span class="lineno">  585</span>&#160;    istat = 0</div>
-<div class="line"><a name="l00586"></a><span class="lineno">  586</span>&#160;    info = 0</div>
-<div class="line"><a name="l00587"></a><span class="lineno">  587</span>&#160; </div>
-<div class="line"><a name="l00588"></a><span class="lineno">  588</span>&#160;    <span class="keywordflow">if</span> (<span class="keyword">allocated</span>(params % charge)) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00589"></a><span class="lineno">  589</span>&#160;        <span class="keyword">deallocate</span>(params % charge, stat=istat)</div>
-<div class="line"><a name="l00590"></a><span class="lineno">  590</span>&#160;        <span class="keywordflow">if</span> (istat .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00591"></a><span class="lineno">  591</span>&#160;            info = 1</div>
-<div class="line"><a name="l00592"></a><span class="lineno">  592</span>&#160;            <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;`charge` deallocation failed!&quot;</span></div>
-<div class="line"><a name="l00593"></a><span class="lineno">  593</span>&#160;            stop 1</div>
-<div class="line"><a name="l00594"></a><span class="lineno">  594</span>&#160;<span class="keywordflow">        end if</span></div>
-<div class="line"><a name="l00595"></a><span class="lineno">  595</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l00596"></a><span class="lineno">  596</span>&#160;    <span class="keywordflow">if</span> (<span class="keyword">allocated</span>(params % csph)) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00597"></a><span class="lineno">  597</span>&#160;        <span class="keyword">deallocate</span>(params % csph, stat=istat)</div>
-<div class="line"><a name="l00598"></a><span class="lineno">  598</span>&#160;        <span class="keywordflow">if</span> (istat .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00599"></a><span class="lineno">  599</span>&#160;            info = 1</div>
-<div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;            <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;`csph` deallocation failed!&quot;</span></div>
-<div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;            stop 1</div>
-<div class="line"><a name="l00602"></a><span class="lineno">  602</span>&#160;<span class="keywordflow">        end if</span></div>
-<div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l00604"></a><span class="lineno">  604</span>&#160;    <span class="keywordflow">if</span> (<span class="keyword">allocated</span>(params % rsph)) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00605"></a><span class="lineno">  605</span>&#160;        <span class="keyword">deallocate</span>(params % rsph, stat=istat)</div>
-<div class="line"><a name="l00606"></a><span class="lineno">  606</span>&#160;        <span class="keywordflow">if</span> (istat .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00607"></a><span class="lineno">  607</span>&#160;            info = 1</div>
-<div class="line"><a name="l00608"></a><span class="lineno">  608</span>&#160;            <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;`rsph` deallocation failed!&quot;</span></div>
-<div class="line"><a name="l00609"></a><span class="lineno">  609</span>&#160;            stop 1</div>
-<div class="line"><a name="l00610"></a><span class="lineno">  610</span>&#160;<span class="keywordflow">        end if</span></div>
-<div class="line"><a name="l00611"></a><span class="lineno">  611</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l00612"></a><span class="lineno">  612</span>&#160;<span class="keyword">end subroutine </span>params_free</div>
-<div class="line"><a name="l00613"></a><span class="lineno">  613</span>&#160; </div>
-<div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160;<span class="keyword">end module </span><a class="code" href="namespaceddx__parameters.html">ddx_parameters</a></div>
-<div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160; </div>
+<div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;<span class="comment">!   print &quot;(A)&quot;, string</span></div>
+<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;    <span class="keyword">write</span>(6,<span class="stringliteral">&quot;(A)&quot;</span>), trim(string)</div>
+<div class="line"><a name="l00578"></a><span class="lineno">  578</span>&#160;<span class="keyword">end subroutine</span></div>
+<div class="line"><a name="l00579"></a><span class="lineno">  579</span>&#160; </div>
+<div class="line"><a name="l00580"></a><span class="lineno">  580</span>&#160;<span class="keyword">subroutine </span>params_free(params, info)</div>
+<div class="line"><a name="l00581"></a><span class="lineno">  581</span>&#160;    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a name="l00582"></a><span class="lineno">  582</span>&#160;    <span class="keywordtype">type</span>(<a class="code" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), <span class="keywordtype">intent(out)</span> :: params</div>
+<div class="line"><a name="l00583"></a><span class="lineno">  583</span>&#160;    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(out)</span> :: info</div>
+<div class="line"><a name="l00584"></a><span class="lineno">  584</span>&#160;    <span class="keywordtype">integer</span> :: istat</div>
+<div class="line"><a name="l00585"></a><span class="lineno">  585</span>&#160; </div>
+<div class="line"><a name="l00586"></a><span class="lineno">  586</span>&#160;    istat = 0</div>
+<div class="line"><a name="l00587"></a><span class="lineno">  587</span>&#160;    info = 0</div>
+<div class="line"><a name="l00588"></a><span class="lineno">  588</span>&#160; </div>
+<div class="line"><a name="l00589"></a><span class="lineno">  589</span>&#160;    <span class="keywordflow">if</span> (<span class="keyword">allocated</span>(params % charge)) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00590"></a><span class="lineno">  590</span>&#160;        <span class="keyword">deallocate</span>(params % charge, stat=istat)</div>
+<div class="line"><a name="l00591"></a><span class="lineno">  591</span>&#160;        <span class="keywordflow">if</span> (istat .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00592"></a><span class="lineno">  592</span>&#160;            info = 1</div>
+<div class="line"><a name="l00593"></a><span class="lineno">  593</span>&#160;            <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;`charge` deallocation failed!&quot;</span></div>
+<div class="line"><a name="l00594"></a><span class="lineno">  594</span>&#160;            stop 1</div>
+<div class="line"><a name="l00595"></a><span class="lineno">  595</span>&#160;<span class="keywordflow">        end if</span></div>
+<div class="line"><a name="l00596"></a><span class="lineno">  596</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l00597"></a><span class="lineno">  597</span>&#160;    <span class="keywordflow">if</span> (<span class="keyword">allocated</span>(params % csph)) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00598"></a><span class="lineno">  598</span>&#160;        <span class="keyword">deallocate</span>(params % csph, stat=istat)</div>
+<div class="line"><a name="l00599"></a><span class="lineno">  599</span>&#160;        <span class="keywordflow">if</span> (istat .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00600"></a><span class="lineno">  600</span>&#160;            info = 1</div>
+<div class="line"><a name="l00601"></a><span class="lineno">  601</span>&#160;            <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;`csph` deallocation failed!&quot;</span></div>
+<div class="line"><a name="l00602"></a><span class="lineno">  602</span>&#160;            stop 1</div>
+<div class="line"><a name="l00603"></a><span class="lineno">  603</span>&#160;<span class="keywordflow">        end if</span></div>
+<div class="line"><a name="l00604"></a><span class="lineno">  604</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l00605"></a><span class="lineno">  605</span>&#160;    <span class="keywordflow">if</span> (<span class="keyword">allocated</span>(params % rsph)) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00606"></a><span class="lineno">  606</span>&#160;        <span class="keyword">deallocate</span>(params % rsph, stat=istat)</div>
+<div class="line"><a name="l00607"></a><span class="lineno">  607</span>&#160;        <span class="keywordflow">if</span> (istat .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00608"></a><span class="lineno">  608</span>&#160;            info = 1</div>
+<div class="line"><a name="l00609"></a><span class="lineno">  609</span>&#160;            <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;`rsph` deallocation failed!&quot;</span></div>
+<div class="line"><a name="l00610"></a><span class="lineno">  610</span>&#160;            stop 1</div>
+<div class="line"><a name="l00611"></a><span class="lineno">  611</span>&#160;<span class="keywordflow">        end if</span></div>
+<div class="line"><a name="l00612"></a><span class="lineno">  612</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l00613"></a><span class="lineno">  613</span>&#160;<span class="keyword">end subroutine </span>params_free</div>
+<div class="line"><a name="l00614"></a><span class="lineno">  614</span>&#160; </div>
+<div class="line"><a name="l00615"></a><span class="lineno">  615</span>&#160;<span class="keyword">end module </span><a class="code" href="namespaceddx__parameters.html">ddx_parameters</a></div>
+<div class="line"><a name="l00616"></a><span class="lineno">  616</span>&#160; </div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="anamespaceddx__parameters_html_ab58f264af44239d745e1a571c1850576"><div class="ttname"><a href="namespaceddx__parameters.html#ab58f264af44239d745e1a571c1850576">ddx_parameters::params_print</a></div><div class="ttdeci">subroutine params_print(params)</div><div class="ttdoc">Print header with parameters.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__parameters_8f90_source.html#l00444">ddx_parameters.f90:444</a></div></div>

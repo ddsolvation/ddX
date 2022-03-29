@@ -114,7 +114,7 @@ type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_
 <tr class="separator:a8e8fbf44e342635c095932c174e4b64f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef02707c2d39b50ae1d8e8bf6d7f0a1c"><td class="memItemLeft" align="right" valign="top"><a id="aef02707c2d39b50ae1d8e8bf6d7f0a1c"></a>
 real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__type.html#aef02707c2d39b50ae1d8e8bf6d7f0a1c">phi_grid</a></td></tr>
-<tr class="memdesc:aef02707c2d39b50ae1d8e8bf6d7f0a1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Potential at all grid points. Dimension is (ngrid, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. <br /></td></tr>
+<tr class="memdesc:aef02707c2d39b50ae1d8e8bf6d7f0a1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Potential at all grid points. Dimension is (ngrid, nsph). Allocated and used by all models. <br /></td></tr>
 <tr class="separator:aef02707c2d39b50ae1d8e8bf6d7f0a1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6e659a2d1d9f6c08eaf73766cd505f49"><td class="memItemLeft" align="right" valign="top"><a id="a6e659a2d1d9f6c08eaf73766cd505f49"></a>
 real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__type.html#a6e659a2d1d9f6c08eaf73766cd505f49">phi</a></td></tr>
@@ -212,6 +212,22 @@ real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign
 real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__type.html#a51abea0c2fd5047e4afe17eb504dcc4a">zeta</a></td></tr>
 <tr class="memdesc:a51abea0c2fd5047e4afe17eb504dcc4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zeta intermediate for forces. Dimension is (ncav) <br /></td></tr>
 <tr class="separator:a51abea0c2fd5047e4afe17eb504dcc4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acef2c334de9708c1cd1a655de0c610fe"><td class="memItemLeft" align="right" valign="top"><a id="acef2c334de9708c1cd1a655de0c610fe"></a>
+real(dp), dimension(:,:,:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__type.html#acef2c334de9708c1cd1a655de0c610fe">x_lpb</a></td></tr>
+<tr class="memdesc:acef2c334de9708c1cd1a655de0c610fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution to the ddLPB linear system. Dimension is (nbasis,nsph,2). Allocated and used only by LPB (model=3) model. <br /></td></tr>
+<tr class="separator:acef2c334de9708c1cd1a655de0c610fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a806b960effdc3f142100fc90a3ea61f7"><td class="memItemLeft" align="right" valign="top"><a id="a806b960effdc3f142100fc90a3ea61f7"></a>
+real(dp), dimension(:,:,:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__type.html#a806b960effdc3f142100fc90a3ea61f7">x_adj_lpb</a></td></tr>
+<tr class="memdesc:a806b960effdc3f142100fc90a3ea61f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution to the ddLPB ajoint system. Dimension is (nbasis,nsph,2). Allocated and used only by LPB (model=3) model. <br /></td></tr>
+<tr class="separator:a806b960effdc3f142100fc90a3ea61f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0466ac7e500e86a4e4a89d422677da72"><td class="memItemLeft" align="right" valign="top"><a id="a0466ac7e500e86a4e4a89d422677da72"></a>
+real(dp), dimension(:,:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__type.html#a0466ac7e500e86a4e4a89d422677da72">g_lpb</a></td></tr>
+<tr class="memdesc:a0466ac7e500e86a4e4a89d422677da72"><td class="mdescLeft">&#160;</td><td class="mdescRight">g intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only by LPB (model=3) model <br /></td></tr>
+<tr class="separator:a0466ac7e500e86a4e4a89d422677da72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2704c7cf2ffd5e38799f24b7d87964be"><td class="memItemLeft" align="right" valign="top"><a id="a2704c7cf2ffd5e38799f24b7d87964be"></a>
+real(dp), dimension(:,:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__type.html#a2704c7cf2ffd5e38799f24b7d87964be">f_lpb</a></td></tr>
+<tr class="memdesc:a2704c7cf2ffd5e38799f24b7d87964be"><td class="mdescLeft">&#160;</td><td class="mdescRight">d intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only by LPB (model=3) model <br /></td></tr>
+<tr class="separator:a2704c7cf2ffd5e38799f24b7d87964be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3e3f24814f68ec3f80f2f67f1eb00551"><td class="memItemLeft" align="right" valign="top"><a id="a3e3f24814f68ec3f80f2f67f1eb00551"></a>
 integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__type.html#a3e3f24814f68ec3f80f2f67f1eb00551">error_flag</a></td></tr>
 <tr class="memdesc:a3e3f24814f68ec3f80f2f67f1eb00551"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flag if there were an error. <br /></td></tr>
