@@ -645,7 +645,6 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     y = y * tobohr
     z = z * tobohr
     rvdw = rvdw * tobohr
-    write(6,*) 'file read', omp_get_wtime() - t
 
     ! adjust ngrid
     call closest_supported_lebedev_grid(ngrid)
