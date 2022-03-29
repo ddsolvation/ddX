@@ -573,7 +573,8 @@ end subroutine
 !> Default printing function
 subroutine print_func_default(string)
     character(len=255), intent(in) :: string
-    print "(A)", string
+!   print "(A)", string
+    write(6,"(A)"), trim(string)
 end subroutine
 
 subroutine params_free(params, info)
