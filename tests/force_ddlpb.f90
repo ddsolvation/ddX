@@ -54,7 +54,8 @@ esolv_plus_h = zero
 esolv_minus_h = zero
 
 
-call mkrhs(ddx_data, 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
+call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
+    & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
 
 ! Need to update PSI here
 psi = psi / fourpi
@@ -120,7 +121,8 @@ subroutine solve(ddx_data, esolv_in)
     gradphi_cav2 = zero; phi_cav2 = zero
     hessianphi_cav2 = zero; psi2 = zero; force2 = zero
 
-    call mkrhs(ddx_data2, 1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
+    call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
+        & 1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
     call ddsolve(ddx_data2, phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, tol, esolv_in, force2, info)
     call ddfree(ddx_data2)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)

@@ -42,7 +42,8 @@ allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constan
     & stat=istatus)
 if(istatus .ne. 0) call error(-1, "Allocation failed")
 ! Prepare host-code-related entities
-call mkrhs(ddx_data, 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
+call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
+    & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
 ! Use the solver
 call ddsolve(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)
 ! Open output file for reading

@@ -35,7 +35,8 @@ allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constan
     & hessianphi_cav(3, 3, ddx_data % constants % ncav), &
     & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), force(3, ddx_data % params % nsph), &
     & force_num(3, ddx_data % params % nsph))
-call mkrhs(ddx_data, 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
+call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
+    & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
 call ddsolve(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv1, force, info)
 do isph = 1, ddx_data % params % nsph
     do i = 1, 3
@@ -84,7 +85,8 @@ subroutine solve(ddx_data, tol, esolv, phi_cav, gradphi_cav, hessianphi_cav, &
         & ddx_data % params % matvecmem, ddx_data % params % itersolver, ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, ddx_data % params % gmresr_j, &
         & ddx_data % params % gmresr_dim, ddx_data % params % nproc, ddx_data2, info)
-    call mkrhs(ddx_data2, 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
+    call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
+        & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
     call ddsolve(ddx_data2, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)
     call ddfree(ddx_data2)
 end subroutine solve
