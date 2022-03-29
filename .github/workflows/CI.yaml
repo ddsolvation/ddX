@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    name: Build, Test, Install (Ubuntu)
+    name: Build, Test, Install
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
