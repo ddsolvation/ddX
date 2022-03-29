@@ -32,8 +32,8 @@ real(dp), allocatable :: derivative_num_A(:, :), derivative_num_B(:,:),&
 ! relerr_B     : Relative error for matrix B
 ! relerr_Ui    : Relative error for U_i^e(x_in)
 ! relerr_C1_C2 : Relative error for C1_C2
-real(dp) :: step, relerr_A, relerr_B, relerr_Ui,&
-            & relerr_C1_C2, tol
+real(dp) :: step, relerr_A = zero, relerr_B = zero, relerr_Ui = zero,&
+            & relerr_C1_C2 = zero, tol = zero
 ! isph   : Index for number of spheres
 ! i      : Index for derivative components (i = 1,2,3)
 ! ibasis : Index for number of basis
@@ -293,7 +293,7 @@ contains
 
 subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     type(ddx_type), intent(inout) :: ddx_data
-    real(dp), intent(out) :: sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2
+    real(dp), intent(inout) :: sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2
     ! Local variables
     ! ddx_data2  : New ddx_data with new coordinates
     type(ddx_type) :: ddx_data2
