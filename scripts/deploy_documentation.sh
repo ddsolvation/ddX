@@ -20,11 +20,15 @@ if [ "$branch" != "main" ]; then
 	exit 0
 fi
 
+git config user.name "GitHub Actions Bot"
+git config user.email "<>"
+
 head=$(git rev-parse HEAD)
-git checkout gh-pages
+git checkout -B gh-pages refs/remotes/origin/gh-pages
+
 rm -rf dev
 cp -a build/docs/html dev
 git add dev
 git commit -m "Documentation build from $head" dev
-git push -f
+git push -f origin gh-pages
 git checkout $head
