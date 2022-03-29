@@ -1,7 +1,16 @@
-name: Short testing on every push (Ubuntu)
+name: Large testing on PR into the main branch (Ubuntu)
 
-# Trigger the workflow on push to any branch
-on: push
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+    tags: '*'
+  schedule:
+    - cron: '00 04 * * 1' # 4am every Monday
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,17 +23,14 @@ jobs:
         path: repo
 
     - name: create build dir
-      shell: cmake -P {0}
-      run: |
-        file(MAKE_DIRECTORY repo/build)
-    
+      run: cmake -E make_directory repo/build
+
     - name: build, test and install
       run: |
         cd repo/build
         cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran-10" -DCMAKE_INSTALL_PREFIX="/tmp/libddx" -DCMAKE_BUILD_TYPE=Release ..
         make
-        # Only ddx_driver tests are executed
-        ctest -R ddx_driver -VV
+        ctest -VV
         make install
 
     - name: test installation
@@ -38,5 +44,3 @@ jobs:
         cd build
         cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran-10" -DddX_DIR="/tmp/libddx/lib/ddX" ..
         make
-
-        
