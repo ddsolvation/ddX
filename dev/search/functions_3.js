@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['dbasis_356',['dbasis',['../namespaceddx__core.html#af4a63e9274aa8031ba29947ec4840da1',1,'ddx_core']]],
+  ['ddcav_5fto_5fgrid_357',['ddcav_to_grid',['../namespaceddx__core.html#a8abb13e98d5d1eb3512e5ad55b701ef3',1,'ddx_core']]],
+  ['ddcav_5fto_5fgrid_5fwork_358',['ddcav_to_grid_work',['../namespaceddx__core.html#accaee74767f44a369c6d2d1e106c0453',1,'ddx_core']]],
+  ['ddcosmo_359',['ddcosmo',['../namespaceddx__cosmo.html#a0ba998186c0d9bc1a50827a839dbb371',1,'ddx_cosmo']]],
+  ['ddcosmo_5fadjoint_360',['ddcosmo_adjoint',['../namespaceddx__cosmo.html#a25f8a6e6484446679e234c5eccf57c13',1,'ddx_cosmo']]],
+  ['ddcosmo_5fenergy_361',['ddcosmo_energy',['../namespaceddx__cosmo.html#adff6d6e0fa5bb172f0f9f56cb55d08e3',1,'ddx_cosmo']]],
+  ['ddeval_5fgrid_362',['ddeval_grid',['../namespaceddx__core.html#ad5b07f0450b5b0fae876973a3ce661d7',1,'ddx_core']]],
+  ['ddeval_5fgrid_5fwork_363',['ddeval_grid_work',['../namespaceddx__core.html#a52eaee7c9a67f2a9f317c2d6dd50426e',1,'ddx_core']]],
+  ['ddfree_364',['ddfree',['../namespaceddx__core.html#a3258ae6ef23a4f07ea8a14ccf612acaa',1,'ddx_core']]],
+  ['ddfromfile_365',['ddfromfile',['../namespaceddx__core.html#a7a2ec4809155b56be2c61ccb72b974ea',1,'ddx_core']]],
+  ['ddinit_366',['ddinit',['../namespaceddx__core.html#ad08a8ff1fdcfb8d1a316f660edbf1a3e',1,'ddx_core']]],
+  ['ddintegrate_5fsph_367',['ddintegrate_sph',['../namespaceddx__core.html#ae804f0dbf4b9800bc75adaa57c842149',1,'ddx_core']]],
+  ['ddintegrate_5fsph_5fwork_368',['ddintegrate_sph_work',['../namespaceddx__core.html#a61156a8a0aec479ea2071dd6d6922fb1',1,'ddx_core']]],
+  ['ddpcm_369',['ddpcm',['../namespaceddx__pcm.html#a7234dc09b64e50bf9338bca4281fc815',1,'ddx_pcm']]],
+  ['ddpcm_5fenergy_370',['ddpcm_energy',['../namespaceddx__pcm.html#a19ab940964247fa03a1c809cdfec148e',1,'ddx_pcm']]],
+  ['ddsolve_371',['ddsolve',['../namespaceddx.html#a28907717a5aa0e7ca0cb754e43f0b48b',1,'ddx']]],
+  ['dfsw_372',['dfsw',['../namespaceddx__constants.html#a66fd73de84672f0f78f4c9c4e2c620b5',1,'ddx_constants']]],
+  ['dstarx_373',['dstarx',['../namespaceddx__operators.html#a4763fc6509b475a090451feb661a92ea',1,'ddx_operators']]],
+  ['dstarx_5fdense_374',['dstarx_dense',['../namespaceddx__operators.html#a5e24847b3de8dd57e855f293eeee9d18',1,'ddx_operators']]],
+  ['dstarx_5ffmm_375',['dstarx_fmm',['../namespaceddx__operators.html#aa69a13344481ef2032c3eb2c46e847b3',1,'ddx_operators']]],
+  ['dstarx_5fnodiag_376',['dstarx_nodiag',['../namespaceddx__operators.html#a26391f5e8d2efbc0dfd8bf560036bf3d',1,'ddx_operators']]],
+  ['dx_377',['dx',['../namespaceddx__operators.html#a7572750f072f269d318972f1d57cb527',1,'ddx_operators']]],
+  ['dx_5fdense_378',['dx_dense',['../namespaceddx__operators.html#abd51fb609c2fc3efb3f8095d65492840',1,'ddx_operators']]],
+  ['dx_5ffmm_379',['dx_fmm',['../namespaceddx__operators.html#a1373e4a45d1f9adb748f19f543c2f67f',1,'ddx_operators']]],
+  ['dx_5fnodiag_380',['dx_nodiag',['../namespaceddx__operators.html#aad8d565b922f289b74db7b9a4330a53c',1,'ddx_operators']]]
+];
