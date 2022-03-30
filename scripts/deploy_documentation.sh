@@ -25,7 +25,7 @@ git checkout -B gh-pages refs/remotes/origin/gh-pages
 rm -rf dev
 cp -a build/docs/html dev
 git add dev
-haschanges=$(git diff dev --cached)
+haschanges=$(git diff --cached dev)
 
 if [ "$branch" != "main" ]; then
     echo "Skipping deployment as not on main."
