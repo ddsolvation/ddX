@@ -1,7 +1,4 @@
 # Download and Installation  {#label_download_and_install}
-**Download precompiled binaries** at:
-1. Conda
-2. Pypi
 
 **Download the ddX source code** at: 
 ``` markdown
@@ -18,12 +15,25 @@
 ```
 Per default, the library is located in /src.
 
+**Build the documentation** as follows (after you have done the above process):
+``` markdown
+> cd build
+> make docs
+```
+**To see the documentation**
+``` markdown
+> cd ddX/build/docs/html
+> pwd
+```
+Copy the link shown by pwd and add /index.html in a web browser
 #### Hints and hacks
-1. Specify XXX by 
+1. For specifying compilers use
 ``` markdown 
 cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_C_COMPILER=/usr/local/bin/gcc-11 ..
 ```
-2. disactivate OpenMP-support: 
+**NOTE**: Replace g++-11 and gcc-11 with the compilers you desire
+
+2. Disactivate OpenMP-support:
 ``` markdown 
 cmake -D OPENMP=OFF ..
 ```
