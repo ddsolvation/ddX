@@ -163,16 +163,13 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     rhs = zero
 
     ! integrate RHS
-    call intrhs(params % nsph, constants % nbasis, &
+    call ddintegrate(params % nsph, constants % nbasis, &
         & params % ngrid, constants % vwgrid, &
         & constants % vgrid_nbasis, g, rhs(:,:,1))
-    call intrhs(params % nsph, constants % nbasis, &
+    call ddintegrate(params % nsph, constants % nbasis, &
         & params % ngrid, constants % vwgrid, &
         & constants % vgrid_nbasis, f, rhs(:,:,2))
     rhs(:,:,1) = rhs(:,:,1) + rhs(:,:,2)
-
-    ! call prtsph('direct rhs', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, rhs)
 
     ! guess
     workspace % ddcosmo_guess = zero
@@ -183,9 +180,6 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     n_iter = params % maxiter
     call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
         & tol, rhs, x, n_iter, lpb_direct_matvec, lpb_direct_prec, rmsnorm, info)
-
-    ! call prtsph('direct sol', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, x)
 
     esolv = zero
     do isph = 1, params % nsph
@@ -217,9 +211,6 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, x_adj)
     rhs(:,:,1) = psi
     rhs(:,:,2) = zero
 
-    ! call prtsph('adjoint rhs', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, rhs)
-
     ! guess
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
@@ -229,9 +220,6 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, x_adj)
     n_iter = params % maxiter
     call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
         & tol, rhs, x_adj, n_iter, lpb_adjoint_matvec, lpb_adjoint_prec, rmsnorm, info)
-
-    ! call prtsph('adjoint sol', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, x_adj)
 
     deallocate(rhs)
     if (istat.ne.0) stop 1

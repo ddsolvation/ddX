@@ -179,12 +179,12 @@ subroutine diis(n, nmat, ndiis, x, e, b, xnew)
     real(dp), dimension(n,ndiis), intent(inout) :: x, e
     real(dp), dimension(ndiis+1,ndiis+1), intent(inout) :: b
     real(dp), dimension(n), intent(inout) :: xnew
-    integer :: nmat1, i, istatus
+    integer :: nmat1, i, istatus, info
     integer :: j, k
-    logical :: ok
     real(dp), allocatable :: bloc(:,:), cex(:)
+    integer,  allocatable :: ipiv(:)
     real(dp), parameter :: zero = 0.0d0, one = 1.0d0
-    integer, parameter :: delta = 10
+    integer,  parameter :: delta = 10
 
     if (nmat.ge.ndiis) then
         do j = 2, nmat - delta
@@ -200,7 +200,7 @@ subroutine diis(n, nmat, ndiis, x, e, b, xnew)
     end if
     nmat1 = nmat + 1
 
-    allocate(bloc(nmat1, nmat1), cex(nmat1), stat=istatus)
+    allocate(bloc(nmat1, nmat1), cex(nmat1), ipiv(nmat1), stat=istatus)
     if (istatus.ne.0) then
         write(*,*) 'diis: allocation failed!'
         stop
@@ -210,8 +210,9 @@ subroutine diis(n, nmat, ndiis, x, e, b, xnew)
     bloc = b(1:nmat1, 1:nmat1)
     cex = zero
     cex(1) = one
-    call gjinv(nmat1, 1, bloc, cex, ok)
-    if (.not.ok) then
+    call dgesv(nmat1, 1, bloc, nmat1, ipiv, cex, nmat1, info)
+!   call gjinv(nmat1, 1, bloc, cex, ok)
+    if (info.ne.0) then
         nmat = 1
         return
     end if
@@ -271,107 +272,6 @@ subroutine makeb(n, nmat, ndiis, e, b)
         b(nmat+1,nmat+1) = dot_product(e(:,nmat),e(:,nmat))
     end if
 end subroutine makeb
-
-subroutine gjinv(n,nrhs,a,b,ok)
-implicit none
-integer,                    intent(in)    :: n, nrhs
-logical,                    intent(inout) :: ok
-real(dp),  dimension(n,n),    intent(inout) :: a
-real(dp),  dimension(n,nrhs), intent(inout) :: b
-!
-integer :: i, j, k, irow, icol, istatus
-real(dp)  :: big, dum, pinv
-real(dp), parameter :: zero = 0.0d0, one = 1.0d0
-!
-integer, allocatable :: indxc(:), indxr(:), piv(:)
-real(dp),  allocatable :: scr(:)
-!
-allocate (indxc(n), indxr(n), piv(n) , stat=istatus)
-if ( istatus.ne.0 ) then
-  write(*,*)'gjinv: allocation failed! [1]'
-  stop
-endif
-allocate (scr(n) , stat=istatus)
-if ( istatus.ne.0 ) then
-  write(*,*)'gjinv: allocation failed! [2]'
-  stop
-endif
-!
-ok  = .false.
-piv = 0
-!
-irow = 0
-icol = 0
-do i = 1, n
-  big = zero
-  do j = 1, n
-    if (piv(j).ne.1) then
-      do k = 1, n
-        if (piv(k).eq.0) then
-          if (abs(a(j,k)).gt.big) then
-            big  = abs(a(j,k))
-            irow = j
-            icol = k
-          end if
-        end if
-      end do
-    end if
-  end do
-!
-  piv(icol) = piv(icol) + 1
-  if (piv(icol) .gt. 1) then
-    write(*,1000)
-    return
-  end if
-  if (irow.ne.icol) then
-    scr         = a(irow,:)
-    a(irow,:)   = a(icol,:)
-    a(icol,:)   = scr
-    scr(1:nrhs) = b(irow,:)
-    b(irow,:)   = b(icol,:)
-    b(icol,:)   = scr(1:nrhs)
-  end if
-!
-  indxr(i) = irow
-  indxc(i) = icol
-!
-  if (a(icol,icol) .eq. zero) then
-    write(*,1000)
-    return
-  end if
-!
-  pinv = one/a(icol,icol)
-  a(icol,icol) = one
-  a(icol,:) = a(icol,:)*pinv
-  b(icol,:) = b(icol,:)*pinv
-!
-  do j = 1, n
-    if (j.ne.icol) then
-      dum       = a(j,icol)
-      a(j,icol) = zero
-      a(j,:)    = a(j,:) - a(icol,:)*dum
-      b(j,:)    = b(j,:) - b(icol,:)*dum
-    end if
-  end do
-end do
-
-do j = n, 1, -1
-  if (indxr(j) .ne. indxc(j)) then
-    scr           = a(:,indxr(j))
-    a(:,indxr(j)) = a(:,indxc(j))
-    a(:,indxc(j)) = scr
-  end if
-end do
-
-ok = .true.
-deallocate (indxr,indxc,piv,scr , stat=istatus)
-if ( istatus.ne.0 ) then
-  write(*,*)'gjinv: deallocation failed! [1]'
-  stop
-endif
-
-1000 format (' warning: singular matrix in gjinv!')
-end subroutine gjinv
 
 !*********************************************************
 ! GMRESR algorithm to solve linear system Ax = b

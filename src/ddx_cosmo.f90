@@ -138,9 +138,12 @@ subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, &
         & constants % icav_ia, constants % icav_ja, workspace % tmp_cav, &
         & workspace % tmp_grid)
     ! Integrate against spherical harmonics and Lebedev weights to get Phi
-    call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
-        & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
-        & one, workspace % tmp_grid, zero, phi)
+    call ddintegrate(params % nsph, constants % nbasis, &
+        & params % ngrid, constants % vwgrid, &
+        & constants % vgrid_nbasis, workspace % tmp_grid, phi)
+!   call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
+!       & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
+!       & one, workspace % tmp_grid, zero, phi)
     ! Set right hand side to -Phi
     workspace % tmp_rhs = -phi
     ! Zero initialize guess for the solution if needed
