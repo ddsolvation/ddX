@@ -17,6 +17,18 @@ implicit none
 
 contains
 
+!!
+!! Wrapper routine for the solution of the direct ddPCM linear
+!! system. It makes the interface easier to implement. If a fine
+!! control is needed, the worker routine should be directly called.
+!!
+!! @param[in] params       : General options
+!! @param[in] constants    : Precomputed constants
+!! @param[inout] workspace : Preallocated workspaces
+!! @param[inout] state     : Solutions and relevant quantities
+!! @param[in] phi_cav      : Electric potential at the grid points
+!! @param[in] tol          : Tolerance for the iterative solvers
+!!
 subroutine ddpcm_solve(params, constants, workspace, state, phi_cav, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -37,6 +49,18 @@ subroutine ddpcm_solve(params, constants, workspace, state, phi_cav, tol)
         & state % phieps_rel_diff, state % phieps_time, info)
 end subroutine ddpcm_solve
 
+!!
+!! Wrapper routine for the solution of the adjoint ddPCM linear
+!! system. It makes the interface easier to implement. If a fine
+!! control is needed, the worker routine should be directly called.
+!!
+!! @param[in] params       : General options
+!! @param[in] constants    : Precomputed constants
+!! @param[inout] workspace : Preallocated workspaces
+!! @param[inout] state     : Solutions, guesses and relevant quantities
+!! @param[in] psi          : Representation of the solute's density
+!! @param[in] tol          : Tolerance for the iterative solvers
+!!
 subroutine ddpcm_adjoint(params, constants, workspace, state, psi, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -48,11 +72,24 @@ subroutine ddpcm_adjoint(params, constants, workspace, state, psi, tol)
     integer :: info
 
     call ddpcm_adjoint_worker(params, constants, workspace, psi, &
-        & tol, state % s, state % s_niter, state % s_rel_diff, &
-        & state % s_time, state % y, state % y_niter, state % y_rel_diff, &
-        & state % y_time, info)
+        & tol, state % x_adj_lpb, state % x_adj_lpb_niter, &
+        & state % x_adj_lpb_time)
 end subroutine ddpcm_adjoint
 
+!!
+!! Wrapper routine for the computation of ddPCM forces. It makes the
+!! interface easier to implement. If a fine control is needed, the
+!! worker routine should be directly called.
+!!
+!! @param[in] params       : General options
+!! @param[in] constants    : Precomputed constants
+!! @param[inout] workspace : Preallocated workspaces
+!! @param[inout] state     : Solutions and relevant quantities
+!! @param[in] phi_cav      : Electric potential at the grid points
+!! @param[in] gradphi_cav  : Electric field at the grid points
+!! @param[in] psi          : Representation of the solute's density
+!! @param[out] force       : Geometrical contribution to the forces
+!!
 subroutine ddpcm_forces(params, constants, workspace, state, phi_cav, &
     & gradphi_cav, psi, force)
     implicit none
@@ -83,15 +120,19 @@ end subroutine ddpcm_forces
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
 !! @param[out] info
-subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
+subroutine ddpcm(params, constants, workspace, phi_cav, gradphi_cav, psi, &
+        & tol, esolv, force, info)
     implicit none
-    type(ddx_type), intent(inout) :: ddx_data
-    real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
-        & gradphi_cav(3, ddx_data % constants % ncav), &
-        & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
-    real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
-    type(ddx_state_type) :: state
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: phi_cav(constants % ncav), &
+        & gradphi_cav(3, constants % ncav), &
+        & psi(constants % nbasis, params % nsph), tol
+    real(dp), intent(out) :: esolv, force(3, params % nsph)
     integer, intent(out) :: info
+    type(ddx_state_type) :: state
+    real(dp), external :: ddot
 
     call ddx_init_state(params, constants, state)
     call ddpcm_guess(params, constants, state)
@@ -101,7 +142,8 @@ subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
     ! Solvation energy is computed
     esolv = pt5*ddot(constants % n, state % xs, 1, psi, 1)
 
-    if (ddx_data % params % force .eq. 1) then
+    ! Get forces if needed
+    if (params % force .eq. 1) then
         call ddpcm_adjoint(params, constants, workspace, state, psi, tol)
         call ddpcm_forces(params, constants, workspace, state, phi_cav, &
             & gradphi_cav, psi, force)

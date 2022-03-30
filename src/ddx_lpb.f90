@@ -49,7 +49,103 @@ implicit none
 contains
 
 !!
-!! ddLPB calculation happens here
+!! Wrapper routine for the solution of the direct ddLPB linear
+!! system. It makes the interface easier to implement. If a fine
+!! control is needed, the worker routine should be directly called.
+!!
+!! @param[in] params       : General options
+!! @param[in] constants    : Precomputed constants
+!! @param[inout] workspace : Preallocated workspaces
+!! @param[inout] state     : Solutions, guesses and relevant quantities
+!! @param[in] phi_cav      : Electric potential at the grid points
+!! @param[in] gradphi_cav  : Electric field at the grid points
+!! @param[in] tol          : Tolerance for the iterative solvers
+!!
+subroutine ddlpb_solve(params, constants, workspace, state, phi_cav, &
+        & gradphi_cav, tol)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav)
+    real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
+    real(dp), intent(in) :: tol
+
+    state % x_lpb_niter = params % maxiter
+    call ddlpb_solve_worker(params, constants, workspace, &
+        & phi_cav, gradphi_cav, state % x_lpb, state % x_lpb_niter, &
+        & state % x_lpb_time, tol)
+end subroutine ddlpb_solve
+
+!!
+!! Wrapper routine for the solution of the adjoint ddPCM linear
+!! system. It makes the interface easier to implement. If a fine
+!! control is needed, the worker routine should be directly called.
+!!
+!! @param[in] params       : General options
+!! @param[in] constants    : Precomputed constants
+!! @param[inout] workspace : Preallocated workspaces
+!! @param[inout] state     : Solutions, guesses and relevant quantities
+!! @param[in] psi          : Representation of the solute's density
+!! @param[in] tol          : Tolerance for the iterative solvers
+!!
+subroutine ddlpb_adjoint(params, constants, workspace, state, psi, tol)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    real(dp), intent(in) :: tol
+
+    call ddx_lpb_adjoint(params, constants, &
+      & workspace, psi, tol, state % x_adj_lpb)
+end subroutine ddlpb_adjoint
+
+!!
+!! Wrapper routine for the computation of ddPCM forces. It makes the
+!! interface easier to implement. If a fine control is needed, the
+!! worker routine should be directly called.
+!!
+!! @param[in] params         : General options
+!! @param[in] constants      : Precomputed constants
+!! @param[inout] workspace   : Preallocated workspaces
+!! @param[inout] state       : Solutions and relevant quantities
+!! @param[in] phi_cav        : Electric potential at the grid points
+!! @param[in] gradphi_cav    : Electric field at the grid points
+!! @param[in] hessianphi_cav : Electric field gradient at the grid points
+!! @param[in] psi            : Representation of the solute's density
+!! @param[out] force         : Geometrical contribution to the forces
+!!
+subroutine ddlpb_force(params, constants, workspace, state, phi_cav, &
+        & gradphi_cav, hessianphi_cav, psi, force)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav)
+    real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    real(dp), intent(in) :: hessianphi_cav(3, 3, constants % ncav)
+    real(dp), intent(out) :: force(3, params % nsph)
+
+    call ddlpb_force_worker(params, constants, workspace, &
+        & hessianphi_cav, phi_grid, gradphi_cav, state % x_lpb, &
+        & state % x_adj_lpb, state % zeta, force)
+end subroutine ddlpb_force
+
+subroutine ddlpb_guess(params, constants, state)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(inout) :: state
+    ! TODO
+end subroutine ddlpb_guess
+
+!!
+!! A standalone ddLPB calculation happens here
 !! @param[in] ddx_data : dd Data
 !! @param[in] phi      : Boundary conditions
 !! @param[in] psi      : Electrostatic potential vector.
@@ -57,168 +153,137 @@ contains
 !! @param[in] hessianphi  : Hessian of phi
 !! @param[out] esolv   : Electrostatic solvation energy
 !!
-subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, &
-    & force, info)
-    ! main ddLPB
-    ! Inputs
-    type(ddx_type), intent(inout) :: ddx_data
-    real(dp), dimension(ddx_data % constants % ncav), intent(in) :: phi_cav
-    real(dp), dimension(3, ddx_data % constants % ncav), intent(in) :: gradphi_cav
-    real(dp), dimension(3,3, ddx_data % constants % ncav), intent(in) :: hessianphi_cav
-    real(dp), dimension(ddx_data % constants % nbasis, &
-        & ddx_data % params % nsph), intent(in) :: psi
-    real(dp), intent(in) :: tol
-    ! Outputs
-    real(dp), intent(out) :: esolv
-    real(dp), dimension(3, ddx_data % params % nsph), intent(out) :: force
-    ! internal
-    integer, intent(out) :: info
-    integer :: isph, igrid, istatus
-    !
-    ! x(:,:,1): X_r Reaction potential solution (Laplace equation)
-    ! x(:,:,2): X_e Extended potential solution (HSP equation)
-    !
-!   real(dp), allocatable :: x(:,:,:), x_adj(:,:,:)
-    ! phi_grid: Phi evaluated at grid points
-!   real(dp), allocatable :: g(:,:), f(:,:), phi_grid(:, :)
-
-!   allocate(x(ddx_data % constants % nbasis, ddx_data % params % nsph, 2), &
-!       & x_adj(ddx_data % constants % nbasis, ddx_data % params % nsph, 2), &
-!       & g(ddx_data % params % ngrid, ddx_data % params % nsph), &
-!       & f(ddx_data % params % ngrid, ddx_data % params % nsph), &
-!       & phi_grid(ddx_data % params % ngrid, ddx_data % params % nsph), &
-!       & stat = istatus)
-!   if (istatus.ne.0) write(6,*) 'ddlpb allocation failed'
-
-    !! Setting initial values to zero
-    ddx_data % g_lpb = zero
-    ddx_data % f_lpb = zero
-    ddx_data % phi_grid = zero
-
-    ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
-    ! and multiply it by characteristic function at cavity points ui
-    call ddcav_to_grid_work(ddx_data % params % ngrid, ddx_data % params % nsph, &
-        & ddx_data % constants % ncav, ddx_data % constants % icav_ia, &
-        & ddx_data % constants % icav_ja, phi_cav, ddx_data % phi_grid)
-    ddx_data % workspace % tmp_cav = phi_cav * ddx_data % constants % ui_cav
-    call ddcav_to_grid_work(ddx_data % params % ngrid, ddx_data % params % nsph, &
-        & ddx_data % constants % ncav, ddx_data % constants % icav_ia, &
-        & ddx_data % constants % icav_ja, ddx_data % workspace % tmp_cav, &
-        & ddx_data % workspace % tmp_grid)
-    ddx_data % g_lpb = - ddx_data % workspace % tmp_grid
-
-    ! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
-    call wghpot_f(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, gradphi_cav, ddx_data % f_lpb)
-
-    ! use a tighter tolerance for microiterations
-    ddx_data % constants % inner_tol =  tol/100.0d0
-
-    ! Call the subroutine to solve for Esolv
-    call ddx_lpb_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, ddx_data % g_lpb, ddx_data % f_lpb, &
-        & ddx_data % x_lpb, tol, esolv)
-
-    ! Start the Force computation
-    if(ddx_data % params % force .eq. 1) then
-      ! Call the subroutine adjoint to solve the adjoint solution
-      call ddx_lpb_adjoint(ddx_data % params, ddx_data % constants, &
-          & ddx_data % workspace, psi, tol, ddx_data % x_adj_lpb)
-
-      !Call the subroutine to evaluate derivatives
-      call ddx_lpb_force(ddx_data % params, ddx_data % constants, &
-          & ddx_data % workspace, hessianphi_cav, ddx_data % phi_grid, gradphi_cav, &
-          & ddx_data % x_lpb, ddx_data % x_adj_lpb, ddx_data % zeta, force)
-
-    endif
-
-!   deallocate(x, x_adj, g, f, phi_grid, stat = istatus)
-!   if (istatus.ne.0) write(6,*) 'ddlpb deallocation failed'
-
-end subroutine ddlpb
-
-!
-! Computation for Solvation energy
-! @param[in]  ddx_data   : Input data file
-! @param[in]  g          : Intermediate matrix for computation of g0
-! @param[in]  f          : Intermediate matrix for computation of f0
-! @param[out] x          : Solution
-! @param[out] esolv      : Solvation energy
-subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
-    & x, tol, esolv)
+subroutine ddlpb(params, constants, workspace, phi_cav, gradphi_cav, &
+        & hessianphi_cav, psi, tol, esolv, force, info)
+    implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
-    real(dp), dimension(params % ngrid, params % nsph), intent(in) :: g, f
-    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: x
+    real(dp), intent(in) :: phi_cav(constants % ncav), &
+        & gradphi_cav(3, constants % ncav), &
+        & hessianphi_cav(3, 3, constants % ncav), &
+        & psi( constants % nbasis,  params % nsph), tol
+    real(dp), intent(out) :: esolv, force(3, params % nsph)
+    real(dp), external :: ddot
+    type(ddx_state_type) :: state
+
+    call ddx_init_state(params, constants, state)
+    ! TODO: find a consistent way to do the guess
+
+    call ddlpb_solve(params, constants, workspace, state, phi_cav, &
+        & gradphi_cav, tol)
+
+    ! Compute the solvation energy
+    esolve = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, psi, 1)
+
+    ! Get forces if needed
+    if(params % force .eq. 1) then
+        call ddlpb_adjoint(params, constants, workspace, state, psi, tol)
+        call ddlpb_forces(params, constants, workspace, state, phi_cav, &
+            & gradphi_cav, hessianphi_cav, psi, force)
+    endif
+
+    call ddx_free_state(state)
+
+end subroutine ddlpb
+
+subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
+        & gradphi_cav, x_lpb, x_lpb_niter, x_lpb_time, g_lpb, f_lpb, &
+        & phi_grid, tol)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: phi_cav(constants % ncav)
+    real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
+    real(dp), intent(inout) :: x_lpb(constants % nbasis, params % nsph, 2)
+    integer, intent(inout) :: x_lpb_niter
+    real(dp), intent(out) :: x_lpb_time
     real(dp), intent(in) :: tol
-    real(dp), intent(out) :: esolv
-    integer  :: n_iter, isph, istat, info
+
+    integer  :: isph, istat, info
+    real(dp) :: start_time
     real(dp), allocatable :: rhs(:,:,:)
 
     allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
     if (istat.ne.0) stop 1
 
+    !! Use a tighter tolerance for the microiterations to ensure convergence
+    constants % inner_tol =  tol/100.0d0
+
+    !! Setting initial values to zero
+    state % g_lpb = zero
+    state % f_lpb = zero
+    state % phi_grid = zero
+
+    ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
+    ! and multiply it by characteristic function at cavity points ui
+    call ddcav_to_grid_work(params % ngrid, params % nsph, &
+        & constants % ncav, constants % icav_ia, &
+        & constants % icav_ja, phi_cav, state % phi_grid)
+    workspace % tmp_cav = phi_cav * constants % ui_cav
+    call ddcav_to_grid_work(params % ngrid, params % nsph, &
+        & constants % ncav, constants % icav_ia, &
+        & constants % icav_ja, workspace % tmp_cav, &
+        & workspace % tmp_grid)
+    state % g_lpb = - workspace % tmp_grid
+
+    ! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
+    call wghpot_f(params, constants, workspace, gradphi_cav, state % f_lpb)
+
     ! Setting of the local variables
     rhs = zero
 
     ! integrate RHS
-    call intrhs(params % nsph, constants % nbasis, &
-        & params % ngrid, constants % vwgrid, &
-        & constants % vgrid_nbasis, g, rhs(:,:,1))
-    call intrhs(params % nsph, constants % nbasis, &
-        & params % ngrid, constants % vwgrid, &
-        & constants % vgrid_nbasis, f, rhs(:,:,2))
+    call intrhs(params % nsph, constants % nbasis, params % ngrid, &
+        & constants % vwgrid, constants % vgrid_nbasis, g, rhs(:,:,1))
+    call intrhs(params % nsph, constants % nbasis, params % ngrid, &
+        & constants % vwgrid, constants % vgrid_nbasis, f, rhs(:,:,2))
     rhs(:,:,1) = rhs(:,:,1) + rhs(:,:,2)
-
-    ! call prtsph('direct rhs', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, rhs)
 
     ! guess
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
     call lpb_direct_prec(params, constants, workspace, rhs, x)
 
+    start_time = omp_get_wtime()
     ! solve LS using Jacobi/DIIS
-    n_iter = params % maxiter
     call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
-        & tol, rhs, x, n_iter, lpb_direct_matvec, lpb_direct_prec, rmsnorm, info)
+        & tol, rhs, x, x_iter, lpb_direct_matvec, lpb_direct_prec, &
+        & rmsnorm, info)
+    x_lpb_time = omp_get_wtime() - start_time
 
-    ! call prtsph('direct sol', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, x)
-
-    esolv = zero
-    do isph = 1, params % nsph
-      esolv = esolv + pt5*params % charge(isph)*x(1,isph,1)*(one/sqrt4pi)
-    end do
-    deallocate(rhs)
+    deallocate(rhs, status=istat)
     if (istat.ne.0) stop 1
-end subroutine ddx_lpb_solve
-!
-! Computation of Adjoint
-! @param[in] ddx_data: Input data file
-! @param[in] psi     : psi_r
-subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, x_adj)
+end subroutine ddlpb_solve_worker
+
+subroutine ddx_lpb_adjoint_worker(params, constants, workspace, psi, tol, &
+        & x_adj_lpb, x_adj_lpb_niter, x_adj_lpb_time)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: psi
-    real(dp), intent(in) :: tol
     type(ddx_workspace_type), intent(inout) :: workspace
-    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: x_adj
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    real(dp), intent(in) :: tol
+    real(dp), intent(out) :: x_adj_lpb(constants % nbasis, params % nsph, 2)
+
+    real(dp), allocatable :: psi_lpb(:,:)
     real(dp), allocatable :: rhs(:,:,:)
-    integer :: n_iter, info, istat
-    real(dp), dimension(params % maxiter) :: x_rel_diff
+    real(dp) :: start_time
+    integer :: istat
 
     allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
     if (istat.ne.0) stop 1
 
+    ! Psi shall be divided by a factor 4pi for the LPB case
+    ! It is intended to take into account this constant in the LPB
+    allocate(psi_lpb(ddx_data % constants % nbasis, ddx_data % params % &
+        & nsph))
+    psi_lpb = psi / fourpi
+
     ! set up the RHS
     rhs(:,:,1) = psi
     rhs(:,:,2) = zero
-
-    ! call prtsph('adjoint rhs', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, rhs)
 
     ! guess
     workspace % ddcosmo_guess = zero
@@ -226,32 +291,18 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, x_adj)
     call lpb_adjoint_prec(params, constants, workspace, rhs, x_adj)
 
     ! solve adjoint LS using Jacobi/DIIS
-    n_iter = params % maxiter
+    start_time = omp_get_wtime()
     call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
-        & tol, rhs, x_adj, n_iter, lpb_adjoint_matvec, lpb_adjoint_prec, rmsnorm, info)
+        & tol, rhs, x_adj_lpb, x_adj_lpb_niter, lpb_adjoint_matvec, &
+        & lpb_adjoint_prec, rmsnorm, istat)
+    x_adj_lpb_time = omp_get_wtime() - start_time
 
-    ! call prtsph('adjoint sol', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, x_adj)
-
-    deallocate(rhs)
+    deallocate(rhs, psi_lpb, stat=istat)
     if (istat.ne.0) stop 1
+end subroutine ddlpb_adjoint_worker
 
-end subroutine ddx_lpb_adjoint
-
-!
-! Computation for Solvation energy
-! @param[in]  ddx_data   : Input data file
-! @param[in]  hessian    : Hessian of Psi
-! @param[in]  phi_grid   : Phi evaluated at the grid point
-! @param[in]  gradphi  : Gradient of phi
-! @param[in]  Xr         : Solution corresponding to COSMO
-! @param[in]  Xe         : Solution corresponding to HSP
-! @param[in]  Xadj_r     : Solution corresponding to adjoint of the COSMO
-! @param[in]  Xadj_e     : Solution corresponding to adjoint of the HSP
-! @param[out] force      : Force
-subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradphi, &
-        & x, x_adj, zeta, force)
-    !! input/output
+subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
+        & phi_grid, gradphi, x, x_adj, zeta, force)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -468,94 +519,6 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
     deallocate(ef, xadj_r_sgrid, xadj_e_sgrid, normal_hessian_cav, &
         & diff_re, scaled_xr, stat=istat)
     if (istat.ne.0) stop 1
-end subroutine ddx_lpb_force
-
-  subroutine ddlpb_free(ddx_data)
-  implicit none
-  type(ddx_type), intent(inout) :: ddx_data
-  integer :: istatus
-  if(allocated(ddx_data % constants % SI_ri)) then
-    deallocate(ddx_data % constants % SI_ri, stat=istatus)
-    if(istatus .ne. zero) then
-      write(*,*) 'ddlpb_free: [1] deallocation failed'
-      stop 1
-    end if
-  end if
-
-  if(allocated(ddx_data % constants % DI_ri)) then
-    deallocate(ddx_data % constants % DI_ri, stat=istatus)
-    if(istatus .ne. zero) then
-      write(*,*) 'ddlpb_free: [1] deallocation failed'
-      stop 1
-    end if
-  end if
-
-  if(allocated(ddx_data % constants % SK_ri)) then
-    deallocate(ddx_data % constants % SK_ri, stat=istatus)
-    if(istatus .ne. zero) then
-      write(*,*) 'ddlpb_free: [1] deallocation failed'
-      stop 1
-    end if
-  end if
-
-  if(allocated(ddx_data % constants % DK_ri)) then
-    deallocate(ddx_data % constants % DK_ri, stat=istatus)
-    if(istatus .ne. zero) then
-      write(*,*) 'ddlpb_free: [1] deallocation failed'
-      stop 1
-    end if
-  end if
-
-
-  if(allocated(ddx_data % constants % diff_ep_adj)) then
-    deallocate(ddx_data % constants % diff_ep_adj, stat=istatus)
-    if(istatus .ne. zero) then
-      write(*,*) 'ddlpb_free: [1] deallocation failed'
-      stop 1
-    end if
-  end if
-
-
-  if(allocated(ddx_data % constants % termimat)) then
-    deallocate(ddx_data % constants % termimat, stat=istatus)
-    if(istatus .ne. zero) then
-      write(*,*) 'ddlpb_free: [1] deallocation failed'
-      stop 1
-    end if
-  end if
-
-  if(allocated(ddx_data % constants % coefY)) then
-    deallocate(ddx_data % constants % coefY, stat=istatus)
-    if(istatus .ne. zero) then
-      write(*,*) 'ddlpb_free: [1] deallocation failed'
-      stop 1
-    end if
-  end if
-
-  if(allocated(ddx_data % constants % C_ik)) then
-    deallocate(ddx_data % constants % C_ik, stat=istatus)
-    if(istatus .ne. zero) then
-      write(*,*) 'ddlpb_free: [1] deallocation failed'
-      stop 1
-    end if
-  end if
-
-  if(allocated(ddx_data % constants % coefvec)) then
-    deallocate(ddx_data % constants % coefvec, stat=istatus)
-    if(istatus .ne. zero) then
-      write(*,*) 'ddlpb_free: [1] deallocation failed'
-      stop 1
-    end if
-  end if
-
-  if(allocated(ddx_data % constants % Pchi)) then
-    deallocate(ddx_data % constants % Pchi, stat=istatus)
-    if(istatus .ne. zero) then
-      write(*,*) 'ddlpb_free: [1] deallocation failed'
-      stop 1
-    end if
-  end if
-
-  end subroutine ddlpb_free
+end subroutine ddlpb_force_worker
 
 end module ddx_lpb

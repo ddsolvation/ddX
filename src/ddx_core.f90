@@ -112,6 +112,10 @@ type ddx_state_type
     !! used only
     !! by LPB (model=3) model
     real(dp), allocatable :: f_lpb(:,:)
+    integer :: x_lpb_niter
+    integer :: x_adj_lpb_niter
+    real(dp) :: x_lpb_time
+    real(dp) :: x_adj_lpb_time
 
     !!
     !! Misc
@@ -3090,7 +3094,7 @@ subroutine print_header(iprint,params)
             string = " performing a ddPCM solvation energy and forces calculation"
         end if
     else if (params % model .eq. 3) then
-        if (params % force .eq. 0) then 
+        if (params % force .eq. 0) then
             string = " performing a ddLPB solvation energy calculation"
         else if (params % force .eq. 1) then
             string = " performing a ddLPB solvation energy and forces calculation"

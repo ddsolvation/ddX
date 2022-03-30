@@ -29,8 +29,8 @@ subroutine ddcosmo_solve(params, constants, workspace, state, phi_cav, tol)
 
     state % xs_niter =  params % maxiter
     call ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
-        & state % xs, state % xs_niter, state % xs_rel_diff, state % xs_time &
-        & tol, phi_grid, phi, info)
+        & state % xs, state % xs_niter, state % xs_rel_diff, state % xs_time, &
+        & tol, state % phi_grid, state % phi, info)
 end subroutine ddcosmo_solve
 
 subroutine ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
@@ -43,12 +43,29 @@ subroutine ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
     real(dp), intent(in) :: tol
     integer :: info
 
-    call ddcosmo_adjoint(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, psi, tol, s_mode, ddx_data % s, &
-        & ddx_data % s_niter, ddx_data % s_rel_diff, ddx_data % s_time, &
+    state % s_niter = params % maxiter
+    call ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, &
+        & state % s, state % s_niter, state % s_rel_diff, state % s_time, &
         & info)
-
 end subroutine ddcosmo_adjoint
+
+subroutine ddcosmo_forces(params, constants, workspace, state, phi_cav, &
+    & gradphi_cav, psi, force)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav)
+    real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    real(dp), intent(out) :: force(3, params % nsph)
+    integer :: info
+
+    call ddcosmo_forces_worker(params, constants, workspace, phi_cav, &
+        & gradphi_cav, psi, state % s, state % sgrid, state % xs, &
+        & state % zeta, force, info)
+end subroutine ddcosmo_forces
 
 !> ddCOSMO solver
 !!
@@ -62,38 +79,32 @@ end subroutine ddcosmo_adjoint
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
 !! @param[out] info
-subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, &
-        & info)
-    !! Inputs
-    type(ddx_type), intent(inout)  :: ddx_data
-    real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
-        & gradphi_cav(3, ddx_data % constants % ncav), &
-        & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
-    !! Outputs
-    real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
+subroutine ddcosmo(params, constants, workspace, phi_cav, gradphi_cav, psi, &
+    & tol, esolv, force, info)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: phi_cav(constants % ncav), &
+        & gradphi_cav(3, constants % ncav), &
+        & psi(constants % nbasis, params % nsph), tol
+    real(dp), intent(out) :: esolv, force(3, params % nsph)
     integer, intent(out) :: info
-    !! Local variables
-    integer :: xs_mode, s_mode
-    ! Zero initial guess for the `xs`
-    xs_mode = 0
-    ! Get energy
-    ddx_data % xs_niter = ddx_data % params % maxiter
-    call ddcosmo_energy(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, phi_cav, psi, xs_mode, ddx_data % xs, &
-        & ddx_data % xs_niter, ddx_data % xs_rel_diff, ddx_data % xs_time, &
-        & tol, esolv, ddx_data % phi_grid, ddx_data % phi, info)
+    type(ddx_state_type) :: state
+    real(dp), external :: ddot
+
+    call ddx_init_state(params, constants, state)
+    call ddpcm_guess(params, constants, state)
+
+    call ddcosmo_solve(params, constants, workspace, state, phi_cav, tol)
+
+    ! Solvation energy is computed
+    esolv = pt5*ddot(constants % n, state % xs, 1, psi, 1)
+
     ! Get forces if needed
-    if (ddx_data % params % force .eq. 1) then
-        ! Zero initial guess
-        s_mode = 0
-        ! Solve adjoint ddCOSMO system
-        ddx_data % s_niter = ddx_data % params % maxiter
-        ! Get forces, they are initialized with zeros
-        call ddcosmo_forces(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, ddx_data % phi_grid, gradphi_cav, &
-            & psi, ddx_data % s, &
-            & ddx_data % sgrid, &
-            & ddx_data % xs, ddx_data % zeta, force, info)
+    if (params % force .eq. 1) then
+        call cosmo_adjoint(params, constants, workspace, state, psi, tol)
+        call cosmo_forces(params, constants, workspace, state, phi_cav, &
+            & gradphi_cav, psi, force)
     end if
 end subroutine ddcosmo
 
@@ -119,8 +130,7 @@ subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: phi_cav(constants % ncav), &
-        & psi(constants % nbasis, params % nsph), tol
+    real(dp), intent(in) :: phi_cav(constants % ncav), tol
     !! Input+output
     real(dp), intent(inout) :: xs(constants % nbasis, params % nsph)
     integer, intent(inout) :: xs_niter
@@ -128,14 +138,12 @@ subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
     type(ddx_workspace_type), intent(inout) :: workspace
     !! Outputs
     real(dp), intent(out) :: xs_rel_diff(xs_niter), xs_time
-    real(dp), intent(out) :: esolv
     real(dp), intent(out) :: phi_grid(params % ngrid, params % nsph)
     real(dp), intent(out) :: phi(constants % nbasis, params % nsph)
     integer, intent(out) :: info
     !! Local variables
     character(len=255) :: string
     real(dp) :: start_time, finish_time, r_norm
-    real(dp), external :: ddot
     !! The code
     ! At first check if parameters, constants and workspace are correctly
     ! initialized
@@ -189,11 +197,9 @@ subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
         call params % print_func(string)
         return
     end if
-    ! Solvation energy is computed
-    esolv = pt5*ddot(constants % n, xs, 1, psi, 1)
     ! Clear status
     info = 0
-end subroutine ddcosmo_energy
+end subroutine ddcosmo_solve_worker
 
 !> Solve adjoint ddCOSMO system
 !!
@@ -261,9 +267,9 @@ subroutine ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, s, &
     end if
     ! Clear status
     info = 0
-end subroutine ddcosmo_adjoint
+end subroutine ddcosmo_adjoint_worker
 
-subroutine ddcosmo_forces(params, constants, workspace, phi_grid, &
+subroutine ddcosmo_forces_worker(params, constants, workspace, phi_grid, &
         & gradphi_cav, psi, s, sgrid, xs, zeta, force, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -421,7 +427,7 @@ subroutine ddcosmo_forces(params, constants, workspace, phi_grid, &
     end if
     ! Clear status
     info = 0
-end subroutine ddcosmo_forces
+end subroutine ddcosmo_forces_worker
 
 end module ddx_cosmo
 

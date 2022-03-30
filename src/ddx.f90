@@ -43,27 +43,23 @@ subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, &
     ! Outputs
     real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
     integer, intent(out) :: info
-    real(dp), allocatable :: psi_lpb(:,:)
     ! Find proper model
     select case(ddx_data % params % model)
         ! COSMO model
         case (1)
-            call ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, &
-                & force, info)
+            call ddcosmo(ddx_data % params, ddx_data % constants, &
+                & ddx_data % workspace, phi_cav, gradphi_cav, psi, tol, &
+                & esolv, force, info)
         ! PCM model
         case (2)
-            call ddpcm(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, &
-                & force, info)
+            call ddpcm(ddx_data % params, ddx_data % constants, &
+                & ddx_data % workspace, phi_cav, gradphi_cav, psi, tol, &
+                & esolv, force, info)
         ! LPB model
         case (3)
-            ! Psi shall be divided by a factor 4pi for the LPB case
-            ! It is intended to take into account this constant in the LPB
-            allocate(psi_lpb(ddx_data % constants % nbasis, ddx_data % params % &
-                & nsph))
-            psi_lpb = psi / fourpi
-            call ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi_lpb, &
-                & tol, esolv, force, info)
-            deallocate(psi_lpb)
+            call ddlpb(ddx_data % params, ddx_data % constants, &
+                & ddx_data % workspace, phi_cav, gradphi_cav, &
+                & hessianphi_cav, psi, tol, esolv, force, info)
         ! Error case
         case default
             stop "Non-supported model"
