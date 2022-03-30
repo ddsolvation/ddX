@@ -1,11 +1,5 @@
 var searchData=
 [
-  ['icav_5fia_178',['icav_ia',['../structddx__constants_1_1ddx__constants__type.html#a421e9644e3034c34b1f904096a644909',1,'ddx_constants::ddx_constants_type']]],
-  ['icav_5fja_179',['icav_ja',['../structddx__constants_1_1ddx__constants__type.html#aa5ed3906534f5e76c80c3fca1e4e61e9',1,'ddx_constants::ddx_constants_type']]],
-  ['inl_180',['inl',['../structddx__constants_1_1ddx__constants__type.html#a170e5ddb7e17f9f525f200aa4444007a',1,'ddx_constants::ddx_constants_type']]],
-  ['inner_5ftol_181',['inner_tol',['../structddx__constants_1_1ddx__constants__type.html#a7d0520826e9c6979b3650ec1ecde2215',1,'ddx_constants::ddx_constants_type']]],
-  ['intrhs_182',['intrhs',['../namespaceddx__core.html#a90d894d6d2087fcceda88ab3bc320f44',1,'ddx_core']]],
-  ['itersolver_183',['itersolver',['../structddx__parameters_1_1ddx__params__type.html#a4be7dd4db40f62137b3c79c875ed0582',1,'ddx_parameters::ddx_params_type']]],
-  ['itersolver_5fstr_184',['itersolver_str',['../namespaceddx__definitions.html#af0a948616df64a208244211d500820c3',1,'ddx_definitions']]],
-  ['itrnl_185',['itrnl',['../structddx__constants_1_1ddx__constants__type.html#adb6a621c062e1740f832b2060794afc9',1,'ddx_constants::ddx_constants_type']]]
+  ['hnorm_184',['hnorm',['../namespaceddx__core.html#a2b3e39f4eaa589b097d4e9f37673e8f1',1,'ddx_core']]],
+  ['hsnorm_185',['hsnorm',['../namespaceddx__core.html#aa459fca8ccf1b5380372e23d03d72fcf',1,'ddx_core']]]
 ];
