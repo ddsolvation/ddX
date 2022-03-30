@@ -113,6 +113,7 @@ end type ddx_type
 
 contains
 
+!------------------------------------------------------------------------------
 !> Initialize ddX input with a full set of parameters
 !!
 !! @param[in] nsph: Number of atoms. n > 0.
@@ -157,6 +158,7 @@ contains
 !!      < 0: If info=-i then i-th argument had an illegal value
 !!      = 1: Allocation of one of buffers failed
 !!      = 2: Deallocation of a temporary buffer failed
+!------------------------------------------------------------------------------
 subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, se, eta, eps, kappa, &
         & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
@@ -497,6 +499,7 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     end if
 end subroutine ddinit
 
+!------------------------------------------------------------------------------
 !> Read configuration from a file
 !!
 !! @param[in] fname: Filename containing all the required info
@@ -505,6 +508,7 @@ end subroutine ddinit
 !!      = 0: Succesfull exit
 !!      < 0: If info=-i then i-th argument had an illegal value
 !!      > 0: Allocation of a buffer for the output ddx_data failed
+!------------------------------------------------------------------------------
 subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     ! Input
     character(len=*), intent(in) :: fname
@@ -710,9 +714,11 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     end if
 end subroutine ddfromfile
 
+!------------------------------------------------------------------------------
 !> Deallocate object with corresponding data
 !!
 !! @param[inout] ddx_data: object to deallocate
+!------------------------------------------------------------------------------
 subroutine ddfree(ddx_data)
     ! Input/output
     type(ddx_type), intent(inout) :: ddx_data
@@ -882,6 +888,7 @@ subroutine ddfree(ddx_data)
     end if
 end subroutine ddfree
 
+!------------------------------------------------------------------------------
 !> Print array of spherical harmonics
 !!
 !! Prints (nbasis, ncol) array
@@ -893,6 +900,7 @@ end subroutine ddfree
 !! @param[in] ncol: Number of columns to print
 !! @param[in] icol: This number is only for printing purposes
 !! @param[in] x: Actual data to print
+!------------------------------------------------------------------------------
 subroutine prtsph(label, nbasis, lmax, ncol, icol, x)
     ! Inputs
     character (len=*), intent(in) :: label
@@ -939,6 +947,7 @@ subroutine prtsph(label, nbasis, lmax, ncol, icol, x)
     1020 format(1x,i3,i4,5f14.8)
 end subroutine prtsph
 
+!------------------------------------------------------------------------------
 !> Print array of quadrature points
 !!
 !! Prints (ngrid, ncol) array
@@ -948,6 +957,7 @@ end subroutine prtsph
 !! @param[in] ncol: Number of columns to print
 !! @param[in] icol: This number is only for printing purposes
 !! @param[in] x: Actual data to print
+!------------------------------------------------------------------------------
 subroutine ptcart(label, ngrid, ncol, icol, x)
     ! Inputs
     character (len=*), intent(in) :: label
@@ -987,10 +997,12 @@ subroutine ptcart(label, ngrid, ncol, icol, x)
     !
 end subroutine ptcart
 
+!------------------------------------------------------------------------------
 !> Print dd Solution vector
 !!
 !! @param[in] label : Label to print
 !! @param[in] vector: Vector to print
+!------------------------------------------------------------------------------
 subroutine print_ddvector(ddx_data, label, vector)
     ! Inputs
     type(ddx_type), intent(in)  :: ddx_data
@@ -1007,6 +1019,7 @@ subroutine print_ddvector(ddx_data, label, vector)
     return
 end subroutine print_ddvector
 
+!------------------------------------------------------------------------------
 !> Compute all spherical harmonics up to a given degree at a given point
 !!
 !! Attempt to improve previous version.
@@ -1038,6 +1051,7 @@ end subroutine print_ddvector
 !!      `(p+1)`
 !! @param[out] vsin: array of values of \f$ \sin(m\phi) \f$ of a dimension
 !!      `(p+1)`
+!------------------------------------------------------------------------------
 subroutine ylmbas2(x, sphcoo, p, vscales, vylm, vplm, vcos, vsin)
     ! Inputs
     integer, intent(in) :: p
@@ -1143,6 +1157,7 @@ subroutine ylmbas2(x, sphcoo, p, vscales, vylm, vplm, vcos, vsin)
     sphcoo(5) = sphi
 end subroutine ylmbas2
 
+!------------------------------------------------------------------------------
 !> Integrate against spherical harmonics
 !!
 !! Integrate by Lebedev spherical quadrature. This function can be simply
@@ -1157,6 +1172,7 @@ end subroutine ylmbas2
 !! @param[in] x_grid: Input values at grid points of the sphere. Dimension is
 !!      (ngrid, nsph).
 !! @param[out] x_lm: Output spherical harmonics. Dimension is (nbasis, nsph).
+!------------------------------------------------------------------------------
 subroutine intrhs(nsph, nbasis, ngrid, vwgrid, ldvwgrid, x_grid, x_lm)
     !! Inputs
     integer, intent(in) :: nsph, nbasis, ngrid, ldvwgrid
@@ -1169,6 +1185,7 @@ subroutine intrhs(nsph, nbasis, ngrid, vwgrid, ldvwgrid, x_grid, x_lm)
         & ngrid, zero, x_lm, nbasis)
 end subroutine intrhs
 
+!------------------------------------------------------------------------------
 !> Compute first derivatives of spherical harmonics
 !!
 !! @param[in] x:
@@ -1182,6 +1199,7 @@ end subroutine intrhs
 !! TODO: rewrite code and fill description. Computing sqrt(one-cthe*cthe)
 !! reduces effective range of input double precision values. cthe*cthe for
 !! cthe=1d+155 is NaN.
+!------------------------------------------------------------------------------
 subroutine dbasis(params, constants, x, basloc, dbsloc, vplm, vcos, vsin)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1310,8 +1328,8 @@ end subroutine dbasis
 !
 !           which is need to compute action of COSMO matrix L.
 !------------------------------------------------------------------------------------------------
-!
-!!> TODO
+!> TODO
+!------------------------------------------------------------------------------
 real(dp) function intmlp(params, constants, t, sigma, basloc )
 !  
       type(ddx_params_type), intent(in) :: params
@@ -1353,8 +1371,10 @@ real(dp) function intmlp(params, constants, t, sigma, basloc )
 !
 end function intmlp
 
+!------------------------------------------------------------------------------
 !> Weigh potential at cavity points by characteristic function
 !> TODO use cavity points in CSR format
+!------------------------------------------------------------------------------
 subroutine wghpot(ncav, phi_cav, nsph, ngrid, ui, phi_grid, g)
     !! Inputs
     integer, intent(in) :: ncav, nsph, ngrid
@@ -1384,8 +1404,9 @@ subroutine wghpot(ncav, phi_cav, nsph, ngrid, ui, phi_grid, g)
     enddo
 end subroutine wghpot
 
-! Purpose : compute H-norm
 !------------------------------------------------------------------------------------------------
+!> Compute the local Sobolev H^(-1/2)-norm on one sphere of u
+!------------------------------------------------------------------------------
 subroutine hsnorm(lmax, nbasis, u, unorm)
     integer, intent(in) :: lmax, nbasis
     real(dp), dimension(nbasis), intent(in) :: u
@@ -1405,8 +1426,8 @@ subroutine hsnorm(lmax, nbasis, u, unorm)
     unorm = sqrt(unorm)
 end subroutine hsnorm
 
-! compute the h^-1/2 norm of the increment on each sphere, then take the
-! rms value.
+!------------------------------------------------------------------------------
+!> Compute the global  Sobolev H^(-1/2)-norm of x
 !-------------------------------------------------------------------------------
 real(dp) function hnorm(lmax, nbasis, nsph, x)
     integer, intent(in) :: lmax, nbasis, nsph
@@ -1432,7 +1453,10 @@ real(dp) function hnorm(lmax, nbasis, nsph, x)
         stop
     endif
 end function hnorm
-!
+
+!------------------------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 real(dp) function rmsnorm(lmax, nbasis, nsph, x)
     integer,                            intent(in) :: lmax, nbasis, nsph
     real(dp),  dimension(nbasis, nsph), intent(in) :: x
@@ -1448,7 +1472,7 @@ real(dp) function rmsnorm(lmax, nbasis, nsph, x)
 end function rmsnorm
 
 !------------------------------------------------------------------------------
-! Purpose : compute root-mean-square and max norm
+!> compute root-mean-square and max norm
 !------------------------------------------------------------------------------
 subroutine rmsvec( n, v, vrms, vmax )
     implicit none
@@ -1468,6 +1492,9 @@ subroutine rmsvec( n, v, vrms, vmax )
     vrms = sqrt(vrms/dble(n))
 endsubroutine rmsvec
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine adjrhs(params, constants, isph, xi, vlm, work)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1502,6 +1529,9 @@ subroutine adjrhs(params, constants, isph, xi, vlm, work)
     enddo
 end subroutine adjrhs
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine calcv(params, constants, isph, pot, sigma, work)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1546,7 +1576,9 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
     end do
 end subroutine calcv
 
+!------------------------------------------------------------------------------
 !> Evaluate values of spherical harmonics at Lebedev grid points
+!------------------------------------------------------------------------------
 subroutine ddeval_grid(params, constants, alpha, x_sph, beta, x_grid, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1579,7 +1611,9 @@ subroutine ddeval_grid(params, constants, alpha, x_sph, beta, x_grid, info)
     info = 0
 end subroutine ddeval_grid
 
+!------------------------------------------------------------------------------
 !> Evaluate values of spherical harmonics at Lebedev grid points
+!------------------------------------------------------------------------------
 subroutine ddeval_grid_work(nbasis, ngrid, nsph, vgrid, ldvgrid, alpha, &
         & x_sph, beta, x_grid)
     !! Inputs
@@ -1595,7 +1629,9 @@ subroutine ddeval_grid_work(nbasis, ngrid, nsph, vgrid, ldvgrid, alpha, &
         & nbasis, beta, x_grid, ngrid)
 end subroutine ddeval_grid_work
 
+!------------------------------------------------------------------------------
 !> Integrate values at grid points into spherical harmonics
+!------------------------------------------------------------------------------
 subroutine ddintegrate_sph(params, constants, alpha, x_grid, beta, x_sph, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1628,7 +1664,9 @@ subroutine ddintegrate_sph(params, constants, alpha, x_grid, beta, x_sph, info)
     info = 0
 end subroutine ddintegrate_sph
 
+!------------------------------------------------------------------------------
 !> Integrate values at grid points into spherical harmonics
+!------------------------------------------------------------------------------
 subroutine ddintegrate_sph_work(nbasis, ngrid, nsph, vwgrid, ldvwgrid, alpha, &
         & x_grid, beta, x_sph)
     !! Inputs
@@ -1643,7 +1681,9 @@ subroutine ddintegrate_sph_work(nbasis, ngrid, nsph, vwgrid, ldvwgrid, alpha, &
         & x_grid, ngrid, beta, x_sph, nbasis)
 end subroutine ddintegrate_sph_work
 
+!------------------------------------------------------------------------------
 !> Unwrap values at cavity points into values at all grid points
+!------------------------------------------------------------------------------
 subroutine ddcav_to_grid(params, constants, x_cav, x_grid, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1674,7 +1714,9 @@ subroutine ddcav_to_grid(params, constants, x_cav, x_grid, info)
     info = 0
 end subroutine ddcav_to_grid
 
+!------------------------------------------------------------------------------
 !> Unwrap values at cavity points into values at all grid points
+!------------------------------------------------------------------------------
 subroutine ddcav_to_grid_work(ngrid, nsph, ncav, icav_ia, icav_ja, x_cav, &
         & x_grid)
     !! Inputs
@@ -1699,6 +1741,7 @@ subroutine ddcav_to_grid_work(ngrid, nsph, ncav, icav_ia, icav_ja, x_cav, &
     end do
 end subroutine ddcav_to_grid_work
 
+!------------------------------------------------------------------------------
 !> Integrate by a characteristic function at Lebedev grid points
 !! \xi(n,i) = 
 !!
@@ -1725,7 +1768,9 @@ end subroutine ddcav_to_grid_work
 !       return
 !end subroutine ddproject_cav_work
 
+!------------------------------------------------------------------------------
 !> Transfer multipole coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_m2m_rotation(params, constants, node_m)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1738,7 +1783,9 @@ subroutine tree_m2m_rotation(params, constants, node_m)
     call tree_m2m_rotation_work(params, constants, node_m, work)
 end subroutine tree_m2m_rotation
 
+!------------------------------------------------------------------------------
 !> Transfer multipole coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_m2m_rotation_work(params, constants, node_m, work)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1780,7 +1827,9 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
     end do
 end subroutine tree_m2m_rotation_work
 
+!------------------------------------------------------------------------------
 !> Transfer multipole coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_m2m_bessel_rotation(params, constants, node_m)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1793,7 +1842,9 @@ subroutine tree_m2m_bessel_rotation(params, constants, node_m)
     call tree_m2m_bessel_rotation_work(params, constants, node_m)
 end subroutine tree_m2m_bessel_rotation
 
+!------------------------------------------------------------------------------
 !> Transfer multipole coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_m2m_bessel_rotation_work(params, constants, node_m)
     use complex_bessel
     ! Inputs
@@ -1848,7 +1899,9 @@ subroutine tree_m2m_bessel_rotation_work(params, constants, node_m)
     end do
 end subroutine tree_m2m_bessel_rotation_work
 
+!------------------------------------------------------------------------------
 !> Adjoint transfer multipole coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_m2m_rotation_adj(params, constants, node_m)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1861,7 +1914,9 @@ subroutine tree_m2m_rotation_adj(params, constants, node_m)
     call tree_m2m_rotation_adj_work(params, constants, node_m, work)
 end subroutine tree_m2m_rotation_adj
 
+!------------------------------------------------------------------------------
 !> Adjoint transfer multipole coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_m2m_rotation_adj_work(params, constants, node_m, work)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1887,7 +1942,9 @@ subroutine tree_m2m_rotation_adj_work(params, constants, node_m, work)
     end do
 end subroutine tree_m2m_rotation_adj_work
 
+!------------------------------------------------------------------------------
 !> Adjoint transfer multipole coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_m2m_bessel_rotation_adj(params, constants, node_m)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1913,7 +1970,9 @@ subroutine tree_m2m_bessel_rotation_adj(params, constants, node_m)
     end do
 end subroutine tree_m2m_bessel_rotation_adj
 
+!------------------------------------------------------------------------------
 !> Transfer local coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_l2l_rotation(params, constants, node_l)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1926,7 +1985,9 @@ subroutine tree_l2l_rotation(params, constants, node_l)
     call tree_l2l_rotation_work(params, constants, node_l, work)
 end subroutine tree_l2l_rotation
 
+!------------------------------------------------------------------------------
 !> Transfer local coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_l2l_rotation_work(params, constants, node_l, work)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1954,7 +2015,9 @@ subroutine tree_l2l_rotation_work(params, constants, node_l, work)
     end do
 end subroutine tree_l2l_rotation_work
 
+!------------------------------------------------------------------------------
 !> Transfer local coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_l2l_bessel_rotation(params, constants, node_l)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1967,7 +2030,9 @@ subroutine tree_l2l_bessel_rotation(params, constants, node_l)
     call tree_l2l_bessel_rotation_work(params, constants, node_l)
 end subroutine tree_l2l_bessel_rotation
 
+!------------------------------------------------------------------------------
 !> Transfer local coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_l2l_bessel_rotation_work(params, constants, node_l)
     use complex_bessel
     ! Inputs
@@ -2001,7 +2066,9 @@ subroutine tree_l2l_bessel_rotation_work(params, constants, node_l)
     end do
 end subroutine tree_l2l_bessel_rotation_work
 
+!------------------------------------------------------------------------------
 !> Adjoint transfer local coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_l2l_rotation_adj(params, constants, node_l)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2014,7 +2081,9 @@ subroutine tree_l2l_rotation_adj(params, constants, node_l)
     call tree_l2l_rotation_adj_work(params, constants, node_l, work)
 end subroutine tree_l2l_rotation_adj
 
+!------------------------------------------------------------------------------
 !> Adjoint transfer local coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_l2l_rotation_adj_work(params, constants, node_l, work)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2050,7 +2119,9 @@ subroutine tree_l2l_rotation_adj_work(params, constants, node_l, work)
     end do
 end subroutine tree_l2l_rotation_adj_work
 
+!------------------------------------------------------------------------------
 !> Adjoint transfer local coefficients over a tree
+!------------------------------------------------------------------------------
 subroutine tree_l2l_bessel_rotation_adj(params, constants, node_l)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2094,7 +2165,9 @@ subroutine tree_l2l_bessel_rotation_adj(params, constants, node_l)
     end do
 end subroutine tree_l2l_bessel_rotation_adj
 
+!------------------------------------------------------------------------------
 !> Transfer multipole local coefficients into local over a tree
+!------------------------------------------------------------------------------
 subroutine tree_m2l_rotation(params, constants, node_m, node_l)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2140,7 +2213,9 @@ subroutine tree_m2l_rotation(params, constants, node_m, node_l)
     end do
 end subroutine tree_m2l_rotation
 
+!------------------------------------------------------------------------------
 !> Transfer multipole local coefficients into local over a tree
+!------------------------------------------------------------------------------
 subroutine tree_m2l_bessel_rotation(params, constants, node_m, node_l)
     use complex_bessel
     ! Inputs
@@ -2196,7 +2271,9 @@ subroutine tree_m2l_bessel_rotation(params, constants, node_m, node_l)
     end do
 end subroutine tree_m2l_bessel_rotation
 
+!------------------------------------------------------------------------------
 !> Adjoint transfer multipole local coefficients into local over a tree
+!------------------------------------------------------------------------------
 subroutine tree_m2l_bessel_rotation_adj(params, constants, node_l, node_m)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2236,7 +2313,9 @@ subroutine tree_m2l_bessel_rotation_adj(params, constants, node_l, node_m)
     end do
 end subroutine tree_m2l_bessel_rotation_adj
 
+!------------------------------------------------------------------------------
 !> Adjoint transfer multipole local coefficients into local over a tree
+!------------------------------------------------------------------------------
 subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2274,6 +2353,9 @@ subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)
     end do
 end subroutine tree_m2l_rotation_adj
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v, sph_l)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2310,6 +2392,9 @@ subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v, sph_l)
 
 end subroutine tree_l2p
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine tree_l2p_bessel(params, constants, alpha, node_l, beta, grid_v)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2339,6 +2424,9 @@ subroutine tree_l2p_bessel(params, constants, alpha, node_l, beta, grid_v)
         & params % ngrid)
 end subroutine tree_l2p_bessel
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l, sph_l)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2372,6 +2460,9 @@ subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l, sph_l)
     end do
 end subroutine tree_l2p_adj
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine tree_l2p_bessel_adj(params, constants, alpha, grid_v, beta, node_l)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2403,6 +2494,9 @@ subroutine tree_l2p_bessel_adj(params, constants, alpha, grid_v, beta, node_l)
     end do
 end subroutine tree_l2p_bessel_adj
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine tree_m2p(params, constants, p, alpha, sph_m, beta, grid_v)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2449,6 +2543,9 @@ subroutine tree_m2p(params, constants, p, alpha, sph_m, beta, grid_v)
     end do
 end subroutine tree_m2p
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine tree_m2p_bessel(params, constants, p, alpha, sph_p, sph_m, beta, grid_v)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2494,6 +2591,9 @@ subroutine tree_m2p_bessel(params, constants, p, alpha, sph_p, sph_m, beta, grid
     end do
 end subroutine tree_m2p_bessel
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine tree_m2p_adj(params, constants, p, alpha, grid_v, beta, sph_m)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2538,6 +2638,9 @@ subroutine tree_m2p_adj(params, constants, p, alpha, grid_v, beta, sph_m)
     end do
 end subroutine tree_m2p_adj
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p, &
         & sph_m)
     ! Inputs
@@ -2583,6 +2686,9 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
     end do
 end subroutine tree_m2p_bessel_adj
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine tree_m2p_bessel_nodiag_adj(params, constants, p, alpha, grid_v, beta, sph_p, &
         & sph_m)
     ! Inputs
@@ -2628,6 +2734,9 @@ subroutine tree_m2p_bessel_nodiag_adj(params, constants, p, alpha, grid_v, beta,
     end do
 end subroutine tree_m2p_bessel_nodiag_adj
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine fdoka(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -2707,7 +2816,9 @@ end subroutine fdoka
 !      
 !      
 !      
-!-----------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine fdokb(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -2822,7 +2933,9 @@ subroutine fdokb(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos,
 !
 !
 !
-!-----------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine fdoga(params, constants, isph, xi, phi, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -2865,6 +2978,9 @@ subroutine fdoga(params, constants, isph, xi, phi, fx )
 !
 end subroutine fdoga
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine efld(ncav,zeta,ccav,nsph,csph,force)
 integer,                    intent(in)    :: ncav, nsph
 real*8,  dimension(ncav),   intent(in)    :: zeta
@@ -2895,6 +3011,9 @@ do isph = 1, nsph
 end do
 end subroutine efld
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine tree_grad_m2m(params, constants, sph_m, sph_m_grad, work)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -2955,6 +3074,9 @@ subroutine tree_grad_m2m(params, constants, sph_m, sph_m_grad, work)
     end do
 end subroutine tree_grad_m2m
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
 subroutine tree_grad_l2l(params, constants, node_l, sph_l_grad, work)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -3024,7 +3146,9 @@ subroutine tree_grad_l2l(params, constants, node_l, sph_l_grad, work)
     sph_l_grad(indi-l:indi+l, :, :) = zero
 end subroutine tree_grad_l2l
 !
+!------------------------------------------------------------------------------
 !> small routine to print a tidy header with various info on the calculation.
+!------------------------------------------------------------------------------
 subroutine print_header(iprint,params)
     implicit none
     integer,               intent(in) :: iprint
