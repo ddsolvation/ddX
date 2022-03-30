@@ -1,8 +1,8 @@
 # Theory
-### Introduction
+## Introduction
 
 
-### Cavity and solute density
+## Cavity and solute density
 ddX considers vdW- and SAS-cavities that can be defined by a set of \f$M\f$ balls \f$\Omega_j\f$ each of which is located at \f$\textbf{x}_j\in\mathbb R^3\f$ with radius \f$r_j\in\mathbb R\f$. The region occupied by the solute molecule is given by
 \f[
     \Omega = \cup_{j=1}^M \Omega_j.
@@ -22,10 +22,10 @@ where \f$G_0(r) = \frac{1}{4\pi r} \f$ denotes the fundamental solution of the L
 We also introduce the Yukawa-potential \f$G_\kappa(r) = \frac{e^{-\kappa r}}{4\pi r} \f$, which is the fundamental solution of the operator \f$\mathcal L_\kappa = -\Delta+\kappa^2\f$.
 
 
-### Models
+## Models
 The three methods COSMO, PCM and LPB differ by the model of the physical between the solute and the impmlicit/bulk solvent. 
 
-####Linearized Poisson-Boltzmann model (LPB)
+###Linearized Poisson-Boltzmann model (LPB)
 
 The LPB-model is the most general one of the three models and the (implicit) solvent is assumed to be homogeneous continuum with relative dielectric permittivity \f$\varepsilon_s\f$ and Debye Hückel constant \f$\kappa_s\f$. 
 Then the LPB-equations are given by: find the potential \f$V\f$ solution to 
@@ -64,7 +64,7 @@ where \f$S_\kappa\f$ denotes the single-layer potential with respect to the oper
 Note that \f$\partial_n=\frac{\partial}{\partial n}\f$ stands for the normal derivative.
 
 
-####Polarizable Continuum Model (PCM)
+###Polarizable Continuum Model (PCM)
 
 The PCM is the particular case of LPB with \f$\kappa_s=0\f$. 
 ddPCM relies on the following equivalent Integral-Equation formulation: find the charge density \f$\sigma\f$ and the intermediate potential \f$\Phi_\varepsilon\f$ that satisfy
@@ -85,7 +85,7 @@ and \f$S\f$ and \f$D\f$ denote the single and double-layer boundary operators re
  \f}
  Note that \f$n(\textbf{s'})\f$ denotes the outward-pointing unit normal at \f$\textbf{s'}\in\partial\Omega\f$.
 
-####COnductor-like Screening MOdel (COSMO)
+###COnductor-like Screening MOdel (COSMO)
 
 The COSMO is the particular case of PCM with \f$\varepsilon_s=+\infty\f$, i.e. the solvent is assumed to be a perfect conductor. In consequence, \f$V=0\f$ in \f$\mathbb R^3\backslash \Omega\f$ and the problem reduces to 
 \f[
@@ -120,5 +120,176 @@ where \f$W=V-\Phi\f$ denotes the reaction-potential and the force-vector \f$F_i\
     F_i = -\nabla_{\textbf{x}_i} E_s.
 \f]
 
+## Discrete equations in a general framework - overview
+The resulting linear system for all three methods can be written in the general form
+\f[
+        \tilde{\operatorname{L}} \tilde{\operatorname{X}} = \tilde{\operatorname{F}},
+\f]
+and the energy can be computed as
+\f[
+    E_s = \frac12 \langle \tilde \Psi, \tilde{\operatorname{X}} \rangle.
+\f]
+###ddCOSMO:
+\f[
+    \tilde{\operatorname{L}} = \begin{pmatrix} \operatorname{L} & 0 \\ 0 & 0 \end{pmatrix}
+    \qquad
+    \tilde{\operatorname{X}} = \begin{pmatrix} \operatorname{X} \\ 0 \end{pmatrix}
+    \qquad
+    \tilde{\operatorname{F}} = \begin{pmatrix} -\Phi \\ 0 \end{pmatrix}
+    \qquad
+    \tilde{\Psi} = f(\varepsilon)\begin{pmatrix} \Psi \\ 0 \end{pmatrix}
+\f]
+*Note*: The notation used in the ddCOSMO-literature, see e.g. [1,2,7], uses \f$\operatorname{g} = -\Phi\f$.
 
+The subroutine for matrix-vector multiplications of the \f$\tilde{\operatorname{L}}\f$ with a vector is 
+``` markdown
+> lx(...)     in ddx_operators.f90
+```
+###ddPCM:
+\f[
+    \tilde{\operatorname{L}} = \begin{pmatrix} \operatorname{L} & \operatorname{I}_d \\ 0 & \operatorname{R}_\varepsilon \end{pmatrix}
+    \qquad
+    \tilde{\operatorname{S}} = \begin{pmatrix} \operatorname{X} \\ \Phi_\varepsilon \end{pmatrix}
+    \qquad
+    \tilde{\operatorname{F}} = \begin{pmatrix} \operatorname{0} \\ \operatorname{R}_\infty\Phi \end{pmatrix}
+    \qquad
+    \tilde{\Psi} = \begin{pmatrix} \Psi \\ 0 \end{pmatrix}
+\f]
+*Note*: The notation used in the references [8,9], uses \f$\sigma = \operatorname{X}\f$.
 
+The subroutine for matrix-vector multiplications of the \f$\operatorname{R}_\varepsilon\f$ and \f$\operatorname{R}_\infty\f$ with a vector is 
+``` markdown
+> repsx(...)     in ddx_operators.f90
+> rinfx(...)     in ddx_operators.f90
+```
+###ddLPB:
+\f[
+    \tilde{\operatorname{L}} = \tilde{\operatorname{T}} = \begin{pmatrix} \operatorname{A} & 0 \\ 0 & \operatorname{B} \end{pmatrix} + \tilde{\operatorname{C}}
+    \qquad
+    \tilde{\operatorname{C}} = \begin{pmatrix} \operatorname{C}_1 & \operatorname{C}_2 \\ \operatorname{C}_1 & \operatorname{C}_2 \end{pmatrix}
+    \qquad
+    \tilde{\operatorname{X}} = \begin{pmatrix} \operatorname{X} \\ \operatorname{X}_e \end{pmatrix}
+    \qquad
+    \tilde{\operatorname{F}} = \begin{pmatrix} \operatorname{F}_0-\Phi \\ \operatorname{F}_0 \end{pmatrix}
+    \qquad
+    \tilde{\Psi} = \begin{pmatrix} \Psi \\ 0 \end{pmatrix}
+\f]
+*Note*: The notation used in the ddLPB-literature, see e.g. [11,12], uses \f$\operatorname{X}_r = \operatorname{X}\f$.
+
+The subroutine for matrix-vector multiplications of the \f$\tilde{\operatorname{T}}\f$, \f$\operatorname{A}\f$,\f$\operatorname{B}\f$  and \f$\tilde{\operatorname{C}}\f$ with a vector is 
+``` markdown
+> tx(...)     in ddx_operators.f90 ????
+> ax(...)     in ddx_operators.f90 ????
+> bx(...)     in ddx_operators.f90
+> cx(...)     in ddx_operators.f90
+```
+## Gradient computations
+The derivative of the energy with respect to a parameter \f$\lambda\f$ is computed using the adjoint method
+\f{align*}{
+E^\lambda_s 
+&= \frac12 \langle \tilde \Psi^\lambda, \tilde{\operatorname{X}} \rangle + \frac12 \langle \tilde \Psi, \tilde{\operatorname{X}}^\lambda \rangle
+= \frac12 \langle \tilde \Psi^\lambda, \tilde{\operatorname{X}} \rangle + \frac12 \langle \tilde{\operatorname{S}}, \tilde{\operatorname{H}} \rangle 
+\f}
+where \f$\tilde{\operatorname{S}}\f$ is solution to the adjoint linear system
+\f[
+            \tilde{\operatorname{L}}^\top \tilde{\operatorname{S}} = \tilde{\Psi},
+\f]
+and 
+\f[
+    \tilde{\operatorname{H}} = \tilde{\operatorname{F}}^\lambda - \tilde{\operatorname{L}}^\lambda \tilde{\operatorname{X}}.
+\f]
+###ddCOSMO:
+\f[
+    \tilde{\operatorname{L}}^\top = \begin{pmatrix} \operatorname{L}^\top & 0 \\ 0 & 0 \end{pmatrix}
+    \qquad
+    \tilde{\operatorname{S}} = \begin{pmatrix} \operatorname{S} \\ 0 \end{pmatrix}
+    \qquad
+    \tilde{\operatorname{H}} = \begin{pmatrix} -\Phi^\lambda - \operatorname{L}^\lambda \operatorname{X} \\ 0 \end{pmatrix}
+\f]
+The subroutine for matrix-vector multiplications of the \f$\tilde{\operatorname{L}}^\top\f$ with a vector is 
+``` markdown
+> lstarx(...)     in ddx_operators.f90
+```
+The term \f$\langle \tilde{\operatorname{S}}, \tilde{\operatorname{H}} \rangle\f$ then writes
+\f[
+    \langle \tilde{\operatorname{S}}, \tilde{\operatorname{H}} \rangle
+    = 
+    - \langle \operatorname{S}, \Phi^\lambda\rangle
+    - \langle \operatorname{S}, \operatorname{L}^\lambda\operatorname{X} \rangle
+\f]
+The subroutine for the contraction of the differentiated matrix \f$\operatorname{L}^\lambda\f$ with two vectors is 
+``` markdown
+> contract_gradl(...)     in ddx_gradient.f90 ????
+```
+
+###ddPCM:
+\f[
+    \tilde{\operatorname{L}}^\top = \begin{pmatrix} \operatorname{L}^\top & 0 \\ \operatorname{I}_d & \operatorname{R}_\varepsilon^\top \end{pmatrix}
+    \qquad
+    \tilde{\operatorname{S}} = \begin{pmatrix} \operatorname{S} \\ \operatorname{Y} \end{pmatrix}
+    \qquad
+    \tilde{\operatorname{H}} = \begin{pmatrix} -\operatorname{L}^\lambda\operatorname{X} \\ \operatorname{R}^\lambda(\Phi-\Phi_\varepsilon)+\operatorname{R}_\infty\Phi^\lambda \end{pmatrix}
+\f]
+*Note*: Compared to the notation used in [10], a change of sign \f$\operatorname{Y} \to -\operatorname{Y}\f$ applies.
+
+The subroutine for matrix-vector multiplications of the \f$\operatorname{R}_\varepsilon^\top\f$ and \f$\operatorname{R}_\infty^\top\f$ with a vector is 
+``` markdown
+> repsstarx(...)     in ddx_operators.f90
+> rinfstarx(...)     in ddx_operators.f90
+```
+**Remarks**:
+1. There holds \f$\operatorname{S}=-\operatorname{R}_\varepsilon^\top\operatorname{Y}\f$.
+2. Since \f$\operatorname{R}_\infty-\operatorname{R}_\varepsilon=-\frac{4\pi}{\varepsilon_s-1}\f$ (?check sign?) is constant there holds \f$\operatorname{R}^\lambda:=\operatorname{R}^\lambda_\varepsilon=\operatorname{R}^\lambda_\infty\f$.
+3. As consequence of 1. and 2., it is advantageous to write
+\f[
+    \langle \tilde{\operatorname{S}}, \tilde{\operatorname{H}} \rangle
+    = 
+    - \langle \operatorname{S}, \operatorname{L}^\lambda\operatorname{X} \rangle
+    + \langle \operatorname{Y}, \operatorname{R}^\lambda(\Phi-\Phi_\varepsilon) \rangle
+    -  \langle \operatorname{Q}, \Phi^\lambda \rangle
+    \qquad 
+    \operatorname{Q} := \operatorname{S} + \frac{4\pi}{\varepsilon_s-1} \operatorname{Y}.
+\f]
+
+The subroutine for the contraction of the differentiated matrix \f$\operatorname{R}^\lambda\f$ with two vectors is 
+``` markdown
+> contract_gradr(...)     in ddx_gradient.f90 ????
+```
+
+###ddLPB:
+\f[
+    \tilde{\operatorname{L}}^\top = \tilde{\operatorname{T}}^\top = \begin{pmatrix} \operatorname{A}^\top & 0 \\ 0 & \operatorname{B}^\top \end{pmatrix} + \tilde{\operatorname{C}}^\top
+    \qquad
+    \tilde{\operatorname{C}}^\top = \begin{pmatrix} \operatorname{C}_1^\top & \operatorname{C}_1^\top \\ \operatorname{C}_2^\top & \operatorname{C}_2^\top \end{pmatrix}
+    \qquad
+    \tilde{\operatorname{X}} = \begin{pmatrix} \operatorname{S} \\ \operatorname{S}_e \end{pmatrix}
+    \qquad
+    \tilde{\operatorname{H}} = \begin{pmatrix} 
+        \operatorname{F}_0^\lambda-\Phi^\lambda - \operatorname{A}^\lambda - \operatorname{C}_1^\lambda \operatorname{X} - \operatorname{C}_2^\lambda \operatorname{X}_e 
+        \\
+        \operatorname{F}_0^\lambda - \operatorname{B}^\lambda - \operatorname{C}_1^\lambda \operatorname{X} - \operatorname{C}_2^\lambda \operatorname{X}_e 
+     \end{pmatrix}
+\f]
+The subroutine for matrix-vector multiplications of the \f$\tilde{\operatorname{T}}^\top\f$, \f$\operatorname{A}^\top\f$,\f$\operatorname{B}^\top\f$  and \f$\tilde{\operatorname{C}}^\top\f$ with a vector is 
+``` markdown
+> tstarx(...)     in ddx_operators.f90 ????
+> astarx(...)     in ddx_operators.f90 ????
+> bstarx(...)     in ddx_operators.f90
+> cstarx(...)     in ddx_operators.f90
+```
+The term \f$\langle \tilde{\operatorname{S}}, \tilde{\operatorname{H}} \rangle\f$ then writes
+\f[
+    \langle \tilde{\operatorname{S}}, \tilde{\operatorname{H}} \rangle
+    = 
+    \langle \operatorname{S}, \operatorname{F}_0^\lambda-\Phi\lambda^\rangle
+    + \langle \operatorname{S}_e, \operatorname{F}_0^\lambda\rangle
+    - \langle \operatorname{S}, \operatorname{A}^\lambda\operatorname{X} \rangle
+    - \langle \operatorname{S}_e, \operatorname{B}^\lambda\operatorname{X}_e \rangle
+    - \langle \tilde{\operatorname{S}}, \tilde{\operatorname{C}}_1^\lambda\tilde{\operatorname{X}} \rangle.
+\f]
+The subroutine for the contraction of the differentiated matrices \f$\operatorname{A}^\lambda\f$, \f$\operatorname{B}^\lambda\f$ and \f$\tilde{\operatorname{C}}^\lambda\f$ with two vectors is 
+``` markdown
+> contract_grada(...)     in ddx_gradient.f90 ????
+> contract_gradb(...)     in ddx_gradient.f90 ????
+> contract_gradc(...)     in ddx_gradient.f90 ????
+```
