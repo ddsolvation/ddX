@@ -17,6 +17,39 @@ implicit none
 
 contains
 
+subroutine ddcosmo_solve(params, constants, workspace, state, phi_cav, tol)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav)
+    real(dp), intent(in) :: tol
+    integer :: info
+
+    state % xs_niter =  params % maxiter
+    call ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
+        & state % xs, state % xs_niter, state % xs_rel_diff, state % xs_time &
+        & tol, phi_grid, phi, info)
+end subroutine ddcosmo_solve
+
+subroutine ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    real(dp), intent(in) :: tol
+    integer :: info
+
+    call ddcosmo_adjoint(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, psi, tol, s_mode, ddx_data % s, &
+        & ddx_data % s_niter, ddx_data % s_rel_diff, ddx_data % s_time, &
+        & info)
+
+end subroutine ddcosmo_adjoint
+
 !> ddCOSMO solver
 !!
 !! Solves the problem within COSMO model using a domain decomposition approach.
@@ -55,10 +88,6 @@ subroutine ddcosmo(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, &
         s_mode = 0
         ! Solve adjoint ddCOSMO system
         ddx_data % s_niter = ddx_data % params % maxiter
-        call ddcosmo_adjoint(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, psi, tol, s_mode, ddx_data % s, &
-            & ddx_data % s_niter, ddx_data % s_rel_diff, ddx_data % s_time, &
-            & info)
         ! Get forces, they are initialized with zeros
         call ddcosmo_forces(ddx_data % params, ddx_data % constants, &
             & ddx_data % workspace, ddx_data % phi_grid, gradphi_cav, &
@@ -84,13 +113,12 @@ end subroutine ddcosmo
 !! @param[out] phi_grid
 !! @param[out] phi
 !! @param[out] info
-subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, &
-        & xs_mode, xs, xs_niter, xs_rel_diff, xs_time, tol, esolv, phi_grid, &
+subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
+        & xs, xs_niter, xs_rel_diff, xs_time, tol, phi_grid, &
         & phi, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    integer, intent(in) :: xs_mode
     real(dp), intent(in) :: phi_cav(constants % ncav), &
         & psi(constants % nbasis, params % nsph), tol
     !! Input+output
@@ -143,10 +171,6 @@ subroutine ddcosmo_energy(params, constants, workspace, phi_cav, psi, &
         & one, workspace % tmp_grid, zero, phi)
     ! Set right hand side to -Phi
     workspace % tmp_rhs = -phi
-    ! Zero initialize guess for the solution if needed
-    if (xs_mode .eq. 0) then
-        xs = zero
-    end if
     ! Solve ddCOSMO system L X = -Phi with a given initial guess
     start_time = omp_get_wtime()
     if (params % itersolver .eq. 1) then
@@ -178,15 +202,13 @@ end subroutine ddcosmo_energy
 !! @param[inout] workspace
 !! @param[in] psi
 !! @param[in] tol
-!! @param[in] s_mode
 !! @param[inout] s
 !! @param[out] info
-subroutine ddcosmo_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
+subroutine ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, s, &
         & s_niter, s_rel_diff, s_time, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    integer, intent(in) :: s_mode
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph), tol
     !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -219,10 +241,6 @@ subroutine ddcosmo_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
         call params % print_func(string)
         info = 1
         return
-    end if
-    ! Initialize guess for the solution `s` if needed
-    if (s_mode .eq. 0) then
-        s = zero
     end if
     call cpu_time(start_time)
     if (params % itersolver .eq. 1) then

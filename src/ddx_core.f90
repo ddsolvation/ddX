@@ -23,35 +23,19 @@ use ddx_harmonics
 use omp_lib
 implicit none
 
-!> Main ddX type that stores all required information
-type ddx_type
-    !! New types inside the old one for an easier shift to the new design
-    type(ddx_params_type) :: params
-    type(ddx_constants_type) :: constants
-    type(ddx_workspace_type) :: workspace
+type ddx_state_type
     !! High-level entities to be stored and accessed by users
-    !> Potential at all grid points. Dimension is (ngrid, nsph). Allocated
-    !!      and used by all models.
-    real(dp), allocatable :: phi_grid(:, :)
+
+    !!
+    !! ddCOSMO quantities (used also by ddPCM)
+    !!
     !> Variable \f$ \Phi \f$ of a dimension (nbasis, nsph). Allocated and used
     !!      by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: phi(:, :)
-    !> Variable \f$ \Phi_\infty \f$ of a dimension (nbasis, nsph). Allocated
-    !!      and used only by PCM (model=2) model.
-    real(dp), allocatable :: phiinf(:, :)
-    !> Variable \f$ \Phi_\varepsilon \f$ of a dimension (nbasis, nsph).
-    !!      Allocated and used only by PCM (model=2) model.
-    real(dp), allocatable :: phieps(:, :)
-    !> Number of iteration to solve ddPCM system
-    integer :: phieps_niter
-    !> Relative error of each step of iterative solver for ddPCM system.
-    !!      Dimension is (maxiter).
-    real(dp), allocatable :: phieps_rel_diff(:)
-    !> Time to solve primal ddPCM system
-    real(dp) :: phieps_time
     !> Solution of the ddCOSMO system of a dimension (nbasis, nsph). Allocated
     !!      and used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: xs(:, :)
+
     !> Number of iteration to solve ddCOSMO system
     integer :: xs_niter
     !> Relative error of each step of iterative solver for ddCOSMO system.
@@ -59,6 +43,31 @@ type ddx_type
     real(dp), allocatable :: xs_rel_diff(:)
     !> Time to solve primal ddCOSMO system
     real(dp) :: xs_time
+    !> Values of s at grid points. Dimension is (ngrid, nsph). Allocated and
+    !!      used by COSMO (model=1) and PCM (model=2) models.
+    real(dp), allocatable :: sgrid(:, :)
+
+    !!
+    !! ddPCM specific quantities
+    !!
+    !> Variable \f$ \Phi_\infty \f$ of a dimension (nbasis, nsph). Allocated
+    !!      and used only by PCM (model=2) model.
+    real(dp), allocatable :: phiinf(:, :)
+    !> Variable \f$ \Phi_\varepsilon \f$ of a dimension (nbasis, nsph).
+    !!      Allocated and used only by PCM (model=2) model.
+    real(dp), allocatable :: phieps(:, :)
+
+    !> Number of iteration to solve ddPCM system
+    integer :: phieps_niter
+    !> Relative error of each step of iterative solver for ddPCM system.
+    !!      Dimension is (maxiter).
+    real(dp), allocatable :: phieps_rel_diff(:)
+    !> Time to solve primal ddPCM system
+    real(dp) :: phieps_time
+    !> Shortcut of \f$ \Phi_\varepsilon - \Phi \f$
+    real(dp), allocatable :: g(:, :)
+
+
     !> Solution of the adjoint ddCOSMO system of a dimension (nbasis, nsph).
     !!      Allocated and used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: s(:, :)
@@ -69,9 +78,6 @@ type ddx_type
     real(dp), allocatable :: s_rel_diff(:)
     !> Time to solve adjoint ddCOSMO system
     real(dp) :: s_time
-    !> Values of s at grid points. Dimension is (ngrid, nsph). Allocated and
-    !!      used by COSMO (model=1) and PCM (model=2) models.
-    real(dp), allocatable :: sgrid(:, :)
     !> Solution of the adjoint ddPCM system of a dimension (nbasis, nsph).
     !!      Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: y(:, :)
@@ -85,26 +91,49 @@ type ddx_type
     !> Values of y at grid points. Dimension is (ngrid, nsph). Allocated and
     !!      used only by PCM (model=2) model.
     real(dp), allocatable :: ygrid(:, :)
-    !> Shortcut of \f$ \Phi_\varepsilon - \Phi \f$
-    real(dp), allocatable :: g(:, :)
     !> s-4pi/(eps-1)y of dimension (nbasis, nsph)
     real(dp), allocatable :: q(:, :)
     !> Values of q at grid points. Dimension is (ngrid, nsph)
     real(dp), allocatable :: qgrid(:, :)
-    !> Zeta intermediate for forces. Dimension is (ncav)
-    real(dp), allocatable :: zeta(:)
+
+    !!
+    !! ddLPB quantities
+    !!
     !> Solution to the ddLPB linear system. Dimension is (nbasis,nsph,2). Allocated
     !! and used only by LPB (model=3) model
     real(dp), allocatable :: x_lpb(:,:,:)
-    !> Solution to the ddLPB ajoint system. Dimension is (nbasis,nsph,2). Allocated
-    !! and used only by LPB (model=3) model
+    !> Solution to the ddLPB ajoint system. Dimension is (nbasis,nsph,2).
+    !! Allocated and used only by LPB (model=3) model
     real(dp), allocatable :: x_adj_lpb(:,:,:)
-    !> g intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only
-    !! by LPB (model=3) model
+    !> g intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and
+    !! used only by LPB (model=3) model
     real(dp), allocatable :: g_lpb(:,:)
-    !> d intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only
+    !> d intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and
+    !! used only
     !! by LPB (model=3) model
     real(dp), allocatable :: f_lpb(:,:)
+
+    !!
+    !! Misc
+    !!
+    !> Zeta intermediate for forces. Dimension is (ncav)
+    real(dp), allocatable :: zeta(:)
+    !> Potential at all grid points. Dimension is (ngrid, nsph). Allocated
+    !!      and used by all models.
+    real(dp), allocatable :: phi_grid(:, :)
+    !> Flag if there were an error
+    integer :: error_flag
+    !> Last error message
+    character(len=255) :: error_message
+
+end type ddx_state_type
+
+!> Main ddX type that stores all required information
+type ddx_type
+    !! New types inside the old one for an easier shift to the new design
+    type(ddx_params_type) :: params
+    type(ddx_constants_type) :: constants
+    type(ddx_workspace_type) :: workspace
     !> Flag if there were an error
     integer :: error_flag
     !> Last error message
@@ -199,303 +228,278 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     call workspace_init(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, info)
     if (info .ne. 0) return
-    !! Per-model allocations
+end subroutine ddinit
+
+subroutine ddx_init_state(params, constants, state)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(out) :: state
+    integer :: istatus
+
     ! COSMO model
-    if (model .eq. 1) then
-        allocate(ddx_data % phi_grid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+    if (params % model .eq. 1) then
+        allocate(state % phi_grid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `phi_grid` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `phi_grid` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % phi(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % phi(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `phi` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `phi` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % xs(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % xs(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % xs_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % xs_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % s(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % s(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `s` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `s` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % s_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % s_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `s_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `s_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % sgrid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % sgrid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `sgrid` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `sgrid` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % zeta(ddx_data % constants % ncav), stat=istatus)
+        allocate(state % zeta(constants % ncav), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `zeta` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `zeta` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
     ! PCM model
-    else if (model .eq. 2) then
-        allocate(ddx_data % phi_grid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+    else if (params % model .eq. 2) then
+        allocate(state % phi_grid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `phi_grid` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `phi_grid` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % phi(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % phi(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `phi` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `phi` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % phiinf(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % phiinf(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `phiinf` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `phiinf` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % phieps(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % phieps(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `phieps` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `phieps` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % phieps_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % phieps_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % xs(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % xs(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % xs_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % xs_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % s(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % s(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `s` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `s` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % s_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % s_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % sgrid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % sgrid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `sgrid` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `sgrid` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % y(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % y(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `y` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `y` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % y_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % y_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `y_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `y_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % ygrid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % ygrid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `ygrid` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `ygrid` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % g(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % g(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `g` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `g` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % q(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % q(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `q` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `q` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % qgrid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % qgrid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `qgrid` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `qgrid` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % zeta(ddx_data % constants % ncav), stat=istatus)
+        allocate(state % zeta(constants % ncav), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `zeta` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `zeta` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
     ! LPB model
-    else if (model .eq. 3) then
-        allocate(ddx_data % phi_grid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+    else if (params % model .eq. 3) then
+        allocate(state % phi_grid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
           !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
             return
         end if
-        allocate(ddx_data % phi(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % phi(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
             !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
             return
         end if
-        allocate(ddx_data % zeta(ddx_data % constants % ncav), stat=istatus)
+        allocate(state % zeta(constants % ncav), stat=istatus)
         if (istatus .ne. 0) then
             !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
             return
         end if
-        allocate(ddx_data % xs_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % xs_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % x_lpb(ddx_data % constants % nbasis, ddx_data % params % nsph, 2), &
+        allocate(state % x_lpb(constants % nbasis, &
+            & params % nsph, 2), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `x_lpb` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `x_lpb` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % x_adj_lpb(ddx_data % constants % nbasis, ddx_data % params % nsph, 2), &
-            & stat=istatus)
+        allocate(state % x_adj_lpb(constants % nbasis, &
+            & params % nsph, 2), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `x_adj_lpb` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `x_adj_lpb` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % g_lpb(ddx_data % params % ngrid, ddx_data % params % nsph), &
-            & stat=istatus)
+        allocate(state % g_lpb(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `g_lpb` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `g_lpb` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % f_lpb(ddx_data % params % ngrid, ddx_data % params % nsph), &
-            & stat=istatus)
+        allocate(state % f_lpb(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `f_lpb` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `f_lpb` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
     end if
-end subroutine ddinit
+end subroutine ddx_init_state
 
 !> Read configuration from a file
 !!
@@ -733,154 +737,161 @@ subroutine ddfree(ddx_data)
         write(*, *) "params_free failed!"
         stop 1
     end if
-    if (allocated(ddx_data % phi_grid)) then
-        deallocate(ddx_data % phi_grid, stat=istatus)
+end subroutine ddfree
+
+subroutine ddx_free_state(state)
+    implicit none
+    type(ddx_state_type), intent(inout) :: state
+    integer :: istatus
+
+    if (allocated(state % phi_grid)) then
+        deallocate(state % phi_grid, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`phi_grid` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % phi)) then
-        deallocate(ddx_data % phi, stat=istatus)
+    if (allocated(state % phi)) then
+        deallocate(state % phi, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`phi` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % phiinf)) then
-        deallocate(ddx_data % phiinf, stat=istatus)
+    if (allocated(state % phiinf)) then
+        deallocate(state % phiinf, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`phiinf` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % phieps)) then
-        deallocate(ddx_data % phieps, stat=istatus)
+    if (allocated(state % phieps)) then
+        deallocate(state % phieps, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`phieps` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % phieps_rel_diff)) then
-        deallocate(ddx_data % phieps_rel_diff, stat=istatus)
+    if (allocated(state % phieps_rel_diff)) then
+        deallocate(state % phieps_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`phieps_rel_diff` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % xs)) then
-        deallocate(ddx_data % xs, stat=istatus)
+    if (allocated(state % xs)) then
+        deallocate(state % xs, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`xs` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % xs_rel_diff)) then
-        deallocate(ddx_data % xs_rel_diff, stat=istatus)
+    if (allocated(state % xs_rel_diff)) then
+        deallocate(state % xs_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`xs_rel_diff` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % s)) then
-        deallocate(ddx_data % s, stat=istatus)
+    if (allocated(state % s)) then
+        deallocate(state % s, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`s` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % s_rel_diff)) then
-        deallocate(ddx_data % s_rel_diff, stat=istatus)
+    if (allocated(state % s_rel_diff)) then
+        deallocate(state % s_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`s_rel_diff` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % sgrid)) then
-        deallocate(ddx_data % sgrid, stat=istatus)
+    if (allocated(state % sgrid)) then
+        deallocate(state % sgrid, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`sgrid` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % y)) then
-        deallocate(ddx_data % y, stat=istatus)
+    if (allocated(state % y)) then
+        deallocate(state % y, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`y` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % y_rel_diff)) then
-        deallocate(ddx_data % y_rel_diff, stat=istatus)
+    if (allocated(state % y_rel_diff)) then
+        deallocate(state % y_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`y_rel_diff` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % ygrid)) then
-        deallocate(ddx_data % ygrid, stat=istatus)
+    if (allocated(state % ygrid)) then
+        deallocate(state % ygrid, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`ygrid` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % g)) then
-        deallocate(ddx_data % g, stat=istatus)
+    if (allocated(state % g)) then
+        deallocate(state % g, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`g` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % q)) then
-        deallocate(ddx_data % q, stat=istatus)
+    if (allocated(state % q)) then
+        deallocate(state % q, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`q` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % qgrid)) then
-        deallocate(ddx_data % qgrid, stat=istatus)
+    if (allocated(state % qgrid)) then
+        deallocate(state % qgrid, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`qgrid` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % zeta)) then
-        deallocate(ddx_data % zeta, stat=istatus)
+    if (allocated(state % zeta)) then
+        deallocate(state % zeta, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`zeta` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % x_lpb)) then
-        deallocate(ddx_data % x_lpb, stat=istatus)
+    if (allocated(state % x_lpb)) then
+        deallocate(state % x_lpb, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "ddfree: [36] deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % x_adj_lpb)) then
-        deallocate(ddx_data % x_adj_lpb, stat=istatus)
+    if (allocated(state % x_adj_lpb)) then
+        deallocate(state % x_adj_lpb, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "ddfree: [36] deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % g_lpb)) then
-        deallocate(ddx_data % g_lpb, stat=istatus)
+    if (allocated(state % g_lpb)) then
+        deallocate(state % g_lpb, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "ddfree: [36] deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % f_lpb)) then
-        deallocate(ddx_data % f_lpb, stat=istatus)
+    if (allocated(state % f_lpb)) then
+        deallocate(state % f_lpb, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "ddfree: [36] deallocation failed!"
             stop 1
         endif
     end if
-end subroutine ddfree
+end subroutine ddx_free_state
 
 !> Print array of spherical harmonics
 !!
@@ -3123,5 +3134,6 @@ subroutine print_header(iprint,params)
     string = " "
     call params % print_func(string)
 end subroutine print_header
+
 end module ddx_core
 
