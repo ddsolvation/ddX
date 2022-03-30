@@ -26,6 +26,7 @@ var NAVTREE =
     [ "General information", "index.html", null ],
     [ "Download and Installation", "label_download_and_install.html", null ],
     [ "Run as standalone", "label_run_as_standalone.html", null ],
+    [ "Theory", "md__home_runner_work_dd_x_dd_x_docs_theory.html", null ],
     [ "Licence", "label_licence.html", null ],
     [ "ddX-References", "label_references.html", null ],
     [ "Bibliography", "citelist.html", null ],
