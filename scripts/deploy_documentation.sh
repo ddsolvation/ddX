@@ -23,17 +23,16 @@ git fetch
 git checkout -B gh-pages refs/remotes/origin/gh-pages
 
 rm -rf dev
-rm -f .gitignore
 cp -a build/docs/html dev
-cd dev
-git add .
+git add dev
+haschanges=$(git diff dev --cached)
 
 if [ "$branch" != "main" ]; then
     echo "Skipping deployment as not on main."
     exit 0
 fi
-if git status | grep -q 'up to date'; then
-    echo "Documentation did not update ... skipping deployment"
+if [ -z "$haschanges" ]; then
+    echo "Documentation did not change ... skipping deployment"
     exit 0
 else
     git commit -m "Documentation build from $head"
