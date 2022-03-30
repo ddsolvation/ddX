@@ -94,11 +94,7 @@ $(document).ready(function(){initNavTree('label_download_and_install.html',''); 
 <div class="title">Download and Installation </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><b>Download precompiled binaries</b> at:</p><ol type="1">
-<li>Conda</li>
-<li>Pypi</li>
-</ol>
-<p><b>Download the ddX source code</b> at: </p><div class="fragment"><div class="line">&gt; git clone git@github.com:ACoM-Computational-Mathematics/ddX.git</div>
+<div class="textblock"><p><b>Download the ddX source code</b> at: </p><div class="fragment"><div class="line">&gt; git clone git@github.com:ACoM-Computational-Mathematics/ddX.git</div>
 </div><!-- fragment --><p><b>Download and install</b> ddX as follows: </p><div class="fragment"><div class="line">&gt; git clone git@github.com:ACoM-Computational-Mathematics/ddX.git</div>
 <div class="line">&gt; cd ddX</div>
 <div class="line">&gt; mkdir build</div>
@@ -106,12 +102,20 @@ $(document).ready(function(){initNavTree('label_download_and_install.html',''); 
 <div class="line">&gt; cmake .. </div>
 <div class="line">&gt; make</div>
 </div><!-- fragment --><p>Per default, the library is located in /src.</p>
+<p><b>Build the documentation</b> as follows (after you have done the above process): </p><div class="fragment"><div class="line">&gt; cd build</div>
+<div class="line">&gt; make docs</div>
+</div><!-- fragment --><p><b>To see the documentation</b> </p><div class="fragment"><div class="line">&gt; cd ddX/build/docs/html</div>
+<div class="line">&gt; pwd</div>
+</div><!-- fragment --><p>Copy the link shown by pwd and add /index.html in a web browser </p>
 <h3><a class="anchor" id="autotoc_md1"></a>
 Hints and hacks</h3>
 <ol type="1">
-<li>Specify XXX by <div class="fragment"><div class="line">cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_C_COMPILER=/usr/local/bin/gcc-11 ..</div>
+<li>For specifying compilers use <div class="fragment"><div class="line">cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_C_COMPILER=/usr/local/bin/gcc-11 ..</div>
 </div><!-- fragment --></li>
-<li>disactivate OpenMP-support: <div class="fragment"><div class="line">cmake -D OPENMP=OFF ..</div>
+</ol>
+<p><b>NOTE</b>: Replace g++-11 and gcc-11 with the compilers you desire</p>
+<ol type="1">
+<li>Disactivate OpenMP-support: <div class="fragment"><div class="line">cmake -D OPENMP=OFF ..</div>
 </div><!-- fragment --> </li>
 </ol>
 </div></div><!-- contents -->
