@@ -146,9 +146,12 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
         & constants % icav_ia, constants % icav_ja, workspace % tmp_cav, &
         & workspace % tmp_grid)
     ! Integrate against spherical harmonics and Lebedev weights to get Phi
-    call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
-        & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
-        & one, workspace % tmp_grid, zero, phi)
+    call ddintegrate(params % nsph, constants % nbasis, &
+        & params % ngrid, constants % vwgrid, &
+        & constants % vgrid_nbasis, workspace % tmp_grid, phi)
+!   call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
+!       & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
+!       & one, workspace % tmp_grid, zero, phi)
     ! Compute Phi_infty
     ! force dx called from rinfx to add the diagonal
     call rinfx(params, constants, workspace, phi, phiinf)
