@@ -125,10 +125,11 @@ The resulting linear system for all three methods can be written in the general 
 \f[
         \tilde{\operatorname{L}} \tilde{\operatorname{X}} = \tilde{\operatorname{F}},
 \f]
-and the energy can be computed as
+and the (approximate) energy can be computed as
 \f[
-    E_s = \frac12 \langle \tilde \Psi, \tilde{\operatorname{X}} \rangle.
+    E_s = \frac12 \langle \tilde \Psi, \tilde{\operatorname{X}} \rangle,
 \f]
+where \f$\langle \cdot, \cdot \rangle\f$ denotes the scalar product of the two enclosed vectors.
 ###ddCOSMO:
 \f[
     \tilde{\operatorname{L}} = \begin{pmatrix} \operatorname{L} & 0 \\ 0 & 0 \end{pmatrix}
@@ -139,9 +140,9 @@ and the energy can be computed as
     \qquad
     \tilde{\Psi} = f(\varepsilon)\begin{pmatrix} \Psi \\ 0 \end{pmatrix}
 \f]
-*Note*: The notation used in the ddCOSMO-literature, see e.g. [1,2,7], uses \f$\operatorname{g} = -\Phi\f$.
+*Note*: The notation used in the ddCOSMO-literature, see e.g. [1,2,7], uses \f$\operatorname{g} = -\Phi\f$. The references [1--7] also give the definition of the matrix \f$\operatorname{L}\f$ and the vectors \f$\operatorname{g} = -\Phi\f$, \f$\Psi\f$ as well as the scalar function \f$f(\varepsilon)\f$. 
 
-The subroutine for matrix-vector multiplications of the \f$\tilde{\operatorname{L}}\f$ with a vector is 
+The subroutine for matrix-vector multiplications of the \f${\operatorname{L}}\f$ with a vector is 
 ``` markdown
 > lx(...)     in ddx_operators.f90
 ```
@@ -155,7 +156,7 @@ The subroutine for matrix-vector multiplications of the \f$\tilde{\operatorname{
     \qquad
     \tilde{\Psi} = \begin{pmatrix} \Psi \\ 0 \end{pmatrix}
 \f]
-*Note*: The notation used in the references [8,9], uses \f$\sigma = \operatorname{X}\f$.
+*Note*: The notation used in the references [8,9], uses \f$\sigma = \operatorname{X}\f$. The references [8--10] also give the definition of the matrices \f$\operatorname{R}_\varepsilon\f$, \f$\operatorname{R}_\infty\f$ and the vector \f$\operatorname{g} = -\Phi\f$. \f$\operatorname{I}_d\f$ denotes the identity matrix.
 
 The subroutine for matrix-vector multiplications of the \f$\operatorname{R}_\varepsilon\f$ and \f$\operatorname{R}_\infty\f$ with a vector is 
 ``` markdown
@@ -174,7 +175,7 @@ The subroutine for matrix-vector multiplications of the \f$\operatorname{R}_\var
     \qquad
     \tilde{\Psi} = \begin{pmatrix} \Psi \\ 0 \end{pmatrix}
 \f]
-*Note*: The notation used in the ddLPB-literature, see e.g. [11,12], uses \f$\operatorname{X}_r = \operatorname{X}\f$.
+*Note*: The notation used in the ddLPB-literature, see e.g. [11,12], uses \f$\operatorname{X}_r = \operatorname{X}\f$ and \f$\operatorname{G}_0 = -\Phi\f$. These references also provide the definition of the matrices \f$\operatorname{A}\f$ (which is a scaled verion of \f$\operatorname{L}\f$), \f$\operatorname{B}\f$, \f$\operatorname{C}_1\f$, \f$\operatorname{C}_2\f$ as well as the vectors \f$\operatorname{F}_0\f$, \f$\operatorname{G}_0 = -\Phi\f$.
 
 The subroutine for matrix-vector multiplications of the \f$\tilde{\operatorname{T}}\f$, \f$\operatorname{A}\f$,\f$\operatorname{B}\f$  and \f$\tilde{\operatorname{C}}\f$ with a vector is 
 ``` markdown
@@ -226,11 +227,11 @@ The subroutine for the contraction of the differentiated matrix \f$\operatorname
 \f[
     \tilde{\operatorname{L}}^\top = \begin{pmatrix} \operatorname{L}^\top & 0 \\ \operatorname{I}_d & \operatorname{R}_\varepsilon^\top \end{pmatrix}
     \qquad
-    \tilde{\operatorname{S}} = \begin{pmatrix} \operatorname{S} \\ \operatorname{Y} \end{pmatrix}
+    \tilde{\operatorname{S}} = \begin{pmatrix} \operatorname{S} \\ -\operatorname{Y} \end{pmatrix}
     \qquad
     \tilde{\operatorname{H}} = \begin{pmatrix} -\operatorname{L}^\lambda\operatorname{X} \\ \operatorname{R}^\lambda(\Phi-\Phi_\varepsilon)+\operatorname{R}_\infty\Phi^\lambda \end{pmatrix}
 \f]
-*Note*: Compared to the notation used in [10], a change of sign \f$\operatorname{Y} \to -\operatorname{Y}\f$ applies.
+*Note*: The minus sign in front of \f$\operatorname{Y}\f$ appears for consistency with the notation introduced in [10].
 
 The subroutine for matrix-vector multiplications of the \f$\operatorname{R}_\varepsilon^\top\f$ and \f$\operatorname{R}_\infty^\top\f$ with a vector is 
 ``` markdown
@@ -238,17 +239,17 @@ The subroutine for matrix-vector multiplications of the \f$\operatorname{R}_\var
 > rinfstarx(...)     in ddx_operators.f90
 ```
 **Remarks**:
-1. There holds \f$\operatorname{S}=-\operatorname{R}_\varepsilon^\top\operatorname{Y}\f$.
+1. There holds \f$\operatorname{S}=\operatorname{R}_\varepsilon^\top\operatorname{Y}\f$.
 2. Since \f$\operatorname{R}_\infty-\operatorname{R}_\varepsilon=-\frac{4\pi}{\varepsilon_s-1}\f$ (?check sign?) is constant there holds \f$\operatorname{R}^\lambda:=\operatorname{R}^\lambda_\varepsilon=\operatorname{R}^\lambda_\infty\f$.
 3. As consequence of 1. and 2., it is advantageous to write
 \f[
     \langle \tilde{\operatorname{S}}, \tilde{\operatorname{H}} \rangle
     = 
     - \langle \operatorname{S}, \operatorname{L}^\lambda\operatorname{X} \rangle
-    + \langle \operatorname{Y}, \operatorname{R}^\lambda(\Phi-\Phi_\varepsilon) \rangle
+    + \langle \operatorname{Y}, \operatorname{R}^\lambda(\Phi_\varepsilon-\Phi) \rangle
     -  \langle \operatorname{Q}, \Phi^\lambda \rangle
     \qquad 
-    \operatorname{Q} := \operatorname{S} + \frac{4\pi}{\varepsilon_s-1} \operatorname{Y}.
+    \operatorname{Q} := \operatorname{S} - \frac{4\pi}{\varepsilon_s-1} \operatorname{Y}.
 \f]
 
 The subroutine for the contraction of the differentiated matrix \f$\operatorname{R}^\lambda\f$ with two vectors is 
