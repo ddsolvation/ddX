@@ -726,7 +726,7 @@ subroutine gmres0(params, constants, workspace, n, rhs, uu, cc, work0, eps, nite
 !       a user-given size for arrays
 !
 subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_iter, &
-          & matvec, dm1vec, norm_func, info)
+          & x_rel_diff, matvec, dm1vec, norm_func, info)
       type(ddx_params_type),    intent(in)    :: params
       type(ddx_constants_type), intent(in)    :: constants
       type(ddx_workspace_type), intent(inout) :: workspace
@@ -737,12 +737,13 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
       ! Outputs
       real(dp),  dimension(n),  intent(inout) :: x
       integer,                  intent(inout) :: n_iter, info
+      real(dp), intent(out) :: x_rel_diff(n_iter)
 !
       external                                :: matvec, dm1vec
       procedure(norm_interface)               :: norm_func
       ! Local variables
       integer  :: it, nmat, istatus, lenb, nsph_u
-      real(dp) :: diff, norm, rel_diff
+      real(dp) :: diff, norm, rel_diff = zero
       logical  :: dodiis
 !
       real(dp), allocatable :: x_new(:), y(:), x_diis(:,:), e_diis(:,:), bmat(:,:)
@@ -816,6 +817,8 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
         else
             rel_diff = diff / norm
         end if
+
+        x_rel_diff(it) = rel_diff
 !
 !       update
         x = x_new

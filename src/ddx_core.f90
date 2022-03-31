@@ -478,6 +478,15 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
             info = 1
             return
         end if
+        allocate(ddx_data % s_rel_diff(ddx_data % params % maxiter), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            ddx_data % error_flag = 1
+            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+                & "allocation failed"
+            info = 1
+            return
+        end if
         allocate(ddx_data % g_lpb(ddx_data % params % ngrid, ddx_data % params % nsph), &
             & stat=istatus)
         if (istatus .ne. 0) then
@@ -2590,10 +2599,23 @@ subroutine tree_m2p_bessel_nodiag_adj(params, constants, p, alpha, grid_v, beta,
     end do
 end subroutine tree_m2p_bessel_nodiag_adj
 
-!------------------------------------------------------------------------------
-!> TODO
-!------------------------------------------------------------------------------
-subroutine fdoka(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
+subroutine contract_grad_L(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx)
+type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+      integer,                         intent(in)    :: isph
+      real(dp),  dimension(constants % nbasis, params % nsph), intent(in)    :: sigma
+      real(dp),  dimension(params % ngrid, params % nsph),       intent(in)    :: xi
+      real(dp),  dimension(constants % nbasis),      intent(inout) :: basloc, vplm
+      real(dp),  dimension(3, constants % nbasis),    intent(inout) :: dbsloc
+      real(dp),  dimension(params % lmax+1),      intent(inout) :: vcos, vsin
+      real(dp),  dimension(3),           intent(inout) :: fx
+
+      call contract_gradi_Lik(params, constants, isph, sigma, xi(:, isph), basloc, dbsloc, vplm, vcos, vsin, fx )
+      call contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
+
+end subroutine contract_grad_L
+
+subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
       integer,                         intent(in)    :: isph
@@ -2666,16 +2688,14 @@ subroutine fdoka(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos,
       return
 !      
 !      
-end subroutine fdoka
+end subroutine contract_gradi_Lik
 !-----------------------------------------------------------------------------------
 !
 !      
 !      
 !      
-!------------------------------------------------------------------------------
-!> TODO
-!------------------------------------------------------------------------------
-subroutine fdokb(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
+!-----------------------------------------------------------------------------------
+subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
       integer,                         intent(in)    :: isph
@@ -2783,16 +2803,14 @@ subroutine fdokb(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos,
         fx = fx + constants % wgrid(ig)*(vb - vc)
       end do
       return
-  end subroutine fdokb
+  end subroutine contract_gradi_Lji
 !-----------------------------------------------------------------------------------
 !
 !
 !
 !
-!------------------------------------------------------------------------------
-!> TODO
-!------------------------------------------------------------------------------
-subroutine fdoga(params, constants, isph, xi, phi, fx )
+!-----------------------------------------------------------------------------------
+subroutine contract_grad_U(params, constants, isph, xi, phi, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
       integer,                        intent(in)    :: isph
@@ -2832,7 +2850,7 @@ subroutine fdoga(params, constants, isph, xi, phi, fx )
       return 
 !
 !
-end subroutine fdoga
+end subroutine contract_grad_U
 
 !------------------------------------------------------------------------------
 !> TODO
