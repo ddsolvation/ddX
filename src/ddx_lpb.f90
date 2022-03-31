@@ -82,17 +82,6 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
     ! x(:,:,1): X_r Reaction potential solution (Laplace equation)
     ! x(:,:,2): X_e Extended potential solution (HSP equation)
     !
-!   real(dp), allocatable :: x(:,:,:), x_adj(:,:,:)
-    ! phi_grid: Phi evaluated at grid points
-!   real(dp), allocatable :: g(:,:), f(:,:), phi_grid(:, :)
-
-!   allocate(x(ddx_data % constants % nbasis, ddx_data % params % nsph, 2), &
-!       & x_adj(ddx_data % constants % nbasis, ddx_data % params % nsph, 2), &
-!       & g(ddx_data % params % ngrid, ddx_data % params % nsph), &
-!       & f(ddx_data % params % ngrid, ddx_data % params % nsph), &
-!       & phi_grid(ddx_data % params % ngrid, ddx_data % params % nsph), &
-!       & stat = istatus)
-!   if (istatus.ne.0) write(6,*) 'ddlpb allocation failed'
 
     !! Setting initial values to zero
     ddx_data % g_lpb = zero
@@ -118,21 +107,25 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
     ! use a tighter tolerance for microiterations
     ddx_data % constants % inner_tol =  tol/100.0d0
 
+    ddx_data % xs_niter = ddx_data % params % maxiter
     ! Call the subroutine to solve for Esolv
     call ddlpb_energy(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, ddx_data % g_lpb, ddx_data % f_lpb, &
-        & ddx_data % x_lpb, tol, esolv)
+        & ddx_data % x_lpb, ddx_data % xs_niter, ddx_data % xs_rel_diff, ddx_data % xs_time, &
+        & tol, esolv, info)
 
     ! Start the Force computation
     if(ddx_data % params % force .eq. 1) then
+      ddx_data % s_niter = ddx_data % params % maxiter
       ! Call the subroutine adjoint to solve the adjoint solution
       call ddlpb_adjoint(ddx_data % params, ddx_data % constants, &
-          & ddx_data % workspace, psi, tol, ddx_data % x_adj_lpb)
+          & ddx_data % workspace, psi, tol, ddx_data % x_adj_lpb, &
+          ddx_data % s_niter, ddx_data % s_rel_diff, ddx_data % s_time, info)
 
       !Call the subroutine to evaluate derivatives
       call ddlpb_force(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, hessianphi_cav, ddx_data % phi_grid, gradphi_cav, &
-          & ddx_data % x_lpb, ddx_data % x_adj_lpb, ddx_data % zeta, force)
+          & ddx_data % x_lpb, ddx_data % x_adj_lpb, ddx_data % zeta, force, info)
 
     endif
 
@@ -149,18 +142,27 @@ end subroutine ddlpb
 !! @param[in]  g          : Intermediate matrix for computation of g0
 !! @param[in]  f          : Intermediate matrix for computation of f0
 !! @param[out] x          : Solution
+!! @param[out] n_iter     : Number of iterations
+!! @param[out] xs_rel_diff: Relative difference
+!! @param[out] xs_time    : Time
 !! @param[in]  tol        : Tolerance for solver
 !! @param[out] esolv      : Solvation energy
+!! @param[out] info       : Information
 subroutine ddlpb_energy(params, constants, workspace, g, f, &
-    & x, tol, esolv)
+    & x, n_iter, xs_rel_diff, xs_time, tol , esolv, info)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: g, f
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: x
     real(dp), intent(in) :: tol
+    integer, intent(inout) :: n_iter
+    !! Outputs
+    real(dp), intent(out) :: xs_rel_diff(n_iter), xs_time
     real(dp), intent(out) :: esolv
-    integer  :: n_iter, isph, istat, info
+    integer, intent(out) :: info
+    integer  :: isph, istat
+    real(dp) :: start_time, finish_time
     real(dp), allocatable :: rhs(:,:,:)
 
     allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
@@ -178,21 +180,18 @@ subroutine ddlpb_energy(params, constants, workspace, g, f, &
         & constants % vgrid_nbasis, f, rhs(:,:,2))
     rhs(:,:,1) = rhs(:,:,1) + rhs(:,:,2)
 
-    ! call prtsph('direct rhs', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, rhs)
-
     ! guess
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
     call lpb_direct_prec(params, constants, workspace, rhs, x)
 
     ! solve LS using Jacobi/DIIS
-    n_iter = params % maxiter
+    call cpu_time(start_time)
     call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
-        & tol, rhs, x, n_iter, lpb_direct_matvec, lpb_direct_prec, rmsnorm, info)
-
-    ! call prtsph('direct sol', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, x)
+        & tol, rhs, x, n_iter, xs_rel_diff, lpb_direct_matvec, &
+        & lpb_direct_prec, rmsnorm, info)
+    call cpu_time(finish_time)
+    xs_time = finish_time - start_time
 
     esolv = zero
     do isph = 1, params % nsph
@@ -210,18 +209,26 @@ end subroutine ddlpb_energy
 !! @param[in]  psi        : psi_r
 !! @param[in]  tol        : Tolerance
 !! @param[out] x_adj      : Adjoint solution
+!! @param[out] info       : Information
 
-subroutine ddlpb_adjoint(params, constants, workspace, psi, tol, x_adj)
+subroutine ddlpb_adjoint(params, constants, workspace, psi, tol, x_adj, &
+                       & n_iter, s_rel_diff, s_time, info)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: psi
     real(dp), intent(in) :: tol
+    !!Output
+    integer, intent(inout) :: n_iter
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: x_adj
+    real(dp), intent(out) :: s_time
+    real(dp), intent(out) :: s_rel_diff(n_iter)
+    integer, intent(out) :: info
+
     real(dp), allocatable :: rhs(:,:,:)
-    integer :: n_iter, info, istat
-    real(dp), dimension(params % maxiter) :: x_rel_diff
+    integer :: istat
+    real(dp) :: start_time, finish_time
 
     allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
     if (istat.ne.0) stop 1
@@ -235,10 +242,13 @@ subroutine ddlpb_adjoint(params, constants, workspace, psi, tol, x_adj)
     workspace % hsp_guess = zero
     call lpb_adjoint_prec(params, constants, workspace, rhs, x_adj)
 
+    call cpu_time(start_time)
     ! solve adjoint LS using Jacobi/DIIS
-    n_iter = params % maxiter
     call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
-        & tol, rhs, x_adj, n_iter, lpb_adjoint_matvec, lpb_adjoint_prec, rmsnorm, info)
+        & tol, rhs, x_adj, n_iter, s_rel_diff, lpb_adjoint_matvec, &
+        & lpb_adjoint_prec, rmsnorm, info)
+    call cpu_time(finish_time)
+    s_time = finish_time - start_time
 
     deallocate(rhs)
     if (istat.ne.0) stop 1
@@ -255,10 +265,11 @@ end subroutine ddlpb_adjoint
 !! @param[in]  gradphi    : Gradient of phi
 !! @param[in]  x          : Solution vector
 !! @param[in]  x_adj      : Adjoint solution vector
-!! @param[in]  zeta       : Intermediate calculation in forces
+!! @param[in]  zeta       : Intermediate calculation
 !! @param[out] force      : Force
+!! @param[out] info       : Information
 subroutine ddlpb_force(params, constants, workspace, hessian, phi_grid, gradphi, &
-        & x, x_adj, zeta, force)
+        & x, x_adj, zeta, force, info)
     !! input/output
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -270,6 +281,7 @@ subroutine ddlpb_force(params, constants, workspace, hessian, phi_grid, gradphi,
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x, x_adj
     real(dp), dimension(3, params % nsph), intent(out) :: force
     real(dp), intent(out) :: zeta(constants % ncav)
+    integer, intent(out) :: info
 
     ! local
     real(dp), dimension(constants % nbasis) :: basloc, vplm
@@ -282,7 +294,8 @@ subroutine ddlpb_force(params, constants, workspace, hessian, phi_grid, gradphi,
     integer :: isph, icav, icav_gr, icav_ge, igrid, istat
     integer :: i, inode, jnear, inear, jnode, jsph
     real(dp), external :: ddot, dnrm2
-    real(dp) :: tfdoka, tfdokb, tfdoka_xe, tfdokb_xe, tfdoga, tp, tfdouky
+    real(dp) :: tcontract_gradi_Lik, tcontract_gradi_Lji, tcontract_gradi_Bik, tcontract_gradi_Bji, tcontract_grad_U, &
+              & tcontract_grad_C_worker1, tcontract_grad_C_worker2
     real(dp) :: d(3), dnorm, tmp1, tmp2
 
     allocate(ef(3, params % nsph), &
@@ -329,37 +342,30 @@ subroutine ddlpb_force(params, constants, workspace, hessian, phi_grid, gradphi,
     scaled_Xr = x(:,:,1)
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
-    tfdoka = zero
-    tfdokb = zero
-    tfdoka_xe = zero
-    tfdokb_xe = zero
-    tfdouky = zero
-    tp = zero
-    tfdoga = zero
+    tcontract_gradi_Lik = zero
+    tcontract_gradi_Lji = zero
+    tcontract_gradi_Bik = zero
+    tcontract_gradi_Bji = zero
+    tcontract_grad_C_worker2 = zero
+    tcontract_grad_C_worker1 = zero
+    tcontract_grad_U = zero
     do isph = 1, params % nsph
         ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
-        call fdoka(params, constants, isph, scaled_Xr, Xadj_r_sgrid(:, isph), &
+        call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
             & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
-        call fdokb(params, constants, isph, scaled_Xr, Xadj_r_sgrid, basloc, &
-            & dbasloc, vplm, vcos, vsin, force(:, isph))
         ! Compute B^k*Xadj_e
-        call fdoka_b_xe(params, constants, workspace, isph, x(:,:,2), &
-            & Xadj_e_sgrid(:, isph), basloc, dbasloc, vplm, vcos, vsin, &
-            & force(:,isph))
-        call fdokb_b_xe(params, constants, workspace, isph, x(:,:,2), Xadj_e_sgrid, &
+        call contract_grad_B(params, constants, workspace, isph, x(:,:,2), Xadj_e_sgrid, &
             & basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
         ! Computation of G0
-        call fdoga(params, constants, isph, Xadj_r_sgrid, phi_grid, &
+        call contract_grad_U(params, constants, isph, Xadj_r_sgrid, phi_grid, &
             & force(:, isph))
     end do
     ! Compute C1 and C2 contributions
     diff_re = zero
-    call fdouky(params, constants, workspace, x(:,:,1), x(:,:,2), Xadj_r_sgrid, &
+    call contract_grad_C(params, constants, workspace, x(:,:,1), x(:,:,2), Xadj_r_sgrid, &
         & Xadj_e_sgrid, x_adj(:,:,1), x_adj(:,:,2), force, diff_re)
-    call derivative_P(params, constants, workspace, x(:,:,1), x(:,:,2), Xadj_r_sgrid, &
-        & Xadj_e_sgrid, diff_re, force)
     ! Computation of G0 continued
-    ! NOTE: fdoga returns a positive summation
+    ! NOTE: contract_grad_U returns a positive summation
     force = -force
     icav = 0
     do isph = 1, params % nsph
@@ -456,20 +462,15 @@ subroutine ddlpb_force(params, constants, workspace, hessian, phi_grid, gradphi,
         end do
     end if
 
-    tfdouky = zero
-    tfdoga = zero
+    tcontract_grad_C_worker2 = zero
+    tcontract_grad_U = zero
     icav_gr = zero
     icav_ge = zero
     ! Computation of F0
-    call fdouky_f0(params, constants, workspace, x_adj(:,:,1), Xadj_r_sgrid, &
-        & gradphi, force)
-    ! Computation of F0
-    call fdouky_f0(params, constants, workspace, x_adj(:,:,2), Xadj_e_sgrid, &
-        & gradphi, force)
-    call fdoco(params, constants, workspace, Xadj_r_sgrid, gradphi, &
-        & normal_hessian_cav, icav_gr, force)
-    call fdoco(params, constants, workspace, Xadj_e_sgrid, gradphi, &
-        & normal_hessian_cav, icav_ge, force)
+    call contract_grad_f(params, constants, workspace, x_adj(:,:,1), Xadj_r_sgrid, &
+                  & gradphi, normal_hessian_cav, icav_gr, force)
+    call contract_grad_f(params, constants, workspace, x_adj(:,:,2), Xadj_e_sgrid, &
+                  & gradphi, normal_hessian_cav, icav_ge, force)
 
     force = pt5*force
 
@@ -478,7 +479,9 @@ subroutine ddlpb_force(params, constants, workspace, hessian, phi_grid, gradphi,
     if (istat.ne.0) stop 1
 end subroutine ddlpb_force
 
-  subroutine ddlpb_free(ddx_data)
+!> Free ddLPB constants
+!!
+subroutine ddlpb_free(ddx_data)
   implicit none
   type(ddx_type), intent(inout) :: ddx_data
   integer :: istatus
@@ -564,6 +567,6 @@ end subroutine ddlpb_force
     end if
   end if
 
-  end subroutine ddlpb_free
+end subroutine ddlpb_free
 
 end module ddx_lpb

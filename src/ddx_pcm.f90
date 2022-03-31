@@ -321,15 +321,11 @@ subroutine ddpcm_forces(params, constants, workspace, phi_grid, gradphi_cav, &
     ! gradr initializes forces with zeros
     call gradr(params, constants, workspace, g, ygrid, force)
     do isph = 1, params % nsph
-        call fdoka(params, constants, isph, xs, sgrid(:, isph), &
-            & workspace % tmp_vylm(:, 1), workspace % tmp_vdylm(:, :, 1), &
-            & workspace % tmp_vplm(:, 1), workspace % tmp_vcos(:, 1), &
-            & workspace % tmp_vsin(:, 1), force(:, isph)) 
-        call fdokb(params, constants, isph, xs, sgrid, &
+        call contract_grad_L(params, constants, isph, xs, sgrid, &
             & workspace % tmp_vylm(:, 1), workspace % tmp_vdylm(:, :, 1), &
             & workspace % tmp_vplm(:, 1), workspace % tmp_vcos(:, 1), &
             & workspace % tmp_vsin(:, 1), force(:, isph))
-        call fdoga(params, constants, isph, qgrid, phi_grid, force(:, isph)) 
+        call contract_grad_U(params, constants, isph, qgrid, phi_grid, force(:, isph))
     end do
     force = -pt5 * force
     icav = 0

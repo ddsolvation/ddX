@@ -293,17 +293,12 @@ subroutine ddcosmo_forces(params, constants, workspace, phi_grid, &
         & constants % vgrid, constants % vgrid_nbasis, one, s, zero, sgrid)
     force = zero
     do isph = 1, params % nsph
-        call fdoka(params, constants, isph, xs, sgrid(:, isph), &
+        call contract_grad_L(params, constants, isph, xs, sgrid, &
             & workspace % tmp_vylm(:, 1), workspace % tmp_vdylm(:, :, 1), &
             & workspace % tmp_vplm(:, 1), &
             & workspace % tmp_vcos(:, 1), &
             & workspace % tmp_vsin(:, 1), force(:, isph))
-        call fdokb(params, constants, isph, xs, sgrid, &
-            & workspace % tmp_vylm(:, 1), &
-            & workspace % tmp_vdylm(:, :, 1), workspace % tmp_vplm(:, 1), &
-            & workspace % tmp_vcos(:, 1), &
-            & workspace % tmp_vsin(:, 1), force(:, isph))
-        call fdoga(params, constants, isph, sgrid, phi_grid, &
+        call contract_grad_U(params, constants, isph, sgrid, phi_grid, &
             & force(:, isph))
     end do
     force = -pt5 * force
