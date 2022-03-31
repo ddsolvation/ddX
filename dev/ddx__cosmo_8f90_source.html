@@ -344,120 +344,115 @@ $(document).ready(function(){initNavTree('ddx__cosmo_8f90_source.html',''); init
 <div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;        &amp; constants % vgrid, constants % vgrid_nbasis, one, s, zero, sgrid)</div>
 <div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;    force = zero</div>
 <div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;        <span class="keyword">call </span>fdoka(params, constants, isph, xs, sgrid(:, isph), &amp;</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;        <span class="keyword">call </span>contract_grad_l(params, constants, isph, xs, sgrid, &amp;</div>
 <div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;            &amp; workspace % tmp_vylm(:, 1), workspace % tmp_vdylm(:, :, 1), &amp;</div>
 <div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;            &amp; workspace % tmp_vplm(:, 1), &amp;</div>
 <div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;            &amp; workspace % tmp_vcos(:, 1), &amp;</div>
 <div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;            &amp; workspace % tmp_vsin(:, 1), force(:, isph))</div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;        <span class="keyword">call </span>fdokb(params, constants, isph, xs, sgrid, &amp;</div>
-<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;            &amp; workspace % tmp_vylm(:, 1), &amp;</div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;            &amp; workspace % tmp_vdylm(:, :, 1), workspace % tmp_vplm(:, 1), &amp;</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;            &amp; workspace % tmp_vcos(:, 1), &amp;</div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;            &amp; workspace % tmp_vsin(:, 1), force(:, isph))</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;        <span class="keyword">call </span>fdoga(params, constants, isph, sgrid, phi_grid, &amp;</div>
-<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;            &amp; force(:, isph))</div>
-<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;<span class="keywordflow">    end do</span></div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;    force = -pt5 * force</div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;    icav = 0</div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;            <span class="keywordflow">if</span> (constants % ui(igrid, isph) .ne. zero) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;                icav = icav + 1</div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;                zeta(icav) = -pt5 * constants % wgrid(igrid) * &amp;</div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;                    &amp; constants % ui(igrid, isph) * ddot(constants % nbasis, &amp;</div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;                    &amp; constants % vgrid(1, igrid), 1, &amp;</div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;                    &amp; s(1, isph), 1)</div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;                force(:, isph) = force(:, isph) + &amp;</div>
-<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;                    &amp; zeta(icav)*gradphi_cav(:, icav)</div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;<span class="keywordflow">            end if</span></div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;<span class="keywordflow">    end do</span></div>
-<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;    <span class="comment">!! Last term where we compute gradients of potential at centers of atoms</span></div>
-<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;    <span class="comment">!! spawned by intermediate zeta.</span></div>
-<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;    <span class="keywordflow">if</span>(params % fmm .eq. 1) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;        <span class="comment">!! This step can be substituted by a proper dgemm if zeta</span></div>
-<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;        <span class="comment">!! intermediate is converted from cavity points to all grid points</span></div>
-<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;        <span class="comment">!! with zero values at internal grid points</span></div>
-<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;        <span class="comment">! P2M step</span></div>
-<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;        icav = 0</div>
-<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;            inode = constants % snode(isph)</div>
-<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;            workspace % tmp_node_m(:, inode) = zero</div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;            <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;                <span class="keywordflow">if</span>(constants % ui(igrid, isph) .eq. zero) cycle</div>
-<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;                icav = icav + 1</div>
-<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;                <span class="keyword">call </span>fmm_p2m(constants % cgrid(:, igrid), zeta(icav), &amp;</div>
-<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;                    &amp; one, params % pm, constants % vscales, one, &amp;</div>
-<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;                    &amp; workspace % tmp_node_m(:, inode))</div>
-<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;<span class="keywordflow">            end do</span></div>
-<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;            workspace % tmp_node_m(:, inode) = workspace % tmp_node_m(:, inode) / &amp;</div>
-<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;                &amp; params % rsph(isph)</div>
-<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;        <span class="comment">! M2M, M2L and L2L translations</span></div>
-<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;        <span class="keyword">call </span>tree_m2m_rotation(params, constants, workspace % tmp_node_m)</div>
-<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;        <span class="keyword">call </span>tree_m2l_rotation(params, constants, workspace % tmp_node_m, &amp;</div>
-<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;            &amp; workspace % tmp_node_l)</div>
-<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;        <span class="keyword">call </span>tree_l2l_rotation(params, constants, workspace % tmp_node_l)</div>
-<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;        <span class="comment">! Now compute near-field FMM gradients</span></div>
-<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;        <span class="comment">! Cycle over all spheres</span></div>
-<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;        icav = 0</div>
-<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;        workspace % tmp_efld = zero</div>
-<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;            <span class="comment">! Cycle over all external grid points</span></div>
-<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;            <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;                <span class="keywordflow">if</span> (constants % ui(igrid, isph) .eq. zero) cycle</div>
-<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;                icav = icav + 1</div>
-<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;                <span class="comment">! Cycle over all near-field admissible pairs of spheres,</span></div>
-<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;                <span class="comment">! including pair (isph, isph) which is a self-interaction</span></div>
-<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;                inode = constants % snode(isph)</div>
-<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;                <span class="keywordflow">do</span> jnear = constants % snear(inode), constants % snear(inode+1)-1</div>
-<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;                    <span class="comment">! Near-field interactions are possible only between leaf</span></div>
-<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;                    <span class="comment">! nodes, which must contain only a single input sphere</span></div>
-<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;                    jnode = constants % near(jnear)</div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;                    jsph = constants % order(constants % cluster(1, jnode))</div>
-<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;                    d = params % csph(:, isph) + &amp;</div>
-<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;                        &amp; constants % cgrid(:, igrid)*params % rsph(isph) - &amp;</div>
-<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;                        &amp; params % csph(:, jsph)</div>
-<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;                    dnorm = dnrm2(3, d, 1)</div>
-<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;                    workspace % tmp_efld(:, jsph) = workspace % tmp_efld(:, jsph) + &amp;</div>
-<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;                        &amp; zeta(icav)*d/(dnorm**3)</div>
-<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;<span class="keywordflow">                end do</span></div>
-<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;<span class="keywordflow">            end do</span></div>
-<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;        <span class="comment">! Take into account far-field FMM gradients only if pl &gt; 0</span></div>
-<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;        <span class="keywordflow">if</span> (params % pl .gt. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;            tmp1 = one / sqrt(3d0) / constants % vscales(1)</div>
-<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;            <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;                inode = constants % snode(isph)</div>
-<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;                tmp2 = tmp1 / params % rsph(isph)</div>
-<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;                workspace % tmp_efld(3, isph) = workspace % tmp_efld(3, isph) + &amp;</div>
-<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;                    &amp; tmp2*workspace % tmp_node_l(3, inode)</div>
-<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;                workspace % tmp_efld(1, isph) = workspace % tmp_efld(1, isph) + &amp;</div>
-<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;                    &amp; tmp2*workspace % tmp_node_l(4, inode)</div>
-<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;                workspace % tmp_efld(2, isph) = workspace % tmp_efld(2, isph) + &amp;</div>
-<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;                    &amp; tmp2*workspace % tmp_node_l(2, inode)</div>
-<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;<span class="keywordflow">            end do</span></div>
-<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;<span class="keywordflow">        end if</span></div>
-<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;            force(:, isph) = force(:, isph) + &amp;</div>
-<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;                &amp; workspace % tmp_efld(:, isph)*params % charge(isph)</div>
-<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;    <span class="comment">! Naive quadratically scaling implementation</span></div>
-<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;    <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;        <span class="comment">! This routines actually computes -grad, not grad</span></div>
-<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;        <span class="keyword">call </span>efld(constants % ncav, zeta, constants % ccav, &amp;</div>
-<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;            &amp; params % nsph, params % csph, workspace % tmp_efld)</div>
-<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;            force(:, isph) = force(:, isph) - &amp;</div>
-<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;                &amp; workspace % tmp_efld(:, isph)*params % charge(isph)</div>
-<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;    <span class="comment">! Clear status</span></div>
-<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;    info = 0</div>
-<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;<span class="keyword">end subroutine </span>ddcosmo_forces</div>
-<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160; </div>
-<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;<span class="keyword">end module </span><a class="code" href="namespaceddx__cosmo.html">ddx_cosmo</a></div>
-<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160; </div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;        <span class="keyword">call </span>contract_grad_u(params, constants, isph, sgrid, phi_grid, &amp;</div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;            &amp; force(:, isph))</div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<span class="keywordflow">    end do</span></div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;    force = -pt5 * force</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;    icav = 0</div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;            <span class="keywordflow">if</span> (constants % ui(igrid, isph) .ne. zero) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;                icav = icav + 1</div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;                zeta(icav) = -pt5 * constants % wgrid(igrid) * &amp;</div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;                    &amp; constants % ui(igrid, isph) * ddot(constants % nbasis, &amp;</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;                    &amp; constants % vgrid(1, igrid), 1, &amp;</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;                    &amp; s(1, isph), 1)</div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;                force(:, isph) = force(:, isph) + &amp;</div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;                    &amp; zeta(icav)*gradphi_cav(:, icav)</div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;<span class="keywordflow">            end if</span></div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;<span class="keywordflow">    end do</span></div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;    <span class="comment">!! Last term where we compute gradients of potential at centers of atoms</span></div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;    <span class="comment">!! spawned by intermediate zeta.</span></div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;    <span class="keywordflow">if</span>(params % fmm .eq. 1) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;        <span class="comment">!! This step can be substituted by a proper dgemm if zeta</span></div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;        <span class="comment">!! intermediate is converted from cavity points to all grid points</span></div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;        <span class="comment">!! with zero values at internal grid points</span></div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;        <span class="comment">! P2M step</span></div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;        icav = 0</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;            inode = constants % snode(isph)</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;            workspace % tmp_node_m(:, inode) = zero</div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;            <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;                <span class="keywordflow">if</span>(constants % ui(igrid, isph) .eq. zero) cycle</div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;                icav = icav + 1</div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;                <span class="keyword">call </span>fmm_p2m(constants % cgrid(:, igrid), zeta(icav), &amp;</div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;                    &amp; one, params % pm, constants % vscales, one, &amp;</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;                    &amp; workspace % tmp_node_m(:, inode))</div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;<span class="keywordflow">            end do</span></div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;            workspace % tmp_node_m(:, inode) = workspace % tmp_node_m(:, inode) / &amp;</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;                &amp; params % rsph(isph)</div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;        <span class="comment">! M2M, M2L and L2L translations</span></div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;        <span class="keyword">call </span>tree_m2m_rotation(params, constants, workspace % tmp_node_m)</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;        <span class="keyword">call </span>tree_m2l_rotation(params, constants, workspace % tmp_node_m, &amp;</div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;            &amp; workspace % tmp_node_l)</div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;        <span class="keyword">call </span>tree_l2l_rotation(params, constants, workspace % tmp_node_l)</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;        <span class="comment">! Now compute near-field FMM gradients</span></div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;        <span class="comment">! Cycle over all spheres</span></div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;        icav = 0</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;        workspace % tmp_efld = zero</div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;            <span class="comment">! Cycle over all external grid points</span></div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;            <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;                <span class="keywordflow">if</span> (constants % ui(igrid, isph) .eq. zero) cycle</div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;                icav = icav + 1</div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;                <span class="comment">! Cycle over all near-field admissible pairs of spheres,</span></div>
+<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;                <span class="comment">! including pair (isph, isph) which is a self-interaction</span></div>
+<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;                inode = constants % snode(isph)</div>
+<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;                <span class="keywordflow">do</span> jnear = constants % snear(inode), constants % snear(inode+1)-1</div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;                    <span class="comment">! Near-field interactions are possible only between leaf</span></div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;                    <span class="comment">! nodes, which must contain only a single input sphere</span></div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;                    jnode = constants % near(jnear)</div>
+<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;                    jsph = constants % order(constants % cluster(1, jnode))</div>
+<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;                    d = params % csph(:, isph) + &amp;</div>
+<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;                        &amp; constants % cgrid(:, igrid)*params % rsph(isph) - &amp;</div>
+<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;                        &amp; params % csph(:, jsph)</div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;                    dnorm = dnrm2(3, d, 1)</div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;                    workspace % tmp_efld(:, jsph) = workspace % tmp_efld(:, jsph) + &amp;</div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;                        &amp; zeta(icav)*d/(dnorm**3)</div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;<span class="keywordflow">                end do</span></div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;<span class="keywordflow">            end do</span></div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;        <span class="comment">! Take into account far-field FMM gradients only if pl &gt; 0</span></div>
+<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;        <span class="keywordflow">if</span> (params % pl .gt. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;            tmp1 = one / sqrt(3d0) / constants % vscales(1)</div>
+<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;            <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;                inode = constants % snode(isph)</div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;                tmp2 = tmp1 / params % rsph(isph)</div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;                workspace % tmp_efld(3, isph) = workspace % tmp_efld(3, isph) + &amp;</div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;                    &amp; tmp2*workspace % tmp_node_l(3, inode)</div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;                workspace % tmp_efld(1, isph) = workspace % tmp_efld(1, isph) + &amp;</div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;                    &amp; tmp2*workspace % tmp_node_l(4, inode)</div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;                workspace % tmp_efld(2, isph) = workspace % tmp_efld(2, isph) + &amp;</div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;                    &amp; tmp2*workspace % tmp_node_l(2, inode)</div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;<span class="keywordflow">            end do</span></div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;<span class="keywordflow">        end if</span></div>
+<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;            force(:, isph) = force(:, isph) + &amp;</div>
+<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;                &amp; workspace % tmp_efld(:, isph)*params % charge(isph)</div>
+<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;    <span class="comment">! Naive quadratically scaling implementation</span></div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;    <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;        <span class="comment">! This routines actually computes -grad, not grad</span></div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;        <span class="keyword">call </span>efld(constants % ncav, zeta, constants % ccav, &amp;</div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;            &amp; params % nsph, params % csph, workspace % tmp_efld)</div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;            force(:, isph) = force(:, isph) - &amp;</div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;                &amp; workspace % tmp_efld(:, isph)*params % charge(isph)</div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;    <span class="comment">! Clear status</span></div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;    info = 0</div>
+<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;<span class="keyword">end subroutine </span>ddcosmo_forces</div>
+<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160; </div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;<span class="keyword">end module </span><a class="code" href="namespaceddx__cosmo.html">ddx_cosmo</a></div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160; </div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="anamespaceddx__operators_html_a6f210175b888b158774e507e0d603b52"><div class="ttname"><a href="namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52">ddx_operators::lstarx</a></div><div class="ttdeci">subroutine lstarx(params, constants, workspace, x, y)</div><div class="ttdoc">Adjoint single layer operator matvec.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00083">ddx_operators.f90:83</a></div></div>

@@ -1,9 +1,21 @@
 var searchData=
 [
-  ['calcv_411',['calcv',['../namespaceddx__core.html#a96984a0f96c1a17e25c781d34ed73f80',1,'ddx_core']]],
-  ['carttosph_412',['carttosph',['../namespaceddx__harmonics.html#a6c3357a53655c62372199bab90444412',1,'ddx_harmonics']]],
-  ['closest_5fsupported_5flebedev_5fgrid_413',['closest_supported_lebedev_grid',['../namespaceddx__parameters.html#a1b84e0732491759d44bb63d14f7c77a5',1,'ddx_parameters']]],
-  ['constants_5fgeometry_5finit_414',['constants_geometry_init',['../namespaceddx__constants.html#ad201f9bbff917677cd4aeb165d296fad',1,'ddx_constants']]],
-  ['constants_5fgeometry_5fupdate_415',['constants_geometry_update',['../namespaceddx__constants.html#abb90d5f168551ac11b842a8166c8b859',1,'ddx_constants']]],
-  ['constants_5finit_416',['constants_init',['../namespaceddx__constants.html#aa10b4ebb5a70e2cac960a9f0a955b29a',1,'ddx_constants']]]
+  ['calcv_430',['calcv',['../namespaceddx__core.html#a96984a0f96c1a17e25c781d34ed73f80',1,'ddx_core']]],
+  ['calcv2_5flpb_431',['calcv2_lpb',['../namespaceddx__lpb__core.html#a27155fbfc41650ee384956aabcf6406c',1,'ddx_lpb_core']]],
+  ['carttosph_432',['carttosph',['../namespaceddx__harmonics.html#a6c3357a53655c62372199bab90444412',1,'ddx_harmonics']]],
+  ['closest_5fsupported_5flebedev_5fgrid_433',['closest_supported_lebedev_grid',['../namespaceddx__parameters.html#a1b84e0732491759d44bb63d14f7c77a5',1,'ddx_parameters']]],
+  ['constants_5fgeometry_5finit_434',['constants_geometry_init',['../namespaceddx__constants.html#ad201f9bbff917677cd4aeb165d296fad',1,'ddx_constants']]],
+  ['constants_5fgeometry_5fupdate_435',['constants_geometry_update',['../namespaceddx__constants.html#abb90d5f168551ac11b842a8166c8b859',1,'ddx_constants']]],
+  ['constants_5finit_436',['constants_init',['../namespaceddx__constants.html#aa10b4ebb5a70e2cac960a9f0a955b29a',1,'ddx_constants']]],
+  ['contract_5fgrad_5fb_437',['contract_grad_b',['../namespaceddx__lpb__core.html#a4f4495cb67ec70a614e0ca6e9a313c38',1,'ddx_lpb_core']]],
+  ['contract_5fgrad_5fc_438',['contract_grad_c',['../namespaceddx__lpb__core.html#a82b5b662e94223dcab265e0a1ebb0eaa',1,'ddx_lpb_core']]],
+  ['contract_5fgrad_5fc_5fworker1_439',['contract_grad_c_worker1',['../namespaceddx__lpb__core.html#afb2c3382052506b74d3c56da2dc166b0',1,'ddx_lpb_core']]],
+  ['contract_5fgrad_5fc_5fworker2_440',['contract_grad_c_worker2',['../namespaceddx__lpb__core.html#a724a8b1369b7707553dfe799f1f483f0',1,'ddx_lpb_core']]],
+  ['contract_5fgrad_5ff_441',['contract_grad_f',['../namespaceddx__lpb__core.html#abe5c8a7e9443f1b4842202feb50db0df',1,'ddx_lpb_core']]],
+  ['contract_5fgrad_5ff_5fworker1_442',['contract_grad_f_worker1',['../namespaceddx__lpb__core.html#a3dd73849ff5fc8e5e52e2e15a9728f32',1,'ddx_lpb_core']]],
+  ['contract_5fgrad_5ff_5fworker2_443',['contract_grad_f_worker2',['../namespaceddx__lpb__core.html#afa0f75db856bd34f7c3e9b01f191b70d',1,'ddx_lpb_core']]],
+  ['contract_5fgrad_5ff_5fworker3_444',['contract_grad_f_worker3',['../namespaceddx__lpb__core.html#a7a9efcb7686dacc7d25eb7c5ff479ef9',1,'ddx_lpb_core']]],
+  ['contract_5fgradi_5fbik_445',['contract_gradi_bik',['../namespaceddx__lpb__core.html#a2b2b4658d82e295b585f6acbb14aefcd',1,'ddx_lpb_core']]],
+  ['contract_5fgradi_5fbji_446',['contract_gradi_bji',['../namespaceddx__lpb__core.html#a07f8860eb89a51f3f63cd666aa622ed2',1,'ddx_lpb_core']]],
+  ['convert_5fddcosmo_447',['convert_ddcosmo',['../namespaceddx__lpb__core.html#ad6dc1419e83a09c20a07880df9d21d72',1,'ddx_lpb_core']]]
 ];

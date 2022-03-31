@@ -102,52 +102,1467 @@ $(document).ready(function(){initNavTree('namespaceddx__lpb__core.html',''); ini
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:a651dd3cdefb7b8f3c10d6914f61e35dc"><td class="memItemLeft" align="right" valign="top"><a id="a651dd3cdefb7b8f3c10d6914f61e35dc"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>wghpot_f</b> (params, constants, workspace, gradphi, f)</td></tr>
+<tr class="memitem:a651dd3cdefb7b8f3c10d6914f61e35dc"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#a651dd3cdefb7b8f3c10d6914f61e35dc">wghpot_f</a> (params, constants, workspace, gradphi, f)</td></tr>
+<tr class="memdesc:a651dd3cdefb7b8f3c10d6914f61e35dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find intermediate F0 in the RHS of the ddLPB model given in Eq.(82)  <a href="namespaceddx__lpb__core.html#a651dd3cdefb7b8f3c10d6914f61e35dc">More...</a><br /></td></tr>
 <tr class="separator:a651dd3cdefb7b8f3c10d6914f61e35dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27155fbfc41650ee384956aabcf6406c"><td class="memItemLeft" align="right" valign="top"><a id="a27155fbfc41650ee384956aabcf6406c"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>calcv2_lpb</b> (params, constants, isph, pot, x, basloc, vplm, vcos, vsin, bessel_work)</td></tr>
+<tr class="memitem:a27155fbfc41650ee384956aabcf6406c"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#a27155fbfc41650ee384956aabcf6406c">calcv2_lpb</a> (params, constants, isph, pot, x, basloc, vplm, vcos, vsin, bessel_work)</td></tr>
+<tr class="memdesc:a27155fbfc41650ee384956aabcf6406c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Intermediate computation of Bx.  <a href="namespaceddx__lpb__core.html#a27155fbfc41650ee384956aabcf6406c">More...</a><br /></td></tr>
 <tr class="separator:a27155fbfc41650ee384956aabcf6406c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6dc1419e83a09c20a07880df9d21d72"><td class="memItemLeft" align="right" valign="top"><a id="ad6dc1419e83a09c20a07880df9d21d72"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>convert_ddcosmo</b> (params, constants, direction, vector)</td></tr>
+<tr class="memitem:ad6dc1419e83a09c20a07880df9d21d72"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#ad6dc1419e83a09c20a07880df9d21d72">convert_ddcosmo</a> (params, constants, direction, vector)</td></tr>
+<tr class="memdesc:ad6dc1419e83a09c20a07880df9d21d72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scale the ddCOSMO solution vector.  <a href="namespaceddx__lpb__core.html#ad6dc1419e83a09c20a07880df9d21d72">More...</a><br /></td></tr>
 <tr class="separator:ad6dc1419e83a09c20a07880df9d21d72"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f0440fba785d6c7b8a8b6d00b62f18d"><td class="memItemLeft" align="right" valign="top"><a id="a8f0440fba785d6c7b8a8b6d00b62f18d"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>inthsp</b> (params, constants, rijn, ri, isph, basloc, fac_hsp, work)</td></tr>
+<tr class="memitem:a8f0440fba785d6c7b8a8b6d00b62f18d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#a8f0440fba785d6c7b8a8b6d00b62f18d">inthsp</a> (params, constants, rijn, ri, isph, basloc, fac_hsp, work)</td></tr>
+<tr class="memdesc:a8f0440fba785d6c7b8a8b6d00b62f18d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Intermediate calculation in calcv2_lpb subroutine.  <a href="namespaceddx__lpb__core.html#a8f0440fba785d6c7b8a8b6d00b62f18d">More...</a><br /></td></tr>
 <tr class="separator:a8f0440fba785d6c7b8a8b6d00b62f18d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab6ff087b76888899139f7712a3b8e419"><td class="memItemLeft" align="right" valign="top"><a id="ab6ff087b76888899139f7712a3b8e419"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>adjrhs_lpb</b> (params, constants, workspace, isph, xi, vlm, basloc, vplm, vcos, vsin, tmp_bessel)</td></tr>
+<tr class="memitem:ab6ff087b76888899139f7712a3b8e419"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#ab6ff087b76888899139f7712a3b8e419">adjrhs_lpb</a> (params, constants, workspace, isph, xi, vlm, basloc, vplm, vcos, vsin, tmp_bessel)</td></tr>
+<tr class="memdesc:ab6ff087b76888899139f7712a3b8e419"><td class="mdescLeft">&#160;</td><td class="mdescRight">Intermediate for computing Bstarx Compute the Adjoint matix B*x Taken from <a class="el" href="namespaceddx__core.html" title="Core routines and parameters of the ddX software.">ddx_core</a> routine adjrhs.  <a href="namespaceddx__lpb__core.html#ab6ff087b76888899139f7712a3b8e419">More...</a><br /></td></tr>
 <tr class="separator:ab6ff087b76888899139f7712a3b8e419"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac82b16767440bcb1045ba7d9e1498e45"><td class="memItemLeft" align="right" valign="top"><a id="ac82b16767440bcb1045ba7d9e1498e45"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>inthsp_adj</b> (params, constants, rjin, rj, jsph, basloc, fac_hsp, work)</td></tr>
+<tr class="memitem:ac82b16767440bcb1045ba7d9e1498e45"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#ac82b16767440bcb1045ba7d9e1498e45">inthsp_adj</a> (params, constants, rjin, rj, jsph, basloc, fac_hsp, work)</td></tr>
+<tr class="memdesc:ac82b16767440bcb1045ba7d9e1498e45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Intermediate calculation in adjrhs_lpb subroutine.  <a href="namespaceddx__lpb__core.html#ac82b16767440bcb1045ba7d9e1498e45">More...</a><br /></td></tr>
 <tr class="separator:ac82b16767440bcb1045ba7d9e1498e45"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17151f884bc200428fee390dabfe4c56"><td class="memItemLeft" align="right" valign="top"><a id="a17151f884bc200428fee390dabfe4c56"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>fdoka_b_xe</b> (params, constants, workspace, isph, Xe, Xadj_e, basloc, dbasloc, vplm, vcos, vsin, force_e)</td></tr>
-<tr class="separator:a17151f884bc200428fee390dabfe4c56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad90771f1c1fefbcf378350c92cfbecf8"><td class="memItemLeft" align="right" valign="top"><a id="ad90771f1c1fefbcf378350c92cfbecf8"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>fdokb_b_xe</b> (params, constants, workspace, isph, Xe, Xadj_e, basloc, dbasloc, vplm, vcos, vsin, force_e)</td></tr>
-<tr class="separator:ad90771f1c1fefbcf378350c92cfbecf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aadcbee917eab34d14579ac53e7f17fce"><td class="memItemLeft" align="right" valign="top"><a id="aadcbee917eab34d14579ac53e7f17fce"></a>
-real(dp) function&#160;</td><td class="memItemRight" valign="bottom"><b>compute_beta</b> (params, constants, workspace, SI_rijn, rijn, jsph, Xe, basloc)</td></tr>
-<tr class="separator:aadcbee917eab34d14579ac53e7f17fce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab11dbe85ac9efbbab8a7fd1b705d8a30"><td class="memItemLeft" align="right" valign="top"><a id="ab11dbe85ac9efbbab8a7fd1b705d8a30"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>fdouky</b> (params, constants, workspace, Xr, Xe, Xadj_r_sgrid, Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re)</td></tr>
-<tr class="separator:ab11dbe85ac9efbbab8a7fd1b705d8a30"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6862e3e4b71f7650369cf1cf92072836"><td class="memItemLeft" align="right" valign="top"><a id="a6862e3e4b71f7650369cf1cf92072836"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>fdouky_f0</b> (params, constants, workspace, sol_adj, sol_sgrid, gradpsi, force)</td></tr>
-<tr class="separator:a6862e3e4b71f7650369cf1cf92072836"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af39c7d79e4d660473990fbab4c685b15"><td class="memItemLeft" align="right" valign="top"><a id="af39c7d79e4d660473990fbab4c685b15"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>derivative_p</b> (params, constants, workspace, Xr, Xe, Xadj_r_sgrid, Xadj_e_sgrid, diff_re, force)</td></tr>
-<tr class="separator:af39c7d79e4d660473990fbab4c685b15"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71b432a0cb06a79def8d99e9a1bd7d08"><td class="memItemLeft" align="right" valign="top"><a id="a71b432a0cb06a79def8d99e9a1bd7d08"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>fdoco</b> (params, constants, workspace, sol_sgrid, gradpsi, normal_hessian_cav, icav_g, force)</td></tr>
-<tr class="separator:a71b432a0cb06a79def8d99e9a1bd7d08"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9815e2f0f42dd0b46be63f3509fd10ad"><td class="memItemLeft" align="right" valign="top"><a id="a9815e2f0f42dd0b46be63f3509fd10ad"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>fdops</b> (params, constants, workspace, ksph, phi_n, force)</td></tr>
-<tr class="separator:a9815e2f0f42dd0b46be63f3509fd10ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f4495cb67ec70a614e0ca6e9a313c38"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#a4f4495cb67ec70a614e0ca6e9a313c38">contract_grad_b</a> (params, constants, workspace, isph, Xe, Xadj_e, basloc, dbasloc, vplm, vcos, vsin, force)</td></tr>
+<tr class="memdesc:a4f4495cb67ec70a614e0ca6e9a313c38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute contraction of B matrix.  <a href="namespaceddx__lpb__core.html#a4f4495cb67ec70a614e0ca6e9a313c38">More...</a><br /></td></tr>
+<tr class="separator:a4f4495cb67ec70a614e0ca6e9a313c38"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82b5b662e94223dcab265e0a1ebb0eaa"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#a82b5b662e94223dcab265e0a1ebb0eaa">contract_grad_c</a> (params, constants, workspace, Xr, Xe, Xadj_r_sgrid, Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re)</td></tr>
+<tr class="memdesc:a82b5b662e94223dcab265e0a1ebb0eaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute contraction of C matrix.  <a href="namespaceddx__lpb__core.html#a82b5b662e94223dcab265e0a1ebb0eaa">More...</a><br /></td></tr>
+<tr class="separator:a82b5b662e94223dcab265e0a1ebb0eaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe5c8a7e9443f1b4842202feb50db0df"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#abe5c8a7e9443f1b4842202feb50db0df">contract_grad_f</a> (params, constants, workspace, sol_adj, sol_sgrid, gradpsi, normal_hessian_cav, icav_g, force)</td></tr>
+<tr class="memdesc:abe5c8a7e9443f1b4842202feb50db0df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute contraction of F0.  <a href="namespaceddx__lpb__core.html#abe5c8a7e9443f1b4842202feb50db0df">More...</a><br /></td></tr>
+<tr class="separator:abe5c8a7e9443f1b4842202feb50db0df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b2b4658d82e295b585f6acbb14aefcd"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#a2b2b4658d82e295b585f6acbb14aefcd">contract_gradi_bik</a> (params, constants, workspace, isph, Xe, Xadj_e, basloc, dbasloc, vplm, vcos, vsin, force)</td></tr>
+<tr class="memdesc:a2b2b4658d82e295b585f6acbb14aefcd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute K^A counterpart for the HSP equation. Similar to contract_gradi_Lik.  <a href="namespaceddx__lpb__core.html#a2b2b4658d82e295b585f6acbb14aefcd">More...</a><br /></td></tr>
+<tr class="separator:a2b2b4658d82e295b585f6acbb14aefcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07f8860eb89a51f3f63cd666aa622ed2"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#a07f8860eb89a51f3f63cd666aa622ed2">contract_gradi_bji</a> (params, constants, workspace, isph, Xe, Xadj_e, basloc, dbasloc, vplm, vcos, vsin, force)</td></tr>
+<tr class="memdesc:a07f8860eb89a51f3f63cd666aa622ed2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute K^A+K^C counterpart for the HSP equation. Similar to contract_gradi_Lji.  <a href="namespaceddx__lpb__core.html#a07f8860eb89a51f3f63cd666aa622ed2">More...</a><br /></td></tr>
+<tr class="separator:a07f8860eb89a51f3f63cd666aa622ed2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb2c3382052506b74d3c56da2dc166b0"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#afb2c3382052506b74d3c56da2dc166b0">contract_grad_c_worker1</a> (params, constants, workspace, Xr, Xe, Xadj_r_sgrid, Xadj_e_sgrid, diff_re, force)</td></tr>
+<tr class="memdesc:afb2c3382052506b74d3c56da2dc166b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to calculate the third derivative term in C1_C2 matrix, namely the derivative of PU_i.  <a href="namespaceddx__lpb__core.html#afb2c3382052506b74d3c56da2dc166b0">More...</a><br /></td></tr>
+<tr class="separator:afb2c3382052506b74d3c56da2dc166b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a724a8b1369b7707553dfe799f1f483f0"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#a724a8b1369b7707553dfe799f1f483f0">contract_grad_c_worker2</a> (params, constants, workspace, Xr, Xe, Xadj_r_sgrid, Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re)</td></tr>
+<tr class="memdesc:a724a8b1369b7707553dfe799f1f483f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute the derivative of U_i(x_in) and \bf{k}^j_l0(x_in)Y^j_l0m0(x_in)  <a href="namespaceddx__lpb__core.html#a724a8b1369b7707553dfe799f1f483f0">More...</a><br /></td></tr>
+<tr class="separator:a724a8b1369b7707553dfe799f1f483f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3dd73849ff5fc8e5e52e2e15a9728f32"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#a3dd73849ff5fc8e5e52e2e15a9728f32">contract_grad_f_worker1</a> (params, constants, workspace, sol_adj, sol_sgrid, gradpsi, force)</td></tr>
+<tr class="memdesc:a3dd73849ff5fc8e5e52e2e15a9728f32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute the derivative of U_i(x_in) and \bf{k}^j_l0(x_in)Y^j_l0m0(x_in) in F0.  <a href="namespaceddx__lpb__core.html#a3dd73849ff5fc8e5e52e2e15a9728f32">More...</a><br /></td></tr>
+<tr class="separator:a3dd73849ff5fc8e5e52e2e15a9728f32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa0f75db856bd34f7c3e9b01f191b70d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#afa0f75db856bd34f7c3e9b01f191b70d">contract_grad_f_worker2</a> (params, constants, workspace, sol_sgrid, gradpsi, normal_hessian_cav, icav_g, force)</td></tr>
+<tr class="memdesc:afa0f75db856bd34f7c3e9b01f191b70d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to calculate the derivative of C_{0l0m0}^j.  <a href="namespaceddx__lpb__core.html#afa0f75db856bd34f7c3e9b01f191b70d">More...</a><br /></td></tr>
+<tr class="separator:afa0f75db856bd34f7c3e9b01f191b70d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a9efcb7686dacc7d25eb7c5ff479ef9"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#a7a9efcb7686dacc7d25eb7c5ff479ef9">contract_grad_f_worker3</a> (params, constants, workspace, ksph, phi_n, force)</td></tr>
+<tr class="memdesc:a7a9efcb7686dacc7d25eb7c5ff479ef9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute derivative of potential at spheres.  <a href="namespaceddx__lpb__core.html#a7a9efcb7686dacc7d25eb7c5ff479ef9">More...</a><br /></td></tr>
+<tr class="separator:a7a9efcb7686dacc7d25eb7c5ff479ef9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Core routines and parameters specific to ddLPB. </p>
-</div></div><!-- contents -->
+<dl class="section copyright"><dt>Copyright</dt><dd>(c) 2020-2021 RWTH Aachen. All rights reserved.</dd></dl>
+<p>ddX software</p>
+<dl class="section version"><dt>Version</dt><dd>1.0.0 </dd></dl>
+<dl class="section author"><dt>Author</dt><dd>Abhinav Jha and Michele Nottoli </dd></dl>
+<dl class="section date"><dt>Date</dt><dd>2022-03-31 </dd></dl>
+</div><h2 class="groupheader">Function/Subroutine Documentation</h2>
+<a id="a651dd3cdefb7b8f3c10d6914f61e35dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a651dd3cdefb7b8f3c10d6914f61e35dc">&#9670;&nbsp;</a></span>wghpot_f()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::wghpot_f </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
+          <td class="paramname"><em>gradphi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(out)&#160;</td>
+          <td class="paramname"><em>f</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Find intermediate F0 in the RHS of the ddLPB model given in Eq.(82) </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">gradphi</td><td>: Gradient of psi_0 </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">f</td><td>: Intermediate calculation of F0 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l00027">27</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a27155fbfc41650ee384956aabcf6406c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a27155fbfc41650ee384956aabcf6406c">&#9670;&nbsp;</a></span>calcv2_lpb()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::calcv2_lpb </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>isph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid), intent(inout)&#160;</td>
+          <td class="paramname"><em>pot</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>basloc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>vplm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
+          <td class="paramname"><em>vcos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
+          <td class="paramname"><em>vsin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">complex(dp), dimension(max(2, params % lmax+1)), intent(out)&#160;</td>
+          <td class="paramname"><em>bessel_work</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Intermediate computation of Bx. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">isph</td><td>: Number of the sphere </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">pot</td><td>: Array of size ngrid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>: Input vector (Usually X_e) </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">basloc</td><td>: Used to compute spherical harmonic </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">vplm</td><td>: Used to compute spherical harmonic </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">vcos</td><td>: Used to compute spherical harmonic </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">vsin</td><td>: Used to compute spherical harmonic </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l00153">153</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ad6dc1419e83a09c20a07880df9d21d72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6dc1419e83a09c20a07880df9d21d72">&#9670;&nbsp;</a></span>convert_ddcosmo()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::convert_ddcosmo </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>direction</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(inout)&#160;</td>
+          <td class="paramname"><em>vector</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Scale the ddCOSMO solution vector. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">direction</td><td>: Direction of the scaling </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">vector</td><td>: ddCOSMO solution vector </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l00211">211</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a8f0440fba785d6c7b8a8b6d00b62f18d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f0440fba785d6c7b8a8b6d00b62f18d">&#9670;&nbsp;</a></span>inthsp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::inthsp </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>rijn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>ri</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>isph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(in)&#160;</td>
+          <td class="paramname"><em>basloc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>fac_hsp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">complex(dp), dimension(max(2, params % lmax+1)), intent(out)&#160;</td>
+          <td class="paramname"><em>work</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Intermediate calculation in calcv2_lpb subroutine. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">rijn</td><td>: Radius of sphers x_ijn </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ri</td><td>: Radius of sphers x_i </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">isph</td><td>: Index of sphere </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">basloc</td><td>: Spherical Harmonic </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">fac_hsp</td><td>: Return bessel function ratio multiplied by the spherical harmonic Y_l'm'. Array of size nylm </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l00246">246</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ab6ff087b76888899139f7712a3b8e419"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6ff087b76888899139f7712a3b8e419">&#9670;&nbsp;</a></span>adjrhs_lpb()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::adjrhs_lpb </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>isph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>xi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension((params % lmax+1)**2), intent(out)&#160;</td>
+          <td class="paramname"><em>vlm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension((params % lmax+1)**2), intent(out)&#160;</td>
+          <td class="paramname"><em>basloc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension((params % lmax+1)**2), intent(out)&#160;</td>
+          <td class="paramname"><em>vplm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(out)&#160;</td>
+          <td class="paramname"><em>vcos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(out)&#160;</td>
+          <td class="paramname"><em>vsin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">complex(dp), dimension(max(2, params % lmax+1)), intent(out)&#160;</td>
+          <td class="paramname"><em>tmp_bessel</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Intermediate for computing Bstarx Compute the Adjoint matix B*x Taken from <a class="el" href="namespaceddx__core.html" title="Core routines and parameters of the ddX software.">ddx_core</a> routine adjrhs. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">isph</td><td>: Number of the sphere </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">basloc</td><td>: Used to compute spherical harmonic </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">vplm</td><td>: Used to compute spherical harmonic </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">vcos</td><td>: Used to compute spherical harmonic </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">vsin</td><td>: Used to compute spherical harmonic </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l00288">288</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ac82b16767440bcb1045ba7d9e1498e45"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac82b16767440bcb1045ba7d9e1498e45">&#9670;&nbsp;</a></span>inthsp_adj()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::inthsp_adj </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>rjin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>rj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>jsph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(in)&#160;</td>
+          <td class="paramname"><em>basloc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>fac_hsp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">complex(dp), dimension(max(2, params % lmax+1)), intent(out)&#160;</td>
+          <td class="paramname"><em>work</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Intermediate calculation in adjrhs_lpb subroutine. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">rjin</td><td>: Radius of sphers x_jin </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">rj</td><td>: Radius of sphers x_j </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">jsph</td><td>: Index of sphere </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">basloc</td><td>: Spherical Harmonic </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">fac_hsp</td><td>: Return bessel function ratio multiplied by the spherical harmonic Y_l'm'. Array of size nylm </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l00362">362</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a4f4495cb67ec70a614e0ca6e9a313c38"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4f4495cb67ec70a614e0ca6e9a313c38">&#9670;&nbsp;</a></span>contract_grad_b()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::contract_grad_b </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>isph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xe</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>basloc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>dbasloc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>vplm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
+          <td class="paramname"><em>vcos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
+          <td class="paramname"><em>vsin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Subroutine to compute contraction of B matrix. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">isph</td><td>: Index of sphere </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xe</td><td>: Solution vector Xe </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_e</td><td>: Adjoint solution on evaluated on grid points Xadj_e_sgrid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">basloc</td><td>: Spherical harmonics Y_lm </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dbasloc</td><td>: Derivative of spherical harmonics \nabla^i(Y_lm) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">vplm</td><td>: Argument to call ylmbas </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">vcos</td><td>: Argument to call ylmbas </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">vsin</td><td>: Argument to call ylmbas </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force of adjoint part </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l00407">407</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a82b5b662e94223dcab265e0a1ebb0eaa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82b5b662e94223dcab265e0a1ebb0eaa">&#9670;&nbsp;</a></span>contract_grad_c()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::contract_grad_c </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xe</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_r_sgrid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_e_sgrid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_r</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(out)&#160;</td>
+          <td class="paramname"><em>diff_re</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Subroutine to compute contraction of C matrix. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xr</td><td>: Solution of the Laplace problem </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xe</td><td>: Solution of the HSP problem </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_r_sgrid</td><td>: Solution of the Adjoint Laplace problem evaluated at the grid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_e_sgrid</td><td>: Solution of the Adjoint HSP problem evaluated at the grid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_r</td><td>: Adjoint solution of the Laplace problem </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_e</td><td>: Adjoint solution of the HSP problem </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">force</td><td>: Force </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">diff_re</td><td>: epsilon_1/epsilon_2 * l'/r_j[Xr]_jl'm'<ul>
+<li>(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm' </li>
+</ul>
+</td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l00444">444</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="abe5c8a7e9443f1b4842202feb50db0df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe5c8a7e9443f1b4842202feb50db0df">&#9670;&nbsp;</a></span>contract_grad_f()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::contract_grad_f </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>sol_adj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>sol_sgrid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
+          <td class="paramname"><em>gradpsi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
+          <td class="paramname"><em>normal_hessian_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(inout)&#160;</td>
+          <td class="paramname"><em>icav_g</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Subroutine to compute contraction of F0. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">sol_sgrid</td><td>: Solution of the Adjoint problem evaluated at the grid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">sol_adj</td><td>: Adjoint solution </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">normal_hessian_cav</td><td>: Normal of the Hessian evaluated at cavity points </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">icav_g</td><td>: Index of outside cavity point </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l00473">473</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a2b2b4658d82e295b585f6acbb14aefcd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b2b4658d82e295b585f6acbb14aefcd">&#9670;&nbsp;</a></span>contract_gradi_bik()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::contract_gradi_bik </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>isph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xe</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>basloc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>dbasloc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>vplm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
+          <td class="paramname"><em>vcos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
+          <td class="paramname"><em>vsin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Subroutine to compute K^A counterpart for the HSP equation. Similar to contract_gradi_Lik. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">isph</td><td>: Index of sphere </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xe</td><td>: Solution vector Xe </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_e</td><td>: Adjoint solution on evaluated on grid points Xadj_e_sgrid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">basloc</td><td>: Spherical harmonics Y_lm </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dbasloc</td><td>: Derivative of spherical harmonics \nabla^i(Y_lm) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">vplm</td><td>: Argument to call ylmbas </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">vcos</td><td>: Argument to call ylmbas </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">vsin</td><td>: Argument to call ylmbas </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l00506">506</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a07f8860eb89a51f3f63cd666aa622ed2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a07f8860eb89a51f3f63cd666aa622ed2">&#9670;&nbsp;</a></span>contract_gradi_bji()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::contract_gradi_bji </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>isph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xe</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>basloc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>dbasloc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
+          <td class="paramname"><em>vplm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
+          <td class="paramname"><em>vcos</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
+          <td class="paramname"><em>vsin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Subroutine to compute K^A+K^C counterpart for the HSP equation. Similar to contract_gradi_Lji. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">isph</td><td>: Index of sphere </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xe</td><td>: Solution vector Xe </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_e</td><td>: Adjoint solution on evaluated on grid points Xadj_e_sgrid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">basloc</td><td>: Spherical harmonics Y_lm </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dbasloc</td><td>: Derivative of spherical harmonics \nabla^i(Y_lm) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">vplm</td><td>: Argument to call ylmbas </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">vcos</td><td>: Argument to call ylmbas </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">vsin</td><td>: Argument to call ylmbas </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force of adjoint part </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l00600">600</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="afb2c3382052506b74d3c56da2dc166b0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afb2c3382052506b74d3c56da2dc166b0">&#9670;&nbsp;</a></span>contract_grad_c_worker1()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::contract_grad_c_worker1 </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xe</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_r_sgrid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_e_sgrid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>diff_re</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Subroutine to calculate the third derivative term in C1_C2 matrix, namely the derivative of PU_i. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xr</td><td>: Solution of the Laplace problem </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xe</td><td>: Solution of the HSP problem </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_r_sgrid</td><td>: Adjoint Laplace solution evaluated at grid point </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_e_sgrid</td><td>: Adjoint HSP solution evaluated at grid point </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">diff_re</td><td>: l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm' </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l00740">740</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a724a8b1369b7707553dfe799f1f483f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a724a8b1369b7707553dfe799f1f483f0">&#9670;&nbsp;</a></span>contract_grad_c_worker2()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::contract_grad_c_worker2 </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xe</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_r_sgrid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_e_sgrid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_r</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>Xadj_e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(out)&#160;</td>
+          <td class="paramname"><em>diff_re</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Subroutine to compute the derivative of U_i(x_in) and \bf{k}^j_l0(x_in)Y^j_l0m0(x_in) </p>
+<p>contract_grad_C_worker2 : Force Derivative of U_i^e(x_in), k_l0, and Y_l0m0 </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ksph</td><td>: Derivative with respect to x_k </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xr</td><td>: Solution of the Laplace problem </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xe</td><td>: Solution of the HSP problem </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_r_sgrid</td><td>: Solution of the Adjoint Laplace problem evaluated at the grid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_e_sgrid</td><td>: Solution of the Adjoint HSP problem evaluated at the grid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_r</td><td>: Adjoint solution of the Laplace problem </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_e</td><td>: Adjoint solution of the HSP problem </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">force</td><td>: Force </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">diff_re</td><td>: epsilon_1/epsilon_2 * l'/r_j[Xr]_jl'm'<ul>
+<li>(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm' </li>
+</ul>
+</td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l01001">1001</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a3dd73849ff5fc8e5e52e2e15a9728f32"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3dd73849ff5fc8e5e52e2e15a9728f32">&#9670;&nbsp;</a></span>contract_grad_f_worker1()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::contract_grad_f_worker1 </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>sol_adj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>sol_sgrid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
+          <td class="paramname"><em>gradpsi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Subroutine to compute the derivative of U_i(x_in) and \bf{k}^j_l0(x_in)Y^j_l0m0(x_in) in F0. </p>
+<p>contract_grad_f_worker1 : Force Derivative of U_i^e(x_in), k_l0, and Y_l0m0 in F0 </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ksph</td><td>: Derivative with respect to x_k </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">sol_sgrid</td><td>: Solution of the Adjoint problem evaluated at the grid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">sol_adj</td><td>: Adjoint solution </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">gradpsi</td><td>: Gradient of Psi_0 </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">force</td><td>: Force </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l01364">1364</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="afa0f75db856bd34f7c3e9b01f191b70d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa0f75db856bd34f7c3e9b01f191b70d">&#9670;&nbsp;</a></span>contract_grad_f_worker2()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::contract_grad_f_worker2 </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>sol_sgrid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
+          <td class="paramname"><em>gradpsi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
+          <td class="paramname"><em>normal_hessian_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(inout)&#160;</td>
+          <td class="paramname"><em>icav_g</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Subroutine to calculate the derivative of C_{0l0m0}^j. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ksph</td><td>: Derivative with respect to x_k </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">sol_sgrid</td><td>: Solution of the Adjoint problem evaluated at the grid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">gradpsi</td><td>: Gradient of Psi_0 </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">normal_hessian_cav</td><td>: Normal of the Hessian evaluated at cavity points </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">icav_g</td><td>: Index of outside cavity point </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force corresponding to HSP problem </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l01719">1719</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a7a9efcb7686dacc7d25eb7c5ff479ef9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7a9efcb7686dacc7d25eb7c5ff479ef9">&#9670;&nbsp;</a></span>contract_grad_f_worker3()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb_core::contract_grad_f_worker3 </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>ksph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>phi_n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Subroutine to compute derivative of potential at spheres. </p>
+<p>contract_grad_f_worker3 : Force derivative of potential at spheres </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">phi_n</td><td>: phi_n^j </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ksph</td><td>: Derivative with respect to x_k </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb__core_8f90_source.html#l01923">1923</a> of file <a class="el" href="ddx__lpb__core_8f90_source.html">ddx_lpb_core.f90</a>.</p>
+
+</div>
+</div>
+</div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

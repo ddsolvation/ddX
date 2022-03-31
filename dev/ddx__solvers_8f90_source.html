@@ -795,7 +795,7 @@ $(document).ready(function(){initNavTree('ddx__solvers_8f90_source.html',''); in
 <div class="line"><a name="l00726"></a><span class="lineno">  726</span>&#160;<span class="comment">!       a user-given size for arrays</span></div>
 <div class="line"><a name="l00727"></a><span class="lineno">  727</span>&#160;<span class="comment">!</span></div>
 <div class="line"><a name="l00728"></a><span class="lineno">  728</span>&#160;<span class="keyword">subroutine </span>jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_iter, &amp;</div>
-<div class="line"><a name="l00729"></a><span class="lineno">  729</span>&#160;          &amp; matvec, dm1vec, norm_func, info)</div>
+<div class="line"><a name="l00729"></a><span class="lineno">  729</span>&#160;          &amp; x_rel_diff, matvec, dm1vec, norm_func, info)</div>
 <div class="line"><a name="l00730"></a><span class="lineno">  730</span>&#160;      <span class="keywordtype">type</span>(ddx_params_type),    <span class="keywordtype">intent(in)</span>    :: params</div>
 <div class="line"><a name="l00731"></a><span class="lineno">  731</span>&#160;      <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span>    :: constants</div>
 <div class="line"><a name="l00732"></a><span class="lineno">  732</span>&#160;      <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
@@ -806,108 +806,111 @@ $(document).ready(function(){initNavTree('ddx__solvers_8f90_source.html',''); in
 <div class="line"><a name="l00737"></a><span class="lineno">  737</span>&#160;      <span class="comment">! Outputs</span></div>
 <div class="line"><a name="l00738"></a><span class="lineno">  738</span>&#160;<span class="keywordtype">      real</span>(dp),  <span class="keywordtype">dimension(n)</span>,  <span class="keywordtype">intent(inout)</span> :: x</div>
 <div class="line"><a name="l00739"></a><span class="lineno">  739</span>&#160;      <span class="keywordtype">integer</span>,                  <span class="keywordtype">intent(inout)</span> :: n_iter, info</div>
-<div class="line"><a name="l00740"></a><span class="lineno">  740</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00741"></a><span class="lineno">  741</span>&#160;      <span class="keywordtype">external</span>                                :: matvec, dm1vec</div>
-<div class="line"><a name="l00742"></a><span class="lineno">  742</span>&#160;      <span class="keywordtype">procedure</span>(<a class="code" href="interfaceddx__solvers_1_1norm__interface.html">norm_interface</a>)               :: norm_func</div>
-<div class="line"><a name="l00743"></a><span class="lineno">  743</span>&#160;      <span class="comment">! Local variables</span></div>
-<div class="line"><a name="l00744"></a><span class="lineno">  744</span>&#160;      <span class="keywordtype">integer</span>  :: it, nmat, istatus, lenb, nsph_u</div>
-<div class="line"><a name="l00745"></a><span class="lineno">  745</span>&#160;<span class="keywordtype">      real</span>(dp) :: diff, norm, rel_diff</div>
-<div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;      <span class="keywordtype">logical</span>  :: dodiis</div>
-<div class="line"><a name="l00747"></a><span class="lineno">  747</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;<span class="keywordtype">      real</span>(dp), <span class="keywordtype">allocatable</span> :: x_new(:), y(:), x_diis(:,:), e_diis(:,:), bmat(:,:)</div>
-<div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;<span class="comment">!---------------------------------------------------------------------------------------------</span></div>
-<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00740"></a><span class="lineno">  740</span>&#160;<span class="keywordtype">      real</span>(dp), <span class="keywordtype">intent(out)</span> :: x_rel_diff(n_iter)</div>
+<div class="line"><a name="l00741"></a><span class="lineno">  741</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00742"></a><span class="lineno">  742</span>&#160;      <span class="keywordtype">external</span>                                :: matvec, dm1vec</div>
+<div class="line"><a name="l00743"></a><span class="lineno">  743</span>&#160;      <span class="keywordtype">procedure</span>(<a class="code" href="interfaceddx__solvers_1_1norm__interface.html">norm_interface</a>)               :: norm_func</div>
+<div class="line"><a name="l00744"></a><span class="lineno">  744</span>&#160;      <span class="comment">! Local variables</span></div>
+<div class="line"><a name="l00745"></a><span class="lineno">  745</span>&#160;      <span class="keywordtype">integer</span>  :: it, nmat, istatus, lenb, nsph_u</div>
+<div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;<span class="keywordtype">      real</span>(dp) :: diff, norm, rel_diff = zero</div>
+<div class="line"><a name="l00747"></a><span class="lineno">  747</span>&#160;      <span class="keywordtype">logical</span>  :: dodiis</div>
+<div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;<span class="keywordtype">      real</span>(dp), <span class="keywordtype">allocatable</span> :: x_new(:), y(:), x_diis(:,:), e_diis(:,:), bmat(:,:)</div>
+<div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;<span class="comment">!---------------------------------------------------------------------------------------------</span></div>
 <div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;<span class="comment">!     DIIS extrapolation flag</span></div>
-<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;      dodiis = (params%jacobi_ndiis.gt.0)</div>
-<div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;<span class="comment">!     extrapolation required</span></div>
-<div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;      <span class="keywordflow">if</span> (dodiis) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00758"></a><span class="lineno">  758</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00759"></a><span class="lineno">  759</span>&#160;<span class="comment">!       allocate workspaces</span></div>
-<div class="line"><a name="l00760"></a><span class="lineno">  760</span>&#160;        lenb = params % jacobi_ndiis + 1</div>
-<div class="line"><a name="l00761"></a><span class="lineno">  761</span>&#160;        <span class="keyword">allocate</span>( x_diis(n,params % jacobi_ndiis), e_diis(n,params % jacobi_ndiis), bmat(lenb,lenb) , stat=istatus )</div>
-<div class="line"><a name="l00762"></a><span class="lineno">  762</span>&#160;        <span class="keywordflow">if</span> (istatus .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00763"></a><span class="lineno">  763</span>&#160;          <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39; jacobi_diis: [1] failed allocation (diis)&#39;</span></div>
-<div class="line"><a name="l00764"></a><span class="lineno">  764</span>&#160;          stop</div>
-<div class="line"><a name="l00765"></a><span class="lineno">  765</span>&#160;<span class="keywordflow">        endif</span></div>
-<div class="line"><a name="l00766"></a><span class="lineno">  766</span>&#160;<span class="comment">!        </span></div>
-<div class="line"><a name="l00767"></a><span class="lineno">  767</span>&#160;<span class="comment">!       initialize the number of points for diis to one.</span></div>
-<div class="line"><a name="l00768"></a><span class="lineno">  768</span>&#160;<span class="comment">!       note that nmat is updated by diis.</span></div>
-<div class="line"><a name="l00769"></a><span class="lineno">  769</span>&#160;        nmat = 1</div>
-<div class="line"><a name="l00770"></a><span class="lineno">  770</span>&#160;<span class="comment">!        </span></div>
-<div class="line"><a name="l00771"></a><span class="lineno">  771</span>&#160;<span class="keywordflow">      endif</span></div>
-<div class="line"><a name="l00772"></a><span class="lineno">  772</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00773"></a><span class="lineno">  773</span>&#160;<span class="comment">!     allocate workspaces</span></div>
-<div class="line"><a name="l00774"></a><span class="lineno">  774</span>&#160;      <span class="keyword">allocate</span>( x_new(n), y(n) , stat=istatus )</div>
-<div class="line"><a name="l00775"></a><span class="lineno">  775</span>&#160;      <span class="keywordflow">if</span> (istatus .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00776"></a><span class="lineno">  776</span>&#160;        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39; jacobi_diis: [2] failed allocation (scratch)&#39;</span> </div>
-<div class="line"><a name="l00777"></a><span class="lineno">  777</span>&#160;        stop</div>
-<div class="line"><a name="l00778"></a><span class="lineno">  778</span>&#160;<span class="keywordflow">      endif</span></div>
-<div class="line"><a name="l00779"></a><span class="lineno">  779</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00780"></a><span class="lineno">  780</span>&#160;<span class="comment">!     Jacobi iterations</span></div>
-<div class="line"><a name="l00781"></a><span class="lineno">  781</span>&#160;<span class="comment">!     =================e</span></div>
-<div class="line"><a name="l00782"></a><span class="lineno">  782</span>&#160;      <span class="keywordflow">do</span> it = 1, n_iter</div>
-<div class="line"><a name="l00783"></a><span class="lineno">  783</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00784"></a><span class="lineno">  784</span>&#160;<span class="comment">!       y = rhs - O x</span></div>
-<div class="line"><a name="l00785"></a><span class="lineno">  785</span>&#160;        <span class="keyword">call </span>matvec(params, constants, workspace, x, y )</div>
-<div class="line"><a name="l00786"></a><span class="lineno">  786</span>&#160;        y = rhs - y</div>
-<div class="line"><a name="l00787"></a><span class="lineno">  787</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00788"></a><span class="lineno">  788</span>&#160;<span class="comment">!       x_new = D^-1 y</span></div>
-<div class="line"><a name="l00789"></a><span class="lineno">  789</span>&#160;        <span class="keyword">call </span>dm1vec(params, constants, workspace, y, x_new)</div>
-<div class="line"><a name="l00790"></a><span class="lineno">  790</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00791"></a><span class="lineno">  791</span>&#160;<span class="comment">!       DIIS extrapolation</span></div>
-<div class="line"><a name="l00792"></a><span class="lineno">  792</span>&#160;<span class="comment">!       ==================</span></div>
-<div class="line"><a name="l00793"></a><span class="lineno">  793</span>&#160;        <span class="keywordflow">if</span> (dodiis) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00794"></a><span class="lineno">  794</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00795"></a><span class="lineno">  795</span>&#160;          x_diis(:,nmat) = x_new</div>
-<div class="line"><a name="l00796"></a><span class="lineno">  796</span>&#160;          e_diis(:,nmat) = x_new - x</div>
-<div class="line"><a name="l00797"></a><span class="lineno">  797</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00798"></a><span class="lineno">  798</span>&#160;          <span class="keyword">call </span>diis(n,nmat,params % jacobi_ndiis,x_diis,e_diis,bmat,x_new)</div>
-<div class="line"><a name="l00799"></a><span class="lineno">  799</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00800"></a><span class="lineno">  800</span>&#160;<span class="keywordflow">        endif</span></div>
-<div class="line"><a name="l00801"></a><span class="lineno">  801</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00802"></a><span class="lineno">  802</span>&#160;<span class="comment">!       increment</span></div>
-<div class="line"><a name="l00803"></a><span class="lineno">  803</span>&#160;        x = x_new - x</div>
-<div class="line"><a name="l00804"></a><span class="lineno">  804</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00805"></a><span class="lineno">  805</span>&#160;<span class="comment">!       warning: in the following, we use a quick and dirty hack to pass </span></div>
-<div class="line"><a name="l00806"></a><span class="lineno">  806</span>&#160;<span class="comment">!       to the norm function arrays double the size than in non ddlpb calculations</span></div>
-<div class="line"><a name="l00807"></a><span class="lineno">  807</span>&#160;<span class="comment">!       by defining a fake number of spheres with is n/nbasis (i.e., 2*nsph in </span></div>
-<div class="line"><a name="l00808"></a><span class="lineno">  808</span>&#160;<span class="comment">!       ddlpb).</span></div>
-<div class="line"><a name="l00809"></a><span class="lineno">  809</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00810"></a><span class="lineno">  810</span>&#160;        nsph_u = n/constants % nbasis</div>
-<div class="line"><a name="l00811"></a><span class="lineno">  811</span>&#160;        diff = norm_func(params % lmax, constants % nbasis, nsph_u, x)</div>
-<div class="line"><a name="l00812"></a><span class="lineno">  812</span>&#160;        norm = norm_func(params % lmax, constants % nbasis, nsph_u, x_new)</div>
-<div class="line"><a name="l00813"></a><span class="lineno">  813</span>&#160;        <span class="comment">! compute rel_diff using the rule 0/0 = 0</span></div>
-<div class="line"><a name="l00814"></a><span class="lineno">  814</span>&#160;        <span class="keywordflow">if</span> (diff.eq.zero .and. norm.eq.zero) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00815"></a><span class="lineno">  815</span>&#160;            rel_diff = zero</div>
-<div class="line"><a name="l00816"></a><span class="lineno">  816</span>&#160;        <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00817"></a><span class="lineno">  817</span>&#160;            rel_diff = diff / norm</div>
-<div class="line"><a name="l00818"></a><span class="lineno">  818</span>&#160;<span class="keywordflow">        end if</span></div>
-<div class="line"><a name="l00819"></a><span class="lineno">  819</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00820"></a><span class="lineno">  820</span>&#160;<span class="comment">!       update</span></div>
-<div class="line"><a name="l00821"></a><span class="lineno">  821</span>&#160;        x = x_new</div>
+<div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;<span class="comment">!     DIIS extrapolation flag</span></div>
+<div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;      dodiis = (params%jacobi_ndiis.gt.0)</div>
+<div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;<span class="comment">!     extrapolation required</span></div>
+<div class="line"><a name="l00758"></a><span class="lineno">  758</span>&#160;      <span class="keywordflow">if</span> (dodiis) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00759"></a><span class="lineno">  759</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00760"></a><span class="lineno">  760</span>&#160;<span class="comment">!       allocate workspaces</span></div>
+<div class="line"><a name="l00761"></a><span class="lineno">  761</span>&#160;        lenb = params % jacobi_ndiis + 1</div>
+<div class="line"><a name="l00762"></a><span class="lineno">  762</span>&#160;        <span class="keyword">allocate</span>( x_diis(n,params % jacobi_ndiis), e_diis(n,params % jacobi_ndiis), bmat(lenb,lenb) , stat=istatus )</div>
+<div class="line"><a name="l00763"></a><span class="lineno">  763</span>&#160;        <span class="keywordflow">if</span> (istatus .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00764"></a><span class="lineno">  764</span>&#160;          <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39; jacobi_diis: [1] failed allocation (diis)&#39;</span></div>
+<div class="line"><a name="l00765"></a><span class="lineno">  765</span>&#160;          stop</div>
+<div class="line"><a name="l00766"></a><span class="lineno">  766</span>&#160;<span class="keywordflow">        endif</span></div>
+<div class="line"><a name="l00767"></a><span class="lineno">  767</span>&#160;<span class="comment">!        </span></div>
+<div class="line"><a name="l00768"></a><span class="lineno">  768</span>&#160;<span class="comment">!       initialize the number of points for diis to one.</span></div>
+<div class="line"><a name="l00769"></a><span class="lineno">  769</span>&#160;<span class="comment">!       note that nmat is updated by diis.</span></div>
+<div class="line"><a name="l00770"></a><span class="lineno">  770</span>&#160;        nmat = 1</div>
+<div class="line"><a name="l00771"></a><span class="lineno">  771</span>&#160;<span class="comment">!        </span></div>
+<div class="line"><a name="l00772"></a><span class="lineno">  772</span>&#160;<span class="keywordflow">      endif</span></div>
+<div class="line"><a name="l00773"></a><span class="lineno">  773</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00774"></a><span class="lineno">  774</span>&#160;<span class="comment">!     allocate workspaces</span></div>
+<div class="line"><a name="l00775"></a><span class="lineno">  775</span>&#160;      <span class="keyword">allocate</span>( x_new(n), y(n) , stat=istatus )</div>
+<div class="line"><a name="l00776"></a><span class="lineno">  776</span>&#160;      <span class="keywordflow">if</span> (istatus .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00777"></a><span class="lineno">  777</span>&#160;        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39; jacobi_diis: [2] failed allocation (scratch)&#39;</span> </div>
+<div class="line"><a name="l00778"></a><span class="lineno">  778</span>&#160;        stop</div>
+<div class="line"><a name="l00779"></a><span class="lineno">  779</span>&#160;<span class="keywordflow">      endif</span></div>
+<div class="line"><a name="l00780"></a><span class="lineno">  780</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00781"></a><span class="lineno">  781</span>&#160;<span class="comment">!     Jacobi iterations</span></div>
+<div class="line"><a name="l00782"></a><span class="lineno">  782</span>&#160;<span class="comment">!     =================e</span></div>
+<div class="line"><a name="l00783"></a><span class="lineno">  783</span>&#160;      <span class="keywordflow">do</span> it = 1, n_iter</div>
+<div class="line"><a name="l00784"></a><span class="lineno">  784</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00785"></a><span class="lineno">  785</span>&#160;<span class="comment">!       y = rhs - O x</span></div>
+<div class="line"><a name="l00786"></a><span class="lineno">  786</span>&#160;        <span class="keyword">call </span>matvec(params, constants, workspace, x, y )</div>
+<div class="line"><a name="l00787"></a><span class="lineno">  787</span>&#160;        y = rhs - y</div>
+<div class="line"><a name="l00788"></a><span class="lineno">  788</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00789"></a><span class="lineno">  789</span>&#160;<span class="comment">!       x_new = D^-1 y</span></div>
+<div class="line"><a name="l00790"></a><span class="lineno">  790</span>&#160;        <span class="keyword">call </span>dm1vec(params, constants, workspace, y, x_new)</div>
+<div class="line"><a name="l00791"></a><span class="lineno">  791</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00792"></a><span class="lineno">  792</span>&#160;<span class="comment">!       DIIS extrapolation</span></div>
+<div class="line"><a name="l00793"></a><span class="lineno">  793</span>&#160;<span class="comment">!       ==================</span></div>
+<div class="line"><a name="l00794"></a><span class="lineno">  794</span>&#160;        <span class="keywordflow">if</span> (dodiis) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00795"></a><span class="lineno">  795</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00796"></a><span class="lineno">  796</span>&#160;          x_diis(:,nmat) = x_new</div>
+<div class="line"><a name="l00797"></a><span class="lineno">  797</span>&#160;          e_diis(:,nmat) = x_new - x</div>
+<div class="line"><a name="l00798"></a><span class="lineno">  798</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00799"></a><span class="lineno">  799</span>&#160;          <span class="keyword">call </span>diis(n,nmat,params % jacobi_ndiis,x_diis,e_diis,bmat,x_new)</div>
+<div class="line"><a name="l00800"></a><span class="lineno">  800</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00801"></a><span class="lineno">  801</span>&#160;<span class="keywordflow">        endif</span></div>
+<div class="line"><a name="l00802"></a><span class="lineno">  802</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00803"></a><span class="lineno">  803</span>&#160;<span class="comment">!       increment</span></div>
+<div class="line"><a name="l00804"></a><span class="lineno">  804</span>&#160;        x = x_new - x</div>
+<div class="line"><a name="l00805"></a><span class="lineno">  805</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00806"></a><span class="lineno">  806</span>&#160;<span class="comment">!       warning: in the following, we use a quick and dirty hack to pass </span></div>
+<div class="line"><a name="l00807"></a><span class="lineno">  807</span>&#160;<span class="comment">!       to the norm function arrays double the size than in non ddlpb calculations</span></div>
+<div class="line"><a name="l00808"></a><span class="lineno">  808</span>&#160;<span class="comment">!       by defining a fake number of spheres with is n/nbasis (i.e., 2*nsph in </span></div>
+<div class="line"><a name="l00809"></a><span class="lineno">  809</span>&#160;<span class="comment">!       ddlpb).</span></div>
+<div class="line"><a name="l00810"></a><span class="lineno">  810</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00811"></a><span class="lineno">  811</span>&#160;        nsph_u = n/constants % nbasis</div>
+<div class="line"><a name="l00812"></a><span class="lineno">  812</span>&#160;        diff = norm_func(params % lmax, constants % nbasis, nsph_u, x)</div>
+<div class="line"><a name="l00813"></a><span class="lineno">  813</span>&#160;        norm = norm_func(params % lmax, constants % nbasis, nsph_u, x_new)</div>
+<div class="line"><a name="l00814"></a><span class="lineno">  814</span>&#160;        <span class="comment">! compute rel_diff using the rule 0/0 = 0</span></div>
+<div class="line"><a name="l00815"></a><span class="lineno">  815</span>&#160;        <span class="keywordflow">if</span> (diff.eq.zero .and. norm.eq.zero) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00816"></a><span class="lineno">  816</span>&#160;            rel_diff = zero</div>
+<div class="line"><a name="l00817"></a><span class="lineno">  817</span>&#160;        <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00818"></a><span class="lineno">  818</span>&#160;            rel_diff = diff / norm</div>
+<div class="line"><a name="l00819"></a><span class="lineno">  819</span>&#160;<span class="keywordflow">        end if</span></div>
+<div class="line"><a name="l00820"></a><span class="lineno">  820</span>&#160; </div>
+<div class="line"><a name="l00821"></a><span class="lineno">  821</span>&#160;        x_rel_diff(it) = rel_diff</div>
 <div class="line"><a name="l00822"></a><span class="lineno">  822</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00823"></a><span class="lineno">  823</span>&#160;<span class="comment">!       EXIT Jacobi loop here</span></div>
-<div class="line"><a name="l00824"></a><span class="lineno">  824</span>&#160;<span class="comment">!       =====================</span></div>
-<div class="line"><a name="l00825"></a><span class="lineno">  825</span>&#160;        <span class="keywordflow">if</span> (rel_diff .le. tol) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l00826"></a><span class="lineno">  826</span>&#160;            info = 0</div>
-<div class="line"><a name="l00827"></a><span class="lineno">  827</span>&#160;            n_iter = it</div>
-<div class="line"><a name="l00828"></a><span class="lineno">  828</span>&#160;            <span class="keywordflow">return</span></div>
-<div class="line"><a name="l00829"></a><span class="lineno">  829</span>&#160;<span class="keywordflow">        end if</span></div>
-<div class="line"><a name="l00830"></a><span class="lineno">  830</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00831"></a><span class="lineno">  831</span>&#160;<span class="keywordflow">      enddo</span></div>
-<div class="line"><a name="l00832"></a><span class="lineno">  832</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00833"></a><span class="lineno">  833</span>&#160;<span class="comment">!     something went wrong...</span></div>
-<div class="line"><a name="l00834"></a><span class="lineno">  834</span>&#160;      info = 1</div>
+<div class="line"><a name="l00823"></a><span class="lineno">  823</span>&#160;<span class="comment">!       update</span></div>
+<div class="line"><a name="l00824"></a><span class="lineno">  824</span>&#160;        x = x_new</div>
+<div class="line"><a name="l00825"></a><span class="lineno">  825</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00826"></a><span class="lineno">  826</span>&#160;<span class="comment">!       EXIT Jacobi loop here</span></div>
+<div class="line"><a name="l00827"></a><span class="lineno">  827</span>&#160;<span class="comment">!       =====================</span></div>
+<div class="line"><a name="l00828"></a><span class="lineno">  828</span>&#160;        <span class="keywordflow">if</span> (rel_diff .le. tol) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00829"></a><span class="lineno">  829</span>&#160;            info = 0</div>
+<div class="line"><a name="l00830"></a><span class="lineno">  830</span>&#160;            n_iter = it</div>
+<div class="line"><a name="l00831"></a><span class="lineno">  831</span>&#160;            <span class="keywordflow">return</span></div>
+<div class="line"><a name="l00832"></a><span class="lineno">  832</span>&#160;<span class="keywordflow">        end if</span></div>
+<div class="line"><a name="l00833"></a><span class="lineno">  833</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00834"></a><span class="lineno">  834</span>&#160;<span class="keywordflow">      enddo</span></div>
 <div class="line"><a name="l00835"></a><span class="lineno">  835</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00836"></a><span class="lineno">  836</span>&#160;      <span class="keywordflow">return</span></div>
-<div class="line"><a name="l00837"></a><span class="lineno">  837</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00836"></a><span class="lineno">  836</span>&#160;<span class="comment">!     something went wrong...</span></div>
+<div class="line"><a name="l00837"></a><span class="lineno">  837</span>&#160;      info = 1</div>
 <div class="line"><a name="l00838"></a><span class="lineno">  838</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00839"></a><span class="lineno">  839</span>&#160;<span class="keyword">endsubroutine </span>jacobi_diis_external</div>
-<div class="line"><a name="l00840"></a><span class="lineno">  840</span>&#160; </div>
-<div class="line"><a name="l00841"></a><span class="lineno">  841</span>&#160;<span class="keyword">end module </span><a class="code" href="namespaceddx__solvers.html">ddx_solvers</a></div>
+<div class="line"><a name="l00839"></a><span class="lineno">  839</span>&#160;      <span class="keywordflow">return</span></div>
+<div class="line"><a name="l00840"></a><span class="lineno">  840</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00841"></a><span class="lineno">  841</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l00842"></a><span class="lineno">  842</span>&#160;<span class="keyword">endsubroutine </span>jacobi_diis_external</div>
+<div class="line"><a name="l00843"></a><span class="lineno">  843</span>&#160; </div>
+<div class="line"><a name="l00844"></a><span class="lineno">  844</span>&#160;<span class="keyword">end module </span><a class="code" href="namespaceddx__solvers.html">ddx_solvers</a></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="anamespaceddx__solvers_html_abf126087f0449850ca561c364488f20a"><div class="ttname"><a href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">ddx_solvers::jacobi_diis</a></div><div class="ttdeci">subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, x_rel_diff, matvec, dm1vec, norm_func, info)</div><div class="ttdoc">Jacobi iterative solver.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__solvers_8f90_source.html#l00082">ddx_solvers.f90:82</a></div></div>

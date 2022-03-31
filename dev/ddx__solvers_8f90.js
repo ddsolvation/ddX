@@ -8,5 +8,5 @@ var ddx__solvers_8f90 =
     [ "makeb", "ddx__solvers_8f90.html#ab078495566540e84394991dfd0506f6c", null ],
     [ "gmresr", "ddx__solvers_8f90.html#aef00b2fe9f0483a0c91b8313a1fa5590", null ],
     [ "gmres0", "ddx__solvers_8f90.html#a976b2efc1661de245ed2978d2ec8b1b9", null ],
-    [ "jacobi_diis_external", "ddx__solvers_8f90.html#ab0e82a7b455ce537adf6297d5beeea8d", null ]
+    [ "jacobi_diis_external", "ddx__solvers_8f90.html#af7cea09146dd7833519488cddc69ac31", null ]
 ];
