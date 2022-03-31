@@ -48,14 +48,18 @@ implicit none
 
 contains
 
+!> ddLPB solver
 !!
 !! ddLPB calculation happens here
-!! @param[in] ddx_data : dd Data
-!! @param[in] phi      : Boundary conditions
-!! @param[in] psi      : Electrostatic potential vector.
-!! @param[in] gradphi  : Gradient of phi
+!! @param[in] ddx_data    : dd Data
+!! @param[in] phi_cav     : Boundary conditions
+!! @param[in] gradphi_cav : Gradient of phi
 !! @param[in] hessianphi  : Hessian of phi
-!! @param[out] esolv   : Electrostatic solvation energy
+!! @param[in] psi         : Electrostatic potential vector
+!! @param[in] tol         : Tolerance
+!! @param[out] esolv      : Electrostatic solvation energy
+!! @param[out] force      : Forces
+!! @param[out] info       : Information
 !!
 subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, &
     & force, info)
@@ -115,18 +119,18 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
     ddx_data % constants % inner_tol =  tol/100.0d0
 
     ! Call the subroutine to solve for Esolv
-    call ddx_lpb_solve(ddx_data % params, ddx_data % constants, &
+    call ddlpb_energy(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, ddx_data % g_lpb, ddx_data % f_lpb, &
         & ddx_data % x_lpb, tol, esolv)
 
     ! Start the Force computation
     if(ddx_data % params % force .eq. 1) then
       ! Call the subroutine adjoint to solve the adjoint solution
-      call ddx_lpb_adjoint(ddx_data % params, ddx_data % constants, &
+      call ddlpb_adjoint(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, psi, tol, ddx_data % x_adj_lpb)
 
       !Call the subroutine to evaluate derivatives
-      call ddx_lpb_force(ddx_data % params, ddx_data % constants, &
+      call ddlpb_force(ddx_data % params, ddx_data % constants, &
           & ddx_data % workspace, hessianphi_cav, ddx_data % phi_grid, gradphi_cav, &
           & ddx_data % x_lpb, ddx_data % x_adj_lpb, ddx_data % zeta, force)
 
@@ -137,14 +141,17 @@ subroutine ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv
 
 end subroutine ddlpb
 
-!
-! Computation for Solvation energy
-! @param[in]  ddx_data   : Input data file
-! @param[in]  g          : Intermediate matrix for computation of g0
-! @param[in]  f          : Intermediate matrix for computation of f0
-! @param[out] x          : Solution
-! @param[out] esolv      : Solvation energy
-subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
+!> Solve primal ddLPB system to find solvation energy
+!!
+!! @param[in]  params     : Input parameter file
+!! @param[in]  constants  : Input constants file
+!! @param[in]  workspace  : Input workspace
+!! @param[in]  g          : Intermediate matrix for computation of g0
+!! @param[in]  f          : Intermediate matrix for computation of f0
+!! @param[out] x          : Solution
+!! @param[in]  tol        : Tolerance for solver
+!! @param[out] esolv      : Solvation energy
+subroutine ddlpb_energy(params, constants, workspace, g, f, &
     & x, tol, esolv)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -193,12 +200,18 @@ subroutine ddx_lpb_solve(params, constants, workspace, g, f, &
     end do
     deallocate(rhs)
     if (istat.ne.0) stop 1
-end subroutine ddx_lpb_solve
-!
-! Computation of Adjoint
-! @param[in] ddx_data: Input data file
-! @param[in] psi     : psi_r
-subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, x_adj)
+end subroutine ddlpb_energy
+
+!> Solve adjoint ddLPB system
+!!
+!! @param[in]  params     : Input parameter file
+!! @param[in]  constants  : Input constants file
+!! @param[in]  workspace  : Input workspace
+!! @param[in]  psi        : psi_r
+!! @param[in]  tol        : Tolerance
+!! @param[out] x_adj      : Adjoint solution
+
+subroutine ddlpb_adjoint(params, constants, workspace, psi, tol, x_adj)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -217,9 +230,6 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, x_adj)
     rhs(:,:,1) = psi
     rhs(:,:,2) = zero
 
-    ! call prtsph('adjoint rhs', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, rhs)
-
     ! guess
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
@@ -230,26 +240,24 @@ subroutine ddx_lpb_adjoint(params, constants, workspace, psi, tol, x_adj)
     call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
         & tol, rhs, x_adj, n_iter, lpb_adjoint_matvec, lpb_adjoint_prec, rmsnorm, info)
 
-    ! call prtsph('adjoint sol', constants % nbasis, params % lmax, &
-    !    & 2*params % nsph, 0, x_adj)
-
     deallocate(rhs)
     if (istat.ne.0) stop 1
 
-end subroutine ddx_lpb_adjoint
+end subroutine ddlpb_adjoint
 
-!
-! Computation for Solvation energy
-! @param[in]  ddx_data   : Input data file
-! @param[in]  hessian    : Hessian of Psi
-! @param[in]  phi_grid   : Phi evaluated at the grid point
-! @param[in]  gradphi  : Gradient of phi
-! @param[in]  Xr         : Solution corresponding to COSMO
-! @param[in]  Xe         : Solution corresponding to HSP
-! @param[in]  Xadj_r     : Solution corresponding to adjoint of the COSMO
-! @param[in]  Xadj_e     : Solution corresponding to adjoint of the HSP
-! @param[out] force      : Force
-subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradphi, &
+!> Compute ddLPB forces
+!!
+!! @param[in]  params     : Input parameter file
+!! @param[in]  constants  : Input constants file
+!! @param[in]  workspace  : Input workspace
+!! @param[in]  hessian    : Hessian of Psi
+!! @param[in]  phi_grid   : Phi evaluated at the grid point
+!! @param[in]  gradphi    : Gradient of phi
+!! @param[in]  x          : Solution vector
+!! @param[in]  x_adj      : Adjoint solution vector
+!! @param[in]  zeta       : Intermediate calculation in forces
+!! @param[out] force      : Force
+subroutine ddlpb_force(params, constants, workspace, hessian, phi_grid, gradphi, &
         & x, x_adj, zeta, force)
     !! input/output
     type(ddx_params_type), intent(in) :: params
@@ -468,7 +476,7 @@ subroutine ddx_lpb_force(params, constants, workspace, hessian, phi_grid, gradph
     deallocate(ef, xadj_r_sgrid, xadj_e_sgrid, normal_hessian_cav, &
         & diff_re, scaled_xr, stat=istat)
     if (istat.ne.0) stop 1
-end subroutine ddx_lpb_force
+end subroutine ddlpb_force
 
   subroutine ddlpb_free(ddx_data)
   implicit none
