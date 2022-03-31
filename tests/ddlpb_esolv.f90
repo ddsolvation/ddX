@@ -57,19 +57,19 @@ if (istatus.ne.0) write(6,*) 'Allocation failed'
 default_epsilon = (/ -5.3518110117345332E-004, -9.7393853923451006E-004, &
                    & -1.0237954253809903E-003, -1.0288501533655906E-003 /)
 
-default_iter_epsilon = (/ 26, 26, 26, 11/)
+default_iter_epsilon = (/ 12, 26, 24, 17/)
 !eta : 0.0001, 0.001, 0.01, 0.1
 default_eta = (/ -1.0144763156304426E-003, -1.0144763156304426E-003, &
                & -1.0144761325115853E-003, -1.0151060052969220E-003 /)
-default_iter_eta = (/ 26, 26, 26, 12/)
+default_iter_eta = (/ 26, 26, 24, 26/)
 !kappa : 0.5, 0.25, 0.16667, 0.125
 default_kappa = (/ -1.0228739915625511E-003, -1.0192321310712657E-003,&
                  & -1.0171251065945882E-003, -1.0158211256043079E-003 /)
-default_iter_kappa = (/ 14, 15, 14, 14 /)
+default_iter_kappa = (/ 26, 26, 13, 24 /)
                  !lmax : 2, 4, 8, 16
 default_lmax = (/ -9.9977268971430206E-004, -1.0128441259120659E-003, &
                 & -1.0157913843224611E-003, -1.0177420746553952E-003 /)
-default_iter_lmax = (/18, 18, 26, 18 /)
+default_iter_lmax = (/13, 13, 26, 26 /)
 
 ! Initial values
 computed_value = zero
@@ -145,7 +145,7 @@ subroutine solve(ddx_data, esolv_in, epsilon_solv, eta, kappa, lmax, n_iter)
     real(dp), intent(in) :: eta
     real(dp), intent(in) :: kappa
     integer, intent(in)  :: lmax
-    real(dp), intent(out) :: n_iter
+    real(dp), intent(inout) :: n_iter
 
     type(ddx_type) :: ddx_data2
     real(dp), allocatable :: phi_cav2(:)

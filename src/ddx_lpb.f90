@@ -172,10 +172,10 @@ subroutine ddlpb_energy(params, constants, workspace, g, f, &
     rhs = zero
 
     ! integrate RHS
-    call intrhs(params % nsph, constants % nbasis, &
+    call ddintegrate(params % nsph, constants % nbasis, &
         & params % ngrid, constants % vwgrid, &
         & constants % vgrid_nbasis, g, rhs(:,:,1))
-    call intrhs(params % nsph, constants % nbasis, &
+    call ddintegrate(params % nsph, constants % nbasis, &
         & params % ngrid, constants % vwgrid, &
         & constants % vgrid_nbasis, f, rhs(:,:,2))
     rhs(:,:,1) = rhs(:,:,1) + rhs(:,:,2)
