@@ -15,6 +15,8 @@ module ddx_operators
 use ddx_solvers
 ! Get lpb core-module
 use ddx_lpb_core
+! Get gradient module
+use ddx_gradients
 implicit none
 
 contains
@@ -505,7 +507,7 @@ end subroutine repsx
 !!
 !! Compute \f$ y = R^*_\varepsilon x = (2\pi(\varepsilon + 1) / (\varepsilon
 !! - 1) - D) x \f$.
-subroutine rstarepsx(params, constants, workspace, x, y)
+subroutine repsstarx(params, constants, workspace, x, y)
     implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -525,7 +527,7 @@ subroutine rstarepsx(params, constants, workspace, x, y)
         fac = twopi * (params % eps + one) / (params % eps - one)
         y = fac*x + y
     end if
-end subroutine rstarepsx
+end subroutine repsstarx
 
 !> Apply \f$ R_\infty \f$ operator to spherical harmonics
 !!
@@ -583,7 +585,7 @@ subroutine rstarinfx(params, constants, workspace, x, y)
 end subroutine rstarinfx
 
 !> Apply preconditioner for 
-subroutine apply_repsx_prec(params, constants, workspace, x, y)
+subroutine prec_repsx(params, constants, workspace, x, y)
     implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -602,10 +604,10 @@ subroutine apply_repsx_prec(params, constants, workspace, x, y)
             & constants % rx_prc(:, :, isph), constants % nbasis, x(:, isph), &
             & constants % nbasis, zero, y(:, isph), constants % nbasis)
     end do
-end subroutine apply_repsx_prec
+end subroutine prec_repsx
 
 !> Apply preconditioner for 
-subroutine apply_rstarepsx_prec(params, constants, workspace, x, y)
+subroutine prec_repsstarx(params, constants, workspace, x, y)
     implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -625,7 +627,7 @@ subroutine apply_rstarepsx_prec(params, constants, workspace, x, y)
             & constants % rx_prc(:, :, isph), constants % nbasis, x(:, isph), &
             & constants % nbasis, zero, y(:, isph), constants % nbasis)
     end do
-end subroutine apply_rstarepsx_prec
+end subroutine prec_repsstarx
 
 subroutine gradr(params, constants, workspace, g, ygrid, fx)
     implicit none
@@ -1305,7 +1307,7 @@ subroutine bx_prec(params, constants, workspace, x, y)
     y = x
 end subroutine bx_prec
 
-subroutine lpb_adjoint_prec(params, constants, workspace, x, y)
+subroutine prec_tstarx(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1327,7 +1329,7 @@ subroutine lpb_adjoint_prec(params, constants, workspace, x, y)
             & workspace % ddcosmo_guess, n_iter, r_norm, lstarx, info)
     end if
     if (info.ne.0) then
-        write(*,*) 'lpb_adjoint_prec: [1] ddCOSMO failed to converge'
+        write(*,*) 'prec_tstarx: [1] ddCOSMO failed to converge'
         stop 1
     end if
     y(:,:,1) = workspace % ddcosmo_guess
@@ -1341,12 +1343,12 @@ subroutine lpb_adjoint_prec(params, constants, workspace, x, y)
            & n_iter, r_norm, bstarx, info)
     end if
     if (info.ne.0) then
-        write(*,*) 'lpb_adjoint_prec: [1] HSP failed to converge'
+        write(*,*) 'prec_tstarx: [1] HSP failed to converge'
         stop 1
     end if
     y(:,:,2) = workspace % hsp_guess
 
-end subroutine lpb_adjoint_prec
+end subroutine prec_tstarx
 !
 ! apply preconditioner
 ! |Yr| = |A^-1 0 |*|Xr|
@@ -1354,7 +1356,7 @@ end subroutine lpb_adjoint_prec
 ! @param[in] ddx_data : dd Data
 ! @param[in] x        : Input array
 ! @param[out] y       : Linear system solution at current iteration
-subroutine lpb_direct_prec(params, constants, workspace, x, y)
+subroutine prec_tx(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1375,7 +1377,7 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
             & workspace % ddcosmo_guess, n_iter, r_norm, lx, info)
     end if
     if (info.ne.0) then
-        write(*,*) 'lpb_direct_prec: [1] ddCOSMO failed to converge'
+        write(*,*) 'prec_tx: [1] ddCOSMO failed to converge'
         stop 1
     end if
 
@@ -1395,12 +1397,12 @@ subroutine lpb_direct_prec(params, constants, workspace, x, y)
     y(:,:,2) = workspace % hsp_guess
 
     if (info.ne.0) then
-        write(*,*) 'lpb_direct_prec: [1] HSP failed to converge'
+        write(*,*) 'prec_tx: [1] HSP failed to converge'
         stop 1
     end if
-end subroutine lpb_direct_prec
+end subroutine prec_tx
 !
-subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
+subroutine cstarx(params, constants, workspace, x, y)
     implicit none
     ! input/output
     type(ddx_params_type), intent(in) :: params
@@ -1511,14 +1513,14 @@ subroutine lpb_adjoint_matvec(params, constants, workspace, x, y)
         end do
     end do
 
-end subroutine lpb_adjoint_matvec
+end subroutine cstarx
 !
 ! Perform |Yr| = |C1 C2|*|Xr|
 !         |Ye|   |C1 C2| |Xe|
 ! @param[in] ddx_data : dd Data
 ! @param[in] x        : Input array X (Xr, Xe)
 ! @param[out] y       : Matrix-vector product result Y
-subroutine lpb_direct_matvec(params, constants, workspace, x, y)
+subroutine cx(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1654,6 +1656,6 @@ subroutine lpb_direct_matvec(params, constants, workspace, x, y)
     y(:,:,2) = y(:,:,1)
     deallocate(diff_re, diff0)
 
-end subroutine lpb_direct_matvec
+end subroutine cx
 end module ddx_operators
 

@@ -361,7 +361,7 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     call bx(ddx_data2 % params, ddx_data2 % constants, &
               & ddx_data2 % workspace, &
               & random_vector_n_one, vector_lpb)
-    call lpb_direct_matvec(ddx_data2 % params, ddx_data2 % constants, &
+    call cx(ddx_data2 % params, ddx_data2 % constants, &
                  & ddx_data2 % workspace, &
                  & random_vector_C_one, &
                  & vector_c1_c2)

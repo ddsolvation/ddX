@@ -169,7 +169,7 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
     call cpu_time(start_time)
     if (params % itersolver .eq. 1) then 
         call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
-            & phieps_niter, phieps_rel_diff, repsx, apply_repsx_prec, hnorm, info)
+            & phieps_niter, phieps_rel_diff, repsx, prec_repsx, hnorm, info)
     else
         call gmresr(params, constants, workspace, tol, phiinf, phieps, phieps_niter, &
             & r_norm, repsx, info)
@@ -264,10 +264,10 @@ subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
     call cpu_time(start_time)
     if (params % itersolver .eq. 1) then 
         call jacobi_diis(params, constants, workspace, tol, s, y, y_niter, &
-            & y_rel_diff, rstarepsx, apply_rstarepsx_prec, hnorm, info)
+            & y_rel_diff, repsstarx, prec_repsstarx, hnorm, info)
     else
         call gmresr(params, constants, workspace, tol, s, y, y_niter, &
-            & r_norm, rstarepsx, info)
+            & r_norm, repsstarx, info)
     end if
     call cpu_time(finish_time)
     y_time = finish_time - start_time
