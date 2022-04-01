@@ -6,6 +6,7 @@ var dir_68267d1309a1af8e8297ef4c3efbcdba =
     [ "ddx_core.f90", "ddx__core_8f90.html", "ddx__core_8f90" ],
     [ "ddx_cosmo.f90", "ddx__cosmo_8f90.html", "ddx__cosmo_8f90" ],
     [ "ddx_definitions.f90", "ddx__definitions_8f90.html", "ddx__definitions_8f90" ],
+    [ "ddx_gradients.f90", "ddx__gradients_8f90_source.html", null ],
     [ "ddx_harmonics.f90", "ddx__harmonics_8f90.html", "ddx__harmonics_8f90" ],
     [ "ddx_lpb.f90", "ddx__lpb_8f90_source.html", null ],
     [ "ddx_lpb_core.f90", "ddx__lpb__core_8f90_source.html", null ],

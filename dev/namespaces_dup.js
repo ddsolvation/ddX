@@ -18,6 +18,7 @@ var namespaces_dup =
     [ "ddx_core", "namespaceddx__core.html", null ],
     [ "ddx_cosmo", "namespaceddx__cosmo.html", null ],
     [ "ddx_definitions", "namespaceddx__definitions.html", null ],
+    [ "ddx_gradients", "namespaceddx__gradients.html", null ],
     [ "ddx_harmonics", "namespaceddx__harmonics.html", null ],
     [ "ddx_lpb", "namespaceddx__lpb.html", null ],
     [ "ddx_lpb_core", "namespaceddx__lpb__core.html", null ],

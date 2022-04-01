@@ -10,11 +10,11 @@ var ddx__operators_8f90 =
     [ "dstarx_dense", "ddx__operators_8f90.html#a5e24847b3de8dd57e855f293eeee9d18", null ],
     [ "dstarx_fmm", "ddx__operators_8f90.html#aa69a13344481ef2032c3eb2c46e847b3", null ],
     [ "repsx", "ddx__operators_8f90.html#ace05a424bd4e0a226b635723aba4389c", null ],
-    [ "rstarepsx", "ddx__operators_8f90.html#a7a4642f3b72feb282fbe0f045d0d4bd0", null ],
+    [ "repsstarx", "ddx__operators_8f90.html#a0670b7a7bd830dd57ee0dc2dbcb80b1a", null ],
     [ "rinfx", "ddx__operators_8f90.html#ad322bb8c91dfbed143be683333be9430", null ],
     [ "rstarinfx", "ddx__operators_8f90.html#a9c02c21086e56924eec13cc33a96eebb", null ],
-    [ "apply_repsx_prec", "ddx__operators_8f90.html#a056629bdbc868f7c7d55d0619149d201", null ],
-    [ "apply_rstarepsx_prec", "ddx__operators_8f90.html#aae92db5c028f158d776de7e6d3d863cd", null ],
+    [ "prec_repsx", "ddx__operators_8f90.html#a35303800b0d9c1749358f5e90bcbd52f", null ],
+    [ "prec_repsstarx", "ddx__operators_8f90.html#a682ecf4161b6846177c71db55924c586", null ],
     [ "gradr", "ddx__operators_8f90.html#a8720945fa2c227689250a0e3e3353e3d", null ],
     [ "gradr_dense", "ddx__operators_8f90.html#a985ff275f194faa2b8d5fbd3ce36dab0", null ],
     [ "gradr_sph", "ddx__operators_8f90.html#aea20868b7a77f9914089bdd99e1aaefb", null ],
@@ -22,8 +22,8 @@ var ddx__operators_8f90 =
     [ "bstarx", "ddx__operators_8f90.html#a76da5c9463ec313c71c7f3764c572165", null ],
     [ "bx", "ddx__operators_8f90.html#a68303147fb9fe072ab34096910280f1a", null ],
     [ "bx_prec", "ddx__operators_8f90.html#aa910ba16eb7aa581ab1f314124e6e0fd", null ],
-    [ "lpb_adjoint_prec", "ddx__operators_8f90.html#a2b82eb107cf2a4ab1d79fd32cd5949ff", null ],
-    [ "lpb_direct_prec", "ddx__operators_8f90.html#a1f44a8f089622b7a9a9e2ca92ed60a35", null ],
-    [ "lpb_adjoint_matvec", "ddx__operators_8f90.html#ac0b204bfc253412f3d0653bed97cfca7", null ],
-    [ "lpb_direct_matvec", "ddx__operators_8f90.html#a872f9e7af1b66ebdf7d63b6df6643fb4", null ]
+    [ "prec_tstarx", "ddx__operators_8f90.html#ab5909858cddd80271567d2d910d730f2", null ],
+    [ "prec_tx", "ddx__operators_8f90.html#a31ded2fe034b4750fa14adbb07cb50dd", null ],
+    [ "cstarx", "ddx__operators_8f90.html#ac915c9397fb193105a6cb419b4ecfc37", null ],
+    [ "cx", "ddx__operators_8f90.html#afe779d813f428e2c85015629976de9f8", null ]
 ];
