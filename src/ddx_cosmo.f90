@@ -184,9 +184,12 @@ subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
         & constants % icav_ia, constants % icav_ja, workspace % tmp_cav, &
         & workspace % tmp_grid)
     ! Integrate against spherical harmonics and Lebedev weights to get Phi
-    call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
-        & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
-        & one, workspace % tmp_grid, zero, phi)
+    call ddintegrate(params % nsph, constants % nbasis, &
+        & params % ngrid, constants % vwgrid, &
+        & constants % vgrid_nbasis, workspace % tmp_grid, phi)
+!   call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
+!       & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
+!       & one, workspace % tmp_grid, zero, phi)
     ! Set right hand side to -Phi
     workspace % tmp_rhs = -phi
     ! Solve ddCOSMO system L X = -Phi with a given initial guess
@@ -327,17 +330,12 @@ subroutine ddcosmo_forces_worker(params, constants, workspace, phi_grid, &
         & constants % vgrid, constants % vgrid_nbasis, one, s, zero, sgrid)
     force = zero
     do isph = 1, params % nsph
-        call fdoka(params, constants, isph, xs, sgrid(:, isph), &
+        call contract_grad_L(params, constants, isph, xs, sgrid, &
             & workspace % tmp_vylm(:, 1), workspace % tmp_vdylm(:, :, 1), &
             & workspace % tmp_vplm(:, 1), &
             & workspace % tmp_vcos(:, 1), &
             & workspace % tmp_vsin(:, 1), force(:, isph))
-        call fdokb(params, constants, isph, xs, sgrid, &
-            & workspace % tmp_vylm(:, 1), &
-            & workspace % tmp_vdylm(:, :, 1), workspace % tmp_vplm(:, 1), &
-            & workspace % tmp_vcos(:, 1), &
-            & workspace % tmp_vsin(:, 1), force(:, isph))
-        call fdoga(params, constants, isph, sgrid, phi_grid, &
+        call contract_grad_U(params, constants, isph, sgrid, phi_grid, &
             & force(:, isph))
     end do
     force = -pt5 * force

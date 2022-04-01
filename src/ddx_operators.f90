@@ -57,7 +57,7 @@ subroutine lx(params, constants, workspace, x, y)
             ! Compute NEGATIVE action of off-digonal blocks
             call calcv(params, constants, isph, workspace % tmp_pot(:, iproc), x, &
                 & workspace % tmp_work(:, iproc))
-            call intrhs(1, constants % nbasis, params % ngrid, &
+            call ddintegrate(1, constants % nbasis, params % ngrid, &
                 & constants % vwgrid, constants % vgrid_nbasis, &
                 & workspace % tmp_pot(:, iproc), y(:, isph))
             ! now, fix the sign.
@@ -259,7 +259,7 @@ subroutine dx_dense(params, constants, workspace, do_diag, x, y)
             end if
         end do
         ! now integrate the potential to get its modal representation
-        call intrhs(1, constants % nbasis, params % ngrid, &
+        call ddintegrate(1, constants % nbasis, params % ngrid, &
             & constants % vwgrid, constants % vgrid_nbasis, &
             & workspace % tmp_grid, y(:,isph))
     end do
@@ -602,8 +602,6 @@ subroutine apply_repsx_prec(params, constants, workspace, x, y)
             & constants % rx_prc(:, :, isph), constants % nbasis, x(:, isph), &
             & constants % nbasis, zero, y(:, isph), constants % nbasis)
     end do
-    !call prtsph("rx_prec x", ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, x)
-    !call prtsph("rx_prec y", ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, y)
 end subroutine apply_repsx_prec
 
 !> Apply preconditioner for 
@@ -627,8 +625,6 @@ subroutine apply_rstarepsx_prec(params, constants, workspace, x, y)
             & constants % rx_prc(:, :, isph), constants % nbasis, x(:, isph), &
             & constants % nbasis, zero, y(:, isph), constants % nbasis)
     end do
-    !call prtsph("rx_prec x", ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, x)
-    !call prtsph("rx_prec y", ddx_data % nbasis, ddx_data % lmax, ddx_data % nsph, 0, y)
 end subroutine apply_rstarepsx_prec
 
 subroutine gradr(params, constants, workspace, g, ygrid, fx)
@@ -1291,7 +1287,7 @@ subroutine bx(params, constants, workspace, x, y)
           call calcv2_lpb(params, constants, isph, workspace % tmp_pot(:, iproc), x, &
               & workspace % tmp_vylm, workspace % tmp_vplm, workspace % tmp_vcos, &
               & workspace % tmp_vsin, workspace % tmp_bessel)
-          call intrhs(1, constants % nbasis, params % ngrid, constants % vwgrid, &
+          call ddintegrate(1, constants % nbasis, params % ngrid, constants % vwgrid, &
               & constants % vgrid_nbasis, workspace % tmp_pot(:, iproc), y(:,isph))
           y(:,isph) = - y(:,isph) 
         end do
