@@ -32,10 +32,11 @@ contains
 !! @param[in] tol
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
-subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, &
-        & esolv, force, info)
+subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, &
+        & psi, tol, esolv, force, info)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
+    type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
         & gradphi_cav(3, ddx_data % constants % ncav), &
         & hessianphi_cav(3, ddx_data % constants % ncav), &
@@ -48,17 +49,17 @@ subroutine ddsolve(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, &
         ! COSMO model
         case (1)
             call ddcosmo(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, phi_cav, gradphi_cav, psi, tol, &
-                & esolv, force, info)
+                & ddx_data % workspace, state, phi_cav, gradphi_cav, psi, &
+                & tol, esolv, force, info)
         ! PCM model
         case (2)
             call ddpcm(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, phi_cav, gradphi_cav, psi, tol, &
-                & esolv, force, info)
+                & ddx_data % workspace, state, phi_cav, gradphi_cav, psi, &
+                & tol, esolv, force, info)
         ! LPB model
         case (3)
             call ddlpb(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, phi_cav, gradphi_cav, &
+                & ddx_data % workspace, state, phi_cav, gradphi_cav, &
                 & hessianphi_cav, psi, tol, esolv, force, info)
         ! Error case
         case default

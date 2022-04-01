@@ -79,22 +79,20 @@ end subroutine ddcosmo_forces
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
 !! @param[out] info
-subroutine ddcosmo(params, constants, workspace, phi_cav, gradphi_cav, psi, &
-    & tol, esolv, force, info)
+subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
+        & psi, tol, esolv, force, info)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_cav(constants % ncav), &
         & gradphi_cav(3, constants % ncav), &
         & psi(constants % nbasis, params % nsph), tol
     real(dp), intent(out) :: esolv, force(3, params % nsph)
     integer, intent(out) :: info
-    type(ddx_state_type) :: state
     real(dp), external :: ddot
 
-    call ddx_init_state(params, constants, state)
-    call ddpcm_guess(params, constants, state)
-
+    call ddcosmo_guess(params, constants, state)
     call ddcosmo_solve(params, constants, workspace, state, phi_cav, tol)
 
     ! Solvation energy is computed
@@ -102,11 +100,23 @@ subroutine ddcosmo(params, constants, workspace, phi_cav, gradphi_cav, psi, &
 
     ! Get forces if needed
     if (params % force .eq. 1) then
-        call cosmo_adjoint(params, constants, workspace, state, psi, tol)
-        call cosmo_forces(params, constants, workspace, state, phi_cav, &
+        call ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
+        call ddcosmo_forces(params, constants, workspace, state, phi_cav, &
             & gradphi_cav, psi, force)
     end if
 end subroutine ddcosmo
+
+subroutine ddcosmo_guess(params, constants, state)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(inout) :: state
+
+    state % s = zero
+    state % xs = zero
+
+end subroutine ddcosmo_guess
+
 
 !> Solve primal ddCOSMO system to find solvation energy
 !!
