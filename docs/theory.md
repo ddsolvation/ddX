@@ -23,7 +23,7 @@ We also introduce the Yukawa-potential \f$G_\kappa(r) = \frac{e^{-\kappa r}}{4\p
 
 
 ## Models
-The three methods COSMO, PCM and LPB differ by the model of the physical between the solute and the impmlicit/bulk solvent. 
+The three methods COSMO, PCM and LPB differ by the model of the physical between the solute and the implicit/bulk solvent. 
 
 ###Linearized Poisson-Boltzmann model (LPB)
 
@@ -108,7 +108,7 @@ and \f$\sigma\f$ relates to \f$W\f$ through
 
 
 #### General remarks
-1. As \f$\varepsilon_s\to\infty\f$, the solution to the PCM becomes the COSMO solution. The first PCM equation yields $\Phi_\varepsilon \to \Phi$ and the second PCM equation corresponds to the Integral-Equation formulation of COSMO.
+1. As \f$\varepsilon_s\to\infty\f$, the solution to the PCM becomes the COSMO solution. The first PCM equation yields \f$\Phi_\varepsilon \to \Phi\f$ and the second PCM equation corresponds to the Integral-Equation formulation of COSMO.
 2. lpb different formulation
 
 In all three models, the solvation energy \f$E_s\f$ is defined as
