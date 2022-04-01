@@ -62,9 +62,9 @@ subroutine ddcosmo_forces(params, constants, workspace, state, phi_cav, &
     real(dp), intent(out) :: force(3, params % nsph)
     integer :: info
 
-    call ddcosmo_forces_worker(params, constants, workspace, phi_cav, &
-        & gradphi_cav, psi, state % s, state % sgrid, state % xs, &
-        & state % zeta, force, info)
+    call ddcosmo_forces_worker(params, constants, workspace, &
+        & state % phi_grid, gradphi_cav, psi, state % s, state % sgrid, &
+        & state % xs, state % zeta, force, info)
 end subroutine ddcosmo_forces
 
 !> ddCOSMO solver

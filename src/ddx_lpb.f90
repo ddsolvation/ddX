@@ -134,8 +134,8 @@ subroutine ddlpb_force(params, constants, workspace, state, phi_cav, &
     real(dp), intent(out) :: force(3, params % nsph)
 
     call ddlpb_force_worker(params, constants, workspace, &
-        & hessianphi_cav, state % phi_grid, gradphi_cav, state % x_lpb, &
-        & state % x_adj_lpb, state % zeta, force)
+        & hessianphi_cav, state % phi_grid, gradphi_cav, &
+        & state % x_lpb, state % x_adj_lpb, state % zeta, force)
 end subroutine ddlpb_force
 
 subroutine ddlpb_guess(params, constants, state)
@@ -170,14 +170,15 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     real(dp), external :: ddot
     integer, intent(inout) :: info
 
-    call ddx_init_state(params, constants, state)
     ! TODO: find a consistent way to do the guess
 
     call ddlpb_solve(params, constants, workspace, state, phi_cav, &
         & gradphi_cav, tol)
 
     ! Compute the solvation energy
-    esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, psi, 1)
+    ! note that psi is divided by fourpi
+    esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, psi, 1) &
+        & /fourpi
 
     ! Get forces if needed
     if(params % force .eq. 1) then
@@ -203,8 +204,8 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
     integer, intent(inout) :: x_lpb_niter
     real(dp), intent(out) :: x_lpb_time
     real(dp), intent(in) :: tol
-    real(dp), intent(out) :: g_lpb(constants % nbasis, params % nsph)
-    real(dp), intent(out) :: f_lpb(constants % nbasis, params % nsph)
+    real(dp), intent(out) :: g_lpb(params % ngrid, params % nsph)
+    real(dp), intent(out) :: f_lpb(params % ngrid, params % nsph)
     real(dp), intent(out) :: phi_grid(params % ngrid, params % nsph)
 
     integer :: istat
@@ -525,7 +526,7 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     call fdoco(params, constants, workspace, Xadj_e_sgrid, gradphi, &
         & normal_hessian_cav, icav_ge, force)
 
-    force = pt5*force
+    force = pt5*force/fourpi
 
     deallocate(ef, xadj_r_sgrid, xadj_e_sgrid, normal_hessian_cav, &
         & diff_re, scaled_xr, stat=istat)
