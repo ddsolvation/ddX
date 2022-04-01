@@ -183,13 +183,13 @@ subroutine ddlpb_energy(params, constants, workspace, g, f, &
     ! guess
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
-    call lpb_direct_prec(params, constants, workspace, rhs, x)
+    call prec_tx(params, constants, workspace, rhs, x)
 
     ! solve LS using Jacobi/DIIS
     call cpu_time(start_time)
     call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
-        & tol, rhs, x, n_iter, xs_rel_diff, lpb_direct_matvec, &
-        & lpb_direct_prec, rmsnorm, info)
+        & tol, rhs, x, n_iter, xs_rel_diff, cx, &
+        & prec_tx, rmsnorm, info)
     call cpu_time(finish_time)
     xs_time = finish_time - start_time
 
@@ -240,13 +240,13 @@ subroutine ddlpb_adjoint(params, constants, workspace, psi, tol, x_adj, &
     ! guess
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
-    call lpb_adjoint_prec(params, constants, workspace, rhs, x_adj)
+    call prec_tstarx(params, constants, workspace, rhs, x_adj)
 
     call cpu_time(start_time)
     ! solve adjoint LS using Jacobi/DIIS
     call jacobi_diis_external(params, constants, workspace, 2*constants % n, &
-        & tol, rhs, x_adj, n_iter, s_rel_diff, lpb_adjoint_matvec, &
-        & lpb_adjoint_prec, rmsnorm, info)
+        & tol, rhs, x_adj, n_iter, s_rel_diff, cstarx, &
+        & prec_tstarx, rmsnorm, info)
     call cpu_time(finish_time)
     s_time = finish_time - start_time
 
@@ -294,8 +294,6 @@ subroutine ddlpb_force(params, constants, workspace, hessian, phi_grid, gradphi,
     integer :: isph, icav, icav_gr, icav_ge, igrid, istat
     integer :: i, inode, jnear, inear, jnode, jsph
     real(dp), external :: ddot, dnrm2
-    real(dp) :: tcontract_gradi_Lik, tcontract_gradi_Lji, tcontract_gradi_Bik, tcontract_gradi_Bji, tcontract_grad_U, &
-              & tcontract_grad_C_worker1, tcontract_grad_C_worker2
     real(dp) :: d(3), dnorm, tmp1, tmp2
 
     allocate(ef(3, params % nsph), &
@@ -342,13 +340,6 @@ subroutine ddlpb_force(params, constants, workspace, hessian, phi_grid, gradphi,
     scaled_Xr = x(:,:,1)
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
-    tcontract_gradi_Lik = zero
-    tcontract_gradi_Lji = zero
-    tcontract_gradi_Bik = zero
-    tcontract_gradi_Bji = zero
-    tcontract_grad_C_worker2 = zero
-    tcontract_grad_C_worker1 = zero
-    tcontract_grad_U = zero
     do isph = 1, params % nsph
         ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
         call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
@@ -462,8 +453,6 @@ subroutine ddlpb_force(params, constants, workspace, hessian, phi_grid, gradphi,
         end do
     end if
 
-    tcontract_grad_C_worker2 = zero
-    tcontract_grad_U = zero
     icav_gr = zero
     icav_ge = zero
     ! Computation of F0

@@ -258,12 +258,12 @@ call bx(ddx_data % params, ddx_data % constants, &
       & random_vector_n_four, vector_B_four)
 
 ! Call for C1 and C2
-call lpb_direct_matvec(ddx_data % params, ddx_data % constants, &
+call cx(ddx_data % params, ddx_data % constants, &
                  & ddx_data % workspace, &
                  & random_vector_C_one, &
                  & vector_C_one)
 
-call lpb_direct_matvec(ddx_data % params, ddx_data % constants, &
+call cx(ddx_data % params, ddx_data % constants, &
                  & ddx_data % workspace, &
                  & random_vector_C_two, &
                  & vector_C_two)
@@ -298,12 +298,12 @@ call bstarx(ddx_data % params, ddx_data % constants, &
 ! Call for C1 and C2 star
 ! |C1* C1*||X3|
 ! |C2* C2*||X4|
-call lpb_adjoint_matvec(ddx_data % params, ddx_data % constants, &
+call cstarx(ddx_data % params, ddx_data % constants, &
                  & ddx_data % workspace, &
                  & random_vector_C_two, &
                  & vector_C_star_one)
 
-call lpb_adjoint_matvec(ddx_data % params, ddx_data % constants, &
+call cstarx(ddx_data % params, ddx_data % constants, &
                  & ddx_data % workspace, &
                  & random_vector_C_one, &
                  & vector_C_star_two)
