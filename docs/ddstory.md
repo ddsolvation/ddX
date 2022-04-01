@@ -3,7 +3,8 @@
 
 
 
-###A long story short
+### A long story short
+#### ddCOSMO
 
 The first aspect that should be apparent in the ddCOSMO story is that this is a multidisciplinary story, involving three different communities: applied mathematicians, quantum chemists and the classical molecular dynamics community. Therefore, the answer to the questions “what was the most rewarding part of the project” and “what was the most difficult part of the project” is unique: working together. The incredible language barrier between mathematicians and chemist has made the communication quite difficult until a common ground was found, and, after quite a few very funny reunions which ended with people looking at each other with a very puzzled face, we finally managed to fully understand each other. This certainly required a big effort from every side, but such an effort was amply rewarded not only by the results, which couldn’t have been obtained without such a collaboration, but also, or even mainly, for the fun we had working together and for the pleasure of collaborating with scientist that do not share the same education and view on problems, but can provide, every day and in every occasion, an exciting and new perspective on old and new problems.
 
@@ -25,6 +26,6 @@ ddCOSMO proved to be so fast that we considered using it to provide a boundary c
 *“There's a useful numerical method here, at the heart of it all, but the presentation is a convoluted mess …, if it is to be useful to (and understood by) the chemical physics community.”*
 *“It's just a 3-d differential equation that they are mapping onto a boundary-element method and solving via domain decomposition. It's not rocket science, it's just linear equations -- so why present the material in a complicated (and tediously long) way?”*
 
-ddPCM
+#### ddPCM
 
-ddLPB
+#### ddLPB
