@@ -1,12 +1,12 @@
 var searchData=
 [
-  ['s_716',['s',['../structddx__core_1_1ddx__type.html#a36a59d9a21aa64f1f8eeefcef5deedf3',1,'ddx_core::ddx_type']]],
-  ['s_5fniter_717',['s_niter',['../structddx__core_1_1ddx__type.html#aede10d0164c83515d792f5d8ea6dc63f',1,'ddx_core::ddx_type']]],
-  ['s_5frel_5fdiff_718',['s_rel_diff',['../structddx__core_1_1ddx__type.html#a2332d718e5c71767df8b7939cdbb2b4c',1,'ddx_core::ddx_type']]],
-  ['s_5ftime_719',['s_time',['../structddx__core_1_1ddx__type.html#a273e1e0d5c090e04d5a48bd408f8ffee',1,'ddx_core::ddx_type']]],
+  ['s_716',['s',['../structddx__core_1_1ddx__state__type.html#ab5570afac25a88ebd483149e1ac2dc66',1,'ddx_core::ddx_state_type']]],
+  ['s_5fniter_717',['s_niter',['../structddx__core_1_1ddx__state__type.html#ae8b26ac0e03b0dd5fb4c5013723d982c',1,'ddx_core::ddx_state_type']]],
+  ['s_5frel_5fdiff_718',['s_rel_diff',['../structddx__core_1_1ddx__state__type.html#a3ff8561962833ab28dcf5fdac281d9f7',1,'ddx_core::ddx_state_type']]],
+  ['s_5ftime_719',['s_time',['../structddx__core_1_1ddx__state__type.html#abe53093bb83bd41277e53848474610a8',1,'ddx_core::ddx_state_type']]],
   ['se_720',['se',['../structddx__parameters_1_1ddx__params__type.html#a3d1b4ea5f5d59a994f9cdb1047f58dfb',1,'ddx_parameters::ddx_params_type']]],
   ['sfar_721',['sfar',['../structddx__constants_1_1ddx__constants__type.html#a2ec840374e5e3927ffea4ca808ff318a',1,'ddx_constants::ddx_constants_type']]],
-  ['sgrid_722',['sgrid',['../structddx__core_1_1ddx__type.html#ae9811cb83909bdf210e2cba53c39aa29',1,'ddx_core::ddx_type']]],
+  ['sgrid_722',['sgrid',['../structddx__core_1_1ddx__state__type.html#a3f54780b6bbb34070a8f38c83b742254',1,'ddx_core::ddx_state_type']]],
   ['si_5fri_723',['si_ri',['../structddx__constants_1_1ddx__constants__type.html#ae2c77084066d8ba0950e6a393b968265',1,'ddx_constants::ddx_constants_type']]],
   ['si_5frnode_724',['si_rnode',['../structddx__constants_1_1ddx__constants__type.html#a524f309acbdbd8c919cb8d38e4563ed7',1,'ddx_constants::ddx_constants_type']]],
   ['sk_5fri_725',['sk_ri',['../structddx__constants_1_1ddx__constants__type.html#a4d003e524a00cb32d950212429455968',1,'ddx_constants::ddx_constants_type']]],

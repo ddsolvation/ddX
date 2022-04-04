@@ -103,6 +103,8 @@ $(document).ready(function(){initNavTree('ddx__core_8f90.html',''); initResizabl
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Types</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">type &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_core::ddx_state_type</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">type &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__type.html">ddx_core::ddx_type</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main ddX type that stores all required information.  <a href="structddx__core_1_1ddx__type.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -118,12 +120,18 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:ad98e6ca9db2543caa5273d4d33bb0e10"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__core.html#ad98e6ca9db2543caa5273d4d33bb0e10">ddx_core::ddinit</a> (nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, pl, se, eta, eps, kappa, matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)</td></tr>
 <tr class="memdesc:ad98e6ca9db2543caa5273d4d33bb0e10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize ddX input with a full set of parameters.  <a href="namespaceddx__core.html#ad98e6ca9db2543caa5273d4d33bb0e10">More...</a><br /></td></tr>
 <tr class="separator:ad98e6ca9db2543caa5273d4d33bb0e10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab34ec195fbaa7838303efa0b7e0f0453"><td class="memItemLeft" align="right" valign="top"><a id="ab34ec195fbaa7838303efa0b7e0f0453"></a>
+subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>ddx_core::ddx_init_state</b> (params, constants, state)</td></tr>
+<tr class="separator:ab34ec195fbaa7838303efa0b7e0f0453"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a2ec4809155b56be2c61ccb72b974ea"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__core.html#a7a2ec4809155b56be2c61ccb72b974ea">ddx_core::ddfromfile</a> (fname, ddx_data, tol, iprint, info)</td></tr>
 <tr class="memdesc:a7a2ec4809155b56be2c61ccb72b974ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read configuration from a file.  <a href="namespaceddx__core.html#a7a2ec4809155b56be2c61ccb72b974ea">More...</a><br /></td></tr>
 <tr class="separator:a7a2ec4809155b56be2c61ccb72b974ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3258ae6ef23a4f07ea8a14ccf612acaa"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__core.html#a3258ae6ef23a4f07ea8a14ccf612acaa">ddx_core::ddfree</a> (ddx_data)</td></tr>
 <tr class="memdesc:a3258ae6ef23a4f07ea8a14ccf612acaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate object with corresponding data.  <a href="namespaceddx__core.html#a3258ae6ef23a4f07ea8a14ccf612acaa">More...</a><br /></td></tr>
 <tr class="separator:a3258ae6ef23a4f07ea8a14ccf612acaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5614410792c4a18a359eae6fd226cc8e"><td class="memItemLeft" align="right" valign="top"><a id="a5614410792c4a18a359eae6fd226cc8e"></a>
+subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>ddx_core::ddx_free_state</b> (state)</td></tr>
+<tr class="separator:a5614410792c4a18a359eae6fd226cc8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa76b7e526f53c93bf1492f51b3e1a8cc"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__core.html#aa76b7e526f53c93bf1492f51b3e1a8cc">ddx_core::print_spherical</a> (label, nbasis, lmax, ncol, icol, x)</td></tr>
 <tr class="memdesc:aa76b7e526f53c93bf1492f51b3e1a8cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print array of spherical harmonics.  <a href="namespaceddx__core.html#aa76b7e526f53c93bf1492f51b3e1a8cc">More...</a><br /></td></tr>
 <tr class="separator:aa76b7e526f53c93bf1492f51b3e1a8cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -179,6 +187,14 @@ subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href
 subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__core.html#a52eaee7c9a67f2a9f317c2d6dd50426e">ddx_core::ddeval_grid_work</a> (nbasis, ngrid, nsph, vgrid, ldvgrid, alpha, x_sph, beta, x_grid)</td></tr>
 <tr class="memdesc:a52eaee7c9a67f2a9f317c2d6dd50426e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluate values of spherical harmonics at Lebedev grid points. <br /></td></tr>
 <tr class="separator:a52eaee7c9a67f2a9f317c2d6dd50426e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae804f0dbf4b9800bc75adaa57c842149"><td class="memItemLeft" align="right" valign="top"><a id="ae804f0dbf4b9800bc75adaa57c842149"></a>
+subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__core.html#ae804f0dbf4b9800bc75adaa57c842149">ddx_core::ddintegrate_sph</a> (params, constants, alpha, x_grid, beta, x_sph, info)</td></tr>
+<tr class="memdesc:ae804f0dbf4b9800bc75adaa57c842149"><td class="mdescLeft">&#160;</td><td class="mdescRight">Integrate values at grid points into spherical harmonics. <br /></td></tr>
+<tr class="separator:ae804f0dbf4b9800bc75adaa57c842149"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a61156a8a0aec479ea2071dd6d6922fb1"><td class="memItemLeft" align="right" valign="top"><a id="a61156a8a0aec479ea2071dd6d6922fb1"></a>
+subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__core.html#a61156a8a0aec479ea2071dd6d6922fb1">ddx_core::ddintegrate_sph_work</a> (nbasis, ngrid, nsph, vwgrid, ldvwgrid, alpha, x_grid, beta, x_sph)</td></tr>
+<tr class="memdesc:a61156a8a0aec479ea2071dd6d6922fb1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Integrate values at grid points into spherical harmonics. <br /></td></tr>
+<tr class="separator:a61156a8a0aec479ea2071dd6d6922fb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8abb13e98d5d1eb3512e5ad55b701ef3"><td class="memItemLeft" align="right" valign="top"><a id="a8abb13e98d5d1eb3512e5ad55b701ef3"></a>
 subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__core.html#a8abb13e98d5d1eb3512e5ad55b701ef3">ddx_core::ddcav_to_grid</a> (params, constants, x_cav, x_grid, info)</td></tr>
 <tr class="memdesc:a8abb13e98d5d1eb3512e5ad55b701ef3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unwrap values at cavity points into values at all grid points. <br /></td></tr>

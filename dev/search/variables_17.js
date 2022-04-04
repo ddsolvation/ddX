@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['zeta_781',['zeta',['../structddx__core_1_1ddx__type.html#a51abea0c2fd5047e4afe17eb504dcc4a',1,'ddx_core::ddx_type']]],
+  ['zeta_781',['zeta',['../structddx__core_1_1ddx__state__type.html#a6d25ed184b0365b44a597556edec3b49',1,'ddx_core::ddx_state_type']]],
   ['zi_782',['zi',['../structddx__constants_1_1ddx__constants__type.html#ab187a03291e91804b98939559bb30fd4',1,'ddx_constants::ddx_constants_type']]]
 ];

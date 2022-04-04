@@ -1,9 +1,12 @@
 var ddx__core_8f90 =
 [
+    [ "ddx_state_type", "structddx__core_1_1ddx__state__type.html", "structddx__core_1_1ddx__state__type" ],
     [ "ddx_type", "structddx__core_1_1ddx__type.html", "structddx__core_1_1ddx__type" ],
     [ "ddinit", "ddx__core_8f90.html#ad98e6ca9db2543caa5273d4d33bb0e10", null ],
+    [ "ddx_init_state", "ddx__core_8f90.html#ab34ec195fbaa7838303efa0b7e0f0453", null ],
     [ "ddfromfile", "ddx__core_8f90.html#a7a2ec4809155b56be2c61ccb72b974ea", null ],
     [ "ddfree", "ddx__core_8f90.html#a3258ae6ef23a4f07ea8a14ccf612acaa", null ],
+    [ "ddx_free_state", "ddx__core_8f90.html#a5614410792c4a18a359eae6fd226cc8e", null ],
     [ "print_spherical", "ddx__core_8f90.html#aa76b7e526f53c93bf1492f51b3e1a8cc", null ],
     [ "print_nodes", "ddx__core_8f90.html#a7116b451c0d1427361e7d1437a1c5ae8", null ],
     [ "print_ddvector", "ddx__core_8f90.html#a7ee983451a2d6b52ce89801a59fb33e6", null ],
@@ -19,6 +22,8 @@ var ddx__core_8f90 =
     [ "calcv", "ddx__core_8f90.html#a96984a0f96c1a17e25c781d34ed73f80", null ],
     [ "ddeval_grid", "ddx__core_8f90.html#ad5b07f0450b5b0fae876973a3ce661d7", null ],
     [ "ddeval_grid_work", "ddx__core_8f90.html#a52eaee7c9a67f2a9f317c2d6dd50426e", null ],
+    [ "ddintegrate_sph", "ddx__core_8f90.html#ae804f0dbf4b9800bc75adaa57c842149", null ],
+    [ "ddintegrate_sph_work", "ddx__core_8f90.html#a61156a8a0aec479ea2071dd6d6922fb1", null ],
     [ "ddcav_to_grid", "ddx__core_8f90.html#a8abb13e98d5d1eb3512e5ad55b701ef3", null ],
     [ "ddcav_to_grid_work", "ddx__core_8f90.html#accaee74767f44a369c6d2d1e106c0453", null ],
     [ "tree_m2m_rotation", "ddx__core_8f90.html#a1caf6da4500220161384b51938ada1f8", null ],

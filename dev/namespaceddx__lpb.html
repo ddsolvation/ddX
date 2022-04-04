@@ -102,85 +102,81 @@ $(document).ready(function(){initNavTree('namespaceddx__lpb.html',''); initResiz
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:a9e12c5a2d211f2ee68c2344a944cc4fb"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#a9e12c5a2d211f2ee68c2344a944cc4fb">ddlpb</a> (ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)</td></tr>
-<tr class="memdesc:a9e12c5a2d211f2ee68c2344a944cc4fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddLPB solver  <a href="namespaceddx__lpb.html#a9e12c5a2d211f2ee68c2344a944cc4fb">More...</a><br /></td></tr>
-<tr class="separator:a9e12c5a2d211f2ee68c2344a944cc4fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a25c8d81565cd4cb36363876f26fc39e0"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#a25c8d81565cd4cb36363876f26fc39e0">ddlpb_energy</a> (params, constants, workspace, g, f, x, n_iter, xs_rel_diff, xs_time, tol, esolv, info)</td></tr>
-<tr class="memdesc:a25c8d81565cd4cb36363876f26fc39e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve primal ddLPB system to find solvation energy.  <a href="namespaceddx__lpb.html#a25c8d81565cd4cb36363876f26fc39e0">More...</a><br /></td></tr>
-<tr class="separator:a25c8d81565cd4cb36363876f26fc39e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3857a8d8fc6a9de788869457726f3a74"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#a3857a8d8fc6a9de788869457726f3a74">ddlpb_adjoint</a> (params, constants, workspace, psi, tol, x_adj, n_iter, s_rel_diff, s_time, info)</td></tr>
-<tr class="memdesc:a3857a8d8fc6a9de788869457726f3a74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve adjoint ddLPB system.  <a href="namespaceddx__lpb.html#a3857a8d8fc6a9de788869457726f3a74">More...</a><br /></td></tr>
-<tr class="separator:a3857a8d8fc6a9de788869457726f3a74"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9e98e19ca6f104ce60c648b6982a1d60"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#a9e98e19ca6f104ce60c648b6982a1d60">ddlpb_force</a> (params, constants, workspace, hessian, phi_grid, gradphi, x, x_adj, zeta, force, info)</td></tr>
-<tr class="memdesc:a9e98e19ca6f104ce60c648b6982a1d60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute ddLPB forces.  <a href="namespaceddx__lpb.html#a9e98e19ca6f104ce60c648b6982a1d60">More...</a><br /></td></tr>
-<tr class="separator:a9e98e19ca6f104ce60c648b6982a1d60"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0cacf33b5e95ef85f7268852d2d4c5d3"><td class="memItemLeft" align="right" valign="top"><a id="a0cacf33b5e95ef85f7268852d2d4c5d3"></a>
-subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#a0cacf33b5e95ef85f7268852d2d4c5d3">ddlpb_free</a> (ddx_data)</td></tr>
-<tr class="memdesc:a0cacf33b5e95ef85f7268852d2d4c5d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free ddLPB constants. <br /></td></tr>
-<tr class="separator:a0cacf33b5e95ef85f7268852d2d4c5d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13892ac674290cc45ad9b10de75cd3b4"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#a13892ac674290cc45ad9b10de75cd3b4">ddlpb_solve</a> (params, constants, workspace, state, phi_cav, gradphi_cav, tol)</td></tr>
+<tr class="memdesc:a13892ac674290cc45ad9b10de75cd3b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddLPB solver  <a href="namespaceddx__lpb.html#a13892ac674290cc45ad9b10de75cd3b4">More...</a><br /></td></tr>
+<tr class="separator:a13892ac674290cc45ad9b10de75cd3b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1906e7ae3780af8ec216f3f078129bd0"><td class="memItemLeft" align="right" valign="top"><a id="a1906e7ae3780af8ec216f3f078129bd0"></a>
+subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>ddlpb_adjoint</b> (params, constants, workspace, state, psi, tol)</td></tr>
+<tr class="separator:a1906e7ae3780af8ec216f3f078129bd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a712455dd9c9e04156fcfd482db62a831"><td class="memItemLeft" align="right" valign="top"><a id="a712455dd9c9e04156fcfd482db62a831"></a>
+subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>ddlpb_force</b> (params, constants, workspace, state, phi_cav, gradphi_cav, hessianphi_cav, psi, force)</td></tr>
+<tr class="separator:a712455dd9c9e04156fcfd482db62a831"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac267907f835f42a6b87d64954cc9276b"><td class="memItemLeft" align="right" valign="top"><a id="ac267907f835f42a6b87d64954cc9276b"></a>
+subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>ddlpb_guess</b> (params, constants, state)</td></tr>
+<tr class="separator:ac267907f835f42a6b87d64954cc9276b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7bb64b6631ee97ee4077d711349cb85"><td class="memItemLeft" align="right" valign="top"><a id="ac7bb64b6631ee97ee4077d711349cb85"></a>
+subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>ddlpb</b> (params, constants, workspace, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)</td></tr>
+<tr class="separator:ac7bb64b6631ee97ee4077d711349cb85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd1c32f7ef61ae0f5653c8a651f8a0e5"><td class="memItemLeft" align="right" valign="top"><a id="abd1c32f7ef61ae0f5653c8a651f8a0e5"></a>
+subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>ddlpb_solve_worker</b> (params, constants, workspace, phi_cav, gradphi_cav, g_lpb, f_lpb, phi_grid, x_lpb, x_lpb_niter, x_lpb_time, x_lpb_rel_diff, tol)</td></tr>
+<tr class="separator:abd1c32f7ef61ae0f5653c8a651f8a0e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac060c5a84b80af1d44e392ba24966368"><td class="memItemLeft" align="right" valign="top"><a id="ac060c5a84b80af1d44e392ba24966368"></a>
+subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>ddlpb_adjoint_worker</b> (params, constants, workspace, psi, tol, x_adj_lpb, x_adj_lpb_niter, x_adj_lpb_time, x_adj_lpb_rel_diff)</td></tr>
+<tr class="separator:ac060c5a84b80af1d44e392ba24966368"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3677bc2ef7f1c6d1d6f94e2a859bcd84"><td class="memItemLeft" align="right" valign="top"><a id="a3677bc2ef7f1c6d1d6f94e2a859bcd84"></a>
+subroutine&#160;</td><td class="memItemRight" valign="bottom"><b>ddlpb_force_worker</b> (params, constants, workspace, hessian, phi_grid, gradphi, x, x_adj, zeta, force)</td></tr>
+<tr class="separator:a3677bc2ef7f1c6d1d6f94e2a859bcd84"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>High-level subroutines for ddlpb. </p>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="a9e12c5a2d211f2ee68c2344a944cc4fb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9e12c5a2d211f2ee68c2344a944cc4fb">&#9670;&nbsp;</a></span>ddlpb()</h2>
+<a id="a13892ac674290cc45ad9b10de75cd3b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13892ac674290cc45ad9b10de75cd3b4">&#9670;&nbsp;</a></span>ddlpb_solve()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">subroutine ddx_lpb::ddlpb </td>
+          <td class="memname">subroutine ddx_lpb::ddlpb_solve </td>
           <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__type.html">ddx_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>ddx_data</em>, </td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real(dp), dimension(ddx_data % constants % ncav), intent(in)&#160;</td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % ncav), intent(in)&#160;</td>
           <td class="paramname"><em>phi_cav</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real(dp), dimension(3, ddx_data % constants % ncav), intent(in)&#160;</td>
+          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
           <td class="paramname"><em>gradphi_cav</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real(dp), dimension(3,3, ddx_data % constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>hessianphi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(ddx_data % constants % nbasis,  ddx_data % params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>psi</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>tol</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(out)&#160;</td>
-          <td class="paramname"><em>esolv</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, ddx_data % params % nsph), intent(out)&#160;</td>
-          <td class="paramname"><em>force</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(out)&#160;</td>
-          <td class="paramname"><em>info</em>&#160;</td>
+          <td class="paramname"><em>tol</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -191,325 +187,21 @@ subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href
 </div><div class="memdoc">
 
 <p>ddLPB solver </p>
-<p>ddLPB calculation happens here </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">ddx_data</td><td>: dd Data </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">phi_cav</td><td>: Boundary conditions </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">gradphi_cav</td><td>: Gradient of phi </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">hessianphi</td><td>: Hessian of phi </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">psi</td><td>: Electrostatic potential vector </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>: Tolerance </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">esolv</td><td>: Electrostatic solvation energy </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Forces </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">info</td><td>: Information </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00066">66</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
-
-</div>
-</div>
-<a id="a25c8d81565cd4cb36363876f26fc39e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a25c8d81565cd4cb36363876f26fc39e0">&#9670;&nbsp;</a></span>ddlpb_energy()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_lpb::ddlpb_energy </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>g</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>f</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out)&#160;</td>
-          <td class="paramname"><em>x</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(inout)&#160;</td>
-          <td class="paramname"><em>n_iter</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(n_iter), intent(out)&#160;</td>
-          <td class="paramname"><em>xs_rel_diff</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(out)&#160;</td>
-          <td class="paramname"><em>xs_time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>tol</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(out)&#160;</td>
-          <td class="paramname"><em>esolv</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(out)&#160;</td>
-          <td class="paramname"><em>info</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Solve primal ddLPB system to find solvation energy. </p>
+<p>Wrapper routine for the solution of the direct ddLPB linear system. It makes the interface easier to implement. If a fine control is needed, the worker routine should be directly called.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">g</td><td>: Intermediate matrix for computation of g0 </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">f</td><td>: Intermediate matrix for computation of f0 </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">x</td><td>: Solution </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">n_iter</td><td>: Number of iterations </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">xs_rel_diff</td><td>Relative difference </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">xs_time</td><td>: Time </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>: Tolerance for solver </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">esolv</td><td>: Solvation energy </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">info</td><td>: Information </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: General options </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>: Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>: Solutions, guesses and relevant quantities </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">phi_cav</td><td>: Electric potential at the grid points </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">gradphi_cav</td><td>: Electric field at the grid points </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>: Tolerance for the iterative solvers </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00153">153</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
-
-</div>
-</div>
-<a id="a3857a8d8fc6a9de788869457726f3a74"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3857a8d8fc6a9de788869457726f3a74">&#9670;&nbsp;</a></span>ddlpb_adjoint()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_lpb::ddlpb_adjoint </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>psi</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>tol</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out)&#160;</td>
-          <td class="paramname"><em>x_adj</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(inout)&#160;</td>
-          <td class="paramname"><em>n_iter</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(n_iter), intent(out)&#160;</td>
-          <td class="paramname"><em>s_rel_diff</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(out)&#160;</td>
-          <td class="paramname"><em>s_time</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(out)&#160;</td>
-          <td class="paramname"><em>info</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Solve adjoint ddLPB system. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">psi</td><td>: psi_r </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>: Tolerance </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">x_adj</td><td>: Adjoint solution </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">info</td><td>: Information </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00216">216</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
-
-</div>
-</div>
-<a id="a9e98e19ca6f104ce60c648b6982a1d60"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9e98e19ca6f104ce60c648b6982a1d60">&#9670;&nbsp;</a></span>ddlpb_force()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_lpb::ddlpb_force </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, 3, constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>hessian</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>phi_grid</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>gradphi</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in)&#160;</td>
-          <td class="paramname"><em>x</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in)&#160;</td>
-          <td class="paramname"><em>x_adj</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % ncav), intent(out)&#160;</td>
-          <td class="paramname"><em>zeta</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(out)&#160;</td>
-          <td class="paramname"><em>force</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(out)&#160;</td>
-          <td class="paramname"><em>info</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Compute ddLPB forces. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">hessian</td><td>: Hessian of Psi </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">phi_grid</td><td>: Phi evaluated at the grid point </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">gradphi</td><td>: Gradient of phi </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>: Solution vector </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">x_adj</td><td>: Adjoint solution vector </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">zeta</td><td>: Intermediate calculation </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">info</td><td>: Information </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00273">273</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00067">67</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
 
 </div>
 </div>

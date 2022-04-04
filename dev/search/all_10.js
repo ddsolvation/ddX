@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['q_278',['q',['../structddx__core_1_1ddx__type.html#a02ae32035759003449e0fc2b31623327',1,'ddx_core::ddx_type']]],
-  ['qgrid_279',['qgrid',['../structddx__core_1_1ddx__type.html#aa90389d833794366cfa81a878cd39e02',1,'ddx_core::ddx_type']]]
+  ['q_278',['q',['../structddx__core_1_1ddx__state__type.html#ad1757dc3ef7f36af7e1767c2ae827bfd',1,'ddx_core::ddx_state_type']]],
+  ['qgrid_279',['qgrid',['../structddx__core_1_1ddx__state__type.html#a66ba3c75158728fff99a9ea26b0e0d7b',1,'ddx_core::ddx_state_type']]]
 ];

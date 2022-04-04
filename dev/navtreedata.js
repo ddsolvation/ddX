@@ -55,7 +55,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"ddx__solvers_8f90.html"
+"ddx__parameters_8f90.html#ab58f264af44239d745e1a571c1850576",
+"structddx__workspace_1_1ddx__workspace__type.html#ab91e641fb9aa8760cc452c6f8dee2839"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
