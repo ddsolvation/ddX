@@ -68,14 +68,14 @@ default_lmax = (/ -9.9977268971430206E-004, -1.0128441259120659E-003, &
 
 !Default values precomputed
 !epsilon_solv : 2, 20, 200, 2000
-default_iter_epsilon = (/ 12, 26, 24, 17 /)
+default_iter_epsilon = (/ 7, 8, 7, 5 /)
 
 !eta : 0.0001, 0.001, 0.01, 0.1
-default_iter_eta = (/ 26, 26, 24, 26 /)
+default_iter_eta = (/ 7, 7, 7, 7 /)
 !kappa : 0.5, 0.25, 0.16667, 0.125
-default_iter_kappa = (/ 26, 26, 13, 24 /)
+default_iter_kappa = (/ 7, 7, 7, 7 /)
 !lmax : 2, 4, 8, 16
-default_iter_lmax = (/ 13, 13, 26, 26 /)
+default_iter_lmax = (/ 7, 7,7 , 8 /)
 
 ! Initial values
 esolv = zero
