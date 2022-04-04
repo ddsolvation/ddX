@@ -227,7 +227,7 @@ subroutine dx_dense(params, constants, workspace, do_diag, x, y)
                             & workspace % tmp_vylm, workspace % tmp_vplm, &
                             & workspace % tmp_vcos, workspace % tmp_vsin)
                         ! with all the required stuff, finally compute
-                        ! the "potential" at the point 
+                        ! the "potential" at the point
                         tt = one/tij 
                         do l = 0, params % lmax
                             ind = l*l + l + 1
@@ -387,7 +387,9 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)
                             & params % lmax, constants % vscales, &
                             & workspace % tmp_vylm, workspace % tmp_vplm, &
                             & workspace % tmp_vcos, workspace % tmp_vsin)
-                        tt = constants % ui(its,jsph)*dot_product(constants % vwgrid(:,its),x(:,jsph))/tji
+                        tt = constants % ui(its,jsph) &
+                            & *dot_product(constants % vwgrid(:constants % nbasis, its), &
+                            & x(:,jsph))/tji
                         do l = 0, params % lmax
                             ind = l*l + l + 1
                             f = dble(l)*tt/ constants % vscales(ind)**2
@@ -401,7 +403,9 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)
                 end do
             else if (do_diag .eq. 1) then
                 do its = 1, params % ngrid
-                    f = pt5*constants % ui(its,jsph)*dot_product(constants % vwgrid(:,its),x(:,jsph))
+                    f = pt5*constants % ui(its,jsph) &
+                        & *dot_product(constants % vwgrid(:constants % nbasis, its), &
+                        & x(:,jsph))
                     do l = 0, params % lmax
                         ind = l*l + l + 1
                         y(ind-l:ind+l,isph) = y(ind-l:ind+l,isph) - &
