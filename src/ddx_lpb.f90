@@ -101,6 +101,7 @@ subroutine ddlpb_adjoint(params, constants, workspace, state, psi, tol)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     real(dp), intent(in) :: tol
 
+    state % x_adj_lpb_niter = params % maxiter
     call ddlpb_adjoint_worker(params, constants, &
       & workspace, psi, tol, state % x_adj_lpb, state % x_adj_lpb_niter, &
       & state % x_adj_lpb_time, state % x_adj_lpb_rel_diff)
@@ -187,8 +188,6 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
         call ddlpb_force(params, constants, workspace, state, phi_cav, &
             & gradphi_cav, hessianphi_cav, psi, force)
     endif
-
-    call ddx_free_state(state)
 
 end subroutine ddlpb
 
@@ -282,7 +281,6 @@ subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
     real(dp), intent(out) :: x_adj_lpb_time
     real(dp), intent(out) :: x_adj_lpb_rel_diff(x_adj_lpb_niter)
 
-    real(dp), allocatable :: psi_lpb(:,:)
     real(dp), allocatable :: rhs(:,:,:)
     real(dp) :: start_time
     integer :: istat
@@ -295,12 +293,9 @@ subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
 
     ! Psi shall be divided by a factor 4pi for the LPB case
     ! It is intended to take into account this constant in the LPB
-    allocate(psi_lpb(constants % nbasis, params % nsph), stat=istat)
-    if (istat.ne.0) stop 1
-    psi_lpb = psi / fourpi
 
     ! set up the RHS
-    rhs(:,:,1) = psi
+    rhs(:,:,1) = psi/fourpi
     rhs(:,:,2) = zero
 
     ! guess
@@ -316,7 +311,7 @@ subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
         & rmsnorm, istat)
     x_adj_lpb_time = omp_get_wtime() - start_time
 
-    deallocate(rhs, psi_lpb, stat=istat)
+    deallocate(rhs, stat=istat)
     if (istat.ne.0) stop 1
 end subroutine ddlpb_adjoint_worker
 
@@ -328,7 +323,7 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
 
     real(dp), dimension(3, 3, constants % ncav), intent(in) :: hessian
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: phi_grid
-    real(dp), dimension(3, constants % ncav), intent(in)    :: gradphi
+    real(dp), dimension(3, constants % ncav), intent(in) :: gradphi
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x, x_adj
     real(dp), dimension(3, params % nsph), intent(out) :: force
     real(dp), intent(out) :: zeta(constants % ncav)
@@ -524,7 +519,7 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     call contract_grad_f(params, constants, workspace, x_adj(:,:,2), Xadj_e_sgrid, &
                   & gradphi, normal_hessian_cav, icav_ge, force)
 
-    force = pt5*force/fourpi
+    force = pt5*force
 
     deallocate(ef, xadj_r_sgrid, xadj_e_sgrid, normal_hessian_cav, &
         & diff_re, scaled_xr, stat=istat)
