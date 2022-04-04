@@ -238,9 +238,9 @@ subroutine ddpcm_solve_worker(params, constants, workspace, phi_cav, &
     call rinfx(params, constants, workspace, phi, phiinf)
     ! Select initial guess for the ddPCM system
     call cpu_time(start_time)
-    if (params % itersolver .eq. 1) then 
+    if (params % itersolver .eq. 1) then
         call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
-            & phieps_niter, phieps_rel_diff, repsx, apply_repsx_prec, hnorm, info)
+            & phieps_niter, phieps_rel_diff, repsx, prec_repsx, hnorm, info)
     else
         call gmresr(params, constants, workspace, tol, phiinf, phieps, phieps_niter, &
             & r_norm, repsx, info)
@@ -357,7 +357,7 @@ subroutine ddpcm_energy_worker(params, constants, workspace, phi_cav, psi, &
     start_time = omp_get_wtime()
     if (params % itersolver .eq. 1) then 
         call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
-            & phieps_niter, phieps_rel_diff, repsx, apply_repsx_prec, hnorm, info)
+            & phieps_niter, phieps_rel_diff, repsx, prec_repsx, hnorm, info)
     else
         call gmresr(params, constants, workspace, tol, phiinf, phieps, phieps_niter, &
             & r_norm, repsx, info)
@@ -437,10 +437,10 @@ subroutine ddpcm_adjoint_worker(params, constants, workspace, psi, tol, &
     start_time = omp_get_wtime()
     if (params % itersolver .eq. 1) then 
         call jacobi_diis(params, constants, workspace, tol, s, y, y_niter, &
-            & y_rel_diff, rstarepsx, apply_rstarepsx_prec, hnorm, info)
+            & y_rel_diff, repsstarx, prec_repsstarx, hnorm, info)
     else
         call gmresr(params, constants, workspace, tol, s, y, y_niter, &
-            & r_norm, rstarepsx, info)
+            & r_norm, repsstarx, info)
     end if
     finish_time = omp_get_wtime()
     y_time = finish_time - start_time

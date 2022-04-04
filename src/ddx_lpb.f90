@@ -255,16 +255,16 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
     ! guess
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
-    call lpb_direct_prec(params, constants, workspace, rhs, x_lpb)
+    call prec_tx(params, constants, workspace, rhs, x_lpb)
 
     ! solve LS using Jacobi/DIIS
     start_time = omp_get_wtime()
     call jacobi_diis_external(params, constants, workspace, &
         & 2*constants % n, tol, rhs, x_lpb, x_lpb_niter, x_lpb_rel_diff, &
-        & lpb_direct_matvec, lpb_direct_prec, rmsnorm, istat)
+        & cx, prec_tx, rmsnorm, istat)
     x_lpb_time = omp_get_wtime() - start_time
 
-    deallocate(rhs, stat=istat)
+    deallocate(rhs)
     if (istat.ne.0) stop 1
 end subroutine ddlpb_solve_worker
 
@@ -301,16 +301,15 @@ subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
     ! guess
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
-    call lpb_adjoint_prec(params, constants, workspace, rhs, x_adj_lpb)
+    call prec_tstarx(params, constants, workspace, rhs, x_adj_lpb)
 
     ! solve adjoint LS using Jacobi/DIIS
     start_time = omp_get_wtime()
     call jacobi_diis_external(params, constants, workspace, &
         & 2*constants % n, tol, rhs, x_adj_lpb, x_adj_lpb_niter, &
-        & x_adj_lpb_rel_diff, lpb_adjoint_matvec, lpb_adjoint_prec, &
+        & x_adj_lpb_rel_diff, cstarx, prec_tstarx, &
         & rmsnorm, istat)
     x_adj_lpb_time = omp_get_wtime() - start_time
-
     deallocate(rhs, stat=istat)
     if (istat.ne.0) stop 1
 end subroutine ddlpb_adjoint_worker
@@ -389,13 +388,6 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     scaled_Xr = x(:,:,1)
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
-    tcontract_gradi_Lik = zero
-    tcontract_gradi_Lji = zero
-    tcontract_gradi_Bik = zero
-    tcontract_gradi_Bji = zero
-    tcontract_grad_C_worker2 = zero
-    tcontract_grad_C_worker1 = zero
-    tcontract_grad_U = zero
     do isph = 1, params % nsph
         ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
         call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
@@ -509,8 +501,6 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         end do
     end if
 
-    tcontract_grad_C_worker2 = zero
-    tcontract_grad_U = zero
     icav_gr = zero
     icav_ge = zero
     ! Computation of F0
