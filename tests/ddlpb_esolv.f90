@@ -26,9 +26,11 @@ type(ddx_type) :: ddx_data
 integer :: info
 
 real(dp) :: esolv, default_value, tol
-integer :: i, istatus, iprint, default_lmax_val
+integer :: i, istatus, iprint, default_lmax_val, n_iter
 real(dp), allocatable :: default_epsilon(:), default_eta(:), &
                        & default_kappa(:), default_lmax(:)
+integer, allocatable :: default_iter_epsilon(:), default_iter_eta(:), &
+                       & default_iter_kappa(:), default_iter_lmax(:)
 
 real(dp), external :: dnrm2
 
@@ -42,7 +44,9 @@ if(info .ne. 0) stop "info != 0"
 ! default_"variable_name" : These are the precomputed values
 ! computed_"variable_name" : These are the computed values
 allocate(default_epsilon(4), default_eta(4), &
-       & default_kappa(4), default_lmax(4), stat=istatus)
+       & default_kappa(4), default_lmax(4), &
+       & default_iter_epsilon(4), default_iter_eta(4), &
+       & default_iter_kappa(4), default_iter_lmax(4), stat=istatus)
 
 if (istatus.ne.0) write(6,*) 'Allocation failed'
 
@@ -57,22 +61,36 @@ default_eta = (/ -1.0144763156304426E-003, -1.0144763156304426E-003, &
 !kappa : 0.5, 0.25, 0.16667, 0.125
 default_kappa = (/ -1.0228739915625511E-003, -1.0192321310712657E-003,&
                  & -1.0171251065945882E-003, -1.0158211256043079E-003 /)
-                 !lmax : 2, 4, 8, 16
+!lmax : 2, 4, 8, 16
 default_lmax = (/ -9.9977268971430206E-004, -1.0128441259120659E-003, &
                 & -1.0157913843224611E-003, -1.0177420746553952E-003 /)
 
+
+!Default values precomputed
+!epsilon_solv : 2, 20, 200, 2000
+default_iter_epsilon = (/ 7, 8, 7, 5 /)
+
+!eta : 0.0001, 0.001, 0.01, 0.1
+default_iter_eta = (/ 7, 7, 7, 7 /)
+!kappa : 0.5, 0.25, 0.16667, 0.125
+default_iter_kappa = (/ 7, 7, 7, 7 /)
+!lmax : 2, 4, 8, 16
+default_iter_lmax = (/ 7, 7,7 , 8 /)
+
 ! Initial values
 esolv = zero
+n_iter = zero
 ! Computation for different eps_solv
 write(*,*) 'Varying values of epsilon_solv'
 do i = 1, 4
   default_value = 0.2*(10**i)
   write(*,*) 'epsilon_solv : ', default_value
   esolv = zero
-  call solve(ddx_data, esolv, default_value, &
+  call solve(ddx_data, esolv, n_iter, default_value, &
            & ddx_data % params % eta, ddx_data % params % kappa, &
-           & ddx_data % params % lmax)
+           & ddx_data % params % lmax, tol)
   call check_values(default_epsilon(i), esolv)
+  call check_iter_values(default_iter_epsilon(i), n_iter)
 end do
 
 
@@ -82,9 +100,10 @@ do i = 1, 4
   default_value = 0.00001*(10**i)
   write(*,*) 'eta : ', default_value
   esolv = zero
-  call solve(ddx_data, esolv, ddx_data % params % eps, &
-           & default_value, ddx_data % params % kappa, ddx_data % params % lmax)
+  call solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
+           & default_value, ddx_data % params % kappa, ddx_data % params % lmax, tol)
   call check_values(default_eta(i), esolv)
+  call check_iter_values(default_iter_eta(i), n_iter)
 end do
 
 ! Computation for different kappa
@@ -93,9 +112,10 @@ do i = 1, 4
   default_value = 1.0/(2.0*i)
   write(*,*) 'kappa : ', default_value
   esolv = zero
-  call solve(ddx_data, esolv, ddx_data % params % eps, &
-           & ddx_data % params % eta, default_value, ddx_data % params % lmax)
+  call solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
+           & ddx_data % params % eta, default_value, ddx_data % params % lmax, tol)
   call check_values(default_kappa(i), esolv)
+  call check_iter_values(default_iter_kappa(i), n_iter)
 end do
 
 ! Computation for different lmax
@@ -104,13 +124,16 @@ do i = 1, 4
   default_lmax_val = 2**i
   write(*,*) 'lmax : ', default_lmax_val
   esolv = zero
-  call solve(ddx_data, esolv, ddx_data % params % eps, &
-           & ddx_data % params % eta, ddx_data % params % kappa, default_lmax_val)
+  call solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
+           & ddx_data % params % eta, ddx_data % params % kappa, default_lmax_val, tol)
   call check_values(default_lmax(i), esolv)
+  call check_iter_values(default_iter_lmax(i), n_iter)
 end do
 
 deallocate(default_epsilon, default_eta, &
-       & default_kappa, default_lmax, stat = istatus)
+       & default_kappa, default_lmax, &
+       & default_iter_epsilon, default_iter_eta, &
+       & default_iter_kappa, default_iter_lmax, stat = istatus)
 
 if (istatus.ne.0) write(6,*) 'Deallocation failed'
 
@@ -118,13 +141,16 @@ call ddfree(ddx_data)
 
 contains
 
-subroutine solve(ddx_data, esolv_in, epsilon_solv, eta, kappa, lmax)
+subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol)
+    implicit none
     type(ddx_type), intent(inout) :: ddx_data
     real(dp), intent(inout) :: esolv_in
+    integer, intent(inout)  :: n_iter
     real(dp), intent(in) :: epsilon_solv
     real(dp), intent(in) :: eta
     real(dp), intent(in) :: kappa
     integer, intent(in)  :: lmax
+    real(dp), intent(in) :: tol
 
     type(ddx_state_type) :: state
     type(ddx_type) :: ddx_data2
@@ -133,6 +159,7 @@ subroutine solve(ddx_data, esolv_in, epsilon_solv, eta, kappa, lmax)
     real(dp), allocatable :: hessianphi_cav2(:,:,:)
     real(dp), allocatable :: psi2(:,:)
     real(dp), allocatable :: force2(:,:)
+    integer :: info
 
     call ddinit(ddx_data % params % nsph, ddx_data % params % charge, &
         & ddx_data % params % csph(1, :), &
@@ -161,6 +188,8 @@ subroutine solve(ddx_data, esolv_in, epsilon_solv, eta, kappa, lmax)
 
     call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
         & psi2, tol, esolv_in, force2, info)
+
+    n_iter = state % x_lpb_niter
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
 
     call ddx_free_state(state)
@@ -177,6 +206,17 @@ subroutine check_values(default_value, computed_value)
       stop 1
     endif
 end subroutine check_values
+
+! This subroutine checks if the default and computed values are same
+subroutine check_iter_values(default_value, computed_value)
+    integer, intent(in) :: default_value
+    integer, intent(in) :: computed_value
+    if(default_value .ne. computed_value) then
+      write(*,*) 'Issue in iterative value, default : ', default_value, ', computed : ',&
+                & computed_value
+      stop 1
+    endif
+end subroutine check_iter_values
 
 
 end program main
