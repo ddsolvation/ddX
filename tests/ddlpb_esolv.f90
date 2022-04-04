@@ -88,7 +88,7 @@ do i = 1, 4
   esolv = zero
   call solve(ddx_data, esolv, n_iter, default_value, &
            & ddx_data % params % eta, ddx_data % params % kappa, &
-           & ddx_data % params % lmax)
+           & ddx_data % params % lmax, tol)
   call check_values(default_epsilon(i), esolv)
   call check_iter_values(default_iter_epsilon(i), n_iter)
 end do
@@ -101,7 +101,7 @@ do i = 1, 4
   write(*,*) 'eta : ', default_value
   esolv = zero
   call solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
-           & default_value, ddx_data % params % kappa, ddx_data % params % lmax)
+           & default_value, ddx_data % params % kappa, ddx_data % params % lmax, tol)
   call check_values(default_eta(i), esolv)
   call check_iter_values(default_iter_eta(i), n_iter)
 end do
@@ -113,7 +113,7 @@ do i = 1, 4
   write(*,*) 'kappa : ', default_value
   esolv = zero
   call solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
-           & ddx_data % params % eta, default_value, ddx_data % params % lmax)
+           & ddx_data % params % eta, default_value, ddx_data % params % lmax, tol)
   call check_values(default_kappa(i), esolv)
   call check_iter_values(default_iter_kappa(i), n_iter)
 end do
@@ -125,7 +125,7 @@ do i = 1, 4
   write(*,*) 'lmax : ', default_lmax_val
   esolv = zero
   call solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
-           & ddx_data % params % eta, ddx_data % params % kappa, default_lmax_val)
+           & ddx_data % params % eta, ddx_data % params % kappa, default_lmax_val, tol)
   call check_values(default_lmax(i), esolv)
   call check_iter_values(default_iter_lmax(i), n_iter)
 end do
@@ -141,7 +141,8 @@ call ddfree(ddx_data)
 
 contains
 
-subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax)
+subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol)
+    implicit none
     type(ddx_type), intent(inout) :: ddx_data
     real(dp), intent(inout) :: esolv_in
     integer, intent(inout)  :: n_iter
@@ -149,6 +150,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax)
     real(dp), intent(in) :: eta
     real(dp), intent(in) :: kappa
     integer, intent(in)  :: lmax
+    real(dp), intent(in) :: tol
 
     type(ddx_state_type) :: state
     type(ddx_type) :: ddx_data2
@@ -157,6 +159,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax)
     real(dp), allocatable :: hessianphi_cav2(:,:,:)
     real(dp), allocatable :: psi2(:,:)
     real(dp), allocatable :: force2(:,:)
+    integer :: info
 
     call ddinit(ddx_data % params % nsph, ddx_data % params % charge, &
         & ddx_data % params % csph(1, :), &

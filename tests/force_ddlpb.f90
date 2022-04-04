@@ -67,7 +67,7 @@ do isph = 1, ddx_data % params % nsph
     esolv_plus_h = zero
     esolv_minus_h = zero
     ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) + step
-    call solve(ddx_data, esolv_plus_h)
+    call solve(ddx_data, esolv_plus_h, tol)
     ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) - step
     !call solve(ddx_data, esolv_minus_h)
     !write(*,*) 'esolv  :', esolv, 'esolv+h  : ', esolv_plus_h, ' , esolv : ', esolv_minus_h, ' , step :', step
@@ -94,9 +94,11 @@ write(*, *) "Rel.error of forces:", relerr
 if (relerr .gt. 1.d-5) stop 1
 contains
 
-subroutine solve(ddx_data, esolv_in)
+subroutine solve(ddx_data, esolv_in, tol)
+    implicit none
     type(ddx_type), intent(inout) :: ddx_data
     real(dp), intent(inout) :: esolv_in
+    real(dp), intent(in) ::tol
 
     type(ddx_type) :: ddx_data2
     type(ddx_state_type) :: state
