@@ -42,7 +42,7 @@ if(info .ne. 0) stop "info != 0"
 ! default_"variable_name" : These are the precomputed values
 ! computed_"variable_name" : These are the computed values
 allocate(default_epsilon(4), default_eta(4), &
-       & default_kappa(4), default_lmax(4), stat= istatus)
+       & default_kappa(4), default_lmax(4), stat=istatus)
 
 if (istatus.ne.0) write(6,*) 'Allocation failed'
 
@@ -126,6 +126,7 @@ subroutine solve(ddx_data, esolv_in, epsilon_solv, eta, kappa, lmax)
     real(dp), intent(in) :: kappa
     integer, intent(in)  :: lmax
 
+    type(ddx_state_type) :: state
     type(ddx_type) :: ddx_data2
     real(dp), allocatable :: phi_cav2(:)
     real(dp), allocatable :: gradphi_cav2(:,:)
@@ -144,6 +145,9 @@ subroutine solve(ddx_data, esolv_in, epsilon_solv, eta, kappa, lmax)
         & ddx_data % params % jacobi_ndiis, ddx_data % params % gmresr_j, &
         & ddx_data % params % gmresr_dim, ddx_data % params % nproc, ddx_data2, info)
 
+    ! the state depends on lmax, so it is allocated here
+    call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state)
+
     allocate(phi_cav2(ddx_data2 % constants % ncav), gradphi_cav2(3, ddx_data2 % constants % ncav), &
             & hessianphi_cav2(3, 3, ddx_data2 % constants % ncav), &
             & psi2(ddx_data2 % constants % nbasis, ddx_data2 % params % nsph), &
@@ -153,12 +157,14 @@ subroutine solve(ddx_data, esolv_in, epsilon_solv, eta, kappa, lmax)
     hessianphi_cav2 = zero; psi2 = zero; force2 = zero
 
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
-            &  1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
+        &  1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
 
-    call ddsolve(ddx_data2, phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, tol, esolv_in, force2, info)
+    call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
+        & psi2, tol, esolv_in, force2, info)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
+
+    call ddx_free_state(state)
     call ddfree(ddx_data2)
-    return
 end subroutine solve
 
 ! This subroutine checks if the default and computed values are same
