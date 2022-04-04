@@ -19,6 +19,7 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
+type(ddx_state_type) :: state
 integer :: info
 
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
@@ -34,6 +35,7 @@ call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol, iprint, info)
 if(info .ne. 0) stop "info != 0"
+call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 
 ! Allocation for variable vectors
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
@@ -57,9 +59,8 @@ esolv_minus_h = zero
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
     & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
 
-! Need to update PSI here
-psi = psi / fourpi
-call ddlpb(ddx_data, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)
+call ddlpb(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
+    & state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)
 
 do isph = 1, ddx_data % params % nsph
   do i = 1, 3
@@ -86,6 +87,7 @@ end do
 
 deallocate(phi_cav, gradphi_cav, hessianphi_cav, psi, force, force_num)
 
+call ddx_free_state(state)
 call ddfree(ddx_data)
 
 write(*, *) "Rel.error of forces:", relerr
@@ -97,6 +99,7 @@ subroutine solve(ddx_data, esolv_in)
     real(dp), intent(inout) :: esolv_in
 
     type(ddx_type) :: ddx_data2
+    type(ddx_state_type) :: state
     real(dp), allocatable :: phi_cav2(:)
     real(dp), allocatable :: gradphi_cav2(:,:)
     real(dp), allocatable :: hessianphi_cav2(:,:,:)
@@ -113,6 +116,8 @@ subroutine solve(ddx_data, esolv_in)
         & ddx_data % params % jacobi_ndiis, ddx_data % params % gmresr_j, &
         & ddx_data % params % gmresr_dim, ddx_data % params % nproc, ddx_data2, info)
 
+    call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state)
+
     allocate(phi_cav2(ddx_data2 % constants % ncav), gradphi_cav2(3, ddx_data2 % constants % ncav), &
             & hessianphi_cav2(3, 3, ddx_data2 % constants % ncav), &
             & psi2(ddx_data2 % constants % nbasis, ddx_data2 % params % nsph), &
@@ -123,10 +128,12 @@ subroutine solve(ddx_data, esolv_in)
 
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
         & 1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
-    call ddsolve(ddx_data2, phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, tol, esolv_in, force2, info)
+    call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
+        & psi2, tol, esolv_in, force2, info)
+
+    call ddx_free_state(state)
     call ddfree(ddx_data2)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
-    return
 end subroutine solve
 
 end program main

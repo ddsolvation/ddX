@@ -217,6 +217,7 @@ subroutine check_gradr(ddx_data, pm, pl, iprint, threshold)
     real(dp), intent(in) :: threshold
     ! Local variables
     type(ddx_type) :: ddx_data_fmm
+    real(dp), allocatable :: ygrid(:,:), g(:,:)
     integer :: info, irand, iseed(4)=(/0, 0, 0, 1/), do_diag
     integer, parameter :: nrand=10
     real(dp) :: x(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
@@ -237,17 +238,20 @@ subroutine check_gradr(ddx_data, pm, pl, iprint, threshold)
         & ddx_data_fmm, info)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.
+    allocate(ygrid(ddx_data % params % ngrid, ddx_data % params % nsph), &
+        & g(ddx_data % constants % nbasis, ddx_data % params % nsph))
     ! Get random ygrid and g
-    call dlarnv(2, iseed, ddx_data % params % ngrid * ddx_data % params % nsph, ddx_data % ygrid)
-    call dlarnv(2, iseed, ddx_data % constants % n, ddx_data % g)
+    call dlarnv(2, iseed, ddx_data % params % ngrid * ddx_data % params % nsph, ygrid)
+    call dlarnv(2, iseed, ddx_data % constants % n, g)
     ! Check gradr
     call gradr_dense(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, ddx_data % g, ddx_data % ygrid, forces)
+        & ddx_data % workspace, g, ygrid, forces)
     full_norm = dnrm2(3*ddx_data % params % nsph, forces, 1)
     call gradr_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
-        & ddx_data_fmm % workspace, ddx_data % g, ddx_data % ygrid, forces2)
+        & ddx_data_fmm % workspace, g, ygrid, forces2)
     diff_norm = dnrm2(3*ddx_data % params % nsph, forces-forces2, 1)
     write(*, *) "gradr dense vs fmm rel.error=", diff_norm / full_norm
+    deallocate(ygrid, g)
     call ddfree(ddx_data_fmm)
 end subroutine check_gradr
 
