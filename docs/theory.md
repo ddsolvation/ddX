@@ -179,8 +179,8 @@ The subroutine for matrix-vector multiplications of the \f$\operatorname{R}_\var
 
 The subroutine for matrix-vector multiplications of the \f$\tilde{\operatorname{T}}\f$, \f$\operatorname{A}\f$,\f$\operatorname{B}\f$  and \f$\tilde{\operatorname{C}}\f$ with a vector is 
 ``` markdown
-> tx(...)     in ddx_operators.f90 ????
-> ax(...)     in ddx_operators.f90 ????
+> tx(...)     in ddx_operators.f90
+> ax(...)     in ddx_operators.f90
 > bx(...)     in ddx_operators.f90
 > cx(...)     in ddx_operators.f90
 ```
@@ -220,7 +220,7 @@ The term \f$\langle \tilde{\operatorname{S}}, \tilde{\operatorname{H}} \rangle\f
 \f]
 The subroutine for the contraction of the differentiated matrix \f$\operatorname{L}^\lambda\f$ with two vectors is 
 ``` markdown
-> contract_gradl(...)     in ddx_gradient.f90 ????
+> contract_grad_l(...)     in ddx_gradients.f90
 ```
 
 ###ddPCM:
@@ -254,7 +254,7 @@ The subroutine for matrix-vector multiplications of the \f$\operatorname{R}_\var
 
 The subroutine for the contraction of the differentiated matrix \f$\operatorname{R}^\lambda\f$ with two vectors is 
 ``` markdown
-> contract_gradr(...)     in ddx_gradient.f90 ????
+> contract_gradr(...)     in ddx_gradients.f90
 ```
 
 ###ddLPB:
@@ -273,8 +273,8 @@ The subroutine for the contraction of the differentiated matrix \f$\operatorname
 \f]
 The subroutine for matrix-vector multiplications of the \f$\tilde{\operatorname{T}}^\top\f$, \f$\operatorname{A}^\top\f$,\f$\operatorname{B}^\top\f$  and \f$\tilde{\operatorname{C}}^\top\f$ with a vector is 
 ``` markdown
-> tstarx(...)     in ddx_operators.f90 ????
-> astarx(...)     in ddx_operators.f90 ????
+> tstarx(...)     in ddx_operators.f90
+> astarx(...)     in ddx_operators.f90
 > bstarx(...)     in ddx_operators.f90
 > cstarx(...)     in ddx_operators.f90
 ```
@@ -290,7 +290,7 @@ The term \f$\langle \tilde{\operatorname{S}}, \tilde{\operatorname{H}} \rangle\f
 \f]
 The subroutine for the contraction of the differentiated matrices \f$\operatorname{A}^\lambda\f$, \f$\operatorname{B}^\lambda\f$ and \f$\tilde{\operatorname{C}}^\lambda\f$ with two vectors is 
 ``` markdown
-> contract_grada(...)     in ddx_gradient.f90 ????
-> contract_gradb(...)     in ddx_gradient.f90 ????
-> contract_gradc(...)     in ddx_gradient.f90 ????
+> contract_grad_a(...)     in ddx_gradients.f90
+> contract_grad_b(...)     in ddx_gradients.f90
+> contract_grad_c(...)     in ddx_gradients.f90
 ```
