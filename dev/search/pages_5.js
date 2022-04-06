@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['theory_789',['Theory',['../md__home_runner_work_dd_x_dd_x_docs_theory.html',1,'']]]
+  ['run_20as_20standalone_791',['Run as standalone',['../label_run_as_standalone.html',1,'']]]
 ];

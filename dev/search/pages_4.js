@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['run_20as_20standalone_788',['Run as standalone',['../label_run_as_standalone.html',1,'']]]
+  ['python_20interface_790',['Python interface',['../label_python_interface.html',1,'']]]
 ];

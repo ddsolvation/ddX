@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['ylmbas_621',['ylmbas',['../namespaceddx__harmonics.html#a74a0d8fb15d594b39e7f4872d79846e0',1,'ddx_harmonics']]],
-  ['ylmscale_622',['ylmscale',['../namespaceddx__harmonics.html#a00c5ff3e46e5eb64eba38eee2b5f0751',1,'ddx_harmonics']]]
+  ['ylmbas_623',['ylmbas',['../namespaceddx__harmonics.html#a74a0d8fb15d594b39e7f4872d79846e0',1,'ddx_harmonics']]],
+  ['ylmscale_624',['ylmscale',['../namespaceddx__harmonics.html#a00c5ff3e46e5eb64eba38eee2b5f0751',1,'ddx_harmonics']]]
 ];

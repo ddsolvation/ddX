@@ -26,7 +26,32 @@ var NAVTREE =
     [ "General information", "index.html", null ],
     [ "Download and Installation", "label_download_and_install.html", null ],
     [ "Run as standalone", "label_run_as_standalone.html", null ],
-    [ "Theory", "md__home_runner_work_dd_x_dd_x_docs_theory.html", null ],
+    [ "Python interface", "label_python_interface.html", null ],
+    [ "Theory", "md__home_runner_work_dd_x_dd_x_docs_theory.html", [
+      [ "Introduction", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md3", null ],
+      [ "Cavity and solute density", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md4", [
+        [ "Fundamental solutions and free-space potentials", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md5", null ]
+      ] ],
+      [ "Models", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md6", [
+        [ "Linearized Poisson-Boltzmann model (LPB)", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md7", null ],
+        [ "Polarizable Continuum Model (PCM)", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md8", null ],
+        [ "COnductor-like Screening MOdel (COSMO)", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md9", [
+          [ "Hints and hacks", "label_download_and_install.html#autotoc_md1", null ],
+          [ "General remarks", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md10", null ]
+        ] ]
+      ] ],
+      [ "Discrete equations in a general framework - overview", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md11", [
+        [ "ddCOSMO:", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md12", null ],
+        [ "ddPCM:", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md13", null ],
+        [ "ddLPB:", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md14", null ]
+      ] ],
+      [ "Gradient computations", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md15", [
+        [ "ddCOSMO:", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md16", null ],
+        [ "ddPCM:", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md17", null ],
+        [ "ddLPB:", "md__home_runner_work_dd_x_dd_x_docs_theory.html#autotoc_md18", null ]
+      ] ]
+    ] ],
+    [ "The dd-story", "md__home_runner_work_dd_x_dd_x_docs_ddstory.html", null ],
     [ "Licence", "label_licence.html", null ],
     [ "ddX-References", "label_references.html", null ],
     [ "Bibliography", "citelist.html", null ],
@@ -56,7 +81,7 @@ var NAVTREEINDEX =
 [
 "annotated.html",
 "ddx__parameters_8f90.html#ab58f264af44239d745e1a571c1850576",
-"structddx__workspace_1_1ddx__workspace__type.html#ab91e641fb9aa8760cc452c6f8dee2839"
+"structddx__workspace_1_1ddx__workspace__type.html#a46d9193ae89a90283fc7119b68fd64dd"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
