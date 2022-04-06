@@ -138,31 +138,23 @@ call dgemm('T', 'N', ddx_data % params % ngrid, ddx_data % params % nsph, &
 ! Compute unit_vector^T*B^k*unit_vector for x_1
 do isph = 1, ddx_data % params % nsph
   ! Computation of derivative for matrix A
-  call fdoka(ddx_data % params, ddx_data % constants, isph, &
-             & random_vector_nbasis_nsph_one, &
-             & random_vector_two_evaluated_at_grid(:, isph), &
-             & basloc, dbsloc, vplm, vcos, vsin, derivative_A(:,isph))
-  call fdokb(ddx_data % params, ddx_data % constants, isph, &
+  call contract_grad_L(ddx_data % params, ddx_data % constants, isph, &
              & random_vector_nbasis_nsph_one, &
              & random_vector_two_evaluated_at_grid, &
-             & basloc, dbsloc, vplm, vcos, vsin, derivative_A(:, isph))
+             & basloc, dbsloc, vplm, vcos, vsin, derivative_A(:,isph))
   ! Computation of derivative for matrix B
-  call fdoka_b_xe(ddx_data % params, ddx_data % constants, &
+  call contract_grad_B(ddx_data % params, ddx_data % constants, &
                  & ddx_data % workspace, &
-                 & isph, random_vector_nbasis_nsph_one, random_vector_two_evaluated_at_grid(:, isph), &
+                 & isph, random_vector_nbasis_nsph_one, random_vector_two_evaluated_at_grid, &
                  & basloc, dbsloc, vplm, vcos, vsin, derivative_B(:,isph))
-  call fdokb_b_xe(ddx_data % params, ddx_data % constants, &
-                  & ddx_data % workspace, &
-                  & isph, random_vector_nbasis_nsph_one, random_vector_two_evaluated_at_grid, &
-                  & basloc, dbsloc, vplm, vcos, vsin, derivative_B(:, isph))
   ! Computation for derivative of U_i^e(x_in)
-  call fdoga(ddx_data % params, ddx_data % constants, &
+  call contract_grad_U(ddx_data % params, ddx_data % constants, &
             & isph, vector_ngrid_nsph, vector_ngrid_nsph, &
             & derivative_Ui(:, isph))
 end do
 
 ! Computation for matrix C1_C2
-call fdouky(ddx_data % params, ddx_data % constants, &
+call contract_grad_C(ddx_data % params, ddx_data % constants, &
              & ddx_data % workspace, &
              & random_vector_nbasis_nsph_one, &
              & random_vector_nbasis_nsph_one, &
@@ -172,16 +164,6 @@ call fdouky(ddx_data % params, ddx_data % constants, &
              & random_vector_nbasis_nsph_two, &
              & derivative_C1_C2, &
              & diff_re)
-
-
-call derivative_P(ddx_data % params, ddx_data % constants, &
-                  & ddx_data % workspace, &
-                  & random_vector_nbasis_nsph_one,&
-                  & random_vector_nbasis_nsph_one,&
-                  & random_vector_two_evaluated_at_grid,&
-                  & random_vector_two_evaluated_at_grid,&
-                  & diff_re, &
-                  & derivative_C1_C2 )
 
 do isph = 1, ddx_data % params % nsph
     do i = 1, 3
@@ -379,7 +361,7 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     call bx(ddx_data2 % params, ddx_data2 % constants, &
               & ddx_data2 % workspace, &
               & random_vector_n_one, vector_lpb)
-    call lpb_direct_matvec(ddx_data2 % params, ddx_data2 % constants, &
+    call cx(ddx_data2 % params, ddx_data2 % constants, &
                  & ddx_data2 % workspace, &
                  & random_vector_C_one, &
                  & vector_c1_c2)

@@ -22,6 +22,7 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
+type(ddx_state_type) :: state
 integer :: info
 
 real(dp) :: esolv_one, esolv_two, tol
@@ -36,6 +37,7 @@ call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol, iprint, info)
 if(info .ne. 0) stop "info != 0"
+call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 
 ! Initial values
 default_value = zero
@@ -45,11 +47,11 @@ esolv_two = zero
 ! Computation for different storage
 write(*,*) 'Different storage of matrix'
 default_value = 1
-call solve(ddx_data, default_value, &
+call solve(ddx_data, state, default_value, &
            & ddx_data % params % itersolver, esolv_one)
 write(*,*) 'Esolv : ', esolv_one
 default_value = 0
-call solve(ddx_data, default_value, &
+call solve(ddx_data, state, default_value, &
            & ddx_data % params % itersolver, esolv_two)
 write(*,*) 'Esolv : ', esolv_two
 
@@ -65,11 +67,11 @@ esolv_two = zero
 ! Computation for different solvers
 write(*,*) 'Different Solvers'
 default_value = 1
-call solve(ddx_data, ddx_data % params % matvecmem, &
+call solve(ddx_data, state, ddx_data % params % matvecmem, &
            & default_value, esolv_one)
 write(*,*) 'Esolv : ', esolv_one
 default_value = 2
-call solve(ddx_data, ddx_data % params % matvecmem, &
+call solve(ddx_data, state, ddx_data % params % matvecmem, &
            & default_value, esolv_two)
 write(*,*) 'Esolv : ', esolv_two
 
@@ -78,13 +80,14 @@ if(abs(esolv_one - esolv_two) .gt. 1e-8) then
   stop 1
 endif
 
-
+call ddx_free_state(state)
 call ddfree(ddx_data)
 
 contains
 
-subroutine solve(ddx_data, matvecmem, iterative_solver, esolv)
+subroutine solve(ddx_data, state, matvecmem, iterative_solver, esolv)
     type(ddx_type), intent(inout) :: ddx_data
+    type(ddx_state_type), intent(inout) :: state
     real(dp), intent(inout) :: esolv
     integer, intent(in) :: matvecmem
     integer, intent(in) :: iterative_solver
@@ -123,7 +126,8 @@ subroutine solve(ddx_data, matvecmem, iterative_solver, esolv)
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
             &  1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
 
-    call ddsolve(ddx_data2, phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, tol, esolv, force2, info)
+    call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
+        & psi2, tol, esolv, force2, info)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
     call ddfree(ddx_data2)
     return

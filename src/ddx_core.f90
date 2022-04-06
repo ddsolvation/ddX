@@ -23,35 +23,19 @@ use ddx_harmonics
 use omp_lib
 implicit none
 
-!> Main ddX type that stores all required information
-type ddx_type
-    !! New types inside the old one for an easier shift to the new design
-    type(ddx_params_type) :: params
-    type(ddx_constants_type) :: constants
-    type(ddx_workspace_type) :: workspace
+type ddx_state_type
     !! High-level entities to be stored and accessed by users
-    !> Potential at all grid points. Dimension is (ngrid, nsph). Allocated
-    !!      and used by all models.
-    real(dp), allocatable :: phi_grid(:, :)
+
+    !!
+    !! ddCOSMO quantities (used also by ddPCM)
+    !!
     !> Variable \f$ \Phi \f$ of a dimension (nbasis, nsph). Allocated and used
     !!      by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: phi(:, :)
-    !> Variable \f$ \Phi_\infty \f$ of a dimension (nbasis, nsph). Allocated
-    !!      and used only by PCM (model=2) model.
-    real(dp), allocatable :: phiinf(:, :)
-    !> Variable \f$ \Phi_\varepsilon \f$ of a dimension (nbasis, nsph).
-    !!      Allocated and used only by PCM (model=2) model.
-    real(dp), allocatable :: phieps(:, :)
-    !> Number of iteration to solve ddPCM system
-    integer :: phieps_niter
-    !> Relative error of each step of iterative solver for ddPCM system.
-    !!      Dimension is (maxiter).
-    real(dp), allocatable :: phieps_rel_diff(:)
-    !> Time to solve primal ddPCM system
-    real(dp) :: phieps_time
     !> Solution of the ddCOSMO system of a dimension (nbasis, nsph). Allocated
     !!      and used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: xs(:, :)
+
     !> Number of iteration to solve ddCOSMO system
     integer :: xs_niter
     !> Relative error of each step of iterative solver for ddCOSMO system.
@@ -59,6 +43,31 @@ type ddx_type
     real(dp), allocatable :: xs_rel_diff(:)
     !> Time to solve primal ddCOSMO system
     real(dp) :: xs_time
+    !> Values of s at grid points. Dimension is (ngrid, nsph). Allocated and
+    !!      used by COSMO (model=1) and PCM (model=2) models.
+    real(dp), allocatable :: sgrid(:, :)
+
+    !!
+    !! ddPCM specific quantities
+    !!
+    !> Variable \f$ \Phi_\infty \f$ of a dimension (nbasis, nsph). Allocated
+    !!      and used only by PCM (model=2) model.
+    real(dp), allocatable :: phiinf(:, :)
+    !> Variable \f$ \Phi_\varepsilon \f$ of a dimension (nbasis, nsph).
+    !!      Allocated and used only by PCM (model=2) model.
+    real(dp), allocatable :: phieps(:, :)
+
+    !> Number of iteration to solve ddPCM system
+    integer :: phieps_niter
+    !> Relative error of each step of iterative solver for ddPCM system.
+    !!      Dimension is (maxiter).
+    real(dp), allocatable :: phieps_rel_diff(:)
+    !> Time to solve primal ddPCM system
+    real(dp) :: phieps_time
+    !> Shortcut of \f$ \Phi_\varepsilon - \Phi \f$
+    real(dp), allocatable :: g(:, :)
+
+
     !> Solution of the adjoint ddCOSMO system of a dimension (nbasis, nsph).
     !!      Allocated and used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: s(:, :)
@@ -69,9 +78,6 @@ type ddx_type
     real(dp), allocatable :: s_rel_diff(:)
     !> Time to solve adjoint ddCOSMO system
     real(dp) :: s_time
-    !> Values of s at grid points. Dimension is (ngrid, nsph). Allocated and
-    !!      used by COSMO (model=1) and PCM (model=2) models.
-    real(dp), allocatable :: sgrid(:, :)
     !> Solution of the adjoint ddPCM system of a dimension (nbasis, nsph).
     !!      Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: y(:, :)
@@ -85,26 +91,55 @@ type ddx_type
     !> Values of y at grid points. Dimension is (ngrid, nsph). Allocated and
     !!      used only by PCM (model=2) model.
     real(dp), allocatable :: ygrid(:, :)
-    !> Shortcut of \f$ \Phi_\varepsilon - \Phi \f$
-    real(dp), allocatable :: g(:, :)
     !> s-4pi/(eps-1)y of dimension (nbasis, nsph)
     real(dp), allocatable :: q(:, :)
     !> Values of q at grid points. Dimension is (ngrid, nsph)
     real(dp), allocatable :: qgrid(:, :)
-    !> Zeta intermediate for forces. Dimension is (ncav)
-    real(dp), allocatable :: zeta(:)
+
+    !!
+    !! ddLPB quantities
+    !!
     !> Solution to the ddLPB linear system. Dimension is (nbasis,nsph,2). Allocated
     !! and used only by LPB (model=3) model
     real(dp), allocatable :: x_lpb(:,:,:)
-    !> Solution to the ddLPB ajoint system. Dimension is (nbasis,nsph,2). Allocated
-    !! and used only by LPB (model=3) model
+    !> Solution to the ddLPB ajoint system. Dimension is (nbasis,nsph,2).
+    !! Allocated and used only by LPB (model=3) model
     real(dp), allocatable :: x_adj_lpb(:,:,:)
-    !> g intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only
-    !! by LPB (model=3) model
+    !> g intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and
+    !! used only by LPB (model=3) model
     real(dp), allocatable :: g_lpb(:,:)
-    !> d intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only
+    !> d intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and
+    !! used only
     !! by LPB (model=3) model
     real(dp), allocatable :: f_lpb(:,:)
+    integer :: x_lpb_niter
+    integer :: x_adj_lpb_niter
+    real(dp) :: x_lpb_time
+    real(dp) :: x_adj_lpb_time
+    real(dp), allocatable :: x_lpb_rel_diff(:)
+    real(dp), allocatable :: x_adj_lpb_rel_diff(:)
+
+    !!
+    !! Misc
+    !!
+    !> Zeta intermediate for forces. Dimension is (ncav)
+    real(dp), allocatable :: zeta(:)
+    !> Potential at all grid points. Dimension is (ngrid, nsph). Allocated
+    !!      and used by all models.
+    real(dp), allocatable :: phi_grid(:, :)
+    !> Flag if there were an error
+    integer :: error_flag
+    !> Last error message
+    character(len=255) :: error_message
+
+end type ddx_state_type
+
+!> Main ddX type that stores all required information
+type ddx_type
+    !! New types inside the old one for an easier shift to the new design
+    type(ddx_params_type) :: params
+    type(ddx_constants_type) :: constants
+    type(ddx_workspace_type) :: workspace
     !> Flag if there were an error
     integer :: error_flag
     !> Last error message
@@ -201,303 +236,286 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     call workspace_init(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, info)
     if (info .ne. 0) return
-    !! Per-model allocations
+end subroutine ddinit
+
+subroutine ddx_init_state(params, constants, state)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(out) :: state
+    integer :: istatus
+
     ! COSMO model
-    if (model .eq. 1) then
-        allocate(ddx_data % phi_grid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+    if (params % model .eq. 1) then
+        allocate(state % phi_grid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `phi_grid` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `phi_grid` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % phi(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % phi(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `phi` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `phi` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % xs(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % xs(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % xs_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % xs_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % s(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % s(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `s` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `s` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % s_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % s_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `s_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `s_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % sgrid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % sgrid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `sgrid` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `sgrid` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % zeta(ddx_data % constants % ncav), stat=istatus)
+        allocate(state % zeta(constants % ncav), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `zeta` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `zeta` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
     ! PCM model
-    else if (model .eq. 2) then
-        allocate(ddx_data % phi_grid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+    else if (params % model .eq. 2) then
+        allocate(state % phi_grid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `phi_grid` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `phi_grid` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % phi(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % phi(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `phi` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `phi` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % phiinf(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % phiinf(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `phiinf` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `phiinf` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % phieps(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % phieps(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `phieps` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `phieps` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % phieps_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % phieps_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % xs(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % xs(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % xs_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % xs_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % s(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % s(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `s` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `s` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % s_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % s_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `xs_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % sgrid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % sgrid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `sgrid` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `sgrid` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % y(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % y(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `y` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `y` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % y_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % y_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `y_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `y_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % ygrid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % ygrid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `ygrid` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `ygrid` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % g(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % g(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `g` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `g` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % q(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % q(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `q` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `q` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % qgrid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % qgrid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `qgrid` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `qgrid` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % zeta(ddx_data % constants % ncav), stat=istatus)
+        allocate(state % zeta(constants % ncav), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `zeta` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `zeta` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
     ! LPB model
-    else if (model .eq. 3) then
-        allocate(ddx_data % phi_grid(ddx_data % params % ngrid, &
-            & ddx_data % params % nsph), stat=istatus)
+    else if (params % model .eq. 3) then
+        allocate(state % phi_grid(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
           !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
             return
         end if
-        allocate(ddx_data % phi(ddx_data % constants % nbasis, &
-            & ddx_data % params % nsph), stat=istatus)
+        allocate(state % phi(constants % nbasis, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
             !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
             return
         end if
-        allocate(ddx_data % zeta(ddx_data % constants % ncav), stat=istatus)
+        allocate(state % zeta(constants % ncav), stat=istatus)
         if (istatus .ne. 0) then
             !write(*, *) "Error in allocation of M2P matrices"
-            info = 38
             return
         end if
-        allocate(ddx_data % xs_rel_diff(ddx_data % params % maxiter), &
+        allocate(state % x_lpb_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `xs_rel_diff` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `x_lpb_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % x_lpb(ddx_data % constants % nbasis, ddx_data % params % nsph, 2), &
+        allocate(state % x_lpb(constants % nbasis, &
+            & params % nsph, 2), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `x_lpb` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `x_lpb` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % x_adj_lpb(ddx_data % constants % nbasis, ddx_data % params % nsph, 2), &
-            & stat=istatus)
+        allocate(state % x_adj_lpb(constants % nbasis, &
+            & params % nsph, 2), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `x_adj_lpb` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `x_adj_lpb` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % g_lpb(ddx_data % params % ngrid, ddx_data % params % nsph), &
+        allocate(state % x_adj_lpb_rel_diff(params % maxiter), &
             & stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `g_lpb` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `x_adj_lpb_rel_diff` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
-        allocate(ddx_data % f_lpb(ddx_data % params % ngrid, ddx_data % params % nsph), &
-            & stat=istatus)
+        allocate(state % g_lpb(params % ngrid, &
+            & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            ddx_data % error_flag = 1
-            ddx_data % error_message = "ddinit: `f_lpb` " // &
+            state % error_flag = 1
+            state % error_message = "ddinit: `g_lpb` " // &
                 & "allocation failed"
-            info = 1
+            return
+        end if
+        allocate(state % f_lpb(params % ngrid, &
+            & params % nsph), stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "ddinit: `f_lpb` " // &
+                & "allocation failed"
             return
         end if
     end if
-end subroutine ddinit
+end subroutine ddx_init_state
 
 !------------------------------------------------------------------------------
 !> Read configuration from a file
@@ -739,154 +757,161 @@ subroutine ddfree(ddx_data)
         write(*, *) "params_free failed!"
         stop 1
     end if
-    if (allocated(ddx_data % phi_grid)) then
-        deallocate(ddx_data % phi_grid, stat=istatus)
+end subroutine ddfree
+
+subroutine ddx_free_state(state)
+    implicit none
+    type(ddx_state_type), intent(inout) :: state
+    integer :: istatus
+
+    if (allocated(state % phi_grid)) then
+        deallocate(state % phi_grid, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`phi_grid` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % phi)) then
-        deallocate(ddx_data % phi, stat=istatus)
+    if (allocated(state % phi)) then
+        deallocate(state % phi, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`phi` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % phiinf)) then
-        deallocate(ddx_data % phiinf, stat=istatus)
+    if (allocated(state % phiinf)) then
+        deallocate(state % phiinf, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`phiinf` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % phieps)) then
-        deallocate(ddx_data % phieps, stat=istatus)
+    if (allocated(state % phieps)) then
+        deallocate(state % phieps, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`phieps` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % phieps_rel_diff)) then
-        deallocate(ddx_data % phieps_rel_diff, stat=istatus)
+    if (allocated(state % phieps_rel_diff)) then
+        deallocate(state % phieps_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`phieps_rel_diff` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % xs)) then
-        deallocate(ddx_data % xs, stat=istatus)
+    if (allocated(state % xs)) then
+        deallocate(state % xs, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`xs` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % xs_rel_diff)) then
-        deallocate(ddx_data % xs_rel_diff, stat=istatus)
+    if (allocated(state % xs_rel_diff)) then
+        deallocate(state % xs_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`xs_rel_diff` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % s)) then
-        deallocate(ddx_data % s, stat=istatus)
+    if (allocated(state % s)) then
+        deallocate(state % s, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`s` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % s_rel_diff)) then
-        deallocate(ddx_data % s_rel_diff, stat=istatus)
+    if (allocated(state % s_rel_diff)) then
+        deallocate(state % s_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`s_rel_diff` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % sgrid)) then
-        deallocate(ddx_data % sgrid, stat=istatus)
+    if (allocated(state % sgrid)) then
+        deallocate(state % sgrid, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`sgrid` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % y)) then
-        deallocate(ddx_data % y, stat=istatus)
+    if (allocated(state % y)) then
+        deallocate(state % y, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`y` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % y_rel_diff)) then
-        deallocate(ddx_data % y_rel_diff, stat=istatus)
+    if (allocated(state % y_rel_diff)) then
+        deallocate(state % y_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`y_rel_diff` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % ygrid)) then
-        deallocate(ddx_data % ygrid, stat=istatus)
+    if (allocated(state % ygrid)) then
+        deallocate(state % ygrid, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`ygrid` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % g)) then
-        deallocate(ddx_data % g, stat=istatus)
+    if (allocated(state % g)) then
+        deallocate(state % g, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`g` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % q)) then
-        deallocate(ddx_data % q, stat=istatus)
+    if (allocated(state % q)) then
+        deallocate(state % q, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`q` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % qgrid)) then
-        deallocate(ddx_data % qgrid, stat=istatus)
+    if (allocated(state % qgrid)) then
+        deallocate(state % qgrid, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`qgrid` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % zeta)) then
-        deallocate(ddx_data % zeta, stat=istatus)
+    if (allocated(state % zeta)) then
+        deallocate(state % zeta, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "`zeta` deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % x_lpb)) then
-        deallocate(ddx_data % x_lpb, stat=istatus)
+    if (allocated(state % x_lpb)) then
+        deallocate(state % x_lpb, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "ddfree: [36] deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % x_adj_lpb)) then
-        deallocate(ddx_data % x_adj_lpb, stat=istatus)
+    if (allocated(state % x_adj_lpb)) then
+        deallocate(state % x_adj_lpb, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "ddfree: [36] deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % g_lpb)) then
-        deallocate(ddx_data % g_lpb, stat=istatus)
+    if (allocated(state % g_lpb)) then
+        deallocate(state % g_lpb, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "ddfree: [36] deallocation failed!"
             stop 1
         endif
     end if
-    if (allocated(ddx_data % f_lpb)) then
-        deallocate(ddx_data % f_lpb, stat=istatus)
+    if (allocated(state % f_lpb)) then
+        deallocate(state % f_lpb, stat=istatus)
         if (istatus .ne. 0) then
             write(*, *) "ddfree: [36] deallocation failed!"
             stop 1
         endif
     end if
-end subroutine ddfree
+end subroutine ddx_free_state
 
 !------------------------------------------------------------------------------
 !> Print array of spherical harmonics
@@ -900,8 +925,7 @@ end subroutine ddfree
 !! @param[in] ncol: Number of columns to print
 !! @param[in] icol: This number is only for printing purposes
 !! @param[in] x: Actual data to print
-!------------------------------------------------------------------------------
-subroutine prtsph(label, nbasis, lmax, ncol, icol, x)
+subroutine print_spherical(label, nbasis, lmax, ncol, icol, x)
     ! Inputs
     character (len=*), intent(in) :: label
     integer, intent(in) :: nbasis, lmax, ncol, icol
@@ -945,7 +969,7 @@ subroutine prtsph(label, nbasis, lmax, ncol, icol, x)
     1000 format(1x,i3,i4,f14.8)
     1010 format(8x,5i14)
     1020 format(1x,i3,i4,5f14.8)
-end subroutine prtsph
+end subroutine print_spherical
 
 !------------------------------------------------------------------------------
 !> Print array of quadrature points
@@ -957,8 +981,7 @@ end subroutine prtsph
 !! @param[in] ncol: Number of columns to print
 !! @param[in] icol: This number is only for printing purposes
 !! @param[in] x: Actual data to print
-!------------------------------------------------------------------------------
-subroutine ptcart(label, ngrid, ncol, icol, x)
+subroutine print_nodes(label, ngrid, ncol, icol, x)
     ! Inputs
     character (len=*), intent(in) :: label
     integer, intent(in) :: ngrid, ncol, icol
@@ -995,7 +1018,7 @@ subroutine ptcart(label, ngrid, ncol, icol, x)
     1010 format(6x,5i14)
     1020 format(1x,i5,5f14.8)
     !
-end subroutine ptcart
+end subroutine print_nodes
 
 !------------------------------------------------------------------------------
 !> Print dd Solution vector
@@ -1019,143 +1042,6 @@ subroutine print_ddvector(ddx_data, label, vector)
     return
 end subroutine print_ddvector
 
-!------------------------------------------------------------------------------
-!> Compute all spherical harmonics up to a given degree at a given point
-!!
-!! Attempt to improve previous version.
-!! Spherical harmonics are computed for a point \f$ x / \|x\| \f$. Cartesian
-!! coordinate of input `x` is translated into a spherical coordinate \f$ (\rho,
-!! \theta, \phi) \f$ that is represented by \f$ \rho, \cos \theta, \sin \theta,
-!! \cos \phi \f$ and \f$ \sin \phi \f$. If \f$ \rho=0 \f$ nothing is computed,
-!! only zero \f$ \rho \f$ is returned without doing anything else. If \f$
-!! \rho>0 \f$ values \f$ \cos \theta \f$ and \f$ \sin \theta \f$ are computed.
-!! If \f$ \sin \theta \ne 0 \f$ then \f$ \cos \phi \f$ and \f$ \sin \phi \f$
-!! are computed.
-!! Auxiliary values of associated Legendre polynomials \f$ P_\ell^m(\theta) \f$
-!! are computed along with \f$ \cos (m \phi) \f$ and \f$ \sin(m \phi) \f$.
-!!
-!! @param[in] x: Target point
-!! @param[out] rho: Euclidian length of `x`
-!! @param[out] ctheta: \f$ -1 \leq \cos \theta \leq 1\f$
-!! @param[out] stheta: \f$ 0 \leq \sin \theta \leq 1\f$
-!! @param[out] cphi: \f$ -1 \leq \cos \phi \leq 1\f$
-!! @param[out] sphi: \f$ -1 \leq \sin \phi \leq 1\f$
-!! @param[in] p: Maximal degree of spherical harmonics. `p` >= 0
-!! @param[in] vscales: Scaling factors of real normalized spherical harmonics.
-!!      Dimension is `(p+1)**2`
-!! @param[out] vylm: Values of spherical harmonics \f$ Y_\ell^m(x) \f$.
-!!      Dimension is `(p+1)**2`
-!! @param[out] vplm: Values of associated Legendre polynomials \f$ P_\ell^m(
-!!      \theta) \f$. Dimension is `(p+1)**2`
-!! @param[out] vcos: Array of alues of \f$ \cos(m\phi) \f$ of a dimension
-!!      `(p+1)`
-!! @param[out] vsin: array of values of \f$ \sin(m\phi) \f$ of a dimension
-!!      `(p+1)`
-!------------------------------------------------------------------------------
-subroutine ylmbas2(x, sphcoo, p, vscales, vylm, vplm, vcos, vsin)
-    ! Inputs
-    integer, intent(in) :: p
-    real(dp), intent(in) :: x(3)
-    real(dp), intent(in) :: vscales((p+1)**2)
-    ! Outputs
-    real(dp), intent(out) :: sphcoo(5)
-    real(dp), intent(out) :: vylm((p+1)**2), vplm((p+1)**2)
-    real(dp), intent(out) :: vcos(p+1), vsin(p+1)
-    ! Local variables
-    integer :: l, m, ind
-    real(dp) :: max12, ssq12, tmp, rho, ctheta, stheta, cphi, sphi
-    ! Get rho cos(theta), sin(theta), cos(phi) and sin(phi) from the cartesian
-    ! coordinates of x. To support full range of inputs we do it via a scale
-    ! and a sum of squares technique.
-    ! At first we compute x(1)**2 + x(2)**2
-    if (x(1) .eq. zero) then
-        max12 = abs(x(2))
-        ssq12 = one
-    else if (abs(x(2)) .gt. abs(x(1))) then
-        max12 = abs(x(2))
-        ssq12 = one + (x(1)/x(2))**2
-    else
-        max12 = abs(x(1))
-        ssq12 = one + (x(2)/x(1))**2
-    end if
-    ! Then we compute rho
-    if (x(3) .eq. zero) then
-        rho = max12 * sqrt(ssq12)
-    else if (abs(x(3)) .gt. max12) then
-        rho = one + ssq12*(max12/x(3))**2
-        rho = abs(x(3)) * sqrt(rho)
-    else
-        rho = ssq12 + (x(3)/max12)**2
-        rho = max12 * sqrt(rho)
-    end if
-    ! In case x=0 just exit without setting any other variable
-    if (rho .eq. zero) then
-        sphcoo = zero
-        return
-    end if
-    ! Length of a vector x(1:2)
-    stheta = max12 * sqrt(ssq12)
-    ! Case x(1:2) != 0
-    if (stheta .ne. zero) then
-        ! Evaluate cos(m*phi) and sin(m*phi) arrays
-        cphi = x(1) / stheta
-        sphi = x(2) / stheta
-        call trgev(cphi, sphi, p, vcos, vsin)
-        ! Normalize ctheta and stheta
-        ctheta = x(3) / rho
-        stheta = stheta / rho
-        ! Evaluate associated Legendre polynomials
-        call polleg(ctheta, stheta, p, vplm)
-        ! Construct spherical harmonics
-        do l = 0, p
-            ! Offset of a Y_l^0 harmonic in vplm and vylm arrays
-            ind = l**2 + l + 1
-            ! m = 0 implicitly uses `vcos(1) = 1`
-            vylm(ind) = vscales(ind) * vplm(ind)
-            do m = 1, l
-                ! only P_l^m for non-negative m is used/defined
-                tmp = vplm(ind+m) * vscales(ind+m)
-                ! m > 0
-                vylm(ind+m) = tmp * vcos(m+1)
-                ! m < 0
-                vylm(ind-m) = tmp * vsin(m+1)
-            end do
-        end do
-    ! Case of x(1:2) = 0 and x(3) != 0
-    else
-        ! Set spherical coordinates
-        cphi = one
-        sphi = zero
-        ctheta = sign(one, x(3))
-        stheta = zero
-        ! Set output arrays vcos and vsin
-        vcos = one
-        vsin = zero
-        ! Evaluate spherical harmonics. P_l^m = 0 for m > 0. In the case m = 0
-        ! it depends if l is odd or even. Additionally, vcos = one and vsin =
-        ! zero for all elements
-        vylm = zero
-        vplm = zero
-        do l = 0, p, 2
-            ind = l**2 + l + 1
-            ! only case m = 0
-            vplm(ind) = one
-            vylm(ind) = vscales(ind)
-        end do
-        do l = 1, p, 2
-            ind = l**2 + l + 1
-            ! only case m = 0
-            vplm(ind) = ctheta
-            vylm(ind) = ctheta * vscales(ind)
-        end do
-    end if
-    ! Set output spherical coordinates
-    sphcoo(1) = rho
-    sphcoo(2) = ctheta
-    sphcoo(3) = stheta
-    sphcoo(4) = cphi
-    sphcoo(5) = sphi
-end subroutine ylmbas2
 
 !------------------------------------------------------------------------------
 !> Integrate against spherical harmonics
@@ -1172,8 +1058,7 @@ end subroutine ylmbas2
 !! @param[in] x_grid: Input values at grid points of the sphere. Dimension is
 !!      (ngrid, nsph).
 !! @param[out] x_lm: Output spherical harmonics. Dimension is (nbasis, nsph).
-!------------------------------------------------------------------------------
-subroutine intrhs(nsph, nbasis, ngrid, vwgrid, ldvwgrid, x_grid, x_lm)
+subroutine ddintegrate(nsph, nbasis, ngrid, vwgrid, ldvwgrid, x_grid, x_lm)
     !! Inputs
     integer, intent(in) :: nsph, nbasis, ngrid, ldvwgrid
     real(dp), intent(in) :: vwgrid(ldvwgrid, ngrid)
@@ -1183,7 +1068,7 @@ subroutine intrhs(nsph, nbasis, ngrid, vwgrid, ldvwgrid, x_grid, x_lm)
     !! Just call a single dgemm to do the job
     call dgemm('N', 'N', nbasis, nsph, ngrid, one, vwgrid, ldvwgrid, x_grid, &
         & ngrid, zero, x_lm, nbasis)
-end subroutine intrhs
+end subroutine ddintegrate
 
 !------------------------------------------------------------------------------
 !> Compute first derivatives of spherical harmonics
@@ -1629,9 +1514,7 @@ subroutine ddeval_grid_work(nbasis, ngrid, nsph, vgrid, ldvgrid, alpha, &
         & nbasis, beta, x_grid, ngrid)
 end subroutine ddeval_grid_work
 
-!------------------------------------------------------------------------------
 !> Integrate values at grid points into spherical harmonics
-!------------------------------------------------------------------------------
 subroutine ddintegrate_sph(params, constants, alpha, x_grid, beta, x_sph, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1664,9 +1547,7 @@ subroutine ddintegrate_sph(params, constants, alpha, x_grid, beta, x_sph, info)
     info = 0
 end subroutine ddintegrate_sph
 
-!------------------------------------------------------------------------------
 !> Integrate values at grid points into spherical harmonics
-!------------------------------------------------------------------------------
 subroutine ddintegrate_sph_work(nbasis, ngrid, nsph, vwgrid, ldvwgrid, alpha, &
         & x_grid, beta, x_sph)
     !! Inputs
@@ -2737,250 +2618,6 @@ end subroutine tree_m2p_bessel_nodiag_adj
 !------------------------------------------------------------------------------
 !> TODO
 !------------------------------------------------------------------------------
-subroutine fdoka(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-      integer,                         intent(in)    :: isph
-      real(dp),  dimension(constants % nbasis, params % nsph), intent(in)    :: sigma
-      real(dp),  dimension(params % ngrid),       intent(in)    :: xi
-      real(dp),  dimension(constants % nbasis),      intent(inout) :: basloc, vplm
-      real(dp),  dimension(3, constants % nbasis),    intent(inout) :: dbsloc
-      real(dp),  dimension(params % lmax+1),      intent(inout) :: vcos, vsin
-      real(dp),  dimension(3),           intent(inout) :: fx
-!
-      integer :: ig, ij, jsph, l, ind, m
-      real(dp)  :: vvij, tij, xij, oij, t, fac, fl, f1, f2, f3, beta, tlow, thigh
-      real(dp)  :: vij(3), sij(3), alp(3), va(3)
-      real(dp), external :: dnrm2
-!      
-!-----------------------------------------------------------------------------------
-!    
-      tlow  = one - pt5*(one - params % se)*params % eta
-      thigh = one + pt5*(one + params % se)*params % eta
-!    
-      do ig = 1, params % ngrid
-        va = zero
-        do ij = constants % inl(isph), constants % inl(isph+1) - 1
-          jsph = constants % nl(ij)
-          vij  = params % csph(:,isph) + &
-              & params % rsph(isph)*constants % cgrid(:,ig) - &
-              & params % csph(:,jsph)
-          !vvij = sqrt(dot_product(vij,vij))
-          vvij = dnrm2(3, vij, 1)
-          tij  = vvij/params % rsph(jsph)
-!    
-          if (tij.ge.thigh) cycle
-!    
-          sij  = vij/vvij
-          !call dbasis(sij,basloc,dbsloc,vplm,vcos,vsin)
-          call dbasis(params, constants, sij, basloc, dbsloc, vplm, vcos, vsin)
-          alp  = zero
-          t    = one
-          do l = 1, params % lmax
-            ind = l*l + l + 1
-            fl  = dble(l)
-            fac = t/(constants % vscales(ind)**2)
-            do m = -l, l
-              f2 = fac*sigma(ind+m,jsph)
-              f1 = f2*fl*basloc(ind+m)
-              alp(:) = alp(:) + f1*sij(:) + f2*dbsloc(:,ind+m)
-            end do
-            t = t*tij
-          end do
-          beta = intmlp(params, constants, tij,sigma(:,jsph),basloc)
-          xij = fsw(tij, params % se, params % eta)
-          if (constants % fi(ig,isph).gt.one) then
-            oij = xij/constants % fi(ig,isph)
-            f2  = -oij/constants % fi(ig,isph)
-          else
-            oij = xij
-            f2  = zero
-          end if
-          f1 = oij/params % rsph(jsph)
-          va(:) = va(:) + f1*alp(:) + beta*f2*constants % zi(:,ig,isph)
-          if (tij .gt. tlow) then
-            f3 = beta*dfsw(tij,params % se,params % eta)/params % rsph(jsph)
-            if (constants % fi(ig,isph).gt.one) f3 = f3/constants % fi(ig,isph)
-            va(:) = va(:) + f3*sij(:)
-          end if
-        end do
-        fx = fx - constants % wgrid(ig)*xi(ig)*va(:)
-      end do
-!      
-      return
-!      
-!      
-end subroutine fdoka
-!-----------------------------------------------------------------------------------
-!
-!      
-!      
-!      
-!------------------------------------------------------------------------------
-!> TODO
-!------------------------------------------------------------------------------
-subroutine fdokb(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-      integer,                         intent(in)    :: isph
-      real(dp),  dimension(constants % nbasis, params % nsph), intent(in)    :: sigma
-      real(dp),  dimension(params % ngrid, params % nsph),  intent(in)    :: xi
-      real(dp),  dimension(constants % nbasis),      intent(inout) :: basloc, vplm
-      real(dp),  dimension(3, constants % nbasis),    intent(inout) :: dbsloc
-      real(dp),  dimension(params % lmax+1),      intent(inout) :: vcos, vsin
-      real(dp),  dimension(3),           intent(inout) :: fx
-!
-      integer :: ig, ji, jsph, l, ind, m, jk, ksph
-      logical :: proc
-      real(dp)  :: vvji, tji, xji, oji, t, fac, fl, f1, f2, beta, di, tlow, thigh
-      real(dp)  :: b, g1, g2, vvjk, tjk, f, xjk
-      real(dp)  :: vji(3), sji(3), alp(3), vb(3), vjk(3), sjk(3), vc(3)
-      real(dp) :: rho, ctheta, stheta, cphi, sphi
-      real(dp), external :: dnrm2
-!
-!-----------------------------------------------------------------------------------
-!
-      tlow  = one - pt5*(one - params % se)*params % eta
-      thigh = one + pt5*(one + params % se)*params % eta
-!
-      do ig = 1, params % ngrid
-        vb = zero
-        vc = zero
-        do ji = constants % inl(isph), constants % inl(isph+1) - 1
-          jsph = constants % nl(ji)
-          vji  = params % csph(:,jsph) + &
-              & params % rsph(jsph)*constants % cgrid(:,ig) - &
-              & params % csph(:,isph)
-          !vvji = sqrt(dot_product(vji,vji))
-          vvji = dnrm2(3, vji, 1)
-          tji  = vvji/params % rsph(isph)
-!
-          if (tji.gt.thigh) cycle
-!
-          sji  = vji/vvji
-          !call dbasis(sji,basloc,dbsloc,vplm,vcos,vsin)
-          call dbasis(params, constants, sji, basloc, dbsloc, vplm, vcos, vsin)
-!
-          alp = zero
-          t   = one
-          do l = 1, params % lmax
-            ind = l*l + l + 1
-            fl  = dble(l)
-            fac = t/(constants % vscales(ind)**2)
-            do m = -l, l
-              f2 = fac*sigma(ind+m,isph)
-              f1 = f2*fl*basloc(ind+m)
-              alp = alp + f1*sji + f2*dbsloc(:,ind+m)
-            end do
-            t = t*tji
-          end do
-          xji = fsw(tji, params % se, params % eta)
-          if (constants % fi(ig,jsph).gt.one) then
-            oji = xji/constants % fi(ig,jsph)
-          else
-            oji = xji
-          end if
-          f1 = oji/params % rsph(isph)
-          vb = vb + f1*alp*xi(ig,jsph)
-          if (tji .gt. tlow) then
-            beta = intmlp(params, constants, tji, sigma(:,isph), basloc)
-            if (constants % fi(ig,jsph) .gt. one) then
-              di  = one/constants % fi(ig,jsph)
-              fac = di*xji
-              proc = .false.
-              b    = zero
-              do jk = constants % inl(jsph), constants % inl(jsph+1) - 1
-                ksph = constants % nl(jk)
-                vjk  = params % csph(:,jsph) + &
-                    & params % rsph(jsph)*constants % cgrid(:,ig) - &
-                    & params % csph(:,ksph)
-                !vvjk = sqrt(dot_product(vjk,vjk))
-                vvjk = dnrm2(3, vjk, 1)
-                tjk  = vvjk/params % rsph(ksph)
-                if (ksph.ne.isph) then
-                  if (tjk .le. thigh) then
-                    proc = .true.
-                    sjk  = vjk/vvjk
-                    !call ylmbas(sjk,basloc,vplm,vcos,vsin)
-                    call ylmbas(sjk, rho, ctheta, stheta, cphi, sphi, &
-                        & params % lmax, constants % vscales, basloc, vplm, &
-                        & vcos, vsin)
-                    g1  = intmlp(params, constants, tjk, sigma(:,ksph), basloc)
-                    xjk = fsw(tjk, params % se, params % eta)
-                    b   = b + g1*xjk
-                  end if
-                end if
-              end do
-              if (proc) then
-                g1 = di*di*dfsw(tji, params % se, params % eta)/params % rsph(isph)
-                g2 = g1*xi(ig,jsph)*b
-                vc = vc + g2*sji
-              end if
-            else
-              di  = one
-              fac = zero
-            end if
-            f2 = (one-fac)*di*dfsw(tji, params % se, params % eta)/params % rsph(isph)
-            vb = vb + f2*xi(ig,jsph)*beta*sji
-          end if 
-        end do
-        fx = fx + constants % wgrid(ig)*(vb - vc)
-      end do
-      return
-  end subroutine fdokb
-!-----------------------------------------------------------------------------------
-!
-!
-!
-!
-!------------------------------------------------------------------------------
-!> TODO
-!------------------------------------------------------------------------------
-subroutine fdoga(params, constants, isph, xi, phi, fx )
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-      integer,                        intent(in)    :: isph
-      real(dp),  dimension(params % ngrid, params % nsph), intent(in)    :: xi, phi
-      real(dp),  dimension(3),          intent(inout) :: fx
-!
-      integer :: ig, ji, jsph
-      real(dp)  :: vvji, tji, fac, swthr
-      real(dp)  :: alp(3), vji(3), sji(3)
-      real(dp), external :: dnrm2
-!
-!-----------------------------------------------------------------------------------
-!
-      do ig = 1, params % ngrid
-        alp = zero
-        if (constants % ui(ig,isph) .gt. zero .and. constants % ui(ig,isph).lt.one) then
-          alp = alp + phi(ig,isph)*xi(ig,isph)*constants % zi(:,ig,isph)
-        end if
-        do ji = constants % inl(isph), constants % inl(isph+1) - 1
-          jsph  = constants % nl(ji)
-          vji   = params % csph(:,jsph) + &
-              & params % rsph(jsph)*constants % cgrid(:,ig) - &
-              & params % csph(:,isph)
-          !vvji  = sqrt(dot_product(vji,vji))
-          vvji = dnrm2(3, vji, 1)
-          tji   = vvji/params % rsph(isph)
-          swthr = one + (params % se + 1.d0)*params % eta / 2.d0
-          if (tji.lt.swthr .and. tji.gt.swthr-params % eta .and. constants % ui(ig,jsph).gt.zero) then
-            sji = vji/vvji
-            fac = - dfsw(tji, params % se, params % eta)/params % rsph(isph)
-            alp = alp + fac*phi(ig,jsph)*xi(ig,jsph)*sji
-          end if
-        end do
-        fx = fx - constants % wgrid(ig)*alp
-      end do
-!
-      return 
-!
-!
-end subroutine fdoga
-
-!------------------------------------------------------------------------------
-!> TODO
-!------------------------------------------------------------------------------
 subroutine efld(ncav,zeta,ccav,nsph,csph,force)
 integer,                    intent(in)    :: ncav, nsph
 real*8,  dimension(ncav),   intent(in)    :: zeta
@@ -3203,7 +2840,7 @@ subroutine print_header(iprint,params)
             string = " performing a ddPCM solvation energy and forces calculation"
         end if
     else if (params % model .eq. 3) then
-        if (params % force .eq. 0) then 
+        if (params % force .eq. 0) then
             string = " performing a ddLPB solvation energy calculation"
         else if (params % force .eq. 1) then
             string = " performing a ddLPB solvation energy and forces calculation"
@@ -3247,5 +2884,6 @@ subroutine print_header(iprint,params)
     string = " "
     call params % print_func(string)
 end subroutine print_header
+
 end module ddx_core
 

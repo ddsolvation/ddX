@@ -17,6 +17,101 @@ implicit none
 
 contains
 
+!!
+!! Wrapper routine for the solution of the direct ddPCM linear
+!! system. It makes the interface easier to implement. If a fine
+!! control is needed, the worker routine should be directly called.
+!!
+!! @param[in] params       : General options
+!! @param[in] constants    : Precomputed constants
+!! @param[inout] workspace : Preallocated workspaces
+!! @param[inout] state     : Solutions and relevant quantities
+!! @param[in] phi_cav      : Electric potential at the grid points
+!! @param[in] tol          : Tolerance for the iterative solvers
+!!
+subroutine ddpcm_solve(params, constants, workspace, state, phi_cav, tol)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav)
+    real(dp), intent(in) :: tol
+    integer :: info
+
+    state % xs_niter =  params % maxiter
+    state % phieps_niter = params % maxiter
+    call ddpcm_solve_worker(params, constants, &
+        & workspace, phi_cav, state % xs, state % xs_niter, &
+        & state % xs_rel_diff, state % xs_time, &
+        & tol, state % phi_grid, state % phi, state % phiinf, &
+        & state % phieps, state % phieps_niter, &
+        & state % phieps_rel_diff, state % phieps_time, info)
+end subroutine ddpcm_solve
+
+!!
+!! Wrapper routine for the solution of the adjoint ddPCM linear
+!! system. It makes the interface easier to implement. If a fine
+!! control is needed, the worker routine should be directly called.
+!!
+!! @param[in] params       : General options
+!! @param[in] constants    : Precomputed constants
+!! @param[inout] workspace : Preallocated workspaces
+!! @param[inout] state     : Solutions, guesses and relevant quantities
+!! @param[in] psi          : Representation of the solute's density
+!! @param[in] tol          : Tolerance for the iterative solvers
+!!
+subroutine ddpcm_adjoint(params, constants, workspace, state, psi, tol)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    real(dp), intent(in) :: tol
+    integer :: info
+
+    state % s_niter =  params % maxiter
+    state % y_niter = params % maxiter
+    call ddpcm_adjoint_worker(params, constants, workspace, psi, &
+        & tol, state % s, state % s_niter, state % s_rel_diff, &
+        & state % s_time, state % y, state % y_niter, state % y_rel_diff, &
+        & state % y_time, info)
+end subroutine ddpcm_adjoint
+
+!!
+!! Wrapper routine for the computation of ddPCM forces. It makes the
+!! interface easier to implement. If a fine control is needed, the
+!! worker routine should be directly called.
+!!
+!! @param[in] params       : General options
+!! @param[in] constants    : Precomputed constants
+!! @param[inout] workspace : Preallocated workspaces
+!! @param[inout] state     : Solutions and relevant quantities
+!! @param[in] phi_cav      : Electric potential at the grid points
+!! @param[in] gradphi_cav  : Electric field at the grid points
+!! @param[in] psi          : Representation of the solute's density
+!! @param[out] force       : Geometrical contribution to the forces
+!!
+subroutine ddpcm_forces(params, constants, workspace, state, phi_cav, &
+    & gradphi_cav, psi, force)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav)
+    real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    real(dp), intent(out) :: force(3, params % nsph)
+    integer :: info
+
+    call ddpcm_forces_worker(params, constants, workspace, state % phi_grid, &
+        & gradphi_cav, psi, state % phi, state % phieps, state % s, &
+        & state % sgrid, state % y, state % ygrid, state % g, state % q, &
+        & state % qgrid, state % xs, state % zeta, force, info)
+end subroutine ddpcm_forces
+
 !> ddPCM solver
 !!
 !! Solves the problem within PCM model using a domain decomposition approach.
@@ -28,55 +123,160 @@ contains
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
 !! @param[out] info
-subroutine ddpcm(ddx_data, phi_cav, gradphi_cav, psi, tol, esolv, force, info)
+subroutine ddpcm(params, constants, workspace, state, phi_cav, gradphi_cav, &
+        & psi, tol, esolv, force, info)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav), &
+        & gradphi_cav(3, constants % ncav), &
+        & psi(constants % nbasis, params % nsph), tol
+    real(dp), intent(out) :: esolv, force(3, params % nsph)
+    integer, intent(out) :: info
+    real(dp), external :: ddot
+
+    call ddpcm_guess(params, constants, state)
+
+    call ddpcm_solve(params, constants, workspace, state, phi_cav, tol)
+
+    ! Compute the solvation energy
+    esolv = pt5*ddot(constants % n, state % xs, 1, psi, 1)
+
+    ! Get forces if needed
+    if (params % force .eq. 1) then
+        call ddpcm_adjoint(params, constants, workspace, state, psi, tol)
+        call ddpcm_forces(params, constants, workspace, state, phi_cav, &
+            & gradphi_cav, psi, force)
+    end if
+
+end subroutine ddpcm
+
+subroutine ddpcm_guess(params, constants, state)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(inout) :: state
+
+    state % y = zero
+    state % s = zero
+    state % xs = zero
+    state % phieps = zero
+
+end subroutine ddpcm_guess
+
+!> Solve primal ddPCM system
+!!
+!! @param[in] params
+!! @param[in] constants
+!! @param[inout] workspace
+!! @param[in] phi_cav
+!! @param[in] psi
+!! @param[inout] xs
+!! @param[in] info
+subroutine ddpcm_solve_worker(params, constants, workspace, phi_cav, &
+    & xs, xs_niter, xs_rel_diff, xs_time, tol, phi_grid, &
+    & phi, phiinf, phieps, phieps_niter, phieps_rel_diff, &
+    & phieps_time, info)
     !! Inputs
-    type(ddx_type), intent(inout) :: ddx_data
-    real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
-        & gradphi_cav(3, ddx_data % constants % ncav), &
-        & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: phi_cav(constants % ncav), tol
+    !! Input+output
+    real(dp), intent(inout) :: xs(constants % nbasis, params % nsph), &
+        & phieps(constants % nbasis, params % nsph)
+    integer, intent(inout) :: xs_niter, phieps_niter
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
     !! Outputs
-    real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
+    real(dp), intent(out) :: phi_grid(params % ngrid, params % nsph), &
+        & phi(constants % nbasis, params % nsph), &
+        & phiinf(constants % nbasis, params % nsph), &
+        & xs_rel_diff(xs_niter), phieps_rel_diff(phieps_niter), xs_time, &
+        & phieps_time
     integer, intent(out) :: info
     !! Local variables
-    integer :: xs_mode, phieps_mode, s_mode, y_mode
-    ! Local variables
-    ! Zero initial guess on X (solution of the ddCOSMO system)
-    xs_mode = 0
-    ! Use Phi that will be computed by the `ddpcm_energy` as the initial guess
-    phieps_mode = 1
-    ! Get the energy
-    ddx_data % xs_niter = ddx_data % params % maxiter
-    ddx_data % phieps_niter = ddx_data % params % maxiter
-    call ddpcm_energy(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, phi_cav, psi, xs_mode, ddx_data % xs, &
-        & ddx_data % xs_niter, ddx_data % xs_rel_diff, ddx_data % xs_time, &
-        & tol, esolv, &
-        & ddx_data % phi_grid, ddx_data % phi, ddx_data % phiinf, &
-        & phieps_mode, ddx_data % phieps, ddx_data % phieps_niter, &
-        & ddx_data % phieps_rel_diff, ddx_data % phieps_time, info)
-    ! Get forces if needed
-    if (ddx_data % params % force .eq. 1) then
-        ! Zero initial guesses for adjoint systems
-        s_mode = 0
-        y_mode = 0
-        ! Solve adjoint systems
-        ddx_data % s_niter = ddx_data % params % maxiter
-        ddx_data % y_niter = ddx_data % params % maxiter
-        call ddpcm_adjoint(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, psi, tol, s_mode, ddx_data % s, &
-            & ddx_data % s_niter, ddx_data % s_rel_diff, ddx_data % s_time, &
-            & y_mode, &
-            & ddx_data % y, ddx_data % y_niter, ddx_data % y_rel_diff, &
-            & ddx_data % y_time, info)
-        ! Get forces, they are initialized with zeros in gradr
-        call ddpcm_forces(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, ddx_data % phi_grid, gradphi_cav, &
-            & psi, ddx_data % phi, ddx_data % phieps, ddx_data % s, &
-            & ddx_data % sgrid, ddx_data % y, ddx_data % ygrid, ddx_data % g, &
-            & ddx_data % q, ddx_data % qgrid, ddx_data % xs, ddx_data % zeta, &
-            & force, info)
+    real(dp) :: start_time, finish_time, r_norm
+    character(len=255) :: string
+    real(dp), external :: ddot
+    !! The code
+    ! At first check if parameters, constants and workspace are correctly
+    ! initialized
+    if (params % error_flag .ne. 0) then
+        string = "ddpcm_energy: `params` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
     end if
-end subroutine ddpcm
+    if (constants % error_flag .ne. 0) then
+        string = "ddpcm_energy: `constants` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (workspace % error_flag .ne. 0) then
+        string = "ddpcm_energy: `workspace` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
+    ! and multiply it by characteristic function at cavity points ui
+    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
+        & constants % icav_ia, constants % icav_ja, phi_cav, phi_grid)
+    workspace % tmp_cav = phi_cav * constants % ui_cav
+    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
+        & constants % icav_ia, constants % icav_ja, workspace % tmp_cav, &
+        & workspace % tmp_grid)
+    ! Integrate against spherical harmonics and Lebedev weights to get Phi
+    call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
+        & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
+        & one, workspace % tmp_grid, zero, phi)
+    ! Compute Phi_infty
+    ! force dx called from rinfx to add the diagonal
+    call rinfx(params, constants, workspace, phi, phiinf)
+    ! Select initial guess for the ddPCM system
+    call cpu_time(start_time)
+    if (params % itersolver .eq. 1) then
+        call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
+            & phieps_niter, phieps_rel_diff, repsx, prec_repsx, hnorm, info)
+    else
+        call gmresr(params, constants, workspace, tol, phiinf, phieps, phieps_niter, &
+            & r_norm, repsx, info)
+    end if
+    call cpu_time(finish_time)
+    phieps_time = finish_time - start_time
+    ! Check if solver did not converge
+    if (info .ne. 0) then
+        string = "ddpcm_energy: solver for ddPCM system did not converge"
+        call params % print_func(string)
+        return
+    end if
+    ! Set right hand side to -Phi_epsilon
+    workspace % tmp_rhs = -phieps
+    ! Solve ddCOSMO system L X = -Phi_epsilon with a proper initial guess
+    info = params % maxiter
+    call cpu_time(start_time)
+    if (params % itersolver .eq. 1) then
+        call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
+            & xs, xs_niter, xs_rel_diff, lx, ldm1x, hnorm, info)
+    else
+        call gmresr(params, constants, workspace, tol, workspace % tmp_rhs, &
+            & xs, xs_niter, r_norm, lx, info)
+    end if
+    call cpu_time(finish_time)
+    xs_time = finish_time - start_time
+    ! Check if solver did not converge
+    if (info .ne. 0) then
+        string = "ddpcm_energy: solver for ddCOSMO system did not converge"
+        call params % print_func(string)
+        return
+    end if
+    ! Clear status
+    info = 0
+end subroutine ddpcm_solve_worker
+
 
 !> Solve primal ddPCM system to find solvation energy
 !!
@@ -85,18 +285,16 @@ end subroutine ddpcm
 !! @param[inout] workspace
 !! @param[in] phi_cav
 !! @param[in] psi
-!! @param[in] xs_mode
 !! @param[inout] xs
 !! @param[out] esolv
 !! @param[in] info
-subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
-        & xs, xs_niter, xs_rel_diff, xs_time, tol, esolv, phi_grid, phi, &
-        & phiinf, phieps_mode, phieps, phieps_niter, phieps_rel_diff, &
-        & phieps_time, info)
+subroutine ddpcm_energy_worker(params, constants, workspace, phi_cav, psi, &
+    & xs, xs_niter, xs_rel_diff, xs_time, tol, esolv, phi_grid, &
+    & phi, phiinf, phieps, phieps_niter, phieps_rel_diff, &
+    & phieps_time, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    integer, intent(in) :: xs_mode, phieps_mode
     real(dp), intent(in) :: phi_cav(constants % ncav), &
         & psi(constants % nbasis, params % nsph), tol
     !! Input+output
@@ -146,32 +344,25 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
         & constants % icav_ia, constants % icav_ja, workspace % tmp_cav, &
         & workspace % tmp_grid)
     ! Integrate against spherical harmonics and Lebedev weights to get Phi
-    call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
-        & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
-        & one, workspace % tmp_grid, zero, phi)
+    call ddintegrate(params % nsph, constants % nbasis, &
+        & params % ngrid, constants % vwgrid, &
+        & constants % vgrid_nbasis, workspace % tmp_grid, phi)
+!   call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
+!       & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
+!       & one, workspace % tmp_grid, zero, phi)
     ! Compute Phi_infty
     ! force dx called from rinfx to add the diagonal
     call rinfx(params, constants, workspace, phi, phiinf)
     ! Select initial guess for the ddPCM system
-    select case (phieps_mode)
-        ! Zero guess
-        case (0)
-            phieps = zero
-        ! Phi as the initial guess
-        case (1)
-            phieps = phi
-        ! Otherwise use user-provided value as the initial guess
-    end select
-    ! Solve ddPCM system R_eps Phi_epsilon = Phi_infty
-    call cpu_time(start_time)
+    start_time = omp_get_wtime()
     if (params % itersolver .eq. 1) then 
         call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
-            & phieps_niter, phieps_rel_diff, repsx, apply_repsx_prec, hnorm, info)
+            & phieps_niter, phieps_rel_diff, repsx, prec_repsx, hnorm, info)
     else
         call gmresr(params, constants, workspace, tol, phiinf, phieps, phieps_niter, &
             & r_norm, repsx, info)
     end if
-    call cpu_time(finish_time)
+    finish_time = omp_get_wtime()
     phieps_time = finish_time - start_time
     ! Check if solver did not converge
     if (info .ne. 0) then
@@ -179,15 +370,11 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
         call params % print_func(string)
         return
     end if
-    ! Zero initialize guess for the solution of the ddCOSMO system if needed
-    if (xs_mode .eq. 0) then
-        xs = zero
-    end if
     ! Set right hand side to -Phi_epsilon
     workspace % tmp_rhs = -phieps
     ! Solve ddCOSMO system L X = -Phi_epsilon with a proper initial guess
     info = params % maxiter
-    call cpu_time(start_time)
+    start_time = omp_get_wtime()
     if (params % itersolver .eq. 1) then
         call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
             & xs, xs_niter, xs_rel_diff, lx, ldm1x, hnorm, info)
@@ -195,7 +382,7 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
         call gmresr(params, constants, workspace, tol, workspace % tmp_rhs, &
             & xs, xs_niter, r_norm, lx, info)
     end if
-    call cpu_time(finish_time)
+    finish_time = omp_get_wtime()
     xs_time = finish_time - start_time
     ! Check if solver did not converge
     if (info .ne. 0) then
@@ -207,15 +394,13 @@ subroutine ddpcm_energy(params, constants, workspace, phi_cav, psi, xs_mode, &
     esolv = pt5*ddot(constants % n, xs, 1, psi, 1)
     ! Clear status
     info = 0
-end subroutine ddpcm_energy
+end subroutine ddpcm_energy_worker
 
-subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
-        & s_niter, s_rel_diff, s_time, y_mode, y, y_niter, y_rel_diff, &
-        & y_time, info)
+subroutine ddpcm_adjoint_worker(params, constants, workspace, psi, tol, &
+    & s, s_niter, s_rel_diff, s_time, y, y_niter, y_rel_diff, y_time, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    integer, intent(in) :: s_mode, y_mode
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph), tol
     !! Input+output
     real(dp), intent(inout) :: s(constants % nbasis, params % nsph), &
@@ -230,13 +415,8 @@ subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
     !! Local variables
     real(dp) :: start_time, finish_time, r_norm
     character(len=255) :: string
-    !! The code
-    ! Zero initialize `s` if needed
-    if (s_mode .eq. 0) then
-        s = zero
-    end if
     ! Solve the adjoint ddCOSMO system
-    call cpu_time(start_time)
+    start_time = omp_get_wtime()
     if (params % itersolver .eq. 1) then 
         call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
             & s_rel_diff, lstarx, ldm1x, hnorm, info)
@@ -244,7 +424,7 @@ subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
         call gmresr(params, constants, workspace, tol, psi, s, s_niter, &
             & r_norm, lstarx, info)
     end if
-    call cpu_time(finish_time)
+    finish_time = omp_get_wtime()
     s_time = finish_time - start_time
     ! Check if solver did not converge
     if (info .ne. 0) then
@@ -253,20 +433,16 @@ subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
         call params % print_func(string)
         return
     end if
-    ! Zero initialize `y` if needed
-    if (y_mode .eq. 0) then
-        y = zero
-    end if
     ! Solve adjoint ddPCM system
-    call cpu_time(start_time)
+    start_time = omp_get_wtime()
     if (params % itersolver .eq. 1) then 
         call jacobi_diis(params, constants, workspace, tol, s, y, y_niter, &
-            & y_rel_diff, rstarepsx, apply_rstarepsx_prec, hnorm, info)
+            & y_rel_diff, repsstarx, prec_repsstarx, hnorm, info)
     else
         call gmresr(params, constants, workspace, tol, s, y, y_niter, &
-            & r_norm, rstarepsx, info)
+            & r_norm, repsstarx, info)
     end if
-    call cpu_time(finish_time)
+    finish_time = omp_get_wtime()
     y_time = finish_time - start_time
     ! Check if solver did not converge
     if (info .ne. 0) then
@@ -277,10 +453,11 @@ subroutine ddpcm_adjoint(params, constants, workspace, psi, tol, s_mode, s, &
     end if
     ! Clear status
     info = 0
-end subroutine ddpcm_adjoint
+end subroutine ddpcm_adjoint_worker
 
-subroutine ddpcm_forces(params, constants, workspace, phi_grid, gradphi_cav, &
-        & psi, phi, phieps, s, sgrid, y, ygrid, g, q, qgrid, xs, zeta, force, info)
+subroutine ddpcm_forces_worker(params, constants, workspace, phi_grid, &
+    & gradphi_cav, psi, phi, phieps, s, sgrid, y, ygrid, g, q, qgrid, xs, &
+    & zeta, force, info)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -321,15 +498,11 @@ subroutine ddpcm_forces(params, constants, workspace, phi_grid, gradphi_cav, &
     ! gradr initializes forces with zeros
     call gradr(params, constants, workspace, g, ygrid, force)
     do isph = 1, params % nsph
-        call fdoka(params, constants, isph, xs, sgrid(:, isph), &
-            & workspace % tmp_vylm(:, 1), workspace % tmp_vdylm(:, :, 1), &
-            & workspace % tmp_vplm(:, 1), workspace % tmp_vcos(:, 1), &
-            & workspace % tmp_vsin(:, 1), force(:, isph)) 
-        call fdokb(params, constants, isph, xs, sgrid, &
+        call contract_grad_L(params, constants, isph, xs, sgrid, &
             & workspace % tmp_vylm(:, 1), workspace % tmp_vdylm(:, :, 1), &
             & workspace % tmp_vplm(:, 1), workspace % tmp_vcos(:, 1), &
             & workspace % tmp_vsin(:, 1), force(:, isph))
-        call fdoga(params, constants, isph, qgrid, phi_grid, force(:, isph)) 
+        call contract_grad_U(params, constants, isph, qgrid, phi_grid, force(:, isph))
     end do
     force = -pt5 * force
     icav = 0
@@ -427,6 +600,6 @@ subroutine ddpcm_forces(params, constants, workspace, phi_grid, gradphi_cav, &
     end if
     ! Clear status
     info = 0
-end subroutine ddpcm_forces
+end subroutine ddpcm_forces_worker
 
 end module ddx_pcm

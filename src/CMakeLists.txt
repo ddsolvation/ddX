@@ -16,6 +16,7 @@ set(SRC
     "ddx_core.f90"
     "ddx_lpb_core.f90"
     "ddx_operators.f90"
+    "ddx_gradients.f90"
     "ddx_solvers.f90"
     "ddx_cosmo.f90"
     "ddx_pcm.f90"
