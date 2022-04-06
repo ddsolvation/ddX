@@ -12,4 +12,4 @@ ddX: an open-source software package for continuum solvation models based on the
 
 Copyright (c) 2022 The ddX Developers.
 
-ddX is free software; you can redistribute it and/or modify it under the terms of the LGPL-2.1 License.
+ddX is free software; you can redistribute it and/or modify it under the terms of the LGPL-3.0 License.
