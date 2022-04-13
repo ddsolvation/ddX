@@ -848,7 +848,9 @@ INPUT                  = "@DOXYGEN_INPUT@"\
                          "@CMAKE_SOURCE_DIR@/docs/index.md"\
 			"@CMAKE_SOURCE_DIR@/docs/download_and_install.md"\
 			"@CMAKE_SOURCE_DIR@/docs/run.md"\
+			"@CMAKE_SOURCE_DIR@/docs/python_interface.md"\
 			"@CMAKE_SOURCE_DIR@/docs/theory.md"\
+			"@CMAKE_SOURCE_DIR@/docs/ddstory.md"\
 			"@CMAKE_SOURCE_DIR@/docs/licence.md"\
 			"@CMAKE_SOURCE_DIR@/docs/ddX_references.md"
 
