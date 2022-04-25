@@ -63,7 +63,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
-find_package(OpenMP REQUIRED)
+option(OPENMP "Enable OpenMP support" ON)
+if(NOT TARGET OpenMP::OpenMP_Fortran AND OPENMP)
+    find_package(OpenMP REQUIRED)
+endif()
 
 ###############################################################################
 ##                           DEFINE OPTIONS                                  ##
