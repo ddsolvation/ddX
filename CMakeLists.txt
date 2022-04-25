@@ -24,7 +24,7 @@
 cmake_minimum_required(VERSION 3.2.3)
 
 # Restrict building in top-level directory
-if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
     message(FATAL_ERROR "In-source builds are not allowed.\nPlease create a "
         "build directory first and execute cmake configuration from this "
         "directory. Example: mkdir build && cd build && cmake ..")
@@ -40,7 +40,7 @@ message(STATUS "Configuring ddX ${VERSION}")
 project(ddX VERSION ${VERSION} LANGUAGES Fortran CXX)
 
 # Extend path for additional cmake modules
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 #add_compile_options(-qopenmp -i8 -DINT64)
 #add_compile_options(-g -debug extended -traceback -check all -fp-stack-check)
@@ -119,7 +119,7 @@ endif()
 
 # Check if testing is required
 if(TESTS)
-    include_directories(${CMAKE_BINARY_DIR}/src)
+    include_directories(${PROJECT_BINARY_DIR}/src)
     enable_testing()
     if(APPLE)
         if(DEFINED ADD_RPATH)
@@ -147,7 +147,7 @@ function(ddx_add_test src)
     # Parse path to get name of executable and its corresponding unique logical
     # name, based on its path and name
     get_filename_component(exec ${src} NAME_WE)
-    file(RELATIVE_PATH path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+    file(RELATIVE_PATH path ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
     string(REPLACE "/" "_" suffix ${path})
     set(logical ${suffix}_${exec})
     # Register executable with its unique logical name
