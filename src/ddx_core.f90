@@ -951,12 +951,20 @@ subroutine ddx_free_state(state)
             state % error_message = "`x_lpb` deallocation failed!"
         endif
     end if
+    if (allocated(state % x_lpb_rel_diff)) then
+        deallocate(state % x_lpb_rel_diff, stat=istatus)
+        if (istatus .ne. 0) call ddx_error("`x_lpb_rel_diff` deallocation failed!")
+    end if
     if (allocated(state % x_adj_lpb)) then
         deallocate(state % x_adj_lpb, stat=istatus)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "x_adj_lpb deallocation failed!"
         endif
+    end if
+    if (allocated(state % x_adj_lpb_rel_diff)) then
+        deallocate(state % x_adj_lpb_rel_diff, stat=istatus)
+        if (istatus .ne. 0) call ddx_error("`x_adj_lpb_rel_diff` deallocation failed!")
     end if
     if (allocated(state % g_lpb)) then
         deallocate(state % g_lpb, stat=istatus)
