@@ -540,8 +540,6 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
         & gmresr_j, gmresr_dim, istatus
     real(dp) :: eps, se, eta, kappa
     real(dp), allocatable :: charge(:), x(:), y(:), z(:), rvdw(:)
-    real(dp) :: t
-    t = omp_get_wtime()
     !! Read all the parameters from the file
     ! Open a configuration file
     open(unit=100, file=fname, form='formatted', access='sequential')
