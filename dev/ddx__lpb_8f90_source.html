@@ -581,7 +581,7 @@ $(document).ready(function(){initNavTree('ddx__lpb_8f90_source.html',''); initRe
 <div class="line"><a name="l00509"></a><span class="lineno">  509</span>&#160;    <span class="keyword">call </span>contract_grad_f(params, constants, workspace, x_adj(:,:,2), xadj_e_sgrid, &amp;</div>
 <div class="line"><a name="l00510"></a><span class="lineno">  510</span>&#160;                  &amp; gradphi, normal_hessian_cav, icav_ge, force)</div>
 <div class="line"><a name="l00511"></a><span class="lineno">  511</span>&#160; </div>
-<div class="line"><a name="l00512"></a><span class="lineno">  512</span>&#160;    force = pt5*force</div>
+<div class="line"><a name="l00512"></a><span class="lineno">  512</span>&#160;    force = - pt5*force</div>
 <div class="line"><a name="l00513"></a><span class="lineno">  513</span>&#160; </div>
 <div class="line"><a name="l00514"></a><span class="lineno">  514</span>&#160;    <span class="keyword">deallocate</span>(ef, xadj_r_sgrid, xadj_e_sgrid, normal_hessian_cav, &amp;</div>
 <div class="line"><a name="l00515"></a><span class="lineno">  515</span>&#160;        &amp; diff_re, scaled_xr, stat=istat)</div>

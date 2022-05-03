@@ -17,6 +17,7 @@ var ddx__definitions_8f90 =
     [ "machine_eps", "ddx__definitions_8f90.html#a04d6379bbbbdbc33a8eec6cd2db25193", null ],
     [ "toang", "ddx__definitions_8f90.html#a739c7608b89551658f66595548a935de", null ],
     [ "tokcal", "ddx__definitions_8f90.html#a6b1b447a70e0e29b2eceafb5a3177412", null ],
+    [ "tokj", "ddx__definitions_8f90.html#adc7fc4c5a78c4079d356bf622c41d850", null ],
     [ "tobohr", "ddx__definitions_8f90.html#abb8d22f8e2a00c205bbefd51ee2da0e4", null ],
     [ "nllg", "ddx__definitions_8f90.html#ae550955ff555b222abaed24c541cde67", null ],
     [ "ng0", "ddx__definitions_8f90.html#a31904c9990cc087f2808a4c1c662800a", null ],
