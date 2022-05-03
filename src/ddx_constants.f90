@@ -109,10 +109,6 @@ type ddx_constants_type
     !> LPB matrix, Eq. (87) from [QSM19.SISC]. Dimension is
     !!      (nbasis, nbasis0, nsph)
     real(dp), allocatable :: Pchi(:, :, :)
-    !> LPB intermediate calculation in Q Matrix Eq. (91).
-    !!      C_ik*\bold{k}_l^j(x_in)*Y_lm^j(x_in). Dimension is
-    !!      (ncav, nbasis0, nsph)
-    real(dp), allocatable :: coefY(:, :, :)
     !> LPB value (i'_l0(r_j)/i_l0(r_j)-k'_l0(r_j)/k_l0(r_j))^{-1}. Dimension
     !!      is ???
     real(dp), allocatable :: C_ik(:, :)
@@ -128,8 +124,6 @@ type ddx_constants_type
     real(dp), allocatable :: DK_ri(:, :)
     !> LPB value i'_l(r_j)/i_l(r_j). Dimension is (lmax, nsph).
     real(dp), allocatable :: termimat(:, :)
-    !> LPB value sum_{l0,m0}Pchi*coefY. Dimension is (ncav, nbasis, nsph)
-    real(dp), allocatable :: diff_ep_adj(:, :, :)
     !> LPB B matrix for doing incore BX product
     real(dp), allocatable :: b(:,:,:)
     !> ddCOSMO L matrix fo doing incore LX product
@@ -474,13 +468,9 @@ subroutine constants_init(params, constants)
         allocate(constants % DI_ri(0:constants % dmax+1, params % nsph))
         allocate(constants % SK_ri(0:params % lmax+1, params % nsph))
         allocate(constants % DK_ri(0:params % lmax+1, params % nsph))
-        allocate(constants % diff_ep_adj(constants % ncav, &
-            & constants % nbasis, params % nsph))
         allocate(constants % coefvec(params % ngrid, constants % nbasis, &
             & params % nsph))
         allocate(constants % Pchi(constants % nbasis, constants % nbasis0, &
-            & params % nsph))
-        allocate(constants % coefY(constants % ncav, constants % nbasis0, &
             & params % nsph))
         allocate(constants % C_ik(0:params % lmax, params % nsph))
         allocate(constants % termimat(0:params % lmax, params % nsph))
@@ -675,9 +665,10 @@ subroutine build_b(constants, params)
     real(dp), dimension(0:params % lmax) :: SI_rijn, DI_rijn
     real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
     real(dp) :: t
+    integer :: info
 
     allocate(constants % b(constants % nbasis, constants % nbasis, &
-        & constants % inl(params % nsph + 1)))
+        & constants % inl(params % nsph + 1)), stat=info)
 
     thigh = one + pt5*(params % se + one)*params % eta
 
@@ -2031,14 +2022,6 @@ subroutine constants_free(constants)
         deallocate(constants % termimat, stat=istat)
         if (istat .ne. 0) then
             constants % error_message = "`termimat` deallocation failed!"
-            constants % error_flag = 1
-            return
-        end if
-    end if
-    if (allocated(constants % diff_ep_adj)) then
-         deallocate(constants % diff_ep_adj, stat=istat)
-        if (istat .ne. 0) then
-            constants % error_message = "`diff_ep_adj` deallocation failed!"
             constants % error_flag = 1
             return
         end if
