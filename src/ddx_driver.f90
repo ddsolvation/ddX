@@ -87,6 +87,21 @@ if (iprint .gt. 0) then
         print "(A,I4)", " ddpcm step iterations: ", &
             & state % phieps_niter
     end if
+    ! Print info on the primal ddLPB system
+    if (ddx_data % params % model .eq. 3) then
+        ! Print each iteration if needed
+        if (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) then
+            do i = 1, state % phieps_niter
+                print " (A,I4,A,ES20.14)", "iter=", i, &
+                    & " relative difference: ", state % x_lpb_rel_diff(i)
+            end do
+        end if
+        ! Print number of iterations and time
+        print " (A,ES11.4E2,A)", " ddlpb step time: ", state % x_lpb_time, &
+            & " seconds"
+        print "(A,I4)", " ddlpb step iterations: ", &
+            & state % x_lpb_niter
+    end if
     ! Print info on the primal ddCOSMO system
     ! Print each iteration if needed
     if (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) then
@@ -128,6 +143,21 @@ if (iprint .gt. 0) then
                 & state % y_time, " seconds"
             print "(A,I4)", " adjoint ddpcm step iterations: ", &
                 & state % y_niter
+        end if
+        ! Print info on the adjoint ddLPB system
+        if (ddx_data % params % model .eq. 3) then
+            ! Print each iteration if needed
+            if (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) then
+                do i = 1, state % y_niter
+                    print "(A,I4,A,ES20.14)", " iter=", i, &
+                        & " relative difference: ", state % x_adj_lpb_rel_diff(i)
+                end do
+            end if
+            ! Print number of iterations and time
+            print "(A,ES11.4E2,A)", " adjoint ddlpb step time: ", &
+                & state % x_adj_lpb_time, " seconds"
+            print "(A,I4)", " adjoint ddlpb step iterations: ", &
+                & state % x_adj_lpb_niter
         end if
     end if
 end if

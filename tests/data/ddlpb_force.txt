@@ -9,7 +9,7 @@
 0.104       ! Debye H\"{u}ckel parameter
 0           ! Whether to compute and store sparse matrices (1) or not (0)
 1           ! Jacobi/DIIS iterative solver
-1d-12       ! Relative threshold for the iterative solver
+1d-07       ! Relative threshold for the iterative solver
 200         ! Maximum number of iterations
 25          ! Number of DIIS extrapolation points
 25          ! Number of last vectors GMRESR works with
