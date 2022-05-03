@@ -31,6 +31,7 @@ real(dp), parameter :: sqrt4pi = four * sqrt(pi4)
 real(dp), parameter :: machine_eps = epsilon(zero)
 real(dp), parameter :: toang = 0.52917721092d0
 real(dp), parameter :: tokcal = 627.509469d0
+real(dp), parameter :: tokj = 2625.509469d0
 real(dp), parameter :: tobohr = one / toang
 !> Number of supported Lebedev grids
 integer, parameter :: nllg = 32

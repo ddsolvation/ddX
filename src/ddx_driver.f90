@@ -163,11 +163,11 @@ if (iprint .gt. 0) then
 end if
 write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time-start_time, " seconds"
 write(*, "(A,ES25.16E3)") " Solvation energy:", esolv
-write(*, "(A,ES25.16E3)") " Solvation energy (kJ/mol):", esolv*2625.5002d0
+write(*, "(A,ES25.16E3)") " Solvation energy (kJ/mol):", esolv*tokj
 if (ddx_data % params % force .eq. 1) then
-    write(*, *) " Full forces"
+    write(*, *) " Full forces (kJ/mol/A)"
     do isph = 1, ddx_data % params % nsph
-        write(6,'(1x,i5,3ES25.16E3)') isph, force(:,isph)
+        write(6,'(1x,i5,3ES25.16E3)') isph, force(:,isph)*tokj/toang
     end do
 end if
 

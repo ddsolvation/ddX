@@ -509,7 +509,7 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     call contract_grad_f(params, constants, workspace, x_adj(:,:,2), Xadj_e_sgrid, &
                   & gradphi, normal_hessian_cav, icav_ge, force)
 
-    force = pt5*force
+    force = - pt5*force
 
     deallocate(ef, xadj_r_sgrid, xadj_e_sgrid, normal_hessian_cav, &
         & diff_re, scaled_xr, stat=istat)
