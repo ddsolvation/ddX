@@ -76,6 +76,8 @@ do isph = 1, ddx_data % params % nsph
     if(abs(force(i,isph)) .le. 1.d-8) force(i,isph) = zero
   end do
 end do
+! force is minus the gradient
+force_num = - force_num
 relerr = dnrm2(3*ddx_data % params % nsph, force_num-force, 1) / &
     & dnrm2(3*ddx_data % params % nsph, force, 1)
 
