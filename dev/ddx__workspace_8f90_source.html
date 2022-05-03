@@ -592,10 +592,18 @@ $(document).ready(function(){initNavTree('ddx__workspace_8f90_source.html',''); 
 <div class="line"><a name="l00558"></a><span class="lineno">  558</span>&#160;            stop 1</div>
 <div class="line"><a name="l00559"></a><span class="lineno">  559</span>&#160;<span class="keywordflow">        end if</span></div>
 <div class="line"><a name="l00560"></a><span class="lineno">  560</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l00561"></a><span class="lineno">  561</span>&#160;<span class="keyword">end subroutine </span>workspace_free</div>
-<div class="line"><a name="l00562"></a><span class="lineno">  562</span>&#160; </div>
-<div class="line"><a name="l00563"></a><span class="lineno">  563</span>&#160;<span class="keyword">end module</span></div>
-<div class="line"><a name="l00564"></a><span class="lineno">  564</span>&#160; </div>
+<div class="line"><a name="l00561"></a><span class="lineno">  561</span>&#160;    <span class="keywordflow">if</span> (<span class="keyword">allocated</span>(workspace % tmp_rhs)) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00562"></a><span class="lineno">  562</span>&#160;        <span class="keyword">deallocate</span>(workspace % tmp_rhs, stat=istat)</div>
+<div class="line"><a name="l00563"></a><span class="lineno">  563</span>&#160;        <span class="keywordflow">if</span> (istat .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l00564"></a><span class="lineno">  564</span>&#160;            info = 1</div>
+<div class="line"><a name="l00565"></a><span class="lineno">  565</span>&#160;            <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;`tmp_rhs` deallocation failed!&quot;</span></div>
+<div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;            stop 1</div>
+<div class="line"><a name="l00567"></a><span class="lineno">  567</span>&#160;<span class="keywordflow">        end if</span></div>
+<div class="line"><a name="l00568"></a><span class="lineno">  568</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l00569"></a><span class="lineno">  569</span>&#160;<span class="keyword">end subroutine </span>workspace_free</div>
+<div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160; </div>
+<div class="line"><a name="l00571"></a><span class="lineno">  571</span>&#160;<span class="keyword">end module</span></div>
+<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160; </div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="anamespaceddx__parameters_html"><div class="ttname"><a href="namespaceddx__parameters.html">ddx_parameters</a></div><div class="ttdoc">Module to treat properly user input parameters.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__parameters_8f90_source.html#l00015">ddx_parameters.f90:15</a></div></div>
