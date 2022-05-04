@@ -104,8 +104,6 @@ type ddx_constants_type
     integer :: lmax0
     !> LPB value max of nbasis and 49
     integer :: nbasis0
-    !> LPB value w_n*U_i(x_in)*Y_lm(x_n). Dimension is (ngrid, nbasis, nsph)
-    real(dp), allocatable :: coefvec(:, :, :)
     !> LPB matrix, Eq. (87) from [QSM19.SISC]. Dimension is
     !!      (nbasis, nbasis0, nsph)
     real(dp), allocatable :: Pchi(:, :, :)
@@ -469,8 +467,6 @@ subroutine constants_init(params, constants)
         allocate(constants % DI_ri(0:constants % dmax+1, params % nsph))
         allocate(constants % SK_ri(0:params % lmax+1, params % nsph))
         allocate(constants % DK_ri(0:params % lmax+1, params % nsph))
-        allocate(constants % coefvec(params % ngrid, constants % nbasis, &
-            & params % nsph))
         allocate(constants % Pchi(constants % nbasis, constants % nbasis0, &
             & params % nsph))
         allocate(constants % C_ik(0:params % lmax, params % nsph))
@@ -492,16 +488,6 @@ subroutine constants_init(params, constants)
             ! Previous implementation in update_rhs. Made it in ddinit, so as to use
             ! it in Forces as well.
             call mkpmat(params, constants, isph, constants % Pchi(:, :, isph))
-            ! Compute w_n*Ui(x_in)*Y_lm(s_n)
-            do igrid = 1, params % ngrid
-                if (constants % ui(igrid, isph) .gt. 0) then
-                    do ind = 1, constants % nbasis
-                        constants % coefvec(igrid, ind, isph) = &
-                            & constants % ui(igrid, isph) * &
-                            & constants % vwgrid(ind, igrid)
-                    end do
-                end if
-            end do
             ! Compute i'_l(r_i)/i_l(r_i)
             do l = 0, params % lmax
                 constants % termimat(l, isph) = constants % DI_ri(l, isph) / &
@@ -1959,14 +1945,6 @@ subroutine constants_free(constants)
         deallocate(constants % vgrid2, stat=istat)
         if (istat .ne. 0) then
             constants % error_message = "`vgrid2` deallocation failed!"
-            constants % error_flag = 1
-            return
-        end if
-    end if
-    if (allocated(constants % coefvec)) then
-        deallocate(constants % coefvec, stat=istat)
-        if (istat .ne. 0) then
-            constants % error_message = "`coefvec` deallocation failed!"
             constants % error_flag = 1
             return
         end if

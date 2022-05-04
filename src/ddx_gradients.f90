@@ -1182,8 +1182,9 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
             if(constants % ui(igrid, ksph) .gt. zero) then
                 icav = icav + 1
                 do ind = 1, constants % nbasis
-                    sum_dim3(:,ind,ksph) = sum_dim3(:,ind,ksph) + &
-                        & constants % coefvec(igrid, ind, ksph)*diff_ep_dim3(:,icav)
+                    sum_dim3(:,ind,ksph) = sum_dim3(:,ind,ksph) &
+                        & + diff_ep_dim3(:,icav)*constants % ui(igrid, ksph) &
+                        & *constants % vwgrid(ind, igrid)
                 end do
             end if
         end do
@@ -1232,8 +1233,9 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
                 if(constants % ui(igrid, isph) .gt. zero) then
                   icav = icav + 1
                   do ind = 1, constants % nbasis
-                    sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) + &
-                        & constants % coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
+                    sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) &
+                        & + diff_ep_dim3(:,icav)*constants % ui(igrid, isph) &
+                        & *constants % vwgrid(ind, igrid)
                   end do
                 end if
               end do
@@ -1542,9 +1544,10 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
             if(constants % ui(igrid, ksph) .gt. zero) then
                 icav = icav + 1
                 do ind = 1, constants % nbasis
-                    sum_dim3(:,ind,ksph) = sum_dim3(:,ind,ksph) + &
-                        & -(params % epsp/params % eps)* &
-                        & constants % coefvec(igrid, ind, ksph)*diff_ep_dim3(:,icav)
+                    sum_dim3(:,ind,ksph) = sum_dim3(:,ind,ksph) &
+                        & - (params % epsp/params % eps) &
+                        & *diff_ep_dim3(:,icav)*constants % ui(igrid, ksph) &
+                        & *constants % vwgrid(ind, igrid)
                 end do
             end if
         end do
@@ -1588,9 +1591,10 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
                 if(constants % ui(igrid, isph) .gt. zero) then
                   icav = icav + 1
                   do ind = 1, constants % nbasis
-                    sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) + &
-                                          & -(params % epsp/params % eps)* &
-                                          & constants % coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
+                    sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) &
+                      & - (params % epsp/params % eps) &
+                      & *diff_ep_dim3(:,icav)*constants % ui(igrid, isph) &
+                      & *constants % vwgrid(ind, igrid)
                   end do
                 end if
               end do
