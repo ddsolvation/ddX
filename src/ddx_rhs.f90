@@ -67,20 +67,15 @@ subroutine build_phi_dense(params, constants, workspace, multipoles, cm, &
     real(dp), intent(in) :: ccav(3, ncav)
 
     integer icav, im
-    real(dp) :: v, c(3), t
+    real(dp) :: v, c(3)
     real(dp) :: r
 
     do icav = 1, ncav
         v = zero
         do im = 1, nm
-            t = zero
-            v = zero
             c(:) = ccav(:, icav) - cm(:, im)
             call fmm_m2p(c, one, mmax, constants % vscales_rel, &
-               & one, multipoles(:, im), one, t)
-            r = sqrt(dot_product(c, c))
-            v = v + multipoles(1, im)/r
-            write(6,*) t, v
+                & one, multipoles(:, im), one, v)
         end do
         phi_cav(icav) = v
     end do
@@ -133,8 +128,7 @@ subroutine build_psi(params, constants, workspace, multipoles, mmax, psi)
 
     do isph = 1, params % nsph
         do l = 0, mmax
-            v = four*pi/((two*dble(l) + one)*(params % rsph(isph)))
-            v = one/params % rsph(isph)
+            v = fourpi/((two*dble(l) + one)*(params % rsph(isph)**(l+1)))
             i = l*l + l + 1
             do m = -l, l
                 psi(i + m, isph) = v*multipoles(i + m, isph)
