@@ -1258,12 +1258,11 @@ subroutine bstarx(params, constants, workspace, x, y)
     if (constants % dodiag) y = y + x
 end subroutine bstarx
 
-!
-! Subroutine used for the GMRES solver
-! @param[in]      n : Size of the matrix
-! @param[in]      x : Input vector
-! @param[in, out] y : y=A*x
-!
+!> Subroutine used for the GMRES solver
+!! @param[in]      n : Size of the matrix
+!! @param[in]      x : Input vector
+!! @param[in, out] y : y=A*x
+!!
 subroutine bx(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -1300,6 +1299,72 @@ subroutine bx(params, constants, workspace, x, y)
     end if
     if (constants % dodiag) y = y + x
 end subroutine bx
+
+!> Subroutine used for the GMRES solver with complete matrix
+!! @param[in]      x : Input vector
+!! @param[in, out] y : y=T*x
+!!
+subroutine tx(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
+
+    real(dp), dimension(constants % nbasis, params % nsph, 2) :: temp_vector
+    y = zero
+    temp_vector = zero
+
+    ! Compute AXr
+    ! call LXr
+    call lx(params, constants, workspace, x(:,:,1), temp_vector(:,:,1))
+    ! Remove the scaling factor
+    call convert_ddcosmo(params, constants, 1, temp_vector(:,:,1))
+    y(:,:,1) = y(:,:,1) + temp_vector(:,:,1)
+    ! Compute BXe
+    call bx(params, constants, workspace, x(:,:,2), temp_vector(:,:,2))
+    y(:,:,2) = y(:,:,2) + temp_vector(:,:,2)
+
+    ! Reset temp_vector to zero
+    temp_vector = zero
+    ! Call CX
+    call cx(params, constants, workspace, x, temp_vector)
+    y = y + temp_vector
+end subroutine tx
+
+!> Subroutine used for the GMRES solver with complete matrix adjoint system
+!! @param[in]      x : Input vector
+!! @param[in, out] y : y=Tstar*x
+!!
+subroutine tstarx(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
+    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
+
+    real(dp), dimension(constants % nbasis, params % nsph, 2) :: temp_vector
+    y = zero
+    temp_vector = zero
+
+    ! Compute AXr
+    ! call LstarXr
+    call lstarx(params, constants, workspace, x(:,:,1), temp_vector(:,:,1))
+    ! Remove the scaling factor
+    call convert_ddcosmo(params, constants, 1, temp_vector(:,:,1))
+    y(:,:,1) = y(:,:,1) + temp_vector(:,:,1)
+    ! Compute BXe
+    call bstarx(params, constants, workspace, x(:,:,2), temp_vector(:,:,2))
+    y(:,:,2) = y(:,:,2) + temp_vector(:,:,2)
+
+    ! Reset temp_vector to zero
+    temp_vector = zero
+    ! Call CX
+    call cstarx(params, constants, workspace, x, temp_vector)
+    y = y + temp_vector
+end subroutine tstarx
 
 subroutine bx_prec(params, constants, workspace, x, y)
     implicit none
