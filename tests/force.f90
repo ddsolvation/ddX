@@ -68,7 +68,7 @@ call ddx_free_state(state)
 call ddfree(ddx_data)
 
 write(*, *) "Rel.error of forces:", relerr
-if (relerr .gt. 1d-6) stop 1
+if (relerr .gt. 3d-6) stop 1
 contains 
 
 subroutine solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &

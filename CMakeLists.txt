@@ -24,7 +24,7 @@
 cmake_minimum_required(VERSION 3.2.3)
 
 # Restrict building in top-level directory
-if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
     message(FATAL_ERROR "In-source builds are not allowed.\nPlease create a "
         "build directory first and execute cmake configuration from this "
         "directory. Example: mkdir build && cd build && cmake ..")
@@ -40,7 +40,16 @@ message(STATUS "Configuring ddX ${VERSION}")
 project(ddX VERSION ${VERSION} LANGUAGES Fortran CXX)
 
 # Extend path for additional cmake modules
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
+# If ddX is a subproject, append ddx_ prefix to all targets.
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    set(ddx_is_subproject false)
+    set(ddx_ "")
+else()
+    set(ddx_is_subproject true)
+    set(ddx_ "ddx_")
+endif()
 
 #add_compile_options(-qopenmp -i8 -DINT64)
 #add_compile_options(-g -debug extended -traceback -check all -fp-stack-check)
@@ -112,14 +121,14 @@ if(COVERAGE)
     # Set excluded coverage paths
     set(COVERAGE_EXCLUDES "tests/*" "src/llgnew.f" "src/bessel.f90" "src/CBESSEL.F90")
     # Setup a target for an overall coverage
-    setup_target_for_coverage_lcov(NAME coverage
-        EXECUTABLE ctest
+    setup_target_for_coverage_lcov(NAME ${ddx_}coverage
+        EXECUTABLE ctest -R ${ddx_}tests
         LCOV_ARGS --no-external)
 endif()
 
 # Check if testing is required
 if(TESTS)
-    include_directories(${CMAKE_BINARY_DIR}/src)
+    include_directories(${PROJECT_BINARY_DIR}/src)
     enable_testing()
     if(APPLE)
         if(DEFINED ADD_RPATH)
@@ -147,40 +156,43 @@ function(ddx_add_test src)
     # Parse path to get name of executable and its corresponding unique logical
     # name, based on its path and name
     get_filename_component(exec ${src} NAME_WE)
-    file(RELATIVE_PATH path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+    file(RELATIVE_PATH path ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
     string(REPLACE "/" "_" suffix ${path})
     set(logical ${suffix}_${exec})
     # Register executable with its unique logical name
-    add_executable(${logical} ${src})
+    add_executable(${ddx_}${logical} ${src})
     # Set name of executable file
-    set_target_properties(${logical} PROPERTIES OUTPUT_NAME ${exec})
+    set_target_properties(${ddx_}${logical} PROPERTIES OUTPUT_NAME ${exec})
     # Add dependency to the global coverage target
     if(COVERAGE)
-        add_dependencies(coverage ${logical})
+        add_dependencies(${ddx_}coverage ${ddx_}${logical})
     endif()
     # Try to set environment for a test on Apple MacOS
     if(APPLE AND DEFINED ADD_RPATH)
-        set_target_properties(${logical} PROPERTIES BUILD_RPATH "${ADD_RPATH}")
+        set_target_properties(${ddx_}${logical} PROPERTIES BUILD_RPATH
+            "${ADD_RPATH}")
     endif()
     # Link to ddx
-    target_link_libraries(${logical} ddx)
+    target_link_libraries(${ddx_}${logical} ddx)
     if(COVERAGE)
         # Add coverage for all tests together (they have ${logical}_${i} names)
-        setup_target_for_coverage_lcov(NAME coverage_${logical}
-            EXECUTABLE ctest -R ${logical}
-            DEPENDENCIES ${logical}
+        setup_target_for_coverage_lcov(NAME ${ddx_}coverage_${logical}
+            EXECUTABLE ctest -R ${ddx_}${logical}
+            DEPENDENCIES ${ddx_}${logical}
             LCOV_ARGS --no-external)
     endif()
     # If no arguments were provided, add test without parameters
     if(${ARGC} EQUAL 1)
-        add_test(NAME ${logical} COMMAND $<TARGET_FILE:${logical}>)
+        add_test(NAME ${ddx_}${logical} COMMAND
+            $<TARGET_FILE:${ddx_}${logical}>)
         message(STATUS "Adding 1 test: ${path}/${exec}")
     # If only one test with arguments must be added
     elseif(${ARGC} EQUAL 2)
         # Convert arguments from string to list
         string(REPLACE " " ";" param ${ARGV1})
         string(REPLACE "\n" ";" param "${param}")
-        add_test(NAME ${logical} COMMAND $<TARGET_FILE:${logical}> ${param})
+        add_test(NAME ${ddx_}${logical} COMMAND
+            $<TARGET_FILE:${ddx_}${logical}> ${param})
         message(STATUS "Adding 1 test: ${path}/${exec}")
     # Add multiple tests and add indexing for better readability of output
     else()
@@ -191,8 +203,8 @@ function(ddx_add_test src)
             # Convert arguments from string to list
             string(REPLACE " " ";" param ${ARGV${i}})
             string(REPLACE "\n" ";" param "${param}")
-            add_test(NAME ${logical}_${i} COMMAND $<TARGET_FILE:${logical}>
-                ${param})
+            add_test(NAME ${ddx_}${logical}_${i} COMMAND
+                $<TARGET_FILE:${ddx_}${logical}> ${param})
         endforeach()
     endif()
 endfunction(ddx_add_test)
@@ -223,7 +235,7 @@ endif()
 # Install rules.
 # GNU Filesystem Conventions
 include( GNUInstallDirs )
-set( install_configdir "${CMAKE_INSTALL_LIBDIR}/ddX" )
+set(install_configdir "${CMAKE_INSTALL_LIBDIR}/ddX")
 
 # Install library and add to <package>Targets.cmake
 install(
@@ -262,7 +274,7 @@ export(
 
 # Install <package>Config.cmake and <package>ConfigVersion.cmake,
 # to enable find_package( <package> ).
-include( CMakePackageConfigHelpers )
+include(CMakePackageConfigHelpers)
 configure_package_config_file(
     "ddXConfig.cmake.in"
     "ddXConfig.cmake"
