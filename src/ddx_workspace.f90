@@ -558,6 +558,14 @@ subroutine workspace_free(workspace, info)
             stop 1
         end if
     end if
+    if (allocated(workspace % tmp_rhs)) then
+        deallocate(workspace % tmp_rhs, stat=istat)
+        if (istat .ne. 0) then
+            info = 1
+            write(6, *) "`tmp_rhs` deallocation failed!"
+            stop 1
+        end if
+    end if
 end subroutine workspace_free
 
 end module
