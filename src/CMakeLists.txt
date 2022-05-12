@@ -38,7 +38,7 @@ add_library(ddx SHARED ${SRC})
 # Link against BLAS and LAPACK
 target_link_libraries(ddx PUBLIC ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 # OpenMP linkage
-target_link_libraries(ddx PUBLIC OpenMP::OpenMP_Fortran)
+target_link_libraries(ddx PUBLIC $<$<BOOL:${OPENMP}>:OpenMP::OpenMP_Fortran>)
 
 # Define ddx driver executable
 add_executable(ddx_driver "ddx_driver.f90")
