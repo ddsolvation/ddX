@@ -7,6 +7,9 @@
 # @author Aleksandr Mikhalev
 # @date 2021-02-25
 
+# Override compile options for accuracy
+add_compile_options(-O1)
+
 set(TESTS
     "ddx_core.f90"
     "ddx_operators.f90"
