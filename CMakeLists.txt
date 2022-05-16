@@ -40,6 +40,12 @@ message(STATUS "Configuring ddX ${VERSION}")
 # CXX compiler is only needed to properly find Intel MKL
 project(ddX VERSION ${VERSION} LANGUAGES Fortran CXX)
 
+# Add flag in case of Intel compiler to avoid fast inaccurate math
+if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+    add_compile_options(-fp-model=precise)
+    message(STATUS "Extending Intel compiler flags by \"-fp-model=precise\"")
+endif()
+
 # Extend path for additional cmake modules
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
