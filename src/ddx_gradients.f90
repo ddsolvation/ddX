@@ -664,11 +664,8 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_
     real(dp) :: coef(constants % nbasis0), work(constants % lmax0+1)
     complex(dp) :: work_complex(constants % lmax0+1)
 
-    ! TODO: coefY_d is N^2 storage, it prevents the application of ddLPB forces
-    ! to large systems. Probably it is not needed and should be removed one day.
     allocate(phi_n_r(params % ngrid, params % nsph), &
         & phi_n_e(params % ngrid, params % nsph), &
-        & coefY_d(constants % ncav, params % ngrid, params % nsph), &
         & diff_re_sgrid(params % ngrid, params % nsph), stat=istat)
     if (istat.ne.0) stop 1
 
@@ -677,7 +674,6 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_
     sum_e = zero
     phi_n_r = zero
     phi_n_e = zero
-    coefY_d = zero
     diff_re_sgrid = zero
     basloc = zero
     vplm = zero
@@ -688,6 +684,10 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_
     DK_rijn = zero
 
     if (params % fmm .eq. 0) then
+        allocate(coefY_d(constants % ncav, params % ngrid, params % nsph), &
+            & stat=istat)
+        if (istat.ne.0) stop 1
+        coefY_d = zero
         ! Compute  summation over l0, m0
         ! Loop over the sphers j
         do jsph = 1, params % nsph
@@ -856,8 +856,12 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_
         call contract_grad_U(params, constants, isph, diff_re_sgrid, phi_n_e, force(:, isph))
     end do
 
-    deallocate( phi_n_r, phi_n_e, coefY_d, diff_re_sgrid, stat=istat)
+    deallocate(phi_n_r, phi_n_e, diff_re_sgrid, stat=istat)
     if (istat.ne.0) stop 1
+    if (allocated(coefY_d)) then
+        deallocate(coefY_d, stat=istat)
+        if (istat.ne.0) stop 1
+    end if
 end subroutine contract_grad_C_worker1
 
 
@@ -899,9 +903,7 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
     ! val_dim3 : Intermediate value array of dimension 3
     real(dp), dimension(3) :: sij, vij, val_dim3, vtij
     ! val   : Intermediate variable to compute diff_ep
-    ! f1    : Intermediate variable for derivative of coefY_der
-    ! f2    : Intermediate variable for derivative of coefY_der
-    real(dp) :: val, f1, f2
+    real(dp) :: val
     ! large local are allocatable
     ! phi_in : sum_{j=1}^N diff0_j * coefY_j
     ! diff_ep_dim3 : 3 dimensional couterpart of diff_ep
@@ -1260,16 +1262,13 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
     ! val_dim3 : Intermediate value array of dimension 3
     real(dp), dimension(3) :: sij, vij, val_dim3, vtij
     ! val     : Intermediate variable to compute diff_ep
-    ! f1      : Intermediate variable for derivative of coefY_der
-    ! f2      : Intermediate variable for derivative of coefY_der
     ! nderpsi : Derivative of psi on grid points
-    real(dp) :: val, f1, f2, nderpsi, sum_int
+    real(dp) :: val, nderpsi, sum_int
 
     ! local allocatable
     ! phi_in : sum_{j=1}^N diff0_j * coefY_j
     ! diff_ep_dim3 : 3 dimensional couterpart of diff_ep
     ! sum_dim3 : Storage of sum
-    ! coefY_der : Derivative of k_l0 and Y_l0m0
     ! Debug purpose
     ! These variables can be taken from the subroutine update_rhs
     ! diff0       : dot_product([PU_j]_l0m0^l'm', l'/r_j[Xr]_jl'm' -
@@ -1277,7 +1276,7 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
     ! sum_Sjin : \sum_j [S]_{jin} Eq.~(97) [QSM20.SISC]
     ! c0 : \sum_{n=1}^N_g w_n U_j^{x_nj}\partial_n psi_0(x_nj)Y_{l0m0}(s_n)
     real(dp), allocatable :: phi_in(:,:), diff_ep_dim3(:,:), &
-        & sum_dim3(:,:,:), coefy_der(:,:,:,:), diff0(:,:), sum_sjin(:,:), &
+        & sum_dim3(:,:,:), diff0(:,:), sum_sjin(:,:), &
         & c0_d(:,:), c0_d1(:,:), c0_d1_grad(:,:,:), l2l_grad(:,:,:)
 
     real(dp) :: termi, termk, rijn
@@ -1294,7 +1293,6 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
     allocate(phi_in(params % ngrid, params % nsph), &
         & diff_ep_dim3(3, constants % ncav), &
         & sum_dim3(3, constants % nbasis, params % nsph), &
-        & coefY_der(3, constants % ncav, constants % nbasis0, params % nsph), &
         & c0_d(constants % nbasis0, params % nsph), &
         & c0_d1(constants % nbasis0, params % nsph), &
         & c0_d1_grad((constants % lmax0+2)**2, 3, params % nsph), &
@@ -1307,7 +1305,6 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
     ! Setting initial values to zero
     SK_rijn = zero
     DK_rijn = zero
-    coefY_der = zero
     c0_d = zero
     c0_d1 = zero
     c0_d1_grad = zero
@@ -1578,7 +1575,7 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
         end if
     end do
 
-    deallocate(phi_in, diff_ep_dim3, sum_dim3, coefY_der, c0_d, c0_d1, &
+    deallocate(phi_in, diff_ep_dim3, sum_dim3, c0_d, c0_d1, &
           & c0_d1_grad, sum_Sjin, l2l_grad, diff0, stat=istat)
     if (istat.ne.0) stop 1
 
@@ -1640,14 +1637,12 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
 
     allocate(phi_n(params % ngrid, params % nsph), &
         & phi_n2(params % ngrid, params % nsph), &
-        & coefY_d(constants % ncav, params % ngrid, params % nsph), &
         & gradpsi_grid(params % ngrid, params % nsph), stat=istat)
     if (istat.ne.0) stop 1
 
     ! Intial allocation of vectors
     sum_int = zero
     phi_n = zero
-    coefY_d = zero
     gradpsi_grid = zero
     basloc = zero
     vplm = zero
@@ -1658,6 +1653,10 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
     DK_rijn = zero
 
     if (params % fmm .eq. 0) then
+        allocate(coefY_d(constants % ncav, params % ngrid, params % nsph), &
+            & stat=istat)
+        if (istat.ne.0) stop 1
+        coefY_d = zero
         ! Compute  summation over l0, m0
         ! Loop over the sphers j
         do jsph = 1, params % nsph
@@ -1788,8 +1787,12 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
         call contract_grad_f_worker3(params, constants, workspace, isph, phi_n, force(:, isph))
     end do
 
-    deallocate(phi_n, phi_n2, coefY_d, gradpsi_grid, stat=istat)
+    deallocate(phi_n, phi_n2, gradpsi_grid, stat=istat)
     if (istat.ne.0) stop 1
+    if (allocated(coefY_d)) then
+        deallocate(coefY_d, stat=istat)
+        if (istat.ne.0) stop 1
+    end if
 end subroutine contract_grad_f_worker2
 
 !> Subroutine to compute derivative of potential at spheres

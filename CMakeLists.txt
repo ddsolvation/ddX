@@ -37,7 +37,14 @@ file(STRINGS "VERSION.txt" VERSION LIMIT_COUNT 1)
 message(STATUS "Configuring ddX ${VERSION}")
 
 # Create project and check Fortran compiler
+# CXX compiler is only needed to properly find Intel MKL
 project(ddX VERSION ${VERSION} LANGUAGES Fortran CXX)
+
+# Add flag in case of Intel compiler to avoid fast inaccurate math
+if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+    add_compile_options(-fp-model=precise)
+    message(STATUS "Extending Intel compiler flags by \"-fp-model=precise\"")
+endif()
 
 # Extend path for additional cmake modules
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
@@ -67,12 +74,11 @@ endif()
 
 
 ###############################################################################
-##                REQUIREMENTS: OpenMP, BLAS AND LAPACK                      ##
+##                       REQUIREMENTS: BLAS AND LAPACK                       ##
 ###############################################################################
 
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
-find_package(OpenMP REQUIRED)
 
 ###############################################################################
 ##                           DEFINE OPTIONS                                  ##
@@ -81,6 +87,11 @@ find_package(OpenMP REQUIRED)
 # Options for build type for a convenient ccmake use
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
     None Debug Release RelWithDebInfo MinSizeRel)
+
+# Check if OpenMP support is required
+# Currently, OpenMP is a must as we rely on function omp_get_wtime(), please do
+# not turn it off
+option(OPENMP "Enable OpenMP support" ON)
 
 # Build tests
 option(TESTS "Generate testing binaries" ON)
@@ -91,10 +102,18 @@ option(DOCS "Build documentation" ON)
 # Check if a code coverage report is needed
 option(COVERAGE "Generate code coverage report" OFF)
 
-#
 ###############################################################################
 ##                               CHECK OPTIONS                               ##
 ###############################################################################
+
+# Check OpenMP support
+if(NOT OPENMP)
+    message(FATAL_ERROR "Although OPENMP is an option, is must be ON in the \
+    current release")
+endif()
+if(NOT TARGET OpenMP::OpenMP_Fortran AND OPENMP)
+    find_package(OpenMP REQUIRED)
+endif()
 
 # Check if need to build documentation
 if(DOCS)
@@ -243,6 +262,12 @@ install(
     EXPORT ddXTargets
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+)
+
+# Install ddx_driver
+install(
+    TARGETS ddx_driver
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 
 # Install header files
