@@ -21,6 +21,8 @@ var ddx__operators_8f90 =
     [ "gradr_fmm", "ddx__operators_8f90.html#a56e5aed806e650ee042f7a09b81b672f", null ],
     [ "bstarx", "ddx__operators_8f90.html#a76da5c9463ec313c71c7f3764c572165", null ],
     [ "bx", "ddx__operators_8f90.html#a68303147fb9fe072ab34096910280f1a", null ],
+    [ "tx", "ddx__operators_8f90.html#a92077fecd6f7c3ab9b4be15323cdadb2", null ],
+    [ "tstarx", "ddx__operators_8f90.html#a255d38c63d567d20e2844c8d015d1c0f", null ],
     [ "bx_prec", "ddx__operators_8f90.html#aa910ba16eb7aa581ab1f314124e6e0fd", null ],
     [ "prec_tstarx", "ddx__operators_8f90.html#ab5909858cddd80271567d2d910d730f2", null ],
     [ "prec_tx", "ddx__operators_8f90.html#a31ded2fe034b4750fa14adbb07cb50dd", null ],

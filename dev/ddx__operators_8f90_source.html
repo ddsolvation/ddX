@@ -1309,411 +1309,463 @@ $(document).ready(function(){initNavTree('ddx__operators_8f90_source.html',''); 
 <div class="line"><a name="l01258"></a><span class="lineno"> 1258</span>&#160;    <span class="keywordflow">if</span> (constants % dodiag) y = y + x</div>
 <div class="line"><a name="l01259"></a><span class="lineno"> 1259</span>&#160;<span class="keyword">end subroutine </span>bstarx</div>
 <div class="line"><a name="l01260"></a><span class="lineno"> 1260</span>&#160; </div>
-<div class="line"><a name="l01261"></a><span class="lineno"> 1261</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l01262"></a><span class="lineno"> 1262</span>&#160;<span class="comment">! Subroutine used for the GMRES solver</span></div>
-<div class="line"><a name="l01263"></a><span class="lineno"> 1263</span>&#160;<span class="comment">! @param[in]      n : Size of the matrix</span></div>
-<div class="line"><a name="l01264"></a><span class="lineno"> 1264</span>&#160;<span class="comment">! @param[in]      x : Input vector</span></div>
-<div class="line"><a name="l01265"></a><span class="lineno"> 1265</span>&#160;<span class="comment">! @param[in, out] y : y=A*x</span></div>
-<div class="line"><a name="l01266"></a><span class="lineno"> 1266</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l01267"></a><span class="lineno"> 1267</span>&#160;<span class="keyword">subroutine </span>bx(params, constants, workspace, x, y)</div>
-<div class="line"><a name="l01268"></a><span class="lineno"> 1268</span>&#160;    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a name="l01269"></a><span class="lineno"> 1269</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a name="l01270"></a><span class="lineno"> 1270</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a name="l01271"></a><span class="lineno"> 1271</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a name="l01272"></a><span class="lineno"> 1272</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph)</span>, <span class="keywordtype">intent(in)</span> :: x</div>
-<div class="line"><a name="l01273"></a><span class="lineno"> 1273</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph)</span>, <span class="keywordtype">intent(out)</span> :: y</div>
-<div class="line"><a name="l01274"></a><span class="lineno"> 1274</span>&#160;    <span class="keywordtype">integer</span> :: isph, jsph, ij, iproc</div>
-<div class="line"><a name="l01275"></a><span class="lineno"> 1275</span>&#160; </div>
-<div class="line"><a name="l01276"></a><span class="lineno"> 1276</span>&#160;    y = zero</div>
-<div class="line"><a name="l01277"></a><span class="lineno"> 1277</span>&#160;    <span class="keywordflow">if</span> (params % matvecmem .eq. 1) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01278"></a><span class="lineno"> 1278</span>&#160;        <span class="comment">!$omp parallel do default(none) shared(params,constants,x,y) &amp;</span></div>
-<div class="line"><a name="l01279"></a><span class="lineno"> 1279</span>&#160;        <span class="comment">!$omp private(isph,ij,jsph) schedule(dynamic)</span></div>
-<div class="line"><a name="l01280"></a><span class="lineno"> 1280</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01281"></a><span class="lineno"> 1281</span>&#160;            <span class="keywordflow">do</span> ij = constants % inl(isph), constants % inl(isph + 1) - 1</div>
-<div class="line"><a name="l01282"></a><span class="lineno"> 1282</span>&#160;                jsph = constants % nl(ij)</div>
-<div class="line"><a name="l01283"></a><span class="lineno"> 1283</span>&#160;                <span class="keyword">call </span>dgemv(<span class="stringliteral">&#39;n&#39;</span>, constants % nbasis, constants % nbasis, one, &amp;</div>
-<div class="line"><a name="l01284"></a><span class="lineno"> 1284</span>&#160;                    &amp; constants % b(:,:,ij), constants % nbasis, x(:,jsph), 1, &amp;</div>
-<div class="line"><a name="l01285"></a><span class="lineno"> 1285</span>&#160;                    &amp; one, y(:,isph), 1)</div>
-<div class="line"><a name="l01286"></a><span class="lineno"> 1286</span>&#160;<span class="keywordflow">            end do</span></div>
-<div class="line"><a name="l01287"></a><span class="lineno"> 1287</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l01288"></a><span class="lineno"> 1288</span>&#160;    <span class="keywordflow">else</span> </div>
-<div class="line"><a name="l01289"></a><span class="lineno"> 1289</span>&#160;        <span class="comment">!$omp parallel do default(none) shared(params,constants,workspace,x,y) &amp;</span></div>
-<div class="line"><a name="l01290"></a><span class="lineno"> 1290</span>&#160;        <span class="comment">!$omp private(isph,iproc) schedule(dynamic)</span></div>
-<div class="line"><a name="l01291"></a><span class="lineno"> 1291</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01292"></a><span class="lineno"> 1292</span>&#160;          iproc = omp_get_thread_num() + 1</div>
-<div class="line"><a name="l01293"></a><span class="lineno"> 1293</span>&#160;          <span class="keyword">call </span>calcv2_lpb(params, constants, isph, workspace % tmp_pot(:, iproc), x, &amp;</div>
-<div class="line"><a name="l01294"></a><span class="lineno"> 1294</span>&#160;              &amp; workspace % tmp_vylm, workspace % tmp_vplm, workspace % tmp_vcos, &amp;</div>
-<div class="line"><a name="l01295"></a><span class="lineno"> 1295</span>&#160;              &amp; workspace % tmp_vsin, workspace % tmp_bessel)</div>
-<div class="line"><a name="l01296"></a><span class="lineno"> 1296</span>&#160;          <span class="keyword">call </span>ddintegrate(1, constants % nbasis, params % ngrid, constants % vwgrid, &amp;</div>
-<div class="line"><a name="l01297"></a><span class="lineno"> 1297</span>&#160;              &amp; constants % vgrid_nbasis, workspace % tmp_pot(:, iproc), y(:,isph))</div>
-<div class="line"><a name="l01298"></a><span class="lineno"> 1298</span>&#160;          y(:,isph) = - y(:,isph) </div>
-<div class="line"><a name="l01299"></a><span class="lineno"> 1299</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l01300"></a><span class="lineno"> 1300</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l01301"></a><span class="lineno"> 1301</span>&#160;    <span class="keywordflow">if</span> (constants % dodiag) y = y + x</div>
-<div class="line"><a name="l01302"></a><span class="lineno"> 1302</span>&#160;<span class="keyword">end subroutine </span>bx</div>
-<div class="line"><a name="l01303"></a><span class="lineno"> 1303</span>&#160; </div>
-<div class="line"><a name="l01304"></a><span class="lineno"> 1304</span>&#160;<span class="keyword">subroutine </span>bx_prec(params, constants, workspace, x, y)</div>
-<div class="line"><a name="l01305"></a><span class="lineno"> 1305</span>&#160;    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a name="l01306"></a><span class="lineno"> 1306</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a name="l01307"></a><span class="lineno"> 1307</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a name="l01308"></a><span class="lineno"> 1308</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a name="l01309"></a><span class="lineno"> 1309</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph)</span>, <span class="keywordtype">intent(in)</span> :: x</div>
-<div class="line"><a name="l01310"></a><span class="lineno"> 1310</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph)</span>, <span class="keywordtype">intent(out)</span> :: y</div>
-<div class="line"><a name="l01311"></a><span class="lineno"> 1311</span>&#160;    y = x</div>
-<div class="line"><a name="l01312"></a><span class="lineno"> 1312</span>&#160;<span class="keyword">end subroutine </span>bx_prec</div>
-<div class="line"><a name="l01313"></a><span class="lineno"> 1313</span>&#160; </div>
-<div class="line"><a name="l01314"></a><span class="lineno"> 1314</span>&#160;<span class="keyword">subroutine </span>prec_tstarx(params, constants, workspace, x, y)</div>
-<div class="line"><a name="l01315"></a><span class="lineno"> 1315</span>&#160;    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a name="l01316"></a><span class="lineno"> 1316</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a name="l01317"></a><span class="lineno"> 1317</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a name="l01318"></a><span class="lineno"> 1318</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a name="l01319"></a><span class="lineno"> 1319</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: x(constants % nbasis, params % nsph, 2)</div>
-<div class="line"><a name="l01320"></a><span class="lineno"> 1320</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(inout)</span> :: y(constants % nbasis, params % nsph, 2)</div>
-<div class="line"><a name="l01321"></a><span class="lineno"> 1321</span>&#160;    <span class="keywordtype">integer</span> :: n_iter, info</div>
-<div class="line"><a name="l01322"></a><span class="lineno"> 1322</span>&#160;<span class="keywordtype">    real</span>(dp) :: r_norm</div>
-<div class="line"><a name="l01323"></a><span class="lineno"> 1323</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(params % maxiter)</span> :: x_rel_diff</div>
-<div class="line"><a name="l01324"></a><span class="lineno"> 1324</span>&#160; </div>
-<div class="line"><a name="l01325"></a><span class="lineno"> 1325</span>&#160;    y(:,:,1) = x(:,:,1)</div>
-<div class="line"><a name="l01326"></a><span class="lineno"> 1326</span>&#160;    <span class="keyword">call </span>convert_ddcosmo(params, constants, 1, y(:,:,1))</div>
-<div class="line"><a name="l01327"></a><span class="lineno"> 1327</span>&#160;    n_iter = params % maxiter</div>
-<div class="line"><a name="l01328"></a><span class="lineno"> 1328</span>&#160;    <span class="keywordflow">if</span> (params % itersolver .eq. 1) <span class="keywordflow">then</span> </div>
-<div class="line"><a name="l01329"></a><span class="lineno"> 1329</span>&#160;        <span class="keyword">call </span><a class="code" href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, y(:,:,1), &amp;</div>
-<div class="line"><a name="l01330"></a><span class="lineno"> 1330</span>&#160;            &amp; workspace % ddcosmo_guess, n_iter, x_rel_diff, <a class="code" href="namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52">lstarx</a>, <a class="code" href="namespaceddx__operators.html#a73668d47230f4292955012f9910e4ecc">ldm1x</a>, hnorm, info)</div>
-<div class="line"><a name="l01331"></a><span class="lineno"> 1331</span>&#160;    <span class="keywordflow">else</span></div>
-<div class="line"><a name="l01332"></a><span class="lineno"> 1332</span>&#160;        <span class="keyword">call </span>gmresr(params, constants, workspace, constants % inner_tol, y(:,:,1), &amp;</div>
-<div class="line"><a name="l01333"></a><span class="lineno"> 1333</span>&#160;            &amp; workspace % ddcosmo_guess, n_iter, r_norm, <a class="code" href="namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52">lstarx</a>, info)</div>
-<div class="line"><a name="l01334"></a><span class="lineno"> 1334</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l01335"></a><span class="lineno"> 1335</span>&#160;    <span class="keywordflow">if</span> (info.ne.0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01336"></a><span class="lineno"> 1336</span>&#160;        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39;prec_tstarx: [1] ddCOSMO failed to converge&#39;</span></div>
-<div class="line"><a name="l01337"></a><span class="lineno"> 1337</span>&#160;        stop 1</div>
-<div class="line"><a name="l01338"></a><span class="lineno"> 1338</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l01339"></a><span class="lineno"> 1339</span>&#160;    y(:,:,1) = workspace % ddcosmo_guess</div>
-<div class="line"><a name="l01340"></a><span class="lineno"> 1340</span>&#160; </div>
-<div class="line"><a name="l01341"></a><span class="lineno"> 1341</span>&#160;    n_iter = params % maxiter</div>
-<div class="line"><a name="l01342"></a><span class="lineno"> 1342</span>&#160;    <span class="keywordflow">if</span> (params % itersolver .eq. 1) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01343"></a><span class="lineno"> 1343</span>&#160;        <span class="keyword">call </span><a class="code" href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &amp;</div>
-<div class="line"><a name="l01344"></a><span class="lineno"> 1344</span>&#160;            &amp; n_iter, x_rel_diff, bstarx, bx_prec, hnorm, info)</div>
-<div class="line"><a name="l01345"></a><span class="lineno"> 1345</span>&#160;    <span class="keywordflow">else</span></div>
-<div class="line"><a name="l01346"></a><span class="lineno"> 1346</span>&#160;        <span class="keyword">call </span>gmresr(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &amp;</div>
-<div class="line"><a name="l01347"></a><span class="lineno"> 1347</span>&#160;           &amp; n_iter, r_norm, bstarx, info)</div>
-<div class="line"><a name="l01348"></a><span class="lineno"> 1348</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l01349"></a><span class="lineno"> 1349</span>&#160;    <span class="keywordflow">if</span> (info.ne.0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01350"></a><span class="lineno"> 1350</span>&#160;        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39;prec_tstarx: [1] HSP failed to converge&#39;</span></div>
-<div class="line"><a name="l01351"></a><span class="lineno"> 1351</span>&#160;        stop 1</div>
-<div class="line"><a name="l01352"></a><span class="lineno"> 1352</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l01353"></a><span class="lineno"> 1353</span>&#160;    y(:,:,2) = workspace % hsp_guess</div>
-<div class="line"><a name="l01354"></a><span class="lineno"> 1354</span>&#160; </div>
-<div class="line"><a name="l01355"></a><span class="lineno"> 1355</span>&#160;<span class="keyword">end subroutine </span>prec_tstarx</div>
-<div class="line"><a name="l01356"></a><span class="lineno"> 1356</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l01357"></a><span class="lineno"> 1357</span>&#160;<span class="comment">! apply preconditioner</span></div>
-<div class="line"><a name="l01358"></a><span class="lineno"> 1358</span>&#160;<span class="comment">! |Yr| = |A^-1 0 |*|Xr|</span></div>
-<div class="line"><a name="l01359"></a><span class="lineno"> 1359</span>&#160;<span class="comment">! |Ye|   |0 B^-1 | |Xe|</span></div>
-<div class="line"><a name="l01360"></a><span class="lineno"> 1360</span>&#160;<span class="comment">! @param[in] ddx_data : dd Data</span></div>
-<div class="line"><a name="l01361"></a><span class="lineno"> 1361</span>&#160;<span class="comment">! @param[in] x        : Input array</span></div>
-<div class="line"><a name="l01362"></a><span class="lineno"> 1362</span>&#160;<span class="comment">! @param[out] y       : Linear system solution at current iteration</span></div>
-<div class="line"><a name="l01363"></a><span class="lineno"> 1363</span>&#160;<span class="keyword">subroutine </span>prec_tx(params, constants, workspace, x, y)</div>
-<div class="line"><a name="l01364"></a><span class="lineno"> 1364</span>&#160;    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a name="l01365"></a><span class="lineno"> 1365</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a name="l01366"></a><span class="lineno"> 1366</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a name="l01367"></a><span class="lineno"> 1367</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a name="l01368"></a><span class="lineno"> 1368</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: x(constants % nbasis, params % nsph, 2)</div>
-<div class="line"><a name="l01369"></a><span class="lineno"> 1369</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(inout)</span> :: y(constants % nbasis, params % nsph, 2)</div>
-<div class="line"><a name="l01370"></a><span class="lineno"> 1370</span>&#160;    <span class="keywordtype">integer</span> :: n_iter, info</div>
-<div class="line"><a name="l01371"></a><span class="lineno"> 1371</span>&#160;<span class="keywordtype">    real</span>(dp) :: r_norm</div>
-<div class="line"><a name="l01372"></a><span class="lineno"> 1372</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(params % maxiter)</span> :: x_rel_diff</div>
-<div class="line"><a name="l01373"></a><span class="lineno"> 1373</span>&#160; </div>
-<div class="line"><a name="l01374"></a><span class="lineno"> 1374</span>&#160;    <span class="comment">! perform A^-1 * Yr</span></div>
-<div class="line"><a name="l01375"></a><span class="lineno"> 1375</span>&#160;    n_iter = params % maxiter</div>
-<div class="line"><a name="l01376"></a><span class="lineno"> 1376</span>&#160;    <span class="keywordflow">if</span> (params % itersolver .eq. 1) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01377"></a><span class="lineno"> 1377</span>&#160;        <span class="keyword">call </span><a class="code" href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, x(:,:,1), &amp;</div>
-<div class="line"><a name="l01378"></a><span class="lineno"> 1378</span>&#160;            &amp; workspace % ddcosmo_guess, n_iter, x_rel_diff, <a class="code" href="namespaceddx__operators.html#ac2a84b8394941ee2bf6d8f3e44127be3">lx</a>, <a class="code" href="namespaceddx__operators.html#a73668d47230f4292955012f9910e4ecc">ldm1x</a>, hnorm, info)</div>
-<div class="line"><a name="l01379"></a><span class="lineno"> 1379</span>&#160;    <span class="keywordflow">else</span></div>
-<div class="line"><a name="l01380"></a><span class="lineno"> 1380</span>&#160;        <span class="keyword">call </span>gmresr(params, constants, workspace, constants % inner_tol, x(:,:,1), &amp;</div>
-<div class="line"><a name="l01381"></a><span class="lineno"> 1381</span>&#160;            &amp; workspace % ddcosmo_guess, n_iter, r_norm, <a class="code" href="namespaceddx__operators.html#ac2a84b8394941ee2bf6d8f3e44127be3">lx</a>, info)</div>
-<div class="line"><a name="l01382"></a><span class="lineno"> 1382</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l01383"></a><span class="lineno"> 1383</span>&#160;    <span class="keywordflow">if</span> (info.ne.0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01384"></a><span class="lineno"> 1384</span>&#160;        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39;prec_tx: [1] ddCOSMO failed to converge&#39;</span></div>
-<div class="line"><a name="l01385"></a><span class="lineno"> 1385</span>&#160;        stop 1</div>
-<div class="line"><a name="l01386"></a><span class="lineno"> 1386</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l01387"></a><span class="lineno"> 1387</span>&#160; </div>
-<div class="line"><a name="l01388"></a><span class="lineno"> 1388</span>&#160;    <span class="comment">! Scale by the factor of (2l+1)/4Pi</span></div>
-<div class="line"><a name="l01389"></a><span class="lineno"> 1389</span>&#160;    y(:,:,1) = workspace % ddcosmo_guess</div>
-<div class="line"><a name="l01390"></a><span class="lineno"> 1390</span>&#160;    <span class="keyword">call </span>convert_ddcosmo(params, constants, 1, y(:,:,1))</div>
-<div class="line"><a name="l01391"></a><span class="lineno"> 1391</span>&#160; </div>
-<div class="line"><a name="l01392"></a><span class="lineno"> 1392</span>&#160;    <span class="comment">! perform B^-1 * Ye</span></div>
-<div class="line"><a name="l01393"></a><span class="lineno"> 1393</span>&#160;    n_iter = params % maxiter</div>
-<div class="line"><a name="l01394"></a><span class="lineno"> 1394</span>&#160;    <span class="keywordflow">if</span> (params % itersolver .eq. 1) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01395"></a><span class="lineno"> 1395</span>&#160;        <span class="keyword">call </span><a class="code" href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &amp;</div>
-<div class="line"><a name="l01396"></a><span class="lineno"> 1396</span>&#160;            &amp; n_iter, x_rel_diff, bx, bx_prec, hnorm, info)</div>
-<div class="line"><a name="l01397"></a><span class="lineno"> 1397</span>&#160;    <span class="keywordflow">else</span></div>
-<div class="line"><a name="l01398"></a><span class="lineno"> 1398</span>&#160;        <span class="keyword">call </span>gmresr(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &amp;</div>
-<div class="line"><a name="l01399"></a><span class="lineno"> 1399</span>&#160;         &amp; n_iter, r_norm, bx, info)</div>
-<div class="line"><a name="l01400"></a><span class="lineno"> 1400</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l01401"></a><span class="lineno"> 1401</span>&#160;    y(:,:,2) = workspace % hsp_guess</div>
-<div class="line"><a name="l01402"></a><span class="lineno"> 1402</span>&#160; </div>
-<div class="line"><a name="l01403"></a><span class="lineno"> 1403</span>&#160;    <span class="keywordflow">if</span> (info.ne.0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01404"></a><span class="lineno"> 1404</span>&#160;        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39;prec_tx: [1] HSP failed to converge&#39;</span></div>
-<div class="line"><a name="l01405"></a><span class="lineno"> 1405</span>&#160;        stop 1</div>
-<div class="line"><a name="l01406"></a><span class="lineno"> 1406</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l01407"></a><span class="lineno"> 1407</span>&#160;<span class="keyword">end subroutine </span>prec_tx</div>
-<div class="line"><a name="l01408"></a><span class="lineno"> 1408</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l01409"></a><span class="lineno"> 1409</span>&#160;<span class="keyword">subroutine </span>cstarx(params, constants, workspace, x, y)</div>
-<div class="line"><a name="l01410"></a><span class="lineno"> 1410</span>&#160;    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a name="l01411"></a><span class="lineno"> 1411</span>&#160;    <span class="comment">! input/output</span></div>
-<div class="line"><a name="l01412"></a><span class="lineno"> 1412</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a name="l01413"></a><span class="lineno"> 1413</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a name="l01414"></a><span class="lineno"> 1414</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a name="l01415"></a><span class="lineno"> 1415</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span>, <span class="keywordtype">intent(in)</span> :: x</div>
-<div class="line"><a name="l01416"></a><span class="lineno"> 1416</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span>, <span class="keywordtype">intent(out)</span> :: y</div>
-<div class="line"><a name="l01417"></a><span class="lineno"> 1417</span>&#160;    <span class="comment">! local</span></div>
-<div class="line"><a name="l01418"></a><span class="lineno"> 1418</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(0:constants % lmax0)</span> :: SK_rijn, DK_rijn</div>
-<div class="line"><a name="l01419"></a><span class="lineno"> 1419</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis)</span> :: basloc, vplm</div>
-<div class="line"><a name="l01420"></a><span class="lineno"> 1420</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(params % lmax + 1)</span> :: vcos, vsin</div>
-<div class="line"><a name="l01421"></a><span class="lineno"> 1421</span>&#160;    <span class="keywordtype">complex(dp)</span> :: bessel_work(max(2, params % lmax+1))</div>
-<div class="line"><a name="l01422"></a><span class="lineno"> 1422</span>&#160;    <span class="keywordtype">complex(dp)</span> :: work_complex(constants % lmax0+1)</div>
-<div class="line"><a name="l01423"></a><span class="lineno"> 1423</span>&#160;<span class="keywordtype">    real</span>(dp) :: work(constants % lmax0+1)</div>
-<div class="line"><a name="l01424"></a><span class="lineno"> 1424</span>&#160;    <span class="keywordtype">integer</span> :: isph, igrid, jsph, ind, l0, m0, ind0, indl, inode, l, m</div>
-<div class="line"><a name="l01425"></a><span class="lineno"> 1425</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(3)</span> :: vij, vtij</div>
-<div class="line"><a name="l01426"></a><span class="lineno"> 1426</span>&#160;<span class="keywordtype">    real</span>(dp) :: val, epsilon_ratio</div>
-<div class="line"><a name="l01427"></a><span class="lineno"> 1427</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: scratch(:,:), scratch0(:,:)</div>
-<div class="line"><a name="l01428"></a><span class="lineno"> 1428</span>&#160; </div>
-<div class="line"><a name="l01429"></a><span class="lineno"> 1429</span>&#160;    <span class="keyword">allocate</span>(scratch(constants % nbasis, params % nsph), &amp;</div>
-<div class="line"><a name="l01430"></a><span class="lineno"> 1430</span>&#160;        &amp; scratch0(constants % nbasis0, params % nsph))</div>
-<div class="line"><a name="l01431"></a><span class="lineno"> 1431</span>&#160; </div>
-<div class="line"><a name="l01432"></a><span class="lineno"> 1432</span>&#160;    epsilon_ratio = params % epsp/params % eps</div>
-<div class="line"><a name="l01433"></a><span class="lineno"> 1433</span>&#160; </div>
-<div class="line"><a name="l01434"></a><span class="lineno"> 1434</span>&#160;    <span class="comment">! TODO: maybe use ddeval_grid for code consistency</span></div>
-<div class="line"><a name="l01435"></a><span class="lineno"> 1435</span>&#160;    scratch = - x(:,:,1) - x(:,:,2)</div>
-<div class="line"><a name="l01436"></a><span class="lineno"> 1436</span>&#160;    <span class="keyword">call </span>dgemm(<span class="stringliteral">&#39;T&#39;</span>, <span class="stringliteral">&#39;N&#39;</span>, params % ngrid, params % nsph, constants % nbasis, &amp;</div>
-<div class="line"><a name="l01437"></a><span class="lineno"> 1437</span>&#160;        &amp; one, constants % vwgrid, constants % vgrid_nbasis, scratch, &amp;</div>
-<div class="line"><a name="l01438"></a><span class="lineno"> 1438</span>&#160;        &amp; constants % nbasis, zero, workspace % tmp_grid, params % ngrid)</div>
-<div class="line"><a name="l01439"></a><span class="lineno"> 1439</span>&#160; </div>
-<div class="line"><a name="l01440"></a><span class="lineno"> 1440</span>&#160;    scratch0 = zero</div>
-<div class="line"><a name="l01441"></a><span class="lineno"> 1441</span>&#160;    <span class="keywordflow">if</span> (params % fmm .eq. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01442"></a><span class="lineno"> 1442</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01443"></a><span class="lineno"> 1443</span>&#160;            <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a name="l01444"></a><span class="lineno"> 1444</span>&#160;                <span class="keywordflow">if</span> (constants % ui(igrid, isph).gt.zero) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01445"></a><span class="lineno"> 1445</span>&#160;                    val = workspace % tmp_grid(igrid,isph) &amp;</div>
-<div class="line"><a name="l01446"></a><span class="lineno"> 1446</span>&#160;                        &amp; *constants % ui(igrid,isph)</div>
-<div class="line"><a name="l01447"></a><span class="lineno"> 1447</span>&#160;                    <span class="comment">! quadratically scaling loop</span></div>
-<div class="line"><a name="l01448"></a><span class="lineno"> 1448</span>&#160;                    <span class="keywordflow">do</span> jsph = 1, params % nsph</div>
-<div class="line"><a name="l01449"></a><span class="lineno"> 1449</span>&#160;                        vij  = params % csph(:,isph) + &amp;</div>
-<div class="line"><a name="l01450"></a><span class="lineno"> 1450</span>&#160;                            &amp; params % rsph(isph)*constants % cgrid(:,igrid) - &amp;</div>
-<div class="line"><a name="l01451"></a><span class="lineno"> 1451</span>&#160;                            &amp; params % csph(:,jsph)</div>
-<div class="line"><a name="l01452"></a><span class="lineno"> 1452</span>&#160;                        vtij = vij * params % kappa</div>
-<div class="line"><a name="l01453"></a><span class="lineno"> 1453</span>&#160;                        <span class="keyword">call </span>fmm_m2p_bessel_adj_work(vtij, val, &amp;</div>
-<div class="line"><a name="l01454"></a><span class="lineno"> 1454</span>&#160;                            &amp; constants % SK_ri(:, jsph), constants % lmax0, &amp;</div>
-<div class="line"><a name="l01455"></a><span class="lineno"> 1455</span>&#160;                            &amp; constants % vscales, one, scratch0(:, jsph), &amp;</div>
-<div class="line"><a name="l01456"></a><span class="lineno"> 1456</span>&#160;                            &amp; work_complex, work)</div>
-<div class="line"><a name="l01457"></a><span class="lineno"> 1457</span>&#160;<span class="keywordflow">                    end do</span></div>
-<div class="line"><a name="l01458"></a><span class="lineno"> 1458</span>&#160;<span class="keywordflow">                end if</span></div>
-<div class="line"><a name="l01459"></a><span class="lineno"> 1459</span>&#160;<span class="keywordflow">            end do</span></div>
-<div class="line"><a name="l01460"></a><span class="lineno"> 1460</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l01461"></a><span class="lineno"> 1461</span>&#160;    <span class="keywordflow">else</span></div>
-<div class="line"><a name="l01462"></a><span class="lineno"> 1462</span>&#160;        <span class="comment">! Multiply by characteristic function</span></div>
-<div class="line"><a name="l01463"></a><span class="lineno"> 1463</span>&#160;        workspace % tmp_grid = workspace % tmp_grid * constants % ui</div>
-<div class="line"><a name="l01464"></a><span class="lineno"> 1464</span>&#160;        workspace % tmp_sph = zero</div>
-<div class="line"><a name="l01465"></a><span class="lineno"> 1465</span>&#160;        <span class="comment">! Do FMM operations adjointly</span></div>
-<div class="line"><a name="l01466"></a><span class="lineno"> 1466</span>&#160;        <span class="keyword">call </span>tree_m2p_bessel_adj(params, constants, constants % lmax0, &amp;</div>
-<div class="line"><a name="l01467"></a><span class="lineno"> 1467</span>&#160;            &amp; one, workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)</div>
-<div class="line"><a name="l01468"></a><span class="lineno"> 1468</span>&#160;        <span class="keyword">call </span>tree_l2p_bessel_adj(params, constants, one, &amp;</div>
-<div class="line"><a name="l01469"></a><span class="lineno"> 1469</span>&#160;            &amp; workspace % tmp_grid, zero, workspace % tmp_node_l)</div>
-<div class="line"><a name="l01470"></a><span class="lineno"> 1470</span>&#160;        <span class="keyword">call </span>tree_l2l_bessel_rotation_adj(params, constants, &amp;</div>
-<div class="line"><a name="l01471"></a><span class="lineno"> 1471</span>&#160;            &amp; workspace % tmp_node_l)</div>
-<div class="line"><a name="l01472"></a><span class="lineno"> 1472</span>&#160;        <span class="keyword">call </span>tree_m2l_bessel_rotation_adj(params, constants, &amp;</div>
-<div class="line"><a name="l01473"></a><span class="lineno"> 1473</span>&#160;            &amp; workspace % tmp_node_l, workspace % tmp_node_m)</div>
-<div class="line"><a name="l01474"></a><span class="lineno"> 1474</span>&#160;        <span class="keyword">call </span>tree_m2m_bessel_rotation_adj(params, constants, &amp;</div>
-<div class="line"><a name="l01475"></a><span class="lineno"> 1475</span>&#160;            &amp; workspace % tmp_node_m)</div>
-<div class="line"><a name="l01476"></a><span class="lineno"> 1476</span>&#160;        <span class="comment">! Adjointly move tree multipole harmonics into output</span></div>
-<div class="line"><a name="l01477"></a><span class="lineno"> 1477</span>&#160;        <span class="keywordflow">if</span>(constants % lmax0 .lt. params % pm) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01478"></a><span class="lineno"> 1478</span>&#160;            <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01479"></a><span class="lineno"> 1479</span>&#160;                inode = constants % snode(isph)</div>
-<div class="line"><a name="l01480"></a><span class="lineno"> 1480</span>&#160;                scratch0(:, isph) = workspace % tmp_sph(1:constants % nbasis0, isph) + &amp;</div>
-<div class="line"><a name="l01481"></a><span class="lineno"> 1481</span>&#160;                    &amp; workspace % tmp_node_m(1:constants % nbasis0, inode)</div>
-<div class="line"><a name="l01482"></a><span class="lineno"> 1482</span>&#160;<span class="keywordflow">            end do</span></div>
-<div class="line"><a name="l01483"></a><span class="lineno"> 1483</span>&#160;        <span class="keywordflow">else</span></div>
-<div class="line"><a name="l01484"></a><span class="lineno"> 1484</span>&#160;            indl = (params % pm+1)**2</div>
-<div class="line"><a name="l01485"></a><span class="lineno"> 1485</span>&#160;            <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01486"></a><span class="lineno"> 1486</span>&#160;                inode = constants % snode(isph)</div>
-<div class="line"><a name="l01487"></a><span class="lineno"> 1487</span>&#160;                scratch0(1:indl, isph) = &amp;</div>
-<div class="line"><a name="l01488"></a><span class="lineno"> 1488</span>&#160;                    &amp; workspace % tmp_sph(1:indl, isph) + &amp;</div>
-<div class="line"><a name="l01489"></a><span class="lineno"> 1489</span>&#160;                    &amp; workspace % tmp_node_m(:, inode)</div>
-<div class="line"><a name="l01490"></a><span class="lineno"> 1490</span>&#160;                scratch0(indl+1:, isph) = zero</div>
-<div class="line"><a name="l01491"></a><span class="lineno"> 1491</span>&#160;<span class="keywordflow">            end do</span></div>
-<div class="line"><a name="l01492"></a><span class="lineno"> 1492</span>&#160;<span class="keywordflow">        end if</span></div>
-<div class="line"><a name="l01493"></a><span class="lineno"> 1493</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l01494"></a><span class="lineno"> 1494</span>&#160;    <span class="comment">! Scale by C_ik</span></div>
-<div class="line"><a name="l01495"></a><span class="lineno"> 1495</span>&#160;    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01496"></a><span class="lineno"> 1496</span>&#160;        <span class="keywordflow">do</span> l0 = 0, constants % lmax0</div>
-<div class="line"><a name="l01497"></a><span class="lineno"> 1497</span>&#160;            ind0 = l0*l0 + l0 + 1</div>
-<div class="line"><a name="l01498"></a><span class="lineno"> 1498</span>&#160;            scratch0(ind0-l0:ind0+l0, isph) = scratch0(ind0-l0:ind0+l0, isph) * &amp;</div>
-<div class="line"><a name="l01499"></a><span class="lineno"> 1499</span>&#160;                &amp; constants % C_ik(l0, isph)</div>
-<div class="line"><a name="l01500"></a><span class="lineno"> 1500</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l01501"></a><span class="lineno"> 1501</span>&#160;<span class="keywordflow">    end do</span></div>
-<div class="line"><a name="l01502"></a><span class="lineno"> 1502</span>&#160; </div>
-<div class="line"><a name="l01503"></a><span class="lineno"> 1503</span>&#160;    <span class="keywordflow">do</span> jsph = 1, params % nsph</div>
-<div class="line"><a name="l01504"></a><span class="lineno"> 1504</span>&#160;        <span class="keyword">call </span>dgemv(<span class="stringliteral">&#39;n&#39;</span>, constants % nbasis, constants % nbasis0, one, &amp;</div>
-<div class="line"><a name="l01505"></a><span class="lineno"> 1505</span>&#160;            &amp; constants % pchi(1,1,jsph), constants % nbasis, &amp;</div>
-<div class="line"><a name="l01506"></a><span class="lineno"> 1506</span>&#160;            &amp; scratch0(1,jsph), 1, zero, scratch(1,jsph), 1)</div>
-<div class="line"><a name="l01507"></a><span class="lineno"> 1507</span>&#160;<span class="keywordflow">    end do</span></div>
-<div class="line"><a name="l01508"></a><span class="lineno"> 1508</span>&#160; </div>
-<div class="line"><a name="l01509"></a><span class="lineno"> 1509</span>&#160;    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01510"></a><span class="lineno"> 1510</span>&#160;        <span class="keywordflow">do</span> l = 0, params % lmax</div>
-<div class="line"><a name="l01511"></a><span class="lineno"> 1511</span>&#160;            <span class="keywordflow">do</span> m = -l, l</div>
-<div class="line"><a name="l01512"></a><span class="lineno"> 1512</span>&#160;                ind = l**2 + l + m + 1</div>
-<div class="line"><a name="l01513"></a><span class="lineno"> 1513</span>&#160;                y(ind,isph,1) = - (epsilon_ratio*l*scratch(ind,isph)) &amp;</div>
-<div class="line"><a name="l01514"></a><span class="lineno"> 1514</span>&#160;                    &amp; /params % rsph(isph)</div>
-<div class="line"><a name="l01515"></a><span class="lineno"> 1515</span>&#160;                y(ind,isph,2) = constants % termimat(l,isph)*scratch(ind,isph)</div>
-<div class="line"><a name="l01516"></a><span class="lineno"> 1516</span>&#160;<span class="keywordflow">          end do</span></div>
-<div class="line"><a name="l01517"></a><span class="lineno"> 1517</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l01518"></a><span class="lineno"> 1518</span>&#160;<span class="keywordflow">    end do</span></div>
-<div class="line"><a name="l01519"></a><span class="lineno"> 1519</span>&#160; </div>
-<div class="line"><a name="l01520"></a><span class="lineno"> 1520</span>&#160;<span class="keyword">end subroutine </span>cstarx</div>
-<div class="line"><a name="l01521"></a><span class="lineno"> 1521</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l01522"></a><span class="lineno"> 1522</span>&#160;<span class="comment">! Perform |Yr| = |C1 C2|*|Xr|</span></div>
-<div class="line"><a name="l01523"></a><span class="lineno"> 1523</span>&#160;<span class="comment">!         |Ye|   |C1 C2| |Xe|</span></div>
-<div class="line"><a name="l01524"></a><span class="lineno"> 1524</span>&#160;<span class="comment">! @param[in] ddx_data : dd Data</span></div>
-<div class="line"><a name="l01525"></a><span class="lineno"> 1525</span>&#160;<span class="comment">! @param[in] x        : Input array X (Xr, Xe)</span></div>
-<div class="line"><a name="l01526"></a><span class="lineno"> 1526</span>&#160;<span class="comment">! @param[out] y       : Matrix-vector product result Y</span></div>
-<div class="line"><a name="l01527"></a><span class="lineno"> 1527</span>&#160;<span class="keyword">subroutine </span>cx(params, constants, workspace, x, y)</div>
-<div class="line"><a name="l01528"></a><span class="lineno"> 1528</span>&#160;    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a name="l01529"></a><span class="lineno"> 1529</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a name="l01530"></a><span class="lineno"> 1530</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a name="l01531"></a><span class="lineno"> 1531</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a name="l01532"></a><span class="lineno"> 1532</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span>, <span class="keywordtype">intent(in)</span> :: x</div>
-<div class="line"><a name="l01533"></a><span class="lineno"> 1533</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span>, <span class="keywordtype">intent(out)</span> :: y</div>
-<div class="line"><a name="l01534"></a><span class="lineno"> 1534</span>&#160; </div>
-<div class="line"><a name="l01535"></a><span class="lineno"> 1535</span>&#160;    <span class="keywordtype">integer</span> :: isph, jsph, igrid, ind, l, m, ind0</div>
-<div class="line"><a name="l01536"></a><span class="lineno"> 1536</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(3)</span> :: sijn ,vij, vtij</div>
-<div class="line"><a name="l01537"></a><span class="lineno"> 1537</span>&#160;<span class="keywordtype">    real</span>(dp) :: term, rho, ctheta, stheta, cphi, sphi, rijn, val</div>
-<div class="line"><a name="l01538"></a><span class="lineno"> 1538</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis)</span> :: basloc, vplm</div>
-<div class="line"><a name="l01539"></a><span class="lineno"> 1539</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(params % lmax + 1)</span> :: vcos, vsin</div>
-<div class="line"><a name="l01540"></a><span class="lineno"> 1540</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % lmax0 + 1)</span> :: SK_rijn, DK_rijn</div>
-<div class="line"><a name="l01541"></a><span class="lineno"> 1541</span>&#160;    <span class="keywordtype">complex(dp)</span> :: work_complex(constants % lmax0 + 1)</div>
-<div class="line"><a name="l01542"></a><span class="lineno"> 1542</span>&#160;<span class="keywordtype">    real</span>(dp) :: work(constants % lmax0 + 1)</div>
-<div class="line"><a name="l01543"></a><span class="lineno"> 1543</span>&#160;    <span class="keywordtype">integer</span> :: indl, inode</div>
-<div class="line"><a name="l01544"></a><span class="lineno"> 1544</span>&#160; </div>
-<div class="line"><a name="l01545"></a><span class="lineno"> 1545</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: diff_re(:,:), diff0(:,:)</div>
-<div class="line"><a name="l01546"></a><span class="lineno"> 1546</span>&#160;    <span class="keyword">allocate</span>(diff_re(constants % nbasis, params % nsph), &amp;</div>
-<div class="line"><a name="l01547"></a><span class="lineno"> 1547</span>&#160;        &amp; diff0(constants % nbasis0, params % nsph))</div>
-<div class="line"><a name="l01548"></a><span class="lineno"> 1548</span>&#160; </div>
-<div class="line"><a name="l01549"></a><span class="lineno"> 1549</span>&#160;    <span class="comment">! diff_re = params % epsp/eps*l1/ri*Xr - i&#39;(ri)/i(ri)*Xe,</span></div>
-<div class="line"><a name="l01550"></a><span class="lineno"> 1550</span>&#160;    diff_re = zero</div>
-<div class="line"><a name="l01551"></a><span class="lineno"> 1551</span>&#160;    <span class="comment">!$omp parallel do default(none) shared(params,diff_re, &amp;</span></div>
-<div class="line"><a name="l01552"></a><span class="lineno"> 1552</span>&#160;    <span class="comment">!$omp constants,x) private(jsph,l,m,ind)</span></div>
-<div class="line"><a name="l01553"></a><span class="lineno"> 1553</span>&#160;    <span class="keywordflow">do</span> jsph = 1, params % nsph</div>
-<div class="line"><a name="l01554"></a><span class="lineno"> 1554</span>&#160;      <span class="keywordflow">do</span> l = 0, params % lmax</div>
-<div class="line"><a name="l01555"></a><span class="lineno"> 1555</span>&#160;        <span class="keywordflow">do</span> m = -l,l</div>
-<div class="line"><a name="l01556"></a><span class="lineno"> 1556</span>&#160;          ind = l**2 + l + m + 1</div>
-<div class="line"><a name="l01557"></a><span class="lineno"> 1557</span>&#160;          diff_re(ind,jsph) = (params % epsp/params % eps)* &amp;</div>
-<div class="line"><a name="l01558"></a><span class="lineno"> 1558</span>&#160;              &amp; (l/params % rsph(jsph))*x(ind,jsph,1) &amp;</div>
-<div class="line"><a name="l01559"></a><span class="lineno"> 1559</span>&#160;              &amp; - constants % termimat(l,jsph)*x(ind,jsph,2)</div>
-<div class="line"><a name="l01560"></a><span class="lineno"> 1560</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l01561"></a><span class="lineno"> 1561</span>&#160;<span class="keywordflow">      end do</span></div>
-<div class="line"><a name="l01562"></a><span class="lineno"> 1562</span>&#160;<span class="keywordflow">    end do</span></div>
-<div class="line"><a name="l01563"></a><span class="lineno"> 1563</span>&#160; </div>
-<div class="line"><a name="l01564"></a><span class="lineno"> 1564</span>&#160;    <span class="comment">! diff0 = Pchi * diff_er, linear scaling</span></div>
-<div class="line"><a name="l01565"></a><span class="lineno"> 1565</span>&#160;    <span class="comment">!$omp parallel do default(none) shared(constants,params, &amp;</span></div>
-<div class="line"><a name="l01566"></a><span class="lineno"> 1566</span>&#160;    <span class="comment">!$omp diff_re,diff0) private(jsph)</span></div>
-<div class="line"><a name="l01567"></a><span class="lineno"> 1567</span>&#160;    <span class="keywordflow">do</span> jsph = 1, params % nsph</div>
-<div class="line"><a name="l01568"></a><span class="lineno"> 1568</span>&#160;      <span class="keyword">call </span>dgemv(<span class="stringliteral">&#39;t&#39;</span>, constants % nbasis, constants % nbasis0, one, &amp;</div>
-<div class="line"><a name="l01569"></a><span class="lineno"> 1569</span>&#160;          &amp; constants % pchi(1,1,jsph), constants % nbasis, &amp;</div>
-<div class="line"><a name="l01570"></a><span class="lineno"> 1570</span>&#160;          &amp; diff_re(1,jsph), 1, zero, diff0(1,jsph), 1)</div>
-<div class="line"><a name="l01571"></a><span class="lineno"> 1571</span>&#160;<span class="keywordflow">    end do</span></div>
-<div class="line"><a name="l01572"></a><span class="lineno"> 1572</span>&#160; </div>
-<div class="line"><a name="l01573"></a><span class="lineno"> 1573</span>&#160;    <span class="comment">! Multiply diff0 by C_ik inplace</span></div>
+<div class="line"><a name="l01266"></a><span class="lineno"> 1266</span>&#160;<span class="keyword">subroutine </span><a class="code" href="namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a">bx</a>(params, constants, workspace, x, y)</div>
+<div class="line"><a name="l01267"></a><span class="lineno"><a class="line" href="namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a"> 1267</a></span>&#160;    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a name="l01268"></a><span class="lineno"> 1268</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a name="l01269"></a><span class="lineno"> 1269</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a name="l01270"></a><span class="lineno"> 1270</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a name="l01271"></a><span class="lineno"> 1271</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph)</span>, <span class="keywordtype">intent(in)</span> :: x</div>
+<div class="line"><a name="l01272"></a><span class="lineno"> 1272</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph)</span>, <span class="keywordtype">intent(out)</span> :: y</div>
+<div class="line"><a name="l01273"></a><span class="lineno"> 1273</span>&#160;    <span class="keywordtype">integer</span> :: isph, jsph, ij, iproc</div>
+<div class="line"><a name="l01274"></a><span class="lineno"> 1274</span>&#160; </div>
+<div class="line"><a name="l01275"></a><span class="lineno"> 1275</span>&#160;    y = zero</div>
+<div class="line"><a name="l01276"></a><span class="lineno"> 1276</span>&#160;    <span class="keywordflow">if</span> (params % matvecmem .eq. 1) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01277"></a><span class="lineno"> 1277</span>&#160;        <span class="comment">!$omp parallel do default(none) shared(params,constants,x,y) &amp;</span></div>
+<div class="line"><a name="l01278"></a><span class="lineno"> 1278</span>&#160;        <span class="comment">!$omp private(isph,ij,jsph) schedule(dynamic)</span></div>
+<div class="line"><a name="l01279"></a><span class="lineno"> 1279</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l01280"></a><span class="lineno"> 1280</span>&#160;            <span class="keywordflow">do</span> ij = constants % inl(isph), constants % inl(isph + 1) - 1</div>
+<div class="line"><a name="l01281"></a><span class="lineno"> 1281</span>&#160;                jsph = constants % nl(ij)</div>
+<div class="line"><a name="l01282"></a><span class="lineno"> 1282</span>&#160;                <span class="keyword">call </span>dgemv(<span class="stringliteral">&#39;n&#39;</span>, constants % nbasis, constants % nbasis, one, &amp;</div>
+<div class="line"><a name="l01283"></a><span class="lineno"> 1283</span>&#160;                    &amp; constants % b(:,:,ij), constants % nbasis, x(:,jsph), 1, &amp;</div>
+<div class="line"><a name="l01284"></a><span class="lineno"> 1284</span>&#160;                    &amp; one, y(:,isph), 1)</div>
+<div class="line"><a name="l01285"></a><span class="lineno"> 1285</span>&#160;<span class="keywordflow">            end do</span></div>
+<div class="line"><a name="l01286"></a><span class="lineno"> 1286</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l01287"></a><span class="lineno"> 1287</span>&#160;    <span class="keywordflow">else</span> </div>
+<div class="line"><a name="l01288"></a><span class="lineno"> 1288</span>&#160;        <span class="comment">!$omp parallel do default(none) shared(params,constants,workspace,x,y) &amp;</span></div>
+<div class="line"><a name="l01289"></a><span class="lineno"> 1289</span>&#160;        <span class="comment">!$omp private(isph,iproc) schedule(dynamic)</span></div>
+<div class="line"><a name="l01290"></a><span class="lineno"> 1290</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l01291"></a><span class="lineno"> 1291</span>&#160;          iproc = omp_get_thread_num() + 1</div>
+<div class="line"><a name="l01292"></a><span class="lineno"> 1292</span>&#160;          <span class="keyword">call </span>calcv2_lpb(params, constants, isph, workspace % tmp_pot(:, iproc), x, &amp;</div>
+<div class="line"><a name="l01293"></a><span class="lineno"> 1293</span>&#160;              &amp; workspace % tmp_vylm, workspace % tmp_vplm, workspace % tmp_vcos, &amp;</div>
+<div class="line"><a name="l01294"></a><span class="lineno"> 1294</span>&#160;              &amp; workspace % tmp_vsin, workspace % tmp_bessel)</div>
+<div class="line"><a name="l01295"></a><span class="lineno"> 1295</span>&#160;          <span class="keyword">call </span>ddintegrate(1, constants % nbasis, params % ngrid, constants % vwgrid, &amp;</div>
+<div class="line"><a name="l01296"></a><span class="lineno"> 1296</span>&#160;              &amp; constants % vgrid_nbasis, workspace % tmp_pot(:, iproc), y(:,isph))</div>
+<div class="line"><a name="l01297"></a><span class="lineno"> 1297</span>&#160;          y(:,isph) = - y(:,isph) </div>
+<div class="line"><a name="l01298"></a><span class="lineno"> 1298</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l01299"></a><span class="lineno"> 1299</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l01300"></a><span class="lineno"> 1300</span>&#160;    <span class="keywordflow">if</span> (constants % dodiag) y = y + x</div>
+<div class="line"><a name="l01301"></a><span class="lineno"> 1301</span>&#160;<span class="keyword">end subroutine </span><a class="code" href="namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a">bx</a></div>
+<div class="line"><a name="l01302"></a><span class="lineno"> 1302</span>&#160; </div>
+<div class="line"><a name="l01307"></a><span class="lineno"> 1307</span>&#160;<span class="keyword">subroutine </span><a class="code" href="namespaceddx__operators.html#a92077fecd6f7c3ab9b4be15323cdadb2">tx</a>(params, constants, workspace, x, y)</div>
+<div class="line"><a name="l01308"></a><span class="lineno"><a class="line" href="namespaceddx__operators.html#a92077fecd6f7c3ab9b4be15323cdadb2"> 1308</a></span>&#160;    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a name="l01309"></a><span class="lineno"> 1309</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a name="l01310"></a><span class="lineno"> 1310</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a name="l01311"></a><span class="lineno"> 1311</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a name="l01312"></a><span class="lineno"> 1312</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span>, <span class="keywordtype">intent(in)</span> :: x</div>
+<div class="line"><a name="l01313"></a><span class="lineno"> 1313</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span>, <span class="keywordtype">intent(out)</span> :: y</div>
+<div class="line"><a name="l01314"></a><span class="lineno"> 1314</span>&#160; </div>
+<div class="line"><a name="l01315"></a><span class="lineno"> 1315</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span> :: temp_vector</div>
+<div class="line"><a name="l01316"></a><span class="lineno"> 1316</span>&#160;    y = zero</div>
+<div class="line"><a name="l01317"></a><span class="lineno"> 1317</span>&#160;    temp_vector = zero</div>
+<div class="line"><a name="l01318"></a><span class="lineno"> 1318</span>&#160; </div>
+<div class="line"><a name="l01319"></a><span class="lineno"> 1319</span>&#160;    <span class="comment">! Compute AXr</span></div>
+<div class="line"><a name="l01320"></a><span class="lineno"> 1320</span>&#160;    <span class="comment">! call LXr</span></div>
+<div class="line"><a name="l01321"></a><span class="lineno"> 1321</span>&#160;    <span class="keyword">call </span><a class="code" href="namespaceddx__operators.html#ac2a84b8394941ee2bf6d8f3e44127be3">lx</a>(params, constants, workspace, x(:,:,1), temp_vector(:,:,1))</div>
+<div class="line"><a name="l01322"></a><span class="lineno"> 1322</span>&#160;    <span class="comment">! Remove the scaling factor</span></div>
+<div class="line"><a name="l01323"></a><span class="lineno"> 1323</span>&#160;    <span class="keyword">call </span>convert_ddcosmo(params, constants, 1, temp_vector(:,:,1))</div>
+<div class="line"><a name="l01324"></a><span class="lineno"> 1324</span>&#160;    y(:,:,1) = y(:,:,1) + temp_vector(:,:,1)</div>
+<div class="line"><a name="l01325"></a><span class="lineno"> 1325</span>&#160;    <span class="comment">! Compute BXe</span></div>
+<div class="line"><a name="l01326"></a><span class="lineno"> 1326</span>&#160;    <span class="keyword">call </span><a class="code" href="namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a">bx</a>(params, constants, workspace, x(:,:,2), temp_vector(:,:,2))</div>
+<div class="line"><a name="l01327"></a><span class="lineno"> 1327</span>&#160;    y(:,:,2) = y(:,:,2) + temp_vector(:,:,2)</div>
+<div class="line"><a name="l01328"></a><span class="lineno"> 1328</span>&#160; </div>
+<div class="line"><a name="l01329"></a><span class="lineno"> 1329</span>&#160;    <span class="comment">! Reset temp_vector to zero</span></div>
+<div class="line"><a name="l01330"></a><span class="lineno"> 1330</span>&#160;    temp_vector = zero</div>
+<div class="line"><a name="l01331"></a><span class="lineno"> 1331</span>&#160;    <span class="comment">! Call CX</span></div>
+<div class="line"><a name="l01332"></a><span class="lineno"> 1332</span>&#160;    <span class="keyword">call </span>cx(params, constants, workspace, x, temp_vector)</div>
+<div class="line"><a name="l01333"></a><span class="lineno"> 1333</span>&#160;    y = y + temp_vector</div>
+<div class="line"><a name="l01334"></a><span class="lineno"> 1334</span>&#160;<span class="keyword">end subroutine </span><a class="code" href="namespaceddx__operators.html#a92077fecd6f7c3ab9b4be15323cdadb2">tx</a></div>
+<div class="line"><a name="l01335"></a><span class="lineno"> 1335</span>&#160; </div>
+<div class="line"><a name="l01340"></a><span class="lineno"> 1340</span>&#160;<span class="keyword">subroutine </span><a class="code" href="namespaceddx__operators.html#a255d38c63d567d20e2844c8d015d1c0f">tstarx</a>(params, constants, workspace, x, y)</div>
+<div class="line"><a name="l01341"></a><span class="lineno"><a class="line" href="namespaceddx__operators.html#a255d38c63d567d20e2844c8d015d1c0f"> 1341</a></span>&#160;    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a name="l01342"></a><span class="lineno"> 1342</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a name="l01343"></a><span class="lineno"> 1343</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a name="l01344"></a><span class="lineno"> 1344</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a name="l01345"></a><span class="lineno"> 1345</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span>, <span class="keywordtype">intent(in)</span> :: x</div>
+<div class="line"><a name="l01346"></a><span class="lineno"> 1346</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span>, <span class="keywordtype">intent(out)</span> :: y</div>
+<div class="line"><a name="l01347"></a><span class="lineno"> 1347</span>&#160; </div>
+<div class="line"><a name="l01348"></a><span class="lineno"> 1348</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span> :: temp_vector</div>
+<div class="line"><a name="l01349"></a><span class="lineno"> 1349</span>&#160;    y = zero</div>
+<div class="line"><a name="l01350"></a><span class="lineno"> 1350</span>&#160;    temp_vector = zero</div>
+<div class="line"><a name="l01351"></a><span class="lineno"> 1351</span>&#160; </div>
+<div class="line"><a name="l01352"></a><span class="lineno"> 1352</span>&#160;    <span class="comment">! Compute AXr</span></div>
+<div class="line"><a name="l01353"></a><span class="lineno"> 1353</span>&#160;    <span class="comment">! call LstarXr</span></div>
+<div class="line"><a name="l01354"></a><span class="lineno"> 1354</span>&#160;    <span class="keyword">call </span><a class="code" href="namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52">lstarx</a>(params, constants, workspace, x(:,:,1), temp_vector(:,:,1))</div>
+<div class="line"><a name="l01355"></a><span class="lineno"> 1355</span>&#160;    <span class="comment">! Remove the scaling factor</span></div>
+<div class="line"><a name="l01356"></a><span class="lineno"> 1356</span>&#160;    <span class="keyword">call </span>convert_ddcosmo(params, constants, 1, temp_vector(:,:,1))</div>
+<div class="line"><a name="l01357"></a><span class="lineno"> 1357</span>&#160;    y(:,:,1) = y(:,:,1) + temp_vector(:,:,1)</div>
+<div class="line"><a name="l01358"></a><span class="lineno"> 1358</span>&#160;    <span class="comment">! Compute BXe</span></div>
+<div class="line"><a name="l01359"></a><span class="lineno"> 1359</span>&#160;    <span class="keyword">call </span>bstarx(params, constants, workspace, x(:,:,2), temp_vector(:,:,2))</div>
+<div class="line"><a name="l01360"></a><span class="lineno"> 1360</span>&#160;    y(:,:,2) = y(:,:,2) + temp_vector(:,:,2)</div>
+<div class="line"><a name="l01361"></a><span class="lineno"> 1361</span>&#160; </div>
+<div class="line"><a name="l01362"></a><span class="lineno"> 1362</span>&#160;    <span class="comment">! Reset temp_vector to zero</span></div>
+<div class="line"><a name="l01363"></a><span class="lineno"> 1363</span>&#160;    temp_vector = zero</div>
+<div class="line"><a name="l01364"></a><span class="lineno"> 1364</span>&#160;    <span class="comment">! Call CX</span></div>
+<div class="line"><a name="l01365"></a><span class="lineno"> 1365</span>&#160;    <span class="keyword">call </span>cstarx(params, constants, workspace, x, temp_vector)</div>
+<div class="line"><a name="l01366"></a><span class="lineno"> 1366</span>&#160;    y = y + temp_vector</div>
+<div class="line"><a name="l01367"></a><span class="lineno"> 1367</span>&#160;<span class="keyword">end subroutine </span><a class="code" href="namespaceddx__operators.html#a255d38c63d567d20e2844c8d015d1c0f">tstarx</a></div>
+<div class="line"><a name="l01368"></a><span class="lineno"> 1368</span>&#160; </div>
+<div class="line"><a name="l01369"></a><span class="lineno"> 1369</span>&#160;<span class="keyword">subroutine </span>bx_prec(params, constants, workspace, x, y)</div>
+<div class="line"><a name="l01370"></a><span class="lineno"> 1370</span>&#160;    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a name="l01371"></a><span class="lineno"> 1371</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a name="l01372"></a><span class="lineno"> 1372</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a name="l01373"></a><span class="lineno"> 1373</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a name="l01374"></a><span class="lineno"> 1374</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph)</span>, <span class="keywordtype">intent(in)</span> :: x</div>
+<div class="line"><a name="l01375"></a><span class="lineno"> 1375</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph)</span>, <span class="keywordtype">intent(out)</span> :: y</div>
+<div class="line"><a name="l01376"></a><span class="lineno"> 1376</span>&#160;    y = x</div>
+<div class="line"><a name="l01377"></a><span class="lineno"> 1377</span>&#160;<span class="keyword">end subroutine </span>bx_prec</div>
+<div class="line"><a name="l01378"></a><span class="lineno"> 1378</span>&#160; </div>
+<div class="line"><a name="l01379"></a><span class="lineno"> 1379</span>&#160;<span class="keyword">subroutine </span>prec_tstarx(params, constants, workspace, x, y)</div>
+<div class="line"><a name="l01380"></a><span class="lineno"> 1380</span>&#160;    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a name="l01381"></a><span class="lineno"> 1381</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a name="l01382"></a><span class="lineno"> 1382</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a name="l01383"></a><span class="lineno"> 1383</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a name="l01384"></a><span class="lineno"> 1384</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: x(constants % nbasis, params % nsph, 2)</div>
+<div class="line"><a name="l01385"></a><span class="lineno"> 1385</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(inout)</span> :: y(constants % nbasis, params % nsph, 2)</div>
+<div class="line"><a name="l01386"></a><span class="lineno"> 1386</span>&#160;    <span class="keywordtype">integer</span> :: n_iter, info</div>
+<div class="line"><a name="l01387"></a><span class="lineno"> 1387</span>&#160;<span class="keywordtype">    real</span>(dp) :: r_norm</div>
+<div class="line"><a name="l01388"></a><span class="lineno"> 1388</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(params % maxiter)</span> :: x_rel_diff</div>
+<div class="line"><a name="l01389"></a><span class="lineno"> 1389</span>&#160; </div>
+<div class="line"><a name="l01390"></a><span class="lineno"> 1390</span>&#160;    y(:,:,1) = x(:,:,1)</div>
+<div class="line"><a name="l01391"></a><span class="lineno"> 1391</span>&#160;    <span class="keyword">call </span>convert_ddcosmo(params, constants, 1, y(:,:,1))</div>
+<div class="line"><a name="l01392"></a><span class="lineno"> 1392</span>&#160;    n_iter = params % maxiter</div>
+<div class="line"><a name="l01393"></a><span class="lineno"> 1393</span>&#160;    <span class="keywordflow">if</span> (params % itersolver .eq. 1) <span class="keywordflow">then</span> </div>
+<div class="line"><a name="l01394"></a><span class="lineno"> 1394</span>&#160;        <span class="keyword">call </span><a class="code" href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, y(:,:,1), &amp;</div>
+<div class="line"><a name="l01395"></a><span class="lineno"> 1395</span>&#160;            &amp; workspace % ddcosmo_guess, n_iter, x_rel_diff, <a class="code" href="namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52">lstarx</a>, <a class="code" href="namespaceddx__operators.html#a73668d47230f4292955012f9910e4ecc">ldm1x</a>, hnorm, info)</div>
+<div class="line"><a name="l01396"></a><span class="lineno"> 1396</span>&#160;    <span class="keywordflow">else</span></div>
+<div class="line"><a name="l01397"></a><span class="lineno"> 1397</span>&#160;        <span class="keyword">call </span>gmresr(params, constants, workspace, constants % inner_tol, y(:,:,1), &amp;</div>
+<div class="line"><a name="l01398"></a><span class="lineno"> 1398</span>&#160;            &amp; workspace % ddcosmo_guess, n_iter, r_norm, <a class="code" href="namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52">lstarx</a>, info)</div>
+<div class="line"><a name="l01399"></a><span class="lineno"> 1399</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l01400"></a><span class="lineno"> 1400</span>&#160;    <span class="keywordflow">if</span> (info.ne.0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01401"></a><span class="lineno"> 1401</span>&#160;        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39;prec_tstarx: [1] ddCOSMO failed to converge&#39;</span></div>
+<div class="line"><a name="l01402"></a><span class="lineno"> 1402</span>&#160;        stop 1</div>
+<div class="line"><a name="l01403"></a><span class="lineno"> 1403</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l01404"></a><span class="lineno"> 1404</span>&#160;    y(:,:,1) = workspace % ddcosmo_guess</div>
+<div class="line"><a name="l01405"></a><span class="lineno"> 1405</span>&#160; </div>
+<div class="line"><a name="l01406"></a><span class="lineno"> 1406</span>&#160;    n_iter = params % maxiter</div>
+<div class="line"><a name="l01407"></a><span class="lineno"> 1407</span>&#160;    <span class="keywordflow">if</span> (params % itersolver .eq. 1) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01408"></a><span class="lineno"> 1408</span>&#160;        <span class="keyword">call </span><a class="code" href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &amp;</div>
+<div class="line"><a name="l01409"></a><span class="lineno"> 1409</span>&#160;            &amp; n_iter, x_rel_diff, bstarx, bx_prec, hnorm, info)</div>
+<div class="line"><a name="l01410"></a><span class="lineno"> 1410</span>&#160;    <span class="keywordflow">else</span></div>
+<div class="line"><a name="l01411"></a><span class="lineno"> 1411</span>&#160;        <span class="keyword">call </span>gmresr(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &amp;</div>
+<div class="line"><a name="l01412"></a><span class="lineno"> 1412</span>&#160;           &amp; n_iter, r_norm, bstarx, info)</div>
+<div class="line"><a name="l01413"></a><span class="lineno"> 1413</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l01414"></a><span class="lineno"> 1414</span>&#160;    <span class="keywordflow">if</span> (info.ne.0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01415"></a><span class="lineno"> 1415</span>&#160;        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39;prec_tstarx: [1] HSP failed to converge&#39;</span></div>
+<div class="line"><a name="l01416"></a><span class="lineno"> 1416</span>&#160;        stop 1</div>
+<div class="line"><a name="l01417"></a><span class="lineno"> 1417</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l01418"></a><span class="lineno"> 1418</span>&#160;    y(:,:,2) = workspace % hsp_guess</div>
+<div class="line"><a name="l01419"></a><span class="lineno"> 1419</span>&#160; </div>
+<div class="line"><a name="l01420"></a><span class="lineno"> 1420</span>&#160;<span class="keyword">end subroutine </span>prec_tstarx</div>
+<div class="line"><a name="l01421"></a><span class="lineno"> 1421</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l01422"></a><span class="lineno"> 1422</span>&#160;<span class="comment">! apply preconditioner</span></div>
+<div class="line"><a name="l01423"></a><span class="lineno"> 1423</span>&#160;<span class="comment">! |Yr| = |A^-1 0 |*|Xr|</span></div>
+<div class="line"><a name="l01424"></a><span class="lineno"> 1424</span>&#160;<span class="comment">! |Ye|   |0 B^-1 | |Xe|</span></div>
+<div class="line"><a name="l01425"></a><span class="lineno"> 1425</span>&#160;<span class="comment">! @param[in] ddx_data : dd Data</span></div>
+<div class="line"><a name="l01426"></a><span class="lineno"> 1426</span>&#160;<span class="comment">! @param[in] x        : Input array</span></div>
+<div class="line"><a name="l01427"></a><span class="lineno"> 1427</span>&#160;<span class="comment">! @param[out] y       : Linear system solution at current iteration</span></div>
+<div class="line"><a name="l01428"></a><span class="lineno"> 1428</span>&#160;<span class="keyword">subroutine </span>prec_tx(params, constants, workspace, x, y)</div>
+<div class="line"><a name="l01429"></a><span class="lineno"> 1429</span>&#160;    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a name="l01430"></a><span class="lineno"> 1430</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a name="l01431"></a><span class="lineno"> 1431</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a name="l01432"></a><span class="lineno"> 1432</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a name="l01433"></a><span class="lineno"> 1433</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: x(constants % nbasis, params % nsph, 2)</div>
+<div class="line"><a name="l01434"></a><span class="lineno"> 1434</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(inout)</span> :: y(constants % nbasis, params % nsph, 2)</div>
+<div class="line"><a name="l01435"></a><span class="lineno"> 1435</span>&#160;    <span class="keywordtype">integer</span> :: n_iter, info</div>
+<div class="line"><a name="l01436"></a><span class="lineno"> 1436</span>&#160;<span class="keywordtype">    real</span>(dp) :: r_norm</div>
+<div class="line"><a name="l01437"></a><span class="lineno"> 1437</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(params % maxiter)</span> :: x_rel_diff</div>
+<div class="line"><a name="l01438"></a><span class="lineno"> 1438</span>&#160; </div>
+<div class="line"><a name="l01439"></a><span class="lineno"> 1439</span>&#160;    <span class="comment">! perform A^-1 * Yr</span></div>
+<div class="line"><a name="l01440"></a><span class="lineno"> 1440</span>&#160;    n_iter = params % maxiter</div>
+<div class="line"><a name="l01441"></a><span class="lineno"> 1441</span>&#160;    <span class="keywordflow">if</span> (params % itersolver .eq. 1) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01442"></a><span class="lineno"> 1442</span>&#160;        <span class="keyword">call </span><a class="code" href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, x(:,:,1), &amp;</div>
+<div class="line"><a name="l01443"></a><span class="lineno"> 1443</span>&#160;            &amp; workspace % ddcosmo_guess, n_iter, x_rel_diff, <a class="code" href="namespaceddx__operators.html#ac2a84b8394941ee2bf6d8f3e44127be3">lx</a>, <a class="code" href="namespaceddx__operators.html#a73668d47230f4292955012f9910e4ecc">ldm1x</a>, hnorm, info)</div>
+<div class="line"><a name="l01444"></a><span class="lineno"> 1444</span>&#160;    <span class="keywordflow">else</span></div>
+<div class="line"><a name="l01445"></a><span class="lineno"> 1445</span>&#160;        <span class="keyword">call </span>gmresr(params, constants, workspace, constants % inner_tol, x(:,:,1), &amp;</div>
+<div class="line"><a name="l01446"></a><span class="lineno"> 1446</span>&#160;            &amp; workspace % ddcosmo_guess, n_iter, r_norm, <a class="code" href="namespaceddx__operators.html#ac2a84b8394941ee2bf6d8f3e44127be3">lx</a>, info)</div>
+<div class="line"><a name="l01447"></a><span class="lineno"> 1447</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l01448"></a><span class="lineno"> 1448</span>&#160;    <span class="keywordflow">if</span> (info.ne.0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01449"></a><span class="lineno"> 1449</span>&#160;        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39;prec_tx: [1] ddCOSMO failed to converge&#39;</span></div>
+<div class="line"><a name="l01450"></a><span class="lineno"> 1450</span>&#160;        stop 1</div>
+<div class="line"><a name="l01451"></a><span class="lineno"> 1451</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l01452"></a><span class="lineno"> 1452</span>&#160; </div>
+<div class="line"><a name="l01453"></a><span class="lineno"> 1453</span>&#160;    <span class="comment">! Scale by the factor of (2l+1)/4Pi</span></div>
+<div class="line"><a name="l01454"></a><span class="lineno"> 1454</span>&#160;    y(:,:,1) = workspace % ddcosmo_guess</div>
+<div class="line"><a name="l01455"></a><span class="lineno"> 1455</span>&#160;    <span class="keyword">call </span>convert_ddcosmo(params, constants, 1, y(:,:,1))</div>
+<div class="line"><a name="l01456"></a><span class="lineno"> 1456</span>&#160; </div>
+<div class="line"><a name="l01457"></a><span class="lineno"> 1457</span>&#160;    <span class="comment">! perform B^-1 * Ye</span></div>
+<div class="line"><a name="l01458"></a><span class="lineno"> 1458</span>&#160;    n_iter = params % maxiter</div>
+<div class="line"><a name="l01459"></a><span class="lineno"> 1459</span>&#160;    <span class="keywordflow">if</span> (params % itersolver .eq. 1) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01460"></a><span class="lineno"> 1460</span>&#160;        <span class="keyword">call </span><a class="code" href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &amp;</div>
+<div class="line"><a name="l01461"></a><span class="lineno"> 1461</span>&#160;            &amp; n_iter, x_rel_diff, <a class="code" href="namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a">bx</a>, bx_prec, hnorm, info)</div>
+<div class="line"><a name="l01462"></a><span class="lineno"> 1462</span>&#160;    <span class="keywordflow">else</span></div>
+<div class="line"><a name="l01463"></a><span class="lineno"> 1463</span>&#160;        <span class="keyword">call </span>gmresr(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &amp;</div>
+<div class="line"><a name="l01464"></a><span class="lineno"> 1464</span>&#160;         &amp; n_iter, r_norm, <a class="code" href="namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a">bx</a>, info)</div>
+<div class="line"><a name="l01465"></a><span class="lineno"> 1465</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l01466"></a><span class="lineno"> 1466</span>&#160;    y(:,:,2) = workspace % hsp_guess</div>
+<div class="line"><a name="l01467"></a><span class="lineno"> 1467</span>&#160; </div>
+<div class="line"><a name="l01468"></a><span class="lineno"> 1468</span>&#160;    <span class="keywordflow">if</span> (info.ne.0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01469"></a><span class="lineno"> 1469</span>&#160;        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39;prec_tx: [1] HSP failed to converge&#39;</span></div>
+<div class="line"><a name="l01470"></a><span class="lineno"> 1470</span>&#160;        stop 1</div>
+<div class="line"><a name="l01471"></a><span class="lineno"> 1471</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l01472"></a><span class="lineno"> 1472</span>&#160;<span class="keyword">end subroutine </span>prec_tx</div>
+<div class="line"><a name="l01473"></a><span class="lineno"> 1473</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l01474"></a><span class="lineno"> 1474</span>&#160;<span class="keyword">subroutine </span>cstarx(params, constants, workspace, x, y)</div>
+<div class="line"><a name="l01475"></a><span class="lineno"> 1475</span>&#160;    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a name="l01476"></a><span class="lineno"> 1476</span>&#160;    <span class="comment">! input/output</span></div>
+<div class="line"><a name="l01477"></a><span class="lineno"> 1477</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a name="l01478"></a><span class="lineno"> 1478</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a name="l01479"></a><span class="lineno"> 1479</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a name="l01480"></a><span class="lineno"> 1480</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span>, <span class="keywordtype">intent(in)</span> :: x</div>
+<div class="line"><a name="l01481"></a><span class="lineno"> 1481</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span>, <span class="keywordtype">intent(out)</span> :: y</div>
+<div class="line"><a name="l01482"></a><span class="lineno"> 1482</span>&#160;    <span class="comment">! local</span></div>
+<div class="line"><a name="l01483"></a><span class="lineno"> 1483</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(0:constants % lmax0)</span> :: SK_rijn, DK_rijn</div>
+<div class="line"><a name="l01484"></a><span class="lineno"> 1484</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis)</span> :: basloc, vplm</div>
+<div class="line"><a name="l01485"></a><span class="lineno"> 1485</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(params % lmax + 1)</span> :: vcos, vsin</div>
+<div class="line"><a name="l01486"></a><span class="lineno"> 1486</span>&#160;    <span class="keywordtype">complex(dp)</span> :: bessel_work(max(2, params % lmax+1))</div>
+<div class="line"><a name="l01487"></a><span class="lineno"> 1487</span>&#160;    <span class="keywordtype">complex(dp)</span> :: work_complex(constants % lmax0+1)</div>
+<div class="line"><a name="l01488"></a><span class="lineno"> 1488</span>&#160;<span class="keywordtype">    real</span>(dp) :: work(constants % lmax0+1)</div>
+<div class="line"><a name="l01489"></a><span class="lineno"> 1489</span>&#160;    <span class="keywordtype">integer</span> :: isph, igrid, jsph, ind, l0, m0, ind0, indl, inode, l, m</div>
+<div class="line"><a name="l01490"></a><span class="lineno"> 1490</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(3)</span> :: vij, vtij</div>
+<div class="line"><a name="l01491"></a><span class="lineno"> 1491</span>&#160;<span class="keywordtype">    real</span>(dp) :: val, epsilon_ratio</div>
+<div class="line"><a name="l01492"></a><span class="lineno"> 1492</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: scratch(:,:), scratch0(:,:)</div>
+<div class="line"><a name="l01493"></a><span class="lineno"> 1493</span>&#160; </div>
+<div class="line"><a name="l01494"></a><span class="lineno"> 1494</span>&#160;    <span class="keyword">allocate</span>(scratch(constants % nbasis, params % nsph), &amp;</div>
+<div class="line"><a name="l01495"></a><span class="lineno"> 1495</span>&#160;        &amp; scratch0(constants % nbasis0, params % nsph))</div>
+<div class="line"><a name="l01496"></a><span class="lineno"> 1496</span>&#160; </div>
+<div class="line"><a name="l01497"></a><span class="lineno"> 1497</span>&#160;    epsilon_ratio = params % epsp/params % eps</div>
+<div class="line"><a name="l01498"></a><span class="lineno"> 1498</span>&#160; </div>
+<div class="line"><a name="l01499"></a><span class="lineno"> 1499</span>&#160;    <span class="comment">! TODO: maybe use ddeval_grid for code consistency</span></div>
+<div class="line"><a name="l01500"></a><span class="lineno"> 1500</span>&#160;    scratch = - x(:,:,1) - x(:,:,2)</div>
+<div class="line"><a name="l01501"></a><span class="lineno"> 1501</span>&#160;    <span class="keyword">call </span>dgemm(<span class="stringliteral">&#39;T&#39;</span>, <span class="stringliteral">&#39;N&#39;</span>, params % ngrid, params % nsph, constants % nbasis, &amp;</div>
+<div class="line"><a name="l01502"></a><span class="lineno"> 1502</span>&#160;        &amp; one, constants % vwgrid, constants % vgrid_nbasis, scratch, &amp;</div>
+<div class="line"><a name="l01503"></a><span class="lineno"> 1503</span>&#160;        &amp; constants % nbasis, zero, workspace % tmp_grid, params % ngrid)</div>
+<div class="line"><a name="l01504"></a><span class="lineno"> 1504</span>&#160; </div>
+<div class="line"><a name="l01505"></a><span class="lineno"> 1505</span>&#160;    scratch0 = zero</div>
+<div class="line"><a name="l01506"></a><span class="lineno"> 1506</span>&#160;    <span class="keywordflow">if</span> (params % fmm .eq. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01507"></a><span class="lineno"> 1507</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l01508"></a><span class="lineno"> 1508</span>&#160;            <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a name="l01509"></a><span class="lineno"> 1509</span>&#160;                <span class="keywordflow">if</span> (constants % ui(igrid, isph).gt.zero) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01510"></a><span class="lineno"> 1510</span>&#160;                    val = workspace % tmp_grid(igrid,isph) &amp;</div>
+<div class="line"><a name="l01511"></a><span class="lineno"> 1511</span>&#160;                        &amp; *constants % ui(igrid,isph)</div>
+<div class="line"><a name="l01512"></a><span class="lineno"> 1512</span>&#160;                    <span class="comment">! quadratically scaling loop</span></div>
+<div class="line"><a name="l01513"></a><span class="lineno"> 1513</span>&#160;                    <span class="keywordflow">do</span> jsph = 1, params % nsph</div>
+<div class="line"><a name="l01514"></a><span class="lineno"> 1514</span>&#160;                        vij  = params % csph(:,isph) + &amp;</div>
+<div class="line"><a name="l01515"></a><span class="lineno"> 1515</span>&#160;                            &amp; params % rsph(isph)*constants % cgrid(:,igrid) - &amp;</div>
+<div class="line"><a name="l01516"></a><span class="lineno"> 1516</span>&#160;                            &amp; params % csph(:,jsph)</div>
+<div class="line"><a name="l01517"></a><span class="lineno"> 1517</span>&#160;                        vtij = vij * params % kappa</div>
+<div class="line"><a name="l01518"></a><span class="lineno"> 1518</span>&#160;                        <span class="keyword">call </span>fmm_m2p_bessel_adj_work(vtij, val, &amp;</div>
+<div class="line"><a name="l01519"></a><span class="lineno"> 1519</span>&#160;                            &amp; constants % SK_ri(:, jsph), constants % lmax0, &amp;</div>
+<div class="line"><a name="l01520"></a><span class="lineno"> 1520</span>&#160;                            &amp; constants % vscales, one, scratch0(:, jsph), &amp;</div>
+<div class="line"><a name="l01521"></a><span class="lineno"> 1521</span>&#160;                            &amp; work_complex, work)</div>
+<div class="line"><a name="l01522"></a><span class="lineno"> 1522</span>&#160;<span class="keywordflow">                    end do</span></div>
+<div class="line"><a name="l01523"></a><span class="lineno"> 1523</span>&#160;<span class="keywordflow">                end if</span></div>
+<div class="line"><a name="l01524"></a><span class="lineno"> 1524</span>&#160;<span class="keywordflow">            end do</span></div>
+<div class="line"><a name="l01525"></a><span class="lineno"> 1525</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l01526"></a><span class="lineno"> 1526</span>&#160;    <span class="keywordflow">else</span></div>
+<div class="line"><a name="l01527"></a><span class="lineno"> 1527</span>&#160;        <span class="comment">! Multiply by characteristic function</span></div>
+<div class="line"><a name="l01528"></a><span class="lineno"> 1528</span>&#160;        workspace % tmp_grid = workspace % tmp_grid * constants % ui</div>
+<div class="line"><a name="l01529"></a><span class="lineno"> 1529</span>&#160;        workspace % tmp_sph = zero</div>
+<div class="line"><a name="l01530"></a><span class="lineno"> 1530</span>&#160;        <span class="comment">! Do FMM operations adjointly</span></div>
+<div class="line"><a name="l01531"></a><span class="lineno"> 1531</span>&#160;        <span class="keyword">call </span>tree_m2p_bessel_adj(params, constants, constants % lmax0, &amp;</div>
+<div class="line"><a name="l01532"></a><span class="lineno"> 1532</span>&#160;            &amp; one, workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)</div>
+<div class="line"><a name="l01533"></a><span class="lineno"> 1533</span>&#160;        <span class="keyword">call </span>tree_l2p_bessel_adj(params, constants, one, &amp;</div>
+<div class="line"><a name="l01534"></a><span class="lineno"> 1534</span>&#160;            &amp; workspace % tmp_grid, zero, workspace % tmp_node_l)</div>
+<div class="line"><a name="l01535"></a><span class="lineno"> 1535</span>&#160;        <span class="keyword">call </span>tree_l2l_bessel_rotation_adj(params, constants, &amp;</div>
+<div class="line"><a name="l01536"></a><span class="lineno"> 1536</span>&#160;            &amp; workspace % tmp_node_l)</div>
+<div class="line"><a name="l01537"></a><span class="lineno"> 1537</span>&#160;        <span class="keyword">call </span>tree_m2l_bessel_rotation_adj(params, constants, &amp;</div>
+<div class="line"><a name="l01538"></a><span class="lineno"> 1538</span>&#160;            &amp; workspace % tmp_node_l, workspace % tmp_node_m)</div>
+<div class="line"><a name="l01539"></a><span class="lineno"> 1539</span>&#160;        <span class="keyword">call </span>tree_m2m_bessel_rotation_adj(params, constants, &amp;</div>
+<div class="line"><a name="l01540"></a><span class="lineno"> 1540</span>&#160;            &amp; workspace % tmp_node_m)</div>
+<div class="line"><a name="l01541"></a><span class="lineno"> 1541</span>&#160;        <span class="comment">! Adjointly move tree multipole harmonics into output</span></div>
+<div class="line"><a name="l01542"></a><span class="lineno"> 1542</span>&#160;        <span class="keywordflow">if</span>(constants % lmax0 .lt. params % pm) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01543"></a><span class="lineno"> 1543</span>&#160;            <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l01544"></a><span class="lineno"> 1544</span>&#160;                inode = constants % snode(isph)</div>
+<div class="line"><a name="l01545"></a><span class="lineno"> 1545</span>&#160;                scratch0(:, isph) = workspace % tmp_sph(1:constants % nbasis0, isph) + &amp;</div>
+<div class="line"><a name="l01546"></a><span class="lineno"> 1546</span>&#160;                    &amp; workspace % tmp_node_m(1:constants % nbasis0, inode)</div>
+<div class="line"><a name="l01547"></a><span class="lineno"> 1547</span>&#160;<span class="keywordflow">            end do</span></div>
+<div class="line"><a name="l01548"></a><span class="lineno"> 1548</span>&#160;        <span class="keywordflow">else</span></div>
+<div class="line"><a name="l01549"></a><span class="lineno"> 1549</span>&#160;            indl = (params % pm+1)**2</div>
+<div class="line"><a name="l01550"></a><span class="lineno"> 1550</span>&#160;            <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l01551"></a><span class="lineno"> 1551</span>&#160;                inode = constants % snode(isph)</div>
+<div class="line"><a name="l01552"></a><span class="lineno"> 1552</span>&#160;                scratch0(1:indl, isph) = &amp;</div>
+<div class="line"><a name="l01553"></a><span class="lineno"> 1553</span>&#160;                    &amp; workspace % tmp_sph(1:indl, isph) + &amp;</div>
+<div class="line"><a name="l01554"></a><span class="lineno"> 1554</span>&#160;                    &amp; workspace % tmp_node_m(:, inode)</div>
+<div class="line"><a name="l01555"></a><span class="lineno"> 1555</span>&#160;                scratch0(indl+1:, isph) = zero</div>
+<div class="line"><a name="l01556"></a><span class="lineno"> 1556</span>&#160;<span class="keywordflow">            end do</span></div>
+<div class="line"><a name="l01557"></a><span class="lineno"> 1557</span>&#160;<span class="keywordflow">        end if</span></div>
+<div class="line"><a name="l01558"></a><span class="lineno"> 1558</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l01559"></a><span class="lineno"> 1559</span>&#160;    <span class="comment">! Scale by C_ik</span></div>
+<div class="line"><a name="l01560"></a><span class="lineno"> 1560</span>&#160;    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l01561"></a><span class="lineno"> 1561</span>&#160;        <span class="keywordflow">do</span> l0 = 0, constants % lmax0</div>
+<div class="line"><a name="l01562"></a><span class="lineno"> 1562</span>&#160;            ind0 = l0*l0 + l0 + 1</div>
+<div class="line"><a name="l01563"></a><span class="lineno"> 1563</span>&#160;            scratch0(ind0-l0:ind0+l0, isph) = scratch0(ind0-l0:ind0+l0, isph) * &amp;</div>
+<div class="line"><a name="l01564"></a><span class="lineno"> 1564</span>&#160;                &amp; constants % C_ik(l0, isph)</div>
+<div class="line"><a name="l01565"></a><span class="lineno"> 1565</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l01566"></a><span class="lineno"> 1566</span>&#160;<span class="keywordflow">    end do</span></div>
+<div class="line"><a name="l01567"></a><span class="lineno"> 1567</span>&#160; </div>
+<div class="line"><a name="l01568"></a><span class="lineno"> 1568</span>&#160;    <span class="keywordflow">do</span> jsph = 1, params % nsph</div>
+<div class="line"><a name="l01569"></a><span class="lineno"> 1569</span>&#160;        <span class="keyword">call </span>dgemv(<span class="stringliteral">&#39;n&#39;</span>, constants % nbasis, constants % nbasis0, one, &amp;</div>
+<div class="line"><a name="l01570"></a><span class="lineno"> 1570</span>&#160;            &amp; constants % pchi(1,1,jsph), constants % nbasis, &amp;</div>
+<div class="line"><a name="l01571"></a><span class="lineno"> 1571</span>&#160;            &amp; scratch0(1,jsph), 1, zero, scratch(1,jsph), 1)</div>
+<div class="line"><a name="l01572"></a><span class="lineno"> 1572</span>&#160;<span class="keywordflow">    end do</span></div>
+<div class="line"><a name="l01573"></a><span class="lineno"> 1573</span>&#160; </div>
 <div class="line"><a name="l01574"></a><span class="lineno"> 1574</span>&#160;    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01575"></a><span class="lineno"> 1575</span>&#160;        <span class="keywordflow">do</span> l = 0, constants % lmax0</div>
-<div class="line"><a name="l01576"></a><span class="lineno"> 1576</span>&#160;            ind0 = l*l+l+1</div>
-<div class="line"><a name="l01577"></a><span class="lineno"> 1577</span>&#160;            diff0(ind0-l:ind0+l, isph) = diff0(ind0-l:ind0+l, isph) * &amp;</div>
-<div class="line"><a name="l01578"></a><span class="lineno"> 1578</span>&#160;                &amp; constants % C_ik(l, isph)</div>
-<div class="line"><a name="l01579"></a><span class="lineno"> 1579</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l01580"></a><span class="lineno"> 1580</span>&#160;<span class="keywordflow">    end do</span></div>
-<div class="line"><a name="l01581"></a><span class="lineno"> 1581</span>&#160;    <span class="comment">! avoiding N^2 storage, this code does not use the cached coefY</span></div>
-<div class="line"><a name="l01582"></a><span class="lineno"> 1582</span>&#160;    y(:,:,1) = zero</div>
-<div class="line"><a name="l01583"></a><span class="lineno"> 1583</span>&#160;    <span class="keywordflow">if</span> (params % fmm .eq. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01584"></a><span class="lineno"> 1584</span>&#160;        <span class="comment">!$omp parallel do default(none) shared(params,constants, &amp;</span></div>
-<div class="line"><a name="l01585"></a><span class="lineno"> 1585</span>&#160;        <span class="comment">!$omp diff0,y) private(isph,igrid,val,vij,rijn,sijn,SK_rijn, &amp;</span></div>
-<div class="line"><a name="l01586"></a><span class="lineno"> 1586</span>&#160;        <span class="comment">!$omp DK_rijn,work,rho,ctheta,stheta,cphi,sphi,basloc,vplm, &amp;</span></div>
-<div class="line"><a name="l01587"></a><span class="lineno"> 1587</span>&#160;        <span class="comment">!$omp vcos,vsin,term,ind0,ind,vtij,work_complex)</span></div>
-<div class="line"><a name="l01588"></a><span class="lineno"> 1588</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01589"></a><span class="lineno"> 1589</span>&#160;            <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a name="l01590"></a><span class="lineno"> 1590</span>&#160;                <span class="keywordflow">if</span> (constants % ui(igrid,isph).gt.zero) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01591"></a><span class="lineno"> 1591</span>&#160;                    val = zero</div>
-<div class="line"><a name="l01592"></a><span class="lineno"> 1592</span>&#160; </div>
-<div class="line"><a name="l01593"></a><span class="lineno"> 1593</span>&#160;                    <span class="comment">! quadratically scaling loop</span></div>
-<div class="line"><a name="l01594"></a><span class="lineno"> 1594</span>&#160;                    <span class="keywordflow">do</span> jsph = 1, params % nsph</div>
-<div class="line"><a name="l01595"></a><span class="lineno"> 1595</span>&#160;                        vij  = params % csph(:,isph) + &amp;</div>
-<div class="line"><a name="l01596"></a><span class="lineno"> 1596</span>&#160;                            &amp; params % rsph(isph)*constants % cgrid(:,igrid) - &amp;</div>
-<div class="line"><a name="l01597"></a><span class="lineno"> 1597</span>&#160;                            &amp; params % csph(:,jsph)</div>
-<div class="line"><a name="l01598"></a><span class="lineno"> 1598</span>&#160;                        vtij = vij * params % kappa</div>
-<div class="line"><a name="l01599"></a><span class="lineno"> 1599</span>&#160;                        <span class="keyword">call </span>fmm_m2p_bessel_work(vtij, constants % lmax0, &amp;</div>
-<div class="line"><a name="l01600"></a><span class="lineno"> 1600</span>&#160;                            &amp; constants % vscales, constants % SK_ri(:, jsph), &amp;</div>
-<div class="line"><a name="l01601"></a><span class="lineno"> 1601</span>&#160;                            &amp; one, diff0(:, jsph), one, val, work_complex, work)</div>
-<div class="line"><a name="l01602"></a><span class="lineno"> 1602</span>&#160;<span class="keywordflow">                    end do</span></div>
-<div class="line"><a name="l01603"></a><span class="lineno"> 1603</span>&#160;                    <span class="keywordflow">do</span> ind = 1, constants % nbasis</div>
-<div class="line"><a name="l01604"></a><span class="lineno"> 1604</span>&#160;                        y(ind,isph,1) = y(ind,isph,1) + val*&amp;</div>
-<div class="line"><a name="l01605"></a><span class="lineno"> 1605</span>&#160;                          &amp; constants % ui(igrid,isph)*&amp;</div>
-<div class="line"><a name="l01606"></a><span class="lineno"> 1606</span>&#160;                          &amp; constants % vwgrid(ind,igrid)</div>
-<div class="line"><a name="l01607"></a><span class="lineno"> 1607</span>&#160;<span class="keywordflow">                    end do</span></div>
-<div class="line"><a name="l01608"></a><span class="lineno"> 1608</span>&#160;<span class="keywordflow">                end if</span></div>
-<div class="line"><a name="l01609"></a><span class="lineno"> 1609</span>&#160;<span class="keywordflow">            end do</span></div>
-<div class="line"><a name="l01610"></a><span class="lineno"> 1610</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l01611"></a><span class="lineno"> 1611</span>&#160;    <span class="keywordflow">else</span></div>
-<div class="line"><a name="l01612"></a><span class="lineno"> 1612</span>&#160;        <span class="comment">! Load input harmonics into tree data</span></div>
-<div class="line"><a name="l01613"></a><span class="lineno"> 1613</span>&#160;        workspace % tmp_node_m = zero</div>
-<div class="line"><a name="l01614"></a><span class="lineno"> 1614</span>&#160;        workspace % tmp_node_l = zero</div>
-<div class="line"><a name="l01615"></a><span class="lineno"> 1615</span>&#160;        workspace % tmp_sph = zero</div>
-<div class="line"><a name="l01616"></a><span class="lineno"> 1616</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01617"></a><span class="lineno"> 1617</span>&#160;            <span class="keywordflow">do</span> l = 0, constants % lmax0</div>
-<div class="line"><a name="l01618"></a><span class="lineno"> 1618</span>&#160;                ind0 = l*l+l+1</div>
-<div class="line"><a name="l01619"></a><span class="lineno"> 1619</span>&#160;                workspace % tmp_sph(ind0-l:ind0+l, isph) = &amp;</div>
-<div class="line"><a name="l01620"></a><span class="lineno"> 1620</span>&#160;                    &amp; diff0(ind0-l:ind0+l, isph)</div>
-<div class="line"><a name="l01621"></a><span class="lineno"> 1621</span>&#160;<span class="keywordflow">            end do</span></div>
-<div class="line"><a name="l01622"></a><span class="lineno"> 1622</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l01623"></a><span class="lineno"> 1623</span>&#160;        <span class="keywordflow">if</span>(constants % lmax0 .lt. params % pm) <span class="keywordflow">then</span></div>
-<div class="line"><a name="l01624"></a><span class="lineno"> 1624</span>&#160;            <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01625"></a><span class="lineno"> 1625</span>&#160;                inode = constants % snode(isph)</div>
-<div class="line"><a name="l01626"></a><span class="lineno"> 1626</span>&#160;                workspace % tmp_node_m(1:constants % nbasis0, inode) = &amp;</div>
-<div class="line"><a name="l01627"></a><span class="lineno"> 1627</span>&#160;                    &amp; workspace % tmp_sph(1:constants % nbasis0, isph)</div>
-<div class="line"><a name="l01628"></a><span class="lineno"> 1628</span>&#160;                workspace % tmp_node_m(constants % nbasis0+1:, inode) = zero</div>
-<div class="line"><a name="l01629"></a><span class="lineno"> 1629</span>&#160;<span class="keywordflow">            end do</span></div>
-<div class="line"><a name="l01630"></a><span class="lineno"> 1630</span>&#160;        <span class="keywordflow">else</span></div>
-<div class="line"><a name="l01631"></a><span class="lineno"> 1631</span>&#160;            indl = (params % pm+1)**2</div>
-<div class="line"><a name="l01632"></a><span class="lineno"> 1632</span>&#160;            <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01633"></a><span class="lineno"> 1633</span>&#160;                inode = constants % snode(isph)</div>
-<div class="line"><a name="l01634"></a><span class="lineno"> 1634</span>&#160;                workspace % tmp_node_m(:, inode) = workspace % tmp_sph(1:indl, isph)</div>
-<div class="line"><a name="l01635"></a><span class="lineno"> 1635</span>&#160;<span class="keywordflow">            end do</span></div>
-<div class="line"><a name="l01636"></a><span class="lineno"> 1636</span>&#160;<span class="keywordflow">        end if</span></div>
-<div class="line"><a name="l01637"></a><span class="lineno"> 1637</span>&#160;        <span class="comment">! Do FMM operations</span></div>
-<div class="line"><a name="l01638"></a><span class="lineno"> 1638</span>&#160;        <span class="keyword">call </span>tree_m2m_bessel_rotation(params, constants, workspace % tmp_node_m)</div>
-<div class="line"><a name="l01639"></a><span class="lineno"> 1639</span>&#160;        <span class="keyword">call </span>tree_m2l_bessel_rotation(params, constants, workspace % tmp_node_m, &amp;</div>
-<div class="line"><a name="l01640"></a><span class="lineno"> 1640</span>&#160;            &amp; workspace % tmp_node_l)</div>
-<div class="line"><a name="l01641"></a><span class="lineno"> 1641</span>&#160;        <span class="keyword">call </span>tree_l2l_bessel_rotation(params, constants, workspace % tmp_node_l)</div>
-<div class="line"><a name="l01642"></a><span class="lineno"> 1642</span>&#160;        workspace % tmp_grid = zero</div>
-<div class="line"><a name="l01643"></a><span class="lineno"> 1643</span>&#160;        <span class="keyword">call </span>tree_l2p_bessel(params, constants, one, workspace % tmp_node_l, zero, &amp;</div>
-<div class="line"><a name="l01644"></a><span class="lineno"> 1644</span>&#160;            &amp; workspace % tmp_grid)</div>
-<div class="line"><a name="l01645"></a><span class="lineno"> 1645</span>&#160;        <span class="keyword">call </span>tree_m2p_bessel(params, constants, constants % lmax0, one, &amp;</div>
-<div class="line"><a name="l01646"></a><span class="lineno"> 1646</span>&#160;            &amp; params % lmax, workspace % tmp_sph, one, &amp;</div>
-<div class="line"><a name="l01647"></a><span class="lineno"> 1647</span>&#160;            &amp; workspace % tmp_grid)</div>
-<div class="line"><a name="l01648"></a><span class="lineno"> 1648</span>&#160; </div>
-<div class="line"><a name="l01649"></a><span class="lineno"> 1649</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a name="l01650"></a><span class="lineno"> 1650</span>&#160;            <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a name="l01651"></a><span class="lineno"> 1651</span>&#160;                <span class="keywordflow">do</span> ind = 1, constants % nbasis</div>
-<div class="line"><a name="l01652"></a><span class="lineno"> 1652</span>&#160;                    y(ind,isph,1) = y(ind,isph,1) + workspace % tmp_grid(igrid, isph)*&amp;</div>
-<div class="line"><a name="l01653"></a><span class="lineno"> 1653</span>&#160;                        &amp; constants % vwgrid(ind, igrid)*&amp;</div>
-<div class="line"><a name="l01654"></a><span class="lineno"> 1654</span>&#160;                        &amp; constants % ui(igrid,isph)</div>
-<div class="line"><a name="l01655"></a><span class="lineno"> 1655</span>&#160;<span class="keywordflow">                end do</span></div>
-<div class="line"><a name="l01656"></a><span class="lineno"> 1656</span>&#160;<span class="keywordflow">            end do</span></div>
-<div class="line"><a name="l01657"></a><span class="lineno"> 1657</span>&#160;<span class="keywordflow">        end do</span></div>
-<div class="line"><a name="l01658"></a><span class="lineno"> 1658</span>&#160;<span class="keywordflow">    end if</span></div>
-<div class="line"><a name="l01659"></a><span class="lineno"> 1659</span>&#160; </div>
-<div class="line"><a name="l01660"></a><span class="lineno"> 1660</span>&#160;    y(:,:,2) = y(:,:,1)</div>
-<div class="line"><a name="l01661"></a><span class="lineno"> 1661</span>&#160;    <span class="keyword">deallocate</span>(diff_re, diff0)</div>
-<div class="line"><a name="l01662"></a><span class="lineno"> 1662</span>&#160; </div>
-<div class="line"><a name="l01663"></a><span class="lineno"> 1663</span>&#160;<span class="keyword">end subroutine </span>cx</div>
-<div class="line"><a name="l01664"></a><span class="lineno"> 1664</span>&#160;<span class="keyword">end module </span><a class="code" href="namespaceddx__operators.html">ddx_operators</a></div>
-<div class="line"><a name="l01665"></a><span class="lineno"> 1665</span>&#160; </div>
+<div class="line"><a name="l01575"></a><span class="lineno"> 1575</span>&#160;        <span class="keywordflow">do</span> l = 0, params % lmax</div>
+<div class="line"><a name="l01576"></a><span class="lineno"> 1576</span>&#160;            <span class="keywordflow">do</span> m = -l, l</div>
+<div class="line"><a name="l01577"></a><span class="lineno"> 1577</span>&#160;                ind = l**2 + l + m + 1</div>
+<div class="line"><a name="l01578"></a><span class="lineno"> 1578</span>&#160;                y(ind,isph,1) = - (epsilon_ratio*l*scratch(ind,isph)) &amp;</div>
+<div class="line"><a name="l01579"></a><span class="lineno"> 1579</span>&#160;                    &amp; /params % rsph(isph)</div>
+<div class="line"><a name="l01580"></a><span class="lineno"> 1580</span>&#160;                y(ind,isph,2) = constants % termimat(l,isph)*scratch(ind,isph)</div>
+<div class="line"><a name="l01581"></a><span class="lineno"> 1581</span>&#160;<span class="keywordflow">          end do</span></div>
+<div class="line"><a name="l01582"></a><span class="lineno"> 1582</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l01583"></a><span class="lineno"> 1583</span>&#160;<span class="keywordflow">    end do</span></div>
+<div class="line"><a name="l01584"></a><span class="lineno"> 1584</span>&#160; </div>
+<div class="line"><a name="l01585"></a><span class="lineno"> 1585</span>&#160;<span class="keyword">end subroutine </span>cstarx</div>
+<div class="line"><a name="l01586"></a><span class="lineno"> 1586</span>&#160;<span class="comment">!</span></div>
+<div class="line"><a name="l01587"></a><span class="lineno"> 1587</span>&#160;<span class="comment">! Perform |Yr| = |C1 C2|*|Xr|</span></div>
+<div class="line"><a name="l01588"></a><span class="lineno"> 1588</span>&#160;<span class="comment">!         |Ye|   |C1 C2| |Xe|</span></div>
+<div class="line"><a name="l01589"></a><span class="lineno"> 1589</span>&#160;<span class="comment">! @param[in] ddx_data : dd Data</span></div>
+<div class="line"><a name="l01590"></a><span class="lineno"> 1590</span>&#160;<span class="comment">! @param[in] x        : Input array X (Xr, Xe)</span></div>
+<div class="line"><a name="l01591"></a><span class="lineno"> 1591</span>&#160;<span class="comment">! @param[out] y       : Matrix-vector product result Y</span></div>
+<div class="line"><a name="l01592"></a><span class="lineno"> 1592</span>&#160;<span class="keyword">subroutine </span>cx(params, constants, workspace, x, y)</div>
+<div class="line"><a name="l01593"></a><span class="lineno"> 1593</span>&#160;    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a name="l01594"></a><span class="lineno"> 1594</span>&#160;    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a name="l01595"></a><span class="lineno"> 1595</span>&#160;    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a name="l01596"></a><span class="lineno"> 1596</span>&#160;    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a name="l01597"></a><span class="lineno"> 1597</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span>, <span class="keywordtype">intent(in)</span> :: x</div>
+<div class="line"><a name="l01598"></a><span class="lineno"> 1598</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis, params % nsph, 2)</span>, <span class="keywordtype">intent(out)</span> :: y</div>
+<div class="line"><a name="l01599"></a><span class="lineno"> 1599</span>&#160; </div>
+<div class="line"><a name="l01600"></a><span class="lineno"> 1600</span>&#160;    <span class="keywordtype">integer</span> :: isph, jsph, igrid, ind, l, m, ind0</div>
+<div class="line"><a name="l01601"></a><span class="lineno"> 1601</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(3)</span> :: sijn ,vij, vtij</div>
+<div class="line"><a name="l01602"></a><span class="lineno"> 1602</span>&#160;<span class="keywordtype">    real</span>(dp) :: term, rho, ctheta, stheta, cphi, sphi, rijn, val</div>
+<div class="line"><a name="l01603"></a><span class="lineno"> 1603</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % nbasis)</span> :: basloc, vplm</div>
+<div class="line"><a name="l01604"></a><span class="lineno"> 1604</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(params % lmax + 1)</span> :: vcos, vsin</div>
+<div class="line"><a name="l01605"></a><span class="lineno"> 1605</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(constants % lmax0 + 1)</span> :: SK_rijn, DK_rijn</div>
+<div class="line"><a name="l01606"></a><span class="lineno"> 1606</span>&#160;    <span class="keywordtype">complex(dp)</span> :: work_complex(constants % lmax0 + 1)</div>
+<div class="line"><a name="l01607"></a><span class="lineno"> 1607</span>&#160;<span class="keywordtype">    real</span>(dp) :: work(constants % lmax0 + 1)</div>
+<div class="line"><a name="l01608"></a><span class="lineno"> 1608</span>&#160;    <span class="keywordtype">integer</span> :: indl, inode</div>
+<div class="line"><a name="l01609"></a><span class="lineno"> 1609</span>&#160; </div>
+<div class="line"><a name="l01610"></a><span class="lineno"> 1610</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: diff_re(:,:), diff0(:,:)</div>
+<div class="line"><a name="l01611"></a><span class="lineno"> 1611</span>&#160;    <span class="keyword">allocate</span>(diff_re(constants % nbasis, params % nsph), &amp;</div>
+<div class="line"><a name="l01612"></a><span class="lineno"> 1612</span>&#160;        &amp; diff0(constants % nbasis0, params % nsph))</div>
+<div class="line"><a name="l01613"></a><span class="lineno"> 1613</span>&#160; </div>
+<div class="line"><a name="l01614"></a><span class="lineno"> 1614</span>&#160;    <span class="comment">! diff_re = params % epsp/eps*l1/ri*Xr - i&#39;(ri)/i(ri)*Xe,</span></div>
+<div class="line"><a name="l01615"></a><span class="lineno"> 1615</span>&#160;    diff_re = zero</div>
+<div class="line"><a name="l01616"></a><span class="lineno"> 1616</span>&#160;    <span class="comment">!$omp parallel do default(none) shared(params,diff_re, &amp;</span></div>
+<div class="line"><a name="l01617"></a><span class="lineno"> 1617</span>&#160;    <span class="comment">!$omp constants,x) private(jsph,l,m,ind)</span></div>
+<div class="line"><a name="l01618"></a><span class="lineno"> 1618</span>&#160;    <span class="keywordflow">do</span> jsph = 1, params % nsph</div>
+<div class="line"><a name="l01619"></a><span class="lineno"> 1619</span>&#160;      <span class="keywordflow">do</span> l = 0, params % lmax</div>
+<div class="line"><a name="l01620"></a><span class="lineno"> 1620</span>&#160;        <span class="keywordflow">do</span> m = -l,l</div>
+<div class="line"><a name="l01621"></a><span class="lineno"> 1621</span>&#160;          ind = l**2 + l + m + 1</div>
+<div class="line"><a name="l01622"></a><span class="lineno"> 1622</span>&#160;          diff_re(ind,jsph) = (params % epsp/params % eps)* &amp;</div>
+<div class="line"><a name="l01623"></a><span class="lineno"> 1623</span>&#160;              &amp; (l/params % rsph(jsph))*x(ind,jsph,1) &amp;</div>
+<div class="line"><a name="l01624"></a><span class="lineno"> 1624</span>&#160;              &amp; - constants % termimat(l,jsph)*x(ind,jsph,2)</div>
+<div class="line"><a name="l01625"></a><span class="lineno"> 1625</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l01626"></a><span class="lineno"> 1626</span>&#160;<span class="keywordflow">      end do</span></div>
+<div class="line"><a name="l01627"></a><span class="lineno"> 1627</span>&#160;<span class="keywordflow">    end do</span></div>
+<div class="line"><a name="l01628"></a><span class="lineno"> 1628</span>&#160; </div>
+<div class="line"><a name="l01629"></a><span class="lineno"> 1629</span>&#160;    <span class="comment">! diff0 = Pchi * diff_er, linear scaling</span></div>
+<div class="line"><a name="l01630"></a><span class="lineno"> 1630</span>&#160;    <span class="comment">!$omp parallel do default(none) shared(constants,params, &amp;</span></div>
+<div class="line"><a name="l01631"></a><span class="lineno"> 1631</span>&#160;    <span class="comment">!$omp diff_re,diff0) private(jsph)</span></div>
+<div class="line"><a name="l01632"></a><span class="lineno"> 1632</span>&#160;    <span class="keywordflow">do</span> jsph = 1, params % nsph</div>
+<div class="line"><a name="l01633"></a><span class="lineno"> 1633</span>&#160;      <span class="keyword">call </span>dgemv(<span class="stringliteral">&#39;t&#39;</span>, constants % nbasis, constants % nbasis0, one, &amp;</div>
+<div class="line"><a name="l01634"></a><span class="lineno"> 1634</span>&#160;          &amp; constants % pchi(1,1,jsph), constants % nbasis, &amp;</div>
+<div class="line"><a name="l01635"></a><span class="lineno"> 1635</span>&#160;          &amp; diff_re(1,jsph), 1, zero, diff0(1,jsph), 1)</div>
+<div class="line"><a name="l01636"></a><span class="lineno"> 1636</span>&#160;<span class="keywordflow">    end do</span></div>
+<div class="line"><a name="l01637"></a><span class="lineno"> 1637</span>&#160; </div>
+<div class="line"><a name="l01638"></a><span class="lineno"> 1638</span>&#160;    <span class="comment">! Multiply diff0 by C_ik inplace</span></div>
+<div class="line"><a name="l01639"></a><span class="lineno"> 1639</span>&#160;    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l01640"></a><span class="lineno"> 1640</span>&#160;        <span class="keywordflow">do</span> l = 0, constants % lmax0</div>
+<div class="line"><a name="l01641"></a><span class="lineno"> 1641</span>&#160;            ind0 = l*l+l+1</div>
+<div class="line"><a name="l01642"></a><span class="lineno"> 1642</span>&#160;            diff0(ind0-l:ind0+l, isph) = diff0(ind0-l:ind0+l, isph) * &amp;</div>
+<div class="line"><a name="l01643"></a><span class="lineno"> 1643</span>&#160;                &amp; constants % C_ik(l, isph)</div>
+<div class="line"><a name="l01644"></a><span class="lineno"> 1644</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l01645"></a><span class="lineno"> 1645</span>&#160;<span class="keywordflow">    end do</span></div>
+<div class="line"><a name="l01646"></a><span class="lineno"> 1646</span>&#160;    <span class="comment">! avoiding N^2 storage, this code does not use the cached coefY</span></div>
+<div class="line"><a name="l01647"></a><span class="lineno"> 1647</span>&#160;    y(:,:,1) = zero</div>
+<div class="line"><a name="l01648"></a><span class="lineno"> 1648</span>&#160;    <span class="keywordflow">if</span> (params % fmm .eq. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01649"></a><span class="lineno"> 1649</span>&#160;        <span class="comment">!$omp parallel do default(none) shared(params,constants, &amp;</span></div>
+<div class="line"><a name="l01650"></a><span class="lineno"> 1650</span>&#160;        <span class="comment">!$omp diff0,y) private(isph,igrid,val,vij,rijn,sijn,SK_rijn, &amp;</span></div>
+<div class="line"><a name="l01651"></a><span class="lineno"> 1651</span>&#160;        <span class="comment">!$omp DK_rijn,work,rho,ctheta,stheta,cphi,sphi,basloc,vplm, &amp;</span></div>
+<div class="line"><a name="l01652"></a><span class="lineno"> 1652</span>&#160;        <span class="comment">!$omp vcos,vsin,term,ind0,ind,vtij,work_complex)</span></div>
+<div class="line"><a name="l01653"></a><span class="lineno"> 1653</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l01654"></a><span class="lineno"> 1654</span>&#160;            <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a name="l01655"></a><span class="lineno"> 1655</span>&#160;                <span class="keywordflow">if</span> (constants % ui(igrid,isph).gt.zero) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01656"></a><span class="lineno"> 1656</span>&#160;                    val = zero</div>
+<div class="line"><a name="l01657"></a><span class="lineno"> 1657</span>&#160; </div>
+<div class="line"><a name="l01658"></a><span class="lineno"> 1658</span>&#160;                    <span class="comment">! quadratically scaling loop</span></div>
+<div class="line"><a name="l01659"></a><span class="lineno"> 1659</span>&#160;                    <span class="keywordflow">do</span> jsph = 1, params % nsph</div>
+<div class="line"><a name="l01660"></a><span class="lineno"> 1660</span>&#160;                        vij  = params % csph(:,isph) + &amp;</div>
+<div class="line"><a name="l01661"></a><span class="lineno"> 1661</span>&#160;                            &amp; params % rsph(isph)*constants % cgrid(:,igrid) - &amp;</div>
+<div class="line"><a name="l01662"></a><span class="lineno"> 1662</span>&#160;                            &amp; params % csph(:,jsph)</div>
+<div class="line"><a name="l01663"></a><span class="lineno"> 1663</span>&#160;                        vtij = vij * params % kappa</div>
+<div class="line"><a name="l01664"></a><span class="lineno"> 1664</span>&#160;                        <span class="keyword">call </span>fmm_m2p_bessel_work(vtij, constants % lmax0, &amp;</div>
+<div class="line"><a name="l01665"></a><span class="lineno"> 1665</span>&#160;                            &amp; constants % vscales, constants % SK_ri(:, jsph), &amp;</div>
+<div class="line"><a name="l01666"></a><span class="lineno"> 1666</span>&#160;                            &amp; one, diff0(:, jsph), one, val, work_complex, work)</div>
+<div class="line"><a name="l01667"></a><span class="lineno"> 1667</span>&#160;<span class="keywordflow">                    end do</span></div>
+<div class="line"><a name="l01668"></a><span class="lineno"> 1668</span>&#160;                    <span class="keywordflow">do</span> ind = 1, constants % nbasis</div>
+<div class="line"><a name="l01669"></a><span class="lineno"> 1669</span>&#160;                        y(ind,isph,1) = y(ind,isph,1) + val*&amp;</div>
+<div class="line"><a name="l01670"></a><span class="lineno"> 1670</span>&#160;                          &amp; constants % ui(igrid,isph)*&amp;</div>
+<div class="line"><a name="l01671"></a><span class="lineno"> 1671</span>&#160;                          &amp; constants % vwgrid(ind,igrid)</div>
+<div class="line"><a name="l01672"></a><span class="lineno"> 1672</span>&#160;<span class="keywordflow">                    end do</span></div>
+<div class="line"><a name="l01673"></a><span class="lineno"> 1673</span>&#160;<span class="keywordflow">                end if</span></div>
+<div class="line"><a name="l01674"></a><span class="lineno"> 1674</span>&#160;<span class="keywordflow">            end do</span></div>
+<div class="line"><a name="l01675"></a><span class="lineno"> 1675</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l01676"></a><span class="lineno"> 1676</span>&#160;    <span class="keywordflow">else</span></div>
+<div class="line"><a name="l01677"></a><span class="lineno"> 1677</span>&#160;        <span class="comment">! Load input harmonics into tree data</span></div>
+<div class="line"><a name="l01678"></a><span class="lineno"> 1678</span>&#160;        workspace % tmp_node_m = zero</div>
+<div class="line"><a name="l01679"></a><span class="lineno"> 1679</span>&#160;        workspace % tmp_node_l = zero</div>
+<div class="line"><a name="l01680"></a><span class="lineno"> 1680</span>&#160;        workspace % tmp_sph = zero</div>
+<div class="line"><a name="l01681"></a><span class="lineno"> 1681</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l01682"></a><span class="lineno"> 1682</span>&#160;            <span class="keywordflow">do</span> l = 0, constants % lmax0</div>
+<div class="line"><a name="l01683"></a><span class="lineno"> 1683</span>&#160;                ind0 = l*l+l+1</div>
+<div class="line"><a name="l01684"></a><span class="lineno"> 1684</span>&#160;                workspace % tmp_sph(ind0-l:ind0+l, isph) = &amp;</div>
+<div class="line"><a name="l01685"></a><span class="lineno"> 1685</span>&#160;                    &amp; diff0(ind0-l:ind0+l, isph)</div>
+<div class="line"><a name="l01686"></a><span class="lineno"> 1686</span>&#160;<span class="keywordflow">            end do</span></div>
+<div class="line"><a name="l01687"></a><span class="lineno"> 1687</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l01688"></a><span class="lineno"> 1688</span>&#160;        <span class="keywordflow">if</span>(constants % lmax0 .lt. params % pm) <span class="keywordflow">then</span></div>
+<div class="line"><a name="l01689"></a><span class="lineno"> 1689</span>&#160;            <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l01690"></a><span class="lineno"> 1690</span>&#160;                inode = constants % snode(isph)</div>
+<div class="line"><a name="l01691"></a><span class="lineno"> 1691</span>&#160;                workspace % tmp_node_m(1:constants % nbasis0, inode) = &amp;</div>
+<div class="line"><a name="l01692"></a><span class="lineno"> 1692</span>&#160;                    &amp; workspace % tmp_sph(1:constants % nbasis0, isph)</div>
+<div class="line"><a name="l01693"></a><span class="lineno"> 1693</span>&#160;                workspace % tmp_node_m(constants % nbasis0+1:, inode) = zero</div>
+<div class="line"><a name="l01694"></a><span class="lineno"> 1694</span>&#160;<span class="keywordflow">            end do</span></div>
+<div class="line"><a name="l01695"></a><span class="lineno"> 1695</span>&#160;        <span class="keywordflow">else</span></div>
+<div class="line"><a name="l01696"></a><span class="lineno"> 1696</span>&#160;            indl = (params % pm+1)**2</div>
+<div class="line"><a name="l01697"></a><span class="lineno"> 1697</span>&#160;            <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l01698"></a><span class="lineno"> 1698</span>&#160;                inode = constants % snode(isph)</div>
+<div class="line"><a name="l01699"></a><span class="lineno"> 1699</span>&#160;                workspace % tmp_node_m(:, inode) = workspace % tmp_sph(1:indl, isph)</div>
+<div class="line"><a name="l01700"></a><span class="lineno"> 1700</span>&#160;<span class="keywordflow">            end do</span></div>
+<div class="line"><a name="l01701"></a><span class="lineno"> 1701</span>&#160;<span class="keywordflow">        end if</span></div>
+<div class="line"><a name="l01702"></a><span class="lineno"> 1702</span>&#160;        <span class="comment">! Do FMM operations</span></div>
+<div class="line"><a name="l01703"></a><span class="lineno"> 1703</span>&#160;        <span class="keyword">call </span>tree_m2m_bessel_rotation(params, constants, workspace % tmp_node_m)</div>
+<div class="line"><a name="l01704"></a><span class="lineno"> 1704</span>&#160;        <span class="keyword">call </span>tree_m2l_bessel_rotation(params, constants, workspace % tmp_node_m, &amp;</div>
+<div class="line"><a name="l01705"></a><span class="lineno"> 1705</span>&#160;            &amp; workspace % tmp_node_l)</div>
+<div class="line"><a name="l01706"></a><span class="lineno"> 1706</span>&#160;        <span class="keyword">call </span>tree_l2l_bessel_rotation(params, constants, workspace % tmp_node_l)</div>
+<div class="line"><a name="l01707"></a><span class="lineno"> 1707</span>&#160;        workspace % tmp_grid = zero</div>
+<div class="line"><a name="l01708"></a><span class="lineno"> 1708</span>&#160;        <span class="keyword">call </span>tree_l2p_bessel(params, constants, one, workspace % tmp_node_l, zero, &amp;</div>
+<div class="line"><a name="l01709"></a><span class="lineno"> 1709</span>&#160;            &amp; workspace % tmp_grid)</div>
+<div class="line"><a name="l01710"></a><span class="lineno"> 1710</span>&#160;        <span class="keyword">call </span>tree_m2p_bessel(params, constants, constants % lmax0, one, &amp;</div>
+<div class="line"><a name="l01711"></a><span class="lineno"> 1711</span>&#160;            &amp; params % lmax, workspace % tmp_sph, one, &amp;</div>
+<div class="line"><a name="l01712"></a><span class="lineno"> 1712</span>&#160;            &amp; workspace % tmp_grid)</div>
+<div class="line"><a name="l01713"></a><span class="lineno"> 1713</span>&#160; </div>
+<div class="line"><a name="l01714"></a><span class="lineno"> 1714</span>&#160;        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a name="l01715"></a><span class="lineno"> 1715</span>&#160;            <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a name="l01716"></a><span class="lineno"> 1716</span>&#160;                <span class="keywordflow">do</span> ind = 1, constants % nbasis</div>
+<div class="line"><a name="l01717"></a><span class="lineno"> 1717</span>&#160;                    y(ind,isph,1) = y(ind,isph,1) + workspace % tmp_grid(igrid, isph)*&amp;</div>
+<div class="line"><a name="l01718"></a><span class="lineno"> 1718</span>&#160;                        &amp; constants % vwgrid(ind, igrid)*&amp;</div>
+<div class="line"><a name="l01719"></a><span class="lineno"> 1719</span>&#160;                        &amp; constants % ui(igrid,isph)</div>
+<div class="line"><a name="l01720"></a><span class="lineno"> 1720</span>&#160;<span class="keywordflow">                end do</span></div>
+<div class="line"><a name="l01721"></a><span class="lineno"> 1721</span>&#160;<span class="keywordflow">            end do</span></div>
+<div class="line"><a name="l01722"></a><span class="lineno"> 1722</span>&#160;<span class="keywordflow">        end do</span></div>
+<div class="line"><a name="l01723"></a><span class="lineno"> 1723</span>&#160;<span class="keywordflow">    end if</span></div>
+<div class="line"><a name="l01724"></a><span class="lineno"> 1724</span>&#160; </div>
+<div class="line"><a name="l01725"></a><span class="lineno"> 1725</span>&#160;    y(:,:,2) = y(:,:,1)</div>
+<div class="line"><a name="l01726"></a><span class="lineno"> 1726</span>&#160;    <span class="keyword">deallocate</span>(diff_re, diff0)</div>
+<div class="line"><a name="l01727"></a><span class="lineno"> 1727</span>&#160; </div>
+<div class="line"><a name="l01728"></a><span class="lineno"> 1728</span>&#160;<span class="keyword">end subroutine </span>cx</div>
+<div class="line"><a name="l01729"></a><span class="lineno"> 1729</span>&#160;<span class="keyword">end module </span><a class="code" href="namespaceddx__operators.html">ddx_operators</a></div>
+<div class="line"><a name="l01730"></a><span class="lineno"> 1730</span>&#160; </div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="anamespaceddx__operators_html_a6f210175b888b158774e507e0d603b52"><div class="ttname"><a href="namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52">ddx_operators::lstarx</a></div><div class="ttdeci">subroutine lstarx(params, constants, workspace, x, y)</div><div class="ttdoc">Adjoint single layer operator matvec.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00085">ddx_operators.f90:85</a></div></div>
@@ -1724,10 +1776,13 @@ $(document).ready(function(){initNavTree('ddx__operators_8f90_source.html',''); 
 <div class="ttc" id="anamespaceddx__solvers_html_abf126087f0449850ca561c364488f20a"><div class="ttname"><a href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">ddx_solvers::jacobi_diis</a></div><div class="ttdeci">subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, x_rel_diff, matvec, dm1vec, norm_func, info)</div><div class="ttdoc">Jacobi iterative solver.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__solvers_8f90_source.html#l00082">ddx_solvers.f90:82</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_a0670b7a7bd830dd57ee0dc2dbcb80b1a"><div class="ttname"><a href="namespaceddx__operators.html#a0670b7a7bd830dd57ee0dc2dbcb80b1a">ddx_operators::repsstarx</a></div><div class="ttdeci">subroutine repsstarx(params, constants, workspace, x, y)</div><div class="ttdoc">Apply  operator to spherical harmonics.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00515">ddx_operators.f90:515</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_a5e24847b3de8dd57e855f293eeee9d18"><div class="ttname"><a href="namespaceddx__operators.html#a5e24847b3de8dd57e855f293eeee9d18">ddx_operators::dstarx_dense</a></div><div class="ttdeci">subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)</div><div class="ttdoc">Baseline implementation of adjoint double layer operator.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00358">ddx_operators.f90:358</a></div></div>
+<div class="ttc" id="anamespaceddx__operators_html_a255d38c63d567d20e2844c8d015d1c0f"><div class="ttname"><a href="namespaceddx__operators.html#a255d38c63d567d20e2844c8d015d1c0f">ddx_operators::tstarx</a></div><div class="ttdeci">subroutine tstarx(params, constants, workspace, x, y)</div><div class="ttdoc">Subroutine used for the GMRES solver with complete matrix adjoint system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l01341">ddx_operators.f90:1341</a></div></div>
 <div class="ttc" id="anamespaceddx__solvers_html"><div class="ttname"><a href="namespaceddx__solvers.html">ddx_solvers</a></div><div class="ttdoc">Core routines and parameters of ddX software.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__solvers_8f90_source.html#l00013">ddx_solvers.f90:13</a></div></div>
+<div class="ttc" id="anamespaceddx__operators_html_a68303147fb9fe072ab34096910280f1a"><div class="ttname"><a href="namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a">ddx_operators::bx</a></div><div class="ttdeci">subroutine bx(params, constants, workspace, x, y)</div><div class="ttdoc">Subroutine used for the GMRES solver.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l01267">ddx_operators.f90:1267</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_aa69a13344481ef2032c3eb2c46e847b3"><div class="ttname"><a href="namespaceddx__operators.html#aa69a13344481ef2032c3eb2c46e847b3">ddx_operators::dstarx_fmm</a></div><div class="ttdeci">subroutine dstarx_fmm(params, constants, workspace, do_diag, x, y)</div><div class="ttdoc">FMM-accelerated implementation of adjoint double layer operator.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00425">ddx_operators.f90:425</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_ac2a84b8394941ee2bf6d8f3e44127be3"><div class="ttname"><a href="namespaceddx__operators.html#ac2a84b8394941ee2bf6d8f3e44127be3">ddx_operators::lx</a></div><div class="ttdeci">subroutine lx(params, constants, workspace, x, y)</div><div class="ttdoc">Single layer operator matvec.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00026">ddx_operators.f90:26</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_ad322bb8c91dfbed143be683333be9430"><div class="ttname"><a href="namespaceddx__operators.html#ad322bb8c91dfbed143be683333be9430">ddx_operators::rinfx</a></div><div class="ttdeci">subroutine rinfx(params, constants, workspace, x, y)</div><div class="ttdoc">Apply  operator to spherical harmonics.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00544">ddx_operators.f90:544</a></div></div>
+<div class="ttc" id="anamespaceddx__operators_html_a92077fecd6f7c3ab9b4be15323cdadb2"><div class="ttname"><a href="namespaceddx__operators.html#a92077fecd6f7c3ab9b4be15323cdadb2">ddx_operators::tx</a></div><div class="ttdeci">subroutine tx(params, constants, workspace, x, y)</div><div class="ttdoc">Subroutine used for the GMRES solver with complete matrix.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l01308">ddx_operators.f90:1308</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_a1373e4a45d1f9adb748f19f543c2f67f"><div class="ttname"><a href="namespaceddx__operators.html#a1373e4a45d1f9adb748f19f543c2f67f">ddx_operators::dx_fmm</a></div><div class="ttdeci">subroutine dx_fmm(params, constants, workspace, do_diag, x, y)</div><div class="ttdoc">FMM-accelerated implementation of double layer operator.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00272">ddx_operators.f90:272</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_a682ecf4161b6846177c71db55924c586"><div class="ttname"><a href="namespaceddx__operators.html#a682ecf4161b6846177c71db55924c586">ddx_operators::prec_repsstarx</a></div><div class="ttdeci">subroutine prec_repsstarx(params, constants, workspace, x, y)</div><div class="ttdoc">Apply preconditioner for.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00615">ddx_operators.f90:615</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_a35303800b0d9c1749358f5e90bcbd52f"><div class="ttname"><a href="namespaceddx__operators.html#a35303800b0d9c1749358f5e90bcbd52f">ddx_operators::prec_repsx</a></div><div class="ttdeci">subroutine prec_repsx(params, constants, workspace, x, y)</div><div class="ttdoc">Apply preconditioner for.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00593">ddx_operators.f90:593</a></div></div>

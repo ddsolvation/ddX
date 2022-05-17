@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['inthsp_562',['inthsp',['../namespaceddx__lpb__core.html#a8f0440fba785d6c7b8a8b6d00b62f18d',1,'ddx_lpb_core']]],
-  ['inthsp_5fadj_563',['inthsp_adj',['../namespaceddx__lpb__core.html#ac82b16767440bcb1045ba7d9e1498e45',1,'ddx_lpb_core']]],
-  ['intmlp_564',['intmlp',['../namespaceddx__core.html#af57c0e1c6dd13f71fee44d975a1080cd',1,'ddx_core']]]
+  ['hnorm_564',['hnorm',['../namespaceddx__core.html#a2b3e39f4eaa589b097d4e9f37673e8f1',1,'ddx_core']]],
+  ['hsnorm_565',['hsnorm',['../namespaceddx__core.html#aa459fca8ccf1b5380372e23d03d72fcf',1,'ddx_core']]]
 ];
