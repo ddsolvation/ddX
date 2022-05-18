@@ -1820,7 +1820,6 @@ subroutine tree_m2m_rotation_adj_work(params, constants, node_m, work)
             & node_m(:, i), work)
     end do
 end subroutine tree_m2m_rotation_adj_work
-
 !------------------------------------------------------------------------------
 !> Adjoint transfer multipole coefficients over a tree
 !------------------------------------------------------------------------------
@@ -1832,6 +1831,21 @@ subroutine tree_m2m_bessel_rotation_adj(params, constants, node_m)
     real(dp), intent(inout) :: node_m((params % pm+1)**2, constants % nclusters)
     ! Temporary workspace
     !real(dp), intent(out) :: work(6*params % pm**2 + 19*params % pm + 8)
+    call tree_m2m_bessel_rotation_adj_work(params, constants, node_m)
+end subroutine tree_m2m_bessel_rotation_adj
+
+!------------------------------------------------------------------------------
+!> Adjoint transfer multipole coefficients over a tree
+!------------------------------------------------------------------------------
+subroutine tree_m2m_bessel_rotation_adj_work(params, constants, node_m)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    ! Output
+    real(dp), intent(inout) :: node_m((params % pm+1)**2, constants % nclusters)
+    ! Temporary workspace
+    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
+    complex(dp) :: work_complex(2*params % pm+1)
     ! Local variables
     integer :: i, j, k
     real(dp) :: c1(3), c(3), r1, r
@@ -1839,15 +1853,15 @@ subroutine tree_m2m_bessel_rotation_adj(params, constants, node_m)
     do i = 2, constants % nclusters
         j = constants % parent(i)
         c = constants % cnode(:, j)
-        r = constants % rnode(j)
         c1 = constants % cnode(:, i)
-        r1 = constants % rnode(i)
-        c1 = c - c1
-        call fmm_m2m_bessel_rotation_adj(c1, r, r1, params % kappa, &
+        c1 = params % kappa*(c1 - c)
+        ! Little bit confusion about the i and j indices
+        call fmm_m2m_bessel_rotation_adj_work(c1, constants % SK_rnode(:, i), &
+            & constants % SK_rnode(:, j),&
             & params % pm, constants % vscales, constants % vcnk, one, &
-            & node_m(:, j), one, node_m(:, i))
+            & node_m(:, j), one, node_m(:, i), work, work_complex)
     end do
-end subroutine tree_m2m_bessel_rotation_adj
+end subroutine tree_m2m_bessel_rotation_adj_work
 
 !------------------------------------------------------------------------------
 !> Transfer local coefficients over a tree
@@ -1997,7 +2011,6 @@ subroutine tree_l2l_rotation_adj_work(params, constants, node_l, work)
         end do
     end do
 end subroutine tree_l2l_rotation_adj_work
-
 !------------------------------------------------------------------------------
 !> Adjoint transfer local coefficients over a tree
 !------------------------------------------------------------------------------
@@ -2008,7 +2021,8 @@ subroutine tree_l2l_bessel_rotation_adj(params, constants, node_l)
     ! Output
     real(dp), intent(inout) :: node_l((params % pl+1)**2, constants % nclusters)
     ! Temporary workspace
-    !real(dp), intent(out) :: work(6*params % pl**2 + 19*params % pl + 8)
+    real(dp) :: work(6*params % pl**2 + 19*params % pl + 8)
+    complex(dp) :: work_complex(2*params % pl+1)
     ! Local variables
     integer :: i, j, k
     real(dp) :: c1(3), c(3), r1, r
@@ -2021,25 +2035,27 @@ subroutine tree_l2l_bessel_rotation_adj(params, constants, node_l)
         ! First child initializes output
         j = constants % children(1, i)
         c1 = constants % cnode(:, j)
-        r1 = constants % rnode(j)
         !call fmm_l2l_bessel_rotation_adj(c1-c, r1, r, params % pl, &
         !    & constants % vscales, constants % vfact, one, &
         !    & node_l(:, j), zero, node_l(:, i))
         c1 = c1 - c
-        call fmm_m2m_bessel_rotation(c1, r1, r, params % kappa, params % pl, &
+        c1 = params % kappa*(c1 - c)
+        call fmm_m2m_bessel_rotation_work(c1, constants % SK_rnode(:, j), &
+            & constants % SK_rnode(:, i), params % pl, &
             & constants % vscales, constants % vfact, one, &
-            & node_l(:, j), zero, node_l(:, i))
+            & node_l(:, j), zero, node_l(:, i), work, work_complex)
         ! All other children update the same output
         do j = constants % children(1, i)+1, constants % children(2, i)
             c1 = constants % cnode(:, j)
-            r1 = constants % rnode(j)
             !call fmm_l2l_bessel_rotation_adj(c1-c, r1, r, params % pl, &
             !    & constants % vscales, constants % vfact, one, &
             !    & node_l(:, j), one, node_l(:, i))
             c1 = c1 - c
-            call fmm_m2m_bessel_rotation(c1, r1, r, params % kappa, params % pl, &
+            c1 = params % kappa*(c1 - c)
+            call fmm_m2m_bessel_rotation_work(c1, constants % SK_rnode(:, j), &
+                & constants % SK_rnode(:, i), params % pl, &
                 & constants % vscales, constants % vfact, one, &
-                & node_l(:, j), one, node_l(:, i))
+                & node_l(:, j), one, node_l(:, i), work, work_complex)
         end do
     end do
 end subroutine tree_l2l_bessel_rotation_adj
@@ -2149,7 +2165,6 @@ subroutine tree_m2l_bessel_rotation(params, constants, node_m, node_l)
         end do
     end do
 end subroutine tree_m2l_bessel_rotation
-
 !------------------------------------------------------------------------------
 !> Adjoint transfer multipole local coefficients into local over a tree
 !------------------------------------------------------------------------------
@@ -2159,7 +2174,25 @@ subroutine tree_m2l_bessel_rotation_adj(params, constants, node_l, node_m)
     type(ddx_constants_type), intent(in) :: constants
     real(dp), intent(in) :: node_l((params % pl+1)**2, constants % nclusters)
     ! Output
+    real(dp), intent(inout) :: node_m((params % pm+1)**2, constants % nclusters)
+    !Call corresponding work routine
+    call tree_m2l_bessel_rotation_adj_work(params, constants, node_l, node_m)
+end subroutine tree_m2l_bessel_rotation_adj
+
+
+!------------------------------------------------------------------------------
+!> Adjoint transfer multipole local coefficients into local over a tree
+!------------------------------------------------------------------------------
+subroutine tree_m2l_bessel_rotation_adj_work(params, constants, node_l, node_m)
+    ! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: node_l((params % pl+1)**2, constants % nclusters)
+    ! Output
     real(dp), intent(out) :: node_m((params % pm+1)**2, constants % nclusters)
+    ! Temporary workspace
+    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
+    complex(dp) :: work_complex(2*params % pm+1)
     ! Local variables
     integer :: i, j, k
     real(dp) :: c1(3), c(3), r1, r
@@ -2175,22 +2208,22 @@ subroutine tree_m2l_bessel_rotation_adj(params, constants, node_l, node_m)
         ! Use the first far admissible pair to initialize output
         k = constants % far(constants % sfar(i))
         c1 = constants % cnode(:, k)
-        r1 = constants % rnode(k)
-        c1 = c - c1
-        call fmm_m2l_bessel_rotation_adj(c1, r, r1, params % kappa, params % pm, &
+        c1 = params % kappa*(c1 - c)
+        call fmm_m2l_bessel_rotation_adj_work(c1, constants % SI_rnode(:, k), &
+            & constants % SK_rnode(:, i), params % pm, &
             & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
-            & node_l(:, i), one, node_m(:, k))
+            & node_l(:, i), one, node_m(:, k), work, work_complex)
         do j = constants % sfar(i)+1, constants % sfar(i+1)-1
             k = constants % far(j)
             c1 = constants % cnode(:, k)
-            r1 = constants % rnode(k)
-            c1 = c - c1
-            call fmm_m2l_bessel_rotation_adj(c1, r, r1, params % kappa, params % pm, &
+            c1 = params % kappa*(c1 - c)
+            call fmm_m2l_bessel_rotation_adj_work(c1, constants % SI_rnode(:, k), &
+                & constants % SK_rnode(:, i), params % pm, &
                 & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
-                & node_l(:, i), one, node_m(:, k))
+                & node_l(:, i), one, node_m(:, k), work, work_complex)
         end do
     end do
-end subroutine tree_m2l_bessel_rotation_adj
+end subroutine tree_m2l_bessel_rotation_adj_work
 
 !------------------------------------------------------------------------------
 !> Adjoint transfer multipole local coefficients into local over a tree
