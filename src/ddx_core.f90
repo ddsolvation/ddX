@@ -2038,8 +2038,8 @@ subroutine tree_l2l_bessel_rotation_adj(params, constants, node_l)
         !call fmm_l2l_bessel_rotation_adj(c1-c, r1, r, params % pl, &
         !    & constants % vscales, constants % vfact, one, &
         !    & node_l(:, j), zero, node_l(:, i))
-        c1 = c1 - c
         c1 = params % kappa*(c1 - c)
+        ! M2M is actually the same as adjoint L2L
         call fmm_m2m_bessel_rotation_work(c1, constants % SK_rnode(:, j), &
             & constants % SK_rnode(:, i), params % pl, &
             & constants % vscales, constants % vfact, one, &
@@ -2050,8 +2050,8 @@ subroutine tree_l2l_bessel_rotation_adj(params, constants, node_l)
             !call fmm_l2l_bessel_rotation_adj(c1-c, r1, r, params % pl, &
             !    & constants % vscales, constants % vfact, one, &
             !    & node_l(:, j), one, node_l(:, i))
-            c1 = c1 - c
             c1 = params % kappa*(c1 - c)
+            ! M2M is actually the same as adjoint L2L
             call fmm_m2m_bessel_rotation_work(c1, constants % SK_rnode(:, j), &
                 & constants % SK_rnode(:, i), params % pl, &
                 & constants % vscales, constants % vfact, one, &
