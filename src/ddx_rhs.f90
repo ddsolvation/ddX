@@ -26,7 +26,7 @@ subroutine build_phi(params, constants, workspace, multipoles, &
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: mmax
-    real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(inout) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav)
     if (params % fmm .eq. 0) then
         call build_phi_dense(params, constants, workspace, multipoles, &
@@ -61,14 +61,25 @@ subroutine build_phi_dense(params, constants, workspace, multipoles, cm, &
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: mmax, nm, ncav
-    real(dp), intent(in) :: multipoles((mmax + 1)**2, nm)
+    real(dp), intent(inout) :: multipoles((mmax + 1)**2, nm)
     real(dp), intent(in) :: cm(3, nm)
     real(dp), intent(out) :: phi_cav(ncav)
     real(dp), intent(in) :: ccav(3, ncav)
-
-    integer icav, im
+    integer icav, im, l, m, i
     real(dp) :: v, c(3)
     real(dp) :: r
+
+    ! m2p expects a strange normalization, hence the multipoles must be
+    ! scaled by l, only for l>=1
+
+    do im = 1, nm
+        do l = 1, mmax
+            i = l*l + l + 1
+            do m = -l, l
+                 multipoles(i+m,im) = multipoles(i+m,im)*dble(l)
+            end do
+        end do
+    end do
 
     do icav = 1, ncav
         v = zero
@@ -78,6 +89,17 @@ subroutine build_phi_dense(params, constants, workspace, multipoles, cm, &
                 & one, multipoles(:, im), one, v)
         end do
         phi_cav(icav) = v
+    end do
+
+    ! restore the original multipoles
+
+    do im = 1, nm
+        do l = 1, mmax
+            i = l*l + l + 1
+            do m = -l, l
+                 multipoles(i+m,im) = multipoles(i+m,im)/dble(l)
+            end do
+        end do
     end do
 
 end subroutine build_phi_dense
@@ -122,13 +144,13 @@ subroutine build_psi(params, constants, workspace, multipoles, mmax, psi)
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax+1)**2, params % nsph)
     real(dp), intent(out) :: psi((params % lmax+1)**2, params % nsph)
-
     integer :: isph, l, m, i
     real(dp) :: v
 
+    psi = zero
     do isph = 1, params % nsph
         do l = 0, mmax
-            v = fourpi/((two*dble(l) + one)*(params % rsph(isph)**(l+1)))
+            v = fourpi/((two*dble(l) + one)*(params % rsph(isph)**(l)))
             i = l*l + l + 1
             do m = -l, l
                 psi(i + m, isph) = v*multipoles(i + m, isph)
