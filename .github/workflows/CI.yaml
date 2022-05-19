@@ -13,6 +13,9 @@ on:
   workflow_dispatch:
 
 jobs:
+  #
+  # Fortran-side build and tests
+  #
   build:
     name: Build, Test, Install
     runs-on: ubuntu-latest
@@ -38,3 +41,37 @@ jobs:
         cd build
         cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran-10" -DddX_DIR="/tmp/libddx/lib/ddX" ..
         make
+
+  #
+  # Python-side tests
+  #
+  python:
+    name: Python tests on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-latest}
+          - {os: macos-11}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - uses: awvwgk/setup-fortran@main
+        id: setup-fortran
+        with:
+          compiler: gcc
+          version: 11
+        if: contains( matrix.os, 'macos')
+      - name: Install system dependencies on macOS
+        run:  brew install ninja
+        if: contains( matrix.os, 'macos')
+      - name: Install python dependencies
+        run: |
+          python -m pip install --user wheel
+          python -m pip install --user -r requirements.txt
+      - name: Run python tests
+        run: |
+          python setup.py test
