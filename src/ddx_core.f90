@@ -1621,31 +1621,26 @@ subroutine ddcav_to_grid_work(ngrid, nsph, ncav, icav_ia, icav_ja, x_cav, &
 end subroutine ddcav_to_grid_work
 
 !------------------------------------------------------------------------------
-!> Integrate by a characteristic function at Lebedev grid points
-!! \xi(n,i) = 
-!!
-!!  sum w_n U_n^i Y_l^m(s_n) [S_i]_l^m
-!!  l,m
-!subroutine ddproject_grid_work(nbasis, , alpha, x_sph, beta, x_grid)
-!!
-!    type(ddx_type) :: ddx_data
-!       real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in)    :: s
-!       real(dp), dimension(ddx_data % constants % ncav),      intent(inout) :: xi
-!!
-!       integer :: its, isph, ii
-!!
-!       ii = 0
-!       do isph = 1, ddx_data % params % nsph
-!         do its = 1, ddx_data % params % ngrid
-!           if (ddx_data % constants % ui(its,isph) .gt. zero) then
-!             ii     = ii + 1
-!             xi(ii) = ddx_data % constants % ui(its,isph)*dot_product(ddx_data %constants %  vwgrid(:,its),s(:,isph))
-!           end if
-!         end do
-!       end do
-!!
-!       return
-!end subroutine ddproject_cav_work
+! Integrate by a characteristic function at Lebedev grid points
+! \xi(n,i) = sum w_n U_n^i Y_l^m(s_n) [S_i]_l^m
+!            l,m
+subroutine ddproject_cav(params, constants, s, xi)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in)  :: s(constants%nbasis, params%nsph)
+    real(dp), intent(out) :: xi(constants%ncav)
+    integer :: its, isph, ii
+!
+    ii = 0
+    do isph = 1, params%nsph
+      do its = 1, params%ngrid
+        if (constants%ui(its, isph) .gt. zero) then
+          ii     = ii + 1
+          xi(ii) = constants%ui(its, isph) * dot_product(constants%vwgrid(:, its), s(:, isph))
+        end if
+      end do
+    end do
+end subroutine ddproject_cav
 
 !------------------------------------------------------------------------------
 !> Transfer multipole coefficients over a tree

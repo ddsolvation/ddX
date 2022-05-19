@@ -355,8 +355,8 @@ function ddx_allocate_state(c_ddx) result(c_state) bind(C)
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     allocate(state)
-    c_state = c_loc(state)
     call ddx_init_state(ddx%params, ddx%constants, state)
+    c_state = c_loc(state)
 end function
 
 subroutine ddx_deallocate_state(c_state) bind(C)
@@ -401,7 +401,6 @@ function ddx_get_s_niter(c_state) bind(C) result(c_niter)
     c_niter = state%s_niter
 end function
 
-! TODO This function will change syntax later
 subroutine ddx_get_xi(c_state, c_ddx, ncav, xi) bind(C)
     type(c_ptr), intent(in), value :: c_state, c_ddx
     type(ddx_state_type), pointer :: state
@@ -410,8 +409,7 @@ subroutine ddx_get_xi(c_state, c_ddx, ncav, xi) bind(C)
     real(c_double), intent(out)  :: xi(ncav)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddeval_grid_work(ddx%constants%nbasis, ddx%params%ngrid, ddx%params%nsph, &
-            & ddx%constants%vgrid, ddx%constants%vgrid_nbasis, one, state%s, zero, xi)
+    call ddproject_cav(ddx%params, ddx%constants, state%s, xi)
 end subroutine
 
 
@@ -424,7 +422,7 @@ subroutine ddx_cosmo_fill_guess(c_ddx, c_state) bind(C)
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddpcm_guess(ddx%params, ddx%constants, state)
+    call ddcosmo_guess(ddx%params, ddx%constants, state)
 end
 
 subroutine ddx_cosmo_solve(c_ddx, c_state, ncav, phi, tol) bind(C)

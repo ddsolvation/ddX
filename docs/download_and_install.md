@@ -1,12 +1,17 @@
 # Download and Installation  {#label_download_and_install}
 
-**Build python:**
+## Python package
+
+ddx is available in the form of the `pyddx` python package. This can be installed
+directly from pypi:
+```
+pip install pyddx
+```
+A conda-forge package will be added soon.
+
+If you want to build the python package from source, simply run:
 ```
 setup.py test
-```
-**Test python:**
-```
-./run_ddx.py
 ```
 
 **Download the ddX source code** at: 

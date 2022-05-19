@@ -1,7 +1,8 @@
-import pyddx
 import numpy as np
 
 from pytest import approx
+
+import pyddx
 
 
 def test_reference_pcm():
@@ -40,3 +41,5 @@ def test_reference_pcm():
     energy = 0.5 * np.sum(state.x * nuclear["psi"])
     ref = -0.00017974013712832552
     assert abs(energy - ref) < 5e-9
+
+# TODO Test COSMO
