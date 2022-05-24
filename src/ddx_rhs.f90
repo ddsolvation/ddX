@@ -72,14 +72,14 @@ subroutine build_phi_dense(params, constants, workspace, multipoles, cm, &
     ! m2p expects a strange normalization, hence the multipoles must be
     ! scaled by l, only for l>=1
 
-    do im = 1, nm
-        do l = 1, mmax
-            i = l*l + l + 1
-            do m = -l, l
-                 multipoles(i+m,im) = multipoles(i+m,im)*dble(l)
-            end do
-        end do
-    end do
+    ! do im = 1, nm
+    !     do l = 1, mmax
+    !         i = l*l + l + 1
+    !         do m = -l, l
+    !              multipoles(i+m,im) = multipoles(i+m,im)*dble(l)
+    !         end do
+    !     end do
+    ! end do
 
     do icav = 1, ncav
         v = zero
@@ -93,14 +93,14 @@ subroutine build_phi_dense(params, constants, workspace, multipoles, cm, &
 
     ! restore the original multipoles
 
-    do im = 1, nm
-        do l = 1, mmax
-            i = l*l + l + 1
-            do m = -l, l
-                 multipoles(i+m,im) = multipoles(i+m,im)/dble(l)
-            end do
-        end do
-    end do
+    ! do im = 1, nm
+    !     do l = 1, mmax
+    !         i = l*l + l + 1
+    !         do m = -l, l
+    !              multipoles(i+m,im) = multipoles(i+m,im)/dble(l)
+    !         end do
+    !     end do
+    ! end do
 
 end subroutine build_phi_dense
 
