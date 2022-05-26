@@ -101,7 +101,7 @@ subroutine build_phi_fmm(params, constants, workspace, multipoles, mmax, &
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav)
     ! local variables
-    integer i, isph, igrid, icav, inode, tmp_basis
+    integer i, isph, igrid, icav, inode, tmp_max, l, m, ind
 
     ! P2M is not needed as we have already multipolar distributions
     ! we just have to copy the multipoles in the proper places
@@ -109,11 +109,16 @@ subroutine build_phi_fmm(params, constants, workspace, multipoles, mmax, &
         inode = constants % snode(isph)
         workspace % tmp_sph(:, isph) = zero
         workspace % tmp_node_m(:, inode) = zero
-        tmp_basis = (min(params % lmax, mmax) + 1)**2
-        workspace % tmp_sph(:tmp_basis, isph) = multipoles(:tmp_basis, isph) &
-            & /params%rsph(isph)
-        workspace % tmp_node_m(:tmp_basis, inode) = multipoles(:tmp_basis, isph) &
-            & /params%rsph(isph)
+        tmp_max = min(params % lmax, mmax)
+        do l = 0, tmp_max
+            ind = l*l + l + 1
+            do m = -l, l
+                workspace % tmp_sph(ind+m, isph) = &
+                    & multipoles(ind+m, isph)/(params%rsph(isph)**(l+1))
+                workspace % tmp_node_m(ind+m, inode) = &
+                    & multipoles(ind+m, isph)/(params%rsph(isph)**(l+1))
+            end do
+        end do
     end do
 
     call tree_m2m_rotation(params, constants, workspace % tmp_node_m)
