@@ -69,18 +69,6 @@ subroutine build_phi_dense(params, constants, workspace, multipoles, cm, &
     real(dp) :: v, c(3)
     real(dp) :: r
 
-    ! m2p expects a strange normalization, hence the multipoles must be
-    ! scaled by l, only for l>=1
-
-    ! do im = 1, nm
-    !     do l = 1, mmax
-    !         i = l*l + l + 1
-    !         do m = -l, l
-    !              multipoles(i+m,im) = multipoles(i+m,im)*dble(l)
-    !         end do
-    !     end do
-    ! end do
-
     do icav = 1, ncav
         v = zero
         do im = 1, nm
@@ -90,17 +78,6 @@ subroutine build_phi_dense(params, constants, workspace, multipoles, cm, &
         end do
         phi_cav(icav) = v
     end do
-
-    ! restore the original multipoles
-
-    ! do im = 1, nm
-    !     do l = 1, mmax
-    !         i = l*l + l + 1
-    !         do m = -l, l
-    !              multipoles(i+m,im) = multipoles(i+m,im)/dble(l)
-    !         end do
-    !     end do
-    ! end do
 
 end subroutine build_phi_dense
 
@@ -123,6 +100,50 @@ subroutine build_phi_fmm(params, constants, workspace, multipoles, mmax, &
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav)
+    ! local variables
+    integer i, isph, igrid, icav, inode, tmp_basis
+
+    ! P2M is not needed as we have already multipolar distributions
+    ! we just have to copy the multipoles in the proper places
+    do isph = 1, params % nsph
+        inode = constants % snode(isph)
+        workspace % tmp_sph(:, isph) = zero
+        workspace % tmp_node_m(:, inode) = zero
+        tmp_basis = (min(params % lmax, mmax) + 1)**2
+        workspace % tmp_sph(:tmp_basis, isph) = multipoles(:tmp_basis, isph) &
+            & /params%rsph(isph)
+        workspace % tmp_node_m(:tmp_basis, inode) = multipoles(:tmp_basis, isph) &
+            & /params%rsph(isph)
+    end do
+
+    call tree_m2m_rotation(params, constants, workspace % tmp_node_m)
+    call tree_m2l_rotation(params, constants, workspace % tmp_node_m, &
+        & workspace % tmp_node_l)
+    call tree_l2l_rotation(params, constants, workspace % tmp_node_l)
+    call tree_l2p(params, constants, one, workspace % tmp_node_l, zero, &
+        & workspace % tmp_grid, workspace % tmp_sph_l)
+
+    ! near field
+    call tree_m2p(params, constants, params % lmax, one, &
+        & workspace % tmp_sph, one, workspace % tmp_grid)
+
+    ! Potential from each sphere to its own grid points
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+       & constants % nbasis, one, constants % vgrid2, &
+       & constants % vgrid_nbasis, workspace % tmp_sph, &
+       & constants % nbasis, one, workspace % tmp_grid, &
+       & params % ngrid)
+
+    icav = 0
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            ! Do not count internal grid points
+            if(constants % ui(igrid, isph) .eq. zero) cycle
+            icav = icav + 1
+            phi_cav(icav) = workspace % tmp_grid(igrid, isph)
+        end do
+    end do
+
 end subroutine build_phi_fmm
 
 !> Given a multipolar distribution, assemble the RHS psi.
