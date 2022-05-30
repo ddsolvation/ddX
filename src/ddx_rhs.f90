@@ -109,7 +109,7 @@ subroutine build_phi_fmm(params, constants, workspace, multipoles, mmax, &
         inode = constants % snode(isph)
         workspace % tmp_sph(:, isph) = zero
         workspace % tmp_node_m(:, inode) = zero
-        tmp_max = min(params % lmax, mmax)
+        tmp_max = min(params % pm, mmax)
         do l = 0, tmp_max
             ind = l*l + l + 1
             do m = -l, l
