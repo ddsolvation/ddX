@@ -218,10 +218,8 @@ subroutine diis(n, nmat, ndiis, x, e, b, xnew)
     end if
 
     xnew = zero
-    !$omp parallel do default(none) shared(nmat,x,cex) &
-    !$omp private(i) schedule(dynamic) reduction(+:xnew)
     do i = 1, nmat
-        xnew = xnew + cex(i+1)*x(:, i)
+        call daxpy(n,cex(i+1),x(:, i),1,xnew,1)
     end do
     nmat = nmat + 1
 
