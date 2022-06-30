@@ -254,7 +254,7 @@ end subroutine makeb
 subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_iter, &
           & x_rel_diff, matvec, dm1vec, norm_func)
       type(ddx_params_type),    intent(in)    :: params
-      type(ddx_constants_type), intent(in)    :: constants
+      type(ddx_constants_type), intent(inout) :: constants
       type(ddx_workspace_type), intent(inout) :: workspace
       ! Inputs
       integer,                  intent(in)    :: n
@@ -347,6 +347,8 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
         end if
 
         x_rel_diff(it) = rel_diff
+
+        constants % inner_tol = max(rel_diff*sqrt(tol), tol/100.0d0)
 !
 !       update
         x = x_new

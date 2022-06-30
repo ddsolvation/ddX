@@ -223,8 +223,9 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
         return
     end if
 
-    !! Use a tighter tolerance for the microiterations to ensure convergence
-    constants % inner_tol =  tol/100.0d0
+    ! set the initial convergence for the microiterations, it will be
+    ! adjusted depending on the external one
+    constants % inner_tol =  sqrt(tol)
 
     !! Setting initial values to zero
     g_lpb = zero
@@ -307,7 +308,7 @@ subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
     end if
 
     !! Use a tighter tolerance for the microiterations to ensure convergence
-    constants % inner_tol =  tol/100.0d0
+    constants % inner_tol =  sqrt(tol)
 
     ! Psi shall be divided by a factor 4pi for the LPB case
     ! It is intended to take into account this constant in the LPB
