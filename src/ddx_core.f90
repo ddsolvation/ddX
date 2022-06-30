@@ -2106,6 +2106,8 @@ subroutine tree_m2l_bessel_rotation(params, constants, node_m, node_l)
     integer :: i, j, k, NZ, ierr
     real(dp) :: c1(3), c(3), r1, r
     ! Any order of this cycle is OK
+    !$omp parallel do default(none) shared(constants,params,node_m,node_l) &
+    !$omp private(i,c,r,k,c1,r1,work,work_complex) schedule(dynamic)
     do i = 1, constants % nclusters
         ! If no far admissible pairs just set output to zero
         if (constants % nfar(i) .eq. 0) then
@@ -2306,6 +2308,8 @@ subroutine tree_l2p_bessel(params, constants, alpha, node_l, beta, grid_v)
         grid_v = beta * grid_v
     end if
     ! Get data from all clusters to spheres
+    !$omp parallel do default(none) shared(params,constants,node_l,sph_l) &
+    !$omp private(isph) schedule(dynamic)
     do isph = 1, params % nsph
         sph_l(:, isph) = node_l(:, constants % snode(isph))
     end do
@@ -2346,6 +2350,8 @@ subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l, sph_l)
         & grid_v, params % ngrid, zero, sph_l, &
         & (params % pl+1)**2)
     ! Get data from all clusters to spheres
+    !$omp parallel do default(none) shared(params,constants,node_l,sph_l, &
+    !$omp alpha) private(isph,inode) schedule(dynamic)
     do isph = 1, params % nsph
         inode = constants % snode(isph)
         node_l(:, inode) = node_l(:, inode) + alpha*sph_l(:, isph)
@@ -2380,6 +2386,8 @@ subroutine tree_l2p_bessel_adj(params, constants, alpha, grid_v, beta, node_l)
         & grid_v, params % ngrid, zero, sph_l, &
         & (params % pl+1)**2)
     ! Get data from all clusters to spheres
+    !$omp parallel do default(none) shared(params,constants,node_l,sph_l, &
+    !$omp alpha) private(isph,inode) schedule(dynamic)
     do isph = 1, params % nsph
         inode = constants % snode(isph)
         node_l(:, inode) = node_l(:, inode) + alpha*sph_l(:, isph)
@@ -2459,6 +2467,9 @@ subroutine tree_m2p_bessel(params, constants, p, alpha, sph_p, sph_m, beta, grid
         grid_v = beta * grid_v
     end if
     ! Cycle over all spheres
+    !$omp parallel do default(none) shared(params,constants,grid_v,p, &
+    !$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work, &
+    !$omp work_complex) schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
@@ -2507,6 +2518,9 @@ subroutine tree_m2p_adj(params, constants, p, alpha, grid_v, beta, sph_m)
         sph_m = beta * sph_m
     end if
     ! Cycle over all spheres
+    !$omp parallel do default(none) shared(params,constants,grid_v,p, &
+    !$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work) &
+    !$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
@@ -2555,6 +2569,9 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
         sph_m = beta * sph_m
     end if
     ! Cycle over all spheres
+    !$omp parallel do default(none) shared(params,constants,grid_v,p, &
+    !$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work) &
+    !$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
