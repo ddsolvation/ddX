@@ -418,24 +418,25 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     scaled_Xr = x(:,:,1)
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
-    !$omp parallel do default(none) shared(params,constants,workspace, &
-    !$omp scaled_xr,xadj_r_sgrid,force,x,xadj_e_sgrid,phi_grid) private(isph, &
-    !$omp basloc,dbasloc,vplm,vcos,vsin)
+    !!$omp parallel do default(none) shared(params,constants,workspace, &
+    !!$omp scaled_xr,xadj_r_sgrid,x,force,xadj_e_sgrid,phi_grid) &
+    !!$omp private(isph,basloc,dbasloc,vplm,vcos,vsin) schedule(dynamic)
     do isph = 1, params % nsph
         ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
         call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
             & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
         ! Compute B^k*Xadj_e
-        call contract_grad_B(params, constants, workspace, isph, x(:,:,2), Xadj_e_sgrid, &
-            & basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
+        call contract_grad_B(params, constants, workspace, isph, x(:,:,2), &
+            & Xadj_e_sgrid, basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
         ! Computation of G0
         call contract_grad_U(params, constants, isph, Xadj_r_sgrid, phi_grid, &
             & force(:, isph))
     end do
     ! Compute C1 and C2 contributions
     diff_re = zero
-    call contract_grad_C(params, constants, workspace, x(:,:,1), x(:,:,2), Xadj_r_sgrid, &
-        & Xadj_e_sgrid, x_adj(:,:,1), x_adj(:,:,2), force, diff_re)
+    call contract_grad_C(params, constants, workspace, x(:,:,1), x(:,:,2), &
+        & Xadj_r_sgrid, Xadj_e_sgrid, x_adj(:,:,1), x_adj(:,:,2), force, &
+        & diff_re)
     ! Computation of G0 continued
     ! NOTE: contract_grad_U returns a positive summation
     if (workspace % error_flag .eq. 1) return
