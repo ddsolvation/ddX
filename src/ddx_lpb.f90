@@ -418,9 +418,10 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     scaled_Xr = x(:,:,1)
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
-    !!$omp parallel do default(none) shared(params,constants,workspace, &
-    !!$omp scaled_xr,xadj_r_sgrid,x,force,xadj_e_sgrid,phi_grid) &
-    !!$omp private(isph,basloc,dbasloc,vplm,vcos,vsin) schedule(dynamic)
+    !$omp parallel do default(none) shared(params,constants,workspace, &
+    !$omp scaled_xr,xadj_r_sgrid,x,force,xadj_e_sgrid,phi_grid) &
+    !$omp private(isph,basloc,dbasloc,vplm,vcos,vsin) &
+    !$omp schedule(static,1)
     do isph = 1, params % nsph
         ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
         call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
@@ -539,11 +540,11 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     icav_gr = zero
     icav_ge = zero
     ! Computation of F0
-    call contract_grad_f(params, constants, workspace, x_adj(:,:,1), Xadj_r_sgrid, &
-                  & gradphi, normal_hessian_cav, icav_gr, force)
+    call contract_grad_f(params, constants, workspace, x_adj(:,:,1), &
+        & Xadj_r_sgrid, gradphi, normal_hessian_cav, icav_gr, force)
     if (workspace % error_flag .eq. 1) return
-    call contract_grad_f(params, constants, workspace, x_adj(:,:,2), Xadj_e_sgrid, &
-                  & gradphi, normal_hessian_cav, icav_ge, force)
+    call contract_grad_f(params, constants, workspace, x_adj(:,:,2), &
+        & Xadj_e_sgrid, gradphi, normal_hessian_cav, icav_ge, force)
     if (workspace % error_flag .eq. 1) return
 
     force = - pt5*force
