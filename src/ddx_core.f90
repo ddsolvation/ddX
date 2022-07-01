@@ -2555,13 +2555,14 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
     integer, intent(in) :: p, sph_p
     real(dp), intent(in) :: grid_v(params % ngrid, params % nsph), alpha, &
         & beta
+    real(dp), allocatable :: tmp_grid_v(:, :, :)
     ! Output
     real(dp), intent(inout) :: sph_m((sph_p+1)**2, params % nsph)
     ! Temporary workspace
     real(dp) :: work(p+1)
     ! Local variables
     integer :: isph, inode, jnear, jnode, jsph, igrid
-    real(dp) :: c(3)
+    real(dp) :: c(3), w
     ! Init output
     if (beta .eq. zero) then
         sph_m = zero
@@ -2569,9 +2570,6 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
         sph_m = beta * sph_m
     end if
     ! Cycle over all spheres
-    !$omp parallel do default(none) shared(params,constants,grid_v,p, &
-    !$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work) &
-    !$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
@@ -2587,8 +2585,9 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
                 if(constants % ui(igrid, isph) .eq. zero) cycle
                 c = constants % cgrid(:, igrid)*params % rsph(isph) - &
                     & params % csph(:, jsph) + params % csph(:, isph)
-                call fmm_m2p_bessel_adj(c, alpha*grid_v(igrid, isph), &
-                    & params % rsph(jsph), params % kappa, p, constants % vscales, one, &
+                w = alpha*grid_v(igrid, isph)
+                call fmm_m2p_bessel_adj(c, w, params % rsph(jsph), &
+                    & params % kappa, p, constants % vscales, one, &
                     & sph_m(:, jsph))
             end do
         end do
