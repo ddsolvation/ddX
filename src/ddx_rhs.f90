@@ -90,10 +90,8 @@ subroutine build_grad_phi(params, constants, workspace, multipoles, &
             & params % csph, mmax, params % nsph, phi_cav, constants % ccav, &
             & constants % ncav, grad_phi_cav)
     else if (params % fmm .eq. 1) then
-        stop "Not yet implemented"
-        !call build_grad_phi_fmm(params, constants, workspace, multipoles, &
-        !    & mmax, phi_cav)
-        grad_phi_cav = 0.0d0
+        call build_grad_phi_fmm(params, constants, workspace, multipoles, &
+            & mmax, phi_cav, grad_phi_cav)
     end if
 end subroutine build_grad_phi
 
@@ -126,60 +124,19 @@ subroutine build_grad_phi_dense(params, constants, workspace, multipoles, cm, &
     real(dp), intent(out) :: phi_cav(ncav)
     real(dp), intent(out) :: grad_phi_cav(3, ncav)
     real(dp), intent(in) :: ccav(3, ncav)
-    real(dp), allocatable  :: tmp_m_grad(:, :, :), tmp(:, :)
+    real(dp), allocatable  :: tmp_m_grad(:, :, :)
     integer icav, im, l, m, i, info, indi, indj
     real(dp) :: v, ex, ey, ez, c(3), tmp1, tmp2
-    real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
 
     ! allocate some space for the M2M gradients
-    allocate(tmp_m_grad((mmax + 2)**2, 3, nm), tmp((mmax + 2)**2, nm), &
-        & stat=info)
+    allocate(tmp_m_grad((mmax + 2)**2, 3, nm), stat=info)
     if (info .ne. 0) then
         stop "Allocation failed in build_grad_phi_dense!"
     end if
 
-    ! the first step is assembling the gradient of the M2M translation
-    ! this is required for the field
-
-    zx_coord_transform = zero
-    zx_coord_transform(3, 2) = one
-    zx_coord_transform(2, 3) = one
-    zx_coord_transform(1, 1) = one
-    zy_coord_transform = zero
-    zy_coord_transform(1, 2) = one
-    zy_coord_transform(2, 1) = one
-    zy_coord_transform(3, 3) = one
-
-    tmp_m_grad(1:(mmax + 1)**2, 3, :) = multipoles
-    do im = 1, nm
-        call fmm_sph_transform(mmax, zx_coord_transform, one, &
-            & multipoles(:, im), zero, tmp_m_grad(1:(mmax + 1)**2, 1, im))
-        call fmm_sph_transform(mmax, zy_coord_transform, one, &
-            & multipoles(:, im), zero, tmp_m_grad(1:(mmax + 1)**2, 2, im))
-    end do
-
-    do l = mmax+1, 1, -1
-        indi = l*l + l + 1
-        indj = indi - 2*l
-        tmp1 = sqrt(dble(2*l+1)) / sqrt(dble(2*l-1))
-        do m = 1-l, l-1
-            tmp2 = sqrt(dble(l*l-m*m)) * tmp1
-            tmp_m_grad(indi+m, :, :) = tmp2 * tmp_m_grad(indj+m, :, :)
-        end do
-        tmp_m_grad(indi+l, :, :) = zero
-        tmp_m_grad(indi-l, :, :) = zero
-    end do
-    tmp_m_grad(1, :, :) = zero
-
-    do im = 1, nm
-        tmp_m_grad(:, 3, im) = tmp_m_grad(:, 3, im)
-        tmp(:, im) = tmp_m_grad(:, 1, im)
-        call fmm_sph_transform(mmax+1, zx_coord_transform, one, &
-            & tmp(:, im), zero, tmp_m_grad(:, 1, im))
-        tmp(:, im) = tmp_m_grad(:, 2, im)
-        call fmm_sph_transform(mmax+1, zy_coord_transform, one, &
-            & tmp(:, im), zero, tmp_m_grad(:, 2, im))
-    end do
+    ! call the helper routine for the M2M gradients
+    call grad_m2m(params, constants, workspace, multipoles, mmax, nm, &
+        & tmp_m_grad)
 
     ! loop over the targets and the sources and assemble the electric
     ! potential and field
@@ -206,7 +163,7 @@ subroutine build_grad_phi_dense(params, constants, workspace, multipoles, cm, &
         grad_phi_cav(3, icav) = ez
     end do
 
-    deallocate(tmp_m_grad, tmp, stat=info)
+    deallocate(tmp_m_grad, stat=info)
     if (info .ne. 0) then
         stop "Deallocation failed in build_grad_phi_dense!"
     end if
@@ -316,7 +273,21 @@ subroutine build_grad_phi_fmm(params, constants, workspace, multipoles, &
     real(dp), intent(out) :: phi_cav(constants % ncav)
     real(dp), intent(out) :: grad_phi_cav(3, constants % ncav)
     ! local variables
-    integer i, isph, igrid, icav, inode, tmp_max, l, m, ind
+    integer :: info, isph, igrid, inode, jnode, jsph, jnear, icav
+    real(dp) :: ex, ey, ez, c(3)
+    real(dp), allocatable :: tmp_m_grad(:, :, :), tmp(:, :), &
+        & grid_grad(:, :, :)
+    real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
+
+    allocate(tmp_m_grad((mmax + 2)**2, 3, params % nsph), &
+        & grid_grad(params % ngrid, 3, params % nsph), stat=info)
+    if (info .ne. 0) then
+        stop "Allocation failed in build_grad_phi_fmm!"
+    end if
+
+    ! compute the gradient of the m2m trasformation
+    call grad_m2m(params, constants, workspace, multipoles, mmax, &
+        & params % nsph, tmp_m_grad)
 
     ! copy the multipoles in the right places
     call load_m(params, constants, workspace, multipoles, mmax)
@@ -324,26 +295,52 @@ subroutine build_grad_phi_fmm(params, constants, workspace, multipoles, &
     ! perform the m2m, m2l and l2l steps
     call do_fmm(params, constants, workspace)
 
-    ! near field
+    ! near field potential (m2p)
     call tree_m2p(params, constants, params % lmax, one, &
         & workspace % tmp_sph, one, workspace % tmp_grid)
 
-    ! Potential from each sphere to its own grid points (l2p)
+    ! far field potential, each sphere at its own points (l2p)
     call dgemm('T', 'N', params % ngrid, params % nsph, &
-       & constants % nbasis, one, constants % vgrid2, &
-       & constants % vgrid_nbasis, workspace % tmp_sph, &
-       & constants % nbasis, one, workspace % tmp_grid, &
-       & params % ngrid)
+        & constants % nbasis, one, constants % vgrid2, &
+        & constants % vgrid_nbasis, workspace % tmp_sph, &
+        & constants % nbasis, one, workspace % tmp_grid, &
+        & params % ngrid)
+
+    ! near field gradients
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if(constants % ui(igrid, isph) .eq. zero) cycle
+            inode = constants % snode(isph)
+            ex = zero
+            ey = zero
+            ez = zero
+            do jnear = constants % snear(inode), constants % snear(inode+1) - 1
+                jnode = constants % near(jnear)
+                jsph = constants % order(constants % cluster(1, jnode))
+                c = params % csph(:, isph) + constants % cgrid(:, igrid) &
+                    & *params % rsph(isph) - params % csph(:, jsph)
+                call fmm_m2p(c, one, mmax + 1, constants % vscales_rel, &
+                    & one, tmp_m_grad(:, 1, jsph), one, ex)
+                call fmm_m2p(c, one, mmax + 1, constants % vscales_rel, &
+                    & one, tmp_m_grad(:, 2, jsph), one, ey)
+                call fmm_m2p(c, one, mmax + 1, constants % vscales_rel, &
+                    & one, tmp_m_grad(:, 3, jsph), one, ez)
+            end do
+            grid_grad(igrid, 1, isph) = ex
+            grid_grad(igrid, 2, isph) = ey
+            grid_grad(igrid, 3, isph) = ez
+        end do
+    end do
 
     ! far-field FMM gradients (only if pl > 0)
-    !if (params % pl .gt. 0) then
-    !    call tree_grad_l2l(params, constants, workspace % tmp_node_l, &
-    !        & workspace % tmp_sph_l_grad, workspace % tmp_sph_l)
-    !    call dgemm('T', 'N', params % ngrid, 3*params % nsph, &
-    !        & (params % pl)**2, -one, constants % vgrid2, &
-    !        & constants % vgrid_nbasis, workspace % tmp_sph_l_grad, &
-    !        & (params % pl+1)**2, one, grid_grad, params % ngrid)
-    !end if
+    if (params % pl .gt. 0) then
+        call tree_grad_l2l(params, constants, workspace % tmp_node_l, &
+            & workspace % tmp_sph_l_grad, workspace % tmp_sph_l)
+        call dgemm('T', 'N', params % ngrid, 3*params % nsph, &
+            & (params % pl)**2, one, constants % vgrid2, &
+            & constants % vgrid_nbasis, workspace % tmp_sph_l_grad, &
+            & (params % pl+1)**2, one, grid_grad, params % ngrid)
+    end if
 
     ! discard the internal points
     icav = 0
@@ -352,9 +349,14 @@ subroutine build_grad_phi_fmm(params, constants, workspace, multipoles, &
             if(constants % ui(igrid, isph) .eq. zero) cycle
             icav = icav + 1
             phi_cav(icav) = workspace % tmp_grid(igrid, isph)
-            !grad_phi_cav(:, icav) = grid_grad(igrid, :, isph)
+            grad_phi_cav(:, icav) = grid_grad(igrid, :, isph)
         end do
     end do
+
+    deallocate(grid_grad, stat=info)
+    if (info .ne. 0) then
+        stop "Deallocation failed in build_grad_phi_fmm!"
+    end if
 
 end subroutine build_grad_phi_fmm
 
@@ -510,5 +512,76 @@ subroutine do_fmm(params, constants, workspace)
     call tree_l2p(params, constants, one, workspace % tmp_node_l, zero, &
         & workspace % tmp_grid, workspace % tmp_sph_l)
 end subroutine do_fmm
+
+!> Given a multipolar distribution compute the action of dP on it 
+!!
+!!
+!!
+    subroutine grad_m2m(params, constants, workspace, multipoles, mmax, &
+        & nm, tmp_m_grad)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: mmax, nm
+    real(dp), intent(in) :: multipoles((mmax + 1)**2, nm)
+    real(dp), intent(out) :: tmp_m_grad((mmax + 2)**2, 3, nm)
+    ! local variables
+    real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
+    real(dp), allocatable :: tmp(:, :)
+    integer :: info, im, l, indi, indj, m
+    real(dp) :: tmp1, tmp2
+
+    allocate(tmp((mmax + 2)**2, nm), stat=info)
+    if (info .ne. 0) then
+        stop "Allocation failed in grad_m2m!"
+    end if
+
+    zx_coord_transform = zero
+    zx_coord_transform(3, 2) = one
+    zx_coord_transform(2, 3) = one
+    zx_coord_transform(1, 1) = one
+    zy_coord_transform = zero
+    zy_coord_transform(1, 2) = one
+    zy_coord_transform(2, 1) = one
+    zy_coord_transform(3, 3) = one
+
+    tmp_m_grad(1:(mmax + 1)**2, 3, :) = multipoles
+    do im = 1, nm
+        call fmm_sph_transform(mmax, zx_coord_transform, one, &
+            & multipoles(:, im), zero, tmp_m_grad(1:(mmax + 1)**2, 1, im))
+        call fmm_sph_transform(mmax, zy_coord_transform, one, &
+            & multipoles(:, im), zero, tmp_m_grad(1:(mmax + 1)**2, 2, im))
+    end do
+
+    do l = mmax+1, 1, -1
+        indi = l*l + l + 1
+        indj = indi - 2*l
+        tmp1 = sqrt(dble(2*l+1)) / sqrt(dble(2*l-1))
+        do m = 1-l, l-1
+            tmp2 = sqrt(dble(l*l-m*m)) * tmp1
+            tmp_m_grad(indi+m, :, :) = tmp2 * tmp_m_grad(indj+m, :, :)
+        end do
+        tmp_m_grad(indi+l, :, :) = zero
+        tmp_m_grad(indi-l, :, :) = zero
+    end do
+    tmp_m_grad(1, :, :) = zero
+
+    do im = 1, nm
+        tmp_m_grad(:, 3, im) = tmp_m_grad(:, 3, im)
+        tmp(:, im) = tmp_m_grad(:, 1, im)
+        call fmm_sph_transform(mmax+1, zx_coord_transform, one, &
+            & tmp(:, im), zero, tmp_m_grad(:, 1, im))
+        tmp(:, im) = tmp_m_grad(:, 2, im)
+        call fmm_sph_transform(mmax+1, zy_coord_transform, one, &
+            & tmp(:, im), zero, tmp_m_grad(:, 2, im))
+    end do
+
+    deallocate(tmp, stat=info)
+    if (info .ne. 0) then
+        stop "Deallocation failed in grad_m2m!"
+    end if
+
+    end subroutine grad_m2m
 
 end module ddx_rhs
