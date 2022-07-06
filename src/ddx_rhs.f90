@@ -8,6 +8,59 @@ implicit none
 
 contains
 
+!> Given a multipolar distribution, containing only charges, compute the
+!> potential and its gradient at the target points using a simple N^2 code.
+!> The multipoles must be centered on the ddx spheres.
+!! @param[in] params: ddx parameters
+!! @param[in]  constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[in] multipoles: multipoles as real spherical harmonics
+!!     size ((mmax+1)**2, nsph)
+!! @param[in] mmax: maximum angular momentum of the multipoles
+!! @param[out] phi_cav: electric potential at the target points size (ncav)
+!! @param[out] grad_phi_cav: electric field at the target points
+!!     size (3, ncav)
+!!
+subroutine test_field(params, constants, workspace, multipoles, &
+        & mmax, phi_cav, grad_phi_cav)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: mmax
+    real(dp), intent(inout) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(out) :: phi_cav(constants % ncav)
+    real(dp), intent(out) :: grad_phi_cav(3, constants % ncav)
+    real(dp) :: c(3), v, ex, ey, ez, d2, d, d3, f
+    integer :: icav, im
+
+    f = sqrt4pi
+
+    if (mmax .ne. 0) stop "error"
+    do icav = 1, constants % ncav
+        v = zero
+        ex = zero
+        ey = zero
+        ez = zero
+        do im = 1, params % nsph
+            c(:) = constants % ccav(:, icav) - params % csph(:, im)
+
+            d2 = c(1)*c(1) + c(2)*c(2) + c(3)*c(3)
+            d = sqrt(d2)
+            d3 = d*d2
+
+            v = v + f*multipoles(1, im)/d
+            ex = ex + f*multipoles(1, im)*c(1)/d3
+            ey = ey + f*multipoles(1, im)*c(2)/d3
+            ez = ez + f*multipoles(1, im)*c(3)/d3
+        end do
+        phi_cav(icav) = v
+        grad_phi_cav(1, icav) = ex
+        grad_phi_cav(2, icav) = ey
+        grad_phi_cav(3, icav) = ez
+    end do
+end subroutine test_field
+
 !> Given a multipolar distribution, compute the potential and its gradient
 !> at the target points this is done with or without FMMs depending on the
 !> relevant flag
@@ -153,14 +206,10 @@ subroutine build_grad_phi_dense(params, constants, workspace, multipoles, cm, &
         grad_phi_cav(3, icav) = ez
     end do
 
-    write(6,*) grad_phi_cav
-
-
     deallocate(tmp_m_grad, tmp, stat=info)
     if (info .ne. 0) then
         stop "Deallocation failed in build_grad_phi_dense!"
     end if
-    stop
 end subroutine build_grad_phi_dense
 
 !> Given a multipolar distribution, compute the potential and its gradient
