@@ -338,104 +338,124 @@ subroutine ddcosmo_forces_worker(params, constants, workspace, phi_grid, &
         call contract_grad_U(params, constants, isph, sgrid, phi_grid, &
             & force(:, isph))
     end do
-    force = -pt5 * force
+    force = - pt5 * force
+
+    ! assemble the intermediate zeta: S weighted by U evaluated on the
+    ! exposed grid points. This is not required here, but it is used
+    ! in later steps
     icav = 0
     do isph = 1, params % nsph
         do igrid = 1, params % ngrid
             if (constants % ui(igrid, isph) .ne. zero) then
                 icav = icav + 1
-                zeta(icav) = -pt5 * constants % wgrid(igrid) * &
+                zeta(icav) = constants % wgrid(igrid) * &
                     & constants % ui(igrid, isph) * ddot(constants % nbasis, &
                     & constants % vgrid(1, igrid), 1, &
                     & s(1, isph), 1)
-                force(:, isph) = force(:, isph) + &
-                    & zeta(icav)*gradphi_cav(:, icav)
             end if
         end do
     end do
-    !! Last term where we compute gradients of potential at centers of atoms
-    !! spawned by intermediate zeta.
-    if(params % fmm .eq. 1) then
-        !! This step can be substituted by a proper dgemm if zeta
-        !! intermediate is converted from cavity points to all grid points
-        !! with zero values at internal grid points
-        ! P2M step
-        icav = 0
-        do isph = 1, params % nsph
-            inode = constants % snode(isph)
-            workspace % tmp_node_m(:, inode) = zero
-            do igrid = 1, params % ngrid
-                if(constants % ui(igrid, isph) .eq. zero) cycle
-                icav = icav + 1
-                call fmm_p2m(constants % cgrid(:, igrid), zeta(icav), &
-                    & one, params % pm, constants % vscales, one, &
-                    & workspace % tmp_node_m(:, inode))
-            end do
-            workspace % tmp_node_m(:, inode) = workspace % tmp_node_m(:, inode) / &
-                & params % rsph(isph)
-        end do
-        ! M2M, M2L and L2L translations
-        call tree_m2m_rotation(params, constants, workspace % tmp_node_m)
-        call tree_m2l_rotation(params, constants, workspace % tmp_node_m, &
-            & workspace % tmp_node_l)
-        call tree_l2l_rotation(params, constants, workspace % tmp_node_l)
-        ! Now compute near-field FMM gradients
-        ! Cycle over all spheres
-        icav = 0
-        workspace % tmp_efld = zero
-        do isph = 1, params % nsph
-            ! Cycle over all external grid points
-            do igrid = 1, params % ngrid
-                if (constants % ui(igrid, isph) .eq. zero) cycle
-                icav = icav + 1
-                ! Cycle over all near-field admissible pairs of spheres,
-                ! including pair (isph, isph) which is a self-interaction
-                inode = constants % snode(isph)
-                do jnear = constants % snear(inode), constants % snear(inode+1)-1
-                    ! Near-field interactions are possible only between leaf
-                    ! nodes, which must contain only a single input sphere
-                    jnode = constants % near(jnear)
-                    jsph = constants % order(constants % cluster(1, jnode))
-                    d = params % csph(:, isph) + &
-                        & constants % cgrid(:, igrid)*params % rsph(isph) - &
-                        & params % csph(:, jsph)
-                    dnorm = dnrm2(3, d, 1)
-                    workspace % tmp_efld(:, jsph) = workspace % tmp_efld(:, jsph) + &
-                        & zeta(icav)*d/(dnorm**3)
-                end do
-            end do
-        end do
-        ! Take into account far-field FMM gradients only if pl > 0
-        if (params % pl .gt. 0) then
-            tmp1 = one / sqrt(3d0) / constants % vscales(1)
-            do isph = 1, params % nsph
-                inode = constants % snode(isph)
-                tmp2 = tmp1 / params % rsph(isph)
-                workspace % tmp_efld(3, isph) = workspace % tmp_efld(3, isph) + &
-                    & tmp2*workspace % tmp_node_l(3, inode)
-                workspace % tmp_efld(1, isph) = workspace % tmp_efld(1, isph) + &
-                    & tmp2*workspace % tmp_node_l(4, inode)
-                workspace % tmp_efld(2, isph) = workspace % tmp_efld(2, isph) + &
-                    & tmp2*workspace % tmp_node_l(2, inode)
-            end do
-        end if
-        do isph = 1, params % nsph
-            force(:, isph) = force(:, isph) + &
-                & workspace % tmp_efld(:, isph)*params % charge(isph)
-        end do
-    ! Naive quadratically scaling implementation
-    else
-        ! This routines actually computes -grad, not grad
-        call efld(constants % ncav, zeta, constants % ccav, &
-            & params % nsph, params % csph, workspace % tmp_efld)
-        do isph = 1, params % nsph
-            force(:, isph) = force(:, isph) - &
-                & workspace % tmp_efld(:, isph)*params % charge(isph)
-        end do
-    end if
-    ! Clear status
-    info = 0
+
 end subroutine ddcosmo_forces_worker
+
+!!subroutine tmp
+!!    icav = 0
+!!    do isph = 1, params % nsph
+!!        do igrid = 1, params % ngrid
+!!            if (constants % ui(igrid, isph) .ne. zero) then
+!!                icav = icav + 1
+!!                zeta(icav) = -pt5 * constants % wgrid(igrid) * &
+!!                    & constants % ui(igrid, isph) * ddot(constants % nbasis, &
+!!                    & constants % vgrid(1, igrid), 1, &
+!!                    & s(1, isph), 1)
+!!                force(:, isph) = force(:, isph) + &
+!!                    & zeta(icav)*gradphi_cav(:, icav)
+!!            end if
+!!        end do
+!!    end do
+!!    !! Last term where we compute gradients of potential at centers of atoms
+!!    !! spawned by intermediate zeta.
+!!    if(params % fmm .eq. 1) then
+!!        !! This step can be substituted by a proper dgemm if zeta
+!!        !! intermediate is converted from cavity points to all grid points
+!!        !! with zero values at internal grid points
+!!        ! P2M step
+!!        icav = 0
+!!        do isph = 1, params % nsph
+!!            inode = constants % snode(isph)
+!!            workspace % tmp_node_m(:, inode) = zero
+!!            do igrid = 1, params % ngrid
+!!                if(constants % ui(igrid, isph) .eq. zero) cycle
+!!                icav = icav + 1
+!!                call fmm_p2m(constants % cgrid(:, igrid), zeta(icav), &
+!!                    & one, params % pm, constants % vscales, one, &
+!!                    & workspace % tmp_node_m(:, inode))
+!!            end do
+!!            workspace % tmp_node_m(:, inode) = workspace % tmp_node_m(:, inode) / &
+!!                & params % rsph(isph)
+!!        end do
+!!        ! M2M, M2L and L2L translations
+!!        call tree_m2m_rotation(params, constants, workspace % tmp_node_m)
+!!        call tree_m2l_rotation(params, constants, workspace % tmp_node_m, &
+!!            & workspace % tmp_node_l)
+!!        call tree_l2l_rotation(params, constants, workspace % tmp_node_l)
+!!        ! Now compute near-field FMM gradients
+!!        ! Cycle over all spheres
+!!        icav = 0
+!!        workspace % tmp_efld = zero
+!!        do isph = 1, params % nsph
+!!            ! Cycle over all external grid points
+!!            do igrid = 1, params % ngrid
+!!                if (constants % ui(igrid, isph) .eq. zero) cycle
+!!                icav = icav + 1
+!!                ! Cycle over all near-field admissible pairs of spheres,
+!!                ! including pair (isph, isph) which is a self-interaction
+!!                inode = constants % snode(isph)
+!!                do jnear = constants % snear(inode), constants % snear(inode+1)-1
+!!                    ! Near-field interactions are possible only between leaf
+!!                    ! nodes, which must contain only a single input sphere
+!!                    jnode = constants % near(jnear)
+!!                    jsph = constants % order(constants % cluster(1, jnode))
+!!                    d = params % csph(:, isph) + &
+!!                        & constants % cgrid(:, igrid)*params % rsph(isph) - &
+!!                        & params % csph(:, jsph)
+!!                    dnorm = dnrm2(3, d, 1)
+!!                    workspace % tmp_efld(:, jsph) = workspace % tmp_efld(:, jsph) + &
+!!                        & zeta(icav)*d/(dnorm**3)
+!!                end do
+!!            end do
+!!        end do
+!!        ! Take into account far-field FMM gradients only if pl > 0
+!!        if (params % pl .gt. 0) then
+!!            tmp1 = one / sqrt(3d0) / constants % vscales(1)
+!!            do isph = 1, params % nsph
+!!                inode = constants % snode(isph)
+!!                tmp2 = tmp1 / params % rsph(isph)
+!!                workspace % tmp_efld(3, isph) = workspace % tmp_efld(3, isph) + &
+!!                    & tmp2*workspace % tmp_node_l(3, inode)
+!!                workspace % tmp_efld(1, isph) = workspace % tmp_efld(1, isph) + &
+!!                    & tmp2*workspace % tmp_node_l(4, inode)
+!!                workspace % tmp_efld(2, isph) = workspace % tmp_efld(2, isph) + &
+!!                    & tmp2*workspace % tmp_node_l(2, inode)
+!!            end do
+!!        end if
+!!        do isph = 1, params % nsph
+!!            force(:, isph) = force(:, isph) + &
+!!                & workspace % tmp_efld(:, isph)*params % charge(isph)
+!!        end do
+!!    ! Naive quadratically scaling implementation
+!!    else
+!!        ! This routines actually computes -grad, not grad
+!!        call efld(constants % ncav, zeta, constants % ccav, &
+!!            & params % nsph, params % csph, workspace % tmp_efld)
+!!        do isph = 1, params % nsph
+!!            force(:, isph) = force(:, isph) - &
+!!                & workspace % tmp_efld(:, isph)*params % charge(isph)
+!!        end do
+!!    end if
+!!    ! Clear status
+!!    info = 0
+!!end subroutine tmp
 
 end module ddx_cosmo
 
