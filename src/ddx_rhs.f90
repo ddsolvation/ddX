@@ -651,8 +651,8 @@ subroutine grad_m2m(params, constants, workspace, multipoles, mmax, &
 end subroutine grad_m2m
 
 !> Given a multipolar distribution in real spherical harmonics and
-!> centered on the spheres, compute the contributions stemming from
-!> its potential to the ddX forces
+!> centered on the spheres, compute the contributions to the forces
+!> stemming from its electrostatic interactions.
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
@@ -672,13 +672,20 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
     real(dp), intent(inout) :: forces(3, params % nsph)
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     ! local variables
-    integer :: isph, igrid, icav
+    integer :: isph, igrid, icav, info
+    real(dp), allocatable :: adj_phi(:, :)
+
+    allocate(adj_phi((mmax+1)**2, params % nsph), stat=info)
+    if (info .ne. 0) then
+        stop "Allocation failed in grad_phi!"
+    end if
 
     ! first contribution
     ! zeta * field
     icav = 0
     do isph = 1, params % nsph
         do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .eq. zero) cycle
             icav = icav + 1
             forces(:, isph) = forces(:, isph) - pt5 &
                 & *state % zeta(icav)*e_cav(:, icav)
@@ -686,6 +693,17 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
     end do
 
     ! second contribution
+    call build_adj_phi(params, constants, workspace, state % zeta, mmax, &
+        & adj_phi)
+
+    write(6, *) adj_phi
+
+    stop
+
+    deallocate(adj_phi, stat=info)
+    if (info .ne. 0) then
+        stop "Deallocation failed in grad_phi!"
+    end if
 
 end subroutine grad_phi
 
