@@ -54,8 +54,8 @@ subroutine test(params, constants, workspace)
         charges(ic) = (fac - 0.5d0)*2.0d0
     end do
 
-    call build_phi_dense(params, constants, workspace, multipoles, &
-        & multipoles_coords, mmax, nmultipoles, phi, charges_coords, ncharges)
+    call build_phi_dense(multipoles, multipoles_coords, mmax, nmultipoles, &
+        & phi, charges_coords, ncharges)
 
     ene = 0.0d0
     do ic = 1, ncharges
@@ -63,9 +63,8 @@ subroutine test(params, constants, workspace)
     end do
     write(6, *) 'energy multipoles -> charges:', ene 
 
-    call build_adj_phi_dense(params, constants, workspace, charges, &
-        & charges_coords, ncharges, multipoles_coords, mmax, nmultipoles, &
-        & adj_phi)
+    call build_adj_phi_dense(charges, charges_coords, ncharges, &
+        & multipoles_coords, mmax, nmultipoles, adj_phi)
 
     ene = 0.0d0
     do im = 1, nmultipoles
@@ -81,7 +80,6 @@ subroutine test(params, constants, workspace)
 
     deallocate(charges, charges_coords, multipoles, multipoles_coords, &
         & phi, adj_phi)
-    stop
 end subroutine test
 
 !> Given a multipolar distribution, containing only charges, compute the
@@ -91,11 +89,11 @@ end subroutine test
 !! @param[in] params: ddx parameters
 !! @param[in]  constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics
+!! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points size (ncav)
-!! @param[out] e_cav: electric field at the target points
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[out] e_cav: electric field at the target points,
 !!     size (3, ncav)
 !!
 subroutine test_field(params, constants, workspace, multipoles, &
@@ -145,11 +143,11 @@ end subroutine test_field
 !! @param[in] params: ddx parameters
 !! @param[in]  constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics
+!! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points size (ncav)
-!! @param[out] e_cav: electric field at the target points
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[out] e_cav: electric field at the target points,
 !!     size (3, ncav)
 !!
 subroutine build_e(params, constants, workspace, multipoles, &
@@ -179,14 +177,14 @@ end subroutine build_e
 !! @param[in] params: ddx parameters
 !! @param[in]  constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics
+!! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2,nm)
-!! @param[in] cm: centers of the multipolar distributions size (3,nm)
+!! @param[in] cm: centers of the multipolar distributions, size (3,nm)
 !! @param[in] mmax: maximum angular momentum of the multipoles
 !! @param[in] nm: number of multipoles
-!! @param[out] phi_cav: electric potential at the target points size (ncav)
-!! @param[out] e_cav: electric field at the target points size (3, ncav)
-!! @param[in] ccav: coordinates of the target points size (3,ncav)
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[out] e_cav: electric field at the target points, size (3, ncav)
+!! @param[in] ccav: coordinates of the target points, size (3,ncav)
 !! @param[in] ncav: number of target points
 !!
 subroutine build_e_dense(params, constants, workspace, multipoles, cm, &
@@ -252,10 +250,10 @@ end subroutine build_e_dense
 !! @param[in] params: ddx parameters
 !! @param[in]  constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics
+!! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points size (ncav)
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
 !!
 subroutine build_phi(params, constants, workspace, multipoles, &
         & mmax, phi_cav)
@@ -267,9 +265,8 @@ subroutine build_phi(params, constants, workspace, multipoles, &
     real(dp), intent(inout) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav)
     if (params % fmm .eq. 0) then
-        call build_phi_dense(params, constants, workspace, multipoles, &
-            & params % csph, mmax, params % nsph, phi_cav, constants % ccav, &
-            & constants % ncav)
+        call build_phi_dense(multipoles, params % csph, mmax, params % nsph, &
+            & phi_cav, constants % ccav, constants % ncav)
     else if (params % fmm .eq. 1) then
         call build_phi_fmm(params, constants, workspace, multipoles, mmax, &
             & phi_cav)
@@ -280,42 +277,47 @@ end subroutine build_phi
 !> using a N^2 code. 
 !> As this routine does not use the FMM machinery it is more flexible and
 !> accepts arbitrary sources and targets.
-!! @param[in] params: ddx parameters
-!! @param[in]  constants: ddx constants
-!! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics
+!! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2,nm)
-!! @param[in] cm: centers of the multipolar distributions size (3,nm)
+!! @param[in] cm: centers of the multipolar distributions, size (3,nm)
 !! @param[in] mmax: maximum angular momentum of the multipoles
 !! @param[in] nm: number of multipoles
-!! @param[out] phi_cav: electric potential at the target points size (ncav)
-!! @param[in] ccav: coordinates of the target points size (3,ncav)
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[in] ccav: coordinates of the target points, size (3,ncav)
 !! @param[in] ncav: number of target points
 !!
-subroutine build_phi_dense(params, constants, workspace, multipoles, cm, &
-        & mmax, nm, phi_cav, ccav, ncav)
+subroutine build_phi_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav)
     implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: mmax, nm, ncav
     real(dp), intent(inout) :: multipoles((mmax + 1)**2, nm)
-    real(dp), intent(in) :: cm(3, nm)
+    real(dp), intent(in) :: cm(3, nm), ccav(3, ncav)
     real(dp), intent(out) :: phi_cav(ncav)
-    real(dp), intent(in) :: ccav(3, ncav)
-    integer icav, im, l, m, i
-    real(dp) :: v, c(3)
-    real(dp) :: r
+    ! local variables
+    integer icav, im, l, m, i, info
+    real(dp) :: r, v, c(3)
+    real(dp), allocatable :: vscales(:), vscales_rel(:), v4pi2lp1(:)
+
+    allocate(vscales((mmax + 1)**2), vscales_rel((mmax + 1)**2), &
+        & v4pi2lp1(mmax + 1), stat=info)
+    if (info .ne. 0) then
+        stop 'Allocation failed in build_phi_dense!'
+    end if
+    call ylmscale(mmax, vscales, v4pi2lp1, vscales_rel)
 
     do icav = 1, ncav
         v = zero
         do im = 1, nm
             c(:) = ccav(:, icav) - cm(:, im)
-            call fmm_m2p(c, one, mmax, constants % vscales_rel, &
-                & one, multipoles(:, im), one, v)
+            call fmm_m2p(c, one, mmax, vscales_rel, one, &
+                & multipoles(:, im), one, v)
         end do
         phi_cav(icav) = v
     end do
+
+    deallocate(vscales, vscales_rel, v4pi2lp1, stat=info)
+    if (info .ne. 0) then
+        stop 'Deallocation failed in build_phi_dense!'
+    end if
 
 end subroutine build_phi_dense
 
@@ -324,11 +326,11 @@ end subroutine build_phi_dense
 !! @param[in] params: ddx parameters
 !! @param[in]  constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics
+!! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2,nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points size (ncav)
-!! @param[out] e_cav: electric field at the target points
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[out] e_cav: electric field at the target points,
 !!     size(3, ncav)
 !!
 subroutine build_e_fmm(params, constants, workspace, multipoles, &
@@ -434,10 +436,10 @@ end subroutine build_e_fmm
 !! @param[in] params: ddx parameters
 !! @param[in]  constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics
+!! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2,nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points size (ncav)
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
 !!
 subroutine build_phi_fmm(params, constants, workspace, multipoles, mmax, &
         & phi_cav)
@@ -485,10 +487,10 @@ end subroutine build_phi_fmm
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics
+!! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2,nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] psi: RHS for adjoint linear systems
+!! @param[out] psi: RHS for adjoint linear systems,
 !!     size ((lmax+1)**2,nsph), the internal lmax should be >= mmax
 !!
 subroutine build_psi(params, constants, workspace, multipoles, mmax, psi)
@@ -519,7 +521,7 @@ end subroutine build_psi
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics
+!! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2,nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
 !!
@@ -578,7 +580,7 @@ end subroutine do_fmm
 !! @param[inout] workspace: ddx workspace
 !! @param[in] mmax: maximum angular momentum of the multipolar distribution
 !! @param[in] nm: number of multipoles
-!! @param[out] tmp_m_grad: gradient of the M2M operator
+!! @param[out] tmp_m_grad: gradient of the M2M operator,
 !!     size ((mmax + 1)**2, 3, nm)
 !!
 subroutine grad_m2m(params, constants, workspace, multipoles, mmax, &
@@ -656,7 +658,7 @@ end subroutine grad_m2m
 !! @param[inout] workspace: ddx workspace
 !! @param[in] mmax: maximum angular momentum of the multipolar distribution
 !! @param[in] multipoles: 
-!! @param[inout] forces: forces array size (3, nsph)
+!! @param[inout] forces: forces array, size (3, nsph)
 !!
 subroutine grad_phi(params, constants, workspace, state, mmax, &
         & multipoles, forces, e_cav)
@@ -694,10 +696,10 @@ end subroutine grad_phi
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics
+!! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points size (ncav)
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
 !!
 subroutine build_adj_phi(params, constants, workspace, charges, mmax, adj_phi)
     implicit none
@@ -708,9 +710,8 @@ subroutine build_adj_phi(params, constants, workspace, charges, mmax, adj_phi)
     real(dp), intent(in) :: charges(constants % ncav)
     real(dp), intent(out) :: adj_phi((mmax + 1)**2, params % nsph)
     if (params % fmm .eq. 0) then
-        call build_adj_phi_dense(params, constants, workspace, &
-            & charges, constants % ccav, constants % ncav, params % csph, &
-            & mmax, params % nsph, adj_phi)
+        call build_adj_phi_dense(charges, constants % ccav, constants % ncav, &
+            & params % csph, mmax, params % nsph, adj_phi)
     else if (params % fmm .eq. 1) then
         call build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
             & adj_phi)
@@ -720,34 +721,45 @@ end subroutine build_adj_phi
 !> Given a distribution of point charges at the cavity points, compute the
 !> potential and its higher order derivatives up to pmax at the center of
 !> the spheres. This is done using two loops
-!! @param[in] params: ddx parameters
-!! @param[in] constants: ddx constants
-!! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics
-!!     size ((mmax+1)**2, nsph)
+!! @param[in] qcav: charges, size(ncav)
+!! @param[in] ccav: coordinates of the charges, size(3,ncav)
+!! @param[in] ncav: number of charges
+!! @param[in] cm: coordinates of the multipoles, size(3,nm)
 !! @param[in] mmax: maximum angular momentum of the multipoles
+!! @param[in] nm: number of multipoles
+!! @param[out] adj_phi: adjoint potential, size((mmax+1)**2,nm)
 !!
-subroutine build_adj_phi_dense(params, constants, workspace, qcav, ccav, &
-    ncav, cm, mmax, nm, adj_phi)
+subroutine build_adj_phi_dense(qcav, ccav, ncav, cm, mmax, nm, adj_phi)
     implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_constants_type), intent(in) :: constants
     integer, intent (in) :: ncav, mmax, nm
     real(dp), intent(in) :: qcav(ncav), ccav(3, ncav), cm(3, nm)
     real(dp), intent(out) :: adj_phi((mmax + 1)**2, nm)
     ! local variables
-    integer :: icav, im
-    real(dp) :: c(3), work((mmax + 1)**2 + 3*mmax)
+    integer :: icav, im, info
+    real(dp) :: c(3)
+    real(dp), allocatable :: vscales(:), vscales_rel(:), v4pi2lp1(:), &
+        & work(:)
+
+    allocate(vscales((mmax + 1)**2), vscales_rel((mmax + 1)**2), &
+        & v4pi2lp1(mmax + 1), work((mmax + 1)**2 + 3*mmax), stat=info)
+    if (info .ne. 0) then
+        stop 'Allocation failed in build_adj_phi_dense!'
+    end if
+    call ylmscale(mmax, vscales, v4pi2lp1, vscales_rel)
 
     do im = 1, nm
         adj_phi(:, im) = zero
         do icav = 1, ncav
             c(:) = cm(:, im) - ccav(:, icav)
-            call fmm_m2p_adj_work(c, qcav(icav), one, mmax, &
-                & constants % vscales_rel, one, adj_phi(:, im), work)
+            call fmm_m2p_adj_work(c, qcav(icav), one, mmax, vscales_rel, &
+                & one, adj_phi(:, im), work)
         end do
     end do
+
+    deallocate(vscales, vscales_rel, v4pi2lp1, work, stat=info)
+    if (info .ne. 0) then
+        stop 'Deallocation failed in build_adj_phi_dense!'
+    end if
 
 end subroutine build_adj_phi_dense
 
@@ -757,10 +769,10 @@ end subroutine build_adj_phi_dense
 !! @param[in] params: ddx parameters
 !! @param[in]  constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics
+!! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points size (ncav)
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
 !!
 subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
         & adj_phi)
