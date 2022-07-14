@@ -13,6 +13,7 @@
 program main
 ! Get the high-level ddX-module 
 use ddx
+use ddx_rhs
 ! Enable OpenMP
 use omp_lib
 implicit none
@@ -62,6 +63,11 @@ start_time = omp_get_wtime()
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
     & phi_flag, phi_cav, grad_flag, gradphi_cav, hessian_flag, hessianphi_cav, &
     & psi)
+
+!ddx_data % params % charge = ddx_data % params % charge / sqrt4pi
+!call test_field(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
+!    & ddx_data % params % charge, 0, phi_cav, gradphi_cav)
+!ddx_data % params % charge = ddx_data % params % charge * sqrt4pi
 finish_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") " mkrhs time:", finish_time-start_time, " seconds"
 
@@ -163,11 +169,11 @@ if (iprint .gt. 0) then
 end if
 write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time-start_time, " seconds"
 write(*, "(A,ES25.16E3)") " Solvation energy:", esolv
-write(*, "(A,ES25.16E3)") " Solvation energy (kJ/mol):", esolv*tokj
+write(*, "(A,ES25.16E3)") " Solvation energy (kcal/mol):", esolv*tokcal
 if (ddx_data % params % force .eq. 1) then
-    write(*, *) " Full forces (kJ/mol/A)"
+    write(*, *) " Full forces (kcal/mol/A)"
     do isph = 1, ddx_data % params % nsph
-        write(6,'(1x,i5,3ES25.16E3)') isph, force(:,isph)*tokj/toang
+        write(6,'(1x,i5,3ES25.16E3)') isph, force(:,isph)*tokcal/toang
     end do
 end if
 

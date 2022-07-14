@@ -578,6 +578,8 @@ end subroutine do_fmm
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipolar distribution
 !! @param[in] nm: number of multipoles
 !! @param[out] tmp_m_grad: gradient of the M2M operator,
@@ -650,6 +652,69 @@ subroutine grad_m2m(params, constants, workspace, multipoles, mmax, &
 
 end subroutine grad_m2m
 
+!> Given a charge distribution centered on the spheres, compute the
+!> contributions to the forces stemming from its electrostatic interactions.
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[in] mmax: maximum angular momentum of the multipolar distribution
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2, nsph)
+!! @param[inout] forces: forces array, size (3, nsph)
+!!
+subroutine grad_phi_for_charges(params, constants, workspace, state, mmax, &
+        & multipoles, forces, e_cav)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(inout) :: state
+    integer, intent(in) :: mmax
+    real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(inout) :: forces(3, params % nsph)
+    real(dp), intent(in) :: e_cav(3, constants % ncav)
+    ! local variables
+    integer :: isph, igrid, icav, info, im, lm
+    real(dp), allocatable :: field(:, :)
+    real(dp) :: ex, ey, ez, c(3), r2, r, r3, f
+
+    f = sqrt4pi*pt5
+
+    ! get some space for the adjoint potential, note that we need it
+    ! up to mmax + 1 as we are doing derivatives
+    allocate(field(3, params % nsph), stat=info)
+    if (info .ne. 0) then
+        stop "Allocation failed in grad_phi_for_charges!"
+    end if
+
+    ! first contribution
+    icav = 0
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .eq. zero) cycle
+            icav = icav + 1
+            forces(:, isph) = forces(:, isph) + pt5*state % zeta(icav) &
+                & *e_cav(:, icav)
+        end do
+    end do
+
+    ! second contribution
+    call efld(constants % ncav, state % zeta, constants % ccav, &
+        & params % nsph, params % csph, field)
+
+    do isph = 1, params % nsph
+        forces(1, isph) = forces(1, isph) + f*multipoles(1, isph)*field(1, isph)
+        forces(2, isph) = forces(2, isph) + f*multipoles(1, isph)*field(2, isph)
+        forces(3, isph) = forces(3, isph) + f*multipoles(1, isph)*field(3, isph)
+    end do
+
+    deallocate(field, stat=info)
+    if (info .ne. 0) then
+        stop "Deallocation failed in grad_phi_for_charges!"
+    end if
+
+end subroutine grad_phi_for_charges
+
 !> Given a multipolar distribution in real spherical harmonics and
 !> centered on the spheres, compute the contributions to the forces
 !> stemming from its electrostatic interactions.
@@ -657,7 +722,8 @@ end subroutine grad_m2m
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
 !! @param[in] mmax: maximum angular momentum of the multipolar distribution
-!! @param[in] multipoles: 
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2, nsph)
 !! @param[inout] forces: forces array, size (3, nsph)
 !!
 subroutine grad_phi(params, constants, workspace, state, mmax, &
@@ -672,10 +738,13 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
     real(dp), intent(inout) :: forces(3, params % nsph)
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     ! local variables
-    integer :: isph, igrid, icav, info
-    real(dp), allocatable :: adj_phi(:, :)
+    integer :: isph, igrid, icav, info, im, lm
+    real(dp), allocatable :: adj_phi(:, :), m_grad(:, :, :)
 
-    allocate(adj_phi((mmax+1)**2, params % nsph), stat=info)
+    ! get some space for the adjoint potential, note that we need it
+    ! up to mmax + 1 as we are doing derivatives
+    allocate(adj_phi((mmax + 2)**2, params % nsph), &
+        & m_grad((mmax + 2)**2, 3, params % nsph), stat=info)
     if (info .ne. 0) then
         stop "Allocation failed in grad_phi!"
     end if
@@ -687,20 +756,29 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
         do igrid = 1, params % ngrid
             if (constants % ui(igrid, isph) .eq. zero) cycle
             icav = icav + 1
-            forces(:, isph) = forces(:, isph) - pt5 &
+            forces(:, isph) = forces(:, isph) + pt5 &
                 & *state % zeta(icav)*e_cav(:, icav)
         end do
     end do
 
-    ! second contribution
-    call build_adj_phi(params, constants, workspace, state % zeta, mmax, &
-        & adj_phi)
+    ! build the adjoint potential
+    call build_adj_phi(params, constants, workspace, state % zeta, &
+        & mmax + 1, adj_phi)
 
-    write(6, *) adj_phi
+    ! build the gradient of the M2M transformation
+    call grad_m2m(params, constants, workspace, multipoles, mmax, &
+        & params % nsph, m_grad)
 
-    stop
+    ! contract the two ingredients to build the second contribution
+    do im = 1, params % nsph
+        do lm = 1, (mmax + 2)**2
+            forces(1, im) = forces(1, im) - pt5*m_grad(lm, 1, im)*adj_phi(lm, im)
+            forces(2, im) = forces(2, im) - pt5*m_grad(lm, 2, im)*adj_phi(lm, im)
+            forces(3, im) = forces(3, im) - pt5*m_grad(lm, 3, im)*adj_phi(lm, im)
+        end do
+    end do
 
-    deallocate(adj_phi, stat=info)
+    deallocate(adj_phi, m_grad, stat=info)
     if (info .ne. 0) then
         stop "Deallocation failed in grad_phi!"
     end if
