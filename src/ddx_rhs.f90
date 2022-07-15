@@ -676,9 +676,7 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, mmax, &
     ! local variables
     integer :: isph, igrid, icav, info, im, lm
     real(dp), allocatable :: field(:, :)
-    real(dp) :: ex, ey, ez, c(3), r2, r, r3, f
-
-    f = sqrt4pi*pt5
+    real(dp) :: ex, ey, ez, c(3), r2, r, r3
 
     ! get some space for the adjoint potential, note that we need it
     ! up to mmax + 1 as we are doing derivatives
@@ -702,10 +700,15 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, mmax, &
     call efld(constants % ncav, state % zeta, constants % ccav, &
         & params % nsph, params % csph, field)
 
+    ! sqrt4pi is required to go from multipoles in real spherical
+    ! harmonics to regular charges
     do isph = 1, params % nsph
-        forces(1, isph) = forces(1, isph) + f*multipoles(1, isph)*field(1, isph)
-        forces(2, isph) = forces(2, isph) + f*multipoles(1, isph)*field(2, isph)
-        forces(3, isph) = forces(3, isph) + f*multipoles(1, isph)*field(3, isph)
+        forces(1, isph) = forces(1, isph) &
+            & + sqrt4pi*pt5*multipoles(1, isph)*field(1, isph)
+        forces(2, isph) = forces(2, isph) &
+            & + sqrt4pi*pt5*multipoles(1, isph)*field(2, isph)
+        forces(3, isph) = forces(3, isph) &
+            & + sqrt4pi*pt5*multipoles(1, isph)*field(3, isph)
     end do
 
     deallocate(field, stat=info)
@@ -738,8 +741,9 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
     real(dp), intent(inout) :: forces(3, params % nsph)
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     ! local variables
-    integer :: isph, igrid, icav, info, im, lm
+    integer :: isph, igrid, icav, info, im, lm, ind, l, m
     real(dp), allocatable :: adj_phi(:, :), m_grad(:, :, :)
+    real(dp) :: fac
 
     ! get some space for the adjoint potential, note that we need it
     ! up to mmax + 1 as we are doing derivatives
@@ -771,10 +775,18 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
 
     ! contract the two ingredients to build the second contribution
     do im = 1, params % nsph
-        do lm = 1, (mmax + 2)**2
-            forces(1, im) = forces(1, im) - pt5*m_grad(lm, 1, im)*adj_phi(lm, im)
-            forces(2, im) = forces(2, im) - pt5*m_grad(lm, 2, im)*adj_phi(lm, im)
-            forces(3, im) = forces(3, im) - pt5*m_grad(lm, 3, im)*adj_phi(lm, im)
+        do l = 1, mmax + 1
+            ind = l*l + l + 1
+            fac = (-one)**(l+1)
+            do m = -l, l
+                lm = ind + m
+                forces(1, im) = forces(1, im) &
+                    & + fac*pt5*m_grad(lm, 1, im)*adj_phi(lm, im)
+                forces(2, im) = forces(2, im) &
+                    & + fac*pt5*m_grad(lm, 2, im)*adj_phi(lm, im)
+                forces(3, im) = forces(3, im) &
+                    & + fac*pt5*m_grad(lm, 3, im)*adj_phi(lm, im)
+            end do
         end do
     end do
 
