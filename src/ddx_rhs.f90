@@ -907,8 +907,8 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
     ! local variables
     real(dp), allocatable :: tmp_grid(:, :), sph_m(:, :), work(:)
     integer :: info, icav, isph, igrid, inode, indl, l, indl1, jnear, &
-        & jnode, jsph
-    real(dp) :: c(3)
+        & jnode, jsph, m, ind
+    real(dp) :: c(3), fac
 
     allocate(tmp_grid(params % ngrid, params % nsph), &
         & sph_m((mmax + 1)**2, params % nsph), &
@@ -919,7 +919,7 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
 
     tmp_grid = zero
 
-    ! expand the input
+    ! expand the input from cavity points to all the Lebedev points
     icav = 0
     do isph = 1, params % nsph
         do igrid = 1, params % ngrid
@@ -938,19 +938,18 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
             jnode = constants % near(jnear)
             jsph = constants % order(constants % cluster(1, jnode))
             do igrid = 1, params % ngrid
-                ! c = params % csph(:, jsph) - params % csph(:, isph) &
-                !     & - constants % cgrid(:, igrid)*params % rsph(isph)
+                !c = params % csph(:, jsph) - params % csph(:, isph) &
+                !    & - constants % cgrid(:, igrid)*params % rsph(isph)
                 c = constants % cgrid(:, igrid)*params % rsph(isph) - &
                     & params % csph(:, jsph) + params % csph(:, isph)
                 call fmm_m2p_adj_work(c, tmp_grid(igrid, isph), &
-                    & one, mmax, constants % vscales_rel, one, &
+                    & params % rsph(jsph), mmax, constants % vscales_rel, one, &
                     & adj_phi(:, jsph), work)
             end do
         end do
     end do
-    ! call tree_m2p_adj(params, constants, mmax, one, tmp_grid, zero, adj_phi)
 
-    ! far field
+    ! compute the far field and store it in tmp_node_m
     call tree_l2p_adj(params, constants, one, tmp_grid, zero, &
         & workspace % tmp_node_l, workspace % tmp_sph_l)
     call tree_l2l_rotation_adj(params, constants, workspace % tmp_node_l)
@@ -958,7 +957,7 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
         & workspace % tmp_node_m)
     call tree_m2m_rotation_adj(params, constants, workspace % tmp_node_m)
 
-    ! Adjointly move tree multipole harmonics into output
+    ! move the far field from tmp_node_m to adj_phi
     if(mmax .lt. params % pm) then
         do isph = 1, params % nsph
             inode = constants % snode(isph)
@@ -974,15 +973,17 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
         end do
     end if
 
-    adj_phi = - adj_phi
-    ! Scale output harmonics at last
-    ! adj_phi(1, :) = zero
-    ! indl = 2
-    ! do l = 1, params % lmax
-    !     indl1 = (l+1)**2
-    !     adj_phi(indl:indl1, :) = - l * adj_phi(indl:indl1, :)
-    !     indl = indl1 + 1
-    ! end do
+    ! scale by a heuristic factor to make it consistent with the
+    ! non FMMized adjoint potential
+    do isph = 1, params % nsph
+        do l = 0, mmax
+           ind = l*l + l + 1
+           fac = - (-one/params % rsph(isph))**(l + 1)
+           do m = -l, l
+               adj_phi(ind + m, isph) = fac*adj_phi(ind + m, isph)
+           end do
+       end do
+    end do
 
     deallocate(tmp_grid, work, stat=info)
     if (info .ne. 0) then
