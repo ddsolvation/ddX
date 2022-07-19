@@ -817,13 +817,26 @@ subroutine build_adj_phi(params, constants, workspace, charges, mmax, adj_phi)
     integer, intent(in) :: mmax
     real(dp), intent(in) :: charges(constants % ncav)
     real(dp), intent(out) :: adj_phi((mmax + 1)**2, params % nsph)
+    integer :: isph, lm
     if (params % fmm .eq. 0) then
         call build_adj_phi_dense(charges, constants % ccav, constants % ncav, &
             & params % csph, mmax, params % nsph, adj_phi)
+    do isph = 1, params % nsph
+        do lm = 1, (mmax + 1)**2
+            write(10,'(F10.5$)') adj_phi(lm, isph)
+        end do
+        write(10, *)
+    end do
     else if (params % fmm .eq. 1) then
         call build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
             & adj_phi)
     end if
+    do isph = 1, params % nsph
+        do lm = 1, (mmax + 1)**2
+            write(11,'(F10.5$)') adj_phi(lm, isph)
+        end do
+        write(11, *)
+    end do
 end subroutine build_adj_phi
 
 !> Given a distribution of point charges at the cavity points, compute the
@@ -892,11 +905,14 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
     real(dp), intent(in) :: charges(constants % ncav)
     real(dp), intent(out) :: adj_phi((mmax + 1)**2, params % nsph)
     ! local variables
-    real(dp), allocatable :: tmp_grid(:, :), sph_m(:, :)
-    integer :: info, icav, isph, igrid
+    real(dp), allocatable :: tmp_grid(:, :), sph_m(:, :), work(:)
+    integer :: info, icav, isph, igrid, inode, indl, l, indl1, jnear, &
+        & jnode, jsph
+    real(dp) :: c(3)
 
     allocate(tmp_grid(params % ngrid, params % nsph), &
-        & sph_m((mmax + 1)**2, params % nsph), stat=info)
+        & sph_m((mmax + 1)**2, params % nsph), &
+        & work((mmax + 1)**2 + 3*mmax), stat=info)
     if (info .ne. 0) then
         stop "Allocation failed in build_adj_phi_fmm!"
     end if
@@ -914,16 +930,61 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
     end do
     adj_phi = zero
 
-    call tree_m2p_adj(params, constants, mmax, one, tmp_grid, zero, sph_m)
-    stop
-    call tree_l2p_adj(params, constants, one, workspace % tmp_grid, zero, &
+    ! near field. We do not call tree_m2p_adj as this routine skips the
+    ! isph = jsph case which instead is needed.
+    do isph = 1, params % nsph
+        inode = constants % snode(isph)
+        do jnear = constants % snear(inode), constants % snear(inode+1)-1
+            jnode = constants % near(jnear)
+            jsph = constants % order(constants % cluster(1, jnode))
+            do igrid = 1, params % ngrid
+                ! c = params % csph(:, jsph) - params % csph(:, isph) &
+                !     & - constants % cgrid(:, igrid)*params % rsph(isph)
+                c = constants % cgrid(:, igrid)*params % rsph(isph) - &
+                    & params % csph(:, jsph) + params % csph(:, isph)
+                call fmm_m2p_adj_work(c, tmp_grid(igrid, isph), &
+                    & one, mmax, constants % vscales_rel, one, &
+                    & adj_phi(:, jsph), work)
+            end do
+        end do
+    end do
+    ! call tree_m2p_adj(params, constants, mmax, one, tmp_grid, zero, adj_phi)
+
+    ! far field
+    call tree_l2p_adj(params, constants, one, tmp_grid, zero, &
         & workspace % tmp_node_l, workspace % tmp_sph_l)
     call tree_l2l_rotation_adj(params, constants, workspace % tmp_node_l)
     call tree_m2l_rotation_adj(params, constants, workspace % tmp_node_l, &
         & workspace % tmp_node_m)
     call tree_m2m_rotation_adj(params, constants, workspace % tmp_node_m)
 
-    deallocate(tmp_grid, stat=info)
+    ! Adjointly move tree multipole harmonics into output
+    if(mmax .lt. params % pm) then
+        do isph = 1, params % nsph
+            inode = constants % snode(isph)
+            adj_phi(:, isph) = adj_phi(:, isph) &
+                & + workspace % tmp_node_m(1:(mmax + 1)**2, inode)
+        end do
+    else
+        indl = (params % pm+1)**2
+        do isph = 1, params % nsph
+            inode = constants % snode(isph)
+            adj_phi(1:indl, isph) = adj_phi(1:indl, isph) &
+                & + workspace % tmp_node_m(:, inode)
+        end do
+    end if
+
+    adj_phi = - adj_phi
+    ! Scale output harmonics at last
+    ! adj_phi(1, :) = zero
+    ! indl = 2
+    ! do l = 1, params % lmax
+    !     indl1 = (l+1)**2
+    !     adj_phi(indl:indl1, :) = - l * adj_phi(indl:indl1, :)
+    !     indl = indl1 + 1
+    ! end do
+
+    deallocate(tmp_grid, work, stat=info)
     if (info .ne. 0) then
         stop "Deallocation failed in build_adj_phi_fmm"
     end if
