@@ -275,7 +275,7 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
     end if
     x_lpb_time = omp_get_wtime() - start_time
 
-    deallocate(rhs, stat = istat)
+    deallocate(rhs, stat=istat)
     if (istat .ne. 0) then
         workspace % error_message = 'Deallocation failed in ddlpb_solve_worker'
         workspace % error_flag = 1

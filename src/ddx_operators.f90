@@ -1234,7 +1234,7 @@ subroutine bstarx(params, constants, workspace, x, y)
                     & one, y(:,isph), 1)
             end do
         end do
-    else 
+    else
         !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
         !$omp private(isph) schedule(static,1)
         do isph = 1, params % nsph

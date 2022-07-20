@@ -2180,8 +2180,8 @@ subroutine tree_m2l_bessel_rotation_adj_work(params, constants, node_l, node_m)
     real(dp) :: c1(3), c(3), r1, r
     ! Any order of this cycle is OK
     node_m = zero
-    !$omp parallel do shared(constants,params,node_l,node_m) &
-    !$omp private(i,c,r,k,c1,work,work_complex,j) schedule(dynamic)
+    !!$omp parallel do shared(constants,params,node_l,node_m) &
+    !!$omp private(i,c,r,k,c1,work,work_complex,j) schedule(dynamic)
     do i = 1, constants % nclusters
         ! If no far admissible pairs just set output to zero
         if (constants % nfar(i) .eq. 0) then
@@ -2562,7 +2562,7 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
     ! Temporary workspace
     real(dp) :: work(p+1)
     ! Local variables
-    real(dp), allocatable :: tmp(:, :, :)
+    !real(dp), allocatable :: tmp(:, :, :)
     integer :: isph, inode, jnear, jnode, jsph, igrid, info, iproc
     real(dp) :: c(3), w
     ! Init output
@@ -2571,19 +2571,19 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
     else
         sph_m = beta * sph_m
     end if
-    allocate(tmp((sph_p + 1)**2, params % nsph, params % nproc), stat=info)
-    if (info .ne. 0) then
-        call ddx_error("Allocation failed in tree_m2p_bessel_adj!")
-    end if
-    tmp = zero
+    !allocate(tmp((sph_p + 1)**2, params % nsph, params % nproc), stat=info)
+    !if (info .ne. 0) then
+    !    call ddx_error("Allocation failed in tree_m2p_bessel_adj!")
+    !end if
+    !tmp = zero
     ! Cycle over all spheres
-    !$omp parallel do default(none) shared(params,constants,p,sph_m,tmp, &
-    !$omp alpha,grid_v,sph_p) private(isph,inode,jnear,jnode,jsph,igrid,c, &
-    !$omp iproc) schedule(dynamic)
+    !!$omp parallel do default(none) shared(params,constants,p,sph_m,tmp, &
+    !!$omp alpha,grid_v) private(isph,inode,jnear,jnode,jsph,igrid,c, &
+    !!$omp iproc) schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
-        iproc = omp_get_thread_num() + 1
+        ! iproc = omp_get_thread_num() + 1
         do jnear = constants % snear(inode), constants % snear(inode+1)-1
             ! Near-field interactions are possible only between leaf nodes,
             ! which must contain only a single input sphere
@@ -2598,17 +2598,17 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
                     & params % csph(:, jsph) + params % csph(:, isph)
                 call fmm_m2p_bessel_adj(c, alpha*grid_v(igrid, isph), &
                     & params % rsph(jsph), params % kappa, p, &
-                    & constants % vscales, one, tmp(:, jsph, iproc))
+                    & constants % vscales, one, sph_m(:, jsph))
             end do
         end do
     end do
-    do iproc = 1, params % nproc
-        sph_m(:,:) = sph_m(:,:) + tmp(:,:,iproc)
-    end do
-    deallocate(tmp,stat=info)
-    if (info .ne. 0) then
-        call ddx_error("Deallocation failed in tree_m2p_bessel_adj!")
-    end if
+    !do iproc = 1, params % nproc
+    !    sph_m(:,:) = sph_m(:,:) + tmp(:,:,iproc)
+    !end do
+    !deallocate(tmp,stat=info)
+    !if (info .ne. 0) then
+    !    call ddx_error("Deallocation failed in tree_m2p_bessel_adj!")
+    !end if
 end subroutine tree_m2p_bessel_adj
 
 !------------------------------------------------------------------------------
