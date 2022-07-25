@@ -274,7 +274,7 @@ subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
         & e_cav, g_cav)
     implicit none
     integer, intent(in) :: mmax, nm, ncav
-    real(dp), intent(inout) :: multipoles((mmax + 1)**2, nm)
+    real(dp), intent(in) :: multipoles((mmax + 1)**2, nm)
     real(dp), intent(in) :: cm(3, nm), ccav(3, ncav)
     real(dp), intent(out) :: phi_cav(ncav), e_cav(3, ncav), g_cav(3, 3, ncav)
     real(dp), allocatable  :: tmp_m_grad(:, :, :), vscales(:), &
@@ -284,8 +284,8 @@ subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
 
     ! allocate some space for the M2M gradients and precompute
     ! the quantities for the m2p
-    allocate(tmp_m_grad((mmax + 2)**2, 3, nm), vscales((mmax + 1)**2), &
-        & vscales_rel((mmax + 1)**2), v4pi2lp1(mmax + 1), &
+    allocate(tmp_m_grad((mmax + 2)**2, 3, nm), vscales((mmax + 3)**2), &
+        & vscales_rel((mmax + 3)**2), v4pi2lp1(mmax + 3), &
         & tmp_m_hess((mmax + 3)**2, 3, nm, 3), tmp((mmax + 2)**2, 3), &
         & stat=info)
     if (info .ne. 0) then
