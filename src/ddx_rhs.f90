@@ -136,6 +136,126 @@ subroutine test_field(params, constants, workspace, multipoles, &
     end do
 end subroutine test_field
 
+!> Given a multipolar distribution, containing only charges, compute the
+!> potential and its gradient at the target points using a simple N^2 code.
+!> This is a test routine, used to debug the others.
+!> The multipoles must be centered on the ddx spheres.
+!! @param[in] params: ddx parameters
+!! @param[in]  constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2, nsph)
+!! @param[in] mmax: maximum angular momentum of the multipoles
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[out] e_cav: electric field at the target points,
+!!     size (3, ncav)
+!! @param[out] g_cav: electric field gradient at the target points,
+!!     size (3, 3, ncav)
+!!
+subroutine test_field_gradient(params, constants, workspace, multipoles, &
+        & mmax, phi_cav, e_cav, g_cav)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: mmax
+    real(dp), intent(inout) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(out) :: phi_cav(constants % ncav)
+    real(dp), intent(out) :: e_cav(3, constants % ncav)
+    real(dp), intent(out) :: g_cav(3, 3, constants % ncav)
+    real(dp) :: c(3), v, ex, ey, ez, d2, d, d3, d5, f, gxx, gxy, gxz, &
+        & gyx, gyy, gyz, gzx, gzy, gzz
+    integer :: icav, im
+
+    f = sqrt4pi
+
+    if (mmax .ne. 0) stop "error"
+    do icav = 1, constants % ncav
+        v = zero
+        ex = zero
+        ey = zero
+        ez = zero
+        gxx = zero
+        gxy = zero
+        gxz = zero
+        gyy = zero
+        gyz = zero
+        gzz = zero
+        do im = 1, params % nsph
+            c(:) = constants % ccav(:, icav) - params % csph(:, im)
+
+            d2 = c(1)*c(1) + c(2)*c(2) + c(3)*c(3)
+            d = sqrt(d2)
+            d3 = d*d2
+            d5 = d3*d2
+
+            v = v + f*multipoles(1, im)/d
+            ex = ex + f*multipoles(1, im)*c(1)/d3
+            ey = ey + f*multipoles(1, im)*c(2)/d3
+            ez = ez + f*multipoles(1, im)*c(3)/d3
+
+            gxx = gxx + f*multipoles(1, im)*(three*c(1)*c(1)/d5 - one/d3)
+            gxy = gxy + f*multipoles(1, im)*(three*c(1)*c(2)/d5)
+            gxz = gxz + f*multipoles(1, im)*(three*c(1)*c(3)/d5)
+            gyy = gyy + f*multipoles(1, im)*(three*c(2)*c(2)/d5 - one/d3)
+            gyz = gyz + f*multipoles(1, im)*(three*c(2)*c(3)/d5)
+            gzz = gzz + f*multipoles(1, im)*(three*c(3)*c(3)/d5 - one/d3)
+
+        end do
+        phi_cav(icav) = v
+        e_cav(1, icav) = ex
+        e_cav(2, icav) = ey
+        e_cav(3, icav) = ez
+        g_cav(1, 1, icav) = gxx
+        g_cav(1, 2, icav) = gxy
+        g_cav(1, 3, icav) = gxz
+        g_cav(2, 1, icav) = gxy
+        g_cav(2, 2, icav) = gyy
+        g_cav(2, 3, icav) = gyz
+        g_cav(3, 1, icav) = gxz
+        g_cav(3, 2, icav) = gyz
+        g_cav(3, 3, icav) = gzz
+    end do
+
+end subroutine test_field_gradient
+
+!> Given a multipolar distribution, compute the potential and its gradient
+!> at the target points this is done with or without FMMs depending on the
+!> relevant flag
+!> The multipoles must be centered on the ddx spheres.
+!! @param[in] params: ddx parameters
+!! @param[in]  constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2, nsph)
+!! @param[in] mmax: maximum angular momentum of the multipoles
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[out] e_cav: electric field at the target points,
+!!     size (3, ncav)
+!! @param[out] g_cav: electric field gradient at the target points,
+!!     size (3, 3, ncav)
+!!
+subroutine build_g(params, constants, workspace, multipoles, &
+        & mmax, phi_cav, e_cav, g_cav)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: mmax
+    real(dp), intent(inout) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(out) :: phi_cav(constants % ncav)
+    real(dp), intent(out) :: e_cav(3, constants % ncav)
+    real(dp), intent(out) :: g_cav(3, 3, constants % ncav)
+    if (params % fmm .eq. 0) then
+        !call build_g_dense(params, constants, workspace, multipoles, &
+        !    & params % csph, mmax, params % nsph, phi_cav, constants % ccav, &
+        !    & constants % ncav, e_cav)
+    else if (params % fmm .eq. 1) then
+        ! call build_g_fmm(params, constants, workspace, multipoles, &
+        !     & mmax, phi_cav, e_cav)
+    end if
+end subroutine build_g
+
 !> Given a multipolar distribution, compute the potential and its gradient
 !> at the target points this is done with or without FMMs depending on the
 !> relevant flag
@@ -161,9 +281,8 @@ subroutine build_e(params, constants, workspace, multipoles, &
     real(dp), intent(out) :: phi_cav(constants % ncav)
     real(dp), intent(out) :: e_cav(3, constants % ncav)
     if (params % fmm .eq. 0) then
-        call build_e_dense(params, constants, workspace, multipoles, &
-            & params % csph, mmax, params % nsph, phi_cav, constants % ccav, &
-            & constants % ncav, e_cav)
+        call build_e_dense(multipoles, params % csph, mmax, params % nsph, &
+            & phi_cav, constants % ccav, constants % ncav, e_cav)
     else if (params % fmm .eq. 1) then
         call build_e_fmm(params, constants, workspace, multipoles, &
             & mmax, phi_cav, e_cav)
@@ -174,9 +293,6 @@ end subroutine build_e
 !> at the target points using a N^2 code. 
 !> As this routine does not use the FMM machinery it is more flexible and
 !> accepts arbitrary sources and targets.
-!! @param[in] params: ddx parameters
-!! @param[in]  constants: ddx constants
-!! @param[inout] workspace: ddx workspace
 !! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2,nm)
 !! @param[in] cm: centers of the multipolar distributions, size (3,nm)
@@ -187,31 +303,30 @@ end subroutine build_e
 !! @param[in] ccav: coordinates of the target points, size (3,ncav)
 !! @param[in] ncav: number of target points
 !!
-subroutine build_e_dense(params, constants, workspace, multipoles, cm, &
-        & mmax, nm, phi_cav, ccav, ncav, e_cav)
+subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, e_cav)
     implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: mmax, nm, ncav
     real(dp), intent(inout) :: multipoles((mmax + 1)**2, nm)
     real(dp), intent(in) :: cm(3, nm)
     real(dp), intent(out) :: phi_cav(ncav)
     real(dp), intent(out) :: e_cav(3, ncav)
     real(dp), intent(in) :: ccav(3, ncav)
-    real(dp), allocatable  :: tmp_m_grad(:, :, :)
+    real(dp), allocatable  :: tmp_m_grad(:, :, :), vscales(:), &
+        & vscales_rel(:), v4pi2lp1(:)
     integer icav, im, l, m, i, info, indi, indj
     real(dp) :: v, ex, ey, ez, c(3), tmp1, tmp2
 
-    ! allocate some space for the M2M gradients
-    allocate(tmp_m_grad((mmax + 2)**2, 3, nm), stat=info)
+    ! allocate some space for the M2M gradients and precompute
+    ! the quantities for the m2p
+    allocate(tmp_m_grad((mmax + 2)**2, 3, nm), vscales((mmax + 1)**2), &
+        & vscales_rel((mmax + 1)**2), v4pi2lp1(mmax + 1), stat=info)
     if (info .ne. 0) then
         stop "Allocation failed in build_e_dense!"
     end if
+    call ylmscale(mmax + 1, vscales, v4pi2lp1, vscales_rel)
 
     ! call the helper routine for the M2M gradients
-    call grad_m2m(params, constants, workspace, multipoles, mmax, nm, &
-        & tmp_m_grad)
+    call grad_m2m(multipoles, mmax, nm, tmp_m_grad)
 
     ! loop over the targets and the sources and assemble the electric
     ! potential and field
@@ -222,15 +337,15 @@ subroutine build_e_dense(params, constants, workspace, multipoles, cm, &
         ez = zero
         do im = 1, nm
             c(:) = ccav(:, icav) - cm(:, im)
-            call fmm_m2p(c, one, mmax, constants % vscales_rel, &
-                & one, multipoles(:, im), one, v)
+            call fmm_m2p(c, one, mmax, vscales_rel, one, multipoles(:, im), &
+                & one, v)
 
-            call fmm_m2p(c, one, mmax + 1, constants % vscales_rel, &
-                & one, tmp_m_grad(:, 1, im), one, ex)
-            call fmm_m2p(c, one, mmax + 1, constants % vscales_rel, &
-                & one, tmp_m_grad(:, 2, im), one, ey)
-            call fmm_m2p(c, one, mmax + 1, constants % vscales_rel, &
-                & one, tmp_m_grad(:, 3, im), one, ez)
+            call fmm_m2p(c, one, mmax + 1, vscales_rel, one, &
+                & tmp_m_grad(:, 1, im), one, ex)
+            call fmm_m2p(c, one, mmax + 1, vscales_rel, one, &
+                & tmp_m_grad(:, 2, im), one, ey)
+            call fmm_m2p(c, one, mmax + 1, vscales_rel, one, &
+                & tmp_m_grad(:, 3, im), one, ez)
         end do
         phi_cav(icav) = v
         e_cav(1, icav) = ex
@@ -238,7 +353,7 @@ subroutine build_e_dense(params, constants, workspace, multipoles, cm, &
         e_cav(3, icav) = ez
     end do
 
-    deallocate(tmp_m_grad, stat=info)
+    deallocate(tmp_m_grad, vscales, vscales_rel, v4pi2lp1, stat=info)
     if (info .ne. 0) then
         stop "Deallocation failed in build_e_dense!"
     end if
@@ -274,7 +389,7 @@ subroutine build_phi(params, constants, workspace, multipoles, &
 end subroutine build_phi
 
 !> Given a multipolar distribution, compute the potential at the target points
-!> using a N^2 code. 
+!> using a N^2 code.
 !> As this routine does not use the FMM machinery it is more flexible and
 !> accepts arbitrary sources and targets.
 !! @param[in] multipoles: multipoles as real spherical harmonics,
@@ -297,6 +412,7 @@ subroutine build_phi_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav)
     real(dp) :: r, v, c(3)
     real(dp), allocatable :: vscales(:), vscales_rel(:), v4pi2lp1(:)
 
+    ! precompute the quantities for the m2
     allocate(vscales((mmax + 1)**2), vscales_rel((mmax + 1)**2), &
         & v4pi2lp1(mmax + 1), stat=info)
     if (info .ne. 0) then
@@ -357,8 +473,7 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
     end if
 
     ! compute the gradient of the m2m trasformation
-    call grad_m2m(params, constants, workspace, multipoles, mmax, &
-        & params % nsph, tmp_m_grad)
+    call grad_m2m(multipoles, mmax, params % nsph, tmp_m_grad)
 
     ! copy the multipoles in the right places
     call load_m(params, constants, workspace, multipoles, mmax)
@@ -575,9 +690,6 @@ subroutine do_fmm(params, constants, workspace)
 end subroutine do_fmm
 
 !> Given a multipolar distribution compute the action of dP on it 
-!! @param[in] params: ddx parameters
-!! @param[in] constants: ddx constants
-!! @param[inout] workspace: ddx workspace
 !! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipolar distribution
@@ -585,12 +697,8 @@ end subroutine do_fmm
 !! @param[out] tmp_m_grad: gradient of the M2M operator,
 !!     size ((mmax + 1)**2, 3, nm)
 !!
-subroutine grad_m2m(params, constants, workspace, multipoles, mmax, &
-        & nm, tmp_m_grad)
+subroutine grad_m2m(multipoles, mmax, nm, tmp_m_grad)
     implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: mmax, nm
     real(dp), intent(in) :: multipoles((mmax + 1)**2, nm)
     real(dp), intent(out) :: tmp_m_grad((mmax + 2)**2, 3, nm)
@@ -770,8 +878,7 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
         & mmax + 1, adj_phi)
 
     ! build the gradient of the M2M transformation
-    call grad_m2m(params, constants, workspace, multipoles, mmax, &
-        & params % nsph, m_grad)
+    call grad_m2m(multipoles, mmax, params % nsph, m_grad)
 
     ! contract the two ingredients to build the second contribution
     do im = 1, params % nsph
