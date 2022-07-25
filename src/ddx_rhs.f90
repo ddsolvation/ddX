@@ -219,9 +219,9 @@ subroutine test_field_gradient(params, constants, workspace, multipoles, &
 
 end subroutine test_field_gradient
 
-!> Given a multipolar distribution, compute the potential and its gradient
-!> at the target points this is done with or without FMMs depending on the
-!> relevant flag
+!> Given a multipolar distribution, compute the potential, its gradient and
+!> its hessian at the target points this is done with or without FMMs depending
+!> on the relevant flag
 !> The multipoles must be centered on the ddx spheres.
 !! @param[in] params: ddx parameters
 !! @param[in]  constants: ddx constants
@@ -247,14 +247,122 @@ subroutine build_g(params, constants, workspace, multipoles, &
     real(dp), intent(out) :: e_cav(3, constants % ncav)
     real(dp), intent(out) :: g_cav(3, 3, constants % ncav)
     if (params % fmm .eq. 0) then
-        !call build_g_dense(params, constants, workspace, multipoles, &
-        !    & params % csph, mmax, params % nsph, phi_cav, constants % ccav, &
-        !    & constants % ncav, e_cav)
+        call build_g_dense(multipoles, params % csph, mmax, params % nsph, &
+            & phi_cav, constants % ccav, constants % ncav, e_cav, g_cav)
     else if (params % fmm .eq. 1) then
         ! call build_g_fmm(params, constants, workspace, multipoles, &
         !     & mmax, phi_cav, e_cav)
     end if
 end subroutine build_g
+
+!> Given a multipolar distribution, compute the potential, its gradient and
+!> its hessian at the target points using a N^2 code.
+!> As this routine does not use the FMM machinery it is more flexible and
+!> accepts arbitrary sources and targets.
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2,nm)
+!! @param[in] cm: centers of the multipolar distributions, size (3,nm)
+!! @param[in] mmax: maximum angular momentum of the multipoles
+!! @param[in] nm: number of multipoles
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[out] e_cav: electric field at the target points, size (3, ncav)
+!! @param[out] g_cav: electric field at the target points, size (3, 3, ncav)
+!! @param[in] ccav: coordinates of the target points, size (3,ncav)
+!! @param[in] ncav: number of target points
+!!
+subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
+        & e_cav, g_cav)
+    implicit none
+    integer, intent(in) :: mmax, nm, ncav
+    real(dp), intent(inout) :: multipoles((mmax + 1)**2, nm)
+    real(dp), intent(in) :: cm(3, nm), ccav(3, ncav)
+    real(dp), intent(out) :: phi_cav(ncav), e_cav(3, ncav), g_cav(3, 3, ncav)
+    real(dp), allocatable  :: tmp_m_grad(:, :, :), vscales(:), &
+        & vscales_rel(:), v4pi2lp1(:), tmp_m_hess(:, :, :, :), tmp(:, :)
+    integer icav, im, l, m, i, info, indi, indj
+    real(dp) :: v, ex, ey, ez, c(3), tmp1, tmp2, gxx, gxy, gxz, gyy, gyz, gzz
+
+    ! allocate some space for the M2M gradients and precompute
+    ! the quantities for the m2p
+    allocate(tmp_m_grad((mmax + 2)**2, 3, nm), vscales((mmax + 1)**2), &
+        & vscales_rel((mmax + 1)**2), v4pi2lp1(mmax + 1), &
+        & tmp_m_hess((mmax + 3)**2, 3, nm, 3), tmp((mmax + 2)**2, 3), &
+        & stat=info)
+    if (info .ne. 0) then
+        stop "Allocation failed in build_g_dense!"
+    end if
+    call ylmscale(mmax + 2, vscales, v4pi2lp1, vscales_rel)
+
+    ! call the helper routine for the M2M gradient and hessian
+    call grad_m2m(multipoles, mmax, nm, tmp_m_grad)
+    tmp = tmp_m_grad(:, 1, :)
+    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 1))
+    tmp = tmp_m_grad(:, 2, :)
+    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 2))
+    tmp = tmp_m_grad(:, 3, :)
+    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 3))
+
+    ! loop over the targets and the sources and assemble the electric
+    ! potential and field
+    do icav = 1, ncav
+        v = zero
+        ex = zero
+        ey = zero
+        ez = zero
+        gxx = zero
+        gxy = zero
+        gxz = zero
+        gyy = zero
+        gyz = zero
+        gzz = zero
+        do im = 1, nm
+            c(:) = ccav(:, icav) - cm(:, im)
+            call fmm_m2p(c, one, mmax, vscales_rel, one, multipoles(:, im), &
+                & one, v)
+
+            call fmm_m2p(c, one, mmax + 1, vscales_rel, one, &
+                & tmp_m_grad(:, 1, im), one, ex)
+            call fmm_m2p(c, one, mmax + 1, vscales_rel, one, &
+                & tmp_m_grad(:, 2, im), one, ey)
+            call fmm_m2p(c, one, mmax + 1, vscales_rel, one, &
+                & tmp_m_grad(:, 3, im), one, ez)
+
+            call fmm_m2p(c, one, mmax + 2, vscales_rel, one, &
+                & tmp_m_hess(:, 1, im, 1), one, gxx)
+            call fmm_m2p(c, one, mmax + 2, vscales_rel, one, &
+                & tmp_m_hess(:, 2, im, 1), one, gxy)
+            call fmm_m2p(c, one, mmax + 2, vscales_rel, one, &
+                & tmp_m_hess(:, 3, im, 1), one, gxz)
+
+            call fmm_m2p(c, one, mmax + 2, vscales_rel, one, &
+                & tmp_m_hess(:, 2, im, 2), one, gyy)
+            call fmm_m2p(c, one, mmax + 2, vscales_rel, one, &
+                & tmp_m_hess(:, 3, im, 2), one, gyz)
+
+            call fmm_m2p(c, one, mmax + 2, vscales_rel, one, &
+                & tmp_m_hess(:, 3, im, 3), one, gzz)
+        end do
+        phi_cav(icav) = v
+        e_cav(1, icav) = ex
+        e_cav(2, icav) = ey
+        e_cav(3, icav) = ez
+        g_cav(1, 1, icav) = gxx
+        g_cav(1, 2, icav) = gxy
+        g_cav(1, 3, icav) = gxz
+        g_cav(2, 1, icav) = gxy
+        g_cav(2, 2, icav) = gyy
+        g_cav(2, 3, icav) = gyz
+        g_cav(3, 1, icav) = gxz
+        g_cav(3, 2, icav) = gyz
+        g_cav(3, 3, icav) = gzz
+    end do
+
+    deallocate(tmp_m_grad, vscales, vscales_rel, v4pi2lp1, tmp_m_hess, &
+        & tmp, stat=info)
+    if (info .ne. 0) then
+        stop "Deallocation failed in build_e_dense!"
+    end if
+end subroutine build_g_dense
 
 !> Given a multipolar distribution, compute the potential and its gradient
 !> at the target points this is done with or without FMMs depending on the
@@ -277,7 +385,7 @@ subroutine build_e(params, constants, workspace, multipoles, &
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: mmax
-    real(dp), intent(inout) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav)
     real(dp), intent(out) :: e_cav(3, constants % ncav)
     if (params % fmm .eq. 0) then
@@ -306,11 +414,10 @@ end subroutine build_e
 subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, e_cav)
     implicit none
     integer, intent(in) :: mmax, nm, ncav
-    real(dp), intent(inout) :: multipoles((mmax + 1)**2, nm)
-    real(dp), intent(in) :: cm(3, nm)
-    real(dp), intent(out) :: phi_cav(ncav)
-    real(dp), intent(out) :: e_cav(3, ncav)
-    real(dp), intent(in) :: ccav(3, ncav)
+    real(dp), intent(in) :: cm(3, nm), ccav(3, ncav), &
+        & multipoles((mmax + 1)**2, nm)
+    real(dp), intent(out) :: phi_cav(ncav), e_cav(3, ncav)
+    ! local variables
     real(dp), allocatable  :: tmp_m_grad(:, :, :), vscales(:), &
         & vscales_rel(:), v4pi2lp1(:)
     integer icav, im, l, m, i, info, indi, indj
@@ -377,7 +484,7 @@ subroutine build_phi(params, constants, workspace, multipoles, &
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: mmax
-    real(dp), intent(inout) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav)
     if (params % fmm .eq. 0) then
         call build_phi_dense(multipoles, params % csph, mmax, params % nsph, &
@@ -404,8 +511,8 @@ end subroutine build_phi
 subroutine build_phi_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav)
     implicit none
     integer, intent(in) :: mmax, nm, ncav
-    real(dp), intent(inout) :: multipoles((mmax + 1)**2, nm)
-    real(dp), intent(in) :: cm(3, nm), ccav(3, ncav)
+    real(dp), intent(in) :: cm(3, nm), ccav(3, ncav), &
+        & multipoles((mmax + 1)**2, nm)
     real(dp), intent(out) :: phi_cav(ncav)
     ! local variables
     integer icav, im, l, m, i, info
@@ -457,8 +564,8 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
     type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
-    real(dp), intent(out) :: phi_cav(constants % ncav)
-    real(dp), intent(out) :: e_cav(3, constants % ncav)
+    real(dp), intent(out) :: phi_cav(constants % ncav), &
+        & e_cav(3, constants % ncav)
     ! local variables
     integer :: info, isph, igrid, inode, jnode, jsph, jnear, icav
     real(dp) :: ex, ey, ez, c(3)
@@ -928,22 +1035,10 @@ subroutine build_adj_phi(params, constants, workspace, charges, mmax, adj_phi)
     if (params % fmm .eq. 0) then
         call build_adj_phi_dense(charges, constants % ccav, constants % ncav, &
             & params % csph, mmax, params % nsph, adj_phi)
-    do isph = 1, params % nsph
-        do lm = 1, (mmax + 1)**2
-            write(10,'(F10.5$)') adj_phi(lm, isph)
-        end do
-        write(10, *)
-    end do
     else if (params % fmm .eq. 1) then
         call build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
             & adj_phi)
     end if
-    do isph = 1, params % nsph
-        do lm = 1, (mmax + 1)**2
-            write(11,'(F10.5$)') adj_phi(lm, isph)
-        end do
-        write(11, *)
-    end do
 end subroutine build_adj_phi
 
 !> Given a distribution of point charges at the cavity points, compute the
