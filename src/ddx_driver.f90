@@ -26,7 +26,10 @@ integer :: i, j, isph
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
+call cpu_time(start_time)
 call ddfromfile(fname, ddx_data, tol, iprint, info)
+call cpu_time(finish_time)
+write(*, "(A,ES11.4E2,A)") "init time:", finish_time-start_time, " seconds"
 if(info .ne. 0) stop "info != 0"
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
     & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), force(3, ddx_data % params % nsph))
