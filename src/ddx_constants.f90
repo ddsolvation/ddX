@@ -1185,7 +1185,7 @@ subroutine neighbor_list_init(params, constants, info)
     integer :: nngmax, i, lnl, isph, jsph
     integer, allocatable :: tmp_nl(:)
     ! Upper bound of switch region. Defines intersection criterion for spheres
-    swthr = one + (params % se+one)*params % eta/two
+    swthr = (params % se+one)*params % eta/two
     ! Build list of neighbours in CSR format
     nngmax = 1
     allocate(constants % inl(params % nsph+1), &
@@ -1208,8 +1208,11 @@ subroutine neighbor_list_init(params, constants, info)
                 vv = maxv * sqrt(ssqv)
                 ! Take regularization parameter into account with respect to
                 ! shift se. It is described properly by the upper bound of a
-                ! switch region `swthr`.
-                r = params % rsph(isph) + swthr*params % rsph(jsph)
+                ! switch region `swthr`. Note that we take the largest
+                ! switching region as we need a symmetric neighbor list to
+                ! use it also for the adjoint products.
+                r = params % rsph(isph) + params % rsph(jsph) &
+                    & + swthr * max(params % rsph(isph), params % rsph(jsph))
                 if (vv .le. r) then
                     constants % nl(i) = jsph
                     i  = i + 1
@@ -1271,7 +1274,7 @@ subroutine neighbor_list_init_fmm(params, constants, info)
     integer :: nngmax, i, lnl, isph, jsph, inode, jnode, j, k
     integer, allocatable :: tmp_nl(:)
     ! Upper bound of switch region. Defines intersection criterion for spheres
-    swthr = one + (params % se+one)*params % eta/two
+    swthr = (params % se+one)*params % eta/two
     ! Build list of neighbours in CSR format
     nngmax = 1
     allocate(constants % inl(params % nsph+1), &
@@ -1300,8 +1303,11 @@ subroutine neighbor_list_init_fmm(params, constants, info)
                     vv = maxv * sqrt(ssqv)
                     ! Take regularization parameter into account with respect to
                     ! shift se. It is described properly by the upper bound of a
-                    ! switch region `swthr`.
-                    r = params % rsph(isph) + swthr*params % rsph(jsph)
+                    ! switch region `swthr`. Note that we take the largest
+                    ! switching region as we need a symmetric neighbor list to
+                    ! use it also for the adjoint products.
+                    r = params % rsph(isph) + params % rsph(jsph) &
+                        & + swthr * max(params % rsph(isph), params % rsph(jsph))
                     if (vv .le. r) then
                         constants % nl(i) = jsph
                         i  = i + 1
