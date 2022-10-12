@@ -7,14 +7,18 @@ subroutine build_matrix(params, constants, workspace, n, matrix, matvec)
     integer, intent(in) :: n
     real(dp), intent(out) :: matrix(n, n)
     external :: matvec
-    real(dp) :: scr1(n), scr2(n)
-    integer :: i,j
+    real(dp), allocatable :: scr1(:), scr2(:)
+    integer :: i, j, istat
+    allocate(scr1(n), scr2(n), stat=istat)
+    if (istat.ne.0) stop 1
     do i = 1, n
         scr1 = zero
         scr1(i) = one
         call matvec(params, constants, workspace, scr1, scr2)
         matrix(i,:) = scr2
     end do
+    deallocate(scr1, scr2, stat=istat)
+    if (istat.ne.0) stop 1
 end subroutine build_matrix
 
 subroutine print_matrix(string, m, n, matrix)
