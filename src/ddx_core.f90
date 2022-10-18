@@ -2209,16 +2209,16 @@ subroutine tree_m2l_bessel_rotation_adj_work(params, constants, node_l, node_m)
         k = constants % far(constants % sfar(i))
         c1 = constants % cnode(:, k)
         c1 = params % kappa*(c1 - c)
-        call fmm_m2l_bessel_rotation_adj_work(c1, constants % SI_rnode(:, k), &
-            & constants % SK_rnode(:, i), params % pm, &
+        call fmm_m2l_bessel_rotation_adj_work(c1, constants % SI_rnode(:, i), &
+            & constants % SK_rnode(:, k), params % pm, &
             & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
             & node_l(:, i), one, node_m(:, k), work, work_complex)
         do j = constants % sfar(i)+1, constants % sfar(i+1)-1
             k = constants % far(j)
             c1 = constants % cnode(:, k)
             c1 = params % kappa*(c1 - c)
-            call fmm_m2l_bessel_rotation_adj_work(c1, constants % SI_rnode(:, k), &
-                & constants % SK_rnode(:, i), params % pm, &
+            call fmm_m2l_bessel_rotation_adj_work(c1, constants % SI_rnode(:, i), &
+                & constants % SK_rnode(:, k), params % pm, &
                 & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
                 & node_l(:, i), one, node_m(:, k), work, work_complex)
         end do
