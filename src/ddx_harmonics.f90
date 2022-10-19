@@ -6210,11 +6210,59 @@ subroutine fmm_l2l_bessel_ztranslate_work(z, src_si, dst_si, p, vscales, vcnk, &
             end do
         ! Update output if beta is non-zero
         else
-            stop 111
+            do j = 0, p
+                ! Offset for dst_l
+                indj = j*j + j + 1
+                ! k = 0
+                k = 0
+                res1 = zero
+                do n = 0, p
+                    ! Offset for src_l
+                    indn = n*n + n + 1
+                    tmp1 = vscales(indn) * ((-one)**(j+n)) * &
+                        & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+                        & src_si(n+1) / vscales(indj) * dst_si(j+1) * alpha
+                    tmp3 = zero
+                    do l = 0, min(j, n)
+                        tmp2 = (two**(-l)) / &
+                            & fact(l+1)*fact(2*l+1)/ &
+                            & fact(l+1)/fact(l+1)/fact(j-l+1)/fact(n-l+1)* &
+                            & (work(j+n-l+1) / (z**l))
+                        tmp3 = tmp3 + tmp2
+                    end do
+                    tmp3 = tmp3 * tmp1
+                    res1 = res1 + tmp3*src_l(indn)
+                end do
+                dst_l(indj) = beta*dst_l(indj) + res1
+                ! k != 0
+                do k = 1, j
+                    res1 = zero
+                    res2 = zero
+                    do n = k, p
+                        ! Offset for src_l
+                        indn = n*n + n + 1
+                        tmp1 = vscales(indn+k) * ((-one)**(j+n)) * &
+                            & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                            & src_si(n+1) / vscales(indj+k) * dst_si(j+1) * alpha
+                        tmp3 = zero
+                        do l = k, min(j, n)
+                            tmp2 = (two**(-l)) / &
+                                & fact(l+k+1)*fact(2*l+1)/ &
+                                & fact(l+1)/fact(l-k+1)/fact(j-l+1)/fact(n-l+1)* &
+                                & (work(j+n-l+1) / (z**l))
+                            tmp3 = tmp3 + tmp2
+                        end do
+                        tmp3 = tmp3 * tmp1
+                        res1 = res1 + tmp3*src_l(indn+k)
+                        res2 = res2 + tmp3*src_l(indn-k)
+                    end do
+                    dst_l(indj+k) = beta*dst_l(indj+k) + res1
+                    dst_l(indj-k) = beta*dst_l(indj-k) + res2
+                end do
+            end do
         end if
     ! If harmonics are located at the same point
     else
-        stop 222
         ! Overwrite output if beta is zero
         if (beta .eq. zero) then
             !r1 = src_r / dst_r
@@ -6402,11 +6450,60 @@ subroutine fmm_l2l_bessel_ztranslate_adj_work(z, src_si, dst_si, p, vscales, vcn
             end do
         ! Update output if beta is non-zero
         else
-            stop 111
+            do n = 0, p
+                ! Offset for dst_l
+                indn = n*n + n + 1
+                ! k = 0
+                k = 0
+                res1 = zero
+                do j = 0, p
+                    ! Offset for src_l
+                    indj = j*j + j + 1
+                    tmp1 = vscales(indn) * ((-one)**(j+n)) * &
+                        & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+                        !& src_si(n+1) / vscales(indj) * dst_si(j+1) * alpha
+                        & src_si(n+1) / vscales(indj) * dst_si(j+1) * alpha
+                    tmp3 = zero
+                    do l = 0, min(j, n)
+                        tmp2 = (two**(-l)) / &
+                            & fact(l+1)*fact(2*l+1)/ &
+                            & fact(l+1)/fact(l+1)/fact(j-l+1)/fact(n-l+1)* &
+                            & (work(j+n-l+1) / (z**l))
+                        tmp3 = tmp3 + tmp2
+                    end do
+                    tmp3 = tmp3 * tmp1
+                    res1 = res1 + tmp3*src_l(indj)
+                end do
+                dst_l(indn) = beta*dst_l(indn) + res1
+                ! k != 0
+                do k = 1, n
+                    res1 = zero
+                    res2 = zero
+                    do j = k, p
+                        ! Offset for src_l
+                        indj = j*j + j + 1
+                        tmp1 = vscales(indn+k) * ((-one)**(j+n)) * &
+                            & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                            & src_si(n+1) / vscales(indj+k) * dst_si(j+1) * alpha
+                        tmp3 = zero
+                        do l = k, min(j, n)
+                            tmp2 = (two**(-l)) / &
+                                & fact(l+k+1)*fact(2*l+1)/ &
+                                & fact(l+1)/fact(l-k+1)/fact(j-l+1)/fact(n-l+1)* &
+                                & (work(j+n-l+1) / (z**l))
+                            tmp3 = tmp3 + tmp2
+                        end do
+                        tmp3 = tmp3 * tmp1
+                        res1 = res1 + tmp3*src_l(indj+k)
+                        res2 = res2 + tmp3*src_l(indj-k)
+                    end do
+                    dst_l(indn+k) = beta*dst_l(indn+k) + res1
+                    dst_l(indn-k) = beta*dst_l(indn-k) + res2
+                end do
+            end do
         end if
     ! If harmonics are located at the same point
     else
-        stop 222
         ! Overwrite output if beta is zero
         if (beta .eq. zero) then
             !r1 = src_r / dst_r
@@ -6921,9 +7018,8 @@ subroutine fmm_l2l_bessel_rotation_work(c, src_si, dst_si, p, vscales, vcnk, alp
     call carttosph(c, rho, ctheta, stheta, cphi, sphi)
     ! If no need for rotations, just do translation along z
     !if (stheta .eq. zero) then
-    !    ! Workspace here is 2*(p+1)
-    !    call fmm_m2m_bessel_ztranslate_work(c(3), src_r, dst_r, p, vscales, vcnk, &
-    !        & alpha, src_m, beta, dst_m, work)
+    !    call fmm_l2l_bessel_ztranslate_work(abs(c(3)), src_si, dst_si, p, &
+    !        & vscales, vcnk, one, src_l, beta, dst_l, work, work_complex)
     !    return
     !end if
     ! Prepare pointers
@@ -6945,8 +7041,8 @@ subroutine fmm_l2l_bessel_rotation_work(c, src_si, dst_si, p, vscales, vcnk, alp
     call fmm_sph_rotate_oxz_work(p, ctheta, -stheta, one, tmp_l, zero, &
         & tmp_l2, work)
     ! OZ translation, workspace here is 2*(p+1)
-    call fmm_l2l_bessel_ztranslate_work(rho, src_si, dst_si, p, vscales, vcnk, one, &
-        & tmp_l2, zero, tmp_l, work, work_complex)
+    call fmm_l2l_bessel_ztranslate_work(rho, src_si, dst_si, p, vscales, &
+        & vcnk, one, tmp_l2, zero, tmp_l, work, work_complex)
     ! Backward rotation in the OXZ plane, work size is 4*p*p+13*p+4
     call fmm_sph_rotate_oxz_work(p, ctheta, stheta, one, tmp_l, zero, tmp_l2, &
         & work)
@@ -7038,8 +7134,8 @@ end subroutine fmm_l2l_bessel_rotation_adj
 !! @param[in] beta: Scalar multiplier for `dst_m`
 !! @param[inout] dst_m: Expansion in new harmonics
 !! @param[out] work: Temporary workspace of a size 6*p*p+19*p+8
-subroutine fmm_l2l_bessel_rotation_adj_work(c, src_si, dst_si, p, vscales, vcnk, alpha, &
-        & src_l, beta, dst_l, work, work_complex)
+subroutine fmm_l2l_bessel_rotation_adj_work(c, src_si, dst_si, p, vscales, &
+        & vcnk, alpha, src_l, beta, dst_l, work, work_complex)
     ! Inputs
     integer, intent(in) :: p
     real(dp), intent(in) :: c(3), src_si(p+1), dst_si(p+1), vscales((p+1)*(p+1)), &
@@ -7059,8 +7155,8 @@ subroutine fmm_l2l_bessel_rotation_adj_work(c, src_si, dst_si, p, vscales, vcnk,
     ! If no need for rotations, just do translation along z
     !if (stheta .eq. zero) then
     !    ! Workspace here is 2*(p+1)
-    !    call fmm_m2m_bessel_ztranslate_work(c(3), src_r, dst_r, p, vscales, vcnk, &
-    !        & alpha, src_m, beta, dst_m, work)
+    !    call fmm_l2l_bessel_ztranslate_adj_work(abs(c(3)), dst_si, src_si, p, &
+    !        & vscales, vcnk, one, src_l, beta, dst_l, work, work_complex)
     !    return
     !end if
     ! Prepare pointers
@@ -7082,8 +7178,8 @@ subroutine fmm_l2l_bessel_rotation_adj_work(c, src_si, dst_si, p, vscales, vcnk,
     call fmm_sph_rotate_oxz_work(p, ctheta, -stheta, one, tmp_l, zero, &
         & tmp_l2, work)
     ! OZ translation, workspace here is 2*(p+1)
-    call fmm_l2l_bessel_ztranslate_adj_work(rho, src_si, dst_si, p, vscales, vcnk, one, &
-        & tmp_l2, zero, tmp_l, work, work_complex)
+    call fmm_l2l_bessel_ztranslate_adj_work(rho, dst_si, src_si, p, vscales, &
+        & vcnk, one, tmp_l2, zero, tmp_l, work, work_complex)
     ! Backward rotation in the OXZ plane, work size is 4*p*p+13*p+4
     call fmm_sph_rotate_oxz_work(p, ctheta, stheta, one, tmp_l, zero, tmp_l2, &
         & work)

@@ -1938,23 +1938,16 @@ subroutine tree_l2l_bessel_rotation_work(params, constants, node_l)
     complex(dp) :: work_complex(2*params % pm+1)
     ! Local variables
     integer :: i, j
-    real(dp) :: c1(3), c(3), r1, r
+    real(dp) :: c_child(3), c_parent(3), c_diff(3)
     ! Top-to-bottom pass
     do i = 2, constants % nclusters
         j = constants % parent(i)
-        c = constants % cnode(:, j)
-        r = constants % rnode(j)
-        c1 = constants % cnode(:, i)
-        r1 = constants % rnode(i)
-!        call fmm_l2l_bessel_rotation(c-c1, r, r1, params % kappa, &
-!            & params % pl, &
-!            & constants % vscales, constants % vfact, one, &
-!            & node_l(:, j), one, node_l(:, i))
-        c1 = params % kappa*(c - c1)
-        call fmm_l2l_bessel_rotation_work(c1, &
-            & constants % SI_rnode(:, j), constants % SI_rnode(:, i), &
-            & params % pl, &
-            & constants % vscales, constants % vfact, one, &
+        c_child = constants % cnode(:, j)
+        c_parent = constants % cnode(:, i)
+        c_diff = params % kappa*(c_child - c_parent)
+        call fmm_l2l_bessel_rotation_work(c_diff, &
+            & constants % si_rnode(:, j), constants % si_rnode(:, i), &
+            & params % pl, constants % vscales, constants % vfact, one, &
             & node_l(:, j), one, node_l(:, i), work, work_complex)
     end do
 end subroutine tree_l2l_bessel_rotation_work
@@ -2011,6 +2004,7 @@ subroutine tree_l2l_rotation_adj_work(params, constants, node_l, work)
         end do
     end do
 end subroutine tree_l2l_rotation_adj_work
+
 !------------------------------------------------------------------------------
 !> Adjoint transfer local coefficients over a tree
 !------------------------------------------------------------------------------
@@ -2024,39 +2018,19 @@ subroutine tree_l2l_bessel_rotation_adj(params, constants, node_l)
     real(dp) :: work(6*params % pl**2 + 19*params % pl + 8)
     complex(dp) :: work_complex(2*params % pl+1)
     ! Local variables
-    integer :: i, j, k
-    real(dp) :: c1(3), c(3), r1, r
+    integer :: i, j
+    real(dp) :: c_parent(3), c_child(3), c_diff(3)
     ! Bottom-to-top pass
     do i = constants % nclusters, 1, -1
-        ! Leaf node does not need any update
-        if (constants % children(1, i) == 0) cycle
-        c = constants % cnode(:, i)
-        r = constants % rnode(i)
-        ! First child initializes output
-        j = constants % children(1, i)
-        c1 = constants % cnode(:, j)
-        !call fmm_l2l_bessel_rotation_adj(c1-c, r1, r, params % pl, &
-        !    & constants % vscales, constants % vfact, one, &
-        !    & node_l(:, j), zero, node_l(:, i))
-        c1 = params % kappa*(c1 - c)
-        ! M2M is actually the same as adjoint L2L
-        call fmm_m2m_bessel_rotation_work(c1, constants % SK_rnode(:, j), &
-            & constants % SK_rnode(:, i), params % pl, &
-            & constants % vscales, constants % vfact, one, &
-            & node_l(:, j), zero, node_l(:, i), work, work_complex)
-        ! All other children update the same output
-        do j = constants % children(1, i)+1, constants % children(2, i)
-            c1 = constants % cnode(:, j)
-            !call fmm_l2l_bessel_rotation_adj(c1-c, r1, r, params % pl, &
-            !    & constants % vscales, constants % vfact, one, &
-            !    & node_l(:, j), one, node_l(:, i))
-            c1 = params % kappa*(c1 - c)
-            ! M2M is actually the same as adjoint L2L
-            call fmm_m2m_bessel_rotation_work(c1, constants % SK_rnode(:, j), &
-                & constants % SK_rnode(:, i), params % pl, &
-                & constants % vscales, constants % vfact, one, &
-                & node_l(:, j), one, node_l(:, i), work, work_complex)
-        end do
+        c_child = constants % cnode(:, i)
+        j = constants % parent(i)
+        if (j == 0) cycle
+        c_parent = constants % cnode(:, j)
+        c_diff = params % kappa*(c_parent - c_child)
+        call fmm_l2l_bessel_rotation_adj_work(c_diff, &
+            & constants % si_rnode(:, i), constants % si_rnode(:, j), &
+            & params % pl, constants % vscales, constants % vfact, one, &
+            & node_l(:, i), one, node_l(:, j), work, work_complex)
     end do
 end subroutine tree_l2l_bessel_rotation_adj
 

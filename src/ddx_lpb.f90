@@ -185,6 +185,18 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     ! Get forces if needed
     if(params % force .eq. 1) then
         call ddlpb_adjoint(params, constants, workspace, state, psi, tol)
+        if (params % fmm .eq. 1) then
+            call print_matrix('adj_r_fmm', constants % nbasis*params % nsph, &
+                & 1, state % x_adj_lpb(:, :, 1))
+            call print_matrix('adj_e_fmm', constants % nbasis*params % nsph, &
+                & 1, state % x_adj_lpb(:, :, 2))
+        else
+            call print_matrix('adj_r_nofmm', constants % nbasis*params % nsph, &
+                & 1, state % x_adj_lpb(:, :, 1))
+            call print_matrix('adj_e_nofmm', constants % nbasis*params % nsph, &
+                & 1, state % x_adj_lpb(:, :, 2))
+        end if
+        stop
         call ddlpb_force(params, constants, workspace, state, phi_cav, &
             & gradphi_cav, hessianphi_cav, psi, force)
     endif
