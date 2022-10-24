@@ -400,6 +400,9 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     scaled_Xr = x(:,:,1)
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
+    !$omp parallel do default(none) shared(params,constants,workspace, &
+    !$omp scaled_xr,xadj_r_sgrid,force,x,xadj_e_sgrid,phi_grid) private(isph, &
+    !$omp basloc,dbasloc,vplm,vcos,vsin)
     do isph = 1, params % nsph
         ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
         call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
