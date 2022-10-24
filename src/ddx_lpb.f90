@@ -196,7 +196,6 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
             call print_matrix('adj_e_nofmm', constants % nbasis*params % nsph, &
                 & 1, state % x_adj_lpb(:, :, 2))
         end if
-        stop
         call ddlpb_force(params, constants, workspace, state, phi_cav, &
             & gradphi_cav, hessianphi_cav, psi, force)
     endif
