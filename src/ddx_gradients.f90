@@ -683,7 +683,9 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_
     SK_rijn = zero
     DK_rijn = zero
 
-    if (params % fmm .eq. 0) then
+    !TODO: FMMs are broken here
+    if (.true.) then
+    !if (params % fmm .eq. 0) then
         allocate(coefY_d(constants % ncav, params % ngrid, params % nsph), &
             & stat=istat)
         if (istat.ne.0) stop 1
@@ -1652,7 +1654,9 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
     SK_rijn = zero
     DK_rijn = zero
 
-    if (params % fmm .eq. 0) then
+    !TODO: here FMMs are broken
+    if (.true.) then
+    !if (params % fmm .eq. 0) then
         allocate(coefY_d(constants % ncav, params % ngrid, params % nsph), &
             & stat=istat)
         if (istat.ne.0) stop 1
