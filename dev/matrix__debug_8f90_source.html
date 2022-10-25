@@ -118,7 +118,7 @@ $(document).ready(function(){initNavTree('matrix__debug_8f90_source.html',''); i
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    <span class="keywordtype">implicit none</span></div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;    <span class="keywordtype">character(*)</span>, <span class="keywordtype">intent(in)</span> :: string</div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(in)</span> :: m, n</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: matrix(n, n)</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: matrix(m, n)</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    <span class="keywordtype">integer</span> :: i, j</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    <span class="keyword">open</span>(file=string, unit=8, form=<span class="stringliteral">&#39;formatted&#39;</span>)</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keywordflow">do</span> i = 1, m</div>
