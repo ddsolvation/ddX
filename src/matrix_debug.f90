@@ -22,7 +22,7 @@ subroutine print_matrix(string, m, n, matrix)
     implicit none
     character(*), intent(in) :: string
     integer, intent(in) :: m, n
-    real(dp), intent(out) :: matrix(n, n)
+    real(dp), intent(out) :: matrix(m, n)
     integer :: i, j
     open(file=string, unit=8, form='formatted')
     do i = 1, m

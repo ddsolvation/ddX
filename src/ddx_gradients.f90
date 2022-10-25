@@ -767,7 +767,8 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_
             & workspace % tmp_node_l)
         call tree_m2l_bessel_rotation_adj(params, constants, &
             & workspace % tmp_node_l, workspace % tmp_node_m)
-        call tree_m2m_rotation_adj(params, constants, workspace % tmp_node_m)
+        call tree_m2m_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_m)
         ! Properly load adjoint multipole harmonics into tmp_sph
         if(constants % lmax0 .lt. params % pm) then
             do isph = 1, params % nsph
@@ -815,7 +816,8 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_
             & workspace % tmp_node_l)
         call tree_m2l_bessel_rotation_adj(params, constants, &
             & workspace % tmp_node_l, workspace % tmp_node_m)
-        call tree_m2m_rotation_adj(params, constants, workspace % tmp_node_m)
+        call tree_m2m_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_m)
         ! Properly load adjoint multipole harmonics into tmp_sph
         if(constants % lmax0 .lt. params % pm) then
             do isph = 1, params % nsph
@@ -1732,7 +1734,8 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
             & workspace % tmp_node_l)
         call tree_m2l_bessel_rotation_adj(params, constants, &
             & workspace % tmp_node_l, workspace % tmp_node_m)
-        call tree_m2m_rotation_adj(params, constants, workspace % tmp_node_m)
+        call tree_m2m_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_m)
         ! Properly load adjoint multipole harmonics into tmp_sph
         if(constants % lmax0 .lt. params % pm) then
             do isph = 1, params % nsph

@@ -185,6 +185,17 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     ! Get forces if needed
     if(params % force .eq. 1) then
         call ddlpb_adjoint(params, constants, workspace, state, psi, tol)
+        if (params % fmm .eq. 1) then
+            call print_matrix('adj_r_fmm', constants % nbasis*params % nsph, &
+                & 1, state % x_adj_lpb(:, :, 1))
+            call print_matrix('adj_e_fmm', constants % nbasis*params % nsph, &
+                & 1, state % x_adj_lpb(:, :, 2))
+        else
+            call print_matrix('adj_r_nofmm', constants % nbasis*params % nsph, &
+                & 1, state % x_adj_lpb(:, :, 1))
+            call print_matrix('adj_e_nofmm', constants % nbasis*params % nsph, &
+                & 1, state % x_adj_lpb(:, :, 2))
+        end if
         call ddlpb_force(params, constants, workspace, state, phi_cav, &
             & gradphi_cav, hessianphi_cav, psi, force)
     endif
@@ -388,6 +399,9 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     scaled_Xr = x(:,:,1)
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
+    !$omp parallel do default(none) shared(params,constants,workspace, &
+    !$omp scaled_xr,xadj_r_sgrid,force,x,xadj_e_sgrid,phi_grid) private(isph, &
+    !$omp basloc,dbasloc,vplm,vcos,vsin)
     do isph = 1, params % nsph
         ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
         call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
