@@ -8,6 +8,7 @@ module ddx_cinterface
     !
     use ddx_cosmo
     use ddx_pcm
+    use ddx_properties, only: reaction_potential_at_centers
     implicit none
 
     type ddx_setup
@@ -508,5 +509,22 @@ subroutine ddx_pcm_forces(c_ddx, c_state, nbasis, nsph, ncav, phi, gradphi, psi,
     call c_f_pointer(c_state, state)
     call ddpcm_forces(ddx%params, ddx%constants, ddx%workspace, state, phi, gradphi, psi, forces)
 end
+
+!
+! properties
+!
+
+subroutine ddx_get_reaction_potential_at_centers(c_ddx, c_state, indexes, &
+        & potential, npoints) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state
+    type(ddx_setup), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    integer(c_int), value :: npoints
+    integer(c_int) :: indexes(npoints)
+    real(c_double), intent(out) :: potential(npoints)
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call reaction_potential_at_centers(ddx%params, state, indexes, potential, npoints)
+end subroutine ddx_get_reaction_potential_at_centers
 
 end

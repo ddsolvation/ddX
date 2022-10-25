@@ -92,6 +92,12 @@ void ddx_pcm_forces(const void* ddx, void* state, int nbasis, int nsph, int ncav
 // LPB
 // TODO
 
+// properties
+void ddx_get_reaction_potential_at_centers(const void* ddx, void* state,
+                                           const int* indexes,
+                                           double* potential,
+                                           int npoints);
+
 #ifdef __cplusplus
 }
 #endif

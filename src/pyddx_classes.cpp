@@ -10,6 +10,7 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 using array_f_t = py::array_t<double, py::array::f_style | py::array::forcecast>;
+using array_fi_t = py::array_t<int, py::array::f_style | py::array::forcecast>;
 
 class Model {
  public:
@@ -218,6 +219,15 @@ class State {
     return xi;
   }
 
+  array_f_t get_reaction_potential_at_centers(array_fi_t indexes) {
+    int npoints = indexes.shape(0);
+    array_f_t potential({npoints});
+    ddx_get_reaction_potential_at_centers(m_model->holder(), m_holder,
+                                          indexes.data(), potential.mutable_data(),
+                                          npoints);
+    return potential;
+  }
+
  private:
   void* m_holder;
   std::shared_ptr<Model> m_model;
@@ -353,6 +363,7 @@ array_f_t force_terms(std::shared_ptr<Model> model, std::shared_ptr<State> state
   return forces;
 }
 
+
 void export_pyddx_classes(py::module& m) {
   // TODO Better docstring
   const char* init_docstring =
@@ -446,6 +457,8 @@ void export_pyddx_classes(py::module& m) {
         .def_property_readonly("s", &State::s)
         .def_property_readonly("s_n_iter", &State::s_n_iter)
         .def_property_readonly("xi", &State::xi)
+        .def("get_reaction_potential_at_centers",
+             &State::get_reaction_potential_at_centers, "indexes"_a)
         //
         ;
 }

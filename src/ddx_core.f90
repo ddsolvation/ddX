@@ -35,7 +35,6 @@ type ddx_state_type
     !> Solution of the ddCOSMO system of a dimension (nbasis, nsph). Allocated
     !!      and used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: xs(:, :)
-
     !> Number of iteration to solve ddCOSMO system
     integer :: xs_niter
     !> Relative error of each step of iterative solver for ddCOSMO system.
