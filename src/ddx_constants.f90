@@ -452,8 +452,8 @@ subroutine constants_init(params, constants)
     if (constants % error_flag .ne. 0) return
     ! Precompute LPB-related constants
     if (params % model .eq. 3) then
-        constants % lmax0 = min(6, params % lmax)
-        constants % nbasis0 = min(49, constants % nbasis)
+        constants % lmax0 = params % lmax
+        constants % nbasis0 = constants % nbasis
         allocate(vylm(constants % vgrid_nbasis), &
             & SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0), &
             & bessel_work(constants % dmax+2), stat=info)
