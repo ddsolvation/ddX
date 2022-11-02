@@ -227,6 +227,28 @@ class State {
                                           npoints);
     return potential;
   }
+  array_f_t get_reaction_potential(array_f_t coordinates) {
+    int npoints = coordinates.shape(0);
+    array_f_t potential({npoints});
+    ddx_get_reaction_potential(m_model->holder(), m_holder,
+                               coordinates.data(), potential.mutable_data(),
+                               npoints);
+    return potential;
+  }
+  array_f_t get_reaction_field_at_centers(array_fi_t indexes, bool num=false) {
+    int npoints = indexes.shape(0);
+    array_f_t field({npoints, 3});
+    if (num) {
+      ddx_get_num_reaction_field_at_centers(m_model->holder(), m_holder,
+                                            indexes.data(), field.mutable_data(),
+                                            npoints);
+    } else {
+      ddx_get_reaction_field_at_centers(m_model->holder(), m_holder,
+                                        indexes.data(), field.mutable_data(),
+                                        npoints);
+    }
+    return field;
+  }
 
  private:
   void* m_holder;
@@ -459,6 +481,10 @@ void export_pyddx_classes(py::module& m) {
         .def_property_readonly("xi", &State::xi)
         .def("get_reaction_potential_at_centers",
              &State::get_reaction_potential_at_centers, "indexes"_a)
+        .def("get_reaction_field_at_centers",
+             &State::get_reaction_field_at_centers, "indexes"_a, "num"_a = false)
+        .def("get_reaction_potential",
+             &State::get_reaction_potential, "coordinates"_a)
         //
         ;
 }

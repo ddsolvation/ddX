@@ -97,6 +97,12 @@ void ddx_get_reaction_potential_at_centers(const void* ddx, void* state,
                                            const int* indexes,
                                            double* potential,
                                            int npoints);
+void ddx_get_reaction_potential(const void* ddx, void* state, const double* coordinates,
+                                double* potential, int npoints);
+void ddx_get_reaction_field_at_centers(const void* ddx, void* state, const int* indexes,
+                                       double* field, int npoints);
+void ddx_get_num_reaction_field_at_centers(const void* ddx, void* state, const int* indexes,
+                                           double* field, int npoints);
 
 #ifdef __cplusplus
 }
