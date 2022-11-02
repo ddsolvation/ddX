@@ -237,7 +237,7 @@ class State {
   }
   array_f_t get_reaction_field_at_centers(array_fi_t indexes, bool num=false) {
     int npoints = indexes.shape(0);
-    array_f_t field({npoints, 3});
+    array_f_t field({3, npoints});
     if (num) {
       ddx_get_num_reaction_field_at_centers(m_model->holder(), m_holder,
                                             indexes.data(), field.mutable_data(),
