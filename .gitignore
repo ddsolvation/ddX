@@ -9,6 +9,7 @@ __pycache__/
 /pyddx.*.so
 /pyddx.*.dylib
 /dist
+/doxygen
 *.egg-info
 /.eggs
 

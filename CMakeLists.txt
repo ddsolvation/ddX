@@ -113,23 +113,12 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
 # Build tests
 option(TESTS "Generate testing binaries" ON)
 
-# Build documentation
-option(DOCS "Build documentation" ON)
-
 # Check if a code coverage report is needed
 option(COVERAGE "Generate code coverage report" OFF)
 
 ###############################################################################
 ##                               CHECK OPTIONS                               ##
 ###############################################################################
-
-# Check if need to build documentation
-if(DOCS)
-    find_package(Doxygen)
-    if(NOT DOXYGEN_FOUND)
-        set(DOCS OFF)
-    endif()
-endif()
 
 #add_compile_options(-O3 -xHost -g -check all -traceback)
 #add_compile_options(-O0 -g -fcheck=all -fbacktrace)
@@ -240,23 +229,24 @@ endfunction(ddx_add_test)
 ##                 BUILD LIBRARY, EXAMPLES, TESTS AND DOCS                   ##
 ###############################################################################
 
-add_subdirectory("src")
+add_subdirectory(src)
 
 # Build examples
 if(EXAMPLES)
-    add_subdirectory("examples")
+    add_subdirectory(examples)
 endif()
 
 # Build tests
 if(TESTS)
-    add_subdirectory("tests")
+    add_subdirectory(tests)
 endif()
 
 # Build documentation
-if(DOCS)
-    add_subdirectory("docs")
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+    add_custom_target(docs COMMAND "${DOXYGEN_EXECUTABLE}" Doxyfile
+                      WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 endif()
-
 
 #-------------------------------------------------------------------------------
 # Install rules.
