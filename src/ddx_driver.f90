@@ -13,7 +13,7 @@
 program main
 ! Get the high-level ddX-module 
 use ddx
-use ddx_rhs
+use ddx_multipolar_solutes
 ! Enable OpenMP
 use omp_lib
 implicit none

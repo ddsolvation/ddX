@@ -1,5 +1,5 @@
 !> Routines to build rhs (phi and psi)
-module ddx_rhs
+module ddx_multipolar_solutes
 
 use ddx_definitions
 use ddx_core
@@ -985,4 +985,4 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
 
 end subroutine build_adj_phi_fmm
 
-end module ddx_rhs
+end module ddx_multipolar_solutes
