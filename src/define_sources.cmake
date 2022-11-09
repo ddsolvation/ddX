@@ -19,7 +19,6 @@ set(SRC
     llgnew.f
     cbessel.f90
     ddx_cinterface.f90
-    matrix_debug.f90
 )
 
 # Define source files to be build into the python version of ddx

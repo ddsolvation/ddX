@@ -63,11 +63,6 @@ start_time = omp_get_wtime()
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
     & phi_flag, phi_cav, grad_flag, gradphi_cav, hessian_flag, hessianphi_cav, &
     & psi)
-
-!ddx_data % params % charge = ddx_data % params % charge / sqrt4pi
-!call test_field(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
-!    & ddx_data % params % charge, 0, phi_cav, gradphi_cav)
-!ddx_data % params % charge = ddx_data % params % charge * sqrt4pi
 finish_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") " mkrhs time:", finish_time-start_time, " seconds"
 

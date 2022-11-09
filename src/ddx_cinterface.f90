@@ -524,7 +524,7 @@ subroutine ddx_build_g(c_ddx, multipoles, mmax, phi_cav, e_cav, g_cav, &
         & g_cav(3, 3, ncav)
     call c_f_pointer(c_ddx, ddx)
     call build_g(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-        phi_cav, e_cav, g_cav)
+        & phi_cav, e_cav, g_cav)
 end
 
 subroutine ddx_build_e(c_ddx, multipoles, mmax, phi_cav, e_cav, &
