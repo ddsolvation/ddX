@@ -1,0 +1,1077 @@
+\hypertarget{namespaceddx__core}{}\doxysection{ddx\+\_\+core Module Reference}
+\label{namespaceddx__core}\index{ddx\_core@{ddx\_core}}
+
+
+Core routines and parameters of the ddX software.  
+
+
+\doxysubsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structddx__core_1_1ddx__state__type}{ddx\+\_\+state\+\_\+type}}
+\item 
+type \mbox{\hyperlink{structddx__core_1_1ddx__type}{ddx\+\_\+type}}
+\begin{DoxyCompactList}\small\item\em Main ddX type that stores all required information. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_ad98e6ca9db2543caa5273d4d33bb0e10}{ddinit}} (nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, pl, se, eta, eps, kappa, matvecmem, itersolver, maxiter, jacobi\+\_\+ndiis, gmresr\+\_\+j, gmresr\+\_\+dim, nproc, ddx\+\_\+data, info)
+\begin{DoxyCompactList}\small\item\em Initialize ddX input with a full set of parameters. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_ab34ec195fbaa7838303efa0b7e0f0453}{ddx\+\_\+init\+\_\+state}} (params, constants, state)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a7a2ec4809155b56be2c61ccb72b974ea}{ddfromfile}} (fname, ddx\+\_\+data, tol, iprint, info)
+\begin{DoxyCompactList}\small\item\em Read configuration from a file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a3258ae6ef23a4f07ea8a14ccf612acaa}{ddfree}} (ddx\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Deallocate object with corresponding data. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a5614410792c4a18a359eae6fd226cc8e}{ddx\+\_\+free\+\_\+state}} (state)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_aa76b7e526f53c93bf1492f51b3e1a8cc}{print\+\_\+spherical}} (label, nbasis, lmax, ncol, icol, x)
+\begin{DoxyCompactList}\small\item\em Print array of spherical harmonics. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a7116b451c0d1427361e7d1437a1c5ae8}{print\+\_\+nodes}} (label, ngrid, ncol, icol, x)
+\begin{DoxyCompactList}\small\item\em Print array of quadrature points. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a7ee983451a2d6b52ce89801a59fb33e6}{print\+\_\+ddvector}} (ddx\+\_\+data, label, vector)
+\begin{DoxyCompactList}\small\item\em Print dd Solution vector. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a7c6ed3167dcc5edcd4efa59719858b72}{ddintegrate}} (nsph, nbasis, ngrid, vwgrid, ldvwgrid, x\+\_\+grid, x\+\_\+lm)
+\begin{DoxyCompactList}\small\item\em Integrate against spherical harmonics. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_af4a63e9274aa8031ba29947ec4840da1}{dbasis}} (params, constants, x, basloc, dbsloc, vplm, vcos, vsin)
+\begin{DoxyCompactList}\small\item\em Compute first derivatives of spherical harmonics. \end{DoxyCompactList}\item 
+real(dp) function \mbox{\hyperlink{namespaceddx__core_af57c0e1c6dd13f71fee44d975a1080cd}{intmlp}} (params, constants, t, sigma, basloc)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a202929912f5b0db1b6fd9f6c8809074c}{wghpot}} (ncav, phi\+\_\+cav, nsph, ngrid, ui, phi\+\_\+grid, g)
+\begin{DoxyCompactList}\small\item\em Weigh potential at cavity points by characteristic function TODO use cavity points in CSR format. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_aa459fca8ccf1b5380372e23d03d72fcf}{hsnorm}} (lmax, nbasis, u, unorm)
+\begin{DoxyCompactList}\small\item\em Compute the local Sobolev H$^\wedge$(-\/1/2)-\/norm on one sphere of u. \end{DoxyCompactList}\item 
+real(dp) function \mbox{\hyperlink{namespaceddx__core_a2b3e39f4eaa589b097d4e9f37673e8f1}{hnorm}} (lmax, nbasis, nsph, x)
+\begin{DoxyCompactList}\small\item\em Compute the global Sobolev H$^\wedge$(-\/1/2)-\/norm of x. \end{DoxyCompactList}\item 
+real(dp) function \mbox{\hyperlink{namespaceddx__core_af6525c3026ed48bc2e9711d7f5f993a1}{rmsnorm}} (lmax, nbasis, nsph, x)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a4dcabcd0c6fe4d601c5a739d8d1bf86c}{rmsvec}} (n, v, vrms, vmax)
+\begin{DoxyCompactList}\small\item\em compute root-\/mean-\/square and max norm \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a506cc06b7ccdef7dae3c83c324ca2923}{adjrhs}} (params, constants, isph, xi, vlm, work)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a96984a0f96c1a17e25c781d34ed73f80}{calcv}} (params, constants, isph, pot, sigma, work)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_ad5b07f0450b5b0fae876973a3ce661d7}{ddeval\+\_\+grid}} (params, constants, alpha, x\+\_\+sph, beta, x\+\_\+grid, info)
+\begin{DoxyCompactList}\small\item\em Evaluate values of spherical harmonics at Lebedev grid points. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a52eaee7c9a67f2a9f317c2d6dd50426e}{ddeval\+\_\+grid\+\_\+work}} (nbasis, ngrid, nsph, vgrid, ldvgrid, alpha, x\+\_\+sph, beta, x\+\_\+grid)
+\begin{DoxyCompactList}\small\item\em Evaluate values of spherical harmonics at Lebedev grid points. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_ae804f0dbf4b9800bc75adaa57c842149}{ddintegrate\+\_\+sph}} (params, constants, alpha, x\+\_\+grid, beta, x\+\_\+sph, info)
+\begin{DoxyCompactList}\small\item\em Integrate values at grid points into spherical harmonics. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a61156a8a0aec479ea2071dd6d6922fb1}{ddintegrate\+\_\+sph\+\_\+work}} (nbasis, ngrid, nsph, vwgrid, ldvwgrid, alpha, x\+\_\+grid, beta, x\+\_\+sph)
+\begin{DoxyCompactList}\small\item\em Integrate values at grid points into spherical harmonics. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a8abb13e98d5d1eb3512e5ad55b701ef3}{ddcav\+\_\+to\+\_\+grid}} (params, constants, x\+\_\+cav, x\+\_\+grid, info)
+\begin{DoxyCompactList}\small\item\em Unwrap values at cavity points into values at all grid points. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_accaee74767f44a369c6d2d1e106c0453}{ddcav\+\_\+to\+\_\+grid\+\_\+work}} (ngrid, nsph, ncav, icav\+\_\+ia, icav\+\_\+ja, x\+\_\+cav, x\+\_\+grid)
+\begin{DoxyCompactList}\small\item\em Unwrap values at cavity points into values at all grid points. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_ac11b27bb31b5df45e810537fcb887b85}{ddproject\+\_\+cav}} (params, constants, s, xi)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a1caf6da4500220161384b51938ada1f8}{tree\+\_\+m2m\+\_\+rotation}} (params, constants, node\+\_\+m)
+\begin{DoxyCompactList}\small\item\em Transfer multipole coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a824b2d46bc4f19b41d1e59efc101fe97}{tree\+\_\+m2m\+\_\+rotation\+\_\+work}} (params, constants, node\+\_\+m, work)
+\begin{DoxyCompactList}\small\item\em Transfer multipole coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_ad0d3d3c1ab770177d8e62b74b7b70a7f}{tree\+\_\+m2m\+\_\+bessel\+\_\+rotation}} (params, constants, node\+\_\+m)
+\begin{DoxyCompactList}\small\item\em Transfer multipole coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a50051b223e25bba2f92fc30c8e4e9c14}{tree\+\_\+m2m\+\_\+bessel\+\_\+rotation\+\_\+work}} (params, constants, node\+\_\+m)
+\begin{DoxyCompactList}\small\item\em Transfer multipole coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_ab680c1da4d087c3064e9fcbe4c439698}{tree\+\_\+m2m\+\_\+rotation\+\_\+adj}} (params, constants, node\+\_\+m)
+\begin{DoxyCompactList}\small\item\em Adjoint transfer multipole coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_af0f8bc57cc0a607a5f7b9d123b91e85a}{tree\+\_\+m2m\+\_\+rotation\+\_\+adj\+\_\+work}} (params, constants, node\+\_\+m, work)
+\begin{DoxyCompactList}\small\item\em Adjoint transfer multipole coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a4b801c0c80a755fcdedd743c93e63d13}{tree\+\_\+m2m\+\_\+bessel\+\_\+rotation\+\_\+adj}} (params, constants, node\+\_\+m)
+\begin{DoxyCompactList}\small\item\em Adjoint transfer multipole coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_ad57a2d9013d87acb421f0747b95f4e75}{tree\+\_\+m2m\+\_\+bessel\+\_\+rotation\+\_\+adj\+\_\+work}} (params, constants, node\+\_\+m)
+\begin{DoxyCompactList}\small\item\em Adjoint transfer multipole coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a144b53f7df72de5a2717b78c6b903160}{tree\+\_\+l2l\+\_\+rotation}} (params, constants, node\+\_\+l)
+\begin{DoxyCompactList}\small\item\em Transfer local coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a343cdc81dac01fcc275b329aaff6584d}{tree\+\_\+l2l\+\_\+rotation\+\_\+work}} (params, constants, node\+\_\+l, work)
+\begin{DoxyCompactList}\small\item\em Transfer local coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a7d65f9c7b0f00ffce03baa68fbe3cb99}{tree\+\_\+l2l\+\_\+bessel\+\_\+rotation}} (params, constants, node\+\_\+l)
+\begin{DoxyCompactList}\small\item\em Transfer local coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a7f57681126ffa1ad063103f39db026c3}{tree\+\_\+l2l\+\_\+bessel\+\_\+rotation\+\_\+work}} (params, constants, node\+\_\+l)
+\begin{DoxyCompactList}\small\item\em Transfer local coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_ab1e1fe0e572c015d8f51b716e6ec8fc4}{tree\+\_\+l2l\+\_\+rotation\+\_\+adj}} (params, constants, node\+\_\+l)
+\begin{DoxyCompactList}\small\item\em Adjoint transfer local coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a02e2c9f1fe4c143bba50d01f1b4d338f}{tree\+\_\+l2l\+\_\+rotation\+\_\+adj\+\_\+work}} (params, constants, node\+\_\+l, work)
+\begin{DoxyCompactList}\small\item\em Adjoint transfer local coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a6b92d30960fb1be121d7ab92d14365e9}{tree\+\_\+l2l\+\_\+bessel\+\_\+rotation\+\_\+adj}} (params, constants, node\+\_\+l)
+\begin{DoxyCompactList}\small\item\em Adjoint transfer local coefficients over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a559f8f129ce2d481446c4325526aa277}{tree\+\_\+m2l\+\_\+rotation}} (params, constants, node\+\_\+m, node\+\_\+l)
+\begin{DoxyCompactList}\small\item\em Transfer multipole local coefficients into local over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a3d18e8fd9f3dbc808deefd71af3c6892}{tree\+\_\+m2l\+\_\+bessel\+\_\+rotation}} (params, constants, node\+\_\+m, node\+\_\+l)
+\begin{DoxyCompactList}\small\item\em Transfer multipole local coefficients into local over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a8190329d0b54f19cfd0323e20740cd1a}{tree\+\_\+m2l\+\_\+bessel\+\_\+rotation\+\_\+adj}} (params, constants, node\+\_\+l, node\+\_\+m)
+\begin{DoxyCompactList}\small\item\em Adjoint transfer multipole local coefficients into local over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_aa709ef144e4384d61d0ae50bfe7354dd}{tree\+\_\+m2l\+\_\+bessel\+\_\+rotation\+\_\+adj\+\_\+work}} (params, constants, node\+\_\+l, node\+\_\+m)
+\begin{DoxyCompactList}\small\item\em Adjoint transfer multipole local coefficients into local over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_aa9e82e22265265ab215bb831a2dbdf1a}{tree\+\_\+m2l\+\_\+rotation\+\_\+adj}} (params, constants, node\+\_\+l, node\+\_\+m)
+\begin{DoxyCompactList}\small\item\em Adjoint transfer multipole local coefficients into local over a tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a1d81120958f62351b12a9036ab6cbf6e}{tree\+\_\+l2p}} (params, constants, alpha, node\+\_\+l, beta, grid\+\_\+v, sph\+\_\+l)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a0d41a631eb1ddf7d6c96b28919385514}{tree\+\_\+l2p\+\_\+bessel}} (params, constants, alpha, node\+\_\+l, beta, grid\+\_\+v)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a2ee14de3640c3649fe523dfb4d083bc9}{tree\+\_\+l2p\+\_\+adj}} (params, constants, alpha, grid\+\_\+v, beta, node\+\_\+l, sph\+\_\+l)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a1111c683b53bd2eb55ea0d130980bcd9}{tree\+\_\+l2p\+\_\+bessel\+\_\+adj}} (params, constants, alpha, grid\+\_\+v, beta, node\+\_\+l)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a60a40706c306b954af9fccb186c305e0}{tree\+\_\+m2p}} (params, constants, p, alpha, sph\+\_\+m, beta, grid\+\_\+v)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a62112cc7d3d77609e0e992504d8be125}{tree\+\_\+m2p\+\_\+bessel}} (params, constants, p, alpha, sph\+\_\+p, sph\+\_\+m, beta, grid\+\_\+v)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a8866ff0507514c1a83f3348e2cc55401}{tree\+\_\+m2p\+\_\+adj}} (params, constants, p, alpha, grid\+\_\+v, beta, sph\+\_\+m)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_aa34ea25c06052ba20613b35da813f54e}{tree\+\_\+m2p\+\_\+bessel\+\_\+adj}} (params, constants, p, alpha, grid\+\_\+v, beta, sph\+\_\+p, sph\+\_\+m)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a7f61e8dc65fa676434374f7ea9a07743}{tree\+\_\+m2p\+\_\+bessel\+\_\+nodiag\+\_\+adj}} (params, constants, p, alpha, grid\+\_\+v, beta, sph\+\_\+p, sph\+\_\+m)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a3c8789fc01ba244fdaa0d4fef8e9d725}{efld}} (ncav, zeta, ccav, nsph, csph, force)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a86f701c3486a5b26c650d5b157b6e213}{tree\+\_\+grad\+\_\+m2m}} (params, constants, sph\+\_\+m, sph\+\_\+m\+\_\+grad, work)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a0bbe738fff5a4d15f744dfa0b26938cf}{tree\+\_\+grad\+\_\+l2l}} (params, constants, node\+\_\+l, sph\+\_\+l\+\_\+grad, work)
+\begin{DoxyCompactList}\small\item\em TODO. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__core_a1c6e9bf18af65b25aa115da10bb2e749}{print\+\_\+header}} (iprint, params)
+\begin{DoxyCompactList}\small\item\em small routine to print a tidy header with various info on the calculation. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Core routines and parameters of the ddX software. 
+
+\doxysubsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespaceddx__core_ad98e6ca9db2543caa5273d4d33bb0e10}\label{namespaceddx__core_ad98e6ca9db2543caa5273d4d33bb0e10}} 
+\index{ddx\_core@{ddx\_core}!ddinit@{ddinit}}
+\index{ddinit@{ddinit}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddinit()}{ddinit()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddinit (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{nsph,  }\item[{real(dp), dimension(nsph), intent(in)}]{charge,  }\item[{real(dp), dimension(nsph), intent(in)}]{x,  }\item[{real(dp), dimension(nsph), intent(in)}]{y,  }\item[{real(dp), dimension(nsph), intent(in)}]{z,  }\item[{real(dp), dimension(nsph), intent(in)}]{rvdw,  }\item[{integer, intent(in)}]{model,  }\item[{integer, intent(in)}]{lmax,  }\item[{integer, intent(in)}]{ngrid,  }\item[{integer, intent(in)}]{force,  }\item[{integer, intent(in)}]{fmm,  }\item[{integer, intent(in)}]{pm,  }\item[{integer, intent(in)}]{pl,  }\item[{real(dp), intent(in)}]{se,  }\item[{real(dp), intent(in)}]{eta,  }\item[{real(dp), intent(in)}]{eps,  }\item[{real(dp), intent(in)}]{kappa,  }\item[{integer, intent(in)}]{matvecmem,  }\item[{integer, intent(in)}]{itersolver,  }\item[{integer, intent(in)}]{maxiter,  }\item[{integer, intent(in)}]{jacobi\+\_\+ndiis,  }\item[{integer, intent(in)}]{gmresr\+\_\+j,  }\item[{integer, intent(in)}]{gmresr\+\_\+dim,  }\item[{integer, intent(inout)}]{nproc,  }\item[{type(\mbox{\hyperlink{structddx__core_1_1ddx__type}{ddx\+\_\+type}}), intent(out), target}]{ddx\+\_\+data,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+Initialize ddX input with a full set of parameters. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em nsph} & Number of atoms. n \texorpdfstring{$>$}{>} 0. \\
+\hline
+\mbox{\texttt{ in}}  & {\em charge} & Charges of atoms. Dimension is {\ttfamily (n)} \\
+\hline
+\mbox{\texttt{ in}}  & {\em x} & $ x $ coordinates of atoms. Dimension is {\ttfamily (n)} \\
+\hline
+\mbox{\texttt{ in}}  & {\em y} & $ y $ coordinates of atoms. Dimension is {\ttfamily (n)} \\
+\hline
+\mbox{\texttt{ in}}  & {\em z} & $ z $ coordinates of atoms. Dimension is {\ttfamily (n)} \\
+\hline
+\mbox{\texttt{ in}}  & {\em rvdw} & Van-\/der-\/\+Waals radii of atoms. Dimension is {\ttfamily (n)} \\
+\hline
+\mbox{\texttt{ in}}  & {\em model} & Choose model\+: 1 for COSMO, 2 for PCM and 3 for LPB \\
+\hline
+\mbox{\texttt{ in}}  & {\em lmax} & Maximal degree of modeling spherical harmonics. {\ttfamily lmax} \texorpdfstring{$>$}{>}= 0 \\
+\hline
+\mbox{\texttt{ in}}  & {\em ngrid} & Number of Lebedev grid points {\ttfamily ngrid} \texorpdfstring{$>$}{>}= 0 \\
+\hline
+\mbox{\texttt{ in}}  & {\em force} & 1 if forces are required and 0 otherwise \\
+\hline
+\mbox{\texttt{ in}}  & {\em fmm} & 1 to use FMM acceleration and 0 otherwise \\
+\hline
+\mbox{\texttt{ in}}  & {\em pm} & Maximal degree of multipole spherical harmonics. Ignored in the case {\ttfamily fmm=0}. Value -\/1 means no far-\/field FMM interactions are computed. {\ttfamily pm} \texorpdfstring{$>$}{>}= -\/1. \\
+\hline
+\mbox{\texttt{ in}}  & {\em pl} & Maximal degree of local spherical harmonics. Ignored in the case {\ttfamily fmm=0}. Value -\/1 means no far-\/field FMM interactions are computed. {\ttfamily pl} \texorpdfstring{$>$}{>}= -\/1. \\
+\hline
+\mbox{\texttt{ in}}  & {\em se} & Shift of characteristic function. -\/1 for interior, 0 for centered and 1 for outer regularization \\
+\hline
+\mbox{\texttt{ in}}  & {\em eta} & Regularization parameter. 0 \texorpdfstring{$<$}{<} eta \texorpdfstring{$<$}{<}= 1. \\
+\hline
+\mbox{\texttt{ in}}  & {\em eps} & Relative dielectric permittivity. eps \texorpdfstring{$>$}{>} 1. \\
+\hline
+\mbox{\texttt{ in}}  & {\em kappa} & Debye-\/H"{}\{u\}ckel parameter \\
+\hline
+\mbox{\texttt{ in}}  & {\em matvecmem} & handling of the sparse matrices. 1 for precomputin them and keeping them in memory, 0 for assembling the matrix-\/vector product on-\/the-\/fly. \\
+\hline
+\mbox{\texttt{ in}}  & {\em itersolver} & Iterative solver to be used. 1 for Jacobi iterative solver. Other solvers might be added later. \\
+\hline
+\mbox{\texttt{ in}}  & {\em maxiter} & Maximum number of iterations for an iterative solver. maxiter \texorpdfstring{$>$}{>} 0. \\
+\hline
+\mbox{\texttt{ in}}  & {\em ndiis} & Number of extrapolation points for Jacobi/\+DIIS solver. ndiis \texorpdfstring{$>$}{>}= 0. \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em nproc} & Number of Open\+MP threads to be used where applicable. nproc \texorpdfstring{$>$}{>}= 0. If input nproc=0 then on exit this value contains actual number of threads that ddX will use. If Open\+MP support in ddX is disabled, only possible input values are 0 or 1 and both inputs lead to the same output nproc=1 since the library is not parallel. \\
+\hline
+\mbox{\texttt{ out}}  & {\em ddx\+\_\+data} & Object containing all inputs \\
+\hline
+\mbox{\texttt{ out}}  & {\em info} & flag of succesfull exit = 0\+: Succesfull exit \texorpdfstring{$<$}{<} 0\+: If info=-\/i then i-\/th argument had an illegal value = 1\+: Allocation of one of buffers failed = 2\+: Deallocation of a temporary buffer failed \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00197}{197}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_ab34ec195fbaa7838303efa0b7e0f0453}\label{namespaceddx__core_ab34ec195fbaa7838303efa0b7e0f0453}} 
+\index{ddx\_core@{ddx\_core}!ddx\_init\_state@{ddx\_init\_state}}
+\index{ddx\_init\_state@{ddx\_init\_state}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddx\_init\_state()}{ddx\_init\_state()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddx\+\_\+init\+\_\+state (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__core_1_1ddx__state__type}{ddx\+\_\+state\+\_\+type}}), intent(out)}]{state }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00241}{241}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a7a2ec4809155b56be2c61ccb72b974ea}\label{namespaceddx__core_a7a2ec4809155b56be2c61ccb72b974ea}} 
+\index{ddx\_core@{ddx\_core}!ddfromfile@{ddfromfile}}
+\index{ddfromfile@{ddfromfile}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddfromfile()}{ddfromfile()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddfromfile (\begin{DoxyParamCaption}\item[{character(len=$\ast$), intent(in)}]{fname,  }\item[{type(\mbox{\hyperlink{structddx__core_1_1ddx__type}{ddx\+\_\+type}}), intent(out)}]{ddx\+\_\+data,  }\item[{real(dp), intent(out)}]{tol,  }\item[{integer, intent(out)}]{iprint,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+Read configuration from a file. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em fname} & Filename containing all the required info \\
+\hline
+\mbox{\texttt{ out}}  & {\em ddx\+\_\+data} & Object containing all inputs \\
+\hline
+\mbox{\texttt{ out}}  & {\em info} & flag of succesfull exit = 0\+: Succesfull exit \texorpdfstring{$<$}{<} 0\+: If info=-\/i then i-\/th argument had an illegal value \texorpdfstring{$>$}{>} 0\+: Allocation of a buffer for the output ddx\+\_\+data failed \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00530}{530}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a3258ae6ef23a4f07ea8a14ccf612acaa}\label{namespaceddx__core_a3258ae6ef23a4f07ea8a14ccf612acaa}} 
+\index{ddx\_core@{ddx\_core}!ddfree@{ddfree}}
+\index{ddfree@{ddfree}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddfree()}{ddfree()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddfree (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__core_1_1ddx__type}{ddx\+\_\+type}}), intent(inout)}]{ddx\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Deallocate object with corresponding data. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in,out}}  & {\em ddx\+\_\+data} & object to deallocate \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00738}{738}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a5614410792c4a18a359eae6fd226cc8e}\label{namespaceddx__core_a5614410792c4a18a359eae6fd226cc8e}} 
+\index{ddx\_core@{ddx\_core}!ddx\_free\_state@{ddx\_free\_state}}
+\index{ddx\_free\_state@{ddx\_free\_state}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddx\_free\_state()}{ddx\_free\_state()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddx\+\_\+free\+\_\+state (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__core_1_1ddx__state__type}{ddx\+\_\+state\+\_\+type}}), intent(inout)}]{state }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00760}{760}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_aa76b7e526f53c93bf1492f51b3e1a8cc}\label{namespaceddx__core_aa76b7e526f53c93bf1492f51b3e1a8cc}} 
+\index{ddx\_core@{ddx\_core}!print\_spherical@{print\_spherical}}
+\index{print\_spherical@{print\_spherical}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{print\_spherical()}{print\_spherical()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::print\+\_\+spherical (\begin{DoxyParamCaption}\item[{character (len=$\ast$), intent(in)}]{label,  }\item[{integer, intent(in)}]{nbasis,  }\item[{integer, intent(in)}]{lmax,  }\item[{integer, intent(in)}]{ncol,  }\item[{integer, intent(in)}]{icol,  }\item[{real(dp), dimension(nbasis, ncol), intent(in)}]{x }\end{DoxyParamCaption})}
+
+
+
+Print array of spherical harmonics. 
+
+Prints (nbasis, ncol) array
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em label} & Label to print \\
+\hline
+\mbox{\texttt{ in}}  & {\em nbasis} & Number of rows of input x. nbasis \texorpdfstring{$>$}{>}= 0 \\
+\hline
+\mbox{\texttt{ in}}  & {\em lmax} & Maximal degree of corresponding spherical harmonics. (lmax+1)$\ast$$\ast$2 = nbasis \\
+\hline
+\mbox{\texttt{ in}}  & {\em ncol} & Number of columns to print \\
+\hline
+\mbox{\texttt{ in}}  & {\em icol} & This number is only for printing purposes \\
+\hline
+\mbox{\texttt{ in}}  & {\em x} & Actual data to print \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00926}{926}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a7116b451c0d1427361e7d1437a1c5ae8}\label{namespaceddx__core_a7116b451c0d1427361e7d1437a1c5ae8}} 
+\index{ddx\_core@{ddx\_core}!print\_nodes@{print\_nodes}}
+\index{print\_nodes@{print\_nodes}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{print\_nodes()}{print\_nodes()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::print\+\_\+nodes (\begin{DoxyParamCaption}\item[{character (len=$\ast$), intent(in)}]{label,  }\item[{integer, intent(in)}]{ngrid,  }\item[{integer, intent(in)}]{ncol,  }\item[{integer, intent(in)}]{icol,  }\item[{real(dp), dimension(ngrid, ncol), intent(in)}]{x }\end{DoxyParamCaption})}
+
+
+
+Print array of quadrature points. 
+
+Prints (ngrid, ncol) array
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em label} & Label to print \\
+\hline
+\mbox{\texttt{ in}}  & {\em ngrid} & Number of rows of input x. ngrid \texorpdfstring{$>$}{>}= 0 \\
+\hline
+\mbox{\texttt{ in}}  & {\em ncol} & Number of columns to print \\
+\hline
+\mbox{\texttt{ in}}  & {\em icol} & This number is only for printing purposes \\
+\hline
+\mbox{\texttt{ in}}  & {\em x} & Actual data to print \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00982}{982}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a7ee983451a2d6b52ce89801a59fb33e6}\label{namespaceddx__core_a7ee983451a2d6b52ce89801a59fb33e6}} 
+\index{ddx\_core@{ddx\_core}!print\_ddvector@{print\_ddvector}}
+\index{print\_ddvector@{print\_ddvector}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{print\_ddvector()}{print\_ddvector()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::print\+\_\+ddvector (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__core_1_1ddx__type}{ddx\+\_\+type}}), intent(in)}]{ddx\+\_\+data,  }\item[{character(len=$\ast$)}]{label,  }\item[{real(dp), dimension(ddx\+\_\+data \% constants \% nbasis, ddx\+\_\+data \% params \% nsph)}]{vector }\end{DoxyParamCaption})}
+
+
+
+Print dd Solution vector. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em label} & \+: Label to print \\
+\hline
+\mbox{\texttt{ in}}  & {\em vector} & Vector to print \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01027}{1027}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a7c6ed3167dcc5edcd4efa59719858b72}\label{namespaceddx__core_a7c6ed3167dcc5edcd4efa59719858b72}} 
+\index{ddx\_core@{ddx\_core}!ddintegrate@{ddintegrate}}
+\index{ddintegrate@{ddintegrate}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddintegrate()}{ddintegrate()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddintegrate (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{nsph,  }\item[{integer, intent(in)}]{nbasis,  }\item[{integer, intent(in)}]{ngrid,  }\item[{real(dp), dimension(ldvwgrid, ngrid), intent(in)}]{vwgrid,  }\item[{integer, intent(in)}]{ldvwgrid,  }\item[{real(dp), dimension(ngrid, nsph), intent(in)}]{x\+\_\+grid,  }\item[{real(dp), dimension(nbasis, nsph), intent(out)}]{x\+\_\+lm }\end{DoxyParamCaption})}
+
+
+
+Integrate against spherical harmonics. 
+
+Integrate by Lebedev spherical quadrature. This function can be simply substituted by a matrix-\/vector product.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em nsph} & Number of spheres. {\ttfamily nsph} \texorpdfstring{$>$}{>}= 0. \\
+\hline
+\mbox{\texttt{ in}}  & {\em nbasis} & Number of spherical harmonics. {\ttfamily nbasis} \texorpdfstring{$>$}{>}= 0. \\
+\hline
+\mbox{\texttt{ in}}  & {\em ngrid} & Number of Lebedev grid points. {\ttfamily ngrid} \texorpdfstring{$>$}{>}= 0. \\
+\hline
+\mbox{\texttt{ in}}  & {\em vwgrid} & Values of spherical harmonics at Lebedev grid points, multiplied by weights of grid points. Dimension is (ldvwgrid, ngrid). \\
+\hline
+\mbox{\texttt{ in}}  & {\em ldvwgrid} & Leading dimension of {\ttfamily vwgrid}. \\
+\hline
+\mbox{\texttt{ in}}  & {\em x\+\_\+grid} & Input values at grid points of the sphere. Dimension is (ngrid, nsph). \\
+\hline
+\mbox{\texttt{ out}}  & {\em x\+\_\+lm} & Output spherical harmonics. Dimension is (nbasis, nsph). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01059}{1059}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_af4a63e9274aa8031ba29947ec4840da1}\label{namespaceddx__core_af4a63e9274aa8031ba29947ec4840da1}} 
+\index{ddx\_core@{ddx\_core}!dbasis@{dbasis}}
+\index{dbasis@{dbasis}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{dbasis()}{dbasis()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::dbasis (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension(3), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{basloc,  }\item[{real(dp), dimension(3, constants \% nbasis), intent(inout)}]{dbsloc,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{vplm,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vcos,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vsin }\end{DoxyParamCaption})}
+
+
+
+Compute first derivatives of spherical harmonics. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em x} & \\
+\hline
+\mbox{\texttt{ out}}  & {\em basloc} & \\
+\hline
+\mbox{\texttt{ out}}  & {\em dbsloc} & \\
+\hline
+\mbox{\texttt{ out}}  & {\em vplm} & \\
+\hline
+\mbox{\texttt{ out}}  & {\em vcos} & \\
+\hline
+\mbox{\texttt{ out}}  & {\em vsin} & \\
+\hline
+\end{DoxyParams}
+TODO\+: rewrite code and fill description. Computing sqrt(one-\/cthe$\ast$cthe) reduces effective range of input double precision values. cthe$\ast$cthe for cthe=1d+155 is NaN. 
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01086}{1086}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_af57c0e1c6dd13f71fee44d975a1080cd}\label{namespaceddx__core_af57c0e1c6dd13f71fee44d975a1080cd}} 
+\index{ddx\_core@{ddx\_core}!intmlp@{intmlp}}
+\index{intmlp@{intmlp}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{intmlp()}{intmlp()}}
+{\footnotesize\ttfamily real(dp) function ddx\+\_\+core\+::intmlp (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), intent(in)}]{t,  }\item[{real(dp), dimension(constants \% nbasis), intent(in)}]{sigma,  }\item[{real(dp), dimension(constants \% nbasis), intent(in)}]{basloc }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01216}{1216}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a202929912f5b0db1b6fd9f6c8809074c}\label{namespaceddx__core_a202929912f5b0db1b6fd9f6c8809074c}} 
+\index{ddx\_core@{ddx\_core}!wghpot@{wghpot}}
+\index{wghpot@{wghpot}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{wghpot()}{wghpot()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::wghpot (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{ncav,  }\item[{real(dp), dimension(ncav), intent(in)}]{phi\+\_\+cav,  }\item[{integer, intent(in)}]{nsph,  }\item[{integer, intent(in)}]{ngrid,  }\item[{real(dp), dimension(ngrid, nsph), intent(in)}]{ui,  }\item[{real(dp), dimension(ngrid, nsph), intent(out)}]{phi\+\_\+grid,  }\item[{real(dp), dimension(ngrid, nsph), intent(out)}]{g }\end{DoxyParamCaption})}
+
+
+
+Weigh potential at cavity points by characteristic function TODO use cavity points in CSR format. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01261}{1261}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_aa459fca8ccf1b5380372e23d03d72fcf}\label{namespaceddx__core_aa459fca8ccf1b5380372e23d03d72fcf}} 
+\index{ddx\_core@{ddx\_core}!hsnorm@{hsnorm}}
+\index{hsnorm@{hsnorm}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{hsnorm()}{hsnorm()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::hsnorm (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{lmax,  }\item[{integer, intent(in)}]{nbasis,  }\item[{real(dp), dimension(nbasis), intent(in)}]{u,  }\item[{real(dp), intent(inout)}]{unorm }\end{DoxyParamCaption})}
+
+
+
+Compute the local Sobolev H$^\wedge$(-\/1/2)-\/norm on one sphere of u. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01293}{1293}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a2b3e39f4eaa589b097d4e9f37673e8f1}\label{namespaceddx__core_a2b3e39f4eaa589b097d4e9f37673e8f1}} 
+\index{ddx\_core@{ddx\_core}!hnorm@{hnorm}}
+\index{hnorm@{hnorm}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{hnorm()}{hnorm()}}
+{\footnotesize\ttfamily real(dp) function ddx\+\_\+core\+::hnorm (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{lmax,  }\item[{integer, intent(in)}]{nbasis,  }\item[{integer, intent(in)}]{nsph,  }\item[{real(dp), dimension(nbasis, nsph), intent(in)}]{x }\end{DoxyParamCaption})}
+
+
+
+Compute the global Sobolev H$^\wedge$(-\/1/2)-\/norm of x. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01315}{1315}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_af6525c3026ed48bc2e9711d7f5f993a1}\label{namespaceddx__core_af6525c3026ed48bc2e9711d7f5f993a1}} 
+\index{ddx\_core@{ddx\_core}!rmsnorm@{rmsnorm}}
+\index{rmsnorm@{rmsnorm}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{rmsnorm()}{rmsnorm()}}
+{\footnotesize\ttfamily real(dp) function ddx\+\_\+core\+::rmsnorm (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{lmax,  }\item[{integer, intent(in)}]{nbasis,  }\item[{integer, intent(in)}]{nsph,  }\item[{real(dp), dimension(nbasis, nsph), intent(in)}]{x }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01343}{1343}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a4dcabcd0c6fe4d601c5a739d8d1bf86c}\label{namespaceddx__core_a4dcabcd0c6fe4d601c5a739d8d1bf86c}} 
+\index{ddx\_core@{ddx\_core}!rmsvec@{rmsvec}}
+\index{rmsvec@{rmsvec}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{rmsvec()}{rmsvec()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::rmsvec (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{n,  }\item[{real(dp), dimension(n), intent(in)}]{v,  }\item[{real(dp), intent(inout)}]{vrms,  }\item[{real(dp), intent(inout)}]{vmax }\end{DoxyParamCaption})}
+
+
+
+compute root-\/mean-\/square and max norm 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01360}{1360}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a506cc06b7ccdef7dae3c83c324ca2923}\label{namespaceddx__core_a506cc06b7ccdef7dae3c83c324ca2923}} 
+\index{ddx\_core@{ddx\_core}!adjrhs@{adjrhs}}
+\index{adjrhs@{adjrhs}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{adjrhs()}{adjrhs()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::adjrhs (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{xi,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{vlm,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{work }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01381}{1381}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a96984a0f96c1a17e25c781d34ed73f80}\label{namespaceddx__core_a96984a0f96c1a17e25c781d34ed73f80}} 
+\index{ddx\_core@{ddx\_core}!calcv@{calcv}}
+\index{calcv@{calcv}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{calcv()}{calcv()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::calcv (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(params \% ngrid), intent(inout)}]{pot,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{sigma,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{work }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01418}{1418}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_ad5b07f0450b5b0fae876973a3ce661d7}\label{namespaceddx__core_ad5b07f0450b5b0fae876973a3ce661d7}} 
+\index{ddx\_core@{ddx\_core}!ddeval\_grid@{ddeval\_grid}}
+\index{ddeval\_grid@{ddeval\_grid}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddeval\_grid()}{ddeval\_grid()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddeval\+\_\+grid (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x\+\_\+sph,  }\item[{real(dp), intent(in)}]{beta,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(inout)}]{x\+\_\+grid,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+Evaluate values of spherical harmonics at Lebedev grid points. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01465}{1465}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a52eaee7c9a67f2a9f317c2d6dd50426e}\label{namespaceddx__core_a52eaee7c9a67f2a9f317c2d6dd50426e}} 
+\index{ddx\_core@{ddx\_core}!ddeval\_grid\_work@{ddeval\_grid\_work}}
+\index{ddeval\_grid\_work@{ddeval\_grid\_work}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddeval\_grid\_work()}{ddeval\_grid\_work()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddeval\+\_\+grid\+\_\+work (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{nbasis,  }\item[{integer, intent(in)}]{ngrid,  }\item[{integer, intent(in)}]{nsph,  }\item[{real(dp), dimension(ldvgrid, ngrid), intent(in)}]{vgrid,  }\item[{integer, intent(in)}]{ldvgrid,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{real(dp), dimension(nbasis, nsph), intent(in)}]{x\+\_\+sph,  }\item[{real(dp), intent(in)}]{beta,  }\item[{real(dp), dimension(ngrid, nsph), intent(inout)}]{x\+\_\+grid }\end{DoxyParamCaption})}
+
+
+
+Evaluate values of spherical harmonics at Lebedev grid points. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01500}{1500}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_ae804f0dbf4b9800bc75adaa57c842149}\label{namespaceddx__core_ae804f0dbf4b9800bc75adaa57c842149}} 
+\index{ddx\_core@{ddx\_core}!ddintegrate\_sph@{ddintegrate\_sph}}
+\index{ddintegrate\_sph@{ddintegrate\_sph}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddintegrate\_sph()}{ddintegrate\_sph()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddintegrate\+\_\+sph (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{x\+\_\+grid,  }\item[{real(dp), intent(in)}]{beta,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(inout)}]{x\+\_\+sph,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+Integrate values at grid points into spherical harmonics. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01516}{1516}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a61156a8a0aec479ea2071dd6d6922fb1}\label{namespaceddx__core_a61156a8a0aec479ea2071dd6d6922fb1}} 
+\index{ddx\_core@{ddx\_core}!ddintegrate\_sph\_work@{ddintegrate\_sph\_work}}
+\index{ddintegrate\_sph\_work@{ddintegrate\_sph\_work}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddintegrate\_sph\_work()}{ddintegrate\_sph\_work()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddintegrate\+\_\+sph\+\_\+work (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{nbasis,  }\item[{integer, intent(in)}]{ngrid,  }\item[{integer, intent(in)}]{nsph,  }\item[{real(dp), dimension(ldvwgrid, ngrid), intent(in)}]{vwgrid,  }\item[{integer, intent(in)}]{ldvwgrid,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{real(dp), dimension(ngrid, nsph), intent(in)}]{x\+\_\+grid,  }\item[{real(dp), intent(in)}]{beta,  }\item[{real(dp), dimension(nbasis, nsph), intent(inout)}]{x\+\_\+sph }\end{DoxyParamCaption})}
+
+
+
+Integrate values at grid points into spherical harmonics. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01549}{1549}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a8abb13e98d5d1eb3512e5ad55b701ef3}\label{namespaceddx__core_a8abb13e98d5d1eb3512e5ad55b701ef3}} 
+\index{ddx\_core@{ddx\_core}!ddcav\_to\_grid@{ddcav\_to\_grid}}
+\index{ddcav\_to\_grid@{ddcav\_to\_grid}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddcav\_to\_grid()}{ddcav\_to\_grid()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddcav\+\_\+to\+\_\+grid (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension(constants \% ncav), intent(in)}]{x\+\_\+cav,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(inout)}]{x\+\_\+grid,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+Unwrap values at cavity points into values at all grid points. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01566}{1566}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_accaee74767f44a369c6d2d1e106c0453}\label{namespaceddx__core_accaee74767f44a369c6d2d1e106c0453}} 
+\index{ddx\_core@{ddx\_core}!ddcav\_to\_grid\_work@{ddcav\_to\_grid\_work}}
+\index{ddcav\_to\_grid\_work@{ddcav\_to\_grid\_work}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddcav\_to\_grid\_work()}{ddcav\_to\_grid\_work()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddcav\+\_\+to\+\_\+grid\+\_\+work (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{ngrid,  }\item[{integer, intent(in)}]{nsph,  }\item[{integer, intent(in)}]{ncav,  }\item[{integer, dimension(nsph+1), intent(in)}]{icav\+\_\+ia,  }\item[{integer, dimension(ncav), intent(in)}]{icav\+\_\+ja,  }\item[{real(dp), dimension(ncav), intent(in)}]{x\+\_\+cav,  }\item[{real(dp), dimension(ngrid, nsph), intent(out)}]{x\+\_\+grid }\end{DoxyParamCaption})}
+
+
+
+Unwrap values at cavity points into values at all grid points. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01599}{1599}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_ac11b27bb31b5df45e810537fcb887b85}\label{namespaceddx__core_ac11b27bb31b5df45e810537fcb887b85}} 
+\index{ddx\_core@{ddx\_core}!ddproject\_cav@{ddproject\_cav}}
+\index{ddproject\_cav@{ddproject\_cav}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{ddproject\_cav()}{ddproject\_cav()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::ddproject\+\_\+cav (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension(constants\%nbasis, params\%nsph), intent(in)}]{s,  }\item[{real(dp), dimension(constants\%ncav), intent(out)}]{xi }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01627}{1627}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a1caf6da4500220161384b51938ada1f8}\label{namespaceddx__core_a1caf6da4500220161384b51938ada1f8}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2m\_rotation@{tree\_m2m\_rotation}}
+\index{tree\_m2m\_rotation@{tree\_m2m\_rotation}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2m\_rotation()}{tree\_m2m\_rotation()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2m\+\_\+rotation (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+m }\end{DoxyParamCaption})}
+
+
+
+Transfer multipole coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01648}{1648}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a824b2d46bc4f19b41d1e59efc101fe97}\label{namespaceddx__core_a824b2d46bc4f19b41d1e59efc101fe97}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2m\_rotation\_work@{tree\_m2m\_rotation\_work}}
+\index{tree\_m2m\_rotation\_work@{tree\_m2m\_rotation\_work}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2m\_rotation\_work()}{tree\_m2m\_rotation\_work()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2m\+\_\+rotation\+\_\+work (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+m,  }\item[{real(dp), dimension(6$\ast$params \% pm$\ast$$\ast$2 + 19$\ast$params \% pm + 8), intent(out)}]{work }\end{DoxyParamCaption})}
+
+
+
+Transfer multipole coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01663}{1663}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_ad0d3d3c1ab770177d8e62b74b7b70a7f}\label{namespaceddx__core_ad0d3d3c1ab770177d8e62b74b7b70a7f}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2m\_bessel\_rotation@{tree\_m2m\_bessel\_rotation}}
+\index{tree\_m2m\_bessel\_rotation@{tree\_m2m\_bessel\_rotation}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2m\_bessel\_rotation()}{tree\_m2m\_bessel\_rotation()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2m\+\_\+bessel\+\_\+rotation (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+m }\end{DoxyParamCaption})}
+
+
+
+Transfer multipole coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01707}{1707}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a50051b223e25bba2f92fc30c8e4e9c14}\label{namespaceddx__core_a50051b223e25bba2f92fc30c8e4e9c14}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2m\_bessel\_rotation\_work@{tree\_m2m\_bessel\_rotation\_work}}
+\index{tree\_m2m\_bessel\_rotation\_work@{tree\_m2m\_bessel\_rotation\_work}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2m\_bessel\_rotation\_work()}{tree\_m2m\_bessel\_rotation\_work()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2m\+\_\+bessel\+\_\+rotation\+\_\+work (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+m }\end{DoxyParamCaption})}
+
+
+
+Transfer multipole coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01722}{1722}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_ab680c1da4d087c3064e9fcbe4c439698}\label{namespaceddx__core_ab680c1da4d087c3064e9fcbe4c439698}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2m\_rotation\_adj@{tree\_m2m\_rotation\_adj}}
+\index{tree\_m2m\_rotation\_adj@{tree\_m2m\_rotation\_adj}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2m\_rotation\_adj()}{tree\_m2m\_rotation\_adj()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2m\+\_\+rotation\+\_\+adj (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+m }\end{DoxyParamCaption})}
+
+
+
+Adjoint transfer multipole coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01779}{1779}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_af0f8bc57cc0a607a5f7b9d123b91e85a}\label{namespaceddx__core_af0f8bc57cc0a607a5f7b9d123b91e85a}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2m\_rotation\_adj\_work@{tree\_m2m\_rotation\_adj\_work}}
+\index{tree\_m2m\_rotation\_adj\_work@{tree\_m2m\_rotation\_adj\_work}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2m\_rotation\_adj\_work()}{tree\_m2m\_rotation\_adj\_work()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2m\+\_\+rotation\+\_\+adj\+\_\+work (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+m,  }\item[{real(dp), dimension(6$\ast$params \% pm$\ast$$\ast$2 + 19$\ast$params \% pm + 8), intent(out)}]{work }\end{DoxyParamCaption})}
+
+
+
+Adjoint transfer multipole coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01794}{1794}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a4b801c0c80a755fcdedd743c93e63d13}\label{namespaceddx__core_a4b801c0c80a755fcdedd743c93e63d13}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2m\_bessel\_rotation\_adj@{tree\_m2m\_bessel\_rotation\_adj}}
+\index{tree\_m2m\_bessel\_rotation\_adj@{tree\_m2m\_bessel\_rotation\_adj}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2m\_bessel\_rotation\_adj()}{tree\_m2m\_bessel\_rotation\_adj()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2m\+\_\+bessel\+\_\+rotation\+\_\+adj (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+m }\end{DoxyParamCaption})}
+
+
+
+Adjoint transfer multipole coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01821}{1821}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_ad57a2d9013d87acb421f0747b95f4e75}\label{namespaceddx__core_ad57a2d9013d87acb421f0747b95f4e75}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2m\_bessel\_rotation\_adj\_work@{tree\_m2m\_bessel\_rotation\_adj\_work}}
+\index{tree\_m2m\_bessel\_rotation\_adj\_work@{tree\_m2m\_bessel\_rotation\_adj\_work}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2m\_bessel\_rotation\_adj\_work()}{tree\_m2m\_bessel\_rotation\_adj\_work()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2m\+\_\+bessel\+\_\+rotation\+\_\+adj\+\_\+work (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+m }\end{DoxyParamCaption})}
+
+
+
+Adjoint transfer multipole coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01835}{1835}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a144b53f7df72de5a2717b78c6b903160}\label{namespaceddx__core_a144b53f7df72de5a2717b78c6b903160}} 
+\index{ddx\_core@{ddx\_core}!tree\_l2l\_rotation@{tree\_l2l\_rotation}}
+\index{tree\_l2l\_rotation@{tree\_l2l\_rotation}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_l2l\_rotation()}{tree\_l2l\_rotation()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+l2l\+\_\+rotation (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+l }\end{DoxyParamCaption})}
+
+
+
+Transfer local coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01864}{1864}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a343cdc81dac01fcc275b329aaff6584d}\label{namespaceddx__core_a343cdc81dac01fcc275b329aaff6584d}} 
+\index{ddx\_core@{ddx\_core}!tree\_l2l\_rotation\_work@{tree\_l2l\_rotation\_work}}
+\index{tree\_l2l\_rotation\_work@{tree\_l2l\_rotation\_work}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_l2l\_rotation\_work()}{tree\_l2l\_rotation\_work()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+l2l\+\_\+rotation\+\_\+work (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+l,  }\item[{real(dp), dimension(6$\ast$params \% pl$\ast$$\ast$2 + 19$\ast$params \% pl + 8), intent(out)}]{work }\end{DoxyParamCaption})}
+
+
+
+Transfer local coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01879}{1879}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a7d65f9c7b0f00ffce03baa68fbe3cb99}\label{namespaceddx__core_a7d65f9c7b0f00ffce03baa68fbe3cb99}} 
+\index{ddx\_core@{ddx\_core}!tree\_l2l\_bessel\_rotation@{tree\_l2l\_bessel\_rotation}}
+\index{tree\_l2l\_bessel\_rotation@{tree\_l2l\_bessel\_rotation}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_l2l\_bessel\_rotation()}{tree\_l2l\_bessel\_rotation()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+l2l\+\_\+bessel\+\_\+rotation (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+l }\end{DoxyParamCaption})}
+
+
+
+Transfer local coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01909}{1909}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a7f57681126ffa1ad063103f39db026c3}\label{namespaceddx__core_a7f57681126ffa1ad063103f39db026c3}} 
+\index{ddx\_core@{ddx\_core}!tree\_l2l\_bessel\_rotation\_work@{tree\_l2l\_bessel\_rotation\_work}}
+\index{tree\_l2l\_bessel\_rotation\_work@{tree\_l2l\_bessel\_rotation\_work}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_l2l\_bessel\_rotation\_work()}{tree\_l2l\_bessel\_rotation\_work()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+l2l\+\_\+bessel\+\_\+rotation\+\_\+work (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+l }\end{DoxyParamCaption})}
+
+
+
+Transfer local coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01924}{1924}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_ab1e1fe0e572c015d8f51b716e6ec8fc4}\label{namespaceddx__core_ab1e1fe0e572c015d8f51b716e6ec8fc4}} 
+\index{ddx\_core@{ddx\_core}!tree\_l2l\_rotation\_adj@{tree\_l2l\_rotation\_adj}}
+\index{tree\_l2l\_rotation\_adj@{tree\_l2l\_rotation\_adj}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_l2l\_rotation\_adj()}{tree\_l2l\_rotation\_adj()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+l2l\+\_\+rotation\+\_\+adj (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+l }\end{DoxyParamCaption})}
+
+
+
+Adjoint transfer local coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01953}{1953}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a02e2c9f1fe4c143bba50d01f1b4d338f}\label{namespaceddx__core_a02e2c9f1fe4c143bba50d01f1b4d338f}} 
+\index{ddx\_core@{ddx\_core}!tree\_l2l\_rotation\_adj\_work@{tree\_l2l\_rotation\_adj\_work}}
+\index{tree\_l2l\_rotation\_adj\_work@{tree\_l2l\_rotation\_adj\_work}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_l2l\_rotation\_adj\_work()}{tree\_l2l\_rotation\_adj\_work()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+l2l\+\_\+rotation\+\_\+adj\+\_\+work (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+l,  }\item[{real(dp), dimension(6$\ast$params \% pl$\ast$$\ast$2 + 19$\ast$params \% pl + 8), intent(out)}]{work }\end{DoxyParamCaption})}
+
+
+
+Adjoint transfer local coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l01968}{1968}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a6b92d30960fb1be121d7ab92d14365e9}\label{namespaceddx__core_a6b92d30960fb1be121d7ab92d14365e9}} 
+\index{ddx\_core@{ddx\_core}!tree\_l2l\_bessel\_rotation\_adj@{tree\_l2l\_bessel\_rotation\_adj}}
+\index{tree\_l2l\_bessel\_rotation\_adj@{tree\_l2l\_bessel\_rotation\_adj}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_l2l\_bessel\_rotation\_adj()}{tree\_l2l\_bessel\_rotation\_adj()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+l2l\+\_\+bessel\+\_\+rotation\+\_\+adj (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+l }\end{DoxyParamCaption})}
+
+
+
+Adjoint transfer local coefficients over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02006}{2006}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a559f8f129ce2d481446c4325526aa277}\label{namespaceddx__core_a559f8f129ce2d481446c4325526aa277}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2l\_rotation@{tree\_m2l\_rotation}}
+\index{tree\_m2l\_rotation@{tree\_m2l\_rotation}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2l\_rotation()}{tree\_m2l\_rotation()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2l\+\_\+rotation (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(in)}]{node\+\_\+m,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(out)}]{node\+\_\+l }\end{DoxyParamCaption})}
+
+
+
+Transfer multipole local coefficients into local over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02035}{2035}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a3d18e8fd9f3dbc808deefd71af3c6892}\label{namespaceddx__core_a3d18e8fd9f3dbc808deefd71af3c6892}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2l\_bessel\_rotation@{tree\_m2l\_bessel\_rotation}}
+\index{tree\_m2l\_bessel\_rotation@{tree\_m2l\_bessel\_rotation}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2l\_bessel\_rotation()}{tree\_m2l\_bessel\_rotation()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2l\+\_\+bessel\+\_\+rotation (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(in)}]{node\+\_\+m,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(out)}]{node\+\_\+l }\end{DoxyParamCaption})}
+
+
+
+Transfer multipole local coefficients into local over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02083}{2083}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a8190329d0b54f19cfd0323e20740cd1a}\label{namespaceddx__core_a8190329d0b54f19cfd0323e20740cd1a}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2l\_bessel\_rotation\_adj@{tree\_m2l\_bessel\_rotation\_adj}}
+\index{tree\_m2l\_bessel\_rotation\_adj@{tree\_m2l\_bessel\_rotation\_adj}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2l\_bessel\_rotation\_adj()}{tree\_m2l\_bessel\_rotation\_adj()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2l\+\_\+bessel\+\_\+rotation\+\_\+adj (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(in)}]{node\+\_\+l,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(inout)}]{node\+\_\+m }\end{DoxyParamCaption})}
+
+
+
+Adjoint transfer multipole local coefficients into local over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02140}{2140}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_aa709ef144e4384d61d0ae50bfe7354dd}\label{namespaceddx__core_aa709ef144e4384d61d0ae50bfe7354dd}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2l\_bessel\_rotation\_adj\_work@{tree\_m2l\_bessel\_rotation\_adj\_work}}
+\index{tree\_m2l\_bessel\_rotation\_adj\_work@{tree\_m2l\_bessel\_rotation\_adj\_work}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2l\_bessel\_rotation\_adj\_work()}{tree\_m2l\_bessel\_rotation\_adj\_work()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2l\+\_\+bessel\+\_\+rotation\+\_\+adj\+\_\+work (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(in)}]{node\+\_\+l,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(out)}]{node\+\_\+m }\end{DoxyParamCaption})}
+
+
+
+Adjoint transfer multipole local coefficients into local over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02155}{2155}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_aa9e82e22265265ab215bb831a2dbdf1a}\label{namespaceddx__core_aa9e82e22265265ab215bb831a2dbdf1a}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2l\_rotation\_adj@{tree\_m2l\_rotation\_adj}}
+\index{tree\_m2l\_rotation\_adj@{tree\_m2l\_rotation\_adj}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2l\_rotation\_adj()}{tree\_m2l\_rotation\_adj()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2l\+\_\+rotation\+\_\+adj (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(in)}]{node\+\_\+l,  }\item[{real(dp), dimension((params \% pm+1)$\ast$$\ast$2, constants \% nclusters), intent(out)}]{node\+\_\+m }\end{DoxyParamCaption})}
+
+
+
+Adjoint transfer multipole local coefficients into local over a tree. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02200}{2200}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a1d81120958f62351b12a9036ab6cbf6e}\label{namespaceddx__core_a1d81120958f62351b12a9036ab6cbf6e}} 
+\index{ddx\_core@{ddx\_core}!tree\_l2p@{tree\_l2p}}
+\index{tree\_l2p@{tree\_l2p}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_l2p()}{tree\_l2p()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+l2p (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(in)}]{node\+\_\+l,  }\item[{real(dp), intent(in)}]{beta,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(inout)}]{grid\+\_\+v,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, params \% nsph), intent(out)}]{sph\+\_\+l }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02240}{2240}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a0d41a631eb1ddf7d6c96b28919385514}\label{namespaceddx__core_a0d41a631eb1ddf7d6c96b28919385514}} 
+\index{ddx\_core@{ddx\_core}!tree\_l2p\_bessel@{tree\_l2p\_bessel}}
+\index{tree\_l2p\_bessel@{tree\_l2p\_bessel}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_l2p\_bessel()}{tree\_l2p\_bessel()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+l2p\+\_\+bessel (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(in)}]{node\+\_\+l,  }\item[{real(dp), intent(in)}]{beta,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(inout)}]{grid\+\_\+v }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02279}{2279}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a2ee14de3640c3649fe523dfb4d083bc9}\label{namespaceddx__core_a2ee14de3640c3649fe523dfb4d083bc9}} 
+\index{ddx\_core@{ddx\_core}!tree\_l2p\_adj@{tree\_l2p\_adj}}
+\index{tree\_l2p\_adj@{tree\_l2p\_adj}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_l2p\_adj()}{tree\_l2p\_adj()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+l2p\+\_\+adj (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{grid\+\_\+v,  }\item[{real(dp), intent(in)}]{beta,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2,  constants \% nclusters), intent(inout)}]{node\+\_\+l,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, params \% nsph), intent(out)}]{sph\+\_\+l }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02311}{2311}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a1111c683b53bd2eb55ea0d130980bcd9}\label{namespaceddx__core_a1111c683b53bd2eb55ea0d130980bcd9}} 
+\index{ddx\_core@{ddx\_core}!tree\_l2p\_bessel\_adj@{tree\_l2p\_bessel\_adj}}
+\index{tree\_l2p\_bessel\_adj@{tree\_l2p\_bessel\_adj}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_l2p\_bessel\_adj()}{tree\_l2p\_bessel\_adj()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+l2p\+\_\+bessel\+\_\+adj (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{grid\+\_\+v,  }\item[{real(dp), intent(in)}]{beta,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2,  constants \% nclusters), intent(inout)}]{node\+\_\+l }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02347}{2347}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a60a40706c306b954af9fccb186c305e0}\label{namespaceddx__core_a60a40706c306b954af9fccb186c305e0}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2p@{tree\_m2p}}
+\index{tree\_m2p@{tree\_m2p}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2p()}{tree\_m2p()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2p (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{p,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{real(dp), dimension((p+1)$\ast$$\ast$2, params \% nsph), intent(in)}]{sph\+\_\+m,  }\item[{real(dp), intent(in)}]{beta,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(inout)}]{grid\+\_\+v }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02381}{2381}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a62112cc7d3d77609e0e992504d8be125}\label{namespaceddx__core_a62112cc7d3d77609e0e992504d8be125}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2p\_bessel@{tree\_m2p\_bessel}}
+\index{tree\_m2p\_bessel@{tree\_m2p\_bessel}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2p\_bessel()}{tree\_m2p\_bessel()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2p\+\_\+bessel (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{p,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{integer, intent(in)}]{sph\+\_\+p,  }\item[{real(dp), dimension((sph\+\_\+p+1)$\ast$$\ast$2, params \% nsph), intent(in)}]{sph\+\_\+m,  }\item[{real(dp), intent(in)}]{beta,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(inout)}]{grid\+\_\+v }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02430}{2430}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a8866ff0507514c1a83f3348e2cc55401}\label{namespaceddx__core_a8866ff0507514c1a83f3348e2cc55401}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2p\_adj@{tree\_m2p\_adj}}
+\index{tree\_m2p\_adj@{tree\_m2p\_adj}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2p\_adj()}{tree\_m2p\_adj()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2p\+\_\+adj (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{p,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{grid\+\_\+v,  }\item[{real(dp), intent(in)}]{beta,  }\item[{real(dp), dimension((p+1)$\ast$$\ast$2, params \% nsph), intent(inout)}]{sph\+\_\+m }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02478}{2478}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_aa34ea25c06052ba20613b35da813f54e}\label{namespaceddx__core_aa34ea25c06052ba20613b35da813f54e}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2p\_bessel\_adj@{tree\_m2p\_bessel\_adj}}
+\index{tree\_m2p\_bessel\_adj@{tree\_m2p\_bessel\_adj}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2p\_bessel\_adj()}{tree\_m2p\_bessel\_adj()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2p\+\_\+bessel\+\_\+adj (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{p,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{grid\+\_\+v,  }\item[{real(dp), intent(in)}]{beta,  }\item[{integer, intent(in)}]{sph\+\_\+p,  }\item[{real(dp), dimension((sph\+\_\+p+1)$\ast$$\ast$2, params \% nsph), intent(inout)}]{sph\+\_\+m }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02525}{2525}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a7f61e8dc65fa676434374f7ea9a07743}\label{namespaceddx__core_a7f61e8dc65fa676434374f7ea9a07743}} 
+\index{ddx\_core@{ddx\_core}!tree\_m2p\_bessel\_nodiag\_adj@{tree\_m2p\_bessel\_nodiag\_adj}}
+\index{tree\_m2p\_bessel\_nodiag\_adj@{tree\_m2p\_bessel\_nodiag\_adj}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_m2p\_bessel\_nodiag\_adj()}{tree\_m2p\_bessel\_nodiag\_adj()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+m2p\+\_\+bessel\+\_\+nodiag\+\_\+adj (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{p,  }\item[{real(dp), intent(in)}]{alpha,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{grid\+\_\+v,  }\item[{real(dp), intent(in)}]{beta,  }\item[{integer, intent(in)}]{sph\+\_\+p,  }\item[{real(dp), dimension((sph\+\_\+p+1)$\ast$$\ast$2, params \% nsph), intent(inout)}]{sph\+\_\+m }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02573}{2573}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a3c8789fc01ba244fdaa0d4fef8e9d725}\label{namespaceddx__core_a3c8789fc01ba244fdaa0d4fef8e9d725}} 
+\index{ddx\_core@{ddx\_core}!efld@{efld}}
+\index{efld@{efld}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{efld()}{efld()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::efld (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{ncav,  }\item[{real$\ast$8, dimension(ncav), intent(in)}]{zeta,  }\item[{real$\ast$8, dimension(3,ncav), intent(in)}]{ccav,  }\item[{integer, intent(in)}]{nsph,  }\item[{real$\ast$8, dimension(3,nsph), intent(in)}]{csph,  }\item[{real$\ast$8, dimension(3,nsph), intent(inout)}]{force }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02621}{2621}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a86f701c3486a5b26c650d5b157b6e213}\label{namespaceddx__core_a86f701c3486a5b26c650d5b157b6e213}} 
+\index{ddx\_core@{ddx\_core}!tree\_grad\_m2m@{tree\_grad\_m2m}}
+\index{tree\_grad\_m2m@{tree\_grad\_m2m}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_grad\_m2m()}{tree\_grad\_m2m()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+grad\+\_\+m2m (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{sph\+\_\+m,  }\item[{real(dp), dimension((params \% lmax+2)$\ast$$\ast$2, 3,  params \% nsph), intent(inout)}]{sph\+\_\+m\+\_\+grad,  }\item[{real(dp), dimension((params \% lmax+2)$\ast$$\ast$2, params \% nsph), intent(inout)}]{work }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02654}{2654}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a0bbe738fff5a4d15f744dfa0b26938cf}\label{namespaceddx__core_a0bbe738fff5a4d15f744dfa0b26938cf}} 
+\index{ddx\_core@{ddx\_core}!tree\_grad\_l2l@{tree\_grad\_l2l}}
+\index{tree\_grad\_l2l@{tree\_grad\_l2l}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{tree\_grad\_l2l()}{tree\_grad\_l2l()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::tree\+\_\+grad\+\_\+l2l (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, constants \% nclusters), intent(in)}]{node\+\_\+l,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, 3, params \% nsph), intent(out)}]{sph\+\_\+l\+\_\+grad,  }\item[{real(dp), dimension((params \% pl+1)$\ast$$\ast$2, params \% nsph), intent(out)}]{work }\end{DoxyParamCaption})}
+
+
+
+TODO. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02717}{2717}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__core_a1c6e9bf18af65b25aa115da10bb2e749}\label{namespaceddx__core_a1c6e9bf18af65b25aa115da10bb2e749}} 
+\index{ddx\_core@{ddx\_core}!print\_header@{print\_header}}
+\index{print\_header@{print\_header}!ddx\_core@{ddx\_core}}
+\doxysubsubsection{\texorpdfstring{print\_header()}{print\_header()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+core\+::print\+\_\+header (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{iprint,  }\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params }\end{DoxyParamCaption})}
+
+
+
+small routine to print a tidy header with various info on the calculation. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l02789}{2789}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+

@@ -1,0 +1,79 @@
+\hypertarget{ddx__definitions_8f90}{}\doxysection{src/ddx\+\_\+definitions.f90 File Reference}
+\label{ddx__definitions_8f90}\index{src/ddx\_definitions.f90@{src/ddx\_definitions.f90}}
+\doxysubsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespaceddx__definitions}{ddx\+\_\+definitions}}
+\begin{DoxyCompactList}\small\item\em Compile-\/time constants and definitions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespaceddx__definitions_a6e62179e6ac303908858a873e4db49c2}{ddx\+\_\+definitions\+::dp}} = kind(1d0)
+\begin{DoxyCompactList}\small\item\em Kind of double precision. \end{DoxyCompactList}\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_a573c658c4b2372854e54ea7c01dfd621}{ddx\+\_\+definitions\+::zero}} = 0d0
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_a11ed9fbfef5200b81d7fdb59bf76240e}{ddx\+\_\+definitions\+::one}} = 1d0
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_a254dff78b52aa9da6052400a5454a50e}{ddx\+\_\+definitions\+::two}} = 2d0
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_a90e184d8c1c2f979dc4ca2c723d44a38}{ddx\+\_\+definitions\+::three}} = 3d0
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_a954a65dae0f22795d2b11293cc4f91fc}{ddx\+\_\+definitions\+::four}} = 4d0
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_ae33a635f75b731dbb7176f45d0b362b3}{ddx\+\_\+definitions\+::pt5}} = 5d-\/1
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_af8c8cc99cab8f63b557cc1c0bbd6855a}{ddx\+\_\+definitions\+::sqrt2}} = sqrt(two)
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_a2608a761770e676edeb5ee293a5cb4bc}{ddx\+\_\+definitions\+::sqrt3}} = sqrt(three)
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_a8de533b32bda3b88c6ea3cdb1381cd2b}{ddx\+\_\+definitions\+::pi4}} = atan(one)
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_ab5e13a991cccd740e20009442dbf857a}{ddx\+\_\+definitions\+::pi}} = four $\ast$ pi4
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_a61dbc72085f68c76b9ebbf77b8c4eb6f}{ddx\+\_\+definitions\+::fourpi}} = four $\ast$ pi
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_abf68cfa79ace5ce742e46ac2bd8c1a97}{ddx\+\_\+definitions\+::twopi}} = two $\ast$ pi
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_ab9950416d55a2fade4ed042ed5b4aa96}{ddx\+\_\+definitions\+::sqrt4pi}} = four $\ast$ sqrt(pi4)
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_a04d6379bbbbdbc33a8eec6cd2db25193}{ddx\+\_\+definitions\+::machine\+\_\+eps}} = epsilon(zero)
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_a739c7608b89551658f66595548a935de}{ddx\+\_\+definitions\+::toang}} = 0.\+52917721092d0
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_a6b1b447a70e0e29b2eceafb5a3177412}{ddx\+\_\+definitions\+::tokcal}} = 627.\+509469d0
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_adc7fc4c5a78c4079d356bf622c41d850}{ddx\+\_\+definitions\+::tokj}} = 2625.\+509469d0
+\item 
+real(dp), parameter \mbox{\hyperlink{namespaceddx__definitions_abb8d22f8e2a00c205bbefd51ee2da0e4}{ddx\+\_\+definitions\+::tobohr}} = one / toang
+\item 
+integer, parameter \mbox{\hyperlink{namespaceddx__definitions_ae550955ff555b222abaed24c541cde67}{ddx\+\_\+definitions\+::nllg}} = 32
+\begin{DoxyCompactList}\small\item\em Number of supported Lebedev grids. \end{DoxyCompactList}\item 
+integer, dimension(nllg), parameter \mbox{\hyperlink{namespaceddx__definitions_a31904c9990cc087f2808a4c1c662800a}{ddx\+\_\+definitions\+::ng0}} = (/ 6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074, 3470, 3890, 4334, 4802, 5294, 5810 /)
+\begin{DoxyCompactList}\small\item\em Number of grid points of each Lebedev grid. \end{DoxyCompactList}\item 
+character(len=255), dimension(3), parameter \mbox{\hyperlink{namespaceddx__definitions_a27faa3db3323ba2c6427084fcbf7b953}{ddx\+\_\+definitions\+::model\+\_\+str}} = (/ \char`\"{}COSMO\char`\"{}, \char`\"{}PCM \char`\"{}, \char`\"{}LPB \char`\"{} /)
+\begin{DoxyCompactList}\small\item\em Names of ddX models. \end{DoxyCompactList}\item 
+character(len=255), dimension(1), parameter \mbox{\hyperlink{namespaceddx__definitions_af0a948616df64a208244211d500820c3}{ddx\+\_\+definitions\+::itersolver\+\_\+str}} = (/ \char`\"{}Jacobi\char`\"{} /)
+\begin{DoxyCompactList}\small\item\em Names of iterative solvers. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyCopyright}{Copyright}
+(c) 2020-\/2021 RWTH Aachen. All rights reserved.
+\end{DoxyCopyright}
+ddX software
+
+Compile-\/time constants are defined here.
+
+\begin{DoxyVersion}{Version}
+1.\+0.\+0 
+\end{DoxyVersion}
+\begin{DoxyAuthor}{Author}
+Aleksandr Mikhalev 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+2021-\/06-\/15 
+\end{DoxyDate}
+
+
+Definition in file \mbox{\hyperlink{ddx__definitions_8f90_source}{ddx\+\_\+definitions.\+f90}}.
+

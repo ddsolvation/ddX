@@ -1,0 +1,41 @@
+\hypertarget{matrix__debug_8f90_source}{}\doxysection{matrix\+\_\+debug.\+f90}
+\label{matrix__debug_8f90_source}\index{src/matrix\_debug.f90@{src/matrix\_debug.f90}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00001}00001 \textcolor{keyword}{subroutine }build\_matrix(params, constants, workspace, n, matrix, matvec)}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00002}00002     \textcolor{keywordtype}{use }\mbox{\hyperlink{namespaceddx__core}{ddx\_core}}}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00003}00003     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00004}00004     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00005}00005     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00006}00006     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00007}00007     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(in)} :: n}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00008}00008 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: matrix(n, n)}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00009}00009     \textcolor{keywordtype}{external} :: matvec}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00010}00010 \textcolor{keywordtype}{    real}(dp) :: scr1(n), scr2(n)}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00011}00011     \textcolor{keywordtype}{integer} :: i,j}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00012}00012     \textcolor{keywordflow}{do} i = 1, n}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00013}00013         scr1 = zero}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00014}00014         scr1(i) = one}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00015}00015         \textcolor{keyword}{call }matvec(params, constants, workspace, scr1, scr2)}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00016}00016         matrix(i,:) = scr2}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00017}00017 \textcolor{keywordflow}{    end do}}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00018}00018 \textcolor{keyword}{end subroutine }build\_matrix}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00019}00019 }
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00020}00020 \textcolor{keyword}{subroutine }print\_matrix(string, m, n, matrix)}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00021}00021     \textcolor{keywordtype}{use }\mbox{\hyperlink{namespaceddx__core}{ddx\_core}}}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00022}00022     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00023}00023     \textcolor{keywordtype}{character(*)}, \textcolor{keywordtype}{intent(in)} :: string}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00024}00024     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(in)} :: m, n}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00025}00025 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: matrix(m, n)}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00026}00026     \textcolor{keywordtype}{integer} :: i, j}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00027}00027     \textcolor{keyword}{open}(file=string, unit=8, form=\textcolor{stringliteral}{'formatted'})}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00028}00028     \textcolor{keywordflow}{do} i = 1, m}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00029}00029         \textcolor{keywordflow}{do} j = 1, n}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00030}00030             \textcolor{keyword}{write}(8,\textcolor{stringliteral}{'(F20.10\$)'}) matrix(i, j)}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00031}00031 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00032}00032         \textcolor{keyword}{write}(8,*)}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00033}00033 \textcolor{keywordflow}{    end do}}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00034}00034     \textcolor{keyword}{close}(8)}
+\DoxyCodeLine{\Hypertarget{matrix__debug_8f90_source_l00035}00035 \textcolor{keyword}{end subroutine }print\_matrix}
+
+\end{DoxyCode}

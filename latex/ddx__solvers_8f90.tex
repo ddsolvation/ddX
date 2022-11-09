@@ -1,0 +1,54 @@
+\hypertarget{ddx__solvers_8f90}{}\doxysection{src/ddx\+\_\+solvers.f90 File Reference}
+\label{ddx__solvers_8f90}\index{src/ddx\_solvers.f90@{src/ddx\_solvers.f90}}
+\doxysubsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+interface \mbox{\hyperlink{interfaceddx__solvers_1_1matvec__interface}{ddx\+\_\+solvers\+::matvec\+\_\+interface}}
+\item 
+interface \mbox{\hyperlink{interfaceddx__solvers_1_1matvec__interface__external}{ddx\+\_\+solvers\+::matvec\+\_\+interface\+\_\+external}}
+\item 
+interface \mbox{\hyperlink{interfaceddx__solvers_1_1norm__interface}{ddx\+\_\+solvers\+::norm\+\_\+interface}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespaceddx__solvers}{ddx\+\_\+solvers}}
+\begin{DoxyCompactList}\small\item\em Core routines and parameters of ddX software. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__solvers_abf126087f0449850ca561c364488f20a}{ddx\+\_\+solvers\+::jacobi\+\_\+diis}} (params, constants, workspace, tol, rhs, x, niter, x\+\_\+rel\+\_\+diff, matvec, dm1vec, norm\+\_\+func, info)
+\begin{DoxyCompactList}\small\item\em Jacobi iterative solver. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__solvers_aae62dc7d3c0348bd8499c0f07b23ce47}{ddx\+\_\+solvers\+::diis}} (n, nmat, ndiis, x, e, b, xnew)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__solvers_ab078495566540e84394991dfd0506f6c}{ddx\+\_\+solvers\+::makeb}} (n, nmat, ndiis, e, b)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__solvers_aef00b2fe9f0483a0c91b8313a1fa5590}{ddx\+\_\+solvers\+::gmresr}} (params, constants, workspace, eps, b, x, niter, resid, matvec, info)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__solvers_a976b2efc1661de245ed2978d2ec8b1b9}{ddx\+\_\+solvers\+::gmres0}} (params, constants, workspace, n, rhs, uu, cc, work0, eps, niter, matvec)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__solvers_af7cea09146dd7833519488cddc69ac31}{ddx\+\_\+solvers\+::jacobi\+\_\+diis\+\_\+external}} (params, constants, workspace, n, tol, rhs, x, n\+\_\+iter, x\+\_\+rel\+\_\+diff, matvec, dm1vec, norm\+\_\+func, info)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyCopyright}{Copyright}
+(c) 2020-\/2020 RWTH Aachen. All rights reserved.
+\end{DoxyCopyright}
+ddX software
+
+Iterative solvers for ddX library
+
+\begin{DoxyVersion}{Version}
+1.\+0.\+0 
+\end{DoxyVersion}
+\begin{DoxyAuthor}{Author}
+Aleksandr Mikhalev 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+2020-\/12-\/17 
+\end{DoxyDate}
+
+
+Definition in file \mbox{\hyperlink{ddx__solvers_8f90_source}{ddx\+\_\+solvers.\+f90}}.
+

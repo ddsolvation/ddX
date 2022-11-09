@@ -1,0 +1,53 @@
+\hypertarget{ddx__cosmo_8f90}{}\doxysection{src/ddx\+\_\+cosmo.f90 File Reference}
+\label{ddx__cosmo_8f90}\index{src/ddx\_cosmo.f90@{src/ddx\_cosmo.f90}}
+\doxysubsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespaceddx__cosmo}{ddx\+\_\+cosmo}}
+\begin{DoxyCompactList}\small\item\em High-\/level subroutines for ddcosmo. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__cosmo_a3d6801924463ca9add4f2f426ed219b7}{ddx\+\_\+cosmo\+::ddcosmo\+\_\+solve}} (params, constants, workspace, state, phi\+\_\+cav, tol)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__cosmo_abb144da372d97120911cf33850ef3a6b}{ddx\+\_\+cosmo\+::ddcosmo\+\_\+adjoint}} (params, constants, workspace, state, psi, tol)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__cosmo_abcfe804a17d8823493193f35df072d39}{ddx\+\_\+cosmo\+::ddcosmo\+\_\+forces}} (params, constants, workspace, state, phi\+\_\+cav, gradphi\+\_\+cav, psi, force)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__cosmo_abe404cf6e921c95405954588eca03c89}{ddx\+\_\+cosmo\+::ddcosmo\+\_\+geom\+\_\+forces}} (params, constants, workspace, state, phi\+\_\+cav, gradphi\+\_\+cav, psi, force)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__cosmo_a348ef4cb3774526d0e3cdfd792e725ff}{ddx\+\_\+cosmo\+::ddcosmo}} (params, constants, workspace, state, phi\+\_\+cav, gradphi\+\_\+cav, psi, tol, esolv, force, info)
+\begin{DoxyCompactList}\small\item\em dd\+COSMO solver \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__cosmo_a34395a4e3f5f4fcf5210990cc0b13dd9}{ddx\+\_\+cosmo\+::ddcosmo\+\_\+guess}} (params, constants, state)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__cosmo_adfe77afff5b2d9c00e219ffce148eb80}{ddx\+\_\+cosmo\+::ddcosmo\+\_\+solve\+\_\+worker}} (params, constants, workspace, phi\+\_\+cav, xs, xs\+\_\+niter, xs\+\_\+rel\+\_\+diff, xs\+\_\+time, tol, phi\+\_\+grid, phi, info)
+\begin{DoxyCompactList}\small\item\em Solve primal dd\+COSMO system to find solvation energy. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__cosmo_ad043ab858bd349aa9f51d16a4668cf3a}{ddx\+\_\+cosmo\+::ddcosmo\+\_\+adjoint\+\_\+worker}} (params, constants, workspace, psi, tol, s, s\+\_\+niter, s\+\_\+rel\+\_\+diff, s\+\_\+time, info)
+\begin{DoxyCompactList}\small\item\em Solve adjoint dd\+COSMO system. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__cosmo_a2f4a1c04ddd1a370126cf617a85b5468}{ddx\+\_\+cosmo\+::ddcosmo\+\_\+forces\+\_\+worker}} (params, constants, workspace, phi\+\_\+grid, gradphi\+\_\+cav, psi, s, sgrid, xs, zeta, force, info)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__cosmo_aff816644ba672b18778635c0247bc5f0}{ddx\+\_\+cosmo\+::ddcosmo\+\_\+geom\+\_\+forces\+\_\+worker}} (params, constants, workspace, phi\+\_\+grid, gradphi\+\_\+cav, psi, s, sgrid, xs, zeta, force, info)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyCopyright}{Copyright}
+(c) 2020-\/2021 RWTH Aachen. All rights reserved.
+\end{DoxyCopyright}
+ddX software
+
+COSMO solver
+
+\begin{DoxyVersion}{Version}
+1.\+0.\+0 
+\end{DoxyVersion}
+\begin{DoxyAuthor}{Author}
+Aleksandr Mikhalev 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+2021-\/02-\/25 
+\end{DoxyDate}
+
+
+Definition in file \mbox{\hyperlink{ddx__cosmo_8f90_source}{ddx\+\_\+cosmo.\+f90}}.
+

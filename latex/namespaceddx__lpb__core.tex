@@ -1,0 +1,226 @@
+\hypertarget{namespaceddx__lpb__core}{}\doxysection{ddx\+\_\+lpb\+\_\+core Module Reference}
+\label{namespaceddx__lpb__core}\index{ddx\_lpb\_core@{ddx\_lpb\_core}}
+
+
+Core routines and parameters specific to dd\+LPB.  
+
+
+\doxysubsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__lpb__core_a651dd3cdefb7b8f3c10d6914f61e35dc}{wghpot\+\_\+f}} (params, constants, workspace, gradphi, f)
+\begin{DoxyCompactList}\small\item\em Find intermediate F0 in the RHS of the dd\+LPB model given in Eq.(82) \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__lpb__core_a27155fbfc41650ee384956aabcf6406c}{calcv2\+\_\+lpb}} (params, constants, isph, pot, x, basloc, vplm, vcos, vsin, bessel\+\_\+work)
+\begin{DoxyCompactList}\small\item\em Intermediate computation of Bx. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__lpb__core_ad6dc1419e83a09c20a07880df9d21d72}{convert\+\_\+ddcosmo}} (params, constants, direction, vector)
+\begin{DoxyCompactList}\small\item\em Scale the dd\+COSMO solution vector. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__lpb__core_a8f0440fba785d6c7b8a8b6d00b62f18d}{inthsp}} (params, constants, rijn, ri, isph, basloc, fac\+\_\+hsp, work)
+\begin{DoxyCompactList}\small\item\em Intermediate calculation in calcv2\+\_\+lpb subroutine. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__lpb__core_ab6ff087b76888899139f7712a3b8e419}{adjrhs\+\_\+lpb}} (params, constants, workspace, isph, xi, vlm, basloc, vplm, vcos, vsin, tmp\+\_\+bessel)
+\begin{DoxyCompactList}\small\item\em Intermediate for computing Bstarx Compute the Adjoint matix B$\ast$x Taken from \mbox{\hyperlink{namespaceddx__core}{ddx\+\_\+core}} routine adjrhs. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__lpb__core_ac82b16767440bcb1045ba7d9e1498e45}{inthsp\+\_\+adj}} (params, constants, rjin, rj, jsph, basloc, fac\+\_\+hsp, work)
+\begin{DoxyCompactList}\small\item\em Intermediate calculation in adjrhs\+\_\+lpb subroutine. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Core routines and parameters specific to dd\+LPB. 
+
+\begin{DoxyCopyright}{Copyright}
+(c) 2020-\/2021 RWTH Aachen. All rights reserved.
+\end{DoxyCopyright}
+ddX software
+
+\begin{DoxyVersion}{Version}
+1.\+0.\+0 
+\end{DoxyVersion}
+\begin{DoxyAuthor}{Author}
+Abhinav Jha and Michele Nottoli 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+2022-\/03-\/31 
+\end{DoxyDate}
+
+
+\doxysubsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespaceddx__lpb__core_a651dd3cdefb7b8f3c10d6914f61e35dc}\label{namespaceddx__lpb__core_a651dd3cdefb7b8f3c10d6914f61e35dc}} 
+\index{ddx\_lpb\_core@{ddx\_lpb\_core}!wghpot\_f@{wghpot\_f}}
+\index{wghpot\_f@{wghpot\_f}!ddx\_lpb\_core@{ddx\_lpb\_core}}
+\doxysubsubsection{\texorpdfstring{wghpot\_f()}{wghpot\_f()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+lpb\+\_\+core\+::wghpot\+\_\+f (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(3, constants \% ncav), intent(in)}]{gradphi,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(out)}]{f }\end{DoxyParamCaption})}
+
+
+
+Find intermediate F0 in the RHS of the dd\+LPB model given in Eq.(82) 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em workspace} & \+: Input workspace \\
+\hline
+\mbox{\texttt{ in}}  & {\em gradphi} & \+: Gradient of psi\+\_\+0 \\
+\hline
+\mbox{\texttt{ out}}  & {\em f} & \+: Intermediate calculation of F0 \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__lpb__core_8f90_source_l00026}{26}} of file \mbox{\hyperlink{ddx__lpb__core_8f90_source}{ddx\+\_\+lpb\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__lpb__core_a27155fbfc41650ee384956aabcf6406c}\label{namespaceddx__lpb__core_a27155fbfc41650ee384956aabcf6406c}} 
+\index{ddx\_lpb\_core@{ddx\_lpb\_core}!calcv2\_lpb@{calcv2\_lpb}}
+\index{calcv2\_lpb@{calcv2\_lpb}!ddx\_lpb\_core@{ddx\_lpb\_core}}
+\doxysubsubsection{\texorpdfstring{calcv2\_lpb()}{calcv2\_lpb()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+lpb\+\_\+core\+::calcv2\+\_\+lpb (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(params \% ngrid), intent(inout)}]{pot,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{basloc,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{vplm,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vcos,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vsin,  }\item[{complex(dp), dimension(max(2, params \% lmax+1)), intent(out)}]{bessel\+\_\+work }\end{DoxyParamCaption})}
+
+
+
+Intermediate computation of Bx. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em isph} & \+: Number of the sphere \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em pot} & \+: Array of size ngrid \\
+\hline
+\mbox{\texttt{ in}}  & {\em x} & \+: Input vector (Usually X\+\_\+e) \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em basloc} & \+: Used to compute spherical harmonic \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em vplm} & \+: Used to compute spherical harmonic \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em vcos} & \+: Used to compute spherical harmonic \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em vsin} & \+: Used to compute spherical harmonic \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__lpb__core_8f90_source_l00151}{151}} of file \mbox{\hyperlink{ddx__lpb__core_8f90_source}{ddx\+\_\+lpb\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__lpb__core_ad6dc1419e83a09c20a07880df9d21d72}\label{namespaceddx__lpb__core_ad6dc1419e83a09c20a07880df9d21d72}} 
+\index{ddx\_lpb\_core@{ddx\_lpb\_core}!convert\_ddcosmo@{convert\_ddcosmo}}
+\index{convert\_ddcosmo@{convert\_ddcosmo}!ddx\_lpb\_core@{ddx\_lpb\_core}}
+\doxysubsubsection{\texorpdfstring{convert\_ddcosmo()}{convert\_ddcosmo()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+lpb\+\_\+core\+::convert\+\_\+ddcosmo (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{direction,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(inout)}]{vector }\end{DoxyParamCaption})}
+
+
+
+Scale the dd\+COSMO solution vector. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em direction} & \+: Direction of the scaling \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em vector} & \+: dd\+COSMO solution vector \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__lpb__core_8f90_source_l00210}{210}} of file \mbox{\hyperlink{ddx__lpb__core_8f90_source}{ddx\+\_\+lpb\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__lpb__core_a8f0440fba785d6c7b8a8b6d00b62f18d}\label{namespaceddx__lpb__core_a8f0440fba785d6c7b8a8b6d00b62f18d}} 
+\index{ddx\_lpb\_core@{ddx\_lpb\_core}!inthsp@{inthsp}}
+\index{inthsp@{inthsp}!ddx\_lpb\_core@{ddx\_lpb\_core}}
+\doxysubsubsection{\texorpdfstring{inthsp()}{inthsp()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+lpb\+\_\+core\+::inthsp (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), intent(in)}]{rijn,  }\item[{real(dp), intent(in)}]{ri,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(constants \% nbasis), intent(in)}]{basloc,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{fac\+\_\+hsp,  }\item[{complex(dp), dimension(max(2, params \% lmax+1)), intent(out)}]{work }\end{DoxyParamCaption})}
+
+
+
+Intermediate calculation in calcv2\+\_\+lpb subroutine. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em rijn} & \+: Radius of sphers x\+\_\+ijn \\
+\hline
+\mbox{\texttt{ in}}  & {\em ri} & \+: Radius of sphers x\+\_\+i \\
+\hline
+\mbox{\texttt{ in}}  & {\em isph} & \+: Index of sphere \\
+\hline
+\mbox{\texttt{ in}}  & {\em basloc} & \+: Spherical Harmonic \\
+\hline
+\mbox{\texttt{ out}}  & {\em fac\+\_\+hsp} & \+: Return bessel function ratio multiplied by the spherical harmonic Y\+\_\+l\textquotesingle{}m\textquotesingle{}. Array of size nylm \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__lpb__core_8f90_source_l00245}{245}} of file \mbox{\hyperlink{ddx__lpb__core_8f90_source}{ddx\+\_\+lpb\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__lpb__core_ab6ff087b76888899139f7712a3b8e419}\label{namespaceddx__lpb__core_ab6ff087b76888899139f7712a3b8e419}} 
+\index{ddx\_lpb\_core@{ddx\_lpb\_core}!adjrhs\_lpb@{adjrhs\_lpb}}
+\index{adjrhs\_lpb@{adjrhs\_lpb}!ddx\_lpb\_core@{ddx\_lpb\_core}}
+\doxysubsubsection{\texorpdfstring{adjrhs\_lpb()}{adjrhs\_lpb()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+lpb\+\_\+core\+::adjrhs\+\_\+lpb (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{xi,  }\item[{real(dp), dimension((params \% lmax+1)$\ast$$\ast$2), intent(out)}]{vlm,  }\item[{real(dp), dimension((params \% lmax+1)$\ast$$\ast$2), intent(out)}]{basloc,  }\item[{real(dp), dimension((params \% lmax+1)$\ast$$\ast$2), intent(out)}]{vplm,  }\item[{real(dp), dimension(params \% lmax+1), intent(out)}]{vcos,  }\item[{real(dp), dimension(params \% lmax+1), intent(out)}]{vsin,  }\item[{complex(dp), dimension(max(2, params \% lmax+1)), intent(out)}]{tmp\+\_\+bessel }\end{DoxyParamCaption})}
+
+
+
+Intermediate for computing Bstarx Compute the Adjoint matix B$\ast$x Taken from \mbox{\hyperlink{namespaceddx__core}{ddx\+\_\+core}} routine adjrhs. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em workspace} & \+: Input workspace \\
+\hline
+\mbox{\texttt{ in}}  & {\em isph} & \+: Number of the sphere \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em basloc} & \+: Used to compute spherical harmonic \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em vplm} & \+: Used to compute spherical harmonic \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em vcos} & \+: Used to compute spherical harmonic \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em vsin} & \+: Used to compute spherical harmonic \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__lpb__core_8f90_source_l00286}{286}} of file \mbox{\hyperlink{ddx__lpb__core_8f90_source}{ddx\+\_\+lpb\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__lpb__core_ac82b16767440bcb1045ba7d9e1498e45}\label{namespaceddx__lpb__core_ac82b16767440bcb1045ba7d9e1498e45}} 
+\index{ddx\_lpb\_core@{ddx\_lpb\_core}!inthsp\_adj@{inthsp\_adj}}
+\index{inthsp\_adj@{inthsp\_adj}!ddx\_lpb\_core@{ddx\_lpb\_core}}
+\doxysubsubsection{\texorpdfstring{inthsp\_adj()}{inthsp\_adj()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+lpb\+\_\+core\+::inthsp\+\_\+adj (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{real(dp), intent(in)}]{rjin,  }\item[{real(dp), intent(in)}]{rj,  }\item[{integer, intent(in)}]{jsph,  }\item[{real(dp), dimension(constants \% nbasis), intent(in)}]{basloc,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{fac\+\_\+hsp,  }\item[{complex(dp), dimension(max(2, params \% lmax+1)), intent(out)}]{work }\end{DoxyParamCaption})}
+
+
+
+Intermediate calculation in adjrhs\+\_\+lpb subroutine. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em rjin} & \+: Radius of sphers x\+\_\+jin \\
+\hline
+\mbox{\texttt{ in}}  & {\em rj} & \+: Radius of sphers x\+\_\+j \\
+\hline
+\mbox{\texttt{ in}}  & {\em jsph} & \+: Index of sphere \\
+\hline
+\mbox{\texttt{ in}}  & {\em basloc} & \+: Spherical Harmonic \\
+\hline
+\mbox{\texttt{ out}}  & {\em fac\+\_\+hsp} & \+: Return bessel function ratio multiplied by the spherical harmonic Y\+\_\+l\textquotesingle{}m\textquotesingle{}. Array of size nylm \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__lpb__core_8f90_source_l00360}{360}} of file \mbox{\hyperlink{ddx__lpb__core_8f90_source}{ddx\+\_\+lpb\+\_\+core.\+f90}}.
+

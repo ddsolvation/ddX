@@ -1,0 +1,89 @@
+\hypertarget{ddx__operators_8f90}{}\doxysection{src/ddx\+\_\+operators.f90 File Reference}
+\label{ddx__operators_8f90}\index{src/ddx\_operators.f90@{src/ddx\_operators.f90}}
+\doxysubsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespaceddx__operators}{ddx\+\_\+operators}}
+\begin{DoxyCompactList}\small\item\em Operators shared among ddX methods. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_ac2a84b8394941ee2bf6d8f3e44127be3}{ddx\+\_\+operators\+::lx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Single layer operator matvec. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a6f210175b888b158774e507e0d603b52}{ddx\+\_\+operators\+::lstarx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Adjoint single layer operator matvec. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a73668d47230f4292955012f9910e4ecc}{ddx\+\_\+operators\+::ldm1x}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Diagonal preconditioning for Lx operator. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a7572750f072f269d318972f1d57cb527}{ddx\+\_\+operators\+::dx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Double layer operator matvec without diagonal blocks. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_abd51fb609c2fc3efb3f8095d65492840}{ddx\+\_\+operators\+::dx\+\_\+dense}} (params, constants, workspace, do\+\_\+diag, x, y)
+\begin{DoxyCompactList}\small\item\em Baseline implementation of double layer operator. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a1373e4a45d1f9adb748f19f543c2f67f}{ddx\+\_\+operators\+::dx\+\_\+fmm}} (params, constants, workspace, do\+\_\+diag, x, y)
+\begin{DoxyCompactList}\small\item\em FMM-\/accelerated implementation of double layer operator. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a4763fc6509b475a090451feb661a92ea}{ddx\+\_\+operators\+::dstarx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Adjoint double layer operator matvec. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a5e24847b3de8dd57e855f293eeee9d18}{ddx\+\_\+operators\+::dstarx\+\_\+dense}} (params, constants, workspace, do\+\_\+diag, x, y)
+\begin{DoxyCompactList}\small\item\em Baseline implementation of adjoint double layer operator. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_aa69a13344481ef2032c3eb2c46e847b3}{ddx\+\_\+operators\+::dstarx\+\_\+fmm}} (params, constants, workspace, do\+\_\+diag, x, y)
+\begin{DoxyCompactList}\small\item\em FMM-\/accelerated implementation of adjoint double layer operator. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_ace05a424bd4e0a226b635723aba4389c}{ddx\+\_\+operators\+::repsx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Apply $ R_\varepsilon $ operator to spherical harmonics. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a0670b7a7bd830dd57ee0dc2dbcb80b1a}{ddx\+\_\+operators\+::repsstarx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Apply $ R_\varepsilon^* $ operator to spherical harmonics. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_ad322bb8c91dfbed143be683333be9430}{ddx\+\_\+operators\+::rinfx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Apply $ R_\infty $ operator to spherical harmonics. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a9c02c21086e56924eec13cc33a96eebb}{ddx\+\_\+operators\+::rstarinfx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Apply $ R_\infty^* $ operator to spherical harmonics. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a35303800b0d9c1749358f5e90bcbd52f}{ddx\+\_\+operators\+::prec\+\_\+repsx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Apply preconditioner for. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a682ecf4161b6846177c71db55924c586}{ddx\+\_\+operators\+::prec\+\_\+repsstarx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Apply preconditioner for. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a8720945fa2c227689250a0e3e3353e3d}{ddx\+\_\+operators\+::gradr}} (params, constants, workspace, g, ygrid, fx)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a985ff275f194faa2b8d5fbd3ce36dab0}{ddx\+\_\+operators\+::gradr\+\_\+dense}} (params, constants, workspace, g, ygrid, fx)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_aea20868b7a77f9914089bdd99e1aaefb}{ddx\+\_\+operators\+::gradr\+\_\+sph}} (params, constants, isph, vplm, vcos, vsin, basloc, dbsloc, g, ygrid, fx)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a56e5aed806e650ee042f7a09b81b672f}{ddx\+\_\+operators\+::gradr\+\_\+fmm}} (params, constants, workspace, g, ygrid, fx)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a76da5c9463ec313c71c7f3764c572165}{ddx\+\_\+operators\+::bstarx}} (params, constants, workspace, x, y)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a68303147fb9fe072ab34096910280f1a}{ddx\+\_\+operators\+::bx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Subroutine used for the GMRES solver. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a92077fecd6f7c3ab9b4be15323cdadb2}{ddx\+\_\+operators\+::tx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Subroutine used for the GMRES solver with complete matrix. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a255d38c63d567d20e2844c8d015d1c0f}{ddx\+\_\+operators\+::tstarx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Subroutine used for the GMRES solver with complete matrix adjoint system. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_aa910ba16eb7aa581ab1f314124e6e0fd}{ddx\+\_\+operators\+::bx\+\_\+prec}} (params, constants, workspace, x, y)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_ab5909858cddd80271567d2d910d730f2}{ddx\+\_\+operators\+::prec\+\_\+tstarx}} (params, constants, workspace, x, y)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a31ded2fe034b4750fa14adbb07cb50dd}{ddx\+\_\+operators\+::prec\+\_\+tx}} (params, constants, workspace, x, y)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_ac915c9397fb193105a6cb419b4ecfc37}{ddx\+\_\+operators\+::cstarx}} (params, constants, workspace, x, y)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_afe779d813f428e2c85015629976de9f8}{ddx\+\_\+operators\+::cx}} (params, constants, workspace, x, y)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyCopyright}{Copyright}
+(c) 2020-\/2021 RWTH Aachen. All rights reserved.
+\end{DoxyCopyright}
+ddX software
+
+Operators of ddX software
+
+\begin{DoxyVersion}{Version}
+1.\+0.\+0 
+\end{DoxyVersion}
+\begin{DoxyAuthor}{Author}
+Aleksandr Mikhalev 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+2021-\/02-\/25 
+\end{DoxyDate}
+
+
+Definition in file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+

@@ -1,0 +1,585 @@
+\hypertarget{ddx__cinterface_8f90_source}{}\doxysection{ddx\+\_\+cinterface.\+f90}
+\label{ddx__cinterface_8f90_source}\index{src/ddx\_cinterface.f90@{src/ddx\_cinterface.f90}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00001}00001 \textcolor{keyword}{module} ddx\_cinterface}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00002}00002     use, \textcolor{keywordtype}{intrinsic} :: iso\_c\_binding}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00003}00003     \textcolor{keywordtype}{use }\mbox{\hyperlink{namespaceddx__core}{ddx\_core}}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00004}00004     \textcolor{keywordtype}{use }\mbox{\hyperlink{namespaceddx__definitions}{ddx\_definitions}}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00005}00005     \textcolor{keywordtype}{use }\mbox{\hyperlink{namespaceddx__constants}{ddx\_constants}}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00006}00006     \textcolor{keywordtype}{use }\mbox{\hyperlink{namespaceddx__parameters}{ddx\_parameters}}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00007}00007     \textcolor{keywordtype}{use }\mbox{\hyperlink{namespaceddx__workspace}{ddx\_workspace}}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00008}00008     \textcolor{keywordtype}{use }\mbox{\hyperlink{namespaceddx__multipolar__solutes}{ddx\_multipolar\_solutes}}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00009}00009     \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00010}00010     \textcolor{keywordtype}{use }\mbox{\hyperlink{namespaceddx__cosmo}{ddx\_cosmo}}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00011}00011     \textcolor{keywordtype}{use }\mbox{\hyperlink{namespaceddx__pcm}{ddx\_pcm}}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00012}00012     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00013}00013 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00014}\mbox{\hyperlink{structddx__cinterface_1_1ddx__setup}{00014}}     \textcolor{keyword}{type} \mbox{\hyperlink{structddx__cinterface_1_1ddx__setup}{ddx\_setup}}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00015}00015         \textcolor{keywordtype}{type}(ddx\_params\_type)    :: params}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00016}00016         \textcolor{keywordtype}{type}(ddx\_constants\_type) :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00017}00017         \textcolor{keywordtype}{type}(ddx\_workspace\_type) :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00018}00018         \textcolor{keywordtype}{character(len=255)}       :: error\_message  \textcolor{comment}{! most recent error message (if any)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00019}00019     \textcolor{keyword}{end type }\mbox{\hyperlink{structddx__cinterface_1_1ddx__setup}{ddx\_setup}}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00020}00020 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00021}00021 \textcolor{keyword}{contains}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00022}00022 \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00023}00023 \textcolor{comment}{! Generic stuff}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00024}00024 \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00025}00025 \textcolor{keyword}{function }ddx\_supported\_lebedev\_grids(n, grids) \textcolor{keyword}{result}(c\_ngrids) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00026}00026     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} ::  n}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00027}00027     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(out)} :: grids(n)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00028}00028     \textcolor{keywordtype}{integer(c\_int)} :: c\_ngrids}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00029}00029     c\_ngrids = min(n, \mbox{\hyperlink{namespaceddx__definitions_ae550955ff555b222abaed24c541cde67}{nllg}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00030}00030     grids(1:c\_ngrids) = \mbox{\hyperlink{namespaceddx__definitions_a31904c9990cc087f2808a4c1c662800a}{ng0}}(1:c\_ngrids)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00031}00031 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00032}00032 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00033}00033 \textcolor{comment}{! With reference to a atomic sphere `sphere` of radius `r` centred at `a` compute:}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00034}00034 \textcolor{comment}{!       4π     |x -\/ a|\string^l}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00035}00035 \textcolor{comment}{!     -\/-\/-\/-\/-\/-\/  -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/ Y\_l\string^m(|x -\/ a|)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00036}00036 \textcolor{comment}{!     2l + 1       r\string^l}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00037}00037 \textcolor{comment}{! lmax should be identical to the value stored inside c\_ddx or less.}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00038}00038 \textcolor{keyword}{subroutine }ddx\_scaled\_ylm(c\_ddx, lmax, x, sphere, ylm) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00039}00039     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00040}00040     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: lmax}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00041}00041 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)} :: x(3)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00042}00042     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: sphere}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00043}00043 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: ylm((lmax+1)**2)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00044}00044 \textcolor{keywordtype}{    real}(dp) :: delta(3)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00045}00045 \textcolor{keywordtype}{    real}(dp) :: ratio, rho, ctheta, stheta, cphi, sphi, dnorm}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00046}00046 \textcolor{keywordtype}{    real}(dp) :: vplm((lmax+1)**2), vcos(lmax+1), vsin(lmax+1)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00047}00047     \textcolor{keywordtype}{double precision}, \textcolor{keywordtype}{external} :: dnrm2}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00048}00048     \textcolor{keywordtype}{integer} :: ind, m, l}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00049}00049     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00050}00050     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00051}00051 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00052}00052     associate(rsph => \mbox{\hyperlink{namespaceddx}{ddx}}\%params\%rsph, lmax => \mbox{\hyperlink{namespaceddx}{ddx}}\%params\%lmax, vscales => \mbox{\hyperlink{namespaceddx}{ddx}}\%constants\%vscales)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00053}00053         delta = x(:) -\/ \mbox{\hyperlink{namespaceddx}{ddx}}\%params\%csph(:, sphere)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00054}00054         dnorm = dnrm2(3, delta, 1)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00055}00055         delta = delta / dnorm}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00056}00056         \textcolor{keyword}{call }ylmbas(delta, rho, ctheta, stheta, cphi, sphi, lmax, vscales, ylm, vplm, vcos, vsin)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00057}00057         \textcolor{keywordflow}{do} l = 0, lmax}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00058}00058             ratio = \mbox{\hyperlink{namespaceddx}{ddx}}\%constants\%v4pi2lp1(l+1) * (dnorm / rsph(sphere))**l}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00059}00059             \textcolor{keywordflow}{do} m = -\/l, l}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00060}00060                 ind = l*(l+1) + m + 1}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00061}00061                 ylm(ind) = ylm(ind) * ratio}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00062}00062 \textcolor{keywordflow}{            enddo}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00063}00063 \textcolor{keywordflow}{        enddo}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00064}00064     \textcolor{keyword}{end }associate}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00065}00065 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00066}00066 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00067}00067 \textcolor{keyword}{subroutine }ddx\_nuclear\_contributions(c\_ddx, nsph, ncav, nbasis, phi, gradphi, psi) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00068}00068     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00069}00069     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: nsph, ncav, nbasis}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00070}00070     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00071}00071 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: phi(ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00072}00072 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: gradphi(3, ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00073}00073 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: psi(nbasis, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00074}00074 \textcolor{keywordtype}{    real}(dp) :: hessianphi(3, 3, ncav)  \textcolor{comment}{! not used, hence not allocated.}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00075}00075     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00076}00076     \textcolor{keyword}{call }mkrhs(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, 1, phi, 1, gradphi, 0, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00077}00077             \& hessianphi, psi)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00078}00078 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00079}00079 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00080}00080 \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00081}00081 \textcolor{comment}{! Setup object}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00082}00082 \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00083}00083 \textcolor{keyword}{function }ddx\_allocate\_model(model, enable\_force, solvent\_epsilon, solvent\_kappa, eta, lmax, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00084}00084         \& n\_lebedev, incore, maxiter, jacobi\_n\_diis, enable\_fmm, fmm\_multipole\_lmax, fmm\_local\_lmax, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00085}00085         \& n\_proc, n\_spheres, sphere\_charges, sphere\_centres, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00086}00086         !\& sphere\_radii, printfctn, info) \textcolor{keyword}{result}(c\_ddx) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00087}00087         \& sphere\_radii, info) result(c\_ddx) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00088}00088     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: model, enable\_force, lmax, n\_lebedev, maxiter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00089}00089         \& incore, jacobi\_n\_diis, enable\_fmm, fmm\_multipole\_lmax, fmm\_local\_lmax, n\_proc, n\_spheres}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00090}00090     \textcolor{keywordtype}{real(c\_double)}, \textcolor{keywordtype}{intent(in)} :: sphere\_charges(n\_spheres), sphere\_centres(3, n\_spheres), \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00091}00091         \& sphere\_radii(n\_spheres)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00092}00092     \textcolor{keywordtype}{real(c\_double)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: eta, solvent\_epsilon, solvent\_kappa}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00093}00093     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(out)} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00094}00094     \textcolor{comment}{!type(c\_funptr), value :: printfctn}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00095}00095     \textcolor{keywordtype}{type}(c\_ptr) :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00096}00096     \textcolor{keywordtype}{integer} :: passproc, gmresr\_j, gmresr\_dim, itersolver}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00097}00097 \textcolor{keywordtype}{    real}(dp) :: se}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00098}00098     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00099}00099 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00100}00100     \textcolor{comment}{! interface}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00101}00101     \textcolor{comment}{!     subroutine print\_characters(string) bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00102}00102     \textcolor{comment}{!         character(kind=c\_char), dimension(*), intent(in) :: string}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00103}00103     \textcolor{comment}{!     end subroutine}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00104}00104     \textcolor{comment}{! end interface}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00105}00105     \textcolor{comment}{! procedure(print\_characters), pointer :: cprint}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00106}00106     \textcolor{comment}{! call c\_f\_procpointer(printfctn, cprint)  ! Convert C to fortran procedure pointer}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00107}00107 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00108}00108     \textcolor{comment}{! Allocate DDX object}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00109}00109     \textcolor{keyword}{allocate}(\mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00110}00110     c\_ddx = c\_loc(\mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00111}00111 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00112}00112     passproc = n\_proc}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00113}00113     se = 0.0        \textcolor{comment}{! Hard-\/code centred regularisation}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00114}00114     itersolver = 1  \textcolor{comment}{! Hard-\/code Jacobi DIIS}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00115}00115     gmresr\_j   = 1  \textcolor{comment}{! Dummy as GMRES not used}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00116}00116     gmresr\_dim = 5  \textcolor{comment}{! Dummy as GMRES not used}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00117}00117 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00118}00118     \mbox{\hyperlink{namespaceddx}{ddx}}\%error\_message = \textcolor{stringliteral}{"{}No error"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00119}00119     \textcolor{keyword}{call }params\_init(model, enable\_force, solvent\_epsilon, solvent\_kappa, eta, se, lmax, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00120}00120         \& n\_lebedev, incore, itersolver, maxiter, jacobi\_n\_diis, gmresr\_j, gmresr\_dim, enable\_fmm, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00121}00121         \& fmm\_multipole\_lmax, fmm\_local\_lmax, passproc, n\_spheres, sphere\_charges, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00122}00122         \& sphere\_centres, sphere\_radii, print\_func\_default, \mbox{\hyperlink{namespaceddx}{ddx}}\%params, info)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00123}00123     \textcolor{keywordflow}{if} (info .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00124}00124         \mbox{\hyperlink{namespaceddx}{ddx}}\%error\_message = \mbox{\hyperlink{namespaceddx}{ddx}}\%params\%error\_message}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00125}00125         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00126}00126 \textcolor{keywordflow}{    endif}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00127}00127     info = 0}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00128}00128     \textcolor{keyword}{call }constants\_init(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, info)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00129}00129     \textcolor{keywordflow}{if} (info .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00130}00130         \mbox{\hyperlink{namespaceddx}{ddx}}\%error\_message = \mbox{\hyperlink{namespaceddx}{ddx}}\%constants\%error\_message}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00131}00131         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00132}00132 \textcolor{keywordflow}{    endif}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00133}00133     info = 0}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00134}00134     \textcolor{keyword}{call }workspace\_init(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, info)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00135}00135     \textcolor{keywordflow}{if} (info .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00136}00136         \mbox{\hyperlink{namespaceddx}{ddx}}\%error\_message = \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace\%error\_message}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00137}00137         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00138}00138 \textcolor{keywordflow}{    endif}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00139}00139 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00140}00140 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00141}00141 \textcolor{keyword}{subroutine }ddx\_deallocate\_model(c\_ddx) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00142}00142     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00143}00143     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00144}00144     \textcolor{keywordtype}{integer} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00145}00145     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00146}00146     \textcolor{keyword}{call }params\_deinit(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, info)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00147}00147     \textcolor{keyword}{call }constants\_free(\mbox{\hyperlink{namespaceddx}{ddx}}\%constants, info)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00148}00148     \textcolor{keyword}{call }workspace\_free(\mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, info)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00149}00149     \textcolor{keyword}{deallocate}(\mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00150}00150 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00151}00151 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00152}00152 \textcolor{keyword}{subroutine }ddx\_get\_error\_message(c\_ddx, message, maxlen) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00153}00153     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00154}00154     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: maxlen}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00155}00155     \textcolor{keywordtype}{character(len=1, kind=C\_char)}, \textcolor{keywordtype}{intent(out)} :: message(maxlen)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00156}00156     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00157}00157     \textcolor{keywordtype}{integer} :: length, i}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00158}00158     \textcolor{keywordtype}{character} :: ch}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00159}00159     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00160}00160     message(maxlen) = c\_null\_char}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00161}00161     length = min(maxlen-\/1, 255)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00162}00162     \textcolor{keywordflow}{do} i = length, 1, -\/1}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00163}00163         \textcolor{keywordflow}{if} (\mbox{\hyperlink{namespaceddx}{ddx}}\%error\_message(i:i) .eq. \textcolor{stringliteral}{' '}) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00164}00164             length = i-\/1}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00165}00165         \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00166}00166             \textcolor{keywordflow}{exit}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00167}00167 \textcolor{keywordflow}{        endif}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00168}00168 \textcolor{keywordflow}{    enddo}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00169}00169     message(length + 1) = c\_null\_char}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00170}00170     \textcolor{keywordflow}{do} i = 1, length}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00171}00171         message(i) = \mbox{\hyperlink{namespaceddx}{ddx}}\%error\_message(i:i)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00172}00172 \textcolor{keywordflow}{    enddo}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00173}00173 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00174}00174 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00175}00175 \textcolor{comment}{! Generated block, see scripts/generate\_cinterface.py}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00176}00176 \textcolor{keyword}{function }ddx\_get\_enable\_fmm(c\_ddx) \textcolor{keyword}{result}(c\_fmm) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00177}00177     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00178}00178     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00179}00179     \textcolor{keywordtype}{integer(c\_int)} :: c\_fmm}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00180}00180     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00181}00181     c\_fmm = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% fmm}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00182}00182 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00183}00183 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00184}00184 \textcolor{keyword}{function }ddx\_get\_enable\_force(c\_ddx) \textcolor{keyword}{result}(c\_force) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00185}00185     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00186}00186     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00187}00187     \textcolor{keywordtype}{integer(c\_int)} :: c\_force}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00188}00188     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00189}00189     c\_force = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% force}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00190}00190 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00191}00191 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00192}00192 \textcolor{keyword}{function }ddx\_get\_jacobi\_n\_diis(c\_ddx) \textcolor{keyword}{result}(c\_jacobi\_ndiis) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00193}00193     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00194}00194     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00195}00195     \textcolor{keywordtype}{integer(c\_int)} :: c\_jacobi\_ndiis}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00196}00196     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00197}00197     c\_jacobi\_ndiis = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% jacobi\_ndiis}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00198}00198 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00199}00199 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00200}00200 \textcolor{keyword}{function }ddx\_get\_lmax(c\_ddx) \textcolor{keyword}{result}(c\_lmax) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00201}00201     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00202}00202     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00203}00203     \textcolor{keywordtype}{integer(c\_int)} :: c\_lmax}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00204}00204     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00205}00205     c\_lmax = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% lmax}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00206}00206 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00207}00207 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00208}00208 \textcolor{keyword}{function }ddx\_get\_incore(c\_ddx) \textcolor{keyword}{result}(c\_matvecmem) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00209}00209     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00210}00210     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00211}00211     \textcolor{keywordtype}{integer(c\_int)} :: c\_matvecmem}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00212}00212     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00213}00213     c\_matvecmem = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% matvecmem}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00214}00214 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00215}00215 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00216}00216 \textcolor{keyword}{function }ddx\_get\_maxiter(c\_ddx) \textcolor{keyword}{result}(c\_maxiter) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00217}00217     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00218}00218     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00219}00219     \textcolor{keywordtype}{integer(c\_int)} :: c\_maxiter}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00220}00220     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00221}00221     c\_maxiter = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% maxiter}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00222}00222 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00223}00223 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00224}00224 \textcolor{keyword}{function }ddx\_get\_model(c\_ddx) \textcolor{keyword}{result}(c\_model) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00225}00225     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00226}00226     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00227}00227     \textcolor{keywordtype}{integer(c\_int)} :: c\_model}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00228}00228     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00229}00229     c\_model = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% model}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00230}00230 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00231}00231 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00232}00232 \textcolor{keyword}{function }ddx\_get\_n\_lebedev(c\_ddx) \textcolor{keyword}{result}(c\_ngrid) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00233}00233     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00234}00234     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00235}00235     \textcolor{keywordtype}{integer(c\_int)} :: c\_ngrid}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00236}00236     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00237}00237     c\_ngrid = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% ngrid}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00238}00238 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00239}00239 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00240}00240 \textcolor{keyword}{function }ddx\_get\_n\_spheres(c\_ddx) \textcolor{keyword}{result}(c\_nsph) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00241}00241     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00242}00242     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00243}00243     \textcolor{keywordtype}{integer(c\_int)} :: c\_nsph}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00244}00244     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00245}00245     c\_nsph = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00246}00246 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00247}00247 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00248}00248 \textcolor{keyword}{function }ddx\_get\_n\_proc(c\_ddx) \textcolor{keyword}{result}(c\_nproc) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00249}00249     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00250}00250     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00251}00251     \textcolor{keywordtype}{integer(c\_int)} :: c\_nproc}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00252}00252     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00253}00253     c\_nproc = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% nproc}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00254}00254 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00255}00255 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00256}00256 \textcolor{keyword}{function }ddx\_get\_fmm\_local\_lmax(c\_ddx) \textcolor{keyword}{result}(c\_pl) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00257}00257     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00258}00258     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00259}00259     \textcolor{keywordtype}{integer(c\_int)} :: c\_pl}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00260}00260     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00261}00261     c\_pl = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% pl}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00262}00262 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00263}00263 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00264}00264 \textcolor{keyword}{function }ddx\_get\_fmm\_multipole\_lmax(c\_ddx) \textcolor{keyword}{result}(c\_pm) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00265}00265     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00266}00266     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00267}00267     \textcolor{keywordtype}{integer(c\_int)} :: c\_pm}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00268}00268     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00269}00269     c\_pm = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% pm}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00270}00270 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00271}00271 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00272}00272 \textcolor{keyword}{function }ddx\_get\_solvent\_epsilon(c\_ddx) \textcolor{keyword}{result}(c\_eps) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00273}00273     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00274}00274     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00275}00275 \textcolor{keywordtype}{    real}(c\_double) :: c\_eps}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00276}00276     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00277}00277     c\_eps = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% eps}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00278}00278 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00279}00279 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00280}00280 \textcolor{keyword}{function }ddx\_get\_eta(c\_ddx) \textcolor{keyword}{result}(c\_eta) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00281}00281     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00282}00282     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00283}00283 \textcolor{keywordtype}{    real}(c\_double) :: c\_eta}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00284}00284     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00285}00285     c\_eta = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% eta}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00286}00286 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00287}00287 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00288}00288 \textcolor{keyword}{function }ddx\_get\_solvent\_kappa(c\_ddx) \textcolor{keyword}{result}(c\_kappa) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00289}00289     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00290}00290     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00291}00291 \textcolor{keywordtype}{    real}(c\_double) :: c\_kappa}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00292}00292     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00293}00293     c\_kappa = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% kappa}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00294}00294 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00295}00295 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00296}00296 \textcolor{keyword}{subroutine }ddx\_get\_sphere\_charges(c\_ddx, nsph, c\_charge) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00297}00297     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00298}00298     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: nsph}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00299}00299 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: c\_charge(nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00300}00300     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00301}00301     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00302}00302     c\_charge(:) = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% charge(:)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00303}00303 \textcolor{keyword}{end subroutine}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00304}00304 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00305}00305 \textcolor{keyword}{subroutine }ddx\_get\_sphere\_centres(c\_ddx, nsph, c\_csph) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00306}00306     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00307}00307     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: nsph}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00308}00308 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: c\_csph(3, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00309}00309     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00310}00310     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00311}00311     c\_csph(:, :) = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% csph(:, :)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00312}00312 \textcolor{keyword}{end subroutine}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00313}00313 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00314}00314 \textcolor{keyword}{subroutine }ddx\_get\_sphere\_radii(c\_ddx, nsph, c\_rsph) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00315}00315     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00316}00316     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: nsph}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00317}00317 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: c\_rsph(nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00318}00318     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00319}00319     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00320}00320     c\_rsph(:) = \mbox{\hyperlink{namespaceddx}{ddx}} \% params \% rsph(:)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00321}00321 \textcolor{keyword}{end subroutine}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00322}00322 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00323}00323 \textcolor{keyword}{function }ddx\_get\_n\_basis(c\_ddx) \textcolor{keyword}{result}(c\_nbasis) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00324}00324     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00325}00325     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00326}00326     \textcolor{keywordtype}{integer(c\_int)} :: c\_nbasis}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00327}00327     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00328}00328     c\_nbasis = \mbox{\hyperlink{namespaceddx}{ddx}} \% constants \% nbasis}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00329}00329 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00330}00330 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00331}00331 \textcolor{keyword}{function }ddx\_get\_n\_cav(c\_ddx) \textcolor{keyword}{result}(c\_ncav) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00332}00332     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00333}00333     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00334}00334     \textcolor{keywordtype}{integer(c\_int)} :: c\_ncav}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00335}00335     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00336}00336     c\_ncav = \mbox{\hyperlink{namespaceddx}{ddx}} \% constants \% ncav}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00337}00337 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00338}00338 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00339}00339 \textcolor{keyword}{subroutine }ddx\_get\_cavity(c\_ddx, ncav, c\_ccav) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00340}00340     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00341}00341     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: ncav}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00342}00342 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: c\_ccav(3, ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00343}00343     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00344}00344     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00345}00345     c\_ccav(:, :) = \mbox{\hyperlink{namespaceddx}{ddx}} \% constants \% ccav(:, :)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00346}00346 \textcolor{keyword}{end subroutine}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00347}00347 \textcolor{comment}{! end generated block}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00348}00348 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00349}00349 \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00350}00350 \textcolor{comment}{! State object}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00351}00351 \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00352}00352 \textcolor{keyword}{function }ddx\_allocate\_state(c\_ddx) \textcolor{keyword}{result}(c\_state) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00353}00353     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00354}00354     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00355}00355     \textcolor{keywordtype}{type}(c\_ptr) :: c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00356}00356     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00357}00357     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00358}00358     \textcolor{keyword}{allocate}(state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00359}00359     \textcolor{keyword}{call }ddx\_init\_state(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00360}00360     c\_state = c\_loc(state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00361}00361 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00362}00362 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00363}00363 \textcolor{keyword}{subroutine }ddx\_deallocate\_state(c\_state) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00364}00364     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00365}00365     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00366}00366     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00367}00367     \textcolor{keyword}{call }ddx\_free\_state(state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00368}00368     \textcolor{keyword}{deallocate}(state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00369}00369 \textcolor{keyword}{end subroutine}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00370}00370 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00371}00371 \textcolor{keyword}{subroutine }ddx\_get\_x(c\_state, nbasis, nsph, x) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00372}00372     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00373}00373     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00374}00374     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: nsph, nbasis}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00375}00375 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)}  :: x(nbasis, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00376}00376     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00377}00377     x(:, :) = state\%xs(:, :)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00378}00378 \textcolor{keyword}{end subroutine}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00379}00379 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00380}00380 \textcolor{keyword}{function }ddx\_get\_x\_niter(c\_state) \textcolor{keyword}{bind(C)} \textcolor{keyword}{result}(c\_niter)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00381}00381     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00382}00382     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00383}00383     \textcolor{keywordtype}{integer(c\_int)} :: c\_niter}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00384}00384     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00385}00385     c\_niter = state\%xs\_niter}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00386}00386 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00387}00387 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00388}00388 \textcolor{keyword}{subroutine }ddx\_get\_s(c\_state, nbasis, nsph, s) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00389}00389     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00390}00390     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00391}00391     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: nsph, nbasis}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00392}00392 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)}  :: s(nbasis, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00393}00393     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00394}00394     s(:, :) = state\%s(:, :)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00395}00395 \textcolor{keyword}{end subroutine}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00396}00396 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00397}00397 \textcolor{keyword}{function }ddx\_get\_s\_niter(c\_state) \textcolor{keyword}{bind(C)} \textcolor{keyword}{result}(c\_niter)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00398}00398     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00399}00399     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00400}00400     \textcolor{keywordtype}{integer(c\_int)} :: c\_niter}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00401}00401     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00402}00402     c\_niter = state\%s\_niter}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00403}00403 \textcolor{keyword}{end function}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00404}00404 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00405}00405 \textcolor{keyword}{subroutine }ddx\_get\_xi(c\_state, c\_ddx, ncav, xi) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00406}00406     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_state, c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00407}00407     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00408}00408     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00409}00409     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: ncav}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00410}00410 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)}  :: xi(ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00411}00411     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00412}00412     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00413}00413     \textcolor{keyword}{call }ddproject\_cav(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, state\%s, xi)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00414}00414 \textcolor{keyword}{end subroutine}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00415}00415 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00416}00416 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00417}00417 \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00418}00418 \textcolor{comment}{! Cosmo}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00419}00419 \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00420}00420 \textcolor{keyword}{subroutine }ddx\_cosmo\_fill\_guess(c\_ddx, c\_state) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00421}00421     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx, c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00422}00422     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00423}00423     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00424}00424     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00425}00425     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00426}00426     \textcolor{keyword}{call }ddcosmo\_guess(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00427}00427 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00428}00428 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00429}00429 \textcolor{keyword}{subroutine }ddx\_cosmo\_solve(c\_ddx, c\_state, ncav, phi, tol) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00430}00430     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx, c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00431}00431     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00432}00432     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00433}00433     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: ncav}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00434}00434 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: tol}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00435}00435 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)} :: phi(ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00436}00436     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00437}00437     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00438}00438     \textcolor{keyword}{call }ddcosmo\_solve(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, state, phi, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00439}00439 \textcolor{keyword}{end subroutine}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00440}00440 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00441}00441 \textcolor{keyword}{subroutine }ddx\_cosmo\_adjoint(c\_ddx, c\_state, nbasis, nsph, psi, tol) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00442}00442     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx, c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00443}00443     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00444}00444     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00445}00445     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: nbasis, nsph}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00446}00446 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: tol}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00447}00447 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)} :: psi(nbasis, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00448}00448     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00449}00449     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00450}00450     \textcolor{keyword}{call }ddcosmo\_adjoint(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, state, psi, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00451}00451 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00452}00452 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00453}00453 \textcolor{keyword}{subroutine }ddx\_cosmo\_forces(c\_ddx, c\_state, nbasis, nsph, ncav, phi, gradphi, psi, forces) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00454}00454     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx, c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00455}00455     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00456}00456     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00457}00457     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: ncav, nbasis, nsph}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00458}00458 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)} :: phi(ncav), gradphi(3, ncav), psi(nbasis, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00459}00459 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: forces(3, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00460}00460     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00461}00461     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00462}00462     \textcolor{keyword}{call }ddcosmo\_forces(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, state, phi, gradphi, psi, forces)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00463}00463 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00464}00464 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00465}00465 \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00466}00466 \textcolor{comment}{! PCM}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00467}00467 \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00468}00468 \textcolor{keyword}{subroutine }ddx\_pcm\_fill\_guess(c\_ddx, c\_state) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00469}00469     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx, c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00470}00470     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00471}00471     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00472}00472     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00473}00473     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00474}00474     \textcolor{keyword}{call }ddpcm\_guess(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00475}00475 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00476}00476 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00477}00477 \textcolor{keyword}{subroutine }ddx\_pcm\_solve(c\_ddx, c\_state, ncav, phi, tol) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00478}00478     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx, c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00479}00479     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00480}00480     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00481}00481     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: ncav}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00482}00482 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: tol}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00483}00483 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)} :: phi(ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00484}00484     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00485}00485     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00486}00486     \textcolor{keyword}{call }ddpcm\_solve(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, state, phi, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00487}00487 \textcolor{keyword}{end subroutine}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00488}00488 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00489}00489 \textcolor{keyword}{subroutine }ddx\_pcm\_adjoint(c\_ddx, c\_state, nbasis, nsph, psi, tol) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00490}00490     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx, c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00491}00491     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00492}00492     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00493}00493     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: nbasis, nsph}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00494}00494 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: tol}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00495}00495 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)} :: psi(nbasis, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00496}00496     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00497}00497     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00498}00498     \textcolor{keyword}{call }ddpcm\_adjoint(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, state, psi, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00499}00499 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00500}00500 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00501}00501 \textcolor{keyword}{subroutine }ddx\_pcm\_forces(c\_ddx, c\_state, nbasis, nsph, ncav, phi, gradphi, psi, forces) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00502}00502     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx, c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00503}00503     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00504}00504     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00505}00505     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: ncav, nbasis, nsph}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00506}00506 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)} :: phi(ncav), gradphi(3, ncav), psi(nbasis, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00507}00507 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: forces(3, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00508}00508     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00509}00509     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00510}00510     \textcolor{keyword}{call }ddpcm\_forces(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, state, phi, gradphi, psi, forces)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00511}00511 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00512}00512 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00513}00513 \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00514}00514 \textcolor{comment}{! multipolar solutes}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00515}00515 \textcolor{comment}{!}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00516}00516 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00517}00517 \textcolor{keyword}{subroutine }ddx\_build\_g(c\_ddx, multipoles, mmax, phi\_cav, e\_cav, g\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00518}00518         \& nsph, ncav) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00519}00519     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00520}00520     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00521}00521     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: mmax, nsph, ncav}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00522}00522 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)} :: multipoles((mmax + 1)**2, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00523}00523 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: phi\_cav(ncav), e\_cav(3, ncav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00524}00524         \& g\_cav(3, 3, ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00525}00525     call c\_f\_pointer(c\_ddx, ddx)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00526}00526     \textcolor{keyword}{call }build\_g(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, multipoles, mmax, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00527}00527         \& phi\_cav, e\_cav, g\_cav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00528}00528 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00529}00529 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00530}00530 \textcolor{keyword}{subroutine }ddx\_build\_e(c\_ddx, multipoles, mmax, phi\_cav, e\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00531}00531         \& nsph, ncav) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00532}00532     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00533}00533     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00534}00534     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: mmax, nsph, ncav}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00535}00535 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)} :: multipoles((mmax + 1)**2, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00536}00536 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: phi\_cav(ncav), e\_cav(3, ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00537}00537     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00538}00538     \textcolor{keyword}{call }build\_e(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, multipoles, mmax, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00539}00539         \& phi\_cav, e\_cav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00540}00540 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00541}00541 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00542}00542 \textcolor{keyword}{subroutine }ddx\_build\_phi(c\_ddx, multipoles, mmax, phi\_cav, nsph, ncav) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00543}00543     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00544}00544     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00545}00545     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: mmax, nsph, ncav}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00546}00546 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)} :: multipoles((mmax + 1)**2, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00547}00547 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: phi\_cav(ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00548}00548     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00549}00549     \textcolor{keyword}{call }build\_phi(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, multipoles, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00550}00550         \& mmax, phi\_cav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00551}00551 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00552}00552 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00553}00553 \textcolor{keyword}{subroutine }ddx\_build\_psi(c\_ddx, multipoles, mmax, psi, nsph, lmax) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00554}00554     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00555}00555     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00556}00556     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: mmax, nsph, lmax}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00557}00557 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)} :: multipoles((mmax + 1)**2, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00558}00558 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(out)} :: psi((lmax + 1)**2, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00559}00559     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00560}00560     \textcolor{keyword}{call }build\_psi(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, multipoles, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00561}00561         \& mmax, psi)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00562}00562 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00563}00563 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00564}00564 \textcolor{keyword}{subroutine }ddx\_grad\_phi(c\_ddx, c\_state, multipoles, mmax, forces, e\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00565}00565         \& nsph, ncav) \textcolor{keyword}{bind(C)}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00566}00566     \textcolor{keywordtype}{type}(c\_ptr), \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: c\_ddx, c\_state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00567}00567     \textcolor{keywordtype}{type}(ddx\_setup), \textcolor{keywordtype}{pointer} :: ddx}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00568}00568     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{pointer} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00569}00569     \textcolor{keywordtype}{integer(c\_int)}, \textcolor{keywordtype}{intent(in)}, \textcolor{keywordtype}{value} :: mmax, nsph, ncav}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00570}00570 \textcolor{keywordtype}{    real}(c\_double), \textcolor{keywordtype}{intent(in)} :: multipoles((mmax + 1)**2, nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00571}00571         \& e\_cav(3, ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00572}00572     \textcolor{keywordtype}{real(c\_double)}, \textcolor{keywordtype}{intent(out)} :: forces(3, nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00573}00573     \textcolor{keyword}{call }c\_f\_pointer(c\_ddx, \mbox{\hyperlink{namespaceddx}{ddx}})}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00574}00574     \textcolor{keyword}{call }c\_f\_pointer(c\_state, state)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00575}00575     \textcolor{keyword}{call }grad\_phi(\mbox{\hyperlink{namespaceddx}{ddx}}\%params, \mbox{\hyperlink{namespaceddx}{ddx}}\%constants, \mbox{\hyperlink{namespaceddx}{ddx}}\%workspace, state, mmax, \&}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00576}00576         \& multipoles, forces, e\_cav)}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00577}00577 \textcolor{keyword}{end}}
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00578}00578 }
+\DoxyCodeLine{\Hypertarget{ddx__cinterface_8f90_source_l00579}00579 \textcolor{keyword}{end}}
+
+\end{DoxyCode}

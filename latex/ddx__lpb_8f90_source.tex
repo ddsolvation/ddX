@@ -1,0 +1,504 @@
+\hypertarget{ddx__lpb_8f90_source}{}\doxysection{ddx\+\_\+lpb.\+f90}
+\label{ddx__lpb_8f90_source}\index{src/ddx\_lpb.f90@{src/ddx\_lpb.f90}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00001}00001 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00011}00011 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00013}\mbox{\hyperlink{namespaceddx__lpb}{00013}} \textcolor{keyword}{module} \mbox{\hyperlink{namespaceddx__lpb}{ddx\_lpb}}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00014}00014 \textcolor{comment}{! Get ddx-\/operators}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00015}00015 \textcolor{keywordtype}{use }\mbox{\hyperlink{namespaceddx__operators}{ddx\_operators}}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00016}00016 \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00017}00017 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00018}00018 \textcolor{comment}{!! Logical variables for iterations}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00019}00019 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00020}00020 \textcolor{comment}{!! Local variables and their definitions that will be used throughout this file}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00021}00021 \textcolor{comment}{!! isph    : Index for the sphere i}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00022}00022 \textcolor{comment}{!! jsph    : Index for the sphere j}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00023}00023 \textcolor{comment}{!! ksph    : Index for the sphere k}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00024}00024 \textcolor{comment}{!! igrid   : Index for the grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00025}00025 \textcolor{comment}{!! icav    : Index for the external grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00026}00026 \textcolor{comment}{!! ibasis  : Index for the basis}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00027}00027 \textcolor{comment}{!! ibasis0 : Index for the fixed basis (nbasis0)}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00028}00028 \textcolor{comment}{!! l       : Index for lmax}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00029}00029 \textcolor{comment}{!! m       : Index for m:-\/l,...,l}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00030}00030 \textcolor{comment}{!! ind     : l\string^2 + l + m + 1}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00031}00031 \textcolor{comment}{!! l0      : Index for lmax0}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00032}00032 \textcolor{comment}{!! m0      : Index for m0:-\/l0,...,l0}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00033}00033 \textcolor{comment}{!! ind0    : l0\string^2 + l0 + m0 + 1}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00034}00034 \textcolor{comment}{!! ineigh  : Index over Row space of neighbors}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00035}00035 \textcolor{comment}{!! rijn    : r\_j*r\_1\string^j(x\_i\string^n) = |x\_i\string^n-\/x\_j|}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00036}00036 \textcolor{comment}{!! tij     : r\_1\string^j(x\_i\string^n)}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00037}00037 \textcolor{comment}{!! xij     : chi\_j(x\_i\string^n)}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00038}00038 \textcolor{comment}{!! oij     : omega\string^\(\backslash\)eta\_ijn}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00039}00039 \textcolor{comment}{!! vij     : x\_i\string^n-\/x\_j}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00040}00040 \textcolor{comment}{!! sij     : e\string^j(x\_i\string^n)}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00041}00041 \textcolor{comment}{!! SI\_rijn : Besssel function of first kind for rijn}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00042}00042 \textcolor{comment}{!! DI\_rijn : Derivative of Bessel function of first kind for rijn}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00043}00043 \textcolor{comment}{!! tlow    : Lower bound for switch region}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00044}00044 \textcolor{comment}{!! thigh   : Upper bound for switch region}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00045}00045 \textcolor{comment}{!! basloc  : Y\_lm(s\_n)}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00046}00046 \textcolor{comment}{!! dbasloc : Derivative of Y\_lm(s\_n)}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00047}00047 \textcolor{comment}{!! i       : Index for dimension x,y,z}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00048}00048 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00049}00049 \textcolor{keyword}{contains}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00050}00050 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00065}\mbox{\hyperlink{namespaceddx__lpb_a13892ac674290cc45ad9b10de75cd3b4}{00065}} \textcolor{keyword}{subroutine }ddlpb\_solve(params, constants, workspace, state, phi\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00066}00066         \& gradphi\_cav, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00067}00067     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00068}00068     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00069}00069     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(inout)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00070}00070     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00071}00071     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{intent(inout)} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00072}00072 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: phi\_cav(constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00073}00073 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: gradphi\_cav(3, constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00074}00074 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: tol}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00075}00075 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00076}00076     state \% x\_lpb\_niter = params \% maxiter}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00077}00077     \textcolor{keyword}{call }ddlpb\_solve\_worker(params, constants, workspace, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00078}00078         \& phi\_cav, gradphi\_cav, state \% g\_lpb, state \% f\_lpb, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00079}00079         \& state \% phi\_grid, state \% x\_lpb, state \% x\_lpb\_niter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00080}00080         \& state \% x\_lpb\_time, state \% x\_lpb\_rel\_diff, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00081}00081 \textcolor{keyword}{end subroutine }ddlpb\_solve}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00082}00082 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00083}00083 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00084}00084 \textcolor{comment}{!! Wrapper routine for the solution of the adjoint ddPCM linear}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00085}00085 \textcolor{comment}{!! system. It makes the interface easier to implement. If a fine}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00086}00086 \textcolor{comment}{!! control is needed, the worker routine should be directly called.}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00087}00087 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00088}00088 \textcolor{comment}{!! @param[in] params       : General options}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00089}00089 \textcolor{comment}{!! @param[in] constants    : Precomputed constants}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00090}00090 \textcolor{comment}{!! @param[inout] workspace : Preallocated workspaces}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00091}00091 \textcolor{comment}{!! @param[inout] state     : Solutions, guesses and relevant quantities}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00092}00092 \textcolor{comment}{!! @param[in] psi          : Representation of the solute's density}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00093}00093 \textcolor{comment}{!! @param[in] tol          : Tolerance for the iterative solvers}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00094}00094 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00095}00095 \textcolor{keyword}{subroutine }ddlpb\_adjoint(params, constants, workspace, state, psi, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00096}00096     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00097}00097     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00098}00098     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(inout)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00099}00099     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00100}00100     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{intent(inout)} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00101}00101 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: psi(constants \% nbasis, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00102}00102 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: tol}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00103}00103 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00104}00104     state \% x\_adj\_lpb\_niter = params \% maxiter}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00105}00105     \textcolor{keyword}{call }ddlpb\_adjoint\_worker(params, constants, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00106}00106       \& workspace, psi, tol, state \% x\_adj\_lpb, state \% x\_adj\_lpb\_niter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00107}00107       \& state \% x\_adj\_lpb\_time, state \% x\_adj\_lpb\_rel\_diff)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00108}00108 \textcolor{keyword}{end subroutine }ddlpb\_adjoint}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00109}00109 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00110}00110 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00111}00111 \textcolor{comment}{!! Wrapper routine for the computation of ddPCM forces. It makes the}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00112}00112 \textcolor{comment}{!! interface easier to implement. If a fine control is needed, the}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00113}00113 \textcolor{comment}{!! worker routine should be directly called.}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00114}00114 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00115}00115 \textcolor{comment}{!! @param[in] params         : General options}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00116}00116 \textcolor{comment}{!! @param[in] constants      : Precomputed constants}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00117}00117 \textcolor{comment}{!! @param[inout] workspace   : Preallocated workspaces}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00118}00118 \textcolor{comment}{!! @param[inout] state       : Solutions and relevant quantities}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00119}00119 \textcolor{comment}{!! @param[in] phi\_cav        : Electric potential at the grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00120}00120 \textcolor{comment}{!! @param[in] gradphi\_cav    : Electric field at the grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00121}00121 \textcolor{comment}{!! @param[in] hessianphi\_cav : Electric field gradient at the grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00122}00122 \textcolor{comment}{!! @param[in] psi            : Representation of the solute's density}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00123}00123 \textcolor{comment}{!! @param[out] force         : Geometrical contribution to the forces}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00124}00124 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00125}00125 \textcolor{keyword}{subroutine }ddlpb\_force(params, constants, workspace, state, phi\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00126}00126         \& gradphi\_cav, hessianphi\_cav, psi, force)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00127}00127     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00128}00128     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00129}00129     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00130}00130     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00131}00131     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{intent(inout)} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00132}00132 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: phi\_cav(constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00133}00133 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: gradphi\_cav(3, constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00134}00134 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: psi(constants \% nbasis, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00135}00135 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: hessianphi\_cav(3, 3, constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00136}00136 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: force(3, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00137}00137 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00138}00138     \textcolor{keyword}{call }ddlpb\_force\_worker(params, constants, workspace, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00139}00139         \& hessianphi\_cav, state \% phi\_grid, gradphi\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00140}00140         \& state \% x\_lpb, state \% x\_adj\_lpb, state \% zeta, force)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00141}00141 \textcolor{keyword}{end subroutine }ddlpb\_force}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00142}00142 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00143}00143 \textcolor{keyword}{subroutine }ddlpb\_guess(params, constants, state)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00144}00144     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00145}00145     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00146}00146     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00147}00147     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{intent(inout)} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00148}00148     \textcolor{comment}{! TODO}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00149}00149 \textcolor{keyword}{end subroutine }ddlpb\_guess}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00150}00150 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00151}00151 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00152}00152 \textcolor{comment}{!! A standalone ddLPB calculation happens here}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00153}00153 \textcolor{comment}{!! @param[in] ddx\_data : dd Data}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00154}00154 \textcolor{comment}{!! @param[in] phi      : Boundary conditions}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00155}00155 \textcolor{comment}{!! @param[in] psi      : Electrostatic potential vector.}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00156}00156 \textcolor{comment}{!! @param[in] gradphi  : Gradient of phi}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00157}00157 \textcolor{comment}{!! @param[in] hessianphi  : Hessian of phi}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00158}00158 \textcolor{comment}{!! @param[out] esolv   : Electrostatic solvation energy}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00159}00159 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00160}00160 \textcolor{keyword}{subroutine }ddlpb(params, constants, workspace, state, phi\_cav, gradphi\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00161}00161         \& hessianphi\_cav, psi, tol, esolv, force, info)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00162}00162     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00163}00163     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00164}00164     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(inout)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00165}00165     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00166}00166     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{intent(inout)} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00167}00167 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: phi\_cav(constants \% ncav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00168}00168         \& gradphi\_cav(3, constants \% ncav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00169}00169         \& hessianphi\_cav(3, 3, constants \% ncav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00170}00170         \& psi( constants \% nbasis,  params \% nsph), tol}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00171}00171     \textcolor{keywordtype}{real(dp)}, \textcolor{keywordtype}{intent(out)} :: esolv, force(3, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00172}00172 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{external} :: ddot}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00173}00173     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(inout)} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00174}00174 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00175}00175     \textcolor{comment}{! TODO: find a consistent way to do the guess}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00176}00176 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00177}00177     \textcolor{keyword}{call }ddlpb\_solve(params, constants, workspace, state, phi\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00178}00178         \& gradphi\_cav, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00179}00179 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00180}00180     \textcolor{comment}{! Compute the solvation energy}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00181}00181     \textcolor{comment}{! note that psi is divided by fourpi}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00182}00182     esolv = pt5*ddot(constants \% n, state \% x\_lpb(:,:,1), 1, psi, 1) \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00183}00183         \& /fourpi}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00184}00184 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00185}00185     \textcolor{comment}{! Get forces if needed}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00186}00186     \textcolor{keywordflow}{if}(params \% force .eq. 1) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00187}00187         \textcolor{keyword}{call }ddlpb\_adjoint(params, constants, workspace, state, psi, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00188}00188         \textcolor{keyword}{call }ddlpb\_force(params, constants, workspace, state, phi\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00189}00189             \& gradphi\_cav, hessianphi\_cav, psi, force)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00190}00190 \textcolor{keywordflow}{    endif}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00191}00191 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00192}00192 \textcolor{keyword}{end subroutine }ddlpb}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00193}00193 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00194}00194 \textcolor{keyword}{subroutine }ddlpb\_solve\_worker(params, constants, workspace, phi\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00195}00195         \& gradphi\_cav, g\_lpb, f\_lpb, phi\_grid, x\_lpb, x\_lpb\_niter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00196}00196         \& x\_lpb\_time, x\_lpb\_rel\_diff, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00197}00197     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00198}00198     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00199}00199     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(inout)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00200}00200     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00201}00201 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: phi\_cav(constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00202}00202 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: gradphi\_cav(3, constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00203}00203 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(inout)} :: x\_lpb(constants \% nbasis, params \% nsph, 2)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00204}00204     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(inout)} :: x\_lpb\_niter}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00205}00205 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: x\_lpb\_time}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00206}00206 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: x\_lpb\_rel\_diff(x\_lpb\_niter)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00207}00207 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: tol}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00208}00208 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: g\_lpb(params \% ngrid, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00209}00209 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: f\_lpb(params \% ngrid, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00210}00210 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: phi\_grid(params \% ngrid, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00211}00211 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00212}00212     \textcolor{keywordtype}{integer} :: istat}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00213}00213 \textcolor{keywordtype}{    real}(dp) :: start\_time}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00214}00214 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00215}00215 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{allocatable} :: rhs(:,:,:)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00216}00216 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00217}00217     \textcolor{keyword}{allocate}(rhs(constants \% nbasis, params \% nsph, 2), stat=istat)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00218}00218     \textcolor{keywordflow}{if} (istat.ne.0) stop 1}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00219}00219 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00220}00220     \textcolor{comment}{!! Use a tighter tolerance for the microiterations to ensure convergence}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00221}00221     constants \% inner\_tol =  tol/100.0d0}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00222}00222 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00223}00223     \textcolor{comment}{!! Setting initial values to zero}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00224}00224     g\_lpb = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00225}00225     f\_lpb = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00226}00226     phi\_grid = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00227}00227 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00228}00228     \textcolor{comment}{! Unwrap sparsely stored potential at cavity points phi\_cav into phi\_grid}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00229}00229     \textcolor{comment}{! and multiply it by characteristic function at cavity points ui}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00230}00230     \textcolor{keyword}{call }ddcav\_to\_grid\_work(params \% ngrid, params \% nsph, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00231}00231         \& constants \% ncav, constants \% icav\_ia, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00232}00232         \& constants \% icav\_ja, phi\_cav, phi\_grid)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00233}00233     workspace \% tmp\_cav = phi\_cav * constants \% ui\_cav}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00234}00234     \textcolor{keyword}{call }ddcav\_to\_grid\_work(params \% ngrid, params \% nsph, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00235}00235         \& constants \% ncav, constants \% icav\_ia, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00236}00236         \& constants \% icav\_ja, workspace \% tmp\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00237}00237         \& workspace \% tmp\_grid)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00238}00238     g\_lpb = -\/ workspace \% tmp\_grid}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00239}00239 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00240}00240     \textcolor{comment}{! wghpot\_f : Intermediate computation of F\_0 Eq.(75) from QSM19.SISC}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00241}00241     \textcolor{keyword}{call }wghpot\_f(params, constants, workspace, gradphi\_cav, f\_lpb)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00242}00242 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00243}00243     \textcolor{comment}{! Setting of the local variables}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00244}00244     rhs = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00245}00245 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00246}00246     \textcolor{comment}{! integrate RHS}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00247}00247     \textcolor{keyword}{call }ddintegrate(params \% nsph, constants \% nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00248}00248         \& params \% ngrid, constants \% vwgrid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00249}00249         \& constants \% vgrid\_nbasis, g\_lpb, rhs(:,:,1))}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00250}00250     \textcolor{keyword}{call }ddintegrate(params \% nsph, constants \% nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00251}00251         \& params \% ngrid, constants \% vwgrid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00252}00252         \& constants \% vgrid\_nbasis, f\_lpb, rhs(:,:,2))}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00253}00253     rhs(:,:,1) = rhs(:,:,1) + rhs(:,:,2)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00254}00254 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00255}00255     \textcolor{comment}{! guess}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00256}00256     workspace \% ddcosmo\_guess = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00257}00257     workspace \% hsp\_guess = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00258}00258     \textcolor{keyword}{call }prec\_tx(params, constants, workspace, rhs, x\_lpb)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00259}00259 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00260}00260     \textcolor{comment}{! solve LS using Jacobi/DIIS}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00261}00261     start\_time = omp\_get\_wtime()}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00262}00262     \textcolor{keyword}{call }jacobi\_diis\_external(params, constants, workspace, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00263}00263         \& 2*constants \% n, tol, rhs, x\_lpb, x\_lpb\_niter, x\_lpb\_rel\_diff, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00264}00264         \& cx, prec\_tx, rmsnorm, istat)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00265}00265     x\_lpb\_time = omp\_get\_wtime() -\/ start\_time}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00266}00266 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00267}00267     \textcolor{keyword}{deallocate}(rhs)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00268}00268     \textcolor{keywordflow}{if} (istat.ne.0) stop 1}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00269}00269 \textcolor{keyword}{end subroutine }ddlpb\_solve\_worker}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00270}00270 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00271}00271 \textcolor{keyword}{subroutine }ddlpb\_adjoint\_worker(params, constants, workspace, psi, tol, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00272}00272         \& x\_adj\_lpb, x\_adj\_lpb\_niter, x\_adj\_lpb\_time, x\_adj\_lpb\_rel\_diff)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00273}00273     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00274}00274     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00275}00275     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(inout)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00276}00276     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00277}00277 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: psi(constants \% nbasis, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00278}00278 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: tol}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00279}00279 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: x\_adj\_lpb(constants \% nbasis, params \% nsph, 2)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00280}00280     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(inout)} :: x\_adj\_lpb\_niter}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00281}00281 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: x\_adj\_lpb\_time}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00282}00282 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: x\_adj\_lpb\_rel\_diff(x\_adj\_lpb\_niter)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00283}00283 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00284}00284 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{allocatable} :: rhs(:,:,:)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00285}00285 \textcolor{keywordtype}{    real}(dp) :: start\_time}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00286}00286     \textcolor{keywordtype}{integer} :: istat}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00287}00287 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00288}00288     \textcolor{keyword}{allocate}(rhs(constants \% nbasis, params \% nsph, 2), stat=istat)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00289}00289     \textcolor{keywordflow}{if} (istat.ne.0) stop 1}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00290}00290 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00291}00291     \textcolor{comment}{!! Use a tighter tolerance for the microiterations to ensure convergence}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00292}00292     constants \% inner\_tol =  tol/100.0d0}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00293}00293 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00294}00294     \textcolor{comment}{! Psi shall be divided by a factor 4pi for the LPB case}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00295}00295     \textcolor{comment}{! It is intended to take into account this constant in the LPB}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00296}00296 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00297}00297     \textcolor{comment}{! set up the RHS}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00298}00298     rhs(:,:,1) = psi/fourpi}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00299}00299     rhs(:,:,2) = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00300}00300 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00301}00301     \textcolor{comment}{! guess}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00302}00302     workspace \% ddcosmo\_guess = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00303}00303     workspace \% hsp\_guess = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00304}00304     \textcolor{keyword}{call }prec\_tstarx(params, constants, workspace, rhs, x\_adj\_lpb)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00305}00305 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00306}00306     \textcolor{comment}{! solve adjoint LS using Jacobi/DIIS}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00307}00307     start\_time = omp\_get\_wtime()}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00308}00308     \textcolor{keyword}{call }jacobi\_diis\_external(params, constants, workspace, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00309}00309         \& 2*constants \% n, tol, rhs, x\_adj\_lpb, x\_adj\_lpb\_niter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00310}00310         \& x\_adj\_lpb\_rel\_diff, cstarx, prec\_tstarx, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00311}00311         \& rmsnorm, istat)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00312}00312     x\_adj\_lpb\_time = omp\_get\_wtime() -\/ start\_time}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00313}00313     \textcolor{keyword}{deallocate}(rhs, stat=istat)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00314}00314     \textcolor{keywordflow}{if} (istat.ne.0) stop 1}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00315}00315 \textcolor{keyword}{end subroutine }ddlpb\_adjoint\_worker}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00316}00316 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00317}00317 \textcolor{keyword}{subroutine }ddlpb\_force\_worker(params, constants, workspace, hessian, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00318}00318         \& phi\_grid, gradphi, x, x\_adj, zeta, force)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00319}00319     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00320}00320     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00321}00321     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00322}00322 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00323}00323 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{dimension(3, 3, constants \% ncav)}, \textcolor{keywordtype}{intent(in)} :: hessian}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00324}00324 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{dimension(params \% ngrid, params \% nsph)}, \textcolor{keywordtype}{intent(in)} :: phi\_grid}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00325}00325 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{dimension(3, constants \% ncav)}, \textcolor{keywordtype}{intent(in)} :: gradphi}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00326}00326 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{dimension(constants \% nbasis, params \% nsph, 2)}, \textcolor{keywordtype}{intent(in)} :: x, x\_adj}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00327}00327 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{dimension(3, params \% nsph)}, \textcolor{keywordtype}{intent(out)} :: force}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00328}00328 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: zeta(constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00329}00329     \textcolor{keywordtype}{integer} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00330}00330 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00331}00331     \textcolor{comment}{! local}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00332}00332 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{dimension(constants \% nbasis)} :: basloc, vplm}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00333}00333 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{dimension(3, constants \% nbasis)} :: dbasloc}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00334}00334 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{dimension(params \% lmax + 1)} :: vsin, vcos}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00335}00335 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00336}00336     \textcolor{comment}{! large local are allocatable}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00337}00337 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{allocatable} :: ef(:,:), xadj\_r\_sgrid(:,:), xadj\_e\_sgrid(:,:), \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00338}00338         \& normal\_hessian\_cav(:,:), diff\_re(:,:), scaled\_xr(:,:)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00339}00339     \textcolor{keywordtype}{integer} :: isph, icav, icav\_gr, icav\_ge, igrid, istat}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00340}00340     \textcolor{keywordtype}{integer} :: i, inode, jnear, inear, jnode, jsph}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00341}00341 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{external} :: ddot, dnrm2}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00342}00342 \textcolor{keywordtype}{    real}(dp) :: tcontract\_gradi\_Lik, tcontract\_gradi\_Lji, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00343}00343         \& tcontract\_gradi\_Bik, tcontract\_gradi\_Bji, tcontract\_grad\_U, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00344}00344         \& tcontract\_grad\_C\_worker1, tcontract\_grad\_C\_worker2}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00345}00345     \textcolor{keywordtype}{real(dp)} :: d(3), dnorm, tmp1, tmp2}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00346}00346 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00347}00347     \textcolor{keyword}{allocate}(ef(3, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00348}00348         \& xadj\_r\_sgrid(params \% ngrid, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00349}00349         \& xadj\_e\_sgrid(params \% ngrid, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00350}00350         \& normal\_hessian\_cav(3, constants \% ncav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00351}00351         \& diff\_re(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00352}00352         \& scaled\_xr(constants \% nbasis, params \% nsph), stat=istat)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00353}00353     \textcolor{keywordflow}{if} (istat.ne.0) stop 1}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00354}00354 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00355}00355     diff\_re = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00356}00356     vsin = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00357}00357     vcos = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00358}00358     vplm = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00359}00359     basloc = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00360}00360     dbasloc = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00361}00361     ef = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00362}00362     force = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00363}00363 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00364}00364     \textcolor{comment}{! Compute the derivative of the normal derivative of psi\_0}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00365}00365     normal\_hessian\_cav = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00366}00366     icav = 0}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00367}00367     \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00368}00368         \textcolor{keywordflow}{do} igrid = 1, params \% ngrid}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00369}00369             \textcolor{keywordflow}{if}(constants \% ui(igrid, isph) .gt. zero) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00370}00370                 icav = icav + 1}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00371}00371                 \textcolor{keywordflow}{do} i = 1, 3}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00372}00372                     normal\_hessian\_cav(:, icav) = normal\_hessian\_cav(:,icav) +\&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00373}00373                         \& hessian(:,i,icav)*constants \% cgrid(i,igrid)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00374}00374 \textcolor{keywordflow}{                end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00375}00375 \textcolor{keywordflow}{            end if}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00376}00376 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00377}00377 \textcolor{keywordflow}{    end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00378}00378 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00379}00379     \textcolor{comment}{! Call dgemm to integrate the adjoint solution on the grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00380}00380     \textcolor{keyword}{call }dgemm(\textcolor{stringliteral}{'T'}, \textcolor{stringliteral}{'N'}, params \% ngrid, params \% nsph, constants \% nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00381}00381         \& one, constants \% vgrid, constants \% vgrid\_nbasis, x\_adj(:,:,1), \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00382}00382         \& constants \% nbasis, zero, xadj\_r\_sgrid, params \% ngrid)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00383}00383     \textcolor{keyword}{call }dgemm(\textcolor{stringliteral}{'T'}, \textcolor{stringliteral}{'N'}, params \% ngrid, params \% nsph, constants \% nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00384}00384         \& one, constants \% vgrid, constants \% vgrid\_nbasis, x\_adj(:,:,2), \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00385}00385         \& constants \% nbasis, zero, xadj\_e\_sgrid, params \% ngrid)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00386}00386 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00387}00387     \textcolor{comment}{! Scale by the factor of 1/(4Pi/(2l+1))}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00388}00388     scaled\_xr = x(:,:,1)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00389}00389     \textcolor{keyword}{call }convert\_ddcosmo(params, constants, -\/1, scaled\_xr)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00390}00390 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00391}00391     \textcolor{comment}{!\$omp parallel do default(none) shared(params,constants,workspace, \&}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00392}00392     \textcolor{comment}{!\$omp scaled\_xr,xadj\_r\_sgrid,force,x,xadj\_e\_sgrid,phi\_grid) private(isph, \&}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00393}00393     \textcolor{comment}{!\$omp basloc,dbasloc,vplm,vcos,vsin)}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00394}00394     \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00395}00395         \textcolor{comment}{! Compute A\string^k*Xadj\_r, using Subroutine from ddCOSMO}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00396}00396         \textcolor{keyword}{call }contract\_grad\_l(params, constants, isph, scaled\_xr, xadj\_r\_sgrid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00397}00397             \& basloc, dbasloc, vplm, vcos, vsin, force(:,isph))}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00398}00398         \textcolor{comment}{! Compute B\string^k*Xadj\_e}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00399}00399         \textcolor{keyword}{call }contract\_grad\_b(params, constants, workspace, isph, x(:,:,2), xadj\_e\_sgrid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00400}00400             \& basloc, dbasloc, vplm, vcos, vsin, force(:, isph))}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00401}00401         \textcolor{comment}{! Computation of G0}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00402}00402         \textcolor{keyword}{call }contract\_grad\_u(params, constants, isph, xadj\_r\_sgrid, phi\_grid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00403}00403             \& force(:, isph))}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00404}00404 \textcolor{keywordflow}{    end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00405}00405     \textcolor{comment}{! Compute C1 and C2 contributions}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00406}00406     diff\_re = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00407}00407     \textcolor{keyword}{call }contract\_grad\_c(params, constants, workspace, x(:,:,1), x(:,:,2), xadj\_r\_sgrid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00408}00408         \& xadj\_e\_sgrid, x\_adj(:,:,1), x\_adj(:,:,2), force, diff\_re)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00409}00409     \textcolor{comment}{! Computation of G0 continued}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00410}00410     \textcolor{comment}{! NOTE: contract\_grad\_U returns a positive summation}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00411}00411     force = -\/force}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00412}00412     icav = 0}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00413}00413     \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00414}00414         \textcolor{keywordflow}{do} igrid = 1, params \% ngrid}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00415}00415             \textcolor{keywordflow}{if}(constants \% ui(igrid, isph) .ne. zero) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00416}00416                 icav = icav + 1}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00417}00417                 zeta(icav) = -\/constants \% wgrid(igrid) * \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00418}00418                     \& constants \% ui(igrid, isph) * ddot(constants \% nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00419}00419                     \& constants \% vgrid(1, igrid), 1, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00420}00420                     \& x\_adj(1, isph, 1), 1)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00421}00421                 force(:, isph) = force(:, isph) + \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00422}00422                     \& zeta(icav)*gradphi(:, icav)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00423}00423 \textcolor{keywordflow}{            end if}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00424}00424 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00425}00425 \textcolor{keywordflow}{    end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00426}00426     \textcolor{comment}{!! Last term where we compute gradients of potential at centers of atoms}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00427}00427     \textcolor{comment}{!! spawned by intermediate zeta.}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00428}00428     \textcolor{keywordflow}{if}(params \% fmm .eq. 1) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00429}00429         \textcolor{comment}{!! This step can be substituted by a proper dgemm if zeta}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00430}00430         \textcolor{comment}{!! intermediate is converted from cavity points to all grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00431}00431         \textcolor{comment}{!! with zero values at internal grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00432}00432         \textcolor{comment}{! P2M step}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00433}00433         icav = 0}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00434}00434         \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00435}00435             inode = constants \% snode(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00436}00436             workspace \% tmp\_node\_m(:, inode) = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00437}00437             \textcolor{keywordflow}{do} igrid = 1, params \% ngrid}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00438}00438                 \textcolor{keywordflow}{if}(constants \% ui(igrid, isph) .eq. zero) cycle}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00439}00439                 icav = icav + 1}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00440}00440                 \textcolor{keyword}{call }fmm\_p2m(constants \% cgrid(:, igrid), zeta(icav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00441}00441                     \& one, params \% pm, constants \% vscales, one, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00442}00442                     \& workspace \% tmp\_node\_m(:, inode))}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00443}00443 \textcolor{keywordflow}{            end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00444}00444             workspace \% tmp\_node\_m(:, inode) = workspace \% tmp\_node\_m(:, inode) / \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00445}00445                 \& params \% rsph(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00446}00446 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00447}00447         \textcolor{comment}{! M2M, M2L and L2L translations}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00448}00448         \textcolor{keyword}{call }tree\_m2m\_rotation(params, constants, workspace \% tmp\_node\_m)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00449}00449         \textcolor{keyword}{call }tree\_m2l\_rotation(params, constants, workspace \% tmp\_node\_m, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00450}00450             \& workspace \% tmp\_node\_l)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00451}00451         \textcolor{keyword}{call }tree\_l2l\_rotation(params, constants, workspace \% tmp\_node\_l)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00452}00452         \textcolor{comment}{! Now compute near-\/field FMM gradients}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00453}00453         \textcolor{comment}{! Cycle over all spheres}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00454}00454         icav = 0}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00455}00455         workspace \% tmp\_efld = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00456}00456         \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00457}00457             \textcolor{comment}{! Cycle over all external grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00458}00458             \textcolor{keywordflow}{do} igrid = 1, params \% ngrid}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00459}00459                 \textcolor{keywordflow}{if}(constants \% ui(igrid, isph) .eq. zero) cycle}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00460}00460                 icav = icav + 1}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00461}00461                 \textcolor{comment}{! Cycle over all near-\/field admissible pairs of spheres,}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00462}00462                 \textcolor{comment}{! including pair (isph, isph) which is a self-\/interaction}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00463}00463                 inode = constants \% snode(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00464}00464                 \textcolor{keywordflow}{do} jnear = constants \% snear(inode), constants \% snear(inode+1)-\/1}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00465}00465                     \textcolor{comment}{! Near-\/field interactions are possible only between leaf}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00466}00466                     \textcolor{comment}{! nodes, which must contain only a single input sphere}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00467}00467                     jnode = constants \% near(jnear)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00468}00468                     jsph = constants \% order(constants \% cluster(1, jnode))}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00469}00469                     d = params \% csph(:, isph) + \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00470}00470                         \& constants \% cgrid(:, igrid)*params \% rsph(isph) -\/ \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00471}00471                         \& params \% csph(:, jsph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00472}00472                     dnorm = dnrm2(3, d, 1)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00473}00473                     workspace \% tmp\_efld(:, jsph) = workspace \% tmp\_efld(:, jsph) + \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00474}00474                         \& zeta(icav)*d/(dnorm**3)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00475}00475 \textcolor{keywordflow}{                end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00476}00476 \textcolor{keywordflow}{            end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00477}00477 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00478}00478         \textcolor{comment}{! Take into account far-\/field FMM gradients only if pl > 0}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00479}00479         \textcolor{keywordflow}{if} (params \% pl .gt. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00480}00480             tmp1 = one / sqrt(3d0) / constants \% vscales(1)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00481}00481             \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00482}00482                 inode = constants \% snode(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00483}00483                 tmp2 = tmp1 / params \% rsph(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00484}00484                 workspace \% tmp\_efld(3, isph) = workspace \% tmp\_efld(3, isph) + \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00485}00485                     \& tmp2*workspace \% tmp\_node\_l(3, inode)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00486}00486                 workspace \% tmp\_efld(1, isph) = workspace \% tmp\_efld(1, isph) + \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00487}00487                     \& tmp2*workspace \% tmp\_node\_l(4, inode)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00488}00488                 workspace \% tmp\_efld(2, isph) = workspace \% tmp\_efld(2, isph) + \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00489}00489                     \& tmp2*workspace \% tmp\_node\_l(2, inode)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00490}00490 \textcolor{keywordflow}{            end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00491}00491 \textcolor{keywordflow}{        end if}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00492}00492         \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00493}00493             force(:, isph) = force(:, isph) + \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00494}00494                 \& workspace \% tmp\_efld(:, isph)*params \% charge(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00495}00495 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00496}00496     \textcolor{comment}{! Naive quadratically scaling implementation}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00497}00497     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00498}00498         \textcolor{comment}{! This routines actually computes -\/grad, not grad}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00499}00499         \textcolor{keyword}{call }efld(constants \% ncav, zeta, constants \% ccav, params \% nsph, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00500}00500             \& params \% csph, workspace \% tmp\_efld)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00501}00501         \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00502}00502             force(:, isph) = force(:, isph) -\/ \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00503}00503                 \& workspace \% tmp\_efld(:, isph)*params \% charge(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00504}00504 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00505}00505 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00506}00506 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00507}00507     icav\_gr = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00508}00508     icav\_ge = zero}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00509}00509     \textcolor{comment}{! Computation of F0}}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00510}00510     \textcolor{keyword}{call }contract\_grad\_f(params, constants, workspace, x\_adj(:,:,1), xadj\_r\_sgrid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00511}00511                   \& gradphi, normal\_hessian\_cav, icav\_gr, force)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00512}00512     \textcolor{keyword}{call }contract\_grad\_f(params, constants, workspace, x\_adj(:,:,2), xadj\_e\_sgrid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00513}00513                   \& gradphi, normal\_hessian\_cav, icav\_ge, force)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00514}00514 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00515}00515     force = -\/ pt5*force}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00516}00516 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00517}00517     \textcolor{keyword}{deallocate}(ef, xadj\_r\_sgrid, xadj\_e\_sgrid, normal\_hessian\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00518}00518         \& diff\_re, scaled\_xr, stat=istat)}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00519}00519     \textcolor{keywordflow}{if} (istat.ne.0) stop 1}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00520}00520 \textcolor{keyword}{end subroutine }ddlpb\_force\_worker}
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00521}00521 }
+\DoxyCodeLine{\Hypertarget{ddx__lpb_8f90_source_l00522}00522 \textcolor{keyword}{end module }\mbox{\hyperlink{namespaceddx__lpb}{ddx\_lpb}}}
+
+\end{DoxyCode}

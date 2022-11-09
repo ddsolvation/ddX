@@ -1,0 +1,128 @@
+\hypertarget{namespaceddx__solvers}{}\doxysection{ddx\+\_\+solvers Module Reference}
+\label{namespaceddx__solvers}\index{ddx\_solvers@{ddx\_solvers}}
+
+
+Core routines and parameters of ddX software.  
+
+
+\doxysubsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+interface \mbox{\hyperlink{interfaceddx__solvers_1_1matvec__interface}{matvec\+\_\+interface}}
+\item 
+interface \mbox{\hyperlink{interfaceddx__solvers_1_1matvec__interface__external}{matvec\+\_\+interface\+\_\+external}}
+\item 
+interface \mbox{\hyperlink{interfaceddx__solvers_1_1norm__interface}{norm\+\_\+interface}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__solvers_abf126087f0449850ca561c364488f20a}{jacobi\+\_\+diis}} (params, constants, workspace, tol, rhs, x, niter, x\+\_\+rel\+\_\+diff, matvec, dm1vec, norm\+\_\+func, info)
+\begin{DoxyCompactList}\small\item\em Jacobi iterative solver. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__solvers_aae62dc7d3c0348bd8499c0f07b23ce47}{diis}} (n, nmat, ndiis, x, e, b, xnew)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__solvers_ab078495566540e84394991dfd0506f6c}{makeb}} (n, nmat, ndiis, e, b)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__solvers_aef00b2fe9f0483a0c91b8313a1fa5590}{gmresr}} (params, constants, workspace, eps, b, x, niter, resid, matvec, info)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__solvers_a976b2efc1661de245ed2978d2ec8b1b9}{gmres0}} (params, constants, workspace, n, rhs, uu, cc, work0, eps, niter, matvec)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__solvers_af7cea09146dd7833519488cddc69ac31}{jacobi\+\_\+diis\+\_\+external}} (params, constants, workspace, n, tol, rhs, x, n\+\_\+iter, x\+\_\+rel\+\_\+diff, matvec, dm1vec, norm\+\_\+func, info)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Core routines and parameters of ddX software. 
+
+\doxysubsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespaceddx__solvers_abf126087f0449850ca561c364488f20a}\label{namespaceddx__solvers_abf126087f0449850ca561c364488f20a}} 
+\index{ddx\_solvers@{ddx\_solvers}!jacobi\_diis@{jacobi\_diis}}
+\index{jacobi\_diis@{jacobi\_diis}!ddx\_solvers@{ddx\_solvers}}
+\doxysubsubsection{\texorpdfstring{jacobi\_diis()}{jacobi\_diis()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+solvers\+::jacobi\+\_\+diis (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), intent(in)}]{tol,  }\item[{real(dp), dimension(constants \% n), intent(in)}]{rhs,  }\item[{real(dp), dimension(constants \% n), intent(inout)}]{x,  }\item[{integer, intent(inout)}]{niter,  }\item[{real(dp), dimension(niter), intent(out)}]{x\+\_\+rel\+\_\+diff,  }\item[{procedure(\mbox{\hyperlink{interfaceddx__solvers_1_1matvec__interface}{matvec\+\_\+interface}})}]{matvec,  }\item[{procedure(\mbox{\hyperlink{interfaceddx__solvers_1_1matvec__interface}{matvec\+\_\+interface}})}]{dm1vec,  }\item[{procedure(\mbox{\hyperlink{interfaceddx__solvers_1_1norm__interface}{norm\+\_\+interface}})}]{norm\+\_\+func,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+Jacobi iterative solver. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & User input parameters for the ddX. \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & Precomputed constants for the ddX. \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em workspace} & Temporary workspace for the ddX. \\
+\hline
+\mbox{\texttt{ in}}  & {\em tol} & Relative error threshold to stop iterations. \\
+\hline
+\mbox{\texttt{ in}}  & {\em rhs} & Right hand side. \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em x} & On input, containts an initial guess to a solution. On exit, returns \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em niter} & Maximal number of iterations on input. On exit, contains a number of actually performed matrix-\/vector products. \\
+\hline
+\mbox{\texttt{ out}}  & {\em x\+\_\+rel\+\_\+diff} & Relative difference between old and new values of the solution on each iteration. \\
+\hline
+\mbox{\texttt{ in}}  & {\em matvec} & Routine that performs \\
+\hline
+\mbox{\texttt{ in}}  & {\em dm1vec} & \\
+\hline
+\mbox{\texttt{ in}}  & {\em norm\+\_\+func} & \\
+\hline
+\mbox{\texttt{ out}}  & {\em info} & \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__solvers_8f90_source_l00080}{80}} of file \mbox{\hyperlink{ddx__solvers_8f90_source}{ddx\+\_\+solvers.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__solvers_aae62dc7d3c0348bd8499c0f07b23ce47}\label{namespaceddx__solvers_aae62dc7d3c0348bd8499c0f07b23ce47}} 
+\index{ddx\_solvers@{ddx\_solvers}!diis@{diis}}
+\index{diis@{diis}!ddx\_solvers@{ddx\_solvers}}
+\doxysubsubsection{\texorpdfstring{diis()}{diis()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+solvers\+::diis (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{n,  }\item[{integer, intent(inout)}]{nmat,  }\item[{integer, intent(in)}]{ndiis,  }\item[{real(dp), dimension(n,ndiis), intent(inout)}]{x,  }\item[{real(dp), dimension(n,ndiis), intent(inout)}]{e,  }\item[{real(dp), dimension(ndiis+1,ndiis+1), intent(inout)}]{b,  }\item[{real(dp), dimension(n), intent(inout)}]{xnew }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__solvers_8f90_source_l00144}{144}} of file \mbox{\hyperlink{ddx__solvers_8f90_source}{ddx\+\_\+solvers.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__solvers_ab078495566540e84394991dfd0506f6c}\label{namespaceddx__solvers_ab078495566540e84394991dfd0506f6c}} 
+\index{ddx\_solvers@{ddx\_solvers}!makeb@{makeb}}
+\index{makeb@{makeb}!ddx\_solvers@{ddx\_solvers}}
+\doxysubsubsection{\texorpdfstring{makeb()}{makeb()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+solvers\+::makeb (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{n,  }\item[{integer, intent(in)}]{nmat,  }\item[{integer, intent(in)}]{ndiis,  }\item[{real(dp), dimension(n,ndiis), intent(in)}]{e,  }\item[{real(dp), dimension(ndiis+1,ndiis+1), intent(inout)}]{b }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__solvers_8f90_source_l00202}{202}} of file \mbox{\hyperlink{ddx__solvers_8f90_source}{ddx\+\_\+solvers.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__solvers_aef00b2fe9f0483a0c91b8313a1fa5590}\label{namespaceddx__solvers_aef00b2fe9f0483a0c91b8313a1fa5590}} 
+\index{ddx\_solvers@{ddx\_solvers}!gmresr@{gmresr}}
+\index{gmresr@{gmresr}!ddx\_solvers@{ddx\_solvers}}
+\doxysubsubsection{\texorpdfstring{gmresr()}{gmresr()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+solvers\+::gmresr (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), intent(in)}]{eps,  }\item[{real(dp), dimension(constants \% n), intent(in)}]{b,  }\item[{real(dp), dimension(constants \% n), intent(inout)}]{x,  }\item[{integer, intent(inout)}]{niter,  }\item[{double precision}]{resid,  }\item[{procedure(\mbox{\hyperlink{interfaceddx__solvers_1_1matvec__interface}{matvec\+\_\+interface}})}]{matvec,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__solvers_8f90_source_l00287}{287}} of file \mbox{\hyperlink{ddx__solvers_8f90_source}{ddx\+\_\+solvers.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__solvers_a976b2efc1661de245ed2978d2ec8b1b9}\label{namespaceddx__solvers_a976b2efc1661de245ed2978d2ec8b1b9}} 
+\index{ddx\_solvers@{ddx\_solvers}!gmres0@{gmres0}}
+\index{gmres0@{gmres0}!ddx\_solvers@{ddx\_solvers}}
+\doxysubsubsection{\texorpdfstring{gmres0()}{gmres0()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+solvers\+::gmres0 (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{integer}]{n,  }\item[{double precision, dimension(n)}]{rhs,  }\item[{double precision, dimension(n)}]{uu,  }\item[{double precision, dimension(n)}]{cc,  }\item[{double precision, dimension(n,params \% gmresr\+\_\+dim+1)}]{work0,  }\item[{double precision}]{eps,  }\item[{integer}]{niter,  }\item[{procedure(\mbox{\hyperlink{interfaceddx__solvers_1_1matvec__interface}{matvec\+\_\+interface}})}]{matvec }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__solvers_8f90_source_l00547}{547}} of file \mbox{\hyperlink{ddx__solvers_8f90_source}{ddx\+\_\+solvers.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__solvers_af7cea09146dd7833519488cddc69ac31}\label{namespaceddx__solvers_af7cea09146dd7833519488cddc69ac31}} 
+\index{ddx\_solvers@{ddx\_solvers}!jacobi\_diis\_external@{jacobi\_diis\_external}}
+\index{jacobi\_diis\_external@{jacobi\_diis\_external}!ddx\_solvers@{ddx\_solvers}}
+\doxysubsubsection{\texorpdfstring{jacobi\_diis\_external()}{jacobi\_diis\_external()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+solvers\+::jacobi\+\_\+diis\+\_\+external (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{integer, intent(in)}]{n,  }\item[{real(dp), intent(in)}]{tol,  }\item[{real(dp), dimension(n), intent(in)}]{rhs,  }\item[{real(dp), dimension(n), intent(inout)}]{x,  }\item[{integer, intent(inout)}]{n\+\_\+iter,  }\item[{real(dp), dimension(n\+\_\+iter), intent(out)}]{x\+\_\+rel\+\_\+diff,  }\item[{external}]{matvec,  }\item[{external}]{dm1vec,  }\item[{procedure(\mbox{\hyperlink{interfaceddx__solvers_1_1norm__interface}{norm\+\_\+interface}})}]{norm\+\_\+func,  }\item[{integer, intent(inout)}]{info }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__solvers_8f90_source_l00695}{695}} of file \mbox{\hyperlink{ddx__solvers_8f90_source}{ddx\+\_\+solvers.\+f90}}.
+

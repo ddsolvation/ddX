@@ -1,0 +1,474 @@
+\hypertarget{namespaceddx__gradients}{}\doxysection{ddx\+\_\+gradients Module Reference}
+\label{namespaceddx__gradients}\index{ddx\_gradients@{ddx\_gradients}}
+
+
+Core routines and parameters specific to gradients.  
+
+
+\doxysubsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_a3052d20ce14479c1ae9edbd03decf475}{contract\+\_\+grad\+\_\+l}} (params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_ae3c5219079e9f9275a8a481234d8bc00}{contract\+\_\+gradi\+\_\+lik}} (params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_a5da0a4096bea393102478a2fd1811391}{contract\+\_\+gradi\+\_\+lji}} (params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_aefec7f2fa9ee7ac358d0eb9476fcef2d}{contract\+\_\+grad\+\_\+u}} (params, constants, isph, xi, phi, fx)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_a1b063543b53d8ba088f081b913bd426b}{contract\+\_\+grad\+\_\+b}} (params, constants, workspace, isph, Xe, Xadj\+\_\+e, basloc, dbasloc, vplm, vcos, vsin, force)
+\begin{DoxyCompactList}\small\item\em Subroutine to compute contraction of B matrix. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_a515e26a6bcd464a24d86bda4ceedba18}{contract\+\_\+grad\+\_\+c}} (params, constants, workspace, Xr, Xe, Xadj\+\_\+r\+\_\+sgrid, Xadj\+\_\+e\+\_\+sgrid, Xadj\+\_\+r, Xadj\+\_\+e, force, diff\+\_\+re)
+\begin{DoxyCompactList}\small\item\em Subroutine to compute contraction of C matrix. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_aad4ebe541e1bca0cac433506b1cd7bcf}{contract\+\_\+grad\+\_\+f}} (params, constants, workspace, sol\+\_\+adj, sol\+\_\+sgrid, gradpsi, normal\+\_\+hessian\+\_\+cav, icav\+\_\+g, force)
+\begin{DoxyCompactList}\small\item\em Subroutine to compute contraction of F0. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_affdb3a7493b628d5507c13a3b7d6d91d}{contract\+\_\+gradi\+\_\+bik}} (params, constants, workspace, isph, Xe, Xadj\+\_\+e, basloc, dbasloc, vplm, vcos, vsin, force)
+\begin{DoxyCompactList}\small\item\em Subroutine to compute K$^\wedge$A counterpart for the HSP equation. Similar to contract\+\_\+gradi\+\_\+\+Lik. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_ab9b0427e251a4cde52d6fd44fcf41448}{contract\+\_\+gradi\+\_\+bji}} (params, constants, workspace, isph, Xe, Xadj\+\_\+e, basloc, dbasloc, vplm, vcos, vsin, force)
+\begin{DoxyCompactList}\small\item\em Subroutine to compute K$^\wedge$\+A+\+K$^\wedge$C counterpart for the HSP equation. Similar to contract\+\_\+gradi\+\_\+\+Lji. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_ac49c7c19c2c37a741ffbbd35bc98d0a8}{contract\+\_\+grad\+\_\+c\+\_\+worker1}} (params, constants, workspace, Xr, Xe, Xadj\+\_\+r\+\_\+sgrid, Xadj\+\_\+e\+\_\+sgrid, diff\+\_\+re, force)
+\begin{DoxyCompactList}\small\item\em Subroutine to calculate the third derivative term in C1\+\_\+\+C2 matrix, namely the derivative of PU\+\_\+i. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_ab8d5b2b919b878bd8237c34988c821eb}{contract\+\_\+grad\+\_\+c\+\_\+worker2}} (params, constants, workspace, Xr, Xe, Xadj\+\_\+r\+\_\+sgrid, Xadj\+\_\+e\+\_\+sgrid, Xadj\+\_\+r, Xadj\+\_\+e, force, diff\+\_\+re)
+\begin{DoxyCompactList}\small\item\em Subroutine to compute the derivative of U\+\_\+i(x\+\_\+in) and \textbackslash{}bf\{k\}$^\wedge$j\+\_\+l0(x\+\_\+in)Y$^\wedge$j\+\_\+l0m0(x\+\_\+in) \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_aeb8b562f5e786d6cacf617fdbf238dc5}{contract\+\_\+grad\+\_\+f\+\_\+worker1}} (params, constants, workspace, sol\+\_\+adj, sol\+\_\+sgrid, gradpsi, force)
+\begin{DoxyCompactList}\small\item\em Subroutine to compute the derivative of U\+\_\+i(x\+\_\+in) and \textbackslash{}bf\{k\}$^\wedge$j\+\_\+l0(x\+\_\+in)Y$^\wedge$j\+\_\+l0m0(x\+\_\+in) in F0. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_a5c1341f69bbd723942f522045b749e21}{contract\+\_\+grad\+\_\+f\+\_\+worker2}} (params, constants, workspace, sol\+\_\+sgrid, gradpsi, normal\+\_\+hessian\+\_\+cav, icav\+\_\+g, force)
+\begin{DoxyCompactList}\small\item\em Subroutine to calculate the derivative of C\+\_\+\{0l0m0\}$^\wedge$j. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__gradients_a59ddff41fe3794cd357f1deb4f8f983a}{contract\+\_\+grad\+\_\+f\+\_\+worker3}} (params, constants, workspace, ksph, phi\+\_\+n, force)
+\begin{DoxyCompactList}\small\item\em Subroutine to compute derivative of potential at spheres. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Core routines and parameters specific to gradients. 
+
+\begin{DoxyCopyright}{Copyright}
+(c) 2020-\/2021 RWTH Aachen. All rights reserved.
+\end{DoxyCopyright}
+ddX software
+
+\begin{DoxyVersion}{Version}
+1.\+0.\+0 
+\end{DoxyVersion}
+\begin{DoxyAuthor}{Author}
+Abhinav Jha 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+2022-\/04-\/01 
+\end{DoxyDate}
+
+
+\doxysubsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespaceddx__gradients_a3052d20ce14479c1ae9edbd03decf475}\label{namespaceddx__gradients_a3052d20ce14479c1ae9edbd03decf475}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_grad\_l@{contract\_grad\_l}}
+\index{contract\_grad\_l@{contract\_grad\_l}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_grad\_l()}{contract\_grad\_l()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+grad\+\_\+l (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{sigma,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{xi,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{basloc,  }\item[{real(dp), dimension(3, constants \% nbasis), intent(inout)}]{dbsloc,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{vplm,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vcos,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vsin,  }\item[{real(dp), dimension(3), intent(inout)}]{fx }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l00018}{18}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_ae3c5219079e9f9275a8a481234d8bc00}\label{namespaceddx__gradients_ae3c5219079e9f9275a8a481234d8bc00}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_gradi\_lik@{contract\_gradi\_lik}}
+\index{contract\_gradi\_lik@{contract\_gradi\_lik}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_gradi\_lik()}{contract\_gradi\_lik()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+gradi\+\_\+lik (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{sigma,  }\item[{real(dp), dimension(params \% ngrid), intent(in)}]{xi,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{basloc,  }\item[{real(dp), dimension(3, constants \% nbasis), intent(inout)}]{dbsloc,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{vplm,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vcos,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vsin,  }\item[{real(dp), dimension(3), intent(inout)}]{fx }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l00034}{34}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_a5da0a4096bea393102478a2fd1811391}\label{namespaceddx__gradients_a5da0a4096bea393102478a2fd1811391}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_gradi\_lji@{contract\_gradi\_lji}}
+\index{contract\_gradi\_lji@{contract\_gradi\_lji}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_gradi\_lji()}{contract\_gradi\_lji()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+gradi\+\_\+lji (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{sigma,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{xi,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{basloc,  }\item[{real(dp), dimension(3, constants \% nbasis), intent(inout)}]{dbsloc,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{vplm,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vcos,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vsin,  }\item[{real(dp), dimension(3), intent(inout)}]{fx }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l00114}{114}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_aefec7f2fa9ee7ac358d0eb9476fcef2d}\label{namespaceddx__gradients_aefec7f2fa9ee7ac358d0eb9476fcef2d}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_grad\_u@{contract\_grad\_u}}
+\index{contract\_grad\_u@{contract\_grad\_u}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_grad\_u()}{contract\_grad\_u()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+grad\+\_\+u (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{xi,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{phi,  }\item[{real(dp), dimension(3), intent(inout)}]{fx }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l00229}{229}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_a1b063543b53d8ba088f081b913bd426b}\label{namespaceddx__gradients_a1b063543b53d8ba088f081b913bd426b}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_grad\_b@{contract\_grad\_b}}
+\index{contract\_grad\_b@{contract\_grad\_b}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_grad\_b()}{contract\_grad\_b()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+grad\+\_\+b (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xe,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{Xadj\+\_\+e,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{basloc,  }\item[{real(dp), dimension(3, constants \% nbasis), intent(inout)}]{dbasloc,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{vplm,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vcos,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vsin,  }\item[{real(dp), dimension(3), intent(inout)}]{force }\end{DoxyParamCaption})}
+
+
+
+Subroutine to compute contraction of B matrix. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em workspace} & \+: Input workspace \\
+\hline
+\mbox{\texttt{ in}}  & {\em isph} & \+: Index of sphere \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xe} & \+: Solution vector Xe \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+e} & \+: Adjoint solution on evaluated on grid points Xadj\+\_\+e\+\_\+sgrid \\
+\hline
+\mbox{\texttt{ in}}  & {\em basloc} & \+: Spherical harmonics Y\+\_\+lm \\
+\hline
+\mbox{\texttt{ in}}  & {\em dbasloc} & \+: Derivative of spherical harmonics \textbackslash{}nabla$^\wedge$i(Y\+\_\+lm) \\
+\hline
+\mbox{\texttt{ in}}  & {\em vplm} & \+: Argument to call ylmbas \\
+\hline
+\mbox{\texttt{ in}}  & {\em vcos} & \+: Argument to call ylmbas \\
+\hline
+\mbox{\texttt{ in}}  & {\em vsin} & \+: Argument to call ylmbas \\
+\hline
+\mbox{\texttt{ out}}  & {\em force} & \+: Force of adjoint part \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l00287}{287}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_a515e26a6bcd464a24d86bda4ceedba18}\label{namespaceddx__gradients_a515e26a6bcd464a24d86bda4ceedba18}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_grad\_c@{contract\_grad\_c}}
+\index{contract\_grad\_c@{contract\_grad\_c}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_grad\_c()}{contract\_grad\_c()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+grad\+\_\+c (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xr,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xe,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{Xadj\+\_\+r\+\_\+sgrid,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{Xadj\+\_\+e\+\_\+sgrid,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xadj\+\_\+r,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xadj\+\_\+e,  }\item[{real(dp), dimension(3, params \% nsph), intent(inout)}]{force,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{diff\+\_\+re }\end{DoxyParamCaption})}
+
+
+
+Subroutine to compute contraction of C matrix. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em workspace} & \+: Input workspace \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xr} & \+: Solution of the Laplace problem \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xe} & \+: Solution of the HSP problem \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+r\+\_\+sgrid} & \+: Solution of the Adjoint Laplace problem evaluated at the grid \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+e\+\_\+sgrid} & \+: Solution of the Adjoint HSP problem evaluated at the grid \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+r} & \+: Adjoint solution of the Laplace problem \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+e} & \+: Adjoint solution of the HSP problem \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em force} & \+: Force \\
+\hline
+\mbox{\texttt{ out}}  & {\em diff\+\_\+re} & \+: epsilon\+\_\+1/epsilon\+\_\+2 $\ast$ l\textquotesingle{}/r\+\_\+j\mbox{[}Xr\mbox{]}\+\_\+jl\textquotesingle{}m\textquotesingle{}
+\begin{DoxyItemize}
+\item (i\textquotesingle{}\+\_\+l\textquotesingle{}(r\+\_\+j)/i\+\_\+l\textquotesingle{}(r\+\_\+j))\mbox{[}Xe\mbox{]}\+\_\+jl\textquotesingle{}m\textquotesingle{} 
+\end{DoxyItemize}\\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l00324}{324}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_aad4ebe541e1bca0cac433506b1cd7bcf}\label{namespaceddx__gradients_aad4ebe541e1bca0cac433506b1cd7bcf}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_grad\_f@{contract\_grad\_f}}
+\index{contract\_grad\_f@{contract\_grad\_f}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_grad\_f()}{contract\_grad\_f()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+grad\+\_\+f (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{sol\+\_\+adj,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{sol\+\_\+sgrid,  }\item[{real(dp), dimension(3, constants \% ncav), intent(in)}]{gradpsi,  }\item[{real(dp), dimension(3, constants \% ncav), intent(in)}]{normal\+\_\+hessian\+\_\+cav,  }\item[{integer, intent(inout)}]{icav\+\_\+g,  }\item[{real(dp), dimension(3, params \% nsph), intent(inout)}]{force }\end{DoxyParamCaption})}
+
+
+
+Subroutine to compute contraction of F0. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em workspace} & \+: Input workspace \\
+\hline
+\mbox{\texttt{ in}}  & {\em sol\+\_\+sgrid} & \+: Solution of the Adjoint problem evaluated at the grid \\
+\hline
+\mbox{\texttt{ in}}  & {\em sol\+\_\+adj} & \+: Adjoint solution \\
+\hline
+\mbox{\texttt{ in}}  & {\em normal\+\_\+hessian\+\_\+cav} & \+: Normal of the Hessian evaluated at cavity points \\
+\hline
+\mbox{\texttt{ in}}  & {\em icav\+\_\+g} & \+: Index of outside cavity point \\
+\hline
+\mbox{\texttt{ out}}  & {\em force} & \+: Force \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l00353}{353}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_affdb3a7493b628d5507c13a3b7d6d91d}\label{namespaceddx__gradients_affdb3a7493b628d5507c13a3b7d6d91d}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_gradi\_bik@{contract\_gradi\_bik}}
+\index{contract\_gradi\_bik@{contract\_gradi\_bik}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_gradi\_bik()}{contract\_gradi\_bik()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+gradi\+\_\+bik (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xe,  }\item[{real(dp), dimension(params \% ngrid), intent(in)}]{Xadj\+\_\+e,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{basloc,  }\item[{real(dp), dimension(3, constants \% nbasis), intent(inout)}]{dbasloc,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{vplm,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vcos,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vsin,  }\item[{real(dp), dimension(3), intent(inout)}]{force }\end{DoxyParamCaption})}
+
+
+
+Subroutine to compute K$^\wedge$A counterpart for the HSP equation. Similar to contract\+\_\+gradi\+\_\+\+Lik. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em workspace} & \+: Input workspace \\
+\hline
+\mbox{\texttt{ in}}  & {\em isph} & \+: Index of sphere \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xe} & \+: Solution vector Xe \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+e} & \+: Adjoint solution on evaluated on grid points Xadj\+\_\+e\+\_\+sgrid \\
+\hline
+\mbox{\texttt{ in}}  & {\em basloc} & \+: Spherical harmonics Y\+\_\+lm \\
+\hline
+\mbox{\texttt{ in}}  & {\em dbasloc} & \+: Derivative of spherical harmonics \textbackslash{}nabla$^\wedge$i(Y\+\_\+lm) \\
+\hline
+\mbox{\texttt{ in}}  & {\em vplm} & \+: Argument to call ylmbas \\
+\hline
+\mbox{\texttt{ in}}  & {\em vcos} & \+: Argument to call ylmbas \\
+\hline
+\mbox{\texttt{ in}}  & {\em vsin} & \+: Argument to call ylmbas \\
+\hline
+\mbox{\texttt{ out}}  & {\em force} & \+: Force \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l00386}{386}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_ab9b0427e251a4cde52d6fd44fcf41448}\label{namespaceddx__gradients_ab9b0427e251a4cde52d6fd44fcf41448}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_gradi\_bji@{contract\_gradi\_bji}}
+\index{contract\_gradi\_bji@{contract\_gradi\_bji}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_gradi\_bji()}{contract\_gradi\_bji()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+gradi\+\_\+bji (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xe,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{Xadj\+\_\+e,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{basloc,  }\item[{real(dp), dimension(3, constants \% nbasis), intent(inout)}]{dbasloc,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{vplm,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vcos,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vsin,  }\item[{real(dp), dimension(3), intent(inout)}]{force }\end{DoxyParamCaption})}
+
+
+
+Subroutine to compute K$^\wedge$\+A+\+K$^\wedge$C counterpart for the HSP equation. Similar to contract\+\_\+gradi\+\_\+\+Lji. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em workspace} & \+: Input workspace \\
+\hline
+\mbox{\texttt{ in}}  & {\em isph} & \+: Index of sphere \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xe} & \+: Solution vector Xe \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+e} & \+: Adjoint solution on evaluated on grid points Xadj\+\_\+e\+\_\+sgrid \\
+\hline
+\mbox{\texttt{ in}}  & {\em basloc} & \+: Spherical harmonics Y\+\_\+lm \\
+\hline
+\mbox{\texttt{ in}}  & {\em dbasloc} & \+: Derivative of spherical harmonics \textbackslash{}nabla$^\wedge$i(Y\+\_\+lm) \\
+\hline
+\mbox{\texttt{ in}}  & {\em vplm} & \+: Argument to call ylmbas \\
+\hline
+\mbox{\texttt{ in}}  & {\em vcos} & \+: Argument to call ylmbas \\
+\hline
+\mbox{\texttt{ in}}  & {\em vsin} & \+: Argument to call ylmbas \\
+\hline
+\mbox{\texttt{ out}}  & {\em force} & \+: Force of adjoint part \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l00480}{480}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_ac49c7c19c2c37a741ffbbd35bc98d0a8}\label{namespaceddx__gradients_ac49c7c19c2c37a741ffbbd35bc98d0a8}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_grad\_c\_worker1@{contract\_grad\_c\_worker1}}
+\index{contract\_grad\_c\_worker1@{contract\_grad\_c\_worker1}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_grad\_c\_worker1()}{contract\_grad\_c\_worker1()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+grad\+\_\+c\+\_\+worker1 (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xr,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xe,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{Xadj\+\_\+r\+\_\+sgrid,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{Xadj\+\_\+e\+\_\+sgrid,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{diff\+\_\+re,  }\item[{real(dp), dimension(3, params \% nsph), intent(inout)}]{force }\end{DoxyParamCaption})}
+
+
+
+Subroutine to calculate the third derivative term in C1\+\_\+\+C2 matrix, namely the derivative of PU\+\_\+i. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em workspace} & \+: Input workspace \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xr} & \+: Solution of the Laplace problem \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xe} & \+: Solution of the HSP problem \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+r\+\_\+sgrid} & \+: Adjoint Laplace solution evaluated at grid point \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+e\+\_\+sgrid} & \+: Adjoint HSP solution evaluated at grid point \\
+\hline
+\mbox{\texttt{ in}}  & {\em diff\+\_\+re} & \+: l\textquotesingle{}/r\+\_\+j\mbox{[}Xr\mbox{]}\+\_\+jl\textquotesingle{}m\textquotesingle{} -\/(i\textquotesingle{}\+\_\+l\textquotesingle{}(r\+\_\+j)/i\+\_\+l\textquotesingle{}(r\+\_\+j))\mbox{[}Xe\mbox{]}\+\_\+jl\textquotesingle{}m\textquotesingle{} \\
+\hline
+\mbox{\texttt{ out}}  & {\em force} & \+: Force \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l00620}{620}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_ab8d5b2b919b878bd8237c34988c821eb}\label{namespaceddx__gradients_ab8d5b2b919b878bd8237c34988c821eb}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_grad\_c\_worker2@{contract\_grad\_c\_worker2}}
+\index{contract\_grad\_c\_worker2@{contract\_grad\_c\_worker2}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_grad\_c\_worker2()}{contract\_grad\_c\_worker2()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+grad\+\_\+c\+\_\+worker2 (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xr,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xe,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{Xadj\+\_\+r\+\_\+sgrid,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{Xadj\+\_\+e\+\_\+sgrid,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xadj\+\_\+r,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{Xadj\+\_\+e,  }\item[{real(dp), dimension(3, params \% nsph), intent(inout)}]{force,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{diff\+\_\+re }\end{DoxyParamCaption})}
+
+
+
+Subroutine to compute the derivative of U\+\_\+i(x\+\_\+in) and \textbackslash{}bf\{k\}$^\wedge$j\+\_\+l0(x\+\_\+in)Y$^\wedge$j\+\_\+l0m0(x\+\_\+in) 
+
+contract\+\_\+grad\+\_\+\+C\+\_\+worker2 \+: Force Derivative of U\+\_\+i$^\wedge$e(x\+\_\+in), k\+\_\+l0, and Y\+\_\+l0m0 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em workspace} & \+: Input workspace \\
+\hline
+\mbox{\texttt{ in}}  & {\em ksph} & \+: Derivative with respect to x\+\_\+k \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xr} & \+: Solution of the Laplace problem \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xe} & \+: Solution of the HSP problem \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+r\+\_\+sgrid} & \+: Solution of the Adjoint Laplace problem evaluated at the grid \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+e\+\_\+sgrid} & \+: Solution of the Adjoint HSP problem evaluated at the grid \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+r} & \+: Adjoint solution of the Laplace problem \\
+\hline
+\mbox{\texttt{ in}}  & {\em Xadj\+\_\+e} & \+: Adjoint solution of the HSP problem \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em force} & \+: Force \\
+\hline
+\mbox{\texttt{ out}}  & {\em diff\+\_\+re} & \+: epsilon\+\_\+1/epsilon\+\_\+2 $\ast$ l\textquotesingle{}/r\+\_\+j\mbox{[}Xr\mbox{]}\+\_\+jl\textquotesingle{}m\textquotesingle{}
+\begin{DoxyItemize}
+\item (i\textquotesingle{}\+\_\+l\textquotesingle{}(r\+\_\+j)/i\+\_\+l\textquotesingle{}(r\+\_\+j))\mbox{[}Xe\mbox{]}\+\_\+jl\textquotesingle{}m\textquotesingle{} 
+\end{DoxyItemize}\\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l00887}{887}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_aeb8b562f5e786d6cacf617fdbf238dc5}\label{namespaceddx__gradients_aeb8b562f5e786d6cacf617fdbf238dc5}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_grad\_f\_worker1@{contract\_grad\_f\_worker1}}
+\index{contract\_grad\_f\_worker1@{contract\_grad\_f\_worker1}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_grad\_f\_worker1()}{contract\_grad\_f\_worker1()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+grad\+\_\+f\+\_\+worker1 (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{sol\+\_\+adj,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{sol\+\_\+sgrid,  }\item[{real(dp), dimension(3, constants \% ncav), intent(in)}]{gradpsi,  }\item[{real(dp), dimension(3, params \% nsph), intent(inout)}]{force }\end{DoxyParamCaption})}
+
+
+
+Subroutine to compute the derivative of U\+\_\+i(x\+\_\+in) and \textbackslash{}bf\{k\}$^\wedge$j\+\_\+l0(x\+\_\+in)Y$^\wedge$j\+\_\+l0m0(x\+\_\+in) in F0. 
+
+contract\+\_\+grad\+\_\+f\+\_\+worker1 \+: Force Derivative of U\+\_\+i$^\wedge$e(x\+\_\+in), k\+\_\+l0, and Y\+\_\+l0m0 in F0 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em workspace} & \+: Input workspace \\
+\hline
+\mbox{\texttt{ in}}  & {\em ksph} & \+: Derivative with respect to x\+\_\+k \\
+\hline
+\mbox{\texttt{ in}}  & {\em sol\+\_\+sgrid} & \+: Solution of the Adjoint problem evaluated at the grid \\
+\hline
+\mbox{\texttt{ in}}  & {\em sol\+\_\+adj} & \+: Adjoint solution \\
+\hline
+\mbox{\texttt{ in}}  & {\em gradpsi} & \+: Gradient of Psi\+\_\+0 \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em force} & \+: Force \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l01248}{1248}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_a5c1341f69bbd723942f522045b749e21}\label{namespaceddx__gradients_a5c1341f69bbd723942f522045b749e21}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_grad\_f\_worker2@{contract\_grad\_f\_worker2}}
+\index{contract\_grad\_f\_worker2@{contract\_grad\_f\_worker2}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_grad\_f\_worker2()}{contract\_grad\_f\_worker2()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+grad\+\_\+f\+\_\+worker2 (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{sol\+\_\+sgrid,  }\item[{real(dp), dimension(3, constants \% ncav), intent(in)}]{gradpsi,  }\item[{real(dp), dimension(3, constants \% ncav), intent(in)}]{normal\+\_\+hessian\+\_\+cav,  }\item[{integer, intent(inout)}]{icav\+\_\+g,  }\item[{real(dp), dimension(3, params \% nsph), intent(inout)}]{force }\end{DoxyParamCaption})}
+
+
+
+Subroutine to calculate the derivative of C\+\_\+\{0l0m0\}$^\wedge$j. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em workspace} & \+: Input workspace \\
+\hline
+\mbox{\texttt{ in}}  & {\em ksph} & \+: Derivative with respect to x\+\_\+k \\
+\hline
+\mbox{\texttt{ in}}  & {\em sol\+\_\+sgrid} & \+: Solution of the Adjoint problem evaluated at the grid \\
+\hline
+\mbox{\texttt{ in}}  & {\em gradpsi} & \+: Gradient of Psi\+\_\+0 \\
+\hline
+\mbox{\texttt{ in}}  & {\em normal\+\_\+hessian\+\_\+cav} & \+: Normal of the Hessian evaluated at cavity points \\
+\hline
+\mbox{\texttt{ in}}  & {\em icav\+\_\+g} & \+: Index of outside cavity point \\
+\hline
+\mbox{\texttt{ out}}  & {\em force} & \+: Force corresponding to HSP problem \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l01598}{1598}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__gradients_a59ddff41fe3794cd357f1deb4f8f983a}\label{namespaceddx__gradients_a59ddff41fe3794cd357f1deb4f8f983a}} 
+\index{ddx\_gradients@{ddx\_gradients}!contract\_grad\_f\_worker3@{contract\_grad\_f\_worker3}}
+\index{contract\_grad\_f\_worker3@{contract\_grad\_f\_worker3}!ddx\_gradients@{ddx\_gradients}}
+\doxysubsubsection{\texorpdfstring{contract\_grad\_f\_worker3()}{contract\_grad\_f\_worker3()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+gradients\+::contract\+\_\+grad\+\_\+f\+\_\+worker3 (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{integer, intent(in)}]{ksph,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{phi\+\_\+n,  }\item[{real(dp), dimension(3), intent(inout)}]{force }\end{DoxyParamCaption})}
+
+
+
+Subroutine to compute derivative of potential at spheres. 
+
+contract\+\_\+grad\+\_\+f\+\_\+worker3 \+: Force derivative of potential at spheres 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \+: Input parameter file \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \+: Input constants file \\
+\hline
+\mbox{\texttt{ in}}  & {\em workspace} & \+: Input workspace \\
+\hline
+\mbox{\texttt{ in}}  & {\em phi\+\_\+n} & \+: phi\+\_\+n$^\wedge$j \\
+\hline
+\mbox{\texttt{ in}}  & {\em ksph} & \+: Derivative with respect to x\+\_\+k \\
+\hline
+\mbox{\texttt{ out}}  & {\em force} & \+: Force \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__gradients_8f90_source_l01810}{1810}} of file \mbox{\hyperlink{ddx__gradients_8f90_source}{ddx\+\_\+gradients.\+f90}}.
+

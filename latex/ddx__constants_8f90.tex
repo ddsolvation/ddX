@@ -1,0 +1,72 @@
+\hypertarget{ddx__constants_8f90}{}\doxysection{src/ddx\+\_\+constants.f90 File Reference}
+\label{ddx__constants_8f90}\index{src/ddx\_constants.f90@{src/ddx\_constants.f90}}
+\doxysubsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+::ddx\+\_\+constants\+\_\+type}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespaceddx__constants}{ddx\+\_\+constants}}
+\begin{DoxyCompactList}\small\item\em Run-\/time constants. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_aa10b4ebb5a70e2cac960a9f0a955b29a}{ddx\+\_\+constants\+::constants\+\_\+init}} (params, constants, info)
+\begin{DoxyCompactList}\small\item\em Compute all necessary constants. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_ac2f7e9e3cf53501601684b98199d97eb}{ddx\+\_\+constants\+::build\+\_\+itrnl}} (constants, params)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_a82cd03b034a0452e6ca6a495408fed03}{ddx\+\_\+constants\+::build\+\_\+l}} (constants, params)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_a224edbeb3786b8d69a5dbbe6856a0df1}{ddx\+\_\+constants\+::build\+\_\+b}} (constants, params)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_af5826bc847008b2eb36949c6b05b3e5d}{ddx\+\_\+constants\+::mkpmat}} (params, constants, isph, pmat)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_ad201f9bbff917677cd4aeb165d296fad}{ddx\+\_\+constants\+::constants\+\_\+geometry\+\_\+init}} (params, constants, info)
+\begin{DoxyCompactList}\small\item\em Initialize geometry-\/related constants like list of neighbouring spheres. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_a2e8004415b03c502f25cffc06095f7f7}{ddx\+\_\+constants\+::neighbor\+\_\+list\+\_\+init}} (params, constants, info)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_a4dac7789e6c13db2e1faaf356c3bd465}{ddx\+\_\+constants\+::neighbor\+\_\+list\+\_\+init\+\_\+fmm}} (params, constants, info)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_abb90d5f168551ac11b842a8166c8b859}{ddx\+\_\+constants\+::constants\+\_\+geometry\+\_\+update}} (params, constants, info)
+\begin{DoxyCompactList}\small\item\em Update geometry-\/related constants like list of neighbouring spheres. \end{DoxyCompactList}\item 
+real(dp) function \mbox{\hyperlink{namespaceddx__constants_abb0c060445e3b2d40b770eda26d20fdb}{ddx\+\_\+constants\+::fsw}} (t, se, eta)
+\begin{DoxyCompactList}\small\item\em Switching function. \end{DoxyCompactList}\item 
+real(dp) function \mbox{\hyperlink{namespaceddx__constants_a66fd73de84672f0f78f4c9c4e2c620b5}{ddx\+\_\+constants\+::dfsw}} (t, se, eta)
+\begin{DoxyCompactList}\small\item\em Derivative of a switching function. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_a5d1fc3f2c16984ceaa0e1ed9de8fb548}{ddx\+\_\+constants\+::mkprec}} (lmax, nbasis, nsph, ngrid, eps, ui, wgrid, vgrid, vgrid\+\_\+nbasis, rx\+\_\+prc, info, error\+\_\+message)
+\begin{DoxyCompactList}\small\item\em Compute preconditioner. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_a71a53ad578c20da9306b93deda562aeb}{ddx\+\_\+constants\+::tree\+\_\+rib\+\_\+build}} (nsph, csph, rsph, order, cluster, children, parent, cnode, rnode, snode)
+\begin{DoxyCompactList}\small\item\em Build a recursive inertial binary tree. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_a7c5d6aebc32c85aa05d4a74678ff95f7}{ddx\+\_\+constants\+::tree\+\_\+rib\+\_\+node\+\_\+bisect}} (nsph, csph, n, order, div)
+\begin{DoxyCompactList}\small\item\em Divide given cluster of spheres into two subclusters by inertial bisection. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_a3e9f0301398a1007b912f94c7239dffd}{ddx\+\_\+constants\+::tree\+\_\+get\+\_\+farnear\+\_\+work}} (n, children, cnode, rnode, lwork, iwork, jwork, work, nnfar, nfar, nnnear, nnear)
+\begin{DoxyCompactList}\small\item\em Find near and far admissible pairs of tree nodes and store it in work array. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_afa4961d4e2731a6ade2dd395d00a87d9}{ddx\+\_\+constants\+::tree\+\_\+get\+\_\+farnear}} (jwork, lwork, work, n, nnfar, nfar, sfar, far, nnnear, nnear, snear, near)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__constants_a585af3a4fe1789337b34397ffcb34d45}{ddx\+\_\+constants\+::constants\+\_\+free}} (constants, info)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyCopyright}{Copyright}
+(c) 2020-\/2021 RWTH Aachen. All rights reserved.
+\end{DoxyCopyright}
+ddX software
+
+This file contains the type ddx\+\_\+constants\+\_\+type to hold all required run-\/time constants and routines to actually compute these constants. These constants include scaling factors for spherical harmonics, certain combinatorial numbers, hierarchical trees for the FMM and so on. Everything that can be precomputed to reduce ddX timings shall be stored in the ddx\+\_\+constants\+\_\+type.
+
+\begin{DoxyVersion}{Version}
+1.\+0.\+0 
+\end{DoxyVersion}
+\begin{DoxyAuthor}{Author}
+Aleksandr Mikhalev 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+2021-\/06-\/15 
+\end{DoxyDate}
+
+
+Definition in file \mbox{\hyperlink{ddx__constants_8f90_source}{ddx\+\_\+constants.\+f90}}.
+

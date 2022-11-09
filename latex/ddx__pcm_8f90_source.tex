@@ -1,0 +1,672 @@
+\hypertarget{ddx__pcm_8f90_source}{}\doxysection{ddx\+\_\+pcm.\+f90}
+\label{ddx__pcm_8f90_source}\index{src/ddx\_pcm.f90@{src/ddx\_pcm.f90}}
+\mbox{\hyperlink{ddx__pcm_8f90}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00001}00001 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00011}00011 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00013}\mbox{\hyperlink{namespaceddx__pcm}{00013}} \textcolor{keyword}{module} \mbox{\hyperlink{namespaceddx__pcm}{ddx\_pcm}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00014}00014 \textcolor{comment}{! Get ddx-\/operators}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00015}00015 \textcolor{keywordtype}{use }\mbox{\hyperlink{namespaceddx__operators}{ddx\_operators}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00016}00016 \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00017}00017 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00018}00018 \textcolor{keyword}{contains}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00019}00019 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00020}00020 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00021}00021 \textcolor{comment}{!! Wrapper routine for the solution of the direct ddPCM linear}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00022}00022 \textcolor{comment}{!! system. It makes the interface easier to implement. If a fine}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00023}00023 \textcolor{comment}{!! control is needed, the worker routine should be directly called.}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00024}00024 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00025}00025 \textcolor{comment}{!! @param[in] params       : General options}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00026}00026 \textcolor{comment}{!! @param[in] constants    : Precomputed constants}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00027}00027 \textcolor{comment}{!! @param[inout] workspace : Preallocated workspaces}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00028}00028 \textcolor{comment}{!! @param[inout] state     : Solutions and relevant quantities}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00029}00029 \textcolor{comment}{!! @param[in] phi\_cav      : Electric potential at the grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00030}00030 \textcolor{comment}{!! @param[in] tol          : Tolerance for the iterative solvers}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00031}00031 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00032}00032 \textcolor{keyword}{subroutine }ddpcm\_solve(params, constants, workspace, state, phi\_cav, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00033}00033     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00034}00034     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00035}00035     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00036}00036     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00037}00037     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{intent(inout)} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00038}00038 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: phi\_cav(constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00039}00039 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: tol}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00040}00040     \textcolor{keywordtype}{integer} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00041}00041 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00042}00042     state \% xs\_niter =  params \% maxiter}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00043}00043     state \% phieps\_niter = params \% maxiter}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00044}00044     \textcolor{keyword}{call }\mbox{\hyperlink{namespaceddx__pcm_a84e88ac9aa346c593597757cb454e4e1}{ddpcm\_solve\_worker}}(params, constants, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00045}00045         \& workspace, phi\_cav, state \% xs, state \% xs\_niter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00046}00046         \& state \% xs\_rel\_diff, state \% xs\_time, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00047}00047         \& tol, state \% phi\_grid, state \% phi, state \% phiinf, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00048}00048         \& state \% phieps, state \% phieps\_niter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00049}00049         \& state \% phieps\_rel\_diff, state \% phieps\_time, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00050}00050 \textcolor{keyword}{end subroutine }ddpcm\_solve}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00051}00051 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00052}00052 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00053}00053 \textcolor{comment}{!! Wrapper routine for the solution of the adjoint ddPCM linear}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00054}00054 \textcolor{comment}{!! system. It makes the interface easier to implement. If a fine}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00055}00055 \textcolor{comment}{!! control is needed, the worker routine should be directly called.}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00056}00056 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00057}00057 \textcolor{comment}{!! @param[in] params       : General options}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00058}00058 \textcolor{comment}{!! @param[in] constants    : Precomputed constants}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00059}00059 \textcolor{comment}{!! @param[inout] workspace : Preallocated workspaces}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00060}00060 \textcolor{comment}{!! @param[inout] state     : Solutions, guesses and relevant quantities}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00061}00061 \textcolor{comment}{!! @param[in] psi          : Representation of the solute's density}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00062}00062 \textcolor{comment}{!! @param[in] tol          : Tolerance for the iterative solvers}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00063}00063 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00064}00064 \textcolor{keyword}{subroutine }ddpcm\_adjoint(params, constants, workspace, state, psi, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00065}00065     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00066}00066     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00067}00067     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00068}00068     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00069}00069     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{intent(inout)} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00070}00070 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: psi(constants \% nbasis, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00071}00071 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: tol}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00072}00072     \textcolor{keywordtype}{integer} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00073}00073 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00074}00074     state \% s\_niter =  params \% maxiter}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00075}00075     state \% y\_niter = params \% maxiter}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00076}00076     \textcolor{keyword}{call }ddpcm\_adjoint\_worker(params, constants, workspace, psi, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00077}00077         \& tol, state \% s, state \% s\_niter, state \% s\_rel\_diff, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00078}00078         \& state \% s\_time, state \% y, state \% y\_niter, state \% y\_rel\_diff, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00079}00079         \& state \% y\_time, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00080}00080 \textcolor{keyword}{end subroutine }ddpcm\_adjoint}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00081}00081 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00082}00082 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00083}00083 \textcolor{comment}{!! Wrapper routine for the computation of ddPCM forces. It makes the}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00084}00084 \textcolor{comment}{!! interface easier to implement. If a fine control is needed, the}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00085}00085 \textcolor{comment}{!! worker routine should be directly called.}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00086}00086 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00087}00087 \textcolor{comment}{!! @param[in] params       : General options}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00088}00088 \textcolor{comment}{!! @param[in] constants    : Precomputed constants}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00089}00089 \textcolor{comment}{!! @param[inout] workspace : Preallocated workspaces}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00090}00090 \textcolor{comment}{!! @param[inout] state     : Solutions and relevant quantities}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00091}00091 \textcolor{comment}{!! @param[in] phi\_cav      : Electric potential at the grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00092}00092 \textcolor{comment}{!! @param[in] gradphi\_cav  : Electric field at the grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00093}00093 \textcolor{comment}{!! @param[in] psi          : Representation of the solute's density}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00094}00094 \textcolor{comment}{!! @param[out] force       : Geometrical contribution to the forces}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00095}00095 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00096}00096 \textcolor{keyword}{subroutine }ddpcm\_forces(params, constants, workspace, state, phi\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00097}00097     \& gradphi\_cav, psi, force)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00098}00098     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00099}00099     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00100}00100     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00101}00101     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00102}00102     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{intent(inout)} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00103}00103 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: phi\_cav(constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00104}00104 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: gradphi\_cav(3, constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00105}00105 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: psi(constants \% nbasis, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00106}00106 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: force(3, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00107}00107     \textcolor{keywordtype}{integer} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00108}00108 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00109}00109     \textcolor{keyword}{call }ddpcm\_forces\_worker(params, constants, workspace, state \% phi\_grid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00110}00110         \& gradphi\_cav, psi, state \% phi, state \% phieps, state \% s, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00111}00111         \& state \% sgrid, state \% y, state \% ygrid, state \% g, state \% q, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00112}00112         \& state \% qgrid, state \% xs, state \% zeta, force, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00113}00113 \textcolor{keyword}{end subroutine }ddpcm\_forces}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00114}00114 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00115}00115 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00116}00116 \textcolor{comment}{!! Wrapper routine for the computation of ddPCM forces. It makes the}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00117}00117 \textcolor{comment}{!! interface easier to implement. If a fine control is needed, the}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00118}00118 \textcolor{comment}{!! worker routine should be directly called. This routine computes only}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00119}00119 \textcolor{comment}{!! the geometrical contributions to the forces (no terms specific of the}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00120}00120 \textcolor{comment}{!! solutes).}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00121}00121 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00122}00122 \textcolor{comment}{!! @param[in] params       : General options}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00123}00123 \textcolor{comment}{!! @param[in] constants    : Precomputed constants}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00124}00124 \textcolor{comment}{!! @param[inout] workspace : Preallocated workspaces}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00125}00125 \textcolor{comment}{!! @param[inout] state     : Solutions and relevant quantities}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00126}00126 \textcolor{comment}{!! @param[in] phi\_cav      : Electric potential at the grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00127}00127 \textcolor{comment}{!! @param[in] gradphi\_cav  : Electric field at the grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00128}00128 \textcolor{comment}{!! @param[in] psi          : Representation of the solute's density}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00129}00129 \textcolor{comment}{!! @param[out] force       : Geometrical contribution to the forces}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00130}00130 \textcolor{comment}{!!}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00131}00131 \textcolor{keyword}{subroutine }ddpcm\_geom\_forces(params, constants, workspace, state, phi\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00132}00132     \& gradphi\_cav, psi, force)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00133}00133     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00134}00134     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00135}00135     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00136}00136     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00137}00137     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{intent(inout)} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00138}00138 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: phi\_cav(constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00139}00139 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: gradphi\_cav(3, constants \% ncav)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00140}00140 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: psi(constants \% nbasis, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00141}00141 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: force(3, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00142}00142     \textcolor{keywordtype}{integer} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00143}00143 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00144}00144     \textcolor{keyword}{call }ddpcm\_geom\_forces\_worker(params, constants, workspace, state \% phi\_grid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00145}00145         \& gradphi\_cav, psi, state \% phi, state \% phieps, state \% s, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00146}00146         \& state \% sgrid, state \% y, state \% ygrid, state \% g, state \% q, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00147}00147         \& state \% qgrid, state \% xs, state \% zeta, force, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00148}00148 \textcolor{keyword}{end subroutine }ddpcm\_geom\_forces}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00149}00149 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00161}\mbox{\hyperlink{namespaceddx__pcm_a3ec601a57093e777b4e0806b66df8a3f}{00161}} \textcolor{keyword}{subroutine }\mbox{\hyperlink{namespaceddx__pcm_a3ec601a57093e777b4e0806b66df8a3f}{ddpcm}}(params, constants, workspace, state, phi\_cav, gradphi\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00162}00162         \& psi, tol, esolv, force, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00163}00163     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00164}00164     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00165}00165     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00166}00166     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00167}00167     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{intent(inout)} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00168}00168 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: phi\_cav(constants \% ncav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00169}00169         \& gradphi\_cav(3, constants \% ncav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00170}00170         \& psi(constants \% nbasis, params \% nsph), tol}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00171}00171     \textcolor{keywordtype}{real(dp)}, \textcolor{keywordtype}{intent(out)} :: esolv, force(3, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00172}00172     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(out)} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00173}00173 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{external} :: ddot}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00174}00174 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00175}00175     \textcolor{keyword}{call }ddpcm\_guess(params, constants, state)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00176}00176 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00177}00177     \textcolor{keyword}{call }ddpcm\_solve(params, constants, workspace, state, phi\_cav, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00178}00178 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00179}00179     \textcolor{comment}{! Compute the solvation energy}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00180}00180     esolv = pt5*ddot(constants \% n, state \% xs, 1, psi, 1)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00181}00181 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00182}00182     \textcolor{comment}{! Get forces if needed}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00183}00183     \textcolor{keywordflow}{if} (params \% force .eq. 1) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00184}00184         \textcolor{keyword}{call }ddpcm\_adjoint(params, constants, workspace, state, psi, tol)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00185}00185         \textcolor{keyword}{call }ddpcm\_forces(params, constants, workspace, state, phi\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00186}00186             \& gradphi\_cav, psi, force)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00187}00187 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00188}00188 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00189}00189 \textcolor{keyword}{end subroutine }\mbox{\hyperlink{namespaceddx__pcm_a3ec601a57093e777b4e0806b66df8a3f}{ddpcm}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00190}00190 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00191}00191 \textcolor{keyword}{subroutine }ddpcm\_guess(params, constants, state)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00192}00192     \textcolor{keywordtype}{implicit none}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00193}00193     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00194}00194     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00195}00195     \textcolor{keywordtype}{type}(ddx\_state\_type), \textcolor{keywordtype}{intent(inout)} :: state}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00196}00196 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00197}00197     state \% y = zero}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00198}00198     state \% s = zero}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00199}00199     state \% xs = zero}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00200}00200     state \% phieps = zero}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00201}00201 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00202}00202 \textcolor{keyword}{end subroutine }ddpcm\_guess}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00203}00203 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00213}\mbox{\hyperlink{namespaceddx__pcm_a84e88ac9aa346c593597757cb454e4e1}{00213}} \textcolor{keyword}{subroutine }\mbox{\hyperlink{namespaceddx__pcm_a84e88ac9aa346c593597757cb454e4e1}{ddpcm\_solve\_worker}}(params, constants, workspace, phi\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00214}00214     \& xs, xs\_niter, xs\_rel\_diff, xs\_time, tol, phi\_grid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00215}00215     \& phi, phiinf, phieps, phieps\_niter, phieps\_rel\_diff, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00216}00216     \& phieps\_time, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00217}00217     \textcolor{comment}{!! Inputs}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00218}00218     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00219}00219     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00220}00220 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: phi\_cav(constants \% ncav), tol}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00221}00221     \textcolor{comment}{!! Input+output}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00222}00222 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(inout)} :: xs(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00223}00223         \& phieps(constants \% nbasis, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00224}00224     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(inout)} :: xs\_niter, phieps\_niter}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00225}00225     \textcolor{comment}{!! Temporary buffers}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00226}00226     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00227}00227     \textcolor{comment}{!! Outputs}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00228}00228 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: phi\_grid(params \% ngrid, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00229}00229         \& phi(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00230}00230         \& phiinf(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00231}00231         \& xs\_rel\_diff(xs\_niter), phieps\_rel\_diff(phieps\_niter), xs\_time, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00232}00232         \& phieps\_time}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00233}00233     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(out)} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00234}00234     \textcolor{comment}{!! Local variables}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00235}00235 \textcolor{keywordtype}{    real}(dp) :: start\_time, finish\_time, r\_norm}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00236}00236     \textcolor{keywordtype}{character(len=255)} :: string}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00237}00237 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{external} :: ddot}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00238}00238     \textcolor{comment}{!! The code}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00239}00239     \textcolor{comment}{! At first check if parameters, constants and workspace are correctly}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00240}00240     \textcolor{comment}{! initialized}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00241}00241     \textcolor{keywordflow}{if} (params \% error\_flag .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00242}00242         string = \textcolor{stringliteral}{"{}ddpcm\_energy: `params` is in error state"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00243}00243         \textcolor{keyword}{call }params \% print\_func(string)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00244}00244         info = 1}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00245}00245         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00246}00246 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00247}00247     \textcolor{keywordflow}{if} (constants \% error\_flag .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00248}00248         string = \textcolor{stringliteral}{"{}ddpcm\_energy: `constants` is in error state"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00249}00249         \textcolor{keyword}{call }params \% print\_func(string)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00250}00250         info = 1}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00251}00251         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00252}00252 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00253}00253     \textcolor{keywordflow}{if} (workspace \% error\_flag .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00254}00254         string = \textcolor{stringliteral}{"{}ddpcm\_energy: `workspace` is in error state"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00255}00255         \textcolor{keyword}{call }params \% print\_func(string)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00256}00256         info = 1}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00257}00257         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00258}00258 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00259}00259     \textcolor{comment}{! Unwrap sparsely stored potential at cavity points phi\_cav into phi\_grid}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00260}00260     \textcolor{comment}{! and multiply it by characteristic function at cavity points ui}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00261}00261     \textcolor{keyword}{call }ddcav\_to\_grid\_work(params \% ngrid, params \% nsph, constants \% ncav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00262}00262         \& constants \% icav\_ia, constants \% icav\_ja, phi\_cav, phi\_grid)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00263}00263     workspace \% tmp\_cav = phi\_cav * constants \% ui\_cav}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00264}00264     \textcolor{keyword}{call }ddcav\_to\_grid\_work(params \% ngrid, params \% nsph, constants \% ncav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00265}00265         \& constants \% icav\_ia, constants \% icav\_ja, workspace \% tmp\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00266}00266         \& workspace \% tmp\_grid)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00267}00267     \textcolor{comment}{! Integrate against spherical harmonics and Lebedev weights to get Phi}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00268}00268     \textcolor{keyword}{call }ddintegrate\_sph\_work(constants \% nbasis, params \% ngrid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00269}00269         \& params \% nsph, constants \% vwgrid, constants \% vgrid\_nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00270}00270         \& one, workspace \% tmp\_grid, zero, phi)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00271}00271     \textcolor{comment}{! Compute Phi\_infty}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00272}00272     \textcolor{comment}{! force dx called from rinfx to add the diagonal}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00273}00273     \textcolor{keyword}{call }\mbox{\hyperlink{namespaceddx__operators_ad322bb8c91dfbed143be683333be9430}{rinfx}}(params, constants, workspace, phi, phiinf)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00274}00274     \textcolor{comment}{! Select initial guess for the ddPCM system}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00275}00275     \textcolor{keyword}{call }cpu\_time(start\_time)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00276}00276     \textcolor{keywordflow}{if} (params \% itersolver .eq. 1) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00277}00277         \textcolor{keyword}{call }jacobi\_diis(params, constants, workspace, tol, phiinf, phieps, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00278}00278             \& phieps\_niter, phieps\_rel\_diff, \mbox{\hyperlink{namespaceddx__operators_ace05a424bd4e0a226b635723aba4389c}{repsx}}, \mbox{\hyperlink{namespaceddx__operators_a35303800b0d9c1749358f5e90bcbd52f}{prec\_repsx}}, hnorm, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00279}00279     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00280}00280         \textcolor{keyword}{call }gmresr(params, constants, workspace, tol, phiinf, phieps, phieps\_niter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00281}00281             \& r\_norm, \mbox{\hyperlink{namespaceddx__operators_ace05a424bd4e0a226b635723aba4389c}{repsx}}, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00282}00282 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00283}00283     \textcolor{keyword}{call }cpu\_time(finish\_time)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00284}00284     phieps\_time = finish\_time -\/ start\_time}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00285}00285     \textcolor{comment}{! Check if solver did not converge}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00286}00286     \textcolor{keywordflow}{if} (info .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00287}00287         string = \textcolor{stringliteral}{"{}ddpcm\_energy: solver for ddPCM system did not converge"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00288}00288         \textcolor{keyword}{call }params \% print\_func(string)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00289}00289         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00290}00290 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00291}00291     \textcolor{comment}{! Set right hand side to -\/Phi\_epsilon}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00292}00292     workspace \% tmp\_rhs = -\/phieps}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00293}00293     \textcolor{comment}{! Solve ddCOSMO system L X = -\/Phi\_epsilon with a proper initial guess}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00294}00294     info = params \% maxiter}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00295}00295     \textcolor{keyword}{call }cpu\_time(start\_time)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00296}00296     \textcolor{keywordflow}{if} (params \% itersolver .eq. 1) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00297}00297         \textcolor{keyword}{call }jacobi\_diis(params, constants, workspace, tol, workspace \% tmp\_rhs, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00298}00298             \& xs, xs\_niter, xs\_rel\_diff, \mbox{\hyperlink{namespaceddx__operators_ac2a84b8394941ee2bf6d8f3e44127be3}{lx}}, \mbox{\hyperlink{namespaceddx__operators_a73668d47230f4292955012f9910e4ecc}{ldm1x}}, hnorm, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00299}00299     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00300}00300         \textcolor{keyword}{call }gmresr(params, constants, workspace, tol, workspace \% tmp\_rhs, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00301}00301             \& xs, xs\_niter, r\_norm, \mbox{\hyperlink{namespaceddx__operators_ac2a84b8394941ee2bf6d8f3e44127be3}{lx}}, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00302}00302 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00303}00303     \textcolor{keyword}{call }cpu\_time(finish\_time)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00304}00304     xs\_time = finish\_time -\/ start\_time}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00305}00305     \textcolor{comment}{! Check if solver did not converge}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00306}00306     \textcolor{keywordflow}{if} (info .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00307}00307         string = \textcolor{stringliteral}{"{}ddpcm\_energy: solver for ddCOSMO system did not converge"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00308}00308         \textcolor{keyword}{call }params \% print\_func(string)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00309}00309         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00310}00310 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00311}00311     \textcolor{comment}{! Clear status}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00312}00312     info = 0}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00313}00313 \textcolor{keyword}{end subroutine }\mbox{\hyperlink{namespaceddx__pcm_a84e88ac9aa346c593597757cb454e4e1}{ddpcm\_solve\_worker}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00314}00314 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00315}00315 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00326}\mbox{\hyperlink{namespaceddx__pcm_a47661ee5ea74d0c2406624c6ca113683}{00326}} \textcolor{keyword}{subroutine }\mbox{\hyperlink{namespaceddx__pcm_a47661ee5ea74d0c2406624c6ca113683}{ddpcm\_energy\_worker}}(params, constants, workspace, phi\_cav, psi, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00327}00327     \& xs, xs\_niter, xs\_rel\_diff, xs\_time, tol, esolv, phi\_grid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00328}00328     \& phi, phiinf, phieps, phieps\_niter, phieps\_rel\_diff, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00329}00329     \& phieps\_time, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00330}00330     \textcolor{comment}{!! Inputs}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00331}00331     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00332}00332     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00333}00333 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: phi\_cav(constants \% ncav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00334}00334         \& psi(constants \% nbasis, params \% nsph), tol}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00335}00335     \textcolor{comment}{!! Input+output}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00336}00336 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(inout)} :: xs(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00337}00337         \& phieps(constants \% nbasis, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00338}00338     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(inout)} :: xs\_niter, phieps\_niter}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00339}00339     \textcolor{comment}{!! Temporary buffers}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00340}00340     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00341}00341     \textcolor{comment}{!! Outputs}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00342}00342 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: esolv, phi\_grid(params \% ngrid, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00343}00343         \& phi(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00344}00344         \& phiinf(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00345}00345         \& xs\_rel\_diff(xs\_niter), phieps\_rel\_diff(phieps\_niter), xs\_time, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00346}00346         \& phieps\_time}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00347}00347     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(out)} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00348}00348     \textcolor{comment}{!! Local variables}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00349}00349 \textcolor{keywordtype}{    real}(dp) :: start\_time, finish\_time, r\_norm}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00350}00350     \textcolor{keywordtype}{character(len=255)} :: string}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00351}00351 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{external} :: ddot}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00352}00352     \textcolor{comment}{!! The code}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00353}00353     \textcolor{comment}{! At first check if parameters, constants and workspace are correctly}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00354}00354     \textcolor{comment}{! initialized}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00355}00355     \textcolor{keywordflow}{if} (params \% error\_flag .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00356}00356         string = \textcolor{stringliteral}{"{}ddpcm\_energy: `params` is in error state"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00357}00357         \textcolor{keyword}{call }params \% print\_func(string)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00358}00358         info = 1}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00359}00359         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00360}00360 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00361}00361     \textcolor{keywordflow}{if} (constants \% error\_flag .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00362}00362         string = \textcolor{stringliteral}{"{}ddpcm\_energy: `constants` is in error state"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00363}00363         \textcolor{keyword}{call }params \% print\_func(string)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00364}00364         info = 1}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00365}00365         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00366}00366 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00367}00367     \textcolor{keywordflow}{if} (workspace \% error\_flag .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00368}00368         string = \textcolor{stringliteral}{"{}ddpcm\_energy: `workspace` is in error state"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00369}00369         \textcolor{keyword}{call }params \% print\_func(string)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00370}00370         info = 1}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00371}00371         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00372}00372 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00373}00373     \textcolor{comment}{! Unwrap sparsely stored potential at cavity points phi\_cav into phi\_grid}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00374}00374     \textcolor{comment}{! and multiply it by characteristic function at cavity points ui}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00375}00375     \textcolor{keyword}{call }ddcav\_to\_grid\_work(params \% ngrid, params \% nsph, constants \% ncav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00376}00376         \& constants \% icav\_ia, constants \% icav\_ja, phi\_cav, phi\_grid)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00377}00377     workspace \% tmp\_cav = phi\_cav * constants \% ui\_cav}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00378}00378     \textcolor{keyword}{call }ddcav\_to\_grid\_work(params \% ngrid, params \% nsph, constants \% ncav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00379}00379         \& constants \% icav\_ia, constants \% icav\_ja, workspace \% tmp\_cav, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00380}00380         \& workspace \% tmp\_grid)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00381}00381     \textcolor{comment}{! Integrate against spherical harmonics and Lebedev weights to get Phi}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00382}00382     \textcolor{keyword}{call }ddintegrate(params \% nsph, constants \% nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00383}00383         \& params \% ngrid, constants \% vwgrid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00384}00384         \& constants \% vgrid\_nbasis, workspace \% tmp\_grid, phi)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00385}00385 \textcolor{comment}{!   call ddintegrate\_sph\_work(constants \% nbasis, params \% ngrid, \&}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00386}00386 \textcolor{comment}{!       \& params \% nsph, constants \% vwgrid, constants \% vgrid\_nbasis, \&}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00387}00387 \textcolor{comment}{!       \& one, workspace \% tmp\_grid, zero, phi)}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00388}00388     \textcolor{comment}{! Compute Phi\_infty}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00389}00389     \textcolor{comment}{! force dx called from rinfx to add the diagonal}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00390}00390     \textcolor{keyword}{call }\mbox{\hyperlink{namespaceddx__operators_ad322bb8c91dfbed143be683333be9430}{rinfx}}(params, constants, workspace, phi, phiinf)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00391}00391     \textcolor{comment}{! Select initial guess for the ddPCM system}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00392}00392     start\_time = omp\_get\_wtime()}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00393}00393     \textcolor{keywordflow}{if} (params \% itersolver .eq. 1) \textcolor{keywordflow}{then} }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00394}00394         \textcolor{keyword}{call }jacobi\_diis(params, constants, workspace, tol, phiinf, phieps, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00395}00395             \& phieps\_niter, phieps\_rel\_diff, \mbox{\hyperlink{namespaceddx__operators_ace05a424bd4e0a226b635723aba4389c}{repsx}}, \mbox{\hyperlink{namespaceddx__operators_a35303800b0d9c1749358f5e90bcbd52f}{prec\_repsx}}, hnorm, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00396}00396     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00397}00397         \textcolor{keyword}{call }gmresr(params, constants, workspace, tol, phiinf, phieps, phieps\_niter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00398}00398             \& r\_norm, \mbox{\hyperlink{namespaceddx__operators_ace05a424bd4e0a226b635723aba4389c}{repsx}}, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00399}00399 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00400}00400     finish\_time = omp\_get\_wtime()}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00401}00401     phieps\_time = finish\_time -\/ start\_time}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00402}00402     \textcolor{comment}{! Check if solver did not converge}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00403}00403     \textcolor{keywordflow}{if} (info .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00404}00404         string = \textcolor{stringliteral}{"{}ddpcm\_energy: solver for ddPCM system did not converge"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00405}00405         \textcolor{keyword}{call }params \% print\_func(string)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00406}00406         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00407}00407 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00408}00408     \textcolor{comment}{! Set right hand side to -\/Phi\_epsilon}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00409}00409     workspace \% tmp\_rhs = -\/phieps}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00410}00410     \textcolor{comment}{! Solve ddCOSMO system L X = -\/Phi\_epsilon with a proper initial guess}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00411}00411     info = params \% maxiter}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00412}00412     start\_time = omp\_get\_wtime()}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00413}00413     \textcolor{keywordflow}{if} (params \% itersolver .eq. 1) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00414}00414         \textcolor{keyword}{call }jacobi\_diis(params, constants, workspace, tol, workspace \% tmp\_rhs, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00415}00415             \& xs, xs\_niter, xs\_rel\_diff, \mbox{\hyperlink{namespaceddx__operators_ac2a84b8394941ee2bf6d8f3e44127be3}{lx}}, \mbox{\hyperlink{namespaceddx__operators_a73668d47230f4292955012f9910e4ecc}{ldm1x}}, hnorm, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00416}00416     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00417}00417         \textcolor{keyword}{call }gmresr(params, constants, workspace, tol, workspace \% tmp\_rhs, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00418}00418             \& xs, xs\_niter, r\_norm, \mbox{\hyperlink{namespaceddx__operators_ac2a84b8394941ee2bf6d8f3e44127be3}{lx}}, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00419}00419 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00420}00420     finish\_time = omp\_get\_wtime()}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00421}00421     xs\_time = finish\_time -\/ start\_time}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00422}00422     \textcolor{comment}{! Check if solver did not converge}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00423}00423     \textcolor{keywordflow}{if} (info .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00424}00424         string = \textcolor{stringliteral}{"{}ddpcm\_energy: solver for ddCOSMO system did not converge"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00425}00425         \textcolor{keyword}{call }params \% print\_func(string)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00426}00426         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00427}00427 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00428}00428     \textcolor{comment}{! Solvation energy is computed}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00429}00429     esolv = pt5*ddot(constants \% n, xs, 1, psi, 1)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00430}00430     \textcolor{comment}{! Clear status}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00431}00431     info = 0}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00432}00432 \textcolor{keyword}{end subroutine }\mbox{\hyperlink{namespaceddx__pcm_a47661ee5ea74d0c2406624c6ca113683}{ddpcm\_energy\_worker}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00433}00433 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00434}00434 \textcolor{keyword}{subroutine }ddpcm\_adjoint\_worker(params, constants, workspace, psi, tol, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00435}00435     \& s, s\_niter, s\_rel\_diff, s\_time, y, y\_niter, y\_rel\_diff, y\_time, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00436}00436     \textcolor{comment}{!! Inputs}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00437}00437     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00438}00438     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00439}00439 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: psi(constants \% nbasis, params \% nsph), tol}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00440}00440     \textcolor{comment}{!! Input+output}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00441}00441 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(inout)} :: s(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00442}00442         \& y(constants \% nbasis, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00443}00443     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(inout)} :: s\_niter, y\_niter}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00444}00444     \textcolor{comment}{!! Temporary buffers}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00445}00445     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00446}00446     \textcolor{comment}{!! Outputs}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00447}00447 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: s\_rel\_diff(s\_niter), y\_rel\_diff(y\_niter), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00448}00448         \& s\_time, y\_time}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00449}00449     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(out)} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00450}00450     \textcolor{comment}{!! Local variables}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00451}00451 \textcolor{keywordtype}{    real}(dp) :: start\_time, finish\_time, r\_norm}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00452}00452     \textcolor{keywordtype}{character(len=255)} :: string}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00453}00453     \textcolor{comment}{! Solve the adjoint ddCOSMO system}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00454}00454     start\_time = omp\_get\_wtime()}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00455}00455     \textcolor{keywordflow}{if} (params \% itersolver .eq. 1) \textcolor{keywordflow}{then} }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00456}00456         \textcolor{keyword}{call }jacobi\_diis(params, constants, workspace, tol, psi, s, s\_niter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00457}00457             \& s\_rel\_diff, \mbox{\hyperlink{namespaceddx__operators_a6f210175b888b158774e507e0d603b52}{lstarx}}, \mbox{\hyperlink{namespaceddx__operators_a73668d47230f4292955012f9910e4ecc}{ldm1x}}, hnorm, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00458}00458     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00459}00459         \textcolor{keyword}{call }gmresr(params, constants, workspace, tol, psi, s, s\_niter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00460}00460             \& r\_norm, \mbox{\hyperlink{namespaceddx__operators_a6f210175b888b158774e507e0d603b52}{lstarx}}, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00461}00461 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00462}00462     finish\_time = omp\_get\_wtime()}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00463}00463     s\_time = finish\_time -\/ start\_time}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00464}00464     \textcolor{comment}{! Check if solver did not converge}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00465}00465     \textcolor{keywordflow}{if} (info .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00466}00466         string = \textcolor{stringliteral}{"{}ddpcm\_energy: solver for adjoint ddCOSMO system did not "{}} \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00467}00467             \& // \textcolor{stringliteral}{"{}converge"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00468}00468         \textcolor{keyword}{call }params \% print\_func(string)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00469}00469         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00470}00470 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00471}00471     \textcolor{comment}{! Solve adjoint ddPCM system}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00472}00472     start\_time = omp\_get\_wtime()}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00473}00473     \textcolor{keywordflow}{if} (params \% itersolver .eq. 1) \textcolor{keywordflow}{then} }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00474}00474         \textcolor{keyword}{call }jacobi\_diis(params, constants, workspace, tol, s, y, y\_niter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00475}00475             \& y\_rel\_diff, \mbox{\hyperlink{namespaceddx__operators_a0670b7a7bd830dd57ee0dc2dbcb80b1a}{repsstarx}}, \mbox{\hyperlink{namespaceddx__operators_a682ecf4161b6846177c71db55924c586}{prec\_repsstarx}}, hnorm, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00476}00476     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00477}00477         \textcolor{keyword}{call }gmresr(params, constants, workspace, tol, s, y, y\_niter, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00478}00478             \& r\_norm, \mbox{\hyperlink{namespaceddx__operators_a0670b7a7bd830dd57ee0dc2dbcb80b1a}{repsstarx}}, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00479}00479 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00480}00480     finish\_time = omp\_get\_wtime()}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00481}00481     y\_time = finish\_time -\/ start\_time}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00482}00482     \textcolor{comment}{! Check if solver did not converge}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00483}00483     \textcolor{keywordflow}{if} (info .ne. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00484}00484         string = \textcolor{stringliteral}{"{}ddpcm\_energy: solver for adjoint ddPCM system did not "{}} \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00485}00485             \& // \textcolor{stringliteral}{"{}converge"{}}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00486}00486         \textcolor{keyword}{call }params \% print\_func(string)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00487}00487         \textcolor{keywordflow}{return}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00488}00488 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00489}00489     \textcolor{comment}{! Clear status}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00490}00490     info = 0}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00491}00491 \textcolor{keyword}{end subroutine }ddpcm\_adjoint\_worker}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00492}00492 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00493}00493 \textcolor{keyword}{subroutine }ddpcm\_forces\_worker(params, constants, workspace, phi\_grid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00494}00494     \& gradphi\_cav, psi, phi, phieps, s, sgrid, y, ygrid, g, q, qgrid, xs, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00495}00495     \& zeta, force, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00496}00496     \textcolor{comment}{!! Inputs}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00497}00497     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00498}00498     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00499}00499 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: phi\_grid(params \% ngrid, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00500}00500         \& gradphi\_cav(3, constants \% ncav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00501}00501         \& psi(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00502}00502         \& phi(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00503}00503         \& phieps(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00504}00504         \& s(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00505}00505         \& y(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00506}00506         \& xs(constants \% nbasis, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00507}00507     \textcolor{comment}{!! Temporary buffers}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00508}00508     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00509}00509     \textcolor{comment}{!! Outputs}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00510}00510 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: sgrid(params \% ngrid, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00511}00511         \& ygrid(params \% ngrid, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00512}00512         \& g(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00513}00513         \& q(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00514}00514         \& qgrid(params \% ngrid, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00515}00515         \& zeta(constants \% ncav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00516}00516         \& force(3, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00517}00517     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(out)} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00518}00518     \textcolor{comment}{!! Local variables}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00519}00519     \textcolor{keywordtype}{integer} :: isph, icav, igrid, inode, jnode, jsph, jnear}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00520}00520 \textcolor{keywordtype}{    real}(dp) :: tmp1, tmp2, d(3), dnorm}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00521}00521 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{external} :: ddot, dnrm2}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00522}00522     \textcolor{comment}{!! The code}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00523}00523     \textcolor{comment}{! Get grid values of S and Y}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00524}00524     \textcolor{keyword}{call }dgemm(\textcolor{stringliteral}{'T'}, \textcolor{stringliteral}{'N'}, params \% ngrid, params \% nsph, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00525}00525         \& constants \% nbasis, one, constants \% vgrid, constants \% vgrid\_nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00526}00526         \& s, constants \% nbasis, zero, sgrid, params \% ngrid)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00527}00527     \textcolor{keyword}{call }dgemm(\textcolor{stringliteral}{'T'}, \textcolor{stringliteral}{'N'}, params \% ngrid, params \% nsph, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00528}00528         \& constants \% nbasis, one, constants \% vgrid, constants \% vgrid\_nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00529}00529         \& y, constants \% nbasis, zero, ygrid, params \% ngrid)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00530}00530     g = phieps -\/ phi}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00531}00531     q = s -\/ fourpi/(params \% eps-\/one)*y}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00532}00532     qgrid = sgrid -\/ fourpi/(params \% eps-\/one)*ygrid}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00533}00533     \textcolor{comment}{! gradr initializes forces with zeros}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00534}00534     \textcolor{keyword}{call }gradr(params, constants, workspace, g, ygrid, force)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00535}00535     \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00536}00536         \textcolor{keyword}{call }contract\_grad\_l(params, constants, isph, xs, sgrid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00537}00537             \& workspace \% tmp\_vylm(:, 1), workspace \% tmp\_vdylm(:, :, 1), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00538}00538             \& workspace \% tmp\_vplm(:, 1), workspace \% tmp\_vcos(:, 1), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00539}00539             \& workspace \% tmp\_vsin(:, 1), force(:, isph))}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00540}00540         \textcolor{keyword}{call }contract\_grad\_u(params, constants, isph, qgrid, phi\_grid, force(:, isph))}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00541}00541 \textcolor{keywordflow}{    end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00542}00542     force = -\/pt5 * force}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00543}00543     icav = 0}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00544}00544     \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00545}00545         \textcolor{keywordflow}{do} igrid = 1, params \% ngrid}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00546}00546             \textcolor{keywordflow}{if}(constants \% ui(igrid, isph) .ne. zero) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00547}00547                 icav = icav + 1}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00548}00548                 zeta(icav) = constants \% wgrid(igrid) * \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00549}00549                     \& constants \% ui(igrid, isph) * ddot(constants \% nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00550}00550                     \& constants \% vgrid(1, igrid), 1, q(1, isph), 1)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00551}00551                 force(:, isph) = force(:, isph) \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00552}00552                     \& -\/ pt5*zeta(icav)*gradphi\_cav(:, icav)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00553}00553 \textcolor{keywordflow}{            end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00554}00554 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00555}00555 \textcolor{keywordflow}{    end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00556}00556     \textcolor{comment}{!! Last term where we compute gradients of potential at centers of atoms}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00557}00557     \textcolor{comment}{!! spawned by intermediate zeta.}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00558}00558     \textcolor{keywordflow}{if}(params \% fmm .eq. 1) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00559}00559         \textcolor{comment}{!! This step can be substituted by a proper dgemm if zeta}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00560}00560         \textcolor{comment}{!! intermediate is converted from cavity points to all grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00561}00561         \textcolor{comment}{!! with zero values at internal grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00562}00562         \textcolor{comment}{! P2M step}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00563}00563         icav = 0}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00564}00564         \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00565}00565             inode = constants \% snode(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00566}00566             workspace \% tmp\_node\_m(:, inode) = zero}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00567}00567             \textcolor{keywordflow}{do} igrid = 1, params \% ngrid}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00568}00568                 \textcolor{keywordflow}{if}(constants \% ui(igrid, isph) .eq. zero) cycle}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00569}00569                 icav = icav + 1}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00570}00570                 \textcolor{keyword}{call }fmm\_p2m(constants \% cgrid(:, igrid), zeta(icav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00571}00571                     \& one, params \% pm, constants \% vscales, one, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00572}00572                     \& workspace \% tmp\_node\_m(:, inode))}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00573}00573 \textcolor{keywordflow}{            end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00574}00574             workspace \% tmp\_node\_m(:, inode) = workspace \% tmp\_node\_m(:, inode) / \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00575}00575                 \& params \% rsph(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00576}00576 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00577}00577         \textcolor{comment}{! M2M, M2L and L2L translations}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00578}00578         \textcolor{keyword}{call }tree\_m2m\_rotation(params, constants, workspace \% tmp\_node\_m)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00579}00579         \textcolor{keyword}{call }tree\_m2l\_rotation(params, constants, workspace \% tmp\_node\_m, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00580}00580             \& workspace \% tmp\_node\_l)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00581}00581         \textcolor{keyword}{call }tree\_l2l\_rotation(params, constants, workspace \% tmp\_node\_l)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00582}00582         \textcolor{comment}{! Now compute near-\/field FMM gradients}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00583}00583         \textcolor{comment}{! Cycle over all spheres}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00584}00584         icav = 0}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00585}00585         workspace \% tmp\_efld = zero}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00586}00586         \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00587}00587             \textcolor{comment}{! Cycle over all external grid points}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00588}00588             \textcolor{keywordflow}{do} igrid = 1, params \% ngrid}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00589}00589                 \textcolor{keywordflow}{if}(constants \% ui(igrid, isph) .eq. zero) cycle}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00590}00590                 icav = icav + 1}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00591}00591                 \textcolor{comment}{! Cycle over all near-\/field admissible pairs of spheres,}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00592}00592                 \textcolor{comment}{! including pair (isph, isph) which is a self-\/interaction}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00593}00593                 inode = constants \% snode(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00594}00594                 \textcolor{keywordflow}{do} jnear = constants \% snear(inode), constants \% snear(inode+1)-\/1}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00595}00595                     \textcolor{comment}{! Near-\/field interactions are possible only between leaf}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00596}00596                     \textcolor{comment}{! nodes, which must contain only a single input sphere}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00597}00597                     jnode = constants \% near(jnear)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00598}00598                     jsph = constants \% order(constants \% cluster(1, jnode))}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00599}00599                     d = params \% csph(:, isph) + \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00600}00600                         \& constants \% cgrid(:, igrid)*params \% rsph(isph) -\/ \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00601}00601                         \& params \% csph(:, jsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00602}00602                     dnorm = dnrm2(3, d, 1)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00603}00603                     workspace \% tmp\_efld(:, jsph) = workspace \% tmp\_efld(:, jsph) + \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00604}00604                         \& zeta(icav)*d/(dnorm**3)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00605}00605 \textcolor{keywordflow}{                end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00606}00606 \textcolor{keywordflow}{            end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00607}00607 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00608}00608         \textcolor{comment}{! Take into account far-\/field FMM gradients only if pl > 0}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00609}00609         \textcolor{keywordflow}{if} (params \% pl .gt. 0) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00610}00610             tmp1 = one / sqrt(3d0) / constants \% vscales(1)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00611}00611             \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00612}00612                 inode = constants \% snode(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00613}00613                 tmp2 = tmp1 / params \% rsph(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00614}00614                 workspace \% tmp\_efld(3, isph) = workspace \% tmp\_efld(3, isph) + \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00615}00615                     \& tmp2*workspace \% tmp\_node\_l(3, inode)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00616}00616                 workspace \% tmp\_efld(1, isph) = workspace \% tmp\_efld(1, isph) + \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00617}00617                     \& tmp2*workspace \% tmp\_node\_l(4, inode)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00618}00618                 workspace \% tmp\_efld(2, isph) = workspace \% tmp\_efld(2, isph) + \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00619}00619                     \& tmp2*workspace \% tmp\_node\_l(2, inode)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00620}00620 \textcolor{keywordflow}{            end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00621}00621 \textcolor{keywordflow}{        end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00622}00622         \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00623}00623             force(:, isph) = force(:, isph) \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00624}00624                 \& -\/ pt5*workspace \% tmp\_efld(:, isph)*params \% charge(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00625}00625 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00626}00626     \textcolor{comment}{! Naive quadratically scaling implementation}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00627}00627     \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00628}00628         \textcolor{comment}{! This routines actually computes -\/grad, not grad}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00629}00629         \textcolor{keyword}{call }efld(constants \% ncav, zeta, constants \% ccav, params \% nsph, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00630}00630             \& params \% csph, workspace \% tmp\_efld)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00631}00631         \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00632}00632             force(:, isph) = force(:, isph) \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00633}00633                 \& + pt5*workspace \% tmp\_efld(:, isph)*params \% charge(isph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00634}00634 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00635}00635 \textcolor{keywordflow}{    end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00636}00636     \textcolor{comment}{! Clear status}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00637}00637     info = 0}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00638}00638 \textcolor{keyword}{end subroutine }ddpcm\_forces\_worker}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00639}00639 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00640}00640 \textcolor{keyword}{subroutine }ddpcm\_geom\_forces\_worker(params, constants, workspace, phi\_grid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00641}00641     \& gradphi\_cav, psi, phi, phieps, s, sgrid, y, ygrid, g, q, qgrid, xs, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00642}00642     \& zeta, force, info)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00643}00643     \textcolor{comment}{!! Inputs}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00644}00644     \textcolor{keywordtype}{type}(ddx\_params\_type), \textcolor{keywordtype}{intent(in)} :: params}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00645}00645     \textcolor{keywordtype}{type}(ddx\_constants\_type), \textcolor{keywordtype}{intent(in)} :: constants}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00646}00646 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(in)} :: phi\_grid(params \% ngrid, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00647}00647         \& gradphi\_cav(3, constants \% ncav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00648}00648         \& psi(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00649}00649         \& phi(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00650}00650         \& phieps(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00651}00651         \& s(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00652}00652         \& y(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00653}00653         \& xs(constants \% nbasis, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00654}00654     \textcolor{comment}{!! Temporary buffers}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00655}00655     \textcolor{keywordtype}{type}(ddx\_workspace\_type), \textcolor{keywordtype}{intent(inout)} :: workspace}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00656}00656     \textcolor{comment}{!! Outputs}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00657}00657 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{intent(out)} :: sgrid(params \% ngrid, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00658}00658         \& ygrid(params \% ngrid, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00659}00659         \& g(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00660}00660         \& q(constants \% nbasis, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00661}00661         \& qgrid(params \% ngrid, params \% nsph), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00662}00662         \& zeta(constants \% ncav), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00663}00663         \& force(3, params \% nsph)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00664}00664     \textcolor{keywordtype}{integer}, \textcolor{keywordtype}{intent(out)} :: info}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00665}00665     \textcolor{comment}{!! Local variables}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00666}00666     \textcolor{keywordtype}{integer} :: isph, icav, igrid, inode, jnode, jsph, jnear}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00667}00667 \textcolor{keywordtype}{    real}(dp) :: tmp1, tmp2, d(3), dnorm}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00668}00668 \textcolor{keywordtype}{    real}(dp), \textcolor{keywordtype}{external} :: ddot, dnrm2}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00669}00669     \textcolor{comment}{!! The code}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00670}00670     \textcolor{comment}{! Get grid values of S and Y}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00671}00671     \textcolor{keyword}{call }dgemm(\textcolor{stringliteral}{'T'}, \textcolor{stringliteral}{'N'}, params \% ngrid, params \% nsph, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00672}00672         \& constants \% nbasis, one, constants \% vgrid, constants \% vgrid\_nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00673}00673         \& s, constants \% nbasis, zero, sgrid, params \% ngrid)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00674}00674     \textcolor{keyword}{call }dgemm(\textcolor{stringliteral}{'T'}, \textcolor{stringliteral}{'N'}, params \% ngrid, params \% nsph, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00675}00675         \& constants \% nbasis, one, constants \% vgrid, constants \% vgrid\_nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00676}00676         \& y, constants \% nbasis, zero, ygrid, params \% ngrid)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00677}00677     g = phieps -\/ phi}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00678}00678     q = s -\/ fourpi/(params \% eps-\/one)*y}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00679}00679     qgrid = sgrid -\/ fourpi/(params \% eps-\/one)*ygrid}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00680}00680     \textcolor{comment}{! gradr initializes forces with zeros}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00681}00681     \textcolor{keyword}{call }gradr(params, constants, workspace, g, ygrid, force)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00682}00682     \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00683}00683         \textcolor{keyword}{call }contract\_grad\_l(params, constants, isph, xs, sgrid, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00684}00684             \& workspace \% tmp\_vylm(:, 1), workspace \% tmp\_vdylm(:, :, 1), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00685}00685             \& workspace \% tmp\_vplm(:, 1), workspace \% tmp\_vcos(:, 1), \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00686}00686             \& workspace \% tmp\_vsin(:, 1), force(:, isph))}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00687}00687         \textcolor{keyword}{call }contract\_grad\_u(params, constants, isph, qgrid, phi\_grid, force(:, isph))}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00688}00688 \textcolor{keywordflow}{    end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00689}00689     force = -\/pt5 * force}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00690}00690 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00691}00691     icav = 0}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00692}00692     \textcolor{keywordflow}{do} isph = 1, params \% nsph}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00693}00693         \textcolor{keywordflow}{do} igrid = 1, params \% ngrid}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00694}00694             \textcolor{keywordflow}{if}(constants \% ui(igrid, isph) .ne. zero) \textcolor{keywordflow}{then}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00695}00695                 icav = icav + 1}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00696}00696                 zeta(icav) = constants \% wgrid(igrid) * \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00697}00697                     \& constants \% ui(igrid, isph) * ddot(constants \% nbasis, \&}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00698}00698                     \& constants \% vgrid(1, igrid), 1, q(1, isph), 1)}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00699}00699 \textcolor{keywordflow}{            end if}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00700}00700 \textcolor{keywordflow}{        end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00701}00701 \textcolor{keywordflow}{    end do}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00702}00702     \textcolor{comment}{! Clear status}}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00703}00703     info = 0}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00704}00704 \textcolor{keyword}{end subroutine }ddpcm\_geom\_forces\_worker}
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00705}00705 }
+\DoxyCodeLine{\Hypertarget{ddx__pcm_8f90_source_l00706}00706 \textcolor{keyword}{end module }\mbox{\hyperlink{namespaceddx__pcm}{ddx\_pcm}}}
+
+\end{DoxyCode}

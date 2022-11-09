@@ -1,0 +1,588 @@
+\hypertarget{structddx__core_1_1ddx__state__type}{}\doxysection{ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type Type Reference}
+\label{structddx__core_1_1ddx__state__type}\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+real(dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_aee7846568db8bab39129c9cb946ddd2e}{phi}}
+\begin{DoxyCompactList}\small\item\em Variable $ \Phi $ of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a08d23dc0eceb14dcb6f623871c208529}{xs}}
+\begin{DoxyCompactList}\small\item\em Solution of the dd\+COSMO system of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. \end{DoxyCompactList}\item 
+integer \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a8180c3d20b4cb8effeb4f8b65f170445}{xs\+\_\+niter}}
+\begin{DoxyCompactList}\small\item\em Number of iteration to solve dd\+COSMO system. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_adb77809d89986f4c02824d297fd966d7}{xs\+\_\+rel\+\_\+diff}}
+\begin{DoxyCompactList}\small\item\em Relative error of each step of iterative solver for dd\+COSMO system. Dimension is (maxiter). \end{DoxyCompactList}\item 
+real(dp) \mbox{\hyperlink{structddx__core_1_1ddx__state__type_afea532fb7fd4160a2984ce1aca68934b}{xs\+\_\+time}}
+\begin{DoxyCompactList}\small\item\em Time to solve primal dd\+COSMO system. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a3f54780b6bbb34070a8f38c83b742254}{sgrid}}
+\begin{DoxyCompactList}\small\item\em Values of s at grid points. Dimension is (ngrid, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a83850fd12c4c5b915a9226afa3d90e17}{phiinf}}
+\begin{DoxyCompactList}\small\item\em Variable $ \Phi_\infty $ of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a85a9a635519db969914d9b977f2bf3b1}{phieps}}
+\begin{DoxyCompactList}\small\item\em Variable $ \Phi_\varepsilon $ of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. \end{DoxyCompactList}\item 
+integer \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a85b122812d525480a3f97c1891087441}{phieps\+\_\+niter}}
+\begin{DoxyCompactList}\small\item\em Number of iteration to solve dd\+PCM system. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a4dfbeb29f87cf4040d8633b0b1c54e33}{phieps\+\_\+rel\+\_\+diff}}
+\begin{DoxyCompactList}\small\item\em Relative error of each step of iterative solver for dd\+PCM system. Dimension is (maxiter). \end{DoxyCompactList}\item 
+real(dp) \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a987b38d818104cabc9f7f3ba301b5235}{phieps\+\_\+time}}
+\begin{DoxyCompactList}\small\item\em Time to solve primal dd\+PCM system. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a80d564db3f80ca02474529f94a7fb858}{g}}
+\begin{DoxyCompactList}\small\item\em Shortcut of $ \Phi_\varepsilon - \Phi $. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_ab5570afac25a88ebd483149e1ac2dc66}{s}}
+\begin{DoxyCompactList}\small\item\em Solution of the adjoint dd\+COSMO system of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. \end{DoxyCompactList}\item 
+integer \mbox{\hyperlink{structddx__core_1_1ddx__state__type_ae8b26ac0e03b0dd5fb4c5013723d982c}{s\+\_\+niter}}
+\begin{DoxyCompactList}\small\item\em Number of iteration to solve adoint dd\+COSMO system. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a3ff8561962833ab28dcf5fdac281d9f7}{s\+\_\+rel\+\_\+diff}}
+\begin{DoxyCompactList}\small\item\em Relative error of each step of iterative solver for adjoint dd\+COSMO system. Dimension is (maxiter). \end{DoxyCompactList}\item 
+real(dp) \mbox{\hyperlink{structddx__core_1_1ddx__state__type_abe53093bb83bd41277e53848474610a8}{s\+\_\+time}}
+\begin{DoxyCompactList}\small\item\em Time to solve adjoint dd\+COSMO system. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a289b95040949952de1e86111f440a838}{y}}
+\begin{DoxyCompactList}\small\item\em Solution of the adjoint dd\+PCM system of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. \end{DoxyCompactList}\item 
+integer \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a0905754357c8025076591272cd88812f}{y\+\_\+niter}}
+\begin{DoxyCompactList}\small\item\em Number of iteration to solve adjoint dd\+PCM system. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_ac5a1f3314992f8aef6fcfe45abbb2f24}{y\+\_\+rel\+\_\+diff}}
+\begin{DoxyCompactList}\small\item\em Relative error of each step of iterative solver for adjoint dd\+PCM system. Dimension is (maxiter). \end{DoxyCompactList}\item 
+real(dp) \mbox{\hyperlink{structddx__core_1_1ddx__state__type_ae7761162d404940bf9695d8d57124d58}{y\+\_\+time}}
+\begin{DoxyCompactList}\small\item\em Time to solve adjoint dd\+PCM system. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_ac7c4e2212dc6d7d677d3612cad389c8f}{ygrid}}
+\begin{DoxyCompactList}\small\item\em Values of y at grid points. Dimension is (ngrid, nsph). Allocated and used only by PCM (model=2) model. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_ad1757dc3ef7f36af7e1767c2ae827bfd}{q}}
+\begin{DoxyCompactList}\small\item\em s-\/4pi/(eps-\/1)y of dimension (nbasis, nsph) \end{DoxyCompactList}\item 
+real(dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a66ba3c75158728fff99a9ea26b0e0d7b}{qgrid}}
+\begin{DoxyCompactList}\small\item\em Values of q at grid points. Dimension is (ngrid, nsph) \end{DoxyCompactList}\item 
+real(dp), dimension(\+:,\+:,\+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_aa87796b2be1f31aa84b0c4a9e914c7c5}{x\+\_\+lpb}}
+\begin{DoxyCompactList}\small\item\em Solution to the dd\+LPB linear system. Dimension is (nbasis,nsph,2). Allocated and used only by LPB (model=3) model. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:,\+:,\+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a20bca950fa436fd0eecc5064250572ea}{x\+\_\+adj\+\_\+lpb}}
+\begin{DoxyCompactList}\small\item\em Solution to the dd\+LPB ajoint system. Dimension is (nbasis,nsph,2). Allocated and used only by LPB (model=3) model. \end{DoxyCompactList}\item 
+real(dp), dimension(\+:,\+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_aae8bae38bfaba096f11adebb60e4ee14}{g\+\_\+lpb}}
+\begin{DoxyCompactList}\small\item\em g intermediate for dd\+LPB. Dimension in (ngrid,nsph). Allocated and used only by LPB (model=3) model \end{DoxyCompactList}\item 
+real(dp), dimension(\+:,\+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_ae88a2a0537d509eec93de2f47f0ae49e}{f\+\_\+lpb}}
+\begin{DoxyCompactList}\small\item\em d intermediate for dd\+LPB. Dimension in (ngrid,nsph). Allocated and used only by LPB (model=3) model \end{DoxyCompactList}\item 
+integer \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a64d3459b5ccca296a0b8faad0f67bb36}{x\+\_\+lpb\+\_\+niter}}
+\item 
+integer \mbox{\hyperlink{structddx__core_1_1ddx__state__type_aef5945ddebad01b238bf8afdbe3209e4}{x\+\_\+adj\+\_\+lpb\+\_\+niter}}
+\item 
+real(dp) \mbox{\hyperlink{structddx__core_1_1ddx__state__type_af2ea4dfbd78d6a36d59ee5170363c529}{x\+\_\+lpb\+\_\+time}}
+\item 
+real(dp) \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a8a69492e0195fe9f56d681f8b72b2056}{x\+\_\+adj\+\_\+lpb\+\_\+time}}
+\item 
+real(dp), dimension(\+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_aaa3c249bd7e7820e3f3b9bbf36333ed6}{x\+\_\+lpb\+\_\+rel\+\_\+diff}}
+\item 
+real(dp), dimension(\+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_af51f9714898918d4824a8158e4c4b67b}{x\+\_\+adj\+\_\+lpb\+\_\+rel\+\_\+diff}}
+\item 
+real(dp), dimension(\+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a6d25ed184b0365b44a597556edec3b49}{zeta}}
+\begin{DoxyCompactList}\small\item\em Zeta intermediate for forces. Dimension is (ncav) \end{DoxyCompactList}\item 
+real(dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a903ec491e30ffa2a5a4012bac9641900}{phi\+\_\+grid}}
+\begin{DoxyCompactList}\small\item\em Potential at all grid points. Dimension is (ngrid, nsph). Allocated and used by all models. \end{DoxyCompactList}\item 
+integer \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a0b1492447f2bef9ff3b132f68f8d67cc}{error\+\_\+flag}}
+\begin{DoxyCompactList}\small\item\em Flag if there were an error. \end{DoxyCompactList}\item 
+character(len=255) \mbox{\hyperlink{structddx__core_1_1ddx__state__type_a56c8add2d008d542df338eb2e7c5c890}{error\+\_\+message}}
+\begin{DoxyCompactList}\small\item\em Last error message. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00026}{26}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_aee7846568db8bab39129c9cb946ddd2e}\label{structddx__core_1_1ddx__state__type_aee7846568db8bab39129c9cb946ddd2e}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!phi@{phi}}
+\index{phi@{phi}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{phi}{phi}}
+{\footnotesize\ttfamily real(dp), dimension(\+:, \+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::phi}
+
+
+
+Variable $ \Phi $ of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00034}{34}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a08d23dc0eceb14dcb6f623871c208529}\label{structddx__core_1_1ddx__state__type_a08d23dc0eceb14dcb6f623871c208529}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!xs@{xs}}
+\index{xs@{xs}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{xs}{xs}}
+{\footnotesize\ttfamily real(dp), dimension(\+:, \+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::xs}
+
+
+
+Solution of the dd\+COSMO system of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00037}{37}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a8180c3d20b4cb8effeb4f8b65f170445}\label{structddx__core_1_1ddx__state__type_a8180c3d20b4cb8effeb4f8b65f170445}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!xs\_niter@{xs\_niter}}
+\index{xs\_niter@{xs\_niter}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{xs\_niter}{xs\_niter}}
+{\footnotesize\ttfamily integer ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::xs\+\_\+niter}
+
+
+
+Number of iteration to solve dd\+COSMO system. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00040}{40}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_adb77809d89986f4c02824d297fd966d7}\label{structddx__core_1_1ddx__state__type_adb77809d89986f4c02824d297fd966d7}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!xs\_rel\_diff@{xs\_rel\_diff}}
+\index{xs\_rel\_diff@{xs\_rel\_diff}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{xs\_rel\_diff}{xs\_rel\_diff}}
+{\footnotesize\ttfamily real(dp), dimension(\+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::xs\+\_\+rel\+\_\+diff}
+
+
+
+Relative error of each step of iterative solver for dd\+COSMO system. Dimension is (maxiter). 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00043}{43}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_afea532fb7fd4160a2984ce1aca68934b}\label{structddx__core_1_1ddx__state__type_afea532fb7fd4160a2984ce1aca68934b}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!xs\_time@{xs\_time}}
+\index{xs\_time@{xs\_time}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{xs\_time}{xs\_time}}
+{\footnotesize\ttfamily real(dp) ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::xs\+\_\+time}
+
+
+
+Time to solve primal dd\+COSMO system. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00045}{45}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a3f54780b6bbb34070a8f38c83b742254}\label{structddx__core_1_1ddx__state__type_a3f54780b6bbb34070a8f38c83b742254}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!sgrid@{sgrid}}
+\index{sgrid@{sgrid}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{sgrid}{sgrid}}
+{\footnotesize\ttfamily real(dp), dimension(\+:, \+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::sgrid}
+
+
+
+Values of s at grid points. Dimension is (ngrid, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00048}{48}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a83850fd12c4c5b915a9226afa3d90e17}\label{structddx__core_1_1ddx__state__type_a83850fd12c4c5b915a9226afa3d90e17}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!phiinf@{phiinf}}
+\index{phiinf@{phiinf}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{phiinf}{phiinf}}
+{\footnotesize\ttfamily real(dp), dimension(\+:, \+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::phiinf}
+
+
+
+Variable $ \Phi_\infty $ of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00055}{55}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a85a9a635519db969914d9b977f2bf3b1}\label{structddx__core_1_1ddx__state__type_a85a9a635519db969914d9b977f2bf3b1}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!phieps@{phieps}}
+\index{phieps@{phieps}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{phieps}{phieps}}
+{\footnotesize\ttfamily real(dp), dimension(\+:, \+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::phieps}
+
+
+
+Variable $ \Phi_\varepsilon $ of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00058}{58}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a85b122812d525480a3f97c1891087441}\label{structddx__core_1_1ddx__state__type_a85b122812d525480a3f97c1891087441}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!phieps\_niter@{phieps\_niter}}
+\index{phieps\_niter@{phieps\_niter}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{phieps\_niter}{phieps\_niter}}
+{\footnotesize\ttfamily integer ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::phieps\+\_\+niter}
+
+
+
+Number of iteration to solve dd\+PCM system. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00061}{61}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a4dfbeb29f87cf4040d8633b0b1c54e33}\label{structddx__core_1_1ddx__state__type_a4dfbeb29f87cf4040d8633b0b1c54e33}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!phieps\_rel\_diff@{phieps\_rel\_diff}}
+\index{phieps\_rel\_diff@{phieps\_rel\_diff}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{phieps\_rel\_diff}{phieps\_rel\_diff}}
+{\footnotesize\ttfamily real(dp), dimension(\+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::phieps\+\_\+rel\+\_\+diff}
+
+
+
+Relative error of each step of iterative solver for dd\+PCM system. Dimension is (maxiter). 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00064}{64}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a987b38d818104cabc9f7f3ba301b5235}\label{structddx__core_1_1ddx__state__type_a987b38d818104cabc9f7f3ba301b5235}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!phieps\_time@{phieps\_time}}
+\index{phieps\_time@{phieps\_time}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{phieps\_time}{phieps\_time}}
+{\footnotesize\ttfamily real(dp) ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::phieps\+\_\+time}
+
+
+
+Time to solve primal dd\+PCM system. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00066}{66}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a80d564db3f80ca02474529f94a7fb858}\label{structddx__core_1_1ddx__state__type_a80d564db3f80ca02474529f94a7fb858}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!g@{g}}
+\index{g@{g}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{g}{g}}
+{\footnotesize\ttfamily real(dp), dimension(\+:, \+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::g}
+
+
+
+Shortcut of $ \Phi_\varepsilon - \Phi $. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00068}{68}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_ab5570afac25a88ebd483149e1ac2dc66}\label{structddx__core_1_1ddx__state__type_ab5570afac25a88ebd483149e1ac2dc66}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!s@{s}}
+\index{s@{s}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{s}{s}}
+{\footnotesize\ttfamily real(dp), dimension(\+:, \+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::s}
+
+
+
+Solution of the adjoint dd\+COSMO system of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00073}{73}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_ae8b26ac0e03b0dd5fb4c5013723d982c}\label{structddx__core_1_1ddx__state__type_ae8b26ac0e03b0dd5fb4c5013723d982c}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!s\_niter@{s\_niter}}
+\index{s\_niter@{s\_niter}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{s\_niter}{s\_niter}}
+{\footnotesize\ttfamily integer ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::s\+\_\+niter}
+
+
+
+Number of iteration to solve adoint dd\+COSMO system. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00075}{75}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a3ff8561962833ab28dcf5fdac281d9f7}\label{structddx__core_1_1ddx__state__type_a3ff8561962833ab28dcf5fdac281d9f7}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!s\_rel\_diff@{s\_rel\_diff}}
+\index{s\_rel\_diff@{s\_rel\_diff}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{s\_rel\_diff}{s\_rel\_diff}}
+{\footnotesize\ttfamily real(dp), dimension(\+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::s\+\_\+rel\+\_\+diff}
+
+
+
+Relative error of each step of iterative solver for adjoint dd\+COSMO system. Dimension is (maxiter). 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00078}{78}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_abe53093bb83bd41277e53848474610a8}\label{structddx__core_1_1ddx__state__type_abe53093bb83bd41277e53848474610a8}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!s\_time@{s\_time}}
+\index{s\_time@{s\_time}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{s\_time}{s\_time}}
+{\footnotesize\ttfamily real(dp) ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::s\+\_\+time}
+
+
+
+Time to solve adjoint dd\+COSMO system. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00080}{80}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a289b95040949952de1e86111f440a838}\label{structddx__core_1_1ddx__state__type_a289b95040949952de1e86111f440a838}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!y@{y}}
+\index{y@{y}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{y}{y}}
+{\footnotesize\ttfamily real(dp), dimension(\+:, \+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::y}
+
+
+
+Solution of the adjoint dd\+PCM system of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00083}{83}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a0905754357c8025076591272cd88812f}\label{structddx__core_1_1ddx__state__type_a0905754357c8025076591272cd88812f}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!y\_niter@{y\_niter}}
+\index{y\_niter@{y\_niter}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{y\_niter}{y\_niter}}
+{\footnotesize\ttfamily integer ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::y\+\_\+niter}
+
+
+
+Number of iteration to solve adjoint dd\+PCM system. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00085}{85}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_ac5a1f3314992f8aef6fcfe45abbb2f24}\label{structddx__core_1_1ddx__state__type_ac5a1f3314992f8aef6fcfe45abbb2f24}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!y\_rel\_diff@{y\_rel\_diff}}
+\index{y\_rel\_diff@{y\_rel\_diff}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{y\_rel\_diff}{y\_rel\_diff}}
+{\footnotesize\ttfamily real(dp), dimension(\+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::y\+\_\+rel\+\_\+diff}
+
+
+
+Relative error of each step of iterative solver for adjoint dd\+PCM system. Dimension is (maxiter). 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00088}{88}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_ae7761162d404940bf9695d8d57124d58}\label{structddx__core_1_1ddx__state__type_ae7761162d404940bf9695d8d57124d58}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!y\_time@{y\_time}}
+\index{y\_time@{y\_time}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{y\_time}{y\_time}}
+{\footnotesize\ttfamily real(dp) ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::y\+\_\+time}
+
+
+
+Time to solve adjoint dd\+PCM system. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00090}{90}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_ac7c4e2212dc6d7d677d3612cad389c8f}\label{structddx__core_1_1ddx__state__type_ac7c4e2212dc6d7d677d3612cad389c8f}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!ygrid@{ygrid}}
+\index{ygrid@{ygrid}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{ygrid}{ygrid}}
+{\footnotesize\ttfamily real(dp), dimension(\+:, \+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::ygrid}
+
+
+
+Values of y at grid points. Dimension is (ngrid, nsph). Allocated and used only by PCM (model=2) model. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00093}{93}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_ad1757dc3ef7f36af7e1767c2ae827bfd}\label{structddx__core_1_1ddx__state__type_ad1757dc3ef7f36af7e1767c2ae827bfd}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!q@{q}}
+\index{q@{q}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{q}{q}}
+{\footnotesize\ttfamily real(dp), dimension(\+:, \+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::q}
+
+
+
+s-\/4pi/(eps-\/1)y of dimension (nbasis, nsph) 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00095}{95}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a66ba3c75158728fff99a9ea26b0e0d7b}\label{structddx__core_1_1ddx__state__type_a66ba3c75158728fff99a9ea26b0e0d7b}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!qgrid@{qgrid}}
+\index{qgrid@{qgrid}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{qgrid}{qgrid}}
+{\footnotesize\ttfamily real(dp), dimension(\+:, \+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::qgrid}
+
+
+
+Values of q at grid points. Dimension is (ngrid, nsph) 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00097}{97}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_aa87796b2be1f31aa84b0c4a9e914c7c5}\label{structddx__core_1_1ddx__state__type_aa87796b2be1f31aa84b0c4a9e914c7c5}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!x\_lpb@{x\_lpb}}
+\index{x\_lpb@{x\_lpb}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{x\_lpb}{x\_lpb}}
+{\footnotesize\ttfamily real(dp), dimension(\+:,\+:,\+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::x\+\_\+lpb}
+
+
+
+Solution to the dd\+LPB linear system. Dimension is (nbasis,nsph,2). Allocated and used only by LPB (model=3) model. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00104}{104}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a20bca950fa436fd0eecc5064250572ea}\label{structddx__core_1_1ddx__state__type_a20bca950fa436fd0eecc5064250572ea}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!x\_adj\_lpb@{x\_adj\_lpb}}
+\index{x\_adj\_lpb@{x\_adj\_lpb}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{x\_adj\_lpb}{x\_adj\_lpb}}
+{\footnotesize\ttfamily real(dp), dimension(\+:,\+:,\+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::x\+\_\+adj\+\_\+lpb}
+
+
+
+Solution to the dd\+LPB ajoint system. Dimension is (nbasis,nsph,2). Allocated and used only by LPB (model=3) model. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00107}{107}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_aae8bae38bfaba096f11adebb60e4ee14}\label{structddx__core_1_1ddx__state__type_aae8bae38bfaba096f11adebb60e4ee14}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!g\_lpb@{g\_lpb}}
+\index{g\_lpb@{g\_lpb}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{g\_lpb}{g\_lpb}}
+{\footnotesize\ttfamily real(dp), dimension(\+:,\+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::g\+\_\+lpb}
+
+
+
+g intermediate for dd\+LPB. Dimension in (ngrid,nsph). Allocated and used only by LPB (model=3) model 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00110}{110}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_ae88a2a0537d509eec93de2f47f0ae49e}\label{structddx__core_1_1ddx__state__type_ae88a2a0537d509eec93de2f47f0ae49e}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!f\_lpb@{f\_lpb}}
+\index{f\_lpb@{f\_lpb}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{f\_lpb}{f\_lpb}}
+{\footnotesize\ttfamily real(dp), dimension(\+:,\+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::f\+\_\+lpb}
+
+
+
+d intermediate for dd\+LPB. Dimension in (ngrid,nsph). Allocated and used only by LPB (model=3) model 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00114}{114}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a64d3459b5ccca296a0b8faad0f67bb36}\label{structddx__core_1_1ddx__state__type_a64d3459b5ccca296a0b8faad0f67bb36}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!x\_lpb\_niter@{x\_lpb\_niter}}
+\index{x\_lpb\_niter@{x\_lpb\_niter}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{x\_lpb\_niter}{x\_lpb\_niter}}
+{\footnotesize\ttfamily integer ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::x\+\_\+lpb\+\_\+niter}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00115}{115}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_aef5945ddebad01b238bf8afdbe3209e4}\label{structddx__core_1_1ddx__state__type_aef5945ddebad01b238bf8afdbe3209e4}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!x\_adj\_lpb\_niter@{x\_adj\_lpb\_niter}}
+\index{x\_adj\_lpb\_niter@{x\_adj\_lpb\_niter}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{x\_adj\_lpb\_niter}{x\_adj\_lpb\_niter}}
+{\footnotesize\ttfamily integer ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::x\+\_\+adj\+\_\+lpb\+\_\+niter}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00116}{116}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_af2ea4dfbd78d6a36d59ee5170363c529}\label{structddx__core_1_1ddx__state__type_af2ea4dfbd78d6a36d59ee5170363c529}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!x\_lpb\_time@{x\_lpb\_time}}
+\index{x\_lpb\_time@{x\_lpb\_time}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{x\_lpb\_time}{x\_lpb\_time}}
+{\footnotesize\ttfamily real(dp) ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::x\+\_\+lpb\+\_\+time}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00117}{117}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a8a69492e0195fe9f56d681f8b72b2056}\label{structddx__core_1_1ddx__state__type_a8a69492e0195fe9f56d681f8b72b2056}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!x\_adj\_lpb\_time@{x\_adj\_lpb\_time}}
+\index{x\_adj\_lpb\_time@{x\_adj\_lpb\_time}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{x\_adj\_lpb\_time}{x\_adj\_lpb\_time}}
+{\footnotesize\ttfamily real(dp) ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::x\+\_\+adj\+\_\+lpb\+\_\+time}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00118}{118}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_aaa3c249bd7e7820e3f3b9bbf36333ed6}\label{structddx__core_1_1ddx__state__type_aaa3c249bd7e7820e3f3b9bbf36333ed6}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!x\_lpb\_rel\_diff@{x\_lpb\_rel\_diff}}
+\index{x\_lpb\_rel\_diff@{x\_lpb\_rel\_diff}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{x\_lpb\_rel\_diff}{x\_lpb\_rel\_diff}}
+{\footnotesize\ttfamily real(dp), dimension(\+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::x\+\_\+lpb\+\_\+rel\+\_\+diff}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00119}{119}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_af51f9714898918d4824a8158e4c4b67b}\label{structddx__core_1_1ddx__state__type_af51f9714898918d4824a8158e4c4b67b}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!x\_adj\_lpb\_rel\_diff@{x\_adj\_lpb\_rel\_diff}}
+\index{x\_adj\_lpb\_rel\_diff@{x\_adj\_lpb\_rel\_diff}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{x\_adj\_lpb\_rel\_diff}{x\_adj\_lpb\_rel\_diff}}
+{\footnotesize\ttfamily real(dp), dimension(\+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::x\+\_\+adj\+\_\+lpb\+\_\+rel\+\_\+diff}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00120}{120}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a6d25ed184b0365b44a597556edec3b49}\label{structddx__core_1_1ddx__state__type_a6d25ed184b0365b44a597556edec3b49}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!zeta@{zeta}}
+\index{zeta@{zeta}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{zeta}{zeta}}
+{\footnotesize\ttfamily real(dp), dimension(\+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::zeta}
+
+
+
+Zeta intermediate for forces. Dimension is (ncav) 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00126}{126}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a903ec491e30ffa2a5a4012bac9641900}\label{structddx__core_1_1ddx__state__type_a903ec491e30ffa2a5a4012bac9641900}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!phi\_grid@{phi\_grid}}
+\index{phi\_grid@{phi\_grid}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{phi\_grid}{phi\_grid}}
+{\footnotesize\ttfamily real(dp), dimension(\+:, \+:), allocatable ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::phi\+\_\+grid}
+
+
+
+Potential at all grid points. Dimension is (ngrid, nsph). Allocated and used by all models. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00129}{129}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a0b1492447f2bef9ff3b132f68f8d67cc}\label{structddx__core_1_1ddx__state__type_a0b1492447f2bef9ff3b132f68f8d67cc}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!error\_flag@{error\_flag}}
+\index{error\_flag@{error\_flag}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{error\_flag}{error\_flag}}
+{\footnotesize\ttfamily integer ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::error\+\_\+flag}
+
+
+
+Flag if there were an error. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00131}{131}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+\mbox{\Hypertarget{structddx__core_1_1ddx__state__type_a56c8add2d008d542df338eb2e7c5c890}\label{structddx__core_1_1ddx__state__type_a56c8add2d008d542df338eb2e7c5c890}} 
+\index{ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}!error\_message@{error\_message}}
+\index{error\_message@{error\_message}!ddx\_core::ddx\_state\_type@{ddx\_core::ddx\_state\_type}}
+\doxysubsubsection{\texorpdfstring{error\_message}{error\_message}}
+{\footnotesize\ttfamily character(len=255) ddx\+\_\+core\+::ddx\+\_\+state\+\_\+type\+::error\+\_\+message}
+
+
+
+Last error message. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__core_8f90_source_l00133}{133}} of file \mbox{\hyperlink{ddx__core_8f90_source}{ddx\+\_\+core.\+f90}}.
+
+
+
+The documentation for this type was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/\mbox{\hyperlink{ddx__core_8f90}{ddx\+\_\+core.\+f90}}\end{DoxyCompactItemize}

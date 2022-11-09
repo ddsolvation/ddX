@@ -1,0 +1,215 @@
+\hypertarget{namespaceddx__pcm}{}\doxysection{ddx\+\_\+pcm Module Reference}
+\label{namespaceddx__pcm}\index{ddx\_pcm@{ddx\_pcm}}
+
+
+High-\/level subroutines for ddpcm.  
+
+
+\doxysubsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__pcm_a5f957df6faca9f66accc5073f702df90}{ddpcm\+\_\+solve}} (params, constants, workspace, state, phi\+\_\+cav, tol)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__pcm_a7bb48ad6e3d03d47fab122a662dabd49}{ddpcm\+\_\+adjoint}} (params, constants, workspace, state, psi, tol)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__pcm_aae281a2a2211b1c19fe84d7d18bdbf38}{ddpcm\+\_\+forces}} (params, constants, workspace, state, phi\+\_\+cav, gradphi\+\_\+cav, psi, force)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__pcm_a16de112567fda83d41b494696948d2df}{ddpcm\+\_\+geom\+\_\+forces}} (params, constants, workspace, state, phi\+\_\+cav, gradphi\+\_\+cav, psi, force)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__pcm_a3ec601a57093e777b4e0806b66df8a3f}{ddpcm}} (params, constants, workspace, state, phi\+\_\+cav, gradphi\+\_\+cav, psi, tol, esolv, force, info)
+\begin{DoxyCompactList}\small\item\em dd\+PCM solver \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__pcm_a0e69b132a8d951ff0a77f82011fd22c8}{ddpcm\+\_\+guess}} (params, constants, state)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__pcm_a84e88ac9aa346c593597757cb454e4e1}{ddpcm\+\_\+solve\+\_\+worker}} (params, constants, workspace, phi\+\_\+cav, xs, xs\+\_\+niter, xs\+\_\+rel\+\_\+diff, xs\+\_\+time, tol, phi\+\_\+grid, phi, phiinf, phieps, phieps\+\_\+niter, phieps\+\_\+rel\+\_\+diff, phieps\+\_\+time, info)
+\begin{DoxyCompactList}\small\item\em Solve primal dd\+PCM system. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__pcm_a47661ee5ea74d0c2406624c6ca113683}{ddpcm\+\_\+energy\+\_\+worker}} (params, constants, workspace, phi\+\_\+cav, psi, xs, xs\+\_\+niter, xs\+\_\+rel\+\_\+diff, xs\+\_\+time, tol, esolv, phi\+\_\+grid, phi, phiinf, phieps, phieps\+\_\+niter, phieps\+\_\+rel\+\_\+diff, phieps\+\_\+time, info)
+\begin{DoxyCompactList}\small\item\em Solve primal dd\+PCM system to find solvation energy. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__pcm_ae86ae5e800f942e15d1c27c9abcde29e}{ddpcm\+\_\+adjoint\+\_\+worker}} (params, constants, workspace, psi, tol, s, s\+\_\+niter, s\+\_\+rel\+\_\+diff, s\+\_\+time, y, y\+\_\+niter, y\+\_\+rel\+\_\+diff, y\+\_\+time, info)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__pcm_a1dc6eefbb00905d91b176a7e9ed3d4cb}{ddpcm\+\_\+forces\+\_\+worker}} (params, constants, workspace, phi\+\_\+grid, gradphi\+\_\+cav, psi, phi, phieps, s, sgrid, y, ygrid, g, q, qgrid, xs, zeta, force, info)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__pcm_aa49b37ce27c3d24ddc27b57a656a4f66}{ddpcm\+\_\+geom\+\_\+forces\+\_\+worker}} (params, constants, workspace, phi\+\_\+grid, gradphi\+\_\+cav, psi, phi, phieps, s, sgrid, y, ygrid, g, q, qgrid, xs, zeta, force, info)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+High-\/level subroutines for ddpcm. 
+
+\doxysubsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespaceddx__pcm_a5f957df6faca9f66accc5073f702df90}\label{namespaceddx__pcm_a5f957df6faca9f66accc5073f702df90}} 
+\index{ddx\_pcm@{ddx\_pcm}!ddpcm\_solve@{ddpcm\_solve}}
+\index{ddpcm\_solve@{ddpcm\_solve}!ddx\_pcm@{ddx\_pcm}}
+\doxysubsubsection{\texorpdfstring{ddpcm\_solve()}{ddpcm\_solve()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+pcm\+::ddpcm\+\_\+solve (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{type(\mbox{\hyperlink{structddx__core_1_1ddx__state__type}{ddx\+\_\+state\+\_\+type}}), intent(inout)}]{state,  }\item[{real(dp), dimension(constants \% ncav), intent(in)}]{phi\+\_\+cav,  }\item[{real(dp), intent(in)}]{tol }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__pcm_8f90_source_l00032}{32}} of file \mbox{\hyperlink{ddx__pcm_8f90_source}{ddx\+\_\+pcm.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__pcm_a7bb48ad6e3d03d47fab122a662dabd49}\label{namespaceddx__pcm_a7bb48ad6e3d03d47fab122a662dabd49}} 
+\index{ddx\_pcm@{ddx\_pcm}!ddpcm\_adjoint@{ddpcm\_adjoint}}
+\index{ddpcm\_adjoint@{ddpcm\_adjoint}!ddx\_pcm@{ddx\_pcm}}
+\doxysubsubsection{\texorpdfstring{ddpcm\_adjoint()}{ddpcm\_adjoint()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+pcm\+::ddpcm\+\_\+adjoint (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{type(\mbox{\hyperlink{structddx__core_1_1ddx__state__type}{ddx\+\_\+state\+\_\+type}}), intent(inout)}]{state,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{psi,  }\item[{real(dp), intent(in)}]{tol }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__pcm_8f90_source_l00064}{64}} of file \mbox{\hyperlink{ddx__pcm_8f90_source}{ddx\+\_\+pcm.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__pcm_aae281a2a2211b1c19fe84d7d18bdbf38}\label{namespaceddx__pcm_aae281a2a2211b1c19fe84d7d18bdbf38}} 
+\index{ddx\_pcm@{ddx\_pcm}!ddpcm\_forces@{ddpcm\_forces}}
+\index{ddpcm\_forces@{ddpcm\_forces}!ddx\_pcm@{ddx\_pcm}}
+\doxysubsubsection{\texorpdfstring{ddpcm\_forces()}{ddpcm\_forces()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+pcm\+::ddpcm\+\_\+forces (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{type(\mbox{\hyperlink{structddx__core_1_1ddx__state__type}{ddx\+\_\+state\+\_\+type}}), intent(inout)}]{state,  }\item[{real(dp), dimension(constants \% ncav), intent(in)}]{phi\+\_\+cav,  }\item[{real(dp), dimension(3, constants \% ncav), intent(in)}]{gradphi\+\_\+cav,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{psi,  }\item[{real(dp), dimension(3, params \% nsph), intent(out)}]{force }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__pcm_8f90_source_l00096}{96}} of file \mbox{\hyperlink{ddx__pcm_8f90_source}{ddx\+\_\+pcm.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__pcm_a16de112567fda83d41b494696948d2df}\label{namespaceddx__pcm_a16de112567fda83d41b494696948d2df}} 
+\index{ddx\_pcm@{ddx\_pcm}!ddpcm\_geom\_forces@{ddpcm\_geom\_forces}}
+\index{ddpcm\_geom\_forces@{ddpcm\_geom\_forces}!ddx\_pcm@{ddx\_pcm}}
+\doxysubsubsection{\texorpdfstring{ddpcm\_geom\_forces()}{ddpcm\_geom\_forces()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+pcm\+::ddpcm\+\_\+geom\+\_\+forces (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{type(\mbox{\hyperlink{structddx__core_1_1ddx__state__type}{ddx\+\_\+state\+\_\+type}}), intent(inout)}]{state,  }\item[{real(dp), dimension(constants \% ncav), intent(in)}]{phi\+\_\+cav,  }\item[{real(dp), dimension(3, constants \% ncav), intent(in)}]{gradphi\+\_\+cav,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{psi,  }\item[{real(dp), dimension(3, params \% nsph), intent(out)}]{force }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__pcm_8f90_source_l00131}{131}} of file \mbox{\hyperlink{ddx__pcm_8f90_source}{ddx\+\_\+pcm.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__pcm_a3ec601a57093e777b4e0806b66df8a3f}\label{namespaceddx__pcm_a3ec601a57093e777b4e0806b66df8a3f}} 
+\index{ddx\_pcm@{ddx\_pcm}!ddpcm@{ddpcm}}
+\index{ddpcm@{ddpcm}!ddx\_pcm@{ddx\_pcm}}
+\doxysubsubsection{\texorpdfstring{ddpcm()}{ddpcm()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+pcm\+::ddpcm (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{type(\mbox{\hyperlink{structddx__core_1_1ddx__state__type}{ddx\+\_\+state\+\_\+type}}), intent(inout)}]{state,  }\item[{real(dp), dimension(constants \% ncav), intent(in)}]{phi\+\_\+cav,  }\item[{real(dp), dimension(3, constants \% ncav), intent(in)}]{gradphi\+\_\+cav,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{psi,  }\item[{real(dp), intent(in)}]{tol,  }\item[{real(dp), intent(out)}]{esolv,  }\item[{real(dp), dimension(3, params \% nsph), intent(out)}]{force,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+dd\+PCM solver 
+
+Solves the problem within PCM model using a domain decomposition approach.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em ddx\+\_\+data} & ddX object with all input information \\
+\hline
+\mbox{\texttt{ in}}  & {\em phi\+\_\+cav} & Potential at cavity points \\
+\hline
+\mbox{\texttt{ in}}  & {\em gradphi\+\_\+cav} & Gradient of a potential at cavity points \\
+\hline
+\mbox{\texttt{ in}}  & {\em psi} & TODO \\
+\hline
+\mbox{\texttt{ out}}  & {\em esolv} & Solvation energy \\
+\hline
+\mbox{\texttt{ out}}  & {\em force} & Analytical forces \\
+\hline
+\mbox{\texttt{ out}}  & {\em info} & \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__pcm_8f90_source_l00161}{161}} of file \mbox{\hyperlink{ddx__pcm_8f90_source}{ddx\+\_\+pcm.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__pcm_a0e69b132a8d951ff0a77f82011fd22c8}\label{namespaceddx__pcm_a0e69b132a8d951ff0a77f82011fd22c8}} 
+\index{ddx\_pcm@{ddx\_pcm}!ddpcm\_guess@{ddpcm\_guess}}
+\index{ddpcm\_guess@{ddpcm\_guess}!ddx\_pcm@{ddx\_pcm}}
+\doxysubsubsection{\texorpdfstring{ddpcm\_guess()}{ddpcm\_guess()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+pcm\+::ddpcm\+\_\+guess (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__core_1_1ddx__state__type}{ddx\+\_\+state\+\_\+type}}), intent(inout)}]{state }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__pcm_8f90_source_l00191}{191}} of file \mbox{\hyperlink{ddx__pcm_8f90_source}{ddx\+\_\+pcm.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__pcm_a84e88ac9aa346c593597757cb454e4e1}\label{namespaceddx__pcm_a84e88ac9aa346c593597757cb454e4e1}} 
+\index{ddx\_pcm@{ddx\_pcm}!ddpcm\_solve\_worker@{ddpcm\_solve\_worker}}
+\index{ddpcm\_solve\_worker@{ddpcm\_solve\_worker}!ddx\_pcm@{ddx\_pcm}}
+\doxysubsubsection{\texorpdfstring{ddpcm\_solve\_worker()}{ddpcm\_solve\_worker()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+pcm\+::ddpcm\+\_\+solve\+\_\+worker (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% ncav), intent(in)}]{phi\+\_\+cav,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(inout)}]{xs,  }\item[{integer, intent(inout)}]{xs\+\_\+niter,  }\item[{real(dp), dimension(xs\+\_\+niter), intent(out)}]{xs\+\_\+rel\+\_\+diff,  }\item[{real(dp), intent(out)}]{xs\+\_\+time,  }\item[{real(dp), intent(in)}]{tol,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(out)}]{phi\+\_\+grid,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{phi,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{phiinf,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(inout)}]{phieps,  }\item[{integer, intent(inout)}]{phieps\+\_\+niter,  }\item[{real(dp), dimension(phieps\+\_\+niter), intent(out)}]{phieps\+\_\+rel\+\_\+diff,  }\item[{real(dp), intent(out)}]{phieps\+\_\+time,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+Solve primal dd\+PCM system. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em workspace} & \\
+\hline
+\mbox{\texttt{ in}}  & {\em phi\+\_\+cav} & \\
+\hline
+\mbox{\texttt{ in}}  & {\em psi} & \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em xs} & \\
+\hline
+\mbox{\texttt{ in}}  & {\em info} & \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__pcm_8f90_source_l00213}{213}} of file \mbox{\hyperlink{ddx__pcm_8f90_source}{ddx\+\_\+pcm.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__pcm_a47661ee5ea74d0c2406624c6ca113683}\label{namespaceddx__pcm_a47661ee5ea74d0c2406624c6ca113683}} 
+\index{ddx\_pcm@{ddx\_pcm}!ddpcm\_energy\_worker@{ddpcm\_energy\_worker}}
+\index{ddpcm\_energy\_worker@{ddpcm\_energy\_worker}!ddx\_pcm@{ddx\_pcm}}
+\doxysubsubsection{\texorpdfstring{ddpcm\_energy\_worker()}{ddpcm\_energy\_worker()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+pcm\+::ddpcm\+\_\+energy\+\_\+worker (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% ncav), intent(in)}]{phi\+\_\+cav,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{psi,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(inout)}]{xs,  }\item[{integer, intent(inout)}]{xs\+\_\+niter,  }\item[{real(dp), dimension(xs\+\_\+niter), intent(out)}]{xs\+\_\+rel\+\_\+diff,  }\item[{real(dp), intent(out)}]{xs\+\_\+time,  }\item[{real(dp), intent(in)}]{tol,  }\item[{real(dp), intent(out)}]{esolv,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(out)}]{phi\+\_\+grid,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{phi,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{phiinf,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(inout)}]{phieps,  }\item[{integer, intent(inout)}]{phieps\+\_\+niter,  }\item[{real(dp), dimension(phieps\+\_\+niter), intent(out)}]{phieps\+\_\+rel\+\_\+diff,  }\item[{real(dp), intent(out)}]{phieps\+\_\+time,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+Solve primal dd\+PCM system to find solvation energy. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em params} & \\
+\hline
+\mbox{\texttt{ in}}  & {\em constants} & \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em workspace} & \\
+\hline
+\mbox{\texttt{ in}}  & {\em phi\+\_\+cav} & \\
+\hline
+\mbox{\texttt{ in}}  & {\em psi} & \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em xs} & \\
+\hline
+\mbox{\texttt{ out}}  & {\em esolv} & \\
+\hline
+\mbox{\texttt{ in}}  & {\em info} & \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__pcm_8f90_source_l00326}{326}} of file \mbox{\hyperlink{ddx__pcm_8f90_source}{ddx\+\_\+pcm.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__pcm_ae86ae5e800f942e15d1c27c9abcde29e}\label{namespaceddx__pcm_ae86ae5e800f942e15d1c27c9abcde29e}} 
+\index{ddx\_pcm@{ddx\_pcm}!ddpcm\_adjoint\_worker@{ddpcm\_adjoint\_worker}}
+\index{ddpcm\_adjoint\_worker@{ddpcm\_adjoint\_worker}!ddx\_pcm@{ddx\_pcm}}
+\doxysubsubsection{\texorpdfstring{ddpcm\_adjoint\_worker()}{ddpcm\_adjoint\_worker()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+pcm\+::ddpcm\+\_\+adjoint\+\_\+worker (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{psi,  }\item[{real(dp), intent(in)}]{tol,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(inout)}]{s,  }\item[{integer, intent(inout)}]{s\+\_\+niter,  }\item[{real(dp), dimension(s\+\_\+niter), intent(out)}]{s\+\_\+rel\+\_\+diff,  }\item[{real(dp), intent(out)}]{s\+\_\+time,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(inout)}]{y,  }\item[{integer, intent(inout)}]{y\+\_\+niter,  }\item[{real(dp), dimension(y\+\_\+niter), intent(out)}]{y\+\_\+rel\+\_\+diff,  }\item[{real(dp), intent(out)}]{y\+\_\+time,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__pcm_8f90_source_l00434}{434}} of file \mbox{\hyperlink{ddx__pcm_8f90_source}{ddx\+\_\+pcm.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__pcm_a1dc6eefbb00905d91b176a7e9ed3d4cb}\label{namespaceddx__pcm_a1dc6eefbb00905d91b176a7e9ed3d4cb}} 
+\index{ddx\_pcm@{ddx\_pcm}!ddpcm\_forces\_worker@{ddpcm\_forces\_worker}}
+\index{ddpcm\_forces\_worker@{ddpcm\_forces\_worker}!ddx\_pcm@{ddx\_pcm}}
+\doxysubsubsection{\texorpdfstring{ddpcm\_forces\_worker()}{ddpcm\_forces\_worker()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+pcm\+::ddpcm\+\_\+forces\+\_\+worker (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{phi\+\_\+grid,  }\item[{real(dp), dimension(3, constants \% ncav), intent(in)}]{gradphi\+\_\+cav,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{psi,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{phi,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{phieps,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{s,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(out)}]{sgrid,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{y,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(out)}]{ygrid,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{g,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{q,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(out)}]{qgrid,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{xs,  }\item[{real(dp), dimension(constants \% ncav), intent(out)}]{zeta,  }\item[{real(dp), dimension(3, params \% nsph), intent(out)}]{force,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__pcm_8f90_source_l00493}{493}} of file \mbox{\hyperlink{ddx__pcm_8f90_source}{ddx\+\_\+pcm.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__pcm_aa49b37ce27c3d24ddc27b57a656a4f66}\label{namespaceddx__pcm_aa49b37ce27c3d24ddc27b57a656a4f66}} 
+\index{ddx\_pcm@{ddx\_pcm}!ddpcm\_geom\_forces\_worker@{ddpcm\_geom\_forces\_worker}}
+\index{ddpcm\_geom\_forces\_worker@{ddpcm\_geom\_forces\_worker}!ddx\_pcm@{ddx\_pcm}}
+\doxysubsubsection{\texorpdfstring{ddpcm\_geom\_forces\_worker()}{ddpcm\_geom\_forces\_worker()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+pcm\+::ddpcm\+\_\+geom\+\_\+forces\+\_\+worker (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{phi\+\_\+grid,  }\item[{real(dp), dimension(3, constants \% ncav), intent(in)}]{gradphi\+\_\+cav,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{psi,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{phi,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{phieps,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{s,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(out)}]{sgrid,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{y,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(out)}]{ygrid,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{g,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{q,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(out)}]{qgrid,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{xs,  }\item[{real(dp), dimension(constants \% ncav), intent(out)}]{zeta,  }\item[{real(dp), dimension(3, params \% nsph), intent(out)}]{force,  }\item[{integer, intent(out)}]{info }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__pcm_8f90_source_l00640}{640}} of file \mbox{\hyperlink{ddx__pcm_8f90_source}{ddx\+\_\+pcm.\+f90}}.
+

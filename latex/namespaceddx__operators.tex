@@ -1,0 +1,471 @@
+\hypertarget{namespaceddx__operators}{}\doxysection{ddx\+\_\+operators Module Reference}
+\label{namespaceddx__operators}\index{ddx\_operators@{ddx\_operators}}
+
+
+Operators shared among ddX methods.  
+
+
+\doxysubsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_ac2a84b8394941ee2bf6d8f3e44127be3}{lx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Single layer operator matvec. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a6f210175b888b158774e507e0d603b52}{lstarx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Adjoint single layer operator matvec. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a73668d47230f4292955012f9910e4ecc}{ldm1x}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Diagonal preconditioning for Lx operator. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a7572750f072f269d318972f1d57cb527}{dx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Double layer operator matvec without diagonal blocks. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_abd51fb609c2fc3efb3f8095d65492840}{dx\+\_\+dense}} (params, constants, workspace, do\+\_\+diag, x, y)
+\begin{DoxyCompactList}\small\item\em Baseline implementation of double layer operator. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a1373e4a45d1f9adb748f19f543c2f67f}{dx\+\_\+fmm}} (params, constants, workspace, do\+\_\+diag, x, y)
+\begin{DoxyCompactList}\small\item\em FMM-\/accelerated implementation of double layer operator. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a4763fc6509b475a090451feb661a92ea}{dstarx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Adjoint double layer operator matvec. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a5e24847b3de8dd57e855f293eeee9d18}{dstarx\+\_\+dense}} (params, constants, workspace, do\+\_\+diag, x, y)
+\begin{DoxyCompactList}\small\item\em Baseline implementation of adjoint double layer operator. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_aa69a13344481ef2032c3eb2c46e847b3}{dstarx\+\_\+fmm}} (params, constants, workspace, do\+\_\+diag, x, y)
+\begin{DoxyCompactList}\small\item\em FMM-\/accelerated implementation of adjoint double layer operator. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_ace05a424bd4e0a226b635723aba4389c}{repsx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Apply $ R_\varepsilon $ operator to spherical harmonics. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a0670b7a7bd830dd57ee0dc2dbcb80b1a}{repsstarx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Apply $ R_\varepsilon^* $ operator to spherical harmonics. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_ad322bb8c91dfbed143be683333be9430}{rinfx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Apply $ R_\infty $ operator to spherical harmonics. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a9c02c21086e56924eec13cc33a96eebb}{rstarinfx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Apply $ R_\infty^* $ operator to spherical harmonics. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a35303800b0d9c1749358f5e90bcbd52f}{prec\+\_\+repsx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Apply preconditioner for. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a682ecf4161b6846177c71db55924c586}{prec\+\_\+repsstarx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Apply preconditioner for. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a8720945fa2c227689250a0e3e3353e3d}{gradr}} (params, constants, workspace, g, ygrid, fx)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a985ff275f194faa2b8d5fbd3ce36dab0}{gradr\+\_\+dense}} (params, constants, workspace, g, ygrid, fx)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_aea20868b7a77f9914089bdd99e1aaefb}{gradr\+\_\+sph}} (params, constants, isph, vplm, vcos, vsin, basloc, dbsloc, g, ygrid, fx)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a56e5aed806e650ee042f7a09b81b672f}{gradr\+\_\+fmm}} (params, constants, workspace, g, ygrid, fx)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a76da5c9463ec313c71c7f3764c572165}{bstarx}} (params, constants, workspace, x, y)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a68303147fb9fe072ab34096910280f1a}{bx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Subroutine used for the GMRES solver. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a92077fecd6f7c3ab9b4be15323cdadb2}{tx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Subroutine used for the GMRES solver with complete matrix. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a255d38c63d567d20e2844c8d015d1c0f}{tstarx}} (params, constants, workspace, x, y)
+\begin{DoxyCompactList}\small\item\em Subroutine used for the GMRES solver with complete matrix adjoint system. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_aa910ba16eb7aa581ab1f314124e6e0fd}{bx\+\_\+prec}} (params, constants, workspace, x, y)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_ab5909858cddd80271567d2d910d730f2}{prec\+\_\+tstarx}} (params, constants, workspace, x, y)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_a31ded2fe034b4750fa14adbb07cb50dd}{prec\+\_\+tx}} (params, constants, workspace, x, y)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_ac915c9397fb193105a6cb419b4ecfc37}{cstarx}} (params, constants, workspace, x, y)
+\item 
+subroutine \mbox{\hyperlink{namespaceddx__operators_afe779d813f428e2c85015629976de9f8}{cx}} (params, constants, workspace, x, y)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Operators shared among ddX methods. 
+
+\doxysubsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespaceddx__operators_ac2a84b8394941ee2bf6d8f3e44127be3}\label{namespaceddx__operators_ac2a84b8394941ee2bf6d8f3e44127be3}} 
+\index{ddx\_operators@{ddx\_operators}!lx@{lx}}
+\index{lx@{lx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{lx()}{lx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::lx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Single layer operator matvec. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00025}{25}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a6f210175b888b158774e507e0d603b52}\label{namespaceddx__operators_a6f210175b888b158774e507e0d603b52}} 
+\index{ddx\_operators@{ddx\_operators}!lstarx@{lstarx}}
+\index{lstarx@{lstarx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{lstarx()}{lstarx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::lstarx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Adjoint single layer operator matvec. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00084}{84}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a73668d47230f4292955012f9910e4ecc}\label{namespaceddx__operators_a73668d47230f4292955012f9910e4ecc}} 
+\index{ddx\_operators@{ddx\_operators}!ldm1x@{ldm1x}}
+\index{ldm1x@{ldm1x}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{ldm1x()}{ldm1x()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::ldm1x (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Diagonal preconditioning for Lx operator. 
+
+Applies inverse diagonal (block) of the L matrix 
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00146}{146}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a7572750f072f269d318972f1d57cb527}\label{namespaceddx__operators_a7572750f072f269d318972f1d57cb527}} 
+\index{ddx\_operators@{ddx\_operators}!dx@{dx}}
+\index{dx@{dx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{dx()}{dx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::dx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Double layer operator matvec without diagonal blocks. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00171}{171}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_abd51fb609c2fc3efb3f8095d65492840}\label{namespaceddx__operators_abd51fb609c2fc3efb3f8095d65492840}} 
+\index{ddx\_operators@{ddx\_operators}!dx\_dense@{dx\_dense}}
+\index{dx\_dense@{dx\_dense}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{dx\_dense()}{dx\_dense()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::dx\+\_\+dense (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{integer, intent(in)}]{do\+\_\+diag,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Baseline implementation of double layer operator. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00194}{194}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a1373e4a45d1f9adb748f19f543c2f67f}\label{namespaceddx__operators_a1373e4a45d1f9adb748f19f543c2f67f}} 
+\index{ddx\_operators@{ddx\_operators}!dx\_fmm@{dx\_fmm}}
+\index{dx\_fmm@{dx\_fmm}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{dx\_fmm()}{dx\_fmm()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::dx\+\_\+fmm (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{integer, intent(in)}]{do\+\_\+diag,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+FMM-\/accelerated implementation of double layer operator. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00271}{271}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a4763fc6509b475a090451feb661a92ea}\label{namespaceddx__operators_a4763fc6509b475a090451feb661a92ea}} 
+\index{ddx\_operators@{ddx\_operators}!dstarx@{dstarx}}
+\index{dstarx@{dstarx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{dstarx()}{dstarx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::dstarx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Adjoint double layer operator matvec. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00333}{333}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a5e24847b3de8dd57e855f293eeee9d18}\label{namespaceddx__operators_a5e24847b3de8dd57e855f293eeee9d18}} 
+\index{ddx\_operators@{ddx\_operators}!dstarx\_dense@{dstarx\_dense}}
+\index{dstarx\_dense@{dstarx\_dense}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{dstarx\_dense()}{dstarx\_dense()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::dstarx\+\_\+dense (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{integer, intent(in)}]{do\+\_\+diag,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Baseline implementation of adjoint double layer operator. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00357}{357}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_aa69a13344481ef2032c3eb2c46e847b3}\label{namespaceddx__operators_aa69a13344481ef2032c3eb2c46e847b3}} 
+\index{ddx\_operators@{ddx\_operators}!dstarx\_fmm@{dstarx\_fmm}}
+\index{dstarx\_fmm@{dstarx\_fmm}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{dstarx\_fmm()}{dstarx\_fmm()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::dstarx\+\_\+fmm (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{integer, intent(in)}]{do\+\_\+diag,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+FMM-\/accelerated implementation of adjoint double layer operator. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00424}{424}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_ace05a424bd4e0a226b635723aba4389c}\label{namespaceddx__operators_ace05a424bd4e0a226b635723aba4389c}} 
+\index{ddx\_operators@{ddx\_operators}!repsx@{repsx}}
+\index{repsx@{repsx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{repsx()}{repsx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::repsx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Apply $ R_\varepsilon $ operator to spherical harmonics. 
+
+Compute $ y = R_\varepsilon x = (2\pi(\varepsilon + 1) / (\varepsilon
+ - 1) - D) x $. 
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00488}{488}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a0670b7a7bd830dd57ee0dc2dbcb80b1a}\label{namespaceddx__operators_a0670b7a7bd830dd57ee0dc2dbcb80b1a}} 
+\index{ddx\_operators@{ddx\_operators}!repsstarx@{repsstarx}}
+\index{repsstarx@{repsstarx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{repsstarx()}{repsstarx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::repsstarx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Apply $ R_\varepsilon^* $ operator to spherical harmonics. 
+
+Compute $ y = R^*_\varepsilon x = (2\pi(\varepsilon + 1) / (\varepsilon
+ - 1) - D) x $. 
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00514}{514}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_ad322bb8c91dfbed143be683333be9430}\label{namespaceddx__operators_ad322bb8c91dfbed143be683333be9430}} 
+\index{ddx\_operators@{ddx\_operators}!rinfx@{rinfx}}
+\index{rinfx@{rinfx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{rinfx()}{rinfx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::rinfx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Apply $ R_\infty $ operator to spherical harmonics. 
+
+Compute $ y = R_\infty x = (2\pi - D) x $.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em ddx\+\_\+data} & \\
+\hline
+\mbox{\texttt{ in}}  & {\em x} & \\
+\hline
+\mbox{\texttt{ out}}  & {\em y} & \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00543}{543}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a9c02c21086e56924eec13cc33a96eebb}\label{namespaceddx__operators_a9c02c21086e56924eec13cc33a96eebb}} 
+\index{ddx\_operators@{ddx\_operators}!rstarinfx@{rstarinfx}}
+\index{rstarinfx@{rstarinfx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{rstarinfx()}{rstarinfx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::rstarinfx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Apply $ R_\infty^* $ operator to spherical harmonics. 
+
+Compute $ y = R_\infty^* x = (2\pi - D^*) x $.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em ddx\+\_\+data} & \\
+\hline
+\mbox{\texttt{ in}}  & {\em x} & \\
+\hline
+\mbox{\texttt{ out}}  & {\em y} & \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00573}{573}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a35303800b0d9c1749358f5e90bcbd52f}\label{namespaceddx__operators_a35303800b0d9c1749358f5e90bcbd52f}} 
+\index{ddx\_operators@{ddx\_operators}!prec\_repsx@{prec\_repsx}}
+\index{prec\_repsx@{prec\_repsx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{prec\_repsx()}{prec\_repsx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::prec\+\_\+repsx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Apply preconditioner for. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00592}{592}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a682ecf4161b6846177c71db55924c586}\label{namespaceddx__operators_a682ecf4161b6846177c71db55924c586}} 
+\index{ddx\_operators@{ddx\_operators}!prec\_repsstarx@{prec\_repsstarx}}
+\index{prec\_repsstarx@{prec\_repsstarx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{prec\_repsstarx()}{prec\_repsstarx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::prec\+\_\+repsstarx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Apply preconditioner for. 
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00614}{614}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a8720945fa2c227689250a0e3e3353e3d}\label{namespaceddx__operators_a8720945fa2c227689250a0e3e3353e3d}} 
+\index{ddx\_operators@{ddx\_operators}!gradr@{gradr}}
+\index{gradr@{gradr}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{gradr()}{gradr()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::gradr (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{g,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{ygrid,  }\item[{real(dp), dimension(3, params \% nsph), intent(out)}]{fx }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00636}{636}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a985ff275f194faa2b8d5fbd3ce36dab0}\label{namespaceddx__operators_a985ff275f194faa2b8d5fbd3ce36dab0}} 
+\index{ddx\_operators@{ddx\_operators}!gradr\_dense@{gradr\_dense}}
+\index{gradr\_dense@{gradr\_dense}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{gradr\_dense()}{gradr\_dense()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::gradr\+\_\+dense (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{g,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{ygrid,  }\item[{real(dp), dimension(3, params \% nsph), intent(out)}]{fx }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00655}{655}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_aea20868b7a77f9914089bdd99e1aaefb}\label{namespaceddx__operators_aea20868b7a77f9914089bdd99e1aaefb}} 
+\index{ddx\_operators@{ddx\_operators}!gradr\_sph@{gradr\_sph}}
+\index{gradr\_sph@{gradr\_sph}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{gradr\_sph()}{gradr\_sph()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::gradr\+\_\+sph (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{integer, intent(in)}]{isph,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{vplm,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vcos,  }\item[{real(dp), dimension(params \% lmax+1), intent(inout)}]{vsin,  }\item[{real(dp), dimension(constants \% nbasis), intent(inout)}]{basloc,  }\item[{real(dp), dimension(3, constants \% nbasis), intent(inout)}]{dbsloc,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{g,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{ygrid,  }\item[{real(dp), dimension(3), intent(inout)}]{fx }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00678}{678}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a56e5aed806e650ee042f7a09b81b672f}\label{namespaceddx__operators_a56e5aed806e650ee042f7a09b81b672f}} 
+\index{ddx\_operators@{ddx\_operators}!gradr\_fmm@{gradr\_fmm}}
+\index{gradr\_fmm@{gradr\_fmm}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{gradr\_fmm()}{gradr\_fmm()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::gradr\+\_\+fmm (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{g,  }\item[{real(dp), dimension(params \% ngrid, params \% nsph), intent(in)}]{ygrid,  }\item[{real(dp), dimension(3, params \% nsph), intent(out)}]{fx }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l00983}{983}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a76da5c9463ec313c71c7f3764c572165}\label{namespaceddx__operators_a76da5c9463ec313c71c7f3764c572165}} 
+\index{ddx\_operators@{ddx\_operators}!bstarx@{bstarx}}
+\index{bstarx@{bstarx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{bstarx()}{bstarx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::bstarx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l01215}{1215}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a68303147fb9fe072ab34096910280f1a}\label{namespaceddx__operators_a68303147fb9fe072ab34096910280f1a}} 
+\index{ddx\_operators@{ddx\_operators}!bx@{bx}}
+\index{bx@{bx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{bx()}{bx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::bx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Subroutine used for the GMRES solver. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em n} & \+: Size of the matrix \\
+\hline
+\mbox{\texttt{ in}}  & {\em x} & \+: Input vector \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em y} & \+: y=A$\ast$x \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l01266}{1266}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a92077fecd6f7c3ab9b4be15323cdadb2}\label{namespaceddx__operators_a92077fecd6f7c3ab9b4be15323cdadb2}} 
+\index{ddx\_operators@{ddx\_operators}!tx@{tx}}
+\index{tx@{tx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{tx()}{tx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::tx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph, 2), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph, 2), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Subroutine used for the GMRES solver with complete matrix. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em x} & \+: Input vector \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em y} & \+: y=T$\ast$x \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l01307}{1307}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a255d38c63d567d20e2844c8d015d1c0f}\label{namespaceddx__operators_a255d38c63d567d20e2844c8d015d1c0f}} 
+\index{ddx\_operators@{ddx\_operators}!tstarx@{tstarx}}
+\index{tstarx@{tstarx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{tstarx()}{tstarx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::tstarx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph, 2), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph, 2), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Subroutine used for the GMRES solver with complete matrix adjoint system. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em x} & \+: Input vector \\
+\hline
+\mbox{\texttt{ in,out}}  & {\em y} & \+: y=Tstar$\ast$x \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l01340}{1340}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_aa910ba16eb7aa581ab1f314124e6e0fd}\label{namespaceddx__operators_aa910ba16eb7aa581ab1f314124e6e0fd}} 
+\index{ddx\_operators@{ddx\_operators}!bx\_prec@{bx\_prec}}
+\index{bx\_prec@{bx\_prec}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{bx\_prec()}{bx\_prec()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::bx\+\_\+prec (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l01369}{1369}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_ab5909858cddd80271567d2d910d730f2}\label{namespaceddx__operators_ab5909858cddd80271567d2d910d730f2}} 
+\index{ddx\_operators@{ddx\_operators}!prec\_tstarx@{prec\_tstarx}}
+\index{prec\_tstarx@{prec\_tstarx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{prec\_tstarx()}{prec\_tstarx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::prec\+\_\+tstarx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph, 2), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph, 2), intent(inout)}]{y }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l01379}{1379}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_a31ded2fe034b4750fa14adbb07cb50dd}\label{namespaceddx__operators_a31ded2fe034b4750fa14adbb07cb50dd}} 
+\index{ddx\_operators@{ddx\_operators}!prec\_tx@{prec\_tx}}
+\index{prec\_tx@{prec\_tx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{prec\_tx()}{prec\_tx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::prec\+\_\+tx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph, 2), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph, 2), intent(inout)}]{y }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l01428}{1428}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_ac915c9397fb193105a6cb419b4ecfc37}\label{namespaceddx__operators_ac915c9397fb193105a6cb419b4ecfc37}} 
+\index{ddx\_operators@{ddx\_operators}!cstarx@{cstarx}}
+\index{cstarx@{cstarx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{cstarx()}{cstarx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::cstarx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph, 2), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph, 2), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l01474}{1474}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
+\mbox{\Hypertarget{namespaceddx__operators_afe779d813f428e2c85015629976de9f8}\label{namespaceddx__operators_afe779d813f428e2c85015629976de9f8}} 
+\index{ddx\_operators@{ddx\_operators}!cx@{cx}}
+\index{cx@{cx}!ddx\_operators@{ddx\_operators}}
+\doxysubsubsection{\texorpdfstring{cx()}{cx()}}
+{\footnotesize\ttfamily subroutine ddx\+\_\+operators\+::cx (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structddx__parameters_1_1ddx__params__type}{ddx\+\_\+params\+\_\+type}}), intent(in)}]{params,  }\item[{type(\mbox{\hyperlink{structddx__constants_1_1ddx__constants__type}{ddx\+\_\+constants\+\_\+type}}), intent(in)}]{constants,  }\item[{type(\mbox{\hyperlink{structddx__workspace_1_1ddx__workspace__type}{ddx\+\_\+workspace\+\_\+type}}), intent(inout)}]{workspace,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph, 2), intent(in)}]{x,  }\item[{real(dp), dimension(constants \% nbasis, params \% nsph, 2), intent(out)}]{y }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{ddx__operators_8f90_source_l01592}{1592}} of file \mbox{\hyperlink{ddx__operators_8f90_source}{ddx\+\_\+operators.\+f90}}.
+
