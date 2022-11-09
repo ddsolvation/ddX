@@ -141,37 +141,6 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
     info = 1
 endsubroutine jacobi_diis
 
-!subroutine diis_new(params, constants, workspace, nmat, xnew, x)
-!    implicit none
-!    type(ddx_params_type), intent(in) :: params
-!    type(ddx_constants_type), intent(in) :: constants
-!    type(ddx_workspace_type), intent(inout) :: workspace
-!    real(dp), intent(inout) :: xnew(constants % n)
-!    real(dp), intent(in) :: x(constants % n)
-!    integer, intent(inout) :: nmat
-!
-!    ! add new quantities
-!    workspace % tmp_x_diis(:, nmat) = xnew
-!    workspace % tmp_e_diis(:, nmat) = xnew - x
-!
-!    ! if we run out of space, reset
-!    if (nmat.ge.(2*params % jacobi_ndiis)) then
-!        workspace % tmp_x_diis(:, 0:nmat) = &
-!            & workspace % tmp_x_diis(:, nmat:2*nmat)
-!        workspace % tmp_e_diis(:, 0:nmat) = &
-!            & workspace % tmp_e_diis(:, nmat:2*nmat)
-!        workspace % tmp_b_mat(0:nmat, 0:nmat) = &
-!            & workspace % tmp_b_mat(nmat:2*nmat, nmat:2*nmat)
-!    nmat = workspace % jacobi_ndiis
-!    end if
-!
-!    ! build B matrix of DIIS
-!    call makeb(workspace % n, nmat, 2*workspace % jacobi_ndiis, &
-!        & workspace % tmp_e_diis, workspace % tmp_b_mat)
-!
-!end subroutine diis_new
-
-
 subroutine diis(n, nmat, ndiis, x, e, b, xnew)
     implicit none
     integer, intent(in) :: n, ndiis
