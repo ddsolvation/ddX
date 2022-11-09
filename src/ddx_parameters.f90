@@ -88,9 +88,11 @@ type ddx_params_type
     !> fname: name of the output file
     character(len=255) :: output_filename
     !> len_fname: actual length of the output file
-    integer :: len_filename
+    integer :: len_output_filename
     !> verbose: true if printing is enabled
     logical :: verbose
+    !> output unit
+    integer :: iunit
 end type ddx_params_type
 
 contains
@@ -132,6 +134,7 @@ contains
 !! @param[in] csph: Coordinates of atoms. Dimension is `(3, nsph)`.
 !! @param[in] rsph: Van-der-Waals radii of atoms. Dimension is `(nsph)`.
 !! @param[in] print_func: Function to print errors.
+!! @param[in] output_filename: file name of log file.
 !! @param[out] params: Object containing all inputs.
 !! @param[out] info: flag of succesfull exit
 !!      = 0: Succesfull exit
@@ -141,7 +144,7 @@ contains
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & fmm, pm, pl, nproc, nsph, charge, &
-        & csph, rsph, print_func, params, info)
+        & csph, rsph, print_func, output_filename, params, info)
     !! Inputs
     ! Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
     integer, intent(in) :: model
@@ -190,6 +193,8 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     real(dp), intent(in) :: rsph(nsph)
     ! Error printing function
     procedure(print_func_interface) :: print_func
+    ! log file name
+    character(len=255) :: output_filename
     !! Outputs
     type(ddx_params_type), intent(out) :: params
     integer, intent(out) :: info
@@ -197,6 +202,18 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     integer :: igrid, i
     character(len=255) :: string
     !! The code
+    if (len(trim(output_filename)) .ne. 0) then
+        params % output_filename = output_filename
+        write(6,*) output_filename
+        write(6,*) params % output_filename
+        params % verbose = .true.
+        params % len_output_filename = len(trim(output_filename))
+        write(6,*) params % len_output_filename
+    else
+        params % output_filename = ''
+        params % verbose = .false.
+        params % len_output_filename = 0
+    end if
     ! Model, 1=COSMO, 2=PCM, 3=LPB
     if ((model .lt. 1) .or. (model .gt. 3)) then
         params % error_flag = 1
@@ -387,6 +404,8 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     end if
     ! Set print function for errors
     params % print_func => print_func
+    ! init log
+    call init_printing(params)
     ! Clear error state
     info = 0
     params % error_flag = 0
@@ -540,6 +559,8 @@ subroutine params_free(params, info)
     istat = 0
     info = 0
 
+    call finalize_printing(params)
+
     if (allocated(params % charge)) then
         deallocate(params % charge, stat=istat)
         if (istat .ne. 0) then
@@ -566,5 +587,32 @@ subroutine params_free(params, info)
     end if
 end subroutine params_free
 
-end module ddx_parameters
+!> Open the log file.
+subroutine init_printing(params)
+    implicit none
+    type(ddx_params_type), intent(inout) :: params
+    logical :: exists
+    inquire(file=params % output_filename(1:params % len_output_filename), &
+        & exist=exists)
+    if (exists) then
+        stop 'log file already present'
+    else
+        params % iunit = 100
+        open(params % iunit, &
+            & file=params % output_filename(1: params % len_output_filename), &
+            & form='formatted')
+    end if
+end subroutine init_printing
 
+!> Close the log file.
+subroutine finalize_printing(params)
+    implicit none
+    type(ddx_params_type), intent(out) :: params
+    close(params % iunit)
+    params % verbose = .false.
+    params % output_filename = ''
+    params % len_output_filename = 0
+    params % iunit = 0
+end subroutine finalize_printing
+
+end module ddx_parameters

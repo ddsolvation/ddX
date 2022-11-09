@@ -96,6 +96,7 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
     integer :: passproc
     real(dp) :: se
     type(ddx_setup), pointer :: ddx
+    character(len=255) logfile
 
     ! interface
     !     subroutine print_characters(string) bind(C)
@@ -111,12 +112,12 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
 
     passproc = n_proc
     se = 0.0        ! Hard-code centred regularisation
-
+    logfile = ''
     ddx%error_message = "No error"
     call params_init(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
         & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, &
         & fmm_multipole_lmax, fmm_local_lmax, passproc, n_spheres, sphere_charges, &
-        & sphere_centres, sphere_radii, print_func_default, ddx%params, info)
+        & sphere_centres, sphere_radii, print_func_default, logfile, ddx%params, info)
     if (info .ne. 0) then
         ddx%error_message = ddx%params%error_message
         return
