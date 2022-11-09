@@ -250,6 +250,7 @@ subroutine build_g(params, constants, workspace, multipoles, &
         call build_g_dense(multipoles, params % csph, mmax, params % nsph, &
             & phi_cav, constants % ccav, constants % ncav, e_cav, g_cav)
     else if (params % fmm .eq. 1) then
+        stop "Build g with FMM is not implemented yet."
         ! call build_g_fmm(params, constants, workspace, multipoles, &
         !     & mmax, phi_cav, e_cav)
     end if
