@@ -30,15 +30,9 @@ if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
         "directory. Example: mkdir build && cd build && cmake ..")
 endif()
 
-# Read version
-file(STRINGS "VERSION.txt" VERSION LIMIT_COUNT 1)
-
-# Notify user about project name and version
-message(STATUS "Configuring ddX ${VERSION}")
-
 # Create project and check Fortran compiler
 # CXX compiler is only needed to properly find Intel MKL
-project(ddX VERSION ${VERSION} LANGUAGES Fortran CXX)
+project(ddX VERSION 0.0.4 LANGUAGES Fortran CXX)
 
 # If ddX is a subproject, append ddx_ prefix to all targets.
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
@@ -93,7 +87,7 @@ if (PYTHON)
     include(src/define_sources.cmake)
     list(TRANSFORM SRC_PYDDX PREPEND src/)
     pybind11_add_module(pyddx ${SRC_PYDDX})
-    target_compile_definitions(pyddx PRIVATE VERSION_INFO=${VERSION})
+    target_compile_definitions(pyddx PRIVATE VERSION_INFO=${PROJECT_VERSION})
     target_link_libraries(pyddx PUBLIC
         ${BLAS_LIBRARIES}
         ${LAPACK_LIBRARIES}
@@ -113,23 +107,12 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
 # Build tests
 option(TESTS "Generate testing binaries" ON)
 
-# Build documentation
-option(DOCS "Build documentation" ON)
-
 # Check if a code coverage report is needed
 option(COVERAGE "Generate code coverage report" OFF)
 
 ###############################################################################
 ##                               CHECK OPTIONS                               ##
 ###############################################################################
-
-# Check if need to build documentation
-if(DOCS)
-    find_package(Doxygen)
-    if(NOT DOXYGEN_FOUND)
-        set(DOCS OFF)
-    endif()
-endif()
 
 #add_compile_options(-O3 -xHost -g -check all -traceback)
 #add_compile_options(-O0 -g -fcheck=all -fbacktrace)
@@ -240,23 +223,24 @@ endfunction(ddx_add_test)
 ##                 BUILD LIBRARY, EXAMPLES, TESTS AND DOCS                   ##
 ###############################################################################
 
-add_subdirectory("src")
+add_subdirectory(src)
 
 # Build examples
 if(EXAMPLES)
-    add_subdirectory("examples")
+    add_subdirectory(examples)
 endif()
 
 # Build tests
 if(TESTS)
-    add_subdirectory("tests")
+    add_subdirectory(tests)
 endif()
 
 # Build documentation
-if(DOCS)
-    add_subdirectory("docs")
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+    add_custom_target(docs COMMAND "${DOXYGEN_EXECUTABLE}" Doxyfile
+                      WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 endif()
-
 
 #-------------------------------------------------------------------------------
 # Install rules.

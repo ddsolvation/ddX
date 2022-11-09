@@ -144,11 +144,16 @@ setup(
     description="ddx continuum solvation library",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
-    version=open("VERSION.txt", "r").read().strip(),
+    version="0.0.4",
     #
     author="ddx developers",
     author_email="best@ians.uni-stuttgart.de",
     license="LGPL v3",
+    url="https://ddsolvation.github.io/ddX",
+    project_urls={
+        "Source": "https://github.com/ddsolvation/ddX",
+        "Issues": "https://github.com/ddsolvation/ddX/issues",
+    },
     #
     ext_modules=[CMakeExtension("pyddx")],
     zip_safe=False,

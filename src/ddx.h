@@ -92,6 +92,20 @@ void ddx_pcm_forces(const void* ddx, void* state, int nbasis, int nsph, int ncav
 // LPB
 // TODO
 
+// multipolar solutes
+void ddx_build_g(const void* ddx, const double* multipoles, int mmax,
+                 double* phi_cav, double* e_cav, double* g_cav, int nsph,
+                 int ncav);
+void ddx_build_e(const void* ddx, const double* multipoles, int mmax,
+                 double* phi_cav, double* e_cav, int nsph, int ncav);
+void ddx_build_phi(const void* ddx, const double* multipoles, int mmax,
+                   double* phi_cav, int nsph, int ncav);
+void ddx_build_psi(const void* ddx, const double* multipoles, int mmax,
+                   double* psi, int nsph, int lmax);
+void ddx_grad_phi(const void* ddx, void* state, const double* multipoles,
+                  int mmax, double* forces, const double* e_cav, int nsph,
+                  int ncav);
+
 #ifdef __cplusplus
 }
 #endif
