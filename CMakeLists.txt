@@ -244,7 +244,7 @@ endif()
 # Build documentation
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
-    add_custom_target(docs COMMAND "${DOXYGEN_EXECUTABLE}" docs/Doxyfile
+    add_custom_target(docs COMMAND "${DOXYGEN_EXECUTABLE}" Doxyfile
                       WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 endif()
 
