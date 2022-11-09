@@ -624,7 +624,7 @@ subroutine check_ddinit_args()
     if (info .eq. 0) call error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
-    ! Check correct eta (semi-interval (0,1])
+    ! Check correct eta (interval [0,1])
     tmp = pt5
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, itersolver, &
@@ -640,7 +640,7 @@ subroutine check_ddinit_args()
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect eta
-    tmp = zero
+    tmp = -0.0000005
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, itersolver, &
         & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)

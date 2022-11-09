@@ -1,5 +1,19 @@
 # Download and Installation  {#label_download_and_install}
 
+## Python package
+
+ddx is available in the form of the `pyddx` python package. This can be installed
+directly from pypi:
+```
+pip install pyddx
+```
+A conda-forge package will be added soon.
+
+If you want to build the python package from source, simply run:
+```
+setup.py test
+```
+
 **Download the ddX source code** at: 
 ``` markdown
 > git clone git@github.com:ACoM-Computational-Mathematics/ddX.git
@@ -32,8 +46,3 @@ Copy the link shown by pwd and add /index.html in a web browser
 cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_C_COMPILER=/usr/local/bin/gcc-11 ..
 ```
 **NOTE**: Replace g++-11 and gcc-11 with the compilers you desire
-
-2. Disactivate OpenMP-support:
-``` markdown 
-cmake -D OPENMP=OFF ..
-```

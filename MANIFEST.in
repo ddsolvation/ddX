@@ -1,0 +1,4 @@
+global-include src/**/*.h src/**/*.cpp src/**/*.f src/**/*.f90 src/**/*.cmake src/**/CMakeLists.txt
+include CMakeLists.txt
+include VERSION.txt
+include README.md
