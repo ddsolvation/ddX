@@ -36,7 +36,7 @@ if(info .ne. 0) stop "info != 0"
 
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 
-call print_header(iprint,ddx_data%params)
+call print_header(ddx_data%params)
 ! determine needed arrays
 if (ddx_data % params % model .eq. 3) then
     phi_flag = 1

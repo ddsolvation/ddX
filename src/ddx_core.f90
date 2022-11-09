@@ -202,6 +202,7 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & ngrid
     real(dp), intent(in):: charge(nsph), x(nsph), y(nsph), z(nsph), &
         & rvdw(nsph), se, eta, eps, kappa
+    !character(len=255), intent(in) :: output_filename
     ! Output
     type(ddx_type), target, intent(out) :: ddx_data
     integer, intent(out) :: info
@@ -538,16 +539,12 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
         & istatus
     real(dp) :: eps, se, eta, kappa
     real(dp), allocatable :: charge(:), x(:), y(:), z(:), rvdw(:)
+    character(len=255) :: output_filename
     !! Read all the parameters from the file
     ! Open a configuration file
     open(unit=100, file=fname, form='formatted', access='sequential')
     ! Printing flag
-    read(100, *) iprint
-    if(iprint .lt. 0) then
-        write(*, "(3A)") "Error on the 1st line of a config file ", fname, &
-            & ": `iprint` must be a non-negative integer value."
-        stop 1
-    end if
+    read(100, *) output_filename
     ! Number of OpenMP threads to be used
     read(100, *) nproc
     if(nproc .lt. 0) then
@@ -894,44 +891,44 @@ end subroutine ddx_free_state
 !! @param[in] ncol: Number of columns to print
 !! @param[in] icol: This number is only for printing purposes
 !! @param[in] x: Actual data to print
-subroutine print_spherical(label, nbasis, lmax, ncol, icol, x)
+subroutine print_spherical(iunit, label, nbasis, lmax, ncol, icol, x)
     ! Inputs
     character (len=*), intent(in) :: label
-    integer, intent(in) :: nbasis, lmax, ncol, icol
+    integer, intent(in) :: nbasis, lmax, ncol, icol, iunit
     real(dp), intent(in) :: x(nbasis, ncol)
     ! Local variables
     integer :: l, m, ind, noff, nprt, ic, j
     ! Print header:
     if (ncol .eq. 1) then
-        write (6,'(3x,a,1x,"(column ",i4")")') label, icol
+        write (iunit,'(3x,a,1x,"(column ",i4")")') label, icol
     else
-        write (6,'(3x,a)') label
+        write (iunit,'(3x,a)') label
     endif
     ! Print entries:
     if (ncol .eq. 1) then
         do l = 0, lmax
             ind = l*l + l + 1
             do m = -l, l
-                write(6,1000) l, m, x(ind+m, 1)
+                write(iunit,1000) l, m, x(ind+m, 1)
             end do
         end do
     else
         noff = mod(ncol, 5)
         nprt = max(ncol-noff, 0)
         do ic = 1, nprt, 5
-            write(6,1010) (j, j = ic, ic+4)
+            write(iunit,1010) (j, j = ic, ic+4)
             do l = 0, lmax
                 ind = l*l + l + 1
                 do m = -l, l
-                    write(6,1020) l, m, x(ind+m, ic:ic+4)
+                    write(iunit,1020) l, m, x(ind+m, ic:ic+4)
                 end do
             end do
         end do
-        write (6,1010) (j, j = nprt+1, nprt+noff)
+        write (iunit,1010) (j, j = nprt+1, nprt+noff)
         do l = 0, lmax
             ind = l*l + l + 1
             do m = -l, l
-                write(6,1020) l, m, x(ind+m, nprt+1:nprt+noff)
+                write(iunit,1020) l, m, x(ind+m, nprt+1:nprt+noff)
             end do
         end do
     end if
@@ -950,36 +947,36 @@ end subroutine print_spherical
 !! @param[in] ncol: Number of columns to print
 !! @param[in] icol: This number is only for printing purposes
 !! @param[in] x: Actual data to print
-subroutine print_nodes(label, ngrid, ncol, icol, x)
+subroutine print_nodes(iunit, label, ngrid, ncol, icol, x)
     ! Inputs
     character (len=*), intent(in) :: label
-    integer, intent(in) :: ngrid, ncol, icol
+    integer, intent(in) :: ngrid, ncol, icol, iunit
     real(dp), intent(in) :: x(ngrid, ncol)
     ! Local variables
     integer :: ig, noff, nprt, ic, j
     ! Print header :
     if (ncol .eq. 1) then
-        write (6,'(3x,a,1x,"(column ",i4")")') label, icol
+        write (iunit,'(3x,a,1x,"(column ",i4")")') label, icol
     else
-        write (6,'(3x,a)') label
+        write (iunit,'(3x,a)') label
     endif
     ! Print entries :
     if (ncol .eq. 1) then
         do ig = 1, ngrid
-            write(6,1000) ig, x(ig, 1)
+            write(iunit,1000) ig, x(ig, 1)
         enddo
     else
         noff = mod(ncol, 5)
         nprt = max(ncol-noff, 0)
         do ic = 1, nprt, 5
-            write(6,1010) (j, j = ic, ic+4)
+            write(iunit,1010) (j, j = ic, ic+4)
             do ig = 1, ngrid
-                write(6,1020) ig, x(ig, ic:ic+4)
+                write(iunit,1020) ig, x(ig, ic:ic+4)
             end do
         end do
-        write (6,1010) (j, j = nprt+1, nprt+noff)
+        write (iunit,1010) (j, j = nprt+1, nprt+noff)
         do ig = 1, ngrid
-            write(6,1020) ig, x(ig, nprt+1:nprt+noff)
+            write(iunit,1020) ig, x(ig, nprt+1:nprt+noff)
         end do
     end if
     !
@@ -2757,13 +2754,11 @@ end subroutine tree_grad_l2l
 !------------------------------------------------------------------------------
 !> small routine to print a tidy header with various info on the calculation.
 !------------------------------------------------------------------------------
-subroutine print_header(iprint,params)
+subroutine print_header(params)
     implicit none
-    integer,               intent(in) :: iprint
     type(ddx_params_type), intent(in) :: params
-!
     character (len=255) :: string
-!
+
     1010 format (t5,a,3x,i20)
     1020 format (t5,a,3x,f20.10)
     string = " "
@@ -2818,34 +2813,31 @@ subroutine print_header(iprint,params)
         end if
     end if
     call params % print_func(string)
-!
-    if (params % model .eq. 3) then 
+
+    if (params % model .eq. 3) then
         write (string,'(t3,A,F10.4,A,F10.4)') 'dielectric constant: ', params % eps, &
                                            ' Debye-Hueckel constant: ', params % kappa
     else
         write (string,'(t3,A,F10.4)') 'dielectric constant: ', params % eps
     end if
-!
+
     if (params % fmm .eq. 1) then
         string = " using the fast multipole method to accelerate the calculation"
         call params % print_func(string)
     end if
-!
-    if (iprint.gt.0) then 
-        string = " using the following numerical parameters for the calculation:"
+
+    string = " using the following numerical parameters for the calculation:"
+    call params % print_func(string)
+    write(string,1010) 'maximal degree of spherical harmonics for the model:',params % lmax
+    call params % print_func(string)
+    write(string,1010) 'number of lebedev points:                           ',params % ngrid
+    call params % print_func(string)
+    if (params % fmm .eq. 1) then
+        write(string,1010) 'maximal degree of FMM multipolar expansions:        ',params % pm
         call params % print_func(string)
-        write(string,1010) 'maximal degree of spherical harmonics for the model:',params % lmax
+        write(string,1010) 'maximal degree of FMM local expansions:             ',params % pl
         call params % print_func(string)
-        write(string,1010) 'number of lebedev points:                           ',params % ngrid
-        call params % print_func(string)
-        if (params % fmm .eq. 1) then 
-            write(string,1010) 'maximal degree of FMM multipolar expansions:         ',params % pm
-            call params % print_func(string)
-            write(string,1010) 'maximal degree of FMM local expansions:              ',params % pl
-            call params % print_func(string)
-        end if
     end if
-!
     string = " using the Jacobi-DIIS iterative solver"
     call params % print_func(string)
     string = " "

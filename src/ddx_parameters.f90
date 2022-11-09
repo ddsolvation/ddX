@@ -84,6 +84,13 @@ type ddx_params_type
     procedure(print_func_interface), pointer, nopass :: print_func
     !> integer matvecmem. Build hsp matrix to speed up matrix-vec product
     integer :: matvecmem
+    !> variable to enable debug printins:
+    !> fname: name of the output file
+    character(len=255) :: output_filename
+    !> len_fname: actual length of the output file
+    integer :: len_filename
+    !> verbose: true if printing is enabled
+    logical :: verbose
 end type ddx_params_type
 
 contains
