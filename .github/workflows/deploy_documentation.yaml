@@ -16,6 +16,9 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - name: Install Doxygen
+      run: sudo apt-get install doxygen -y
+      shell: bash
     - name: Create build dir
       run: cmake -E make_directory build
     - name: Run cmake
