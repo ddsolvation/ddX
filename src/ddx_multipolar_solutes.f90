@@ -31,7 +31,7 @@ subroutine build_g(params, constants, workspace, multipoles, &
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: mmax
-    real(dp), intent(inout) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav)
     real(dp), intent(out) :: e_cav(3, constants % ncav)
     real(dp), intent(out) :: g_cav(3, 3, constants % ncav)
