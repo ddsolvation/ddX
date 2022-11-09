@@ -32,7 +32,7 @@ endif()
 
 # Create project and check Fortran compiler
 # CXX compiler is only needed to properly find Intel MKL
-project(ddX VERSION 0.0.3 LANGUAGES Fortran CXX)
+project(ddX VERSION 0.0.4 LANGUAGES Fortran CXX)
 
 # If ddX is a subproject, append ddx_ prefix to all targets.
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)

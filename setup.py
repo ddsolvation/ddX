@@ -144,7 +144,7 @@ setup(
     description="ddx continuum solvation library",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
-    version="0.0.3",
+    version="0.0.4",
     #
     author="ddx developers",
     author_email="best@ians.uni-stuttgart.de",
