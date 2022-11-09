@@ -30,15 +30,9 @@ if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
         "directory. Example: mkdir build && cd build && cmake ..")
 endif()
 
-# Read version
-file(STRINGS "VERSION.txt" VERSION LIMIT_COUNT 1)
-
-# Notify user about project name and version
-message(STATUS "Configuring ddX ${VERSION}")
-
 # Create project and check Fortran compiler
 # CXX compiler is only needed to properly find Intel MKL
-project(ddX VERSION ${VERSION} LANGUAGES Fortran CXX)
+project(ddX VERSION 0.0.3 LANGUAGES Fortran CXX)
 
 # If ddX is a subproject, append ddx_ prefix to all targets.
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
@@ -93,7 +87,7 @@ if (PYTHON)
     include(src/define_sources.cmake)
     list(TRANSFORM SRC_PYDDX PREPEND src/)
     pybind11_add_module(pyddx ${SRC_PYDDX})
-    target_compile_definitions(pyddx PRIVATE VERSION_INFO=${VERSION})
+    target_compile_definitions(pyddx PRIVATE VERSION_INFO=${PROJECT_VERSION})
     target_link_libraries(pyddx PUBLIC
         ${BLAS_LIBRARIES}
         ${LAPACK_LIBRARIES}
