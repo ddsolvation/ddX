@@ -15,9 +15,11 @@ set(SRC
     ddx_lpb.f90
     ddx.f90
     ddx_mkrhs.f90
+    ddx_rhs.f90
     llgnew.f
     cbessel.f90
     ddx_cinterface.f90
+    matrix_debug.f90
 )
 
 # Define source files to be build into the python version of ddx
