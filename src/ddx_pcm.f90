@@ -112,6 +112,41 @@ subroutine ddpcm_forces(params, constants, workspace, state, phi_cav, &
         & state % qgrid, state % xs, state % zeta, force, info)
 end subroutine ddpcm_forces
 
+!!
+!! Wrapper routine for the computation of ddPCM forces. It makes the
+!! interface easier to implement. If a fine control is needed, the
+!! worker routine should be directly called. This routine computes only
+!! the geometrical contributions to the forces (no terms specific of the
+!! solutes).
+!!
+!! @param[in] params       : General options
+!! @param[in] constants    : Precomputed constants
+!! @param[inout] workspace : Preallocated workspaces
+!! @param[inout] state     : Solutions and relevant quantities
+!! @param[in] phi_cav      : Electric potential at the grid points
+!! @param[in] gradphi_cav  : Electric field at the grid points
+!! @param[in] psi          : Representation of the solute's density
+!! @param[out] force       : Geometrical contribution to the forces
+!!
+subroutine ddpcm_geom_forces(params, constants, workspace, state, phi_cav, &
+    & gradphi_cav, psi, force)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav)
+    real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    real(dp), intent(out) :: force(3, params % nsph)
+    integer :: info
+
+    call ddpcm_geom_forces_worker(params, constants, workspace, state % phi_grid, &
+        & gradphi_cav, psi, state % phi, state % phieps, state % s, &
+        & state % sgrid, state % y, state % ygrid, state % g, state % q, &
+        & state % qgrid, state % xs, state % zeta, force, info)
+end subroutine ddpcm_geom_forces
+
 !> ddPCM solver
 !!
 !! Solves the problem within PCM model using a domain decomposition approach.
@@ -510,11 +545,11 @@ subroutine ddpcm_forces_worker(params, constants, workspace, phi_grid, &
         do igrid = 1, params % ngrid
             if(constants % ui(igrid, isph) .ne. zero) then
                 icav = icav + 1
-                zeta(icav) = -pt5 * constants % wgrid(igrid) * &
+                zeta(icav) = constants % wgrid(igrid) * &
                     & constants % ui(igrid, isph) * ddot(constants % nbasis, &
                     & constants % vgrid(1, igrid), 1, q(1, isph), 1)
-                force(:, isph) = force(:, isph) + &
-                    & zeta(icav)*gradphi_cav(:, icav)
+                force(:, isph) = force(:, isph) &
+                    & - pt5*zeta(icav)*gradphi_cav(:, icav)
             end if
         end do
     end do
@@ -585,8 +620,8 @@ subroutine ddpcm_forces_worker(params, constants, workspace, phi_grid, &
             end do
         end if
         do isph = 1, params % nsph
-            force(:, isph) = force(:, isph) + &
-                & workspace % tmp_efld(:, isph)*params % charge(isph)
+            force(:, isph) = force(:, isph) &
+                & - pt5*workspace % tmp_efld(:, isph)*params % charge(isph)
         end do
     ! Naive quadratically scaling implementation
     else
@@ -594,12 +629,78 @@ subroutine ddpcm_forces_worker(params, constants, workspace, phi_grid, &
         call efld(constants % ncav, zeta, constants % ccav, params % nsph, &
             & params % csph, workspace % tmp_efld)
         do isph = 1, params % nsph
-            force(:, isph) = force(:, isph) - &
-                & workspace % tmp_efld(:, isph)*params % charge(isph)
+            force(:, isph) = force(:, isph) &
+                & + pt5*workspace % tmp_efld(:, isph)*params % charge(isph)
         end do
     end if
     ! Clear status
     info = 0
 end subroutine ddpcm_forces_worker
+
+subroutine ddpcm_geom_forces_worker(params, constants, workspace, phi_grid, &
+    & gradphi_cav, psi, phi, phieps, s, sgrid, y, ygrid, g, q, qgrid, xs, &
+    & zeta, force, info)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: phi_grid(params % ngrid, params % nsph), &
+        & gradphi_cav(3, constants % ncav), &
+        & psi(constants % nbasis, params % nsph), &
+        & phi(constants % nbasis, params % nsph), &
+        & phieps(constants % nbasis, params % nsph), &
+        & s(constants % nbasis, params % nsph), &
+        & y(constants % nbasis, params % nsph), &
+        & xs(constants % nbasis, params % nsph)
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
+    !! Outputs
+    real(dp), intent(out) :: sgrid(params % ngrid, params % nsph), &
+        & ygrid(params % ngrid, params % nsph), &
+        & g(constants % nbasis, params % nsph), &
+        & q(constants % nbasis, params % nsph), &
+        & qgrid(params % ngrid, params % nsph), &
+        & zeta(constants % ncav), &
+        & force(3, params % nsph)
+    integer, intent(out) :: info
+    !! Local variables
+    integer :: isph, icav, igrid, inode, jnode, jsph, jnear
+    real(dp) :: tmp1, tmp2, d(3), dnorm
+    real(dp), external :: ddot, dnrm2
+    !! The code
+    ! Get grid values of S and Y
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+        & constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &
+        & s, constants % nbasis, zero, sgrid, params % ngrid)
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+        & constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &
+        & y, constants % nbasis, zero, ygrid, params % ngrid)
+    g = phieps - phi
+    q = s - fourpi/(params % eps-one)*y
+    qgrid = sgrid - fourpi/(params % eps-one)*ygrid
+    ! gradr initializes forces with zeros
+    call gradr(params, constants, workspace, g, ygrid, force)
+    do isph = 1, params % nsph
+        call contract_grad_L(params, constants, isph, xs, sgrid, &
+            & workspace % tmp_vylm(:, 1), workspace % tmp_vdylm(:, :, 1), &
+            & workspace % tmp_vplm(:, 1), workspace % tmp_vcos(:, 1), &
+            & workspace % tmp_vsin(:, 1), force(:, isph))
+        call contract_grad_U(params, constants, isph, qgrid, phi_grid, force(:, isph))
+    end do
+    force = -pt5 * force
+
+    icav = 0
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if(constants % ui(igrid, isph) .ne. zero) then
+                icav = icav + 1
+                zeta(icav) = constants % wgrid(igrid) * &
+                    & constants % ui(igrid, isph) * ddot(constants % nbasis, &
+                    & constants % vgrid(1, igrid), 1, q(1, isph), 1)
+            end if
+        end do
+    end do
+    ! Clear status
+    info = 0
+end subroutine ddpcm_geom_forces_worker
 
 end module ddx_pcm
