@@ -773,7 +773,7 @@ subroutine check_ddinit_args()
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, i, &
         & maxiter, jacobi_ndiis, nproc, ddx_data, info)
-    if (info .ne. 0) call error(-1, "`itersolver` test failed in " // &
+    if (info .eq. 0) call error(-1, "`itersolver` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect itersolver

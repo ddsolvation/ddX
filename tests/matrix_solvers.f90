@@ -65,20 +65,20 @@ esolv_one = zero
 esolv_two = zero
 
 ! Computation for different solvers
-write(*,*) 'Different Solvers'
-default_value = 1
-call solve(ddx_data, state, ddx_data % params % matvecmem, &
-           & default_value, esolv_one)
-write(*,*) 'Esolv : ', esolv_one
-default_value = 2
-call solve(ddx_data, state, ddx_data % params % matvecmem, &
-           & default_value, esolv_two)
-write(*,*) 'Esolv : ', esolv_two
-
-if(abs(esolv_one - esolv_two) .gt. 1e-8) then
-  write(*,*) 'Different solvation energies for different solvers'
-  stop 1
-endif
+!write(*,*) 'Different Solvers'
+!default_value = 1
+!call solve(ddx_data, state, ddx_data % params % matvecmem, &
+!           & default_value, esolv_one)
+!write(*,*) 'Esolv : ', esolv_one
+!default_value = 2
+!call solve(ddx_data, state, ddx_data % params % matvecmem, &
+!           & default_value, esolv_two)
+!write(*,*) 'Esolv : ', esolv_two
+!
+!if(abs(esolv_one - esolv_two) .gt. 1e-8) then
+!  write(*,*) 'Different solvation energies for different solvers'
+!  stop 1
+!endif
 
 call ddx_free_state(state)
 call ddfree(ddx_data)

@@ -12,8 +12,6 @@
 1d-07       ! Relative threshold for the iterative solver
 200         ! Maximum number of iterations
 25          ! Number of DIIS extrapolation points
-25          ! Number of last vectors GMRESR works with
-20          ! Dimension of GMRESR
 1           ! Whether to compute (1) or not (0) forces
 0           ! Whether to use (1) or not (0) the FMM
 20          ! Max degree of multipole spherical harmonics for the FMM
