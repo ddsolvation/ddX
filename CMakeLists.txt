@@ -240,21 +240,22 @@ endfunction(ddx_add_test)
 ##                 BUILD LIBRARY, EXAMPLES, TESTS AND DOCS                   ##
 ###############################################################################
 
-add_subdirectory("src")
+add_subdirectory(src)
 
 # Build examples
 if(EXAMPLES)
-    add_subdirectory("examples")
+    add_subdirectory(examples)
 endif()
 
 # Build tests
 if(TESTS)
-    add_subdirectory("tests")
+    add_subdirectory(tests)
 endif()
 
 # Build documentation
 if(DOCS)
-    add_subdirectory("docs")
+    add_custom_target(docs COMMAND "${DOXYGEN_EXECUTABLE}" docs/Doxyfile
+                      WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 endif()
 
 
