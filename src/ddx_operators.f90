@@ -1300,39 +1300,6 @@ subroutine bx(params, constants, workspace, x, y)
     if (constants % dodiag) y = y + x
 end subroutine bx
 
-!> Subroutine used for the GMRES solver with complete matrix
-!! @param[in]      x : Input vector
-!! @param[in, out] y : y=T*x
-!!
-subroutine tx(params, constants, workspace, x, y)
-    implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
-    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
-    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
-
-    real(dp), dimension(constants % nbasis, params % nsph, 2) :: temp_vector
-    y = zero
-    temp_vector = zero
-
-    ! Compute AXr
-    ! call LXr
-    call lx(params, constants, workspace, x(:,:,1), temp_vector(:,:,1))
-    ! Remove the scaling factor
-    call convert_ddcosmo(params, constants, 1, temp_vector(:,:,1))
-    y(:,:,1) = y(:,:,1) + temp_vector(:,:,1)
-    ! Compute BXe
-    call bx(params, constants, workspace, x(:,:,2), temp_vector(:,:,2))
-    y(:,:,2) = y(:,:,2) + temp_vector(:,:,2)
-
-    ! Reset temp_vector to zero
-    temp_vector = zero
-    ! Call CX
-    call cx(params, constants, workspace, x, temp_vector)
-    y = y + temp_vector
-end subroutine tx
-
 !> Subroutine used for the GMRES solver with complete matrix adjoint system
 !! @param[in]      x : Input vector
 !! @param[in, out] y : y=Tstar*x
@@ -1393,9 +1360,6 @@ subroutine prec_tstarx(params, constants, workspace, x, y)
     if (params % itersolver .eq. 1) then 
         call jacobi_diis(params, constants, workspace, constants % inner_tol, y(:,:,1), &
             & workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, ldm1x, hnorm, info)
-    else
-        call gmresr(params, constants, workspace, constants % inner_tol, y(:,:,1), &
-            & workspace % ddcosmo_guess, n_iter, r_norm, lstarx, info)
     end if
     if (info.ne.0) then
         write(*,*) 'prec_tstarx: [1] ddCOSMO failed to converge'
@@ -1407,9 +1371,6 @@ subroutine prec_tstarx(params, constants, workspace, x, y)
     if (params % itersolver .eq. 1) then
         call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
             & n_iter, x_rel_diff, bstarx, bx_prec, hnorm, info)
-    else
-        call gmresr(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
-           & n_iter, r_norm, bstarx, info)
     end if
     if (info.ne.0) then
         write(*,*) 'prec_tstarx: [1] HSP failed to converge'
@@ -1441,9 +1402,6 @@ subroutine prec_tx(params, constants, workspace, x, y)
     if (params % itersolver .eq. 1) then
         call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,1), &
             & workspace % ddcosmo_guess, n_iter, x_rel_diff, lx, ldm1x, hnorm, info)
-    else
-        call gmresr(params, constants, workspace, constants % inner_tol, x(:,:,1), &
-            & workspace % ddcosmo_guess, n_iter, r_norm, lx, info)
     end if
     if (info.ne.0) then
         write(*,*) 'prec_tx: [1] ddCOSMO failed to converge'
@@ -1459,9 +1417,6 @@ subroutine prec_tx(params, constants, workspace, x, y)
     if (params % itersolver .eq. 1) then
         call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
             & n_iter, x_rel_diff, bx, bx_prec, hnorm, info)
-    else
-        call gmresr(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
-         & n_iter, r_norm, bx, info)
     end if
     y(:,:,2) = workspace % hsp_guess
 

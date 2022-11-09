@@ -117,8 +117,8 @@ subroutine solve(ddx_data, esolv_in, tol)
         & ddx_data % params % se, &
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, &
         & ddx_data % params % matvecmem, ddx_data % params % itersolver, ddx_data % params % maxiter, &
-        & ddx_data % params % jacobi_ndiis, ddx_data % params % gmresr_j, &
-        & ddx_data % params % gmresr_dim, ddx_data % params % nproc, ddx_data2, info)
+        & ddx_data % params % jacobi_ndiis, &
+        & ddx_data % params % nproc, ddx_data2, info)
 
     call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state)
 

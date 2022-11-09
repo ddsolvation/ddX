@@ -47,7 +47,7 @@ type ddx_params_type
     integer :: lmax
     !> Number of Lebedev grid points on each sphere.
     integer :: ngrid
-    !> Iterative solver to be used. 1 for Jacobi/DIIS, 2 for GMRES.
+    !> Iterative solver to be used. 1 for Jacobi/DIIS.
     !!
     !! Other solvers might be added later.
     integer :: itersolver
@@ -56,13 +56,6 @@ type ddx_params_type
     !> Number of extrapolation points for Jacobi/DIIS solver. Referenced only
     !!      if Jacobi solver is used.
     integer :: jacobi_ndiis
-    !> Number of last vectors that GMRESR works with. Referenced only if GMRESR
-    !!      solver is used.
-    integer :: gmresr_j
-    !> Dimension of the envoked GMRESR. In case of 0 GMRESR becomes the GCR
-    !!      solver, one of the simplest versions of GMRESR. Referenced only if
-    !!      GMRESR solver is used.
-    integer :: gmresr_dim
     !> Enable (1) or disable (0) use of FMM techniques.
     integer :: fmm
     !> Maximal degree of spherical harmonics for a multipole expansion.
@@ -145,7 +138,7 @@ contains
 !!          params % error_message
 !!      = 1: Allocation of memory to copy geometry data failed.
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+        & matvecmem, itersolver, maxiter, jacobi_ndiis, &
         & fmm, pm, pl, nproc, nsph, charge, &
         & csph, rsph, print_func, params, info)
     !! Inputs
@@ -169,7 +162,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! handling of sparse matrix. 1 for precomputing them and keeping them in
     ! memory, 0 for assembling the mvps on-the-fly.
     integer, intent(in) :: matvecmem
-    ! Iterative solver to be used. 1 for Jacobi/DIIS, 2 for GMRES.
+    ! Iterative solver to be used. 1 for Jacobi/DIIS.
     ! Other solvers might be added later.
     integer, intent(in) :: itersolver
     ! Maximum number of iterations for the iterative solver.
@@ -177,13 +170,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Number of extrapolation points for Jacobi/DIIS solver. Referenced only
     !      if Jacobi solver is used.
     integer, intent(in) :: jacobi_ndiis
-    ! Number of last vectors that GMRESR works with. Referenced only if GMRESR
-    !      solver is used.
-    integer, intent(in) :: gmresr_j
-    ! Dimension of the envoked GMRESR. In case of 0 GMRESR becomes the GCR
-    !      solver, one of the simplest versions of GMRESR. Referenced only if
-    !      GMRESR solver is used.
-    integer, intent(in) :: gmresr_dim
     ! Enable (1) or disable (0) use of FMM techniques.
     integer, intent(in) :: fmm
     ! Maximal degree of spherical harmonics for a multipole expansion.
@@ -292,8 +278,8 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         return
     end if
     params % ngrid = ngrid
-    ! Iterative solver: 1=Jacobi 2=GMRES
-    if ((itersolver .lt. 1) .or. (itersolver .gt. 2)) then
+    ! Iterative solver: 1=Jacobi
+    if ((itersolver .lt. 1) .or. (itersolver .gt. 1)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `itersolver`"
         call print_func(params % error_message)
@@ -319,27 +305,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         return
     end if
     params % jacobi_ndiis = jacobi_ndiis
-    ! Number of last vectors that GMRESR works with. Referenced only if GMRESR
-    !      solver is used.
-    if (gmresr_j .lt. 1) then
-        params % error_flag = 1
-        params % error_message = "params_init: invalid value of `gmresr_j`"
-        call print_func(params % error_message)
-        info = -1
-        return
-    end if
-    params % gmresr_j = gmresr_j
-    ! Dimension of the envoked GMRESR. In case of 0 GMRESR becomes the GCR
-    !      solver, one of the simplest versions of GMRESR. Referenced only if
-    !      GMRESR solver is used.
-    if (gmresr_dim .lt. 0) then
-        params % error_flag = 1
-        params % error_message = "params_init: invalid value of `gmresr_j`"
-        call print_func(params % error_message)
-        info = -1
-        return
-    end if
-    params % gmresr_dim = gmresr_dim
     ! Check if FMM-acceleration is needed
     if ((fmm .lt. 0) .or. (fmm .gt. 1)) then
         params % error_flag = 1

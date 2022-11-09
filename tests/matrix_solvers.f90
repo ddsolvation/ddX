@@ -107,8 +107,8 @@ subroutine solve(ddx_data, state, matvecmem, iterative_solver, esolv)
         & ddx_data % params % se, &
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, matvecmem,&
         & iterative_solver, ddx_data % params % maxiter, &
-        & ddx_data % params % jacobi_ndiis, ddx_data % params % gmresr_j, &
-        & ddx_data % params % gmresr_dim, ddx_data % params % nproc, ddx_data2, info)
+        & ddx_data % params % jacobi_ndiis, &
+        & ddx_data % params % nproc, ddx_data2, info)
 
     allocate(phi_cav2(ddx_data2 % constants % ncav), &
             & gradphi_cav2(3, ddx_data2 % constants % ncav), &

@@ -198,9 +198,6 @@ subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
         call jacobi_diis(params, constants, workspace, tol, &
             & workspace % tmp_rhs, xs, xs_niter, xs_rel_diff, lx, &
             & ldm1x, hnorm, info)
-    else 
-        call gmresr(params, constants, workspace, tol, &
-            & workspace % tmp_rhs, xs, xs_niter, r_norm, lx, info)
     end if
     finish_time = omp_get_wtime()
     xs_time = finish_time - start_time
@@ -265,9 +262,6 @@ subroutine ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, s, &
     if (params % itersolver .eq. 1) then
         call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
             & s_rel_diff, lstarx, ldm1x, hnorm, info)
-    else
-        call gmresr(params, constants, workspace, tol, &
-            & psi, s, s_niter, r_norm, lstarx, info)
     end if
     call cpu_time(finish_time)
     s_time = finish_time - start_time

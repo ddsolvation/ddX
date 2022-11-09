@@ -196,12 +196,12 @@ contains
 !------------------------------------------------------------------------------
 subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, se, eta, eps, kappa, &
-        & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+        & matvecmem, itersolver, maxiter, jacobi_ndiis, &
         & nproc, ddx_data, info)
     ! Inputs
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
-        & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, &
-        & gmresr_dim, ngrid
+        & matvecmem, itersolver, maxiter, jacobi_ndiis, &
+        & ngrid
     real(dp), intent(in):: charge(nsph), x(nsph), y(nsph), z(nsph), &
         & rvdw(nsph), se, eta, eps, kappa
     ! Output
@@ -226,7 +226,7 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     csph(2, :) = y
     csph(3, :) = z
     call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+        & matvecmem, itersolver, maxiter, jacobi_ndiis, &
         & fmm, pm, pl, nproc, nsph, charge, &
         & csph, rvdw, print_func_default, &
         & ddx_data % params, info)
@@ -537,7 +537,7 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     ! Local variables
     integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
         & nsph, i, matvecmem, itersolver, maxiter, jacobi_ndiis, &
-        & gmresr_j, gmresr_dim, istatus
+        & istatus
     real(dp) :: eps, se, eta, kappa
     real(dp), allocatable :: charge(:), x(:), y(:), z(:), rvdw(:)
     !! Read all the parameters from the file
@@ -615,9 +615,9 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     end if
     ! Iterative solver of choice. Only one is supported as of now.
     read(100, *) itersolver
-    if((itersolver .lt. 1) .or. (itersolver .gt. 2)) then
+    if((itersolver .lt. 1) .or. (itersolver .gt. 1)) then
         write(*, "(3A)") "Error on the 11th line of a config file ", fname, &
-            & ": `itersolver` must be an integer value of a value 1 or 2."
+            & ": `itersolver` must be 1 - only jacobi/DIIS solver implemented."
         stop 1
     end if
     ! Relative convergence threshold for the iterative solver
@@ -641,26 +641,6 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
             & ": `jacobi_ndiis` must be a non-negative integer value."
         stop 1
     end if
-    ! Number of last vectors that GMRESR works with. Referenced only if GMRESR
-    !      solver is used.
-    read(100, *) gmresr_j
-    if((gmresr_j .lt. 1)) then
-        write(*, "(3A)") "Error on the 15th line of a config file ", fname, &
-            & ": `gmresr_j` must be a non-negative integer value."
-        stop 1
-    end if
-    ! Dimension of the envoked GMRESR. In case of 0 GMRESR becomes the GCR
-    !      solver, one of the simplest versions of GMRESR. Referenced only if
-    !      GMRESR solver is used.
-    read(100, *) gmresr_dim
-    if((gmresr_dim .lt. 0)) then
-        write(*, "(3A)") "Error on the 16th line of a config file ", fname, &
-            & ": `gmresr_dim` must be a non-negative integer value."
-        stop 1
-    end if
-    ! Dimension of the envoked GMRESR. In case of 0 GMRESR becomes the GCR
-    !      solver, one of the simplest versions of GMRESR. Referenced only if
-    !      GMRESR solver is used.
     ! Whether to compute (1) or not (0) forces as analytical gradients
     read(100, *) force
     if((force .lt. 0) .or. (force .gt. 1)) then
@@ -720,7 +700,7 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     !! Initialize ddx_data object
     call ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
         & pm, pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     !! Clean local temporary data
     deallocate(charge, x, y, z, rvdw, stat=istatus)
     if(istatus .ne. 0) then
@@ -2877,8 +2857,6 @@ subroutine print_header(iprint,params)
 !
     if (params % itersolver .eq. 1) then
         string = " using the Jacobi-DIIS iterative solver"
-    else
-        string = " using the GMRES iterative solver"
     end if
     call params % print_func(string)
     string = " "

@@ -241,9 +241,6 @@ subroutine ddpcm_solve_worker(params, constants, workspace, phi_cav, &
     if (params % itersolver .eq. 1) then
         call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
             & phieps_niter, phieps_rel_diff, repsx, prec_repsx, hnorm, info)
-    else
-        call gmresr(params, constants, workspace, tol, phiinf, phieps, phieps_niter, &
-            & r_norm, repsx, info)
     end if
     call cpu_time(finish_time)
     phieps_time = finish_time - start_time
@@ -261,9 +258,6 @@ subroutine ddpcm_solve_worker(params, constants, workspace, phi_cav, &
     if (params % itersolver .eq. 1) then
         call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
             & xs, xs_niter, xs_rel_diff, lx, ldm1x, hnorm, info)
-    else
-        call gmresr(params, constants, workspace, tol, workspace % tmp_rhs, &
-            & xs, xs_niter, r_norm, lx, info)
     end if
     call cpu_time(finish_time)
     xs_time = finish_time - start_time
@@ -358,9 +352,6 @@ subroutine ddpcm_energy_worker(params, constants, workspace, phi_cav, psi, &
     if (params % itersolver .eq. 1) then 
         call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
             & phieps_niter, phieps_rel_diff, repsx, prec_repsx, hnorm, info)
-    else
-        call gmresr(params, constants, workspace, tol, phiinf, phieps, phieps_niter, &
-            & r_norm, repsx, info)
     end if
     finish_time = omp_get_wtime()
     phieps_time = finish_time - start_time
@@ -378,9 +369,6 @@ subroutine ddpcm_energy_worker(params, constants, workspace, phi_cav, psi, &
     if (params % itersolver .eq. 1) then
         call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
             & xs, xs_niter, xs_rel_diff, lx, ldm1x, hnorm, info)
-    else
-        call gmresr(params, constants, workspace, tol, workspace % tmp_rhs, &
-            & xs, xs_niter, r_norm, lx, info)
     end if
     finish_time = omp_get_wtime()
     xs_time = finish_time - start_time
@@ -420,9 +408,6 @@ subroutine ddpcm_adjoint_worker(params, constants, workspace, psi, tol, &
     if (params % itersolver .eq. 1) then 
         call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
             & s_rel_diff, lstarx, ldm1x, hnorm, info)
-    else
-        call gmresr(params, constants, workspace, tol, psi, s, s_niter, &
-            & r_norm, lstarx, info)
     end if
     finish_time = omp_get_wtime()
     s_time = finish_time - start_time
@@ -438,9 +423,6 @@ subroutine ddpcm_adjoint_worker(params, constants, workspace, psi, tol, &
     if (params % itersolver .eq. 1) then 
         call jacobi_diis(params, constants, workspace, tol, s, y, y_niter, &
             & y_rel_diff, repsstarx, prec_repsstarx, hnorm, info)
-    else
-        call gmresr(params, constants, workspace, tol, s, y, y_niter, &
-            & r_norm, repsstarx, info)
     end if
     finish_time = omp_get_wtime()
     y_time = finish_time - start_time

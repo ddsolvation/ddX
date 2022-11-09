@@ -169,8 +169,8 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
         & ddx_data % params % se, &
         & eta, epsilon_solv, kappa, 0,&
         & ddx_data % params % itersolver, ddx_data % params % maxiter, &
-        & ddx_data % params % jacobi_ndiis, ddx_data % params % gmresr_j, &
-        & ddx_data % params % gmresr_dim, ddx_data % params % nproc, ddx_data2, info)
+        & ddx_data % params % jacobi_ndiis, &
+        & ddx_data % params % nproc, ddx_data2, info)
 
     ! the state depends on lmax, so it is allocated here
     call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state)
