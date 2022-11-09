@@ -24,5 +24,6 @@ var searchData=
   ['print_5ffunc_5finterface_21',['print_func_interface',['../interfaceddx__parameters_1_1print__func__interface.html',1,'ddx_parameters']]],
   ['print_5fheader_22',['print_header',['../namespaceddx__core.html#a1c6e9bf18af65b25aa115da10bb2e749',1,'ddx_core']]],
   ['print_5fnodes_23',['print_nodes',['../namespaceddx__core.html#a7116b451c0d1427361e7d1437a1c5ae8',1,'ddx_core']]],
-  ['print_5fspherical_24',['print_spherical',['../namespaceddx__core.html#aa76b7e526f53c93bf1492f51b3e1a8cc',1,'ddx_core']]]
+  ['print_5fspherical_24',['print_spherical',['../namespaceddx__core.html#aa76b7e526f53c93bf1492f51b3e1a8cc',1,'ddx_core']]],
+  ['python_20interface_25',['Python interface',['../label_python_interface.html',1,'']]]
 ];
