@@ -149,6 +149,11 @@ setup(
     author="ddx developers",
     author_email="best@ians.uni-stuttgart.de",
     license="LGPL v3",
+    url="https://ddsolvation.github.io/ddX",
+    project_urls={
+        "Source": "https://github.com/ddsolvation/ddX",
+        "Issues": "https://github.com/ddsolvation/ddX/issues",
+    },
     #
     ext_modules=[CMakeExtension("pyddx")],
     zip_safe=False,
