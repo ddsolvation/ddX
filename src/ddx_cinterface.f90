@@ -536,7 +536,7 @@ subroutine ddx_build_e(c_ddx, multipoles, mmax, phi_cav, e_cav, &
     real(c_double), intent(out) :: phi_cav(ncav), e_cav(3, ncav)
     call c_f_pointer(c_ddx, ddx)
     call build_e(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-        phi_cav, e_cav)
+        & phi_cav, e_cav)
 end
 
 subroutine ddx_build_phi(c_ddx, multipoles, mmax, phi_cav, nsph, ncav) bind(C)
@@ -546,8 +546,8 @@ subroutine ddx_build_phi(c_ddx, multipoles, mmax, phi_cav, nsph, ncav) bind(C)
     real(c_double), intent(in) :: multipoles((mmax + 1)**2, nsph)
     real(c_double), intent(out) :: phi_cav(ncav)
     call c_f_pointer(c_ddx, ddx)
-    call build_phi(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-        phi_cav)
+    call build_phi(ddx%params, ddx%constants, ddx%workspace, multipoles, &
+        & mmax, phi_cav)
 end
 
 subroutine ddx_build_psi(c_ddx, multipoles, mmax, psi, nsph, lmax) bind(C)
