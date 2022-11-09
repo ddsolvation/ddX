@@ -8,217 +8,6 @@ implicit none
 
 contains
 
-!> Debug routine to test if the adjoint potential and the potential are
-!> consistent.
-!! @param[in] params: ddx parameters
-!! @param[in] constants: ddx constants
-!! @param[inout] workspace: ddx workspace
-!!
-subroutine test(params, constants, workspace)
-    implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_constants_type), intent(in) :: constants
-    ! local variables
-    integer :: ncharges, nmultipoles, mmax, im, ic, l, m, ind, lm
-    real(dp), allocatable :: charges(:), charges_coords(:, :)
-    real(dp), allocatable :: multipoles(:, :), multipoles_coords(:, :)
-    real(dp), allocatable :: phi(:), adj_phi(:, :)
-    real(dp) :: ene, fac, c(3), box_size
-
-    ncharges = 10
-    nmultipoles = 1
-    mmax = 10
-    box_size = 10.0d0
-
-    allocate(charges(ncharges), charges_coords(3, ncharges), &
-        & multipoles((mmax + 1)**2, nmultipoles), &
-        & multipoles_coords(3, nmultipoles), phi(ncharges), &
-        & adj_phi((mmax + 1)**2, nmultipoles))
-
-    ! setup with random numbers the coordinates and multipoles
-
-    do im = 1, nmultipoles
-        call random_number(c)
-        multipoles_coords(:, im) = (c - 0.5d0)*box_size
-        do lm = 1, (mmax + 1)**2
-            call random_number(fac)
-            multipoles(lm, im) = (fac - 0.5d0)*2.0d0
-        end do
-    end do
-
-    do ic = 1, ncharges
-        call random_number(c)
-        charges_coords(:, im) = (c - 0.5d0)*box_size
-        call random_number(fac)
-        charges(ic) = (fac - 0.5d0)*2.0d0
-    end do
-
-    call build_phi_dense(multipoles, multipoles_coords, mmax, nmultipoles, &
-        & phi, charges_coords, ncharges)
-
-    ene = 0.0d0
-    do ic = 1, ncharges
-        ene = ene + charges(ic)*phi(ic)
-    end do
-    write(6, *) 'energy multipoles -> charges:', ene 
-
-    call build_adj_phi_dense(charges, charges_coords, ncharges, &
-        & multipoles_coords, mmax, nmultipoles, adj_phi)
-
-    ene = 0.0d0
-    do im = 1, nmultipoles
-        do l = 0, mmax
-            ind = l*l + l + 1
-            fac = (-1.0d0)**l
-            do m = -l, l
-                ene = ene + fac*multipoles(ind + m, im)*adj_phi(ind + m, im)
-            end do
-        end do
-    end do
-    write(6, *) 'energy charges -> multipoles:', ene 
-
-    deallocate(charges, charges_coords, multipoles, multipoles_coords, &
-        & phi, adj_phi)
-end subroutine test
-
-!> Given a multipolar distribution, containing only charges, compute the
-!> potential and its gradient at the target points using a simple N^2 code.
-!> This is a test routine, used to debug the others.
-!> The multipoles must be centered on the ddx spheres.
-!! @param[in] params: ddx parameters
-!! @param[in]  constants: ddx constants
-!! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics,
-!!     size ((mmax+1)**2, nsph)
-!! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points, size (ncav)
-!! @param[out] e_cav: electric field at the target points,
-!!     size (3, ncav)
-!!
-subroutine test_field(params, constants, workspace, multipoles, &
-        & mmax, phi_cav, e_cav)
-    implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_constants_type), intent(in) :: constants
-    integer, intent(in) :: mmax
-    real(dp), intent(inout) :: multipoles((mmax + 1)**2, params % nsph)
-    real(dp), intent(out) :: phi_cav(constants % ncav)
-    real(dp), intent(out) :: e_cav(3, constants % ncav)
-    real(dp) :: c(3), v, ex, ey, ez, d2, d, d3, f
-    integer :: icav, im
-
-    f = sqrt4pi
-
-    if (mmax .ne. 0) stop "error"
-    do icav = 1, constants % ncav
-        v = zero
-        ex = zero
-        ey = zero
-        ez = zero
-        do im = 1, params % nsph
-            c(:) = constants % ccav(:, icav) - params % csph(:, im)
-
-            d2 = c(1)*c(1) + c(2)*c(2) + c(3)*c(3)
-            d = sqrt(d2)
-            d3 = d*d2
-
-            v = v + f*multipoles(1, im)/d
-            ex = ex + f*multipoles(1, im)*c(1)/d3
-            ey = ey + f*multipoles(1, im)*c(2)/d3
-            ez = ez + f*multipoles(1, im)*c(3)/d3
-        end do
-        phi_cav(icav) = v
-        e_cav(1, icav) = ex
-        e_cav(2, icav) = ey
-        e_cav(3, icav) = ez
-    end do
-end subroutine test_field
-
-!> Given a multipolar distribution, containing only charges, compute the
-!> potential and its gradient at the target points using a simple N^2 code.
-!> This is a test routine, used to debug the others.
-!> The multipoles must be centered on the ddx spheres.
-!! @param[in] params: ddx parameters
-!! @param[in]  constants: ddx constants
-!! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics,
-!!     size ((mmax+1)**2, nsph)
-!! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points, size (ncav)
-!! @param[out] e_cav: electric field at the target points,
-!!     size (3, ncav)
-!! @param[out] g_cav: electric field gradient at the target points,
-!!     size (3, 3, ncav)
-!!
-subroutine test_field_gradient(params, constants, workspace, multipoles, &
-        & mmax, phi_cav, e_cav, g_cav)
-    implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_constants_type), intent(in) :: constants
-    integer, intent(in) :: mmax
-    real(dp), intent(inout) :: multipoles((mmax + 1)**2, params % nsph)
-    real(dp), intent(out) :: phi_cav(constants % ncav)
-    real(dp), intent(out) :: e_cav(3, constants % ncav)
-    real(dp), intent(out) :: g_cav(3, 3, constants % ncav)
-    real(dp) :: c(3), v, ex, ey, ez, d2, d, d3, d5, f, gxx, gxy, gxz, &
-        & gyx, gyy, gyz, gzx, gzy, gzz
-    integer :: icav, im
-
-    f = sqrt4pi
-
-    if (mmax .ne. 0) stop "error"
-    do icav = 1, constants % ncav
-        v = zero
-        ex = zero
-        ey = zero
-        ez = zero
-        gxx = zero
-        gxy = zero
-        gxz = zero
-        gyy = zero
-        gyz = zero
-        gzz = zero
-        do im = 1, params % nsph
-            c(:) = constants % ccav(:, icav) - params % csph(:, im)
-
-            d2 = c(1)*c(1) + c(2)*c(2) + c(3)*c(3)
-            d = sqrt(d2)
-            d3 = d*d2
-            d5 = d3*d2
-
-            v = v + f*multipoles(1, im)/d
-            ex = ex + f*multipoles(1, im)*c(1)/d3
-            ey = ey + f*multipoles(1, im)*c(2)/d3
-            ez = ez + f*multipoles(1, im)*c(3)/d3
-
-            gxx = gxx + f*multipoles(1, im)*(three*c(1)*c(1)/d5 - one/d3)
-            gxy = gxy + f*multipoles(1, im)*(three*c(1)*c(2)/d5)
-            gxz = gxz + f*multipoles(1, im)*(three*c(1)*c(3)/d5)
-            gyy = gyy + f*multipoles(1, im)*(three*c(2)*c(2)/d5 - one/d3)
-            gyz = gyz + f*multipoles(1, im)*(three*c(2)*c(3)/d5)
-            gzz = gzz + f*multipoles(1, im)*(three*c(3)*c(3)/d5 - one/d3)
-
-        end do
-        phi_cav(icav) = v
-        e_cav(1, icav) = ex
-        e_cav(2, icav) = ey
-        e_cav(3, icav) = ez
-        g_cav(1, 1, icav) = gxx
-        g_cav(1, 2, icav) = gxy
-        g_cav(1, 3, icav) = gxz
-        g_cav(2, 1, icav) = gxy
-        g_cav(2, 2, icav) = gyy
-        g_cav(2, 3, icav) = gyz
-        g_cav(3, 1, icav) = gxz
-        g_cav(3, 2, icav) = gyz
-        g_cav(3, 3, icav) = gzz
-    end do
-
-end subroutine test_field_gradient
-
 !> Given a multipolar distribution, compute the potential, its gradient and
 !> its hessian at the target points this is done with or without FMMs depending
 !> on the relevant flag
@@ -520,7 +309,7 @@ subroutine build_phi_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav)
     real(dp) :: r, v, c(3)
     real(dp), allocatable :: vscales(:), vscales_rel(:), v4pi2lp1(:)
 
-    ! precompute the quantities for the m2
+    ! precompute the quantities for the m2p
     allocate(vscales((mmax + 1)**2), vscales_rel((mmax + 1)**2), &
         & v4pi2lp1(mmax + 1), stat=info)
     if (info .ne. 0) then
@@ -797,7 +586,8 @@ subroutine do_fmm(params, constants, workspace)
         & workspace % tmp_grid, workspace % tmp_sph_l)
 end subroutine do_fmm
 
-!> Given a multipolar distribution compute the action of dP on it 
+!> Given a multipolar distribution compute the action of dP on it, this
+!> is required in the computation of the forces.
 !! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipolar distribution
@@ -1015,7 +805,7 @@ end subroutine grad_phi
 !> Given a distribution of point charges at the cavity points, compute the
 !> potential and its higher order derivatives up to pmax at the center of
 !> the spheres. This is done with or without the FMMs depending on the
-!> given flag.
+!> given flag. This is used in the computation of the forces.
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
@@ -1044,7 +834,8 @@ end subroutine build_adj_phi
 
 !> Given a distribution of point charges at the cavity points, compute the
 !> potential and its higher order derivatives up to pmax at the center of
-!> the spheres. This is done using two loops
+!> the spheres. This is done using two loops and required in the computation
+!> of the forces.
 !! @param[in] qcav: charges, size(ncav)
 !! @param[in] ccav: coordinates of the charges, size(3,ncav)
 !! @param[in] ncav: number of charges
@@ -1089,7 +880,8 @@ end subroutine build_adj_phi_dense
 
 !> Given a distribution of point charges at the cavity points, compute the
 !> potential and its higher order derivatives up to pmax at the center of
-!> the spheres. This is done with FMMs.
+!> the spheres. This is done with FMMs and required in the computation of
+!> the forces.
 !! @param[in] params: ddx parameters
 !! @param[in]  constants: ddx constants
 !! @param[inout] workspace: ddx workspace
@@ -1141,8 +933,6 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
             jnode = constants % near(jnear)
             jsph = constants % order(constants % cluster(1, jnode))
             do igrid = 1, params % ngrid
-                !c = params % csph(:, jsph) - params % csph(:, isph) &
-                !    & - constants % cgrid(:, igrid)*params % rsph(isph)
                 c = constants % cgrid(:, igrid)*params % rsph(isph) - &
                     & params % csph(:, jsph) + params % csph(:, isph)
                 call fmm_m2p_adj_work(c, tmp_grid(igrid, isph), &
@@ -1176,8 +966,8 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
         end do
     end if
 
-    ! scale by a heuristic factor to make it consistent with the
-    ! non FMMized adjoint potential
+    ! scale by a factor to make it consistent with the non FMMized adjoint
+    ! potential
     do isph = 1, params % nsph
         do l = 0, mmax
            ind = l*l + l + 1
