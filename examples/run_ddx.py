@@ -1,6 +1,5 @@
-import numpy as np
-
 import pyddx
+import numpy as np
 
 tobohr = 1 / 0.52917721092
 charges = np.array([
@@ -24,7 +23,7 @@ centres = tobohr * np.array([
     [-0.00103, -4.05914, -2.34326],  # noqa: E201
     [-0.00103, -4.05914,  2.34326],  # noqa: E201
     [ 0.00000,  0.00000,  4.68652],  # noqa: E201
-])
+]).T
 
 model = pyddx.Model("pcm", charges, centres, rvdw, solvent_epsilon=78.3553)
 nuclear = model.solute_nuclear_contribution()
