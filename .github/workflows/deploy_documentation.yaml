@@ -15,6 +15,12 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - name: Run Doxygen
+      uses: mattnotmitt/doxygen-action@v1.9.4
+      with:
+        doxyfile-path: docs/Doxyfile
+
+
     - name: Install Doxygen
       run: sudo apt-get install doxygen -y
       shell: bash
