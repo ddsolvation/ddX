@@ -13,6 +13,7 @@
 program main
 ! Get the high-level ddX-module 
 use ddx
+use ddx_multipolar_solutes
 ! Enable OpenMP
 use omp_lib
 implicit none
@@ -163,11 +164,11 @@ if (iprint .gt. 0) then
 end if
 write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time-start_time, " seconds"
 write(*, "(A,ES25.16E3)") " Solvation energy:", esolv
-write(*, "(A,ES25.16E3)") " Solvation energy (kJ/mol):", esolv*tokj
+write(*, "(A,ES25.16E3)") " Solvation energy (kcal/mol):", esolv*tokcal
 if (ddx_data % params % force .eq. 1) then
-    write(*, *) " Full forces (kJ/mol/A)"
+    write(*, *) " Full forces (kcal/mol/A)"
     do isph = 1, ddx_data % params % nsph
-        write(6,'(1x,i5,3ES25.16E3)') isph, force(:,isph)*tokj/toang
+        write(6,'(1x,i5,3ES25.16E3)') isph, force(:,isph)*tokcal/toang
     end do
 end if
 
