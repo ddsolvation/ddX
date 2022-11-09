@@ -157,7 +157,7 @@ setup(
     ext_modules=[CMakeExtension("pyddx")],
     zip_safe=False,
     platforms=["Linux", "Mac OS-X"],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     install_requires=["ninja", "pybind11 >= 2.6", "numpy >= 1.14"],
     tests_require=["pytest", "numpy"],
     cmdclass={"build_ext": CMakeBuild, "pytest": PyTest, },
