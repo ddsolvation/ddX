@@ -7,6 +7,7 @@ on:
   pull_request:
       branches:
           - main
+  workflow_dispatch:
 
 jobs:
   docs:
@@ -18,7 +19,19 @@ jobs:
     - name: Install Doxygen
       run: sudo apt-get install doxygen -y
       shell: bash
-    - name: Deploy docs
-      run: scripts/deploy_documentation.sh
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create build dir
+      run: cmake -E make_directory build
+    - name: Run cmake
+      run: cmake ..
+      working-directory: build
+    - name: Run Doxygen
+      run: make docs
+      working-directory: build
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v3
+      if: ${{ github.ref == 'refs/heads/main' }}
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build/docs/html
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
