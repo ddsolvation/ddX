@@ -3,16 +3,12 @@
 import os
 import sys
 import shlex
+import pybind11
 import subprocess
 
 from setuptools import Extension, setup
 from setuptools.command.test import test as TestCommand
 from setuptools.command.build_ext import build_ext
-
-try:
-    import pybind11
-except ImportError:
-    pass
 
 # Convert distutils Windows platform specifiers to CMake -A arguments
 PLAT_TO_CMAKE = {
@@ -151,7 +147,7 @@ setup(
     version=open("VERSION.txt", "r").read().strip(),
     #
     author="ddx developers",
-    author_email="info@michael-herbst.com",
+    author_email="best@ians.uni-stuttgart.de",
     license="LGPL v3",
     #
     ext_modules=[CMakeExtension("pyddx")],
