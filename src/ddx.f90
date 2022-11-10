@@ -33,7 +33,7 @@ contains
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
 subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, &
-        & psi, tol, esolv, force, info)
+        & psi, tol, esolv, force)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
     type(ddx_state_type), intent(inout) :: state
@@ -43,27 +43,29 @@ subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, &
         & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
     ! Outputs
     real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
-    integer, intent(out) :: info
     ! Find proper model
     select case(ddx_data % params % model)
         ! COSMO model
         case (1)
             call ddcosmo(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, phi_cav, gradphi_cav, psi, &
-                & tol, esolv, force, info)
+                & tol, esolv, force)
         ! PCM model
         case (2)
             call ddpcm(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, phi_cav, gradphi_cav, psi, &
-                & tol, esolv, force, info)
+                & tol, esolv, force)
         ! LPB model
         case (3)
             call ddlpb(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, phi_cav, gradphi_cav, &
-                & hessianphi_cav, psi, tol, esolv, force, info)
+                & hessianphi_cav, psi, tol, esolv, force)
         ! Error case
         case default
-            stop "Non-supported model"
+            ddx_data % params % error_flag = 1
+            ddx_data % params % error_message = "unsupported solvation " // &
+                & " model in the dd solver."
+            return
     end select
 end subroutine ddsolve
 

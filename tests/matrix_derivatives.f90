@@ -19,6 +19,7 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
+character(len=255) :: dummy_file_name = ''
 integer :: info
 ! derivative_num_A  : Numerical derivatives for matrix A
 ! derivative_num_B  : Numerical derivatives for matrix B
@@ -76,8 +77,8 @@ real(dp), external :: dnrm2, ddot
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file 12"
-call ddfromfile(fname, ddx_data, tol, iprint, info)
-if(info .ne. 0) stop "info != 0"
+call ddfromfile(fname, ddx_data, tol)
+if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 
 ! lmax0 set to minimum of 6 or given lmax.
 ! nbasis0 set to minimum of 49 or given (lmax+1)^2.
@@ -318,7 +319,7 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
         & ddx_data % params % kappa, 0, &
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, ddx_data2, info)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data2)
     ! Allocation
     allocate(random_vector_n_one(ddx_data2 % constants % n), &
              & random_vector_n_two(ddx_data2 % constants % n), &

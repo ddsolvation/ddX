@@ -103,15 +103,15 @@ end type ddx_workspace_type
 
 contains
 
-subroutine workspace_init(params, constants, workspace, info)
+subroutine workspace_init(params, constants, workspace)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     !! Outputs
     type(ddx_workspace_type), intent(out) :: workspace
-    integer, intent(out) :: info
     !! Local variables
     character(len=255) :: string
+    integer :: info
     !! The code
     allocate(workspace % tmp_pot(params % ngrid, params % nproc), &
         & workspace % tmp_vplm(constants % vgrid_nbasis, params % nproc), &
@@ -125,7 +125,6 @@ subroutine workspace_init(params, constants, workspace, info)
             & // "allocations failed"
         workspace % error_message = string
         call params % print_func(string)
-        info = 1
         return
     end if
     allocate(workspace % tmp_vylm(constants % vgrid_nbasis, params % nproc), &
@@ -135,7 +134,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_vylm` " &
             & // "and `tmp_vdylm` allocations failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_sph(constants % nbasis, params % nsph), &
@@ -144,7 +142,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_sph` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     if (params % fmm .eq. 1) then
@@ -154,7 +151,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_sph2` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
         allocate(workspace % tmp_sph_grad( &
@@ -164,7 +160,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_sph_grad` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
         allocate(workspace % tmp_sph_l((params % pl+1)**2, params % nsph), &
@@ -173,7 +168,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_sph_l` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
         allocate(workspace % tmp_sph_l_grad( &
@@ -183,7 +177,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_sph_l_grad` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
         allocate(workspace % tmp_sph_l_grad2( &
@@ -193,7 +186,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_sph_l_grad2` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
         allocate(workspace % tmp_node_m((params % pm+1)**2, &
@@ -202,7 +194,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_node_m` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
         allocate(workspace % tmp_node_l((params % pl+1)**2, &
@@ -211,7 +202,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_node_l` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
     end if
@@ -221,7 +211,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_grid` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_grid2(params % ngrid, params % nsph), &
@@ -230,7 +219,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_grid2` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_cav(constants % ncav), stat=info)
@@ -238,7 +226,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_cav` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_efld(3, constants % ncav), stat=info)
@@ -246,7 +233,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_efld` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_x_new(constants % n), stat=info)
@@ -254,7 +240,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_x_new` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_y(constants % n), stat=info)
@@ -262,7 +247,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_y` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_x_diis(constants % n, 2*params % jacobi_ndiis), &
@@ -271,7 +255,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_x_diis` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_e_diis(constants % n, 2*params % jacobi_ndiis), &
@@ -280,7 +263,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_e_diis` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_bmat(2*params % jacobi_ndiis + 2, &
@@ -289,7 +271,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_bmat` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     ! Allocations for LPB model
@@ -301,7 +282,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_bessel` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
     end if
@@ -311,237 +291,235 @@ subroutine workspace_init(params, constants, workspace, info)
     workspace % error_message = ""
 end subroutine workspace_init
 
-subroutine workspace_free(workspace, info)
+subroutine workspace_free(workspace)
     implicit none
     type(ddx_workspace_type), intent(out) :: workspace
-    integer, intent(out) :: info
     integer :: istat
 
     istat = 0
-    info = 0
 
     if (allocated(workspace % tmp_pot)) then
         deallocate(workspace % tmp_pot, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_pot` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_pot` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_vplm)) then
         deallocate(workspace % tmp_vplm, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_vplm` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_vplm` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_vcos)) then
         deallocate(workspace % tmp_vcos, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_vcos` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_vcos` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_vsin)) then
         deallocate(workspace % tmp_vsin, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_vsin` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_vsin` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_work)) then
         deallocate(workspace % tmp_work, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_work` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_work` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_vylm)) then
         deallocate(workspace % tmp_vylm, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_vylm` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_vylm` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_vdylm)) then
         deallocate(workspace % tmp_vdylm, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_vdylm` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_vdylm` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_sph)) then
         deallocate(workspace % tmp_sph, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_sph` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_sph` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_sph2)) then
         deallocate(workspace % tmp_sph2, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_sph2` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_sph2` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_sph_grad)) then
         deallocate(workspace % tmp_sph_grad, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_sph_grad` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_sph_grad` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_sph_l)) then
         deallocate(workspace % tmp_sph_l, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_sph_l` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_sph_l` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_sph_l_grad)) then
         deallocate(workspace % tmp_sph_l_grad, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_sph_l_grad` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_sph_l_grad` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_sph_l_grad2)) then
         deallocate(workspace % tmp_sph_l_grad2, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_sph_l_grad2` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_sph_l_grad2` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_node_m)) then
         deallocate(workspace % tmp_node_m, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_node_m` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_node_m` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_node_l)) then
         deallocate(workspace % tmp_node_l, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_node_l` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_node_l` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_grid)) then
         deallocate(workspace % tmp_grid, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_grid` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_grid` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_grid2)) then
         deallocate(workspace % tmp_grid2, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_grid2` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_grid2` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_cav)) then
         deallocate(workspace % tmp_cav, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_cav` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_cav` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_efld)) then
         deallocate(workspace % tmp_efld, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_efld` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_efld` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_x_new)) then
         deallocate(workspace % tmp_x_new, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_x_new` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_x_new` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_y)) then
         deallocate(workspace % tmp_y, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_y` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_y` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_x_diis)) then
         deallocate(workspace % tmp_x_diis, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_x_diis` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_x_diis` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_e_diis)) then
         deallocate(workspace % tmp_e_diis, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_e_diis` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_e_diis` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_bmat)) then
         deallocate(workspace % tmp_bmat, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_bmat` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_bmat` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_bessel)) then
         deallocate(workspace % tmp_bessel, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_bessel` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_bessel` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % ddcosmo_guess)) then
         deallocate(workspace % ddcosmo_guess, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`ddcosmo_guess` deallocation failed!"
-            stop 1
+            workspace % error_message = "`ddcosmo_guess` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % hsp_guess)) then
         deallocate(workspace % hsp_guess, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`hsp_guess` deallocation failed!"
-            stop 1
+            workspace % error_message = "`hsp_guess` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
     if (allocated(workspace % tmp_rhs)) then
         deallocate(workspace % tmp_rhs, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`tmp_rhs` deallocation failed!"
-            stop 1
+            workspace % error_message = "`tmp_rhs` deallocation failed!"
+            workspace % error_flag = 1
+            return
         end if
     end if
 end subroutine workspace_free

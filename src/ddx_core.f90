@@ -141,7 +141,7 @@ type ddx_type
     type(ddx_constants_type) :: constants
     type(ddx_workspace_type) :: workspace
     !> Flag if there were an error
-    integer :: error_flag
+    integer :: error_flag = 0
     !> Last error message
     character(len=255) :: error_message
 end type ddx_type
@@ -186,40 +186,35 @@ contains
 !!      disabled, only possible input values are 0 or 1 and both inputs lead
 !!      to the same output nproc=1 since the library is not parallel.
 !! @param[out] ddx_data: Object containing all inputs
-!! @param[out] info: flag of succesfull exit
-!!      = 0: Succesfull exit
-!!      < 0: If info=-i then i-th argument had an illegal value
-!!      = 1: Allocation of one of buffers failed
-!!      = 2: Deallocation of a temporary buffer failed
 !------------------------------------------------------------------------------
 subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, se, eta, eps, kappa, &
         & matvecmem, maxiter, jacobi_ndiis, &
-        & nproc, ddx_data, info)
+        & nproc, output_filename, ddx_data)
     ! Inputs
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & ngrid
     real(dp), intent(in):: charge(nsph), x(nsph), y(nsph), z(nsph), &
         & rvdw(nsph), se, eta, eps, kappa
+    character(len=255), intent(in) :: output_filename
     ! Output
     type(ddx_type), target, intent(out) :: ddx_data
-    integer, intent(out) :: info
     ! Inouts
     integer, intent(inout) :: nproc
     ! Local variables
-    integer :: istatus, i, indi, j, ii, inear, jnear, igrid, jgrid, isph, &
-        & jsph, lnl, l, indl, ithread, k, n, indjn
-    real(dp) :: v(3), maxv, ssqv, vv, t, swthr, fac, r, start_time, &
-        & finish_time, tmp1
-    real(dp) :: rho, ctheta, stheta, cphi, sphi
-    real(dp), allocatable :: sphcoo(:, :), csph(:, :)
-    double precision, external :: dnrm2
-    integer :: iwork, jwork, lwork, old_lwork, nngmax
-    integer, allocatable :: work(:, :), tmp_work(:, :), tmp_nl(:)
-    logical :: use_omp
+    real(dp), allocatable :: csph(:, :)
+    integer :: istatus
+    ! set the object in non error state
+    ddx_data % error_flag = 0
+    ddx_data % error_message = ''
     ! Init underlying objects
-    allocate(csph(3, nsph))
+    allocate(csph(3, nsph), stat=istatus)
+    if (istatus.ne.0) then
+        write(ddx_data % error_message, *) 'Allocation failed in ddinit'
+        ddx_data % error_flag = 1
+        return
+    end if
     csph(1, :) = x
     csph(2, :) = y
     csph(3, :) = z
@@ -227,13 +222,31 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & fmm, pm, pl, nproc, nsph, charge, &
         & csph, rvdw, print_func_default, &
-        & ddx_data % params, info)
-    if (info .ne. 0) return
-    call constants_init(ddx_data % params, ddx_data % constants, info)
-    if (info .ne. 0) return
+        & output_filename, ddx_data % params)
+    if (ddx_data % params % error_flag .ne. 0) then
+        ddx_data % error_flag = ddx_data % params % error_flag
+        ddx_data % error_message = ddx_data % params % error_message
+        return
+    end if
+    call constants_init(ddx_data % params, ddx_data % constants)
+    if (ddx_data % constants % error_flag .ne. 0) then
+        ddx_data % error_flag = ddx_data % constants % error_flag
+        ddx_data % error_message = ddx_data % constants % error_message
+        return
+    end if
     call workspace_init(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, info)
-    if (info .ne. 0) return
+        & ddx_data % workspace)
+    if (ddx_data % workspace % error_flag .ne. 0) then
+        ddx_data % error_flag = ddx_data % workspace % error_flag
+        ddx_data % error_message = ddx_data % workspace % error_message
+        return
+    end if
+    deallocate(csph, stat=istatus)
+    if (istatus.ne.0) then
+        write(ddx_data % error_message, *) 'Deallocation failed in ddinit'
+        ddx_data % error_flag = 1
+        return
+    end if
 end subroutine ddinit
 
 subroutine ddx_init_state(params, constants, state)
@@ -281,7 +294,7 @@ subroutine ddx_init_state(params, constants, state)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "ddinit: `s` " // &
-                & "allocation failed"
+            & "allocation failed"
             return
         end if
         allocate(state % s_rel_diff(params % maxiter), &
@@ -449,17 +462,24 @@ subroutine ddx_init_state(params, constants, state)
         allocate(state % phi_grid(params % ngrid, &
             & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-          !write(*, *) "Error in allocation of M2P matrices"
+            state % error_flag = 1
+            state % error_message = "ddinit: `phi_grid` " // &
+                & "allocation failed"
             return
         end if
         allocate(state % phi(constants % nbasis, &
             & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
-            !write(*, *) "Error in allocation of M2P matrices"
+            state % error_flag = 1
+            state % error_message = "ddinit: `phi` " // &
+                & "allocation failed"
             return
         end if
         allocate(state % zeta(constants % ncav), stat=istatus)
         if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "ddinit: `zeta` " // &
+                & "allocation failed"
             !write(*, *) "Error in allocation of M2P matrices"
             return
         end if
@@ -525,154 +545,185 @@ end subroutine ddx_init_state
 !!      < 0: If info=-i then i-th argument had an illegal value
 !!      > 0: Allocation of a buffer for the output ddx_data failed
 !------------------------------------------------------------------------------
-subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
+subroutine ddfromfile(fname, ddx_data, tol)
     ! Input
     character(len=*), intent(in) :: fname
     ! Outputs
     type(ddx_type), intent(out) :: ddx_data
     real(dp), intent(out) :: tol
-    integer, intent(out) :: iprint, info
     ! Local variables
     integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
         & nsph, i, matvecmem, maxiter, jacobi_ndiis, &
         & istatus
     real(dp) :: eps, se, eta, kappa
     real(dp), allocatable :: charge(:), x(:), y(:), z(:), rvdw(:)
+    character(len=255) :: output_filename
     !! Read all the parameters from the file
     ! Open a configuration file
     open(unit=100, file=fname, form='formatted', access='sequential')
     ! Printing flag
-    read(100, *) iprint
-    if(iprint .lt. 0) then
-        write(*, "(3A)") "Error on the 1st line of a config file ", fname, &
-            & ": `iprint` must be a non-negative integer value."
-        stop 1
-    end if
+    read(100, *) output_filename
     ! Number of OpenMP threads to be used
     read(100, *) nproc
     if(nproc .lt. 0) then
-        write(*, "(3A)") "Error on the 2nd line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 2nd line of a config file ", fname, &
             & ": `nproc` must be a positive integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Model to be used: 1 for COSMO, 2 for PCM and 3 for LPB
     read(100, *) model
     if((model .lt. 1) .or. (model .gt. 3)) then
-        write(*, "(3A)") "Error on the 3rd line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 3rd line of a config file ", fname, &
             & ": `model` must be an integer of a value 1, 2 or 3."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Max degree of modeling spherical harmonics
     read(100, *) lmax
     if(lmax .lt. 0) then
-        write(*, "(3A)") "Error on the 4th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 4th line of a config file ", fname, &
             & ": `lmax` must be a non-negative integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Approximate number of Lebedev points
     read(100, *) ngrid
     if(ngrid .lt. 0) then
-        write(*, "(3A)") "Error on the 5th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 5th line of a config file ", fname, &
             & ": `ngrid` must be a non-negative integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Dielectric permittivity constant of the solvent
     read(100, *) eps
     if(eps .lt. zero) then
-        write(*, "(3A)") "Error on the 6th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 6th line of a config file ", fname, &
             & ": `eps` must be a non-negative floating point value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Shift of the regularized characteristic function
     read(100, *) se
     if((se .lt. -one) .or. (se .gt. one)) then
-        write(*, "(3A)") "Error on the 7th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 7th line of a config file ", fname, &
             & ": `se` must be a floating point value in a range [-1, 1]."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Regularization parameter
     read(100, *) eta
     if((eta .lt. zero) .or. (eta .gt. one)) then
-        write(*, "(3A)") "Error on the 8th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 8th line of a config file ", fname, &
             & ": `eta` must be a floating point value in a range [0, 1]."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Debye H\"{u}ckel parameter
     read(100, *) kappa
     if(kappa .lt. zero) then
-        write(*, "(3A)") "Error on the 9th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 9th line of a config file ", fname, &
             & ": `kappa` must be a non-negative floating point value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! whether the (sparse) matrices are precomputed and kept in memory (1) or not (0).
     read(100, *) matvecmem 
     if((matvecmem.lt. 0) .or. (matvecmem .gt. 1)) then
-        write(*, "(3A)") "Error on the 10th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 10th line of a config file ", fname, &
             & ": `matvecmem` must be an integer value of a value 0 or 1."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Relative convergence threshold for the iterative solver
     read(100, *) tol
     if((tol .lt. 1d-14) .or. (tol .gt. one)) then
-        write(*, "(3A)") "Error on the 12th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 12th line of a config file ", fname, &
             & ": `tol` must be a floating point value in a range [1d-14, 1]."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Maximum number of iterations for the iterative solver
     read(100, *) maxiter
     if((maxiter .le. 0)) then
-        write(*, "(3A)") "Error on the 13th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 13th line of a config file ", fname, &
             & ": `maxiter` must be a positive integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Number of extrapolation points for Jacobi/DIIS solver
     read(100, *) jacobi_ndiis
     if((jacobi_ndiis .lt. 0)) then
-        write(*, "(3A)") "Error on the 14th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 14th line of a config file ", fname, &
             & ": `jacobi_ndiis` must be a non-negative integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Whether to compute (1) or not (0) forces as analytical gradients
     read(100, *) force
     if((force .lt. 0) .or. (force .gt. 1)) then
-        write(*, "(3A)") "Error on the 17th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 17th line of a config file ", fname, &
             & ": `force` must be an integer value of a value 0 or 1."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Whether to use (1) or not (0) the FMM to accelerate computations
     read(100, *) fmm
     if((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        write(*, "(3A)") "Error on the 18th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 18th line of a config file ", fname, &
             & ": `fmm` must be an integer value of a value 0 or 1."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Max degree of multipole spherical harmonics for the FMM
     read(100, *) pm
     if(pm .lt. 0) then
-        write(*, "(3A)") "Error on the 19th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 19th line of a config file ", fname, &
             & ": `pm` must be a non-negative integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Max degree of local spherical harmonics for the FMM
     read(100, *) pl
     if(pl .lt. 0) then
-        write(*, "(3A)") "Error on the 20th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 20th line of a config file ", fname, &
             & ": `pl` must be a non-negative integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Number of input spheres
     read(100, *) nsph
     if(nsph .le. 0) then
-        write(*, "(3A)") "Error on the 21th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 21th line of a config file ", fname, &
             & ": `nsph` must be a positive integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Coordinates, radii and charges
     allocate(charge(nsph), x(nsph), y(nsph), z(nsph), rvdw(nsph), stat=istatus)
     if(istatus .ne. 0) then
-        write(*, "(2A)") "Could not allocate space for coordinates, radii ", &
+        write(ddx_data % error_message, "(2A)") &
+            & "Could not allocate space for coordinates, radii ", &
             & "and charges of atoms"
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     do i = 1, nsph
         read(100, *) charge(i), x(i), y(i), z(i), rvdw(i)
@@ -691,13 +742,15 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     !! Initialize ddx_data object
     call ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
         & pm, pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
+        & maxiter, jacobi_ndiis, nproc, output_filename, ddx_data)
     !! Clean local temporary data
     deallocate(charge, x, y, z, rvdw, stat=istatus)
     if(istatus .ne. 0) then
-        write(*, "(2A)") "Could not deallocate space for coordinates, ", &
+        write(ddx_data % error_message, "(2A)") &
+            & "Could not deallocate space for coordinates, ", &
             & "radii and charges of atoms"
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
 end subroutine ddfromfile
 
@@ -710,21 +763,23 @@ subroutine ddfree(ddx_data)
     ! Input/output
     type(ddx_type), intent(inout) :: ddx_data
     ! Local variables
-    integer :: istatus
-    call workspace_free(ddx_data % workspace, istatus)
-    if (istatus .ne. 0) then
-        write(*, *) "workspace_free failed!"
-        stop 1
+    call workspace_free(ddx_data % workspace)
+    if (ddx_data % workspace % error_flag .ne. 0) then
+        write(ddx_data % error_message, *) "workspace_free failed!"
+        ddx_data % error_flag = 1
+        return
     end if
-    call constants_free(ddx_data % constants, istatus)
-    if (istatus .ne. 0) then
-        write(*, *) "constants_free failed!"
-        stop 1
+    call constants_free(ddx_data % constants)
+    if (ddx_data % workspace % error_flag .ne. 0) then
+        write(ddx_data % error_message, *) "constants_free failed!"
+        ddx_data % error_flag = 1
+        return
     end if
-    call params_free(ddx_data % params, istatus)
-    if (istatus .ne. 0) then
-        write(*, *) "params_free failed!"
-        stop 1
+    call params_free(ddx_data % params)
+    if (ddx_data % workspace % error_flag .ne. 0) then
+        write(ddx_data % error_message, *) "params_free failed!"
+        ddx_data % error_flag = 1
+        return
     end if
 end subroutine ddfree
 
@@ -736,148 +791,149 @@ subroutine ddx_free_state(state)
     if (allocated(state % phi_grid)) then
         deallocate(state % phi_grid, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`phi_grid` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`phi_grid` deallocation failed!"
+            return
         endif
     end if
     if (allocated(state % phi)) then
         deallocate(state % phi, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`phi` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`phi` deallocation failed!"
         endif
     end if
     if (allocated(state % phiinf)) then
         deallocate(state % phiinf, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`phiinf` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`phiinf` deallocation failed!"
         endif
     end if
     if (allocated(state % phieps)) then
         deallocate(state % phieps, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`phieps` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`phieps` deallocation failed!"
         endif
     end if
     if (allocated(state % phieps_rel_diff)) then
         deallocate(state % phieps_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`phieps_rel_diff` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`phieps_rel_diff` deallocation failed!"
         endif
     end if
     if (allocated(state % xs)) then
         deallocate(state % xs, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`xs` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`xs` deallocation failed!"
         endif
     end if
     if (allocated(state % xs_rel_diff)) then
         deallocate(state % xs_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`xs_rel_diff` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`xs_rel_diff` deallocation failed!"
         endif
     end if
     if (allocated(state % s)) then
         deallocate(state % s, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`s` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`s` deallocation failed!"
         endif
     end if
     if (allocated(state % s_rel_diff)) then
         deallocate(state % s_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`s_rel_diff` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`s_rel_diff` deallocation failed!"
         endif
     end if
     if (allocated(state % sgrid)) then
         deallocate(state % sgrid, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`sgrid` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`sgrid` deallocation failed!"
         endif
     end if
     if (allocated(state % y)) then
         deallocate(state % y, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`y` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`y` deallocation failed!"
         endif
     end if
     if (allocated(state % y_rel_diff)) then
         deallocate(state % y_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`y_rel_diff` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`y_rel_diff` deallocation failed!"
         endif
     end if
     if (allocated(state % ygrid)) then
         deallocate(state % ygrid, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`ygrid` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`ygrid` deallocation failed!"
         endif
     end if
     if (allocated(state % g)) then
         deallocate(state % g, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`g` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`g` deallocation failed!"
         endif
     end if
     if (allocated(state % q)) then
         deallocate(state % q, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`q` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`q` deallocation failed!"
         endif
     end if
     if (allocated(state % qgrid)) then
         deallocate(state % qgrid, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`qgrid` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`qgrid` deallocation failed!"
         endif
     end if
     if (allocated(state % zeta)) then
         deallocate(state % zeta, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`zeta` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`zeta` deallocation failed!"
         endif
     end if
     if (allocated(state % x_lpb)) then
         deallocate(state % x_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`x_lpb` deallocation failed!"
         endif
     end if
     if (allocated(state % x_adj_lpb)) then
         deallocate(state % x_adj_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "x_adj_lpb deallocation failed!"
         endif
     end if
     if (allocated(state % g_lpb)) then
         deallocate(state % g_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`g_lpb` deallocation failed!"
         endif
     end if
     if (allocated(state % f_lpb)) then
         deallocate(state % f_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`f_lpb` deallocation failed!"
         endif
     end if
 end subroutine ddx_free_state
@@ -894,44 +950,44 @@ end subroutine ddx_free_state
 !! @param[in] ncol: Number of columns to print
 !! @param[in] icol: This number is only for printing purposes
 !! @param[in] x: Actual data to print
-subroutine print_spherical(label, nbasis, lmax, ncol, icol, x)
+subroutine print_spherical(iunit, label, nbasis, lmax, ncol, icol, x)
     ! Inputs
     character (len=*), intent(in) :: label
-    integer, intent(in) :: nbasis, lmax, ncol, icol
+    integer, intent(in) :: nbasis, lmax, ncol, icol, iunit
     real(dp), intent(in) :: x(nbasis, ncol)
     ! Local variables
     integer :: l, m, ind, noff, nprt, ic, j
     ! Print header:
     if (ncol .eq. 1) then
-        write (6,'(3x,a,1x,"(column ",i4")")') label, icol
+        write (iunit,'(3x,a,1x,"(column ",i4")")') label, icol
     else
-        write (6,'(3x,a)') label
+        write (iunit,'(3x,a)') label
     endif
     ! Print entries:
     if (ncol .eq. 1) then
         do l = 0, lmax
             ind = l*l + l + 1
             do m = -l, l
-                write(6,1000) l, m, x(ind+m, 1)
+                write(iunit,1000) l, m, x(ind+m, 1)
             end do
         end do
     else
         noff = mod(ncol, 5)
         nprt = max(ncol-noff, 0)
         do ic = 1, nprt, 5
-            write(6,1010) (j, j = ic, ic+4)
+            write(iunit,1010) (j, j = ic, ic+4)
             do l = 0, lmax
                 ind = l*l + l + 1
                 do m = -l, l
-                    write(6,1020) l, m, x(ind+m, ic:ic+4)
+                    write(iunit,1020) l, m, x(ind+m, ic:ic+4)
                 end do
             end do
         end do
-        write (6,1010) (j, j = nprt+1, nprt+noff)
+        write (iunit,1010) (j, j = nprt+1, nprt+noff)
         do l = 0, lmax
             ind = l*l + l + 1
             do m = -l, l
-                write(6,1020) l, m, x(ind+m, nprt+1:nprt+noff)
+                write(iunit,1020) l, m, x(ind+m, nprt+1:nprt+noff)
             end do
         end do
     end if
@@ -950,36 +1006,36 @@ end subroutine print_spherical
 !! @param[in] ncol: Number of columns to print
 !! @param[in] icol: This number is only for printing purposes
 !! @param[in] x: Actual data to print
-subroutine print_nodes(label, ngrid, ncol, icol, x)
+subroutine print_nodes(iunit, label, ngrid, ncol, icol, x)
     ! Inputs
     character (len=*), intent(in) :: label
-    integer, intent(in) :: ngrid, ncol, icol
+    integer, intent(in) :: ngrid, ncol, icol, iunit
     real(dp), intent(in) :: x(ngrid, ncol)
     ! Local variables
     integer :: ig, noff, nprt, ic, j
     ! Print header :
     if (ncol .eq. 1) then
-        write (6,'(3x,a,1x,"(column ",i4")")') label, icol
+        write (iunit,'(3x,a,1x,"(column ",i4")")') label, icol
     else
-        write (6,'(3x,a)') label
+        write (iunit,'(3x,a)') label
     endif
     ! Print entries :
     if (ncol .eq. 1) then
         do ig = 1, ngrid
-            write(6,1000) ig, x(ig, 1)
+            write(iunit,1000) ig, x(ig, 1)
         enddo
     else
         noff = mod(ncol, 5)
         nprt = max(ncol-noff, 0)
         do ic = 1, nprt, 5
-            write(6,1010) (j, j = ic, ic+4)
+            write(iunit,1010) (j, j = ic, ic+4)
             do ig = 1, ngrid
-                write(6,1020) ig, x(ig, ic:ic+4)
+                write(iunit,1020) ig, x(ig, ic:ic+4)
             end do
         end do
-        write (6,1010) (j, j = nprt+1, nprt+noff)
+        write (iunit,1010) (j, j = nprt+1, nprt+noff)
         do ig = 1, ngrid
-            write(6,1020) ig, x(ig, nprt+1:nprt+noff)
+            write(iunit,1020) ig, x(ig, nprt+1:nprt+noff)
         end do
     end if
     !
@@ -1286,26 +1342,18 @@ end subroutine hsnorm
 real(dp) function hnorm(lmax, nbasis, nsph, x)
     integer, intent(in) :: lmax, nbasis, nsph
     real(dp),  dimension(nbasis, nsph), intent(in) :: x
-    integer                                     :: isph, istatus
-    real(dp)                                      :: vrms, vmax
-    real(dp), allocatable                         :: u(:)
-    allocate( u(nsph) , stat=istatus )
-    if ( istatus.ne.0 ) then
-        write(*,*) 'hnorm: allocation failed !'
-        stop
-    endif
-    !$omp parallel do default(none) shared(nsph,lmax,nbasis,x,u) &
-    !$omp private(isph) schedule(dynamic)
+    integer                                        :: isph, istatus
+    real(dp)                                       :: vrms, fac
+!
+    vrms = 0.0_dp
+    !$omp parallel do default(none) shared(nsph,lmax,nbasis,x) &
+    !$omp private(isph,fac) schedule(dynamic) reduction(+:vrms)
     do isph = 1, nsph
-        call hsnorm(lmax, nbasis, x(:,isph), u(isph))
+        call hsnorm(lmax, nbasis, x(:,isph), fac)
+        vrms = vrms + fac*fac
     enddo
-    call rmsvec(nsph, u, vrms, vmax)
-    hnorm = vrms
-    deallocate( u , stat=istatus )
-    if ( istatus.ne.0 ) then
-        write(*,*) 'hnorm: deallocation failed !'
-        stop
-    endif
+!   call rmsvec(nsph, u, vrms, vmax)
+    hnorm = sqrt(vrms/dble(nsph))
 end function hnorm
 
 !------------------------------------------------------------------------------------------------
@@ -2757,13 +2805,11 @@ end subroutine tree_grad_l2l
 !------------------------------------------------------------------------------
 !> small routine to print a tidy header with various info on the calculation.
 !------------------------------------------------------------------------------
-subroutine print_header(iprint,params)
+subroutine print_header(params)
     implicit none
-    integer,               intent(in) :: iprint
     type(ddx_params_type), intent(in) :: params
-!
     character (len=255) :: string
-!
+
     1010 format (t5,a,3x,i20)
     1020 format (t5,a,3x,f20.10)
     string = " "
@@ -2818,34 +2864,31 @@ subroutine print_header(iprint,params)
         end if
     end if
     call params % print_func(string)
-!
-    if (params % model .eq. 3) then 
+
+    if (params % model .eq. 3) then
         write (string,'(t3,A,F10.4,A,F10.4)') 'dielectric constant: ', params % eps, &
                                            ' Debye-Hueckel constant: ', params % kappa
     else
         write (string,'(t3,A,F10.4)') 'dielectric constant: ', params % eps
     end if
-!
+
     if (params % fmm .eq. 1) then
         string = " using the fast multipole method to accelerate the calculation"
         call params % print_func(string)
     end if
-!
-    if (iprint.gt.0) then 
-        string = " using the following numerical parameters for the calculation:"
+
+    string = " using the following numerical parameters for the calculation:"
+    call params % print_func(string)
+    write(string,1010) 'maximal degree of spherical harmonics for the model:',params % lmax
+    call params % print_func(string)
+    write(string,1010) 'number of lebedev points:                           ',params % ngrid
+    call params % print_func(string)
+    if (params % fmm .eq. 1) then
+        write(string,1010) 'maximal degree of FMM multipolar expansions:        ',params % pm
         call params % print_func(string)
-        write(string,1010) 'maximal degree of spherical harmonics for the model:',params % lmax
+        write(string,1010) 'maximal degree of FMM local expansions:             ',params % pl
         call params % print_func(string)
-        write(string,1010) 'number of lebedev points:                           ',params % ngrid
-        call params % print_func(string)
-        if (params % fmm .eq. 1) then 
-            write(string,1010) 'maximal degree of FMM multipolar expansions:         ',params % pm
-            call params % print_func(string)
-            write(string,1010) 'maximal degree of FMM local expansions:              ',params % pl
-            call params % print_func(string)
-        end if
     end if
-!
     string = " using the Jacobi-DIIS iterative solver"
     call params % print_func(string)
     string = " "
