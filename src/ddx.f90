@@ -50,12 +50,12 @@ subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, &
         case (1)
             call ddcosmo(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, phi_cav, gradphi_cav, psi, &
-                & tol, esolv, force, info)
+                & tol, esolv, force)
         ! PCM model
         case (2)
             call ddpcm(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, phi_cav, gradphi_cav, psi, &
-                & tol, esolv, force, info)
+                & tol, esolv, force)
         ! LPB model
         case (3)
             call ddlpb(ddx_data % params, ddx_data % constants, &
@@ -63,7 +63,10 @@ subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, &
                 & hessianphi_cav, psi, tol, esolv, force, info)
         ! Error case
         case default
-            stop "Non-supported model"
+            ddx_data % params % error_flag = 1
+            ddx_data % params % error_message = "unsupported solvation " // &
+                & " model in the dd solver."
+            return
     end select
 end subroutine ddsolve
 
