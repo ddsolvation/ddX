@@ -244,7 +244,7 @@ subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     call ylmscale(mmax + 1, vscales, v4pi2lp1, vscales_rel)
 
     ! call the helper routine for the M2M gradients
-    call grad_m2m(multipoles, mmax, nm, tmp_m_grad)
+    call grad_m2m(multipoles, mmax, nm, tmp_m_grad, error_flag, error_message)
 
     ! loop over the targets and the sources and assemble the electric
     ! potential and field
@@ -301,7 +301,8 @@ subroutine build_phi(params, constants, workspace, multipoles, &
     real(dp), intent(out) :: phi_cav(constants % ncav)
     if (params % fmm .eq. 0) then
         call build_phi_dense(multipoles, params % csph, mmax, params % nsph, &
-            & phi_cav, constants % ccav, constants % ncav)
+            & phi_cav, constants % ccav, constants % ncav, &
+            & workspace % error_flag, workspace % error_message)
     else if (params % fmm .eq. 1) then
         call build_phi_fmm(params, constants, workspace, multipoles, mmax, &
             & phi_cav)
@@ -402,7 +403,8 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
     end if
 
     ! compute the gradient of the m2m trasformation
-    call grad_m2m(multipoles, mmax, params % nsph, tmp_m_grad)
+    call grad_m2m(multipoles, mmax, params % nsph, tmp_m_grad, &
+        & workspace % error_flag, workspace % error_message)
 
     ! copy the multipoles in the right places
     call load_m(params, constants, workspace, multipoles, mmax)
@@ -913,7 +915,7 @@ subroutine build_adj_phi_dense(qcav, ccav, ncav, cm, mmax, nm, adj_phi, &
         & v4pi2lp1(mmax + 1), work((mmax + 1)**2 + 3*mmax), stat=info)
     if (info .ne. 0) then
         error_message = 'Allocation failed in build_adj_phi_dense!'
-        error_code = 1
+        error_flag = 1
         return
     end if
     call ylmscale(mmax, vscales, v4pi2lp1, vscales_rel)
@@ -930,7 +932,7 @@ subroutine build_adj_phi_dense(qcav, ccav, ncav, cm, mmax, nm, adj_phi, &
     deallocate(vscales, vscales_rel, v4pi2lp1, work, stat=info)
     if (info .ne. 0) then
         error_message = 'Deallocation failed in build_adj_phi_dense!'
-        error_code = 1
+        error_flag = 1
         return
     end if
 
