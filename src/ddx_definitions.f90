@@ -16,7 +16,7 @@ module ddx_definitions
 implicit none
 
 !> Kind of double precision
-integer, parameter :: dp = kind(1d0)
+integer, parameter :: dp = kind(1.0d0)
 
 !! Compile-time constants
 real(dp), parameter :: zero = 0d0, one = 1d0, two = 2d0, three = 3d0
