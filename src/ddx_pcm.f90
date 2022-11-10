@@ -273,10 +273,8 @@ subroutine ddpcm_solve_worker(params, constants, workspace, phi_cav, &
     call rinfx(params, constants, workspace, phi, phiinf)
     ! Select initial guess for the ddPCM system
     call cpu_time(start_time)
-    if (params % itersolver .eq. 1) then
-        call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
-            & phieps_niter, phieps_rel_diff, repsx, prec_repsx, hnorm, info)
-    end if
+    call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
+        & phieps_niter, phieps_rel_diff, repsx, prec_repsx, hnorm, info)
     call cpu_time(finish_time)
     phieps_time = finish_time - start_time
     ! Check if solver did not converge
@@ -290,10 +288,8 @@ subroutine ddpcm_solve_worker(params, constants, workspace, phi_cav, &
     ! Solve ddCOSMO system L X = -Phi_epsilon with a proper initial guess
     info = params % maxiter
     call cpu_time(start_time)
-    if (params % itersolver .eq. 1) then
-        call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
-            & xs, xs_niter, xs_rel_diff, lx, ldm1x, hnorm, info)
-    end if
+    call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
+        & xs, xs_niter, xs_rel_diff, lx, ldm1x, hnorm, info)
     call cpu_time(finish_time)
     xs_time = finish_time - start_time
     ! Check if solver did not converge
@@ -384,10 +380,8 @@ subroutine ddpcm_energy_worker(params, constants, workspace, phi_cav, psi, &
     call rinfx(params, constants, workspace, phi, phiinf)
     ! Select initial guess for the ddPCM system
     start_time = omp_get_wtime()
-    if (params % itersolver .eq. 1) then 
-        call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
-            & phieps_niter, phieps_rel_diff, repsx, prec_repsx, hnorm, info)
-    end if
+    call jacobi_diis(params, constants, workspace, tol, phiinf, phieps, &
+        & phieps_niter, phieps_rel_diff, repsx, prec_repsx, hnorm, info)
     finish_time = omp_get_wtime()
     phieps_time = finish_time - start_time
     ! Check if solver did not converge
@@ -401,10 +395,8 @@ subroutine ddpcm_energy_worker(params, constants, workspace, phi_cav, psi, &
     ! Solve ddCOSMO system L X = -Phi_epsilon with a proper initial guess
     info = params % maxiter
     start_time = omp_get_wtime()
-    if (params % itersolver .eq. 1) then
-        call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
-            & xs, xs_niter, xs_rel_diff, lx, ldm1x, hnorm, info)
-    end if
+    call jacobi_diis(params, constants, workspace, tol, workspace % tmp_rhs, &
+        & xs, xs_niter, xs_rel_diff, lx, ldm1x, hnorm, info)
     finish_time = omp_get_wtime()
     xs_time = finish_time - start_time
     ! Check if solver did not converge
@@ -440,10 +432,8 @@ subroutine ddpcm_adjoint_worker(params, constants, workspace, psi, tol, &
     character(len=255) :: string
     ! Solve the adjoint ddCOSMO system
     start_time = omp_get_wtime()
-    if (params % itersolver .eq. 1) then 
-        call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
-            & s_rel_diff, lstarx, ldm1x, hnorm, info)
-    end if
+    call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
+        & s_rel_diff, lstarx, ldm1x, hnorm, info)
     finish_time = omp_get_wtime()
     s_time = finish_time - start_time
     ! Check if solver did not converge
@@ -455,10 +445,8 @@ subroutine ddpcm_adjoint_worker(params, constants, workspace, psi, tol, &
     end if
     ! Solve adjoint ddPCM system
     start_time = omp_get_wtime()
-    if (params % itersolver .eq. 1) then 
-        call jacobi_diis(params, constants, workspace, tol, s, y, y_niter, &
-            & y_rel_diff, repsstarx, prec_repsstarx, hnorm, info)
-    end if
+    call jacobi_diis(params, constants, workspace, tol, s, y, y_niter, &
+        & y_rel_diff, repsstarx, prec_repsstarx, hnorm, info)
     finish_time = omp_get_wtime()
     y_time = finish_time - start_time
     ! Check if solver did not converge

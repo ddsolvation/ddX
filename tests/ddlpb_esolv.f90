@@ -168,7 +168,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
         & ddx_data % params % fmm, ddx_data % params % pm, ddx_data % params % pl, &
         & ddx_data % params % se, &
         & eta, epsilon_solv, kappa, 0,&
-        & ddx_data % params % itersolver, ddx_data % params % maxiter, &
+        & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, ddx_data2, info)
 

@@ -176,8 +176,6 @@ contains
 !! @param[in] matvecmem: handling of the sparse matrices. 1 for precomputin
 !!      them and keeping them in memory, 0 for assembling the matrix-vector
 !!      product on-the-fly. 
-!! @param[in] itersolver: Iterative solver to be used. 1 for Jacobi iterative
-!!      solver. Other solvers might be added later.
 !! @param[in] maxiter: Maximum number of iterations for an iterative solver.
 !!      maxiter > 0.
 !! @param[in] ndiis: Number of extrapolation points for Jacobi/DIIS solver.
@@ -196,11 +194,11 @@ contains
 !------------------------------------------------------------------------------
 subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, se, eta, eps, kappa, &
-        & matvecmem, itersolver, maxiter, jacobi_ndiis, &
+        & matvecmem, maxiter, jacobi_ndiis, &
         & nproc, ddx_data, info)
     ! Inputs
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
-        & matvecmem, itersolver, maxiter, jacobi_ndiis, &
+        & matvecmem, maxiter, jacobi_ndiis, &
         & ngrid
     real(dp), intent(in):: charge(nsph), x(nsph), y(nsph), z(nsph), &
         & rvdw(nsph), se, eta, eps, kappa
@@ -226,7 +224,7 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     csph(2, :) = y
     csph(3, :) = z
     call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & matvecmem, itersolver, maxiter, jacobi_ndiis, &
+        & matvecmem, maxiter, jacobi_ndiis, &
         & fmm, pm, pl, nproc, nsph, charge, &
         & csph, rvdw, print_func_default, &
         & ddx_data % params, info)
@@ -536,7 +534,7 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     integer, intent(out) :: iprint, info
     ! Local variables
     integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
-        & nsph, i, matvecmem, itersolver, maxiter, jacobi_ndiis, &
+        & nsph, i, matvecmem, maxiter, jacobi_ndiis, &
         & istatus
     real(dp) :: eps, se, eta, kappa
     real(dp), allocatable :: charge(:), x(:), y(:), z(:), rvdw(:)
@@ -611,13 +609,6 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     if((matvecmem.lt. 0) .or. (matvecmem .gt. 1)) then
         write(*, "(3A)") "Error on the 10th line of a config file ", fname, &
             & ": `matvecmem` must be an integer value of a value 0 or 1."
-        stop 1
-    end if
-    ! Iterative solver of choice. Only one is supported as of now.
-    read(100, *) itersolver
-    if((itersolver .lt. 1) .or. (itersolver .gt. 1)) then
-        write(*, "(3A)") "Error on the 11th line of a config file ", fname, &
-            & ": `itersolver` must be 1 - only jacobi/DIIS solver implemented."
         stop 1
     end if
     ! Relative convergence threshold for the iterative solver
@@ -699,7 +690,7 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
 
     !! Initialize ddx_data object
     call ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
-        & pm, pl, se, eta, eps, kappa, matvecmem, itersolver, &
+        & pm, pl, se, eta, eps, kappa, matvecmem, &
         & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     !! Clean local temporary data
     deallocate(charge, x, y, z, rvdw, stat=istatus)
@@ -2855,9 +2846,7 @@ subroutine print_header(iprint,params)
         end if
     end if
 !
-    if (params % itersolver .eq. 1) then
-        string = " using the Jacobi-DIIS iterative solver"
-    end if
+    string = " using the Jacobi-DIIS iterative solver"
     call params % print_func(string)
     string = " "
     call params % print_func(string)

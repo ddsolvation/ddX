@@ -212,11 +212,9 @@ subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
     workspace % tmp_rhs = -phi
     ! Solve ddCOSMO system L X = -Phi with a given initial guess
     start_time = omp_get_wtime()
-    if (params % itersolver .eq. 1) then
-        call jacobi_diis(params, constants, workspace, tol, &
-            & workspace % tmp_rhs, xs, xs_niter, xs_rel_diff, lx, &
-            & ldm1x, hnorm, info)
-    end if
+    call jacobi_diis(params, constants, workspace, tol, &
+        & workspace % tmp_rhs, xs, xs_niter, xs_rel_diff, lx, &
+        & ldm1x, hnorm, info)
     finish_time = omp_get_wtime()
     xs_time = finish_time - start_time
     ! Check if solver did not converge
@@ -277,10 +275,8 @@ subroutine ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, s, &
         return
     end if
     call cpu_time(start_time)
-    if (params % itersolver .eq. 1) then
-        call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
-            & s_rel_diff, lstarx, ldm1x, hnorm, info)
-    end if
+    call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
+        & s_rel_diff, lstarx, ldm1x, hnorm, info)
     call cpu_time(finish_time)
     s_time = finish_time - start_time
     ! Check if solver did not converge

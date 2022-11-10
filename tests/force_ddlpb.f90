@@ -116,7 +116,7 @@ subroutine solve(ddx_data, esolv_in, tol)
         & ddx_data % params % fmm, ddx_data % params % pm, ddx_data % params % pl, &
         & ddx_data % params % se, &
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, &
-        & ddx_data % params % matvecmem, ddx_data % params % itersolver, ddx_data % params % maxiter, &
+        & ddx_data % params % matvecmem, ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, ddx_data2, info)
 

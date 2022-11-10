@@ -47,10 +47,6 @@ type ddx_params_type
     integer :: lmax
     !> Number of Lebedev grid points on each sphere.
     integer :: ngrid
-    !> Iterative solver to be used. 1 for Jacobi/DIIS.
-    !!
-    !! Other solvers might be added later.
-    integer :: itersolver
     !> Maximum number of iterations for the iterative solver.
     integer :: maxiter
     !> Number of extrapolation points for Jacobi/DIIS solver. Referenced only
@@ -107,8 +103,6 @@ contains
 !! @param[in] ngrid: Number of Lebedev grid points `ngrid` >= 0.
 !! @param[in] matvecmem: handling of sparse matrices. 1 for precomputing them 
 !!      and keeping them in memory, 0 for direct matrix-vector products.
-!! @param[in] itersolver: Iterative solver to be used. 1 for Jacobi iterative
-!!      solver. Other solvers might be added later.
 !! @param[in] maxiter: Maximum number of iterations for an iterative solver.
 !!      maxiter > 0.
 !! @param[in] jacobi_ndiis: Number of extrapolation points for Jacobi/DIIS solver.
@@ -138,7 +132,7 @@ contains
 !!          params % error_message
 !!      = 1: Allocation of memory to copy geometry data failed.
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & matvecmem, itersolver, maxiter, jacobi_ndiis, &
+        & matvecmem, maxiter, jacobi_ndiis, &
         & fmm, pm, pl, nproc, nsph, charge, &
         & csph, rsph, print_func, params, info)
     !! Inputs
@@ -162,9 +156,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! handling of sparse matrix. 1 for precomputing them and keeping them in
     ! memory, 0 for assembling the mvps on-the-fly.
     integer, intent(in) :: matvecmem
-    ! Iterative solver to be used. 1 for Jacobi/DIIS.
-    ! Other solvers might be added later.
-    integer, intent(in) :: itersolver
     ! Maximum number of iterations for the iterative solver.
     integer, intent(in) :: maxiter
     ! Number of extrapolation points for Jacobi/DIIS solver. Referenced only
@@ -278,15 +269,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         return
     end if
     params % ngrid = ngrid
-    ! Iterative solver: 1=Jacobi
-    if ((itersolver .lt. 1) .or. (itersolver .gt. 1)) then
-        params % error_flag = 1
-        params % error_message = "params_init: invalid value of `itersolver`"
-        call print_func(params % error_message)
-        info = -1
-        return
-    end if
-    params % itersolver = itersolver
     ! Maximum number of iterations
     if (maxiter .le. 0) then
         params % error_flag = 1
@@ -442,7 +424,7 @@ subroutine params_print(params)
             & params % ngrid
         call params % print_func(string)
         write(string, "(A,A)") "Iterative solver: ", &
-            & trim(itersolver_str(params % itersolver))
+            & trim("Jacobi")
         call params % print_func(string)
         write(string, "(A,I0)") "maxiter: ", params % maxiter
         call params % print_func(string)

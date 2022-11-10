@@ -1357,10 +1357,8 @@ subroutine prec_tstarx(params, constants, workspace, x, y)
     y(:,:,1) = x(:,:,1)
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
     n_iter = params % maxiter
-    if (params % itersolver .eq. 1) then 
-        call jacobi_diis(params, constants, workspace, constants % inner_tol, y(:,:,1), &
-            & workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, ldm1x, hnorm, info)
-    end if
+    call jacobi_diis(params, constants, workspace, constants % inner_tol, y(:,:,1), &
+        & workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, ldm1x, hnorm, info)
     if (info.ne.0) then
         write(*,*) 'prec_tstarx: [1] ddCOSMO failed to converge'
         stop 1
@@ -1368,10 +1366,8 @@ subroutine prec_tstarx(params, constants, workspace, x, y)
     y(:,:,1) = workspace % ddcosmo_guess
 
     n_iter = params % maxiter
-    if (params % itersolver .eq. 1) then
-        call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
-            & n_iter, x_rel_diff, bstarx, bx_prec, hnorm, info)
-    end if
+    call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
+        & n_iter, x_rel_diff, bstarx, bx_prec, hnorm, info)
     if (info.ne.0) then
         write(*,*) 'prec_tstarx: [1] HSP failed to converge'
         stop 1
@@ -1399,10 +1395,8 @@ subroutine prec_tx(params, constants, workspace, x, y)
 
     ! perform A^-1 * Yr
     n_iter = params % maxiter
-    if (params % itersolver .eq. 1) then
-        call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,1), &
-            & workspace % ddcosmo_guess, n_iter, x_rel_diff, lx, ldm1x, hnorm, info)
-    end if
+    call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,1), &
+        & workspace % ddcosmo_guess, n_iter, x_rel_diff, lx, ldm1x, hnorm, info)
     if (info.ne.0) then
         write(*,*) 'prec_tx: [1] ddCOSMO failed to converge'
         stop 1
@@ -1414,10 +1408,8 @@ subroutine prec_tx(params, constants, workspace, x, y)
 
     ! perform B^-1 * Ye
     n_iter = params % maxiter
-    if (params % itersolver .eq. 1) then
-        call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
-            & n_iter, x_rel_diff, bx, bx_prec, hnorm, info)
-    end if
+    call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
+        & n_iter, x_rel_diff, bx, bx_prec, hnorm, info)
     y(:,:,2) = workspace % hsp_guess
 
     if (info.ne.0) then

@@ -8,7 +8,6 @@
 0.1         ! Regularization parameter
 0.0         ! Debye Hückel parameter
 0           ! Whether to compute and store sparse matrices (1) or not (0)
-2           ! Iterative solver for linear systems: 1: Jacobi/DIIS , 2: GMRESR solver
 1d-8        ! The relative threshold for the iterative solver
 100         ! Maximum number of iterations
 20          ! Number of Jacobi DIIS extrapolation points
