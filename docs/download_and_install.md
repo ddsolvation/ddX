@@ -14,6 +14,9 @@ If you want to build the python package from source, simply run:
 setup.py test
 ```
 
+<br />
+## Source code
+
 **Download the ddX source code** at: 
 ``` markdown
 > git clone git@github.com:ACoM-Computational-Mathematics/ddX.git

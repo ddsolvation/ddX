@@ -34,3 +34,4 @@ force = model.force_terms(state, nuclear["phi"], nuclear["gradphi"], nuclear["ps
 
 energy = 0.5 * np.sum(state.x * nuclear["psi"])
 print(energy)
+print(force)
