@@ -14,7 +14,7 @@ Run the code as
 
 Line number  | type           | description   
 ------------- | ------------- | -------------- 
-1  | Integer | Printing flag, range=[-1,0,1,2,3,4]  <br /> -1: quiet 0: minimal verbosity (energy and forces), 1: + number of iterations of solvers, timers, 2: + solution vector, 3: + right hand side vector, 4: + all debug outputs   
+1  | String | Filename for Log-file where additional information about the convergence of the linear solver is saved, the void string '' means that no log-file is saved
 2  | Integer  | Number of OpenMP cores to be used
 3  | Integer  | Specification of the model <br />  1: COSMO, 2: PCM, 3: LPB
 4  | Integer  | Maximal degree \f$\ell_{\max}\f$ of modeling spherical harmonics
@@ -24,18 +24,15 @@ Line number  | type           | description
 8  | Float    | Regularization parameter \f$\eta\f$ of the smoothing function \f$\chi_\eta\f$, range=[0,1]
 9  | Float    | Debye Hückel parameter \f$\kappa_s\f$ of the bulk solvent
 10  | Integer  | Whether to compute and store sparse matrices (1) or apply the matrix-vector product on the fly (0), range={0,1} <br /> The sparse matrices are the solution matrix of ddCOSMO referred to as \f$L\f$ used in ddCOSMO and ddPCM, and the matrices \f$A\f$ and \f$B\f$ in ddLPB.
-11 | Integer  | Iterative solver for linear systems <br /> 1: Jacobi/DIIS, 2: GMRESR<sup>[1]</sup>
-12 | Float    | The relative threshold \f$tol\f$ for the iterative solver
-13 | Integer  | Maximum number of iterations of the iterative solver before stopping
-14 | Integer  | Number of Jacobi/DIIS extrapolation points
-15 | Integer  | Number of last vectors GMRESR works with<sup>[2]</sup>
-16 | Integer  | Dimension of GMRESR<sup>[3]</sup>
-17 | Integer  | Whether to compute (1) or not (0) the forces, range={0,1}
-18 | Integer  | Whether to use (1) or not (0) the FMM, range={0,1} 
-19 | Integer  | Max degree of multipole spherical harmonics \f$\tilde\ell_{\max}\f$ for the FMM (recommended value \f$\tilde\ell_{\max}=\ell_{\max}\f$)
-20 | Integer  | Max degree of local spherical harmonics \f$p_{\max}\f$ for the FMM (recommended value \f$p_{\max}=6\f$)
-21 | Integer  | Number of spheres of the atomic structure
-22--END | Float[5] | The flollowing lines specify for each atom (should be consistent with entry on line 20) the values c,x,y,z,r where the partial charge (c), x-coordinate (x), y-coordinate (y), z-coordinate (z), radius (r) are listed (see example below). The charges are in *atomic units* and the coordinates and the radii in *Ångstrom*.
+11 | Float    | The relative threshold \f$tol\f$ for the iterative solver
+12 | Integer  | Maximum number of iterations of the iterative solver before stopping
+13 | Integer  | Number of Jacobi/DIIS extrapolation points
+14 | Integer  | Whether to compute (1) or not (0) the forces, range={0,1}
+15 | Integer  | Whether to use (1) or not (0) the FMM, range={0,1} 
+16 | Integer  | Max degree of multipole spherical harmonics \f$\tilde\ell_{\max}\f$ for the FMM (recommended value \f$\tilde\ell_{\max}=\ell_{\max}\f$)
+17 | Integer  | Max degree of local spherical harmonics \f$p_{\max}\f$ for the FMM (recommended value \f$p_{\max}=6\f$)
+18 | Integer  | Number of spheres of the atomic structure
+19--END | Float[5] | The flollowing lines specify for each atom (should be consistent with entry on line 20) the values c,x,y,z,r where the partial charge (c), x-coordinate (x), y-coordinate (y), z-coordinate (z), radius (r) are listed (see example below). The charges are in *atomic units* and the coordinates and the radii in *Ångstrom*.
 
 <sup>[1]</sup>: H.A. van der Vorst, C. Vuik, "GMRESR: a Family of Nested GMRES Methods", Num. Lin. Alg. Appl., vol. 1(4), 369--386 (1994): <a href="https://webspace.science.uu.nl/~vorst102/gmresr.f">[link to file]</a> 
 
