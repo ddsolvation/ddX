@@ -62,8 +62,8 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
             & psi, tol)
 
         ! evaluate the analytical derivatives
-        call ddcosmo_forces(params, constants, workspace, state, phi_cav, &
-            & gradphi_cav, psi, force)
+        call ddcosmo_geom_forces(params, constants, workspace, state, &
+            & phi_cav, gradphi_cav, psi, force)
         call grad_phi_for_charges(params, constants, workspace, state, 0, &
             & params % charge/sqrt4pi, force, -gradphi_cav)
     end if
@@ -93,6 +93,8 @@ end subroutine ddcosmo_guess
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[in] psi: Representation of the solute potential in spherical
+!!     harmonics, size (nbasis, nsph)
 !!
 subroutine ddcosmo_guess_adjoint(params, constants, workspace, state, psi)
     implicit none
@@ -177,7 +179,7 @@ subroutine ddcosmo_forces(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     real(dp), intent(out) :: force(3, params % nsph)
 
-    call ddcosmo_geom_forces_worker(params, constants, workspace, &
+    call ddcosmo_forces_worker(params, constants, workspace, &
         & state % phi_grid, gradphi_cav, psi, state % s, state % sgrid, &
         & state % xs, state % zeta, force)
 end subroutine ddcosmo_forces
