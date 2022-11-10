@@ -39,3 +39,4 @@ force = model.solvation_force_terms(state, solute_field["phi"], solute_field["e"
 
 energy = 0.5 * np.sum(state.x * solute_psi)
 print(energy)
+print(force)
