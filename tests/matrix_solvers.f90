@@ -24,6 +24,7 @@ character(len=255) :: fname
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
 integer :: info
+character(len=255) :: dummy_file_name = ''
 
 real(dp) :: esolv_one, esolv_two, tol
 integer :: i, istatus, iprint, default_value
@@ -85,7 +86,7 @@ subroutine solve(ddx_data, state, matvecmem, esolv)
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, matvecmem,&
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, '', ddx_data2)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data2)
 
     allocate(phi_cav2(ddx_data2 % constants % ncav), &
             & gradphi_cav2(3, ddx_data2 % constants % ncav), &

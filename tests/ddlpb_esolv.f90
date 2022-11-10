@@ -33,6 +33,7 @@ integer, allocatable :: default_iter_epsilon(:), default_iter_eta(:), &
                        & default_iter_kappa(:), default_iter_lmax(:)
 
 real(dp), external :: dnrm2
+character(len=255) :: dummy_file_name = ''
 
 ! Read input file name
 call getarg(1, fname)
@@ -170,7 +171,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
         & eta, epsilon_solv, kappa, 0,&
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, '', ddx_data2)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data2)
 
     ! the state depends on lmax, so it is allocated here
     call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state)

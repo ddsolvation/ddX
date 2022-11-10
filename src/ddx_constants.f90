@@ -252,10 +252,6 @@ contains
 !> Compute all necessary constants
 !! @param[in] params: Object containing all inputs.
 !! @param[out] constants: Object containing all constants.
-!! @param[out] info: flag of succesfull exit
-!!      = 0: Succesfull exit
-!!      = -1: params is in error state
-!!      = 1: Allocation of memory failed.
 subroutine constants_init(params, constants)
     use complex_bessel
     !! Inputs
@@ -272,8 +268,11 @@ subroutine constants_init(params, constants)
     complex(dp), allocatable :: bessel_work(:)
     complex(dp) :: z
     !! The code
+    ! Clean error state of constants to proceed with geometry
+    constants % error_flag = 0
+    constants % error_message = ""
     ! Check if params are OK
-    if (params % error_flag .eq. 1) then
+    if (params % error_flag .ne. 0) then
         constants % error_flag = 1
         constants % error_message = "constants_init: `params` is in " // &
             & "error state"
@@ -569,9 +568,6 @@ subroutine constants_init(params, constants)
         call build_itrnl(constants, params)
         call build_l(constants, params)
     end if
-    ! Clean error state of constants to proceed with geometry
-    constants % error_flag = 0
-    constants % error_message = ""
 end subroutine constants_init
 
 subroutine build_itrnl(constants, params)
@@ -598,7 +594,7 @@ subroutine build_l(constants, params)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
-    integer :: isph, ij, jsph, igrid, l, m, ind
+    integer :: isph, ij, jsph, igrid, l, m, ind, info
     real(dp), dimension(3) :: vij, sij
     real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
         & fac, tt, thigh
@@ -608,7 +604,12 @@ subroutine build_l(constants, params)
     real(dp) :: t
 
     allocate(constants % l(constants % nbasis, constants % nbasis, &
-        & constants % inl(params % nsph + 1)))
+        & constants % inl(params % nsph + 1)), stat=info)
+    if (info .ne. 0) then
+        constants % error_flag = 1
+        constants % error_message = 'Allocation failed in build_l'
+        return
+    end if
 
     thigh = one + pt5*(params % se + one)*params % eta
 

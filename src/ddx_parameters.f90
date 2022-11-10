@@ -201,6 +201,10 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     integer :: igrid, i, info
     character(len=255) :: string
     !! The code
+    ! Clear error state
+    params % error_flag = 0
+    params % error_message = ''
+    ! parse the log file name
     if (len(trim(output_filename)) .ne. 0) then
         params % output_filename = output_filename
         params % verbose = .true.
@@ -368,9 +372,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     params % print_func => print_func
     ! init log
     call init_printing(params)
-    ! Clear error state
-    params % error_flag = 0
-    params % error_message = ""
 end subroutine params_init
 
 !> Print header with parameters
@@ -553,6 +554,7 @@ subroutine init_printing(params)
     implicit none
     type(ddx_params_type), intent(inout) :: params
     logical :: exists
+    if (.not.params % verbose) return
     inquire(file=params % output_filename(1:params % len_output_filename), &
         & exist=exists)
     if (exists) then
@@ -569,6 +571,7 @@ end subroutine init_printing
 subroutine finalize_printing(params)
     implicit none
     type(ddx_params_type), intent(out) :: params
+    if (.not.params % verbose) return
     close(params % iunit)
     params % verbose = .false.
     params % output_filename = ''

@@ -19,6 +19,7 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
+character(len=255) :: dummy_file_name = ''
 integer :: info
 ! derivative_num_A  : Numerical derivatives for matrix A
 ! derivative_num_B  : Numerical derivatives for matrix B
@@ -318,7 +319,7 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
         & ddx_data % params % kappa, 0, &
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, '', ddx_data2)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data2)
     ! Allocation
     allocate(random_vector_n_one(ddx_data2 % constants % n), &
              & random_vector_n_two(ddx_data2 % constants % n), &

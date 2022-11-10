@@ -414,7 +414,7 @@ subroutine solve(ddx_data, sum_cosmo, sum_lpb, sum_char, sum_der_u, sum_g0, sum_
         & ddx_data % eta, ddx_data % eps, ddx_data % kappa, &
         & ddx_data % matvecmem, &
         & ddx_data % tol, ddx_data % maxiter, &
-        & ddx_data % ndiis, ddx_data % nproc, ddx_data2, info)
+        & ddx_data % ndiis, ddx_data % nproc, ddx_data2)
     ! Allocation
     allocate(unit_vector_n(ddx_data2 % n), vector_cosmo(ddx_data2 % n), vector_lpb(ddx_data2 % n), &
              & unit_vector_nbasis_nsph(ddx_data2 % nbasis, ddx_data2 % nsph), &

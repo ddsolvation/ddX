@@ -141,7 +141,7 @@ type ddx_type
     type(ddx_constants_type) :: constants
     type(ddx_workspace_type) :: workspace
     !> Flag if there were an error
-    integer :: error_flag
+    integer :: error_flag = 0
     !> Last error message
     character(len=255) :: error_message
 end type ddx_type
@@ -205,6 +205,9 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     ! Local variables
     real(dp), allocatable :: csph(:, :)
     integer :: istatus
+    ! set the object in non error state
+    ddx_data % error_flag = 0
+    ddx_data % error_message = ''
     ! Init underlying objects
     allocate(csph(3, nsph), stat=istatus)
     if (istatus.ne.0) then
@@ -220,12 +223,24 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, nproc, nsph, charge, &
         & csph, rvdw, print_func_default, &
         & output_filename, ddx_data % params)
-    if (ddx_data % params % error_flag .ne. 0) return
+    if (ddx_data % params % error_flag .ne. 0) then
+        ddx_data % error_flag = ddx_data % params % error_flag
+        ddx_data % error_message = ddx_data % params % error_message
+        return
+    end if
     call constants_init(ddx_data % params, ddx_data % constants)
-    if (ddx_data % constants % error_flag .ne. 0) return
+    if (ddx_data % constants % error_flag .ne. 0) then
+        ddx_data % error_flag = ddx_data % constants % error_flag
+        ddx_data % error_message = ddx_data % constants % error_message
+        return
+    end if
     call workspace_init(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace)
-    if (ddx_data % workspace % error_flag .ne. 0) return
+    if (ddx_data % workspace % error_flag .ne. 0) then
+        ddx_data % error_flag = ddx_data % workspace % error_flag
+        ddx_data % error_message = ddx_data % workspace % error_message
+        return
+    end if
     deallocate(csph, stat=istatus)
     if (istatus.ne.0) then
         write(ddx_data % error_message, *) 'Deallocation failed in ddinit'
