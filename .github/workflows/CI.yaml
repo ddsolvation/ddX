@@ -25,9 +25,9 @@ jobs:
     - name: create build dir
       run: cmake -E make_directory build
     - name: build, test and install
-      working-directory: build
       run: |
-        cmake -DCMAKE_INSTALL_PREFIX="/tmp/libddx" ..
+        cd build
+        cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran-10" -DCMAKE_INSTALL_PREFIX="/tmp/libddx" -DCMAKE_BUILD_TYPE=Release ..
         make
         ctest -VV
         make install
@@ -75,23 +75,3 @@ jobs:
       - name: Run python tests
         run: |
           python setup.py test
-  #
-  # Documentation
-  #
-  docs:
-    needs: [build, python]
-    name: Documentation
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    - name: Run Doxygen
-      uses: mattnotmitt/doxygen-action@v1.9.4
-    - name: Deploy documentation
-      uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.ref == 'refs/heads/main' }}
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: doxygen/html
-        user_name: 'github-actions[bot]'
-        user_email: 'github-actions[bot]@users.noreply.github.com'
