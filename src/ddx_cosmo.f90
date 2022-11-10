@@ -13,6 +13,7 @@
 module ddx_cosmo
 ! Get ddx-operators
 use ddx_operators
+use ddx_multipolar_solutes
 implicit none
 
 contains
@@ -21,16 +22,21 @@ contains
 !!
 !! Solves the problem within COSMO model using a domain decomposition approach.
 !!
-!! @param[in] ddx_data: ddX object with all input information
-!! @param[in] phi_cav: Potential at cavity points
-!! @param[in] gradphi_cav: Gradient of a potential at cavity points
-!! @param[in] psi: TODO
-!! @param[in] tol
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[in] phi_cav: Potential at cavity points, size (ncav)
+!! @param[in] gradphi_cav: Gradient of a potential at cavity points, required
+!!     by the forces, size (3, ncav)
+!! @param[in] psi: Representation of the solute potential in spherical
+!!     harmonics, size (nbasis, nsph)
+!! @param[in] tol: Tolerance for the linear system solver
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
-!! @param[out] info
+!!
 subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
-        & psi, tol, esolv, force, info)
+        & psi, tol, esolv, force)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -39,11 +45,10 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
         & gradphi_cav(3, constants % ncav), &
         & psi(constants % nbasis, params % nsph), tol
     real(dp), intent(out) :: esolv, force(3, params % nsph)
-    integer, intent(out) :: info
     real(dp), external :: ddot
 
-    call ddcosmo_ddpcm_rhs(params, constants, state)
-    call ddcosmo_guess(params, constants, state)
+    call ddcosmo_ddpcm_rhs(params, constants, workspace, state, phi_cav)
+    call ddcosmo_guess(params, constants, workspace, state)
     call ddcosmo_solve(params, constants, workspace, state, tol)
 
     ! Solvation energy is computed
@@ -51,23 +56,64 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
 
     ! Get forces if needed
     if (params % force .eq. 1) then
-        call ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
+        ! solve the adjoint
+        call ddcosmo_guess_adjoint(params, constants, workspace, state, psi)
+        call ddcosmo_solve_adjoint(params, constants, workspace, state, &
+            & psi, tol)
+
+        ! evaluate the analytical derivatives
         call ddcosmo_forces(params, constants, workspace, state, phi_cav, &
             & gradphi_cav, psi, force)
+        call grad_phi_for_charges(params, constants, workspace, state, 0, &
+            & params % charge/sqrt4pi, force, -gradphi_cav)
     end if
 end subroutine ddcosmo
 
-subroutine ddcosmo_guess(params, constants, state)
+!> Do a guess for the primal ddCOSMO linear system
+!!
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!!
+subroutine ddcosmo_guess(params, constants, workspace, state)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
 
-    ! TODO: improve the guess
-    state % s = zero
-    state % xs = zero
+    ! apply the diagonal preconditioner as a guess
+    call ldm1x(params, constants, workspace, state % phi, state % xs)
 end subroutine ddcosmo_guess
 
+!> Do a guess for the adjoint ddCOSMO linear system
+!!
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!!
+subroutine ddcosmo_guess_adjoint(params, constants, workspace, state, psi)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+
+    ! apply the diagonal preconditioner as a guess
+    call ldm1x(params, constants, workspace, psi, state % s)
+end subroutine ddcosmo_guess_adjoint
+
+!> Solve the primal ddCOSMO linear system
+!!
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[in] tol: Tolerance for the linear system solver
+!!
 subroutine ddcosmo_solve(params, constants, workspace, state, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -75,14 +121,31 @@ subroutine ddcosmo_solve(params, constants, workspace, state, tol)
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
+    ! local variables
+    real(dp) :: start_time, finish_time
 
     state % xs_niter =  params % maxiter
-    call ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
-        & state % xs, state % xs_niter, state % xs_rel_diff, state % xs_time, &
-        & tol, state % phi_grid, state % phi)
+    start_time = omp_get_wtime()
+    call jacobi_diis(params, constants, workspace, tol, state % phi, &
+        & state % xs, state % xs_niter, state % xs_rel_diff, lx, ldm1x, &
+        & hnorm)
+    finish_time = omp_get_wtime()
+    state % xs_time = finish_time - start_time
+
 end subroutine ddcosmo_solve
 
-subroutine ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
+!> Solve the adjoint ddCOSMO linear system
+!!
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[in] psi: Representation of the solute potential in spherical
+!!     harmonics, size (nbasis, nsph)
+!! @param[in] tol: Tolerance for the linear system solver
+!!
+subroutine ddcosmo_solve_adjoint(params, constants, workspace, state, &
+        & psi, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -90,11 +153,17 @@ subroutine ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     real(dp), intent(in) :: tol
+    ! local variables
+    real(dp) :: start_time, finish_time
 
     state % s_niter = params % maxiter
-    call ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, &
-        & state % s, state % s_niter, state % s_rel_diff, state % s_time)
-end subroutine ddcosmo_adjoint
+    start_time = omp_get_wtime()
+    call jacobi_diis(params, constants, workspace, tol, psi, state % s, &
+        & state % s_niter, state % s_rel_diff, lstarx, ldm1x, hnorm)
+    finish_time = omp_get_wtime()
+    state % s_time = finish_time - start_time
+
+end subroutine ddcosmo_solve_adjoint
 
 subroutine ddcosmo_forces(params, constants, workspace, state, phi_cav, &
     & gradphi_cav, psi, force)
@@ -108,7 +177,7 @@ subroutine ddcosmo_forces(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     real(dp), intent(out) :: force(3, params % nsph)
 
-    call ddcosmo_forces_worker(params, constants, workspace, &
+    call ddcosmo_geom_forces_worker(params, constants, workspace, &
         & state % phi_grid, gradphi_cav, psi, state % s, state % sgrid, &
         & state % xs, state % zeta, force)
 end subroutine ddcosmo_forces
@@ -130,87 +199,23 @@ subroutine ddcosmo_geom_forces(params, constants, workspace, state, phi_cav, &
         & state % xs, state % zeta, force)
 end subroutine ddcosmo_geom_forces
 
-!> Solve primal ddCOSMO system to find solvation energy
+!> ddCOSMO solver
 !!
-!! @param[in] params
-!! @param[in] constants
-!! @param[inout] workspace
-!! @param[in] phi_cav
-!! @param[in] psi
-!! @param[in] xs_mode: behaviour of the input `xs`. If it is 0 then input value of
-!!      `xs` is ignored and initialized with zero. If it is 1 then input value `xs`
-!!      is used as an initial guess for the solver.
-!! @param[inout] xs
-!! @param[in] tol
-!! @param[out] esolv
-!! @param[out] phi_grid
-!! @param[out] phi
-subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
-        & xs, xs_niter, xs_rel_diff, xs_time, tol, phi_grid, &
-        & phi)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: phi_cav(constants % ncav), tol
-    !! Input+output
-    real(dp), intent(inout) :: xs(constants % nbasis, params % nsph)
-    integer, intent(inout) :: xs_niter
-    !! Temporary buffers
-    type(ddx_workspace_type), intent(inout) :: workspace
-    !! Outputs
-    real(dp), intent(out) :: xs_rel_diff(xs_niter), xs_time
-    real(dp), intent(out) :: phi_grid(params % ngrid, params % nsph)
-    real(dp), intent(out) :: phi(constants % nbasis, params % nsph)
-    !! Local variables
-    character(len=255) :: string
-    real(dp) :: start_time, finish_time, r_norm
-    !! The code
-    ! Solve ddCOSMO system L X = -Phi with a given initial guess
-    start_time = omp_get_wtime()
-    call jacobi_diis(params, constants, workspace, tol, &
-        & workspace % tmp_rhs, xs, xs_niter, xs_rel_diff, lx, &
-        & ldm1x, hnorm)
-    finish_time = omp_get_wtime()
-    xs_time = finish_time - start_time
-    ! Check if solver did not converge
-    if (params % error_flag .ne. 0) return
-    ! Clear status
-end subroutine ddcosmo_solve_worker
-
-!> Solve adjoint ddCOSMO system
+!! Solves the problem within COSMO model using a domain decomposition approach.
 !!
-!! @param[in] params
-!! @param[in] constants
-!! @param[inout] workspace
-!! @param[in] psi
-!! @param[in] tol
-!! @param[inout] s
-subroutine ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, s, &
-        & s_niter, s_rel_diff, s_time)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    real(dp), intent(in) :: psi(constants % nbasis, params % nsph), tol
-    !! Temporary buffers
-    type(ddx_workspace_type), intent(inout) :: workspace
-    !! Outputs
-    real(dp), intent(inout) :: s(constants % nbasis, params % nsph), s_time
-    integer, intent(inout) :: s_niter
-    real(dp), intent(out) :: s_rel_diff(s_niter)
-    !! Local variables
-    real(dp) :: start_time, finish_time, r_norm
-    character(len=255) :: string
-    real(dp), external :: ddot
-    !! The code
-    call cpu_time(start_time)
-    call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
-        & s_rel_diff, lstarx, ldm1x, hnorm)
-    call cpu_time(finish_time)
-    s_time = finish_time - start_time
-    ! Check if solver did not converge
-    if (workspace % error_flag .ne. 0) return 
-end subroutine ddcosmo_adjoint_worker
-
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[in] phi_cav: Potential at cavity points, size (ncav)
+!! @param[in] gradphi_cav: Gradient of a potential at cavity points, required
+!!     by the forces, size (3, ncav)
+!! @param[in] psi: Representation of the solute potential in spherical
+!!     harmonics, size (nbasis, nsph)
+!! @param[in] tol: Tolerance for the linear system solver
+!! @param[out] esolv: Solvation energy
+!! @param[out] force: Analytical forces
+!!
 subroutine ddcosmo_forces_worker(params, constants, workspace, phi_grid, &
         & gradphi_cav, psi, s, sgrid, xs, zeta, force)
     !! Inputs

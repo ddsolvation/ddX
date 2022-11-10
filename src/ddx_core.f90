@@ -2807,7 +2807,7 @@ subroutine cav_to_spherical(params, constants, workspace, property_cav, &
     real(dp), intent(out) :: property_sph(constants % nbasis, params % nsph)
 
     ! multiply by the characteristic function U
-    workspace % tmp_cav = proerty_cav * constants % ui_cav
+    workspace % tmp_cav = property_cav * constants % ui_cav
 
     ! extend the function to the sphere intersection with zeros
     call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &

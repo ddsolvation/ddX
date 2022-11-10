@@ -476,19 +476,18 @@ subroutine ddx_cosmo_fill_guess(c_ddx, c_state) bind(C)
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddcosmo_guess(ddx%params, ddx%constants, state)
+    call ddcosmo_guess(ddx%params, ddx%constants, ddx%workspace, state)
 end
 
-subroutine ddx_cosmo_solve(c_ddx, c_state, ncav, phi, tol) bind(C)
+subroutine ddx_cosmo_solve(c_ddx, c_state, ncav, tol) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     type(ddx_setup), pointer :: ddx
     type(ddx_state_type), pointer :: state
     integer(c_int), intent(in), value :: ncav
     real(c_double), intent(in), value :: tol
-    real(c_double), intent(in) :: phi(ncav)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddcosmo_solve(ddx%params, ddx%constants, ddx%workspace, state, phi, tol)
+    call ddcosmo_solve(ddx%params, ddx%constants, ddx%workspace, state, tol)
 end subroutine
 
 subroutine ddx_cosmo_solve_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) bind(C)
@@ -500,7 +499,7 @@ subroutine ddx_cosmo_solve_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) bind(
     real(c_double), intent(in) :: psi(nbasis, nsph)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddcosmo_adjoint(ddx%params, ddx%constants, ddx%workspace, state, psi, tol)
+    call ddcosmo_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, psi, tol)
 end
 
 subroutine ddx_cosmo_forces(c_ddx, c_state, nbasis, nsph, ncav, phi, gradphi, psi, forces) bind(C)
