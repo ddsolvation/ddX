@@ -17,13 +17,63 @@ implicit none
 
 contains
 
-subroutine ddcosmo_solve(params, constants, workspace, state, phi_cav, tol)
+!> ddCOSMO solver
+!!
+!! Solves the problem within COSMO model using a domain decomposition approach.
+!!
+!! @param[in] ddx_data: ddX object with all input information
+!! @param[in] phi_cav: Potential at cavity points
+!! @param[in] gradphi_cav: Gradient of a potential at cavity points
+!! @param[in] psi: TODO
+!! @param[in] tol
+!! @param[out] esolv: Solvation energy
+!! @param[out] force: Analytical forces
+!! @param[out] info
+subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
+        & psi, tol, esolv, force, info)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav), &
+        & gradphi_cav(3, constants % ncav), &
+        & psi(constants % nbasis, params % nsph), tol
+    real(dp), intent(out) :: esolv, force(3, params % nsph)
+    integer, intent(out) :: info
+    real(dp), external :: ddot
+
+    call ddcosmo_ddpcm_rhs(params, constants, state)
+    call ddcosmo_guess(params, constants, state)
+    call ddcosmo_solve(params, constants, workspace, state, tol)
+
+    ! Solvation energy is computed
+    esolv = pt5*ddot(constants % n, state % xs, 1, psi, 1)
+
+    ! Get forces if needed
+    if (params % force .eq. 1) then
+        call ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
+        call ddcosmo_forces(params, constants, workspace, state, phi_cav, &
+            & gradphi_cav, psi, force)
+    end if
+end subroutine ddcosmo
+
+subroutine ddcosmo_guess(params, constants, state)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(inout) :: state
+
+    ! TODO: improve the guess
+    state % s = zero
+    state % xs = zero
+end subroutine ddcosmo_guess
+
+subroutine ddcosmo_solve(params, constants, workspace, state, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: tol
 
     state % xs_niter =  params % maxiter
@@ -80,66 +130,6 @@ subroutine ddcosmo_geom_forces(params, constants, workspace, state, phi_cav, &
         & state % xs, state % zeta, force)
 end subroutine ddcosmo_geom_forces
 
-!> ddCOSMO solver
-!!
-!! Solves the problem within COSMO model using a domain decomposition approach.
-!!
-!! @param[in] ddx_data: ddX object with all input information
-!! @param[in] phi_cav: Potential at cavity points
-!! @param[in] gradphi_cav: Gradient of a potential at cavity points
-!! @param[in] psi: TODO
-!! @param[in] tol
-!! @param[out] esolv: Solvation energy
-!! @param[out] force: Analytical forces
-subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
-        & psi, tol, esolv, force)
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: phi_cav(constants % ncav), &
-        & gradphi_cav(3, constants % ncav), &
-        & psi(constants % nbasis, params % nsph), tol
-    real(dp), intent(out) :: esolv, force(3, params % nsph)
-    real(dp), external :: ddot
-
-    call ddcosmo_guess(params, constants, state)
-    call ddcosmo_solve(params, constants, workspace, state, phi_cav, tol)
-    !
-    if (workspace % error_flag .ne. 0) then
-        workspace % error_message = "Jacobi solver for ddCOSMO linear system " // &
-            & " did not converge."
-        return
-    end if
-
-    ! Solvation energy is computed
-    esolv = pt5*ddot(constants % n, state % xs, 1, psi, 1)
-
-    ! Get forces if needed
-    if (params % force .eq. 1) then
-        call ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
-        if (workspace % error_flag .ne. 0) then
-            workspace % error_message = "Jacobi solver for ddCOSMO adjoint " // &
-                & " system did not converge."
-            return
-        end if
-        call ddcosmo_forces(params, constants, workspace, state, phi_cav, &
-            & gradphi_cav, psi, force)
-    end if
-end subroutine ddcosmo
-
-subroutine ddcosmo_guess(params, constants, state)
-    implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    type(ddx_state_type), intent(inout) :: state
-
-    state % s = zero
-    state % xs = zero
-
-end subroutine ddcosmo_guess
-
-
 !> Solve primal ddCOSMO system to find solvation energy
 !!
 !! @param[in] params
@@ -175,23 +165,6 @@ subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
     character(len=255) :: string
     real(dp) :: start_time, finish_time, r_norm
     !! The code
-    ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
-    ! and multiply it by characteristic function at cavity points ui
-    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
-        & constants % icav_ia, constants % icav_ja, phi_cav, phi_grid)
-    workspace % tmp_cav = phi_cav * constants % ui_cav
-    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
-        & constants % icav_ia, constants % icav_ja, workspace % tmp_cav, &
-        & workspace % tmp_grid)
-    ! Integrate against spherical harmonics and Lebedev weights to get Phi
-    call ddintegrate(params % nsph, constants % nbasis, &
-        & params % ngrid, constants % vwgrid, &
-        & constants % vgrid_nbasis, workspace % tmp_grid, phi)
-!   call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
-!       & params % nsph, constants % vwgrid, constants % vgrid_nbasis, &
-!       & one, workspace % tmp_grid, zero, phi)
-    ! Set right hand side to -Phi
-    workspace % tmp_rhs = -phi
     ! Solve ddCOSMO system L X = -Phi with a given initial guess
     start_time = omp_get_wtime()
     call jacobi_diis(params, constants, workspace, tol, &
