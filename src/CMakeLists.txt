@@ -1,17 +1,4 @@
-# @copyright (c) 2020-2020 RWTH Aachen. All rights reserved.
-#
-# ddX software
-#
-# @file src/CMakeLists.txt
-# @version 1.0.0
-# @author Aleksandr Mikhalev
-# @date 2020-02-17
-
 include(define_sources.cmake)
-
-set(COVERAGE_EXCLUDES
-    "${CMAKE_CURRENT_SOURCE_DIR}/llgnew.f" PARENT_SCOPE
-    "${CMAKE_CURRENT_SOURCE_DIR}/cbessel.f90" PARENT_SCOPE)
 
 # Define ddX library
 add_library(ddx SHARED ${SRC_DDX})
@@ -26,3 +13,22 @@ endif()
 # Define ddx driver executable
 add_executable(ddx_driver ddx_driver.f90)
 target_link_libraries(ddx_driver PUBLIC ddx)
+
+#
+# Installation rules
+#
+include(GNUInstallDirs)
+
+# Install library, binaries and headers
+install(TARGETS ddx EXPORT ddXTargets)
+install(TARGETS ddx_driver)
+install(FILES ddx.h TYPE INCLUDE)
+install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/" TYPE INCLUDE FILES_MATCHING PATTERN "*.mod")
+target_include_directories(ddx INTERFACE $<INSTALL_INTERFACE:include>)
+
+set(install_configdir "${CMAKE_INSTALL_LIBDIR}/ddX")
+install(EXPORT ddXTargets DESTINATION "${install_configdir}")
+export(EXPORT ddXTargets FILE ddXTargets.cmake)
+install(FILES "${PROJECT_SOURCE_DIR}/cmake/ddXConfig.cmake"
+    DESTINATION "${install_configdir}"
+)
