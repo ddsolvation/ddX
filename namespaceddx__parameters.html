@@ -110,9 +110,9 @@ Data Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:a37d40289550bb6eb8e049fb4ca227c2c"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__parameters.html#a37d40289550bb6eb8e049fb4ca227c2c">params_init</a> (model, force, eps, kappa, eta, se, lmax, ngrid, matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, fmm, pm, pl, nproc, nsph, charge, csph, rsph, print_func, params, info)</td></tr>
-<tr class="memdesc:a37d40289550bb6eb8e049fb4ca227c2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize and check input parameters.  <a href="namespaceddx__parameters.html#a37d40289550bb6eb8e049fb4ca227c2c">More...</a><br /></td></tr>
-<tr class="separator:a37d40289550bb6eb8e049fb4ca227c2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a826d889e370516c88769a35f3e485ab3"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__parameters.html#a826d889e370516c88769a35f3e485ab3">params_init</a> (model, force, eps, kappa, eta, se, lmax, ngrid, matvecmem, maxiter, jacobi_ndiis, fmm, pm, pl, nproc, nsph, charge, csph, rsph, print_func, params, info)</td></tr>
+<tr class="memdesc:a826d889e370516c88769a35f3e485ab3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize and check input parameters.  <a href="namespaceddx__parameters.html#a826d889e370516c88769a35f3e485ab3">More...</a><br /></td></tr>
+<tr class="separator:a826d889e370516c88769a35f3e485ab3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab58f264af44239d745e1a571c1850576"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__parameters.html#ab58f264af44239d745e1a571c1850576">params_print</a> (params)</td></tr>
 <tr class="memdesc:ab58f264af44239d745e1a571c1850576"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print header with parameters.  <a href="namespaceddx__parameters.html#ab58f264af44239d745e1a571c1850576">More...</a><br /></td></tr>
 <tr class="separator:ab58f264af44239d745e1a571c1850576"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -134,8 +134,8 @@ Functions/Subroutines</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Module to treat properly user input parameters. </p>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="a37d40289550bb6eb8e049fb4ca227c2c" name="a37d40289550bb6eb8e049fb4ca227c2c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a37d40289550bb6eb8e049fb4ca227c2c">&#9670;&nbsp;</a></span>params_init()</h2>
+<a id="a826d889e370516c88769a35f3e485ab3" name="a826d889e370516c88769a35f3e485ab3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a826d889e370516c88769a35f3e485ab3">&#9670;&nbsp;</a></span>params_init()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -198,12 +198,6 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>itersolver</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
           <td class="paramname"><em>maxiter</em>, </td>
         </tr>
         <tr>
@@ -211,18 +205,6 @@ Functions/Subroutines</h2></td></tr>
           <td></td>
           <td class="paramtype">integer, intent(in)&#160;</td>
           <td class="paramname"><em>jacobi_ndiis</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>gmresr_j</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>gmresr_dim</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -310,7 +292,6 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">lmax</td><td>Maximal degree of modeling spherical harmonics. <code>lmax</code> &gt;= 0. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ngrid</td><td>Number of Lebedev grid points <code>ngrid</code> &gt;= 0. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">matvecmem</td><td>handling of sparse matrices. 1 for precomputing them and keeping them in memory, 0 for direct matrix-vector products. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">itersolver</td><td>Iterative solver to be used. 1 for Jacobi iterative solver. Other solvers might be added later. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">maxiter</td><td>Maximum number of iterations for an iterative solver. maxiter &gt; 0. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">jacobi_ndiis</td><td>Number of extrapolation points for Jacobi/DIIS solver. ndiis &gt;= 1. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">fmm</td><td>1 to use FMM acceleration and 0 otherwise. </td></tr>
@@ -328,7 +309,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00147">147</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00134">134</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -350,7 +331,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Print header with parameters. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00443">443</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00390">390</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -389,7 +370,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00505">505</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00452">452</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -417,7 +398,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00547">547</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00494">494</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -449,7 +430,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Print error message and exit with provided error code. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00564">564</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00511">511</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -471,7 +452,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Default printing function. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00574">574</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00521">521</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -501,7 +482,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00580">580</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00527">527</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>

@@ -6,6 +6,5 @@ var searchData=
   ['dk_5fri_3',['dk_ri',['../structddx__constants_1_1ddx__constants__type.html#a736c3708eaa9a18d0bdb0e4e57d141f4',1,'ddx_constants::ddx_constants_type']]],
   ['dmax_4',['dmax',['../structddx__constants_1_1ddx__constants__type.html#a07b544b3af4f5e5d85d2c9c8afcabb5d',1,'ddx_constants::ddx_constants_type']]],
   ['dodiag_5',['dodiag',['../structddx__constants_1_1ddx__constants__type.html#a29e5917b78fc6f61fb02f19dc058c18a',1,'ddx_constants::ddx_constants_type']]],
-  ['dodiag_5fexternal_6',['dodiag_external',['../structddx__constants_1_1ddx__constants__type.html#aaba7341831e3acf769b2ab5adfe4869a',1,'ddx_constants::ddx_constants_type']]],
-  ['dp_7',['dp',['../namespaceddx__definitions.html#a6e62179e6ac303908858a873e4db49c2',1,'ddx_definitions']]]
+  ['dp_6',['dp',['../namespaceddx__definitions.html#a6e62179e6ac303908858a873e4db49c2',1,'ddx_definitions']]]
 ];

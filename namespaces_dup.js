@@ -14,8 +14,7 @@ var namespaces_dup =
       [ "dp", "namespaceddx__definitions.html#a6e62179e6ac303908858a873e4db49c2", null ],
       [ "nllg", "namespaceddx__definitions.html#ae550955ff555b222abaed24c541cde67", null ],
       [ "ng0", "namespaceddx__definitions.html#a31904c9990cc087f2808a4c1c662800a", null ],
-      [ "model_str", "namespaceddx__definitions.html#a27faa3db3323ba2c6427084fcbf7b953", null ],
-      [ "itersolver_str", "namespaceddx__definitions.html#af0a948616df64a208244211d500820c3", null ]
+      [ "model_str", "namespaceddx__definitions.html#a27faa3db3323ba2c6427084fcbf7b953", null ]
     ] ],
     [ "ddx_gradients", "namespaceddx__gradients.html", [
       [ "contract_grad_b", "namespaceddx__gradients.html#a1b063543b53d8ba088f081b913bd426b", null ],
@@ -164,7 +163,6 @@ var namespaces_dup =
       [ "prec_repsx", "namespaceddx__operators.html#a35303800b0d9c1749358f5e90bcbd52f", null ],
       [ "prec_repsstarx", "namespaceddx__operators.html#a682ecf4161b6846177c71db55924c586", null ],
       [ "bx", "namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a", null ],
-      [ "tx", "namespaceddx__operators.html#a92077fecd6f7c3ab9b4be15323cdadb2", null ],
       [ "tstarx", "namespaceddx__operators.html#a255d38c63d567d20e2844c8d015d1c0f", null ]
     ] ],
     [ "ddx_parameters", "namespaceddx__parameters.html", "namespaceddx__parameters" ],

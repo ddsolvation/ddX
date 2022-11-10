@@ -7,7 +7,5 @@ var searchData=
   ['inthsp_4',['inthsp',['../namespaceddx__lpb__core.html#a8f0440fba785d6c7b8a8b6d00b62f18d',1,'ddx_lpb_core']]],
   ['inthsp_5fadj_5',['inthsp_adj',['../namespaceddx__lpb__core.html#ac82b16767440bcb1045ba7d9e1498e45',1,'ddx_lpb_core']]],
   ['intmlp_6',['intmlp',['../namespaceddx__core.html#af57c0e1c6dd13f71fee44d975a1080cd',1,'ddx_core']]],
-  ['itersolver_7',['itersolver',['../structddx__parameters_1_1ddx__params__type.html#a4be7dd4db40f62137b3c79c875ed0582',1,'ddx_parameters::ddx_params_type']]],
-  ['itersolver_5fstr_8',['itersolver_str',['../namespaceddx__definitions.html#af0a948616df64a208244211d500820c3',1,'ddx_definitions']]],
-  ['itrnl_9',['itrnl',['../structddx__constants_1_1ddx__constants__type.html#adb6a621c062e1740f832b2060794afc9',1,'ddx_constants::ddx_constants_type']]]
+  ['itrnl_7',['itrnl',['../structddx__constants_1_1ddx__constants__type.html#adb6a621c062e1740f832b2060794afc9',1,'ddx_constants::ddx_constants_type']]]
 ];

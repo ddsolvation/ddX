@@ -35,6 +35,5 @@ var searchData=
   ['tree_5frib_5fbuild_32',['tree_rib_build',['../namespaceddx__constants.html#a71a53ad578c20da9306b93deda562aeb',1,'ddx_constants']]],
   ['tree_5frib_5fnode_5fbisect_33',['tree_rib_node_bisect',['../namespaceddx__constants.html#a7c5d6aebc32c85aa05d4a74678ff95f7',1,'ddx_constants']]],
   ['trgev_34',['trgev',['../namespaceddx__harmonics.html#a66b4e8bee63238c5c1c3f7a4210c8dd4',1,'ddx_harmonics']]],
-  ['tstarx_35',['tstarx',['../namespaceddx__operators.html#a255d38c63d567d20e2844c8d015d1c0f',1,'ddx_operators']]],
-  ['tx_36',['tx',['../namespaceddx__operators.html#a92077fecd6f7c3ab9b4be15323cdadb2',1,'ddx_operators']]]
+  ['tstarx_35',['tstarx',['../namespaceddx__operators.html#a255d38c63d567d20e2844c8d015d1c0f',1,'ddx_operators']]]
 ];

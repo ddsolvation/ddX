@@ -161,7 +161,7 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="comment">! Print info on the primal ddPCM system</span></div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <span class="keywordflow">if</span> (ddx_data % params % model .eq. 2) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>        <span class="comment">! Print each iteration if needed</span></div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>        <span class="keywordflow">if</span> (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>        <span class="keywordflow">if</span> (iprint .gt. 1) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>            <span class="keywordflow">do</span> i = 1, state % phieps_niter</div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>                print <span class="stringliteral">&quot; (A,I4,A,ES20.14)&quot;</span>, <span class="stringliteral">&quot;iter=&quot;</span>, i, &amp;</div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>                    &amp; <span class="stringliteral">&quot; relative difference: &quot;</span>, state % phieps_rel_diff(i)</div>
@@ -176,7 +176,7 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="comment">! Print info on the primal ddLPB system</span></div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keywordflow">if</span> (ddx_data % params % model .eq. 3) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>        <span class="comment">! Print each iteration if needed</span></div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>        <span class="keywordflow">if</span> (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>        <span class="keywordflow">if</span> (iprint .gt. 1) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>            <span class="keywordflow">do</span> i = 1, state % phieps_niter</div>
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>                print <span class="stringliteral">&quot; (A,I4,A,ES20.14)&quot;</span>, <span class="stringliteral">&quot;iter=&quot;</span>, i, &amp;</div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>                    &amp; <span class="stringliteral">&quot; relative difference: &quot;</span>, state % x_lpb_rel_diff(i)</div>
@@ -190,7 +190,7 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <span class="comment">! Print info on the primal ddCOSMO system</span></div>
 <div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    <span class="comment">! Print each iteration if needed</span></div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    <span class="keywordflow">if</span> (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    <span class="keywordflow">if</span> (iprint .gt. 1) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>        <span class="keywordflow">do</span> i = 1, state % xs_niter</div>
 <div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>            print <span class="stringliteral">&quot;(A,I4,A,ES20.14)&quot;</span>, <span class="stringliteral">&quot; iter=&quot;</span>, i, &amp;</div>
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>                &amp; <span class="stringliteral">&quot; relative difference: &quot;</span>, state % xs_rel_diff(i)</div>
@@ -201,7 +201,7 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>        &amp; <span class="stringliteral">&quot; seconds&quot;</span></div>
 <div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    print <span class="stringliteral">&quot;(A,I4)&quot;</span>, <span class="stringliteral">&quot; ddcosmo step iterations: &quot;</span>, state % xs_niter</div>
 <div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    <span class="comment">! Print info on the adjoint solver</span></div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    <span class="keywordflow">if</span> (ddx_data % params % force .eq. 1 .and. ddx_data % params % itersolver.eq.1) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    <span class="keywordflow">if</span> (ddx_data % params % force .eq. 1) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>        <span class="comment">! Print info on the adjoint ddCOSMO system</span></div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>        <span class="comment">! Print each iteration if needed</span></div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>        <span class="keywordflow">if</span> (iprint .gt. 1) <span class="keywordflow">then</span></div>
@@ -218,7 +218,7 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>        <span class="comment">! Print info on the adjoint ddPCM system</span></div>
 <div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>        <span class="keywordflow">if</span> (ddx_data % params % model .eq. 2) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>            <span class="comment">! Print each iteration if needed</span></div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>            <span class="keywordflow">if</span> (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>            <span class="keywordflow">if</span> (iprint .gt. 1) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>                <span class="keywordflow">do</span> i = 1, state % y_niter</div>
 <div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>                    print <span class="stringliteral">&quot;(A,I4,A,ES20.14)&quot;</span>, <span class="stringliteral">&quot; iter=&quot;</span>, i, &amp;</div>
 <div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>                        &amp; <span class="stringliteral">&quot; relative difference: &quot;</span>, state % y_rel_diff(i)</div>
@@ -233,7 +233,7 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>        <span class="comment">! Print info on the adjoint ddLPB system</span></div>
 <div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>        <span class="keywordflow">if</span> (ddx_data % params % model .eq. 3) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>            <span class="comment">! Print each iteration if needed</span></div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>            <span class="keywordflow">if</span> (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>            <span class="keywordflow">if</span> (iprint .gt. 1) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>                <span class="keywordflow">do</span> i = 1, state % y_niter</div>
 <div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>                    print <span class="stringliteral">&quot;(A,I4,A,ES20.14)&quot;</span>, <span class="stringliteral">&quot; iter=&quot;</span>, i, &amp;</div>
 <div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>                        &amp; <span class="stringliteral">&quot; relative difference: &quot;</span>, state % x_adj_lpb_rel_diff(i)</div>

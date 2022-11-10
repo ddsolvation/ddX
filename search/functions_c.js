@@ -1,7 +1,7 @@
 var searchData=
 [
   ['params_5fdeinit_0',['params_deinit',['../namespaceddx__parameters.html#a41f19aa9b4b7798b5374fa3f6a03ea00',1,'ddx_parameters']]],
-  ['params_5finit_1',['params_init',['../namespaceddx__parameters.html#a37d40289550bb6eb8e049fb4ca227c2c',1,'ddx_parameters']]],
+  ['params_5finit_1',['params_init',['../namespaceddx__parameters.html#a826d889e370516c88769a35f3e485ab3',1,'ddx_parameters']]],
   ['params_5fprint_2',['params_print',['../namespaceddx__parameters.html#ab58f264af44239d745e1a571c1850576',1,'ddx_parameters']]],
   ['polleg_3',['polleg',['../namespaceddx__harmonics.html#a7fcf9715c6a0d3dd5c291cafffaa5d1f',1,'ddx_harmonics']]],
   ['polleg_5fwork_4',['polleg_work',['../namespaceddx__harmonics.html#a43b882cf0333a0ee0bf062501a03ff01',1,'ddx_harmonics']]],

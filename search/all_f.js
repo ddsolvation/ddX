@@ -1,7 +1,7 @@
 var searchData=
 [
   ['params_5fdeinit_0',['params_deinit',['../namespaceddx__parameters.html#a41f19aa9b4b7798b5374fa3f6a03ea00',1,'ddx_parameters']]],
-  ['params_5finit_1',['params_init',['../namespaceddx__parameters.html#a37d40289550bb6eb8e049fb4ca227c2c',1,'ddx_parameters']]],
+  ['params_5finit_1',['params_init',['../namespaceddx__parameters.html#a826d889e370516c88769a35f3e485ab3',1,'ddx_parameters']]],
   ['params_5fprint_2',['params_print',['../namespaceddx__parameters.html#ab58f264af44239d745e1a571c1850576',1,'ddx_parameters']]],
   ['parent_3',['parent',['../structddx__constants_1_1ddx__constants__type.html#a3134e17f8c0cbbaea8f85923b1680e76',1,'ddx_constants::ddx_constants_type']]],
   ['pchi_4',['pchi',['../structddx__constants_1_1ddx__constants__type.html#a06258b9104516a49cf531b12c9b3c014',1,'ddx_constants::ddx_constants_type']]],

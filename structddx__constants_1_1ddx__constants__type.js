@@ -71,7 +71,6 @@ var structddx__constants_1_1ddx__constants__type =
     [ "grad_nbasis", "structddx__constants_1_1ddx__constants__type.html#abb5604ad358c7fa12ecb58a01df52bcc", null ],
     [ "inner_tol", "structddx__constants_1_1ddx__constants__type.html#a7d0520826e9c6979b3650ec1ecde2215", null ],
     [ "dodiag", "structddx__constants_1_1ddx__constants__type.html#a29e5917b78fc6f61fb02f19dc058c18a", null ],
-    [ "dodiag_external", "structddx__constants_1_1ddx__constants__type.html#aaba7341831e3acf769b2ab5adfe4869a", null ],
     [ "error_flag", "structddx__constants_1_1ddx__constants__type.html#a2135d96d0743464945e212ce1eb91382", null ],
     [ "error_message", "structddx__constants_1_1ddx__constants__type.html#a66afc406a33e77c97bc16bf6453f9b79", null ]
 ];

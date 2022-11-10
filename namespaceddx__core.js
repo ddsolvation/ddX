@@ -2,7 +2,7 @@ var namespaceddx__core =
 [
     [ "ddx_state_type", "structddx__core_1_1ddx__state__type.html", "structddx__core_1_1ddx__state__type" ],
     [ "ddx_type", "structddx__core_1_1ddx__type.html", "structddx__core_1_1ddx__type" ],
-    [ "ddinit", "namespaceddx__core.html#ad98e6ca9db2543caa5273d4d33bb0e10", null ],
+    [ "ddinit", "namespaceddx__core.html#ac046b84ea96e317f2601f18f907dcba1", null ],
     [ "ddfromfile", "namespaceddx__core.html#a7a2ec4809155b56be2c61ccb72b974ea", null ],
     [ "ddfree", "namespaceddx__core.html#a3258ae6ef23a4f07ea8a14ccf612acaa", null ],
     [ "print_spherical", "namespaceddx__core.html#aa76b7e526f53c93bf1492f51b3e1a8cc", null ],

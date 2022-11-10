@@ -159,9 +159,6 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:a68303147fb9fe072ab34096910280f1a"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a">bx</a> (params, constants, workspace, x, y)</td></tr>
 <tr class="memdesc:a68303147fb9fe072ab34096910280f1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine used for the GMRES solver.  <a href="namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a">More...</a><br /></td></tr>
 <tr class="separator:a68303147fb9fe072ab34096910280f1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a92077fecd6f7c3ab9b4be15323cdadb2"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__operators.html#a92077fecd6f7c3ab9b4be15323cdadb2">tx</a> (params, constants, workspace, x, y)</td></tr>
-<tr class="memdesc:a92077fecd6f7c3ab9b4be15323cdadb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine used for the GMRES solver with complete matrix.  <a href="namespaceddx__operators.html#a92077fecd6f7c3ab9b4be15323cdadb2">More...</a><br /></td></tr>
-<tr class="separator:a92077fecd6f7c3ab9b4be15323cdadb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a255d38c63d567d20e2844c8d015d1c0f"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__operators.html#a255d38c63d567d20e2844c8d015d1c0f">tstarx</a> (params, constants, workspace, x, y)</td></tr>
 <tr class="memdesc:a255d38c63d567d20e2844c8d015d1c0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine used for the GMRES solver with complete matrix adjoint system.  <a href="namespaceddx__operators.html#a255d38c63d567d20e2844c8d015d1c0f">More...</a><br /></td></tr>
 <tr class="separator:a255d38c63d567d20e2844c8d015d1c0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1328,63 +1325,6 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
-<a id="a92077fecd6f7c3ab9b4be15323cdadb2" name="a92077fecd6f7c3ab9b4be15323cdadb2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a92077fecd6f7c3ab9b4be15323cdadb2">&#9670;&nbsp;</a></span>tx()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_operators::tx </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in)&#160;</td>
-          <td class="paramname"><em>x</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out)&#160;</td>
-          <td class="paramname"><em>y</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Subroutine used for the GMRES solver with complete matrix. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>: Input vector </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">y</td><td>: y=T*x </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01307">1307</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
-
-</div>
-</div>
 <a id="a255d38c63d567d20e2844c8d015d1c0f" name="a255d38c63d567d20e2844c8d015d1c0f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a255d38c63d567d20e2844c8d015d1c0f">&#9670;&nbsp;</a></span>tstarx()</h2>
 
@@ -1438,7 +1378,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01340">1340</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01307">1307</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
 
 </div>
 </div>
@@ -1486,7 +1426,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01369">1369</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01336">1336</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
 
 </div>
 </div>
@@ -1534,7 +1474,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01379">1379</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01346">1346</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
 
 </div>
 </div>
@@ -1582,7 +1522,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01428">1428</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01385">1385</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
 
 </div>
 </div>
@@ -1630,7 +1570,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01474">1474</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01421">1421</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
 
 </div>
 </div>
@@ -1678,7 +1618,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01592">1592</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__operators_8f90_source.html#l01539">1539</a> of file <a class="el" href="ddx__operators_8f90_source.html">ddx_operators.f90</a>.</p>
 
 </div>
 </div>

@@ -16,6 +16,5 @@ var ddx__operators_8f90 =
     [ "prec_repsx", "ddx__operators_8f90.html#a35303800b0d9c1749358f5e90bcbd52f", null ],
     [ "prec_repsstarx", "ddx__operators_8f90.html#a682ecf4161b6846177c71db55924c586", null ],
     [ "bx", "ddx__operators_8f90.html#a68303147fb9fe072ab34096910280f1a", null ],
-    [ "tx", "ddx__operators_8f90.html#a92077fecd6f7c3ab9b4be15323cdadb2", null ],
     [ "tstarx", "ddx__operators_8f90.html#a255d38c63d567d20e2844c8d015d1c0f", null ]
 ];

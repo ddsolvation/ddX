@@ -110,9 +110,9 @@ Data Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:ad98e6ca9db2543caa5273d4d33bb0e10"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__core.html#ad98e6ca9db2543caa5273d4d33bb0e10">ddinit</a> (nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, pl, se, eta, eps, kappa, matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)</td></tr>
-<tr class="memdesc:ad98e6ca9db2543caa5273d4d33bb0e10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize ddX input with a full set of parameters.  <a href="namespaceddx__core.html#ad98e6ca9db2543caa5273d4d33bb0e10">More...</a><br /></td></tr>
-<tr class="separator:ad98e6ca9db2543caa5273d4d33bb0e10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac046b84ea96e317f2601f18f907dcba1"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__core.html#ac046b84ea96e317f2601f18f907dcba1">ddinit</a> (nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, pl, se, eta, eps, kappa, matvecmem, maxiter, jacobi_ndiis, nproc, ddx_data, info)</td></tr>
+<tr class="memdesc:ac046b84ea96e317f2601f18f907dcba1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize ddX input with a full set of parameters.  <a href="namespaceddx__core.html#ac046b84ea96e317f2601f18f907dcba1">More...</a><br /></td></tr>
+<tr class="separator:ac046b84ea96e317f2601f18f907dcba1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab34ec195fbaa7838303efa0b7e0f0453"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__core.html#ab34ec195fbaa7838303efa0b7e0f0453">ddx_init_state</a> (params, constants, state)</td></tr>
 <tr class="separator:ab34ec195fbaa7838303efa0b7e0f0453"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a2ec4809155b56be2c61ccb72b974ea"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__core.html#a7a2ec4809155b56be2c61ccb72b974ea">ddfromfile</a> (fname, ddx_data, tol, iprint, info)</td></tr>
@@ -285,8 +285,8 @@ Functions/Subroutines</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Core routines and parameters of the ddX software. </p>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="ad98e6ca9db2543caa5273d4d33bb0e10" name="ad98e6ca9db2543caa5273d4d33bb0e10"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad98e6ca9db2543caa5273d4d33bb0e10">&#9670;&nbsp;</a></span>ddinit()</h2>
+<a id="ac046b84ea96e317f2601f18f907dcba1" name="ac046b84ea96e317f2601f18f907dcba1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac046b84ea96e317f2601f18f907dcba1">&#9670;&nbsp;</a></span>ddinit()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -403,12 +403,6 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>itersolver</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
           <td class="paramname"><em>maxiter</em>, </td>
         </tr>
         <tr>
@@ -416,18 +410,6 @@ Functions/Subroutines</h2></td></tr>
           <td></td>
           <td class="paramtype">integer, intent(in)&#160;</td>
           <td class="paramname"><em>jacobi_ndiis</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>gmresr_j</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>gmresr_dim</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -476,7 +458,6 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">eps</td><td>Relative dielectric permittivity. eps &gt; 1. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">kappa</td><td>Debye-H"{u}ckel parameter </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">matvecmem</td><td>handling of the sparse matrices. 1 for precomputin them and keeping them in memory, 0 for assembling the matrix-vector product on-the-fly. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">itersolver</td><td>Iterative solver to be used. 1 for Jacobi iterative solver. Other solvers might be added later. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">maxiter</td><td>Maximum number of iterations for an iterative solver. maxiter &gt; 0. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ndiis</td><td>Number of extrapolation points for Jacobi/DIIS solver. ndiis &gt;= 0. </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">nproc</td><td>Number of OpenMP threads to be used where applicable. nproc &gt;= 0. If input nproc=0 then on exit this value contains actual number of threads that ddX will use. If OpenMP support in ddX is disabled, only possible input values are 0 or 1 and both inputs lead to the same output nproc=1 since the library is not parallel. </td></tr>
@@ -486,7 +467,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00197">197</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00195">195</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -522,7 +503,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00241">241</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00239">239</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -580,7 +561,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00530">530</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00528">528</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -608,7 +589,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00738">738</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00709">709</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -628,7 +609,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00760">760</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00731">731</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -696,7 +677,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00926">926</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00897">897</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -757,7 +738,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00982">982</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00953">953</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -802,7 +783,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01027">1027</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00998">998</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -877,7 +858,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01059">1059</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01030">1030</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -957,7 +938,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <p>TODO: rewrite code and fill description. Computing sqrt(one-cthe*cthe) reduces effective range of input double precision values. cthe*cthe for cthe=1d+155 is NaN. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01086">1086</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01057">1057</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1007,7 +988,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01216">1216</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01187">1187</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1069,7 +1050,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Weigh potential at cavity points by characteristic function TODO use cavity points in CSR format. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01261">1261</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01232">1232</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1113,7 +1094,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Compute the local Sobolev H^(-1/2)-norm on one sphere of u. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01293">1293</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01264">1264</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1157,7 +1138,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Compute the global Sobolev H^(-1/2)-norm of x. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01315">1315</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01286">1286</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1201,7 +1182,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01343">1343</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01314">1314</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1245,7 +1226,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>compute root-mean-square and max norm </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01360">1360</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01331">1331</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1301,7 +1282,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01381">1381</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01352">1352</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1357,7 +1338,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01418">1418</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01389">1389</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1419,7 +1400,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Evaluate values of spherical harmonics at Lebedev grid points. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01465">1465</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01436">1436</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1493,7 +1474,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Evaluate values of spherical harmonics at Lebedev grid points. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01500">1500</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01471">1471</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1555,7 +1536,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Integrate values at grid points into spherical harmonics. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01516">1516</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01487">1487</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1629,7 +1610,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Integrate values at grid points into spherical harmonics. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01549">1549</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01520">1520</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1679,7 +1660,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Unwrap values at cavity points into values at all grid points. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01566">1566</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01537">1537</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1741,7 +1722,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Unwrap values at cavity points into values at all grid points. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01599">1599</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01570">1570</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1783,7 +1764,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01627">1627</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01598">1598</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1821,7 +1802,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Transfer multipole coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01648">1648</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01619">1619</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1865,7 +1846,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Transfer multipole coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01663">1663</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01634">1634</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1903,7 +1884,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Transfer multipole coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01707">1707</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01678">1678</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1941,7 +1922,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Transfer multipole coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01722">1722</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01693">1693</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1979,7 +1960,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Adjoint transfer multipole coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01779">1779</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01750">1750</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2023,7 +2004,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Adjoint transfer multipole coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01794">1794</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01765">1765</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2061,7 +2042,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Adjoint transfer multipole coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01821">1821</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01792">1792</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2099,7 +2080,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Adjoint transfer multipole coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01835">1835</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01806">1806</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2137,7 +2118,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Transfer local coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01864">1864</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01835">1835</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2181,7 +2162,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Transfer local coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01879">1879</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01850">1850</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2219,7 +2200,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Transfer local coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01909">1909</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01880">1880</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2257,7 +2238,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Transfer local coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01924">1924</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01895">1895</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2295,7 +2276,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Adjoint transfer local coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01953">1953</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01924">1924</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2339,7 +2320,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Adjoint transfer local coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01968">1968</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01939">1939</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2377,7 +2358,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Adjoint transfer local coefficients over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02006">2006</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l01977">1977</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2421,7 +2402,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Transfer multipole local coefficients into local over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02035">2035</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02006">2006</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2465,7 +2446,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Transfer multipole local coefficients into local over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02083">2083</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02054">2054</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2509,7 +2490,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Adjoint transfer multipole local coefficients into local over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02140">2140</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02111">2111</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2553,7 +2534,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Adjoint transfer multipole local coefficients into local over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02155">2155</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02126">2126</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2597,7 +2578,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Adjoint transfer multipole local coefficients into local over a tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02200">2200</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02171">2171</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2659,7 +2640,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02240">2240</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02211">2211</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2715,7 +2696,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02279">2279</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02250">2250</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2777,7 +2758,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02311">2311</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02282">2282</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2833,7 +2814,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02347">2347</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02318">2318</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2895,7 +2876,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02381">2381</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02352">2352</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -2963,7 +2944,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02430">2430</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02401">2401</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -3025,7 +3006,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02478">2478</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02449">2449</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -3093,7 +3074,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02525">2525</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02496">2496</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -3161,7 +3142,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02573">2573</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02544">2544</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -3217,7 +3198,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02621">2621</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02592">2592</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -3267,7 +3248,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02654">2654</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02625">2625</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -3317,7 +3298,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>TODO. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02717">2717</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02688">2688</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -3349,7 +3330,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>small routine to print a tidy header with various info on the calculation. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02789">2789</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02760">2760</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>

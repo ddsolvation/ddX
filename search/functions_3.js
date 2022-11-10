@@ -10,7 +10,7 @@ var searchData=
   ['ddeval_5fgrid_5fwork_7',['ddeval_grid_work',['../namespaceddx__core.html#a52eaee7c9a67f2a9f317c2d6dd50426e',1,'ddx_core']]],
   ['ddfree_8',['ddfree',['../namespaceddx__core.html#a3258ae6ef23a4f07ea8a14ccf612acaa',1,'ddx_core']]],
   ['ddfromfile_9',['ddfromfile',['../namespaceddx__core.html#a7a2ec4809155b56be2c61ccb72b974ea',1,'ddx_core']]],
-  ['ddinit_10',['ddinit',['../namespaceddx__core.html#ad98e6ca9db2543caa5273d4d33bb0e10',1,'ddx_core']]],
+  ['ddinit_10',['ddinit',['../namespaceddx__core.html#ac046b84ea96e317f2601f18f907dcba1',1,'ddx_core']]],
   ['ddintegrate_11',['ddintegrate',['../namespaceddx__core.html#a7c6ed3167dcc5edcd4efa59719858b72',1,'ddx_core']]],
   ['ddintegrate_5fsph_12',['ddintegrate_sph',['../namespaceddx__core.html#ae804f0dbf4b9800bc75adaa57c842149',1,'ddx_core']]],
   ['ddintegrate_5fsph_5fwork_13',['ddintegrate_sph_work',['../namespaceddx__core.html#a61156a8a0aec479ea2071dd6d6922fb1',1,'ddx_core']]],

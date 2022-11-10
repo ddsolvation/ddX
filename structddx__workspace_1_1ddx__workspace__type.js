@@ -26,7 +26,6 @@ var structddx__workspace_1_1ddx__workspace__type =
     [ "tmp_x_diis", "structddx__workspace_1_1ddx__workspace__type.html#a47699384788dec40b08bbfea4491cb3a", null ],
     [ "tmp_e_diis", "structddx__workspace_1_1ddx__workspace__type.html#a1582a68a60eff8398f2a1d4e610a69e2", null ],
     [ "tmp_bmat", "structddx__workspace_1_1ddx__workspace__type.html#af404a9cb66c05e2c538f2a60d5c4b816", null ],
-    [ "tmp_gmresr", "structddx__workspace_1_1ddx__workspace__type.html#a6a7c4fb6d2c4563150f0b1e48e3915b2", null ],
     [ "ddcosmo_guess", "structddx__workspace_1_1ddx__workspace__type.html#a470cbf62f970d8254fceacba85dd717f", null ],
     [ "error_flag", "structddx__workspace_1_1ddx__workspace__type.html#ac92fe40596e92fc39b23a1d1825bf4b3", null ],
     [ "error_message", "structddx__workspace_1_1ddx__workspace__type.html#abe103eff7a30b01a2009699804684656", null ]

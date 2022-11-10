@@ -177,9 +177,6 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:af404a9cb66c05e2c538f2a60d5c4b816"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__workspace_1_1ddx__workspace__type.html#af404a9cb66c05e2c538f2a60d5c4b816">tmp_bmat</a></td></tr>
 <tr class="memdesc:af404a9cb66c05e2c538f2a60d5c4b816"><td class="mdescLeft">&#160;</td><td class="mdescRight">Jacobi solver temporary DIIS array. Dimension is (ndiis+1, ndiis+1).  <a href="structddx__workspace_1_1ddx__workspace__type.html#af404a9cb66c05e2c538f2a60d5c4b816">More...</a><br /></td></tr>
 <tr class="separator:af404a9cb66c05e2c538f2a60d5c4b816"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6a7c4fb6d2c4563150f0b1e48e3915b2"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__workspace_1_1ddx__workspace__type.html#a6a7c4fb6d2c4563150f0b1e48e3915b2">tmp_gmresr</a></td></tr>
-<tr class="memdesc:a6a7c4fb6d2c4563150f0b1e48e3915b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">GMRESR temporary workspace. Dimension is (n, 2*gmres_j+gmres_dim+2)  <a href="structddx__workspace_1_1ddx__workspace__type.html#a6a7c4fb6d2c4563150f0b1e48e3915b2">More...</a><br /></td></tr>
-<tr class="separator:a6a7c4fb6d2c4563150f0b1e48e3915b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a470cbf62f970d8254fceacba85dd717f"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:,:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__workspace_1_1ddx__workspace__type.html#a470cbf62f970d8254fceacba85dd717f">ddcosmo_guess</a></td></tr>
 <tr class="memdesc:a470cbf62f970d8254fceacba85dd717f"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddLPB solutions for the microiterations  <a href="structddx__workspace_1_1ddx__workspace__type.html#a470cbf62f970d8254fceacba85dd717f">More...</a><br /></td></tr>
 <tr class="separator:a470cbf62f970d8254fceacba85dd717f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -664,24 +661,6 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a6a7c4fb6d2c4563150f0b1e48e3915b2" name="a6a7c4fb6d2c4563150f0b1e48e3915b2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6a7c4fb6d2c4563150f0b1e48e3915b2">&#9670;&nbsp;</a></span>tmp_gmresr</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:, :), allocatable ddx_workspace::ddx_workspace_type::tmp_gmresr</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>GMRESR temporary workspace. Dimension is (n, 2*gmres_j+gmres_dim+2) </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00097">97</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
-
-</div>
-</div>
 <a id="a470cbf62f970d8254fceacba85dd717f" name="a470cbf62f970d8254fceacba85dd717f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a470cbf62f970d8254fceacba85dd717f">&#9670;&nbsp;</a></span>ddcosmo_guess</h2>
 
@@ -696,7 +675,7 @@ Public Attributes</h2></td></tr>
 
 <p>ddLPB solutions for the microiterations </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00099">99</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00097">97</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
 
 </div>
 </div>
@@ -712,7 +691,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00099">99</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00097">97</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
 
 </div>
 </div>
@@ -730,7 +709,7 @@ Public Attributes</h2></td></tr>
 
 <p>Flag if there were an error. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00101">101</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00099">99</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
 
 </div>
 </div>
@@ -748,7 +727,7 @@ Public Attributes</h2></td></tr>
 
 <p>Last error message. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00103">103</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00101">101</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
 
 </div>
 </div>
