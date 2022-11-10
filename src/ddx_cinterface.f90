@@ -22,6 +22,28 @@ contains
 !
 ! Generic stuff
 !
+subroutine ddx_get_banner(message, maxlen) bind(C)
+    integer(c_int), intent(in), value :: maxlen
+    character(len=1, kind=C_char), intent(out) :: message(maxlen)
+    integer :: length, i
+    character :: ch
+    character (len=4095) :: header
+    call get_banner(header)
+    message(maxlen) = c_null_char
+    length = min(maxlen-1, 4095)
+    do i = length, 1, -1
+        if (header(i:i) .eq. ' ') then
+            length = i-1
+        else
+            exit
+        endif
+    enddo
+    message(length + 1) = c_null_char
+    do i = 1, length
+        message(i) = header(i:i)
+    enddo
+end
+
 function ddx_supported_lebedev_grids(n, grids) result(c_ngrids) bind(C)
     integer(c_int), intent(in), value ::  n
     integer(c_int), intent(out) :: grids(n)
@@ -83,7 +105,7 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
     integer :: passproc
     real(dp) :: se
     type(ddx_setup), pointer :: ddx
-    character(len=255) logfile
+    character(len=255) :: logfile
 
     ! interface
     !     subroutine print_characters(string) bind(C)
@@ -104,7 +126,7 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
     call params_init(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
         & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, &
         & fmm_multipole_lmax, fmm_local_lmax, passproc, n_spheres, sphere_charges, &
-        & sphere_centres, sphere_radii, print_func_default, logfile, ddx%params)
+        & sphere_centres, sphere_radii, logfile, ddx%params)
     if (ddx%params%error_flag .ne. 0) then
         ddx%error_message = ddx%params%error_message
         return

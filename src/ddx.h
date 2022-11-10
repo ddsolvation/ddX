@@ -10,6 +10,8 @@ extern "C" {
 //
 // Generic stuff
 //
+void ddx_get_banner(char* header, int maxlen);
+
 int ddx_supported_lebedev_grids(int n, int* grids);
 
 // Get scaled ylm at a point and with respect to a cavity sphere

@@ -21,13 +21,6 @@ use omp_lib
 ! Disable implicit types
 implicit none
 
-! Interface for the printing function
-interface
-    subroutine print_func_interface(string)
-        character(len=255), intent(in) :: string
-    end subroutine
-end interface
-
 !> Type to check and store user input parameters
 type ddx_params_type
     !> Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
@@ -80,8 +73,6 @@ type ddx_params_type
     integer :: error_flag = 2
     !> Last error message
     character(len=255) :: error_message
-    !> Error printing function
-    procedure(print_func_interface), pointer, nopass :: print_func
     !> integer matvecmem. Build hsp matrix to speed up matrix-vec product
     integer :: matvecmem
     !> variable to enable debug printins:
@@ -133,7 +124,6 @@ contains
 !! @param[in] charge: Charges of atoms. Dimension is `(nsph)`.
 !! @param[in] csph: Coordinates of atoms. Dimension is `(3, nsph)`.
 !! @param[in] rsph: Van-der-Waals radii of atoms. Dimension is `(nsph)`.
-!! @param[in] print_func: Function to print errors.
 !! @param[in] output_filename: file name of log file.
 !! @param[out] params: Object containing all inputs.
 !!      = 0: Succesfull exit
@@ -143,7 +133,7 @@ contains
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & fmm, pm, pl, nproc, nsph, charge, &
-        & csph, rsph, print_func, output_filename, params)
+        & csph, rsph, output_filename, params)
     !! Inputs
     ! Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
     integer, intent(in) :: model
@@ -190,8 +180,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     real(dp), intent(in) :: csph(3, nsph)
     ! Array of radii of atoms of a dimension (nsph).
     real(dp), intent(in) :: rsph(nsph)
-    ! Error printing function
-    procedure(print_func_interface) :: print_func
     ! log file name
     character(len=255) :: output_filename
     !! Outputs
@@ -367,68 +355,9 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         params % error_message = "params_init: invalid value of `matvecmem`"
         return
     end if
-    ! Set print function for errors
-    params % print_func => print_func
     ! init log
     call init_printing(params)
 end subroutine params_init
-
-!> Print header with parameters
-subroutine params_print(params)
-    !! Input
-    type(ddx_params_type), intent(in) :: params
-    !! Local variables
-    character(len=255) :: string
-    !! The code
-    if (params % error_flag .eq. 1) then
-        string = "params_print: `params` is in error state"
-        call params % print_func(string)
-    else if (params % error_flag .eq. 1) then
-        string = "params_print: `params` is not initialised"
-        call params % print_func(string)
-    else
-        write(string, "(A)") "DDX parameters object"
-        call params % print_func(string)
-        write(string, "(A,A)") "Model: ", trim(model_str(params % model))
-        call params % print_func(string)
-        write(string, "(A,L1)") "Forces: ", params % force .eq. 1
-        call params % print_func(string)
-        write(string, "(A,ES23.16E3)") "Dielectric permittivity (eps): ", &
-            & params % eps
-        call params % print_func(string)
-        write(string, "(A,ES23.16E3)") "Debye-Huckel parameter (kappa): ", &
-            & params % kappa
-        call params % print_func(string)
-        write(string, "(A,ES23.16E3)") "Regularization (eta): ", params % eta
-        call params % print_func(string)
-        write(string, "(A,ES23.16E3)") "Shift of regularization (se): ", &
-            & params % se
-        call params % print_func(string)
-        write(string, "(A,I0)") "Modeling harmonics degree (lmax): ", &
-            & params % lmax
-        call params % print_func(string)
-        write(string, "(A,I0)") "Number of Lebedev grid points (ngrid): ", &
-            & params % ngrid
-        call params % print_func(string)
-        write(string, "(A,A)") "Iterative solver: ", &
-            & trim("Jacobi")
-        call params % print_func(string)
-        write(string, "(A,I0)") "maxiter: ", params % maxiter
-        call params % print_func(string)
-        write(string, "(A,I0)") "jacobi_ndiis: ", params % jacobi_ndiis
-        call params % print_func(string)
-        write(string, "(A,I0)") "fmm: ", params % fmm
-        call params % print_func(string)
-        write(string, "(A,I0)") "pm: ", params % pm
-        call params % print_func(string)
-        write(string, "(A,I0)") "pl: ", params % pl
-        call params % print_func(string)
-        write(string, "(A,I0)") "nproc: ", params % nproc
-        call params % print_func(string)
-        write(string, "(A,I0)") "nsph: ", params % nsph
-        call params % print_func(string)
-    end if
-end subroutine params_print
 
 !> Free memory used by parameters
 !! @param[inout] params: Object containing all inputs
@@ -484,23 +413,6 @@ subroutine closest_supported_lebedev_grid(ngrid)
         end if
     end do
     ngrid = ng0(igrid)
-end subroutine
-
-!> Print error message and exit with provided error code
-subroutine error(code, message)
-    integer, intent(in) :: code
-    character(len=*), intent(in) :: message
-    write(0, "(A,A)") "ERROR: ", message
-    write(0, "(A,I2)") "CODE:  ", code
-    stop -1
-end subroutine
-
-
-!> Default printing function
-subroutine print_func_default(string)
-    character(len=255), intent(in) :: string
-!   print "(A)", string
-    write(6,"(A)") trim(string)
 end subroutine
 
 subroutine params_free(params)

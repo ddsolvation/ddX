@@ -221,7 +221,7 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & fmm, pm, pl, nproc, nsph, charge, &
-        & csph, rvdw, print_func_default, &
+        & csph, rvdw, &
         & output_filename, ddx_data % params)
     if (ddx_data % params % error_flag .ne. 0) then
         ddx_data % error_flag = ddx_data % params % error_flag
@@ -1484,7 +1484,7 @@ end subroutine calcv
 !------------------------------------------------------------------------------
 !> Evaluate values of spherical harmonics at Lebedev grid points
 !------------------------------------------------------------------------------
-subroutine ddeval_grid(params, constants, alpha, x_sph, beta, x_grid, info)
+subroutine ddeval_grid(params, constants, alpha, x_sph, beta, x_grid)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1492,28 +1492,10 @@ subroutine ddeval_grid(params, constants, alpha, x_sph, beta, x_grid, info)
         & beta
     !! Output
     real(dp), intent(inout) :: x_grid(params % ngrid, params % nsph)
-    integer, intent(out) :: info
-    !! Local variables
-    character(len=255) :: string
     !! The code
-    ! Check that parameters and constants are correctly initialized
-    if (params % error_flag .ne. 0) then
-        string = "ddeval_grid: `params` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
-    if (constants % error_flag .ne. 0) then
-        string = "ddeval_grid: `constants` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
-    ! Call corresponding work routine
     call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &
         & constants % vgrid, constants % vgrid_nbasis, alpha, x_sph, beta, &
         & x_grid)
-    info = 0
 end subroutine ddeval_grid
 
 !------------------------------------------------------------------------------
@@ -1535,7 +1517,7 @@ subroutine ddeval_grid_work(nbasis, ngrid, nsph, vgrid, ldvgrid, alpha, &
 end subroutine ddeval_grid_work
 
 !> Integrate values at grid points into spherical harmonics
-subroutine ddintegrate_sph(params, constants, alpha, x_grid, beta, x_sph, info)
+subroutine ddintegrate_sph(params, constants, alpha, x_grid, beta, x_sph)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1543,28 +1525,10 @@ subroutine ddintegrate_sph(params, constants, alpha, x_grid, beta, x_sph, info)
         & beta
     !! Output
     real(dp), intent(inout) :: x_sph(constants % nbasis, params % nsph)
-    integer, intent(out) :: info
-    !! Local variables
-    character(len=255) :: string
     !! The code
-    ! Check that parameters and constants are correctly initialized
-    if (params % error_flag .ne. 0) then
-        string = "ddintegrate_sph: `params` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
-    if (constants % error_flag .ne. 0) then
-        string = "ddintegrate_sph: `constants` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
-    ! Call corresponding work routine
     call ddintegrate_sph_work(constants % nbasis, params % ngrid, &
         & params % nsph, constants % vwgrid, constants % vgrid_nbasis, alpha, &
         & x_grid, beta, x_sph)
-    info = 0
 end subroutine ddintegrate_sph
 
 !> Integrate values at grid points into spherical harmonics
@@ -1585,34 +1549,18 @@ end subroutine ddintegrate_sph_work
 !------------------------------------------------------------------------------
 !> Unwrap values at cavity points into values at all grid points
 !------------------------------------------------------------------------------
-subroutine ddcav_to_grid(params, constants, x_cav, x_grid, info)
+subroutine ddcav_to_grid(params, constants, x_cav, x_grid)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     real(dp), intent(in) :: x_cav(constants % ncav)
     !! Output
     real(dp), intent(inout) :: x_grid(params % ngrid, params % nsph)
-    integer, intent(out) :: info
     !! Local variables
     character(len=255) :: string
     !! The code
-    ! Check that parameters and constants are correctly initialized
-    if (params % error_flag .ne. 0) then
-        string = "ddcav_to_grid: `params` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
-    if (constants % error_flag .ne. 0) then
-        string = "ddcav_to_grid: `constants` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
-    ! Call corresponding work routine
     call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
         & constants % icav_ia, constants % icav_ja, x_cav, x_grid)
-    info = 0
 end subroutine ddcav_to_grid
 
 !------------------------------------------------------------------------------
@@ -2804,99 +2752,38 @@ subroutine tree_grad_l2l(params, constants, node_l, sph_l_grad, work)
     indi = l*l + l + 1
     sph_l_grad(indi-l:indi+l, :, :) = zero
 end subroutine tree_grad_l2l
-!
-!------------------------------------------------------------------------------
-!> small routine to print a tidy header with various info on the calculation.
-!------------------------------------------------------------------------------
-subroutine print_header(params)
+
+subroutine get_banner(string)
     implicit none
-    type(ddx_params_type), intent(in) :: params
-    character (len=255) :: string
-
-    1010 format (t5,a,3x,i20)
-    1020 format (t5,a,3x,f20.10)
-    string = " "
-    call params % print_func(string)
-    string = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    call params % print_func(string)
-    string = "!                                                                             !"
-    call params % print_func(string)
-    string = "!                                                                             !"
-    call params % print_func(string)
-    string = "!                              888      888 Y8b    d8Y                        !"
-    call params % print_func(string)
-    string = "!                              888      888  Y8b  d8Y                         !"
-    call params % print_func(string)
-    string = "!                              888      888   Y8888Y                          !"
-    call params % print_func(string)
-    string = "!                          .d88888  .d88888    Y88Y                           !"
-    call params % print_func(string)
-    string = "!                         d88  888 d88  888    d88b                           !"
-    call params % print_func(string)
-    string = "!                         888  888 888  888   d8888b                          !"
-    call params % print_func(string)
-    string = "!                         Y88b 888 Y88b 888  d8Y  Y8b                         !"
-    call params % print_func(string)
-    string = "!                           Y88888   Y88888 d8Y    Y8b                        !"
-    call params % print_func(string)
-    string = "!                                                                             !"
-    call params % print_func(string)
-    string = "!                                                                             !"
-    call params % print_func(string)
-    string = "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    call params % print_func(string)
-    string = " "
-    call params % print_func(string)
-    if (params % model .eq. 1) then
-        if (params % force .eq. 0) then 
-            string = " performing a ddCOSMO solvation energy calculation"
-        else if (params % force .eq. 1) then
-            string = " performing a ddCOSMO solvation energy and forces calculation"
-        end if
-    else if (params % model .eq. 2) then
-        if (params % force .eq. 0) then 
-            string = " performing a ddPCM solvation energy calculation"
-        else if (params % force .eq. 1) then
-            string = " performing a ddPCM solvation energy and forces calculation"
-        end if
-    else if (params % model .eq. 3) then
-        if (params % force .eq. 0) then
-            string = " performing a ddLPB solvation energy calculation"
-        else if (params % force .eq. 1) then
-            string = " performing a ddLPB solvation energy and forces calculation"
-        end if
-    end if
-    call params % print_func(string)
-
-    if (params % model .eq. 3) then
-        write (string,'(t3,A,F10.4,A,F10.4)') 'dielectric constant: ', params % eps, &
-                                           ' Debye-Hueckel constant: ', params % kappa
-    else
-        write (string,'(t3,A,F10.4)') 'dielectric constant: ', params % eps
-    end if
-
-    if (params % fmm .eq. 1) then
-        string = " using the fast multipole method to accelerate the calculation"
-        call params % print_func(string)
-    end if
-
-    string = " using the following numerical parameters for the calculation:"
-    call params % print_func(string)
-    write(string,1010) 'maximal degree of spherical harmonics for the model:',params % lmax
-    call params % print_func(string)
-    write(string,1010) 'number of lebedev points:                           ',params % ngrid
-    call params % print_func(string)
-    if (params % fmm .eq. 1) then
-        write(string,1010) 'maximal degree of FMM multipolar expansions:        ',params % pm
-        call params % print_func(string)
-        write(string,1010) 'maximal degree of FMM local expansions:             ',params % pl
-        call params % print_func(string)
-    end if
-    string = " using the Jacobi-DIIS iterative solver"
-    call params % print_func(string)
-    string = " "
-    call params % print_func(string)
-end subroutine print_header
+    character (len=4095), intent(out) :: string
+    write(string, *) &
+        & "+------------------------------------------------------------------+", &
+        & NEW_LINE('a'), &
+        & " |                                                                  |", &
+        & NEW_LINE('a'), &
+        & " |                         888      888 Y8b    d8Y                  |", &
+        & NEW_LINE('a'), &
+        & " |                         888      888  Y8b  d8Y                   |", &
+        & NEW_LINE('a'), &
+        & " |                         888      888   Y8888Y                    |", &
+        & NEW_LINE('a'), &
+        & " |                     .d88888  .d88888    Y88Y                     |", &
+        & NEW_LINE('a'), &
+        & " |                    d88  888 d88  888    d88b                     |", &
+        & NEW_LINE('a'), &
+        & " |                    888  888 888  888   d8888b                    |", &
+        & NEW_LINE('a'), &
+        & " |                    Y88b 888 Y88b 888  d8Y  Y8b                   |", &
+        & NEW_LINE('a'), &
+        & " |                      Y88888   Y88888 d8Y    Y8b                  |", &
+        & NEW_LINE('a'), &
+        & " |                                                                  |", &
+        & NEW_LINE('a'), &
+        & " |                  https://ddsolvation.github.io/ddX/              |", &
+        & NEW_LINE('a'), &
+        & " |                                                                  |", &
+        & NEW_LINE('a'), &
+        & " +------------------------------------------------------------------+"
+end subroutine
 
 end module ddx_core
-
