@@ -18,8 +18,10 @@ use ddx_lpb
 implicit none
 
 character(len=255) :: fname
+character(len=255) :: dummy_output_file = ''
 type(ddx_type) :: ddx_data
 integer :: info
+real(dp) :: tol
 ! derivative_num_force  : Numerical derivatives for Force
 ! derivative_num_char   : Numerical derivatives for U_i^e(x_in)
 real(dp), allocatable :: derivative_num_force(:, :), &
@@ -64,8 +66,8 @@ real(dp), external :: dnrm2, ddot
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file 12"
-call ddfromfile(fname, ddx_data, info)
-if(info .ne. 0) stop "info != 0"
+call ddfromfile(fname, ddx_data, tol)
+if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 
 ! lmax0 set to minimum of 6 or given lmax.
 ! nbasis0 set to minimum of 49 or given (lmax+1)^2.
@@ -335,7 +337,7 @@ subroutine solve(ddx_data, sum_esolv, sum_char, Xadj_r, Xadj_e)
         & ddx_data % eta, ddx_data % eps, ddx_data % kappa, &
         & ddx_data % matvecmem, &
         & ddx_data % tol, ddx_data % maxiter, &
-        & ddx_data % ndiis, ddx_data % nproc, ddx_data2, info)
+        & ddx_data % ndiis, ddx_data % nproc, dummy_output_file, ddx_data2)
     ! Allocation
     allocate(unit_vector_n(ddx_data2 % n), vector_cosmo(ddx_data2 % n), vector_lpb(ddx_data2 % n), &
              & unit_vector_nbasis_nsph(ddx_data2 % nbasis, ddx_data2 % nsph), &

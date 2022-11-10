@@ -35,13 +35,16 @@ subroutine build_g(params, constants, workspace, multipoles, &
     real(dp), intent(out) :: phi_cav(constants % ncav)
     real(dp), intent(out) :: e_cav(3, constants % ncav)
     real(dp), intent(out) :: g_cav(3, 3, constants % ncav)
+
     if (params % fmm .eq. 0) then
         call build_g_dense(multipoles, params % csph, mmax, params % nsph, &
-            & phi_cav, constants % ccav, constants % ncav, e_cav, g_cav)
+            & phi_cav, constants % ccav, constants % ncav, e_cav, g_cav, &
+            & workspace % error_flag, workspace % error_message)
     else if (params % fmm .eq. 1) then
-        stop "Build g with FMM is not implemented yet."
-        ! call build_g_fmm(params, constants, workspace, multipoles, &
-        !     & mmax, phi_cav, e_cav)
+        ! TODO: implement this with FMMs
+        call build_g_dense(multipoles, params % csph, mmax, params % nsph, &
+            & phi_cav, constants % ccav, constants % ncav, e_cav, g_cav, &
+            & workspace % error_flag, workspace % error_message)
     end if
 end subroutine build_g
 
@@ -59,14 +62,18 @@ end subroutine build_g
 !! @param[out] g_cav: electric field at the target points, size (3, 3, ncav)
 !! @param[in] ccav: coordinates of the target points, size (3,ncav)
 !! @param[in] ncav: number of target points
+!! @param[out] error_flag: 0 if everything went fine
+!! @param[out] error_message: additional information in case of an error
 !!
 subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
-        & e_cav, g_cav)
+        & e_cav, g_cav, error_flag, error_message)
     implicit none
     integer, intent(in) :: mmax, nm, ncav
     real(dp), intent(in) :: multipoles((mmax + 1)**2, nm)
     real(dp), intent(in) :: cm(3, nm), ccav(3, ncav)
     real(dp), intent(out) :: phi_cav(ncav), e_cav(3, ncav), g_cav(3, 3, ncav)
+    integer, intent(inout) :: error_flag
+    character(len=255), intent(inout) :: error_message
     real(dp), allocatable  :: tmp_m_grad(:, :, :), vscales(:), &
         & vscales_rel(:), v4pi2lp1(:), tmp_m_hess(:, :, :, :), tmp(:, :)
     integer icav, im, l, m, i, info, indi, indj
@@ -79,18 +86,24 @@ subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
         & tmp_m_hess((mmax + 3)**2, 3, nm, 3), tmp((mmax + 2)**2, 3), &
         & stat=info)
     if (info .ne. 0) then
-        stop "Allocation failed in build_g_dense!"
+        error_message = "Allocation failed in build_g_dense!"
+        error_flag = 1
+        return
     end if
     call ylmscale(mmax + 2, vscales, v4pi2lp1, vscales_rel)
 
     ! call the helper routine for the M2M gradient and hessian
-    call grad_m2m(multipoles, mmax, nm, tmp_m_grad)
+    call grad_m2m(multipoles, mmax, nm, tmp_m_grad, error_flag, &
+        & error_message)
     tmp = tmp_m_grad(:, 1, :)
-    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 1))
+    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 1), error_flag, &
+        & error_message)
     tmp = tmp_m_grad(:, 2, :)
-    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 2))
+    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 2), error_flag, &
+        & error_message)
     tmp = tmp_m_grad(:, 3, :)
-    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 3))
+    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 3), error_flag, &
+        & error_message)
 
     ! loop over the targets and the sources and assemble the electric
     ! potential and field
@@ -150,7 +163,9 @@ subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     deallocate(tmp_m_grad, vscales, vscales_rel, v4pi2lp1, tmp_m_hess, &
         & tmp, stat=info)
     if (info .ne. 0) then
-        stop "Deallocation failed in build_e_dense!"
+        error_message = "Deallocation failed in build_e_dense!"
+        error_flag = 1
+        return
     end if
 end subroutine build_g_dense
 
@@ -180,7 +195,8 @@ subroutine build_e(params, constants, workspace, multipoles, &
     real(dp), intent(out) :: e_cav(3, constants % ncav)
     if (params % fmm .eq. 0) then
         call build_e_dense(multipoles, params % csph, mmax, params % nsph, &
-            & phi_cav, constants % ccav, constants % ncav, e_cav)
+            & phi_cav, constants % ccav, constants % ncav, e_cav, &
+            & workspace % error_flag, workspace % error_message)
     else if (params % fmm .eq. 1) then
         call build_e_fmm(params, constants, workspace, multipoles, &
             & mmax, phi_cav, e_cav)
@@ -201,12 +217,15 @@ end subroutine build_e
 !! @param[in] ccav: coordinates of the target points, size (3,ncav)
 !! @param[in] ncav: number of target points
 !!
-subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, e_cav)
+subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
+        & e_cav, error_flag, error_message)
     implicit none
     integer, intent(in) :: mmax, nm, ncav
     real(dp), intent(in) :: cm(3, nm), ccav(3, ncav), &
         & multipoles((mmax + 1)**2, nm)
     real(dp), intent(out) :: phi_cav(ncav), e_cav(3, ncav)
+    integer, intent(inout) :: error_flag
+    character(len=255), intent(inout) :: error_message
     ! local variables
     real(dp), allocatable  :: tmp_m_grad(:, :, :), vscales(:), &
         & vscales_rel(:), v4pi2lp1(:)
@@ -218,12 +237,14 @@ subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, e_cav)
     allocate(tmp_m_grad((mmax + 2)**2, 3, nm), vscales((mmax + 1)**2), &
         & vscales_rel((mmax + 1)**2), v4pi2lp1(mmax + 1), stat=info)
     if (info .ne. 0) then
-        stop "Allocation failed in build_e_dense!"
+        error_message = "Allocation failed in build_e_dense!"
+        error_flag = 1
+        return
     end if
     call ylmscale(mmax + 1, vscales, v4pi2lp1, vscales_rel)
 
     ! call the helper routine for the M2M gradients
-    call grad_m2m(multipoles, mmax, nm, tmp_m_grad)
+    call grad_m2m(multipoles, mmax, nm, tmp_m_grad, error_flag, error_message)
 
     ! loop over the targets and the sources and assemble the electric
     ! potential and field
@@ -252,7 +273,9 @@ subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, e_cav)
 
     deallocate(tmp_m_grad, vscales, vscales_rel, v4pi2lp1, stat=info)
     if (info .ne. 0) then
-        stop "Deallocation failed in build_e_dense!"
+        error_message = "Deallocation failed in build_e_dense!"
+        error_flag = 1
+        return
     end if
 end subroutine build_e_dense
 
@@ -278,7 +301,8 @@ subroutine build_phi(params, constants, workspace, multipoles, &
     real(dp), intent(out) :: phi_cav(constants % ncav)
     if (params % fmm .eq. 0) then
         call build_phi_dense(multipoles, params % csph, mmax, params % nsph, &
-            & phi_cav, constants % ccav, constants % ncav)
+            & phi_cav, constants % ccav, constants % ncav, &
+            & workspace % error_flag, workspace % error_message)
     else if (params % fmm .eq. 1) then
         call build_phi_fmm(params, constants, workspace, multipoles, mmax, &
             & phi_cav)
@@ -298,12 +322,15 @@ end subroutine build_phi
 !! @param[in] ccav: coordinates of the target points, size (3,ncav)
 !! @param[in] ncav: number of target points
 !!
-subroutine build_phi_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav)
+subroutine build_phi_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
+        & error_flag, error_message)
     implicit none
     integer, intent(in) :: mmax, nm, ncav
     real(dp), intent(in) :: cm(3, nm), ccav(3, ncav), &
         & multipoles((mmax + 1)**2, nm)
     real(dp), intent(out) :: phi_cav(ncav)
+    integer, intent(inout) :: error_flag
+    character(len=255), intent(inout) :: error_message
     ! local variables
     integer icav, im, l, m, i, info
     real(dp) :: r, v, c(3)
@@ -313,7 +340,9 @@ subroutine build_phi_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav)
     allocate(vscales((mmax + 1)**2), vscales_rel((mmax + 1)**2), &
         & v4pi2lp1(mmax + 1), stat=info)
     if (info .ne. 0) then
-        stop 'Allocation failed in build_phi_dense!'
+        error_message = 'Allocation failed in build_phi_dense!'
+        error_flag = 1
+        return
     end if
     call ylmscale(mmax, vscales, v4pi2lp1, vscales_rel)
 
@@ -329,7 +358,9 @@ subroutine build_phi_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav)
 
     deallocate(vscales, vscales_rel, v4pi2lp1, stat=info)
     if (info .ne. 0) then
-        stop 'Deallocation failed in build_phi_dense!'
+        error_message = 'Deallocation failed in build_phi_dense!'
+        error_flag = 1
+        return
     end if
 
 end subroutine build_phi_dense
@@ -366,11 +397,14 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
     allocate(tmp_m_grad((mmax + 2)**2, 3, params % nsph), &
         & grid_grad(params % ngrid, 3, params % nsph), stat=info)
     if (info .ne. 0) then
-        stop "Allocation failed in build_e_fmm!"
+        workspace % error_message = "Allocation failed in build_e_fmm!"
+        workspace % error_flag = 1
+        return
     end if
 
     ! compute the gradient of the m2m trasformation
-    call grad_m2m(multipoles, mmax, params % nsph, tmp_m_grad)
+    call grad_m2m(multipoles, mmax, params % nsph, tmp_m_grad, &
+        & workspace % error_flag, workspace % error_message)
 
     ! copy the multipoles in the right places
     call load_m(params, constants, workspace, multipoles, mmax)
@@ -438,7 +472,9 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
 
     deallocate(grid_grad, stat=info)
     if (info .ne. 0) then
-        stop "Deallocation failed in build_e_fmm!"
+        workspace % error_message = "Deallocation failed in build_e_fmm!"
+        workspace % error_flag = 1
+        return
     end if
 
 end subroutine build_e_fmm
@@ -595,11 +631,14 @@ end subroutine do_fmm
 !! @param[out] tmp_m_grad: gradient of the M2M operator,
 !!     size ((mmax + 1)**2, 3, nm)
 !!
-subroutine grad_m2m(multipoles, mmax, nm, tmp_m_grad)
+subroutine grad_m2m(multipoles, mmax, nm, tmp_m_grad, error_flag, &
+        & error_message)
     implicit none
     integer, intent(in) :: mmax, nm
     real(dp), intent(in) :: multipoles((mmax + 1)**2, nm)
     real(dp), intent(out) :: tmp_m_grad((mmax + 2)**2, 3, nm)
+    integer, intent(inout) :: error_flag
+    character(len=255), intent(inout) :: error_message
     ! local variables
     real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
     real(dp), allocatable :: tmp(:, :)
@@ -608,7 +647,9 @@ subroutine grad_m2m(multipoles, mmax, nm, tmp_m_grad)
 
     allocate(tmp((mmax + 2)**2, nm), stat=info)
     if (info .ne. 0) then
-        stop "Allocation failed in grad_m2m!"
+        error_message = "Allocation failed in grad_m2m!"
+        error_flag = 1
+        return
     end if
 
     zx_coord_transform = zero
@@ -653,7 +694,9 @@ subroutine grad_m2m(multipoles, mmax, nm, tmp_m_grad)
 
     deallocate(tmp, stat=info)
     if (info .ne. 0) then
-        stop "Deallocation failed in grad_m2m!"
+        error_message = "Deallocation failed in grad_m2m!"
+        error_flag = 1
+        return
     end if
 
 end subroutine grad_m2m
@@ -688,7 +731,9 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, mmax, &
     ! up to mmax + 1 as we are doing derivatives
     allocate(field(3, params % nsph), stat=info)
     if (info .ne. 0) then
-        stop "Allocation failed in grad_phi_for_charges!"
+        workspace % error_message = "Allocation failed in grad_phi_for_charges!"
+        workspace % error_flag = 1
+        return
     end if
 
     ! first contribution
@@ -719,7 +764,9 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, mmax, &
 
     deallocate(field, stat=info)
     if (info .ne. 0) then
-        stop "Deallocation failed in grad_phi_for_charges!"
+        workspace % error_message = "Deallocation failed in grad_phi_for_charges!"
+        workspace % error_flag = 1
+        return
     end if
 
 end subroutine grad_phi_for_charges
@@ -756,7 +803,9 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
     allocate(adj_phi((mmax + 2)**2, params % nsph), &
         & m_grad((mmax + 2)**2, 3, params % nsph), stat=info)
     if (info .ne. 0) then
-        stop "Allocation failed in grad_phi!"
+        workspace % error_message = "Allocation failed in grad_phi!"
+        workspace % error_flag = 1
+        return
     end if
 
     ! first contribution
@@ -776,7 +825,8 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
         & mmax + 1, adj_phi)
 
     ! build the gradient of the M2M transformation
-    call grad_m2m(multipoles, mmax, params % nsph, m_grad)
+    call grad_m2m(multipoles, mmax, params % nsph, m_grad, &
+        & workspace % error_flag, workspace % error_message)
 
     ! contract the two ingredients to build the second contribution
     do im = 1, params % nsph
@@ -797,7 +847,9 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
 
     deallocate(adj_phi, m_grad, stat=info)
     if (info .ne. 0) then
-        stop "Deallocation failed in grad_phi!"
+        workspace % error_message = "Deallocation failed in grad_phi!"
+        workspace % error_flag = 1
+        return
     end if
 
 end subroutine grad_phi
@@ -825,7 +877,8 @@ subroutine build_adj_phi(params, constants, workspace, charges, mmax, adj_phi)
     integer :: isph, lm
     if (params % fmm .eq. 0) then
         call build_adj_phi_dense(charges, constants % ccav, constants % ncav, &
-            & params % csph, mmax, params % nsph, adj_phi)
+            & params % csph, mmax, params % nsph, adj_phi, &
+            & workspace % error_flag, workspace % error_message)
     else if (params % fmm .eq. 1) then
         call build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
             & adj_phi)
@@ -844,11 +897,14 @@ end subroutine build_adj_phi
 !! @param[in] nm: number of multipoles
 !! @param[out] adj_phi: adjoint potential, size((mmax+1)**2,nm)
 !!
-subroutine build_adj_phi_dense(qcav, ccav, ncav, cm, mmax, nm, adj_phi)
+subroutine build_adj_phi_dense(qcav, ccav, ncav, cm, mmax, nm, adj_phi, &
+        & error_flag, error_message)
     implicit none
     integer, intent (in) :: ncav, mmax, nm
     real(dp), intent(in) :: qcav(ncav), ccav(3, ncav), cm(3, nm)
     real(dp), intent(out) :: adj_phi((mmax + 1)**2, nm)
+    integer, intent(inout) :: error_flag
+    character(len=255), intent(inout) :: error_message
     ! local variables
     integer :: icav, im, info
     real(dp) :: c(3)
@@ -858,7 +914,9 @@ subroutine build_adj_phi_dense(qcav, ccav, ncav, cm, mmax, nm, adj_phi)
     allocate(vscales((mmax + 1)**2), vscales_rel((mmax + 1)**2), &
         & v4pi2lp1(mmax + 1), work((mmax + 1)**2 + 3*mmax), stat=info)
     if (info .ne. 0) then
-        stop 'Allocation failed in build_adj_phi_dense!'
+        error_message = 'Allocation failed in build_adj_phi_dense!'
+        error_flag = 1
+        return
     end if
     call ylmscale(mmax, vscales, v4pi2lp1, vscales_rel)
 
@@ -873,7 +931,9 @@ subroutine build_adj_phi_dense(qcav, ccav, ncav, cm, mmax, nm, adj_phi)
 
     deallocate(vscales, vscales_rel, v4pi2lp1, work, stat=info)
     if (info .ne. 0) then
-        stop 'Deallocation failed in build_adj_phi_dense!'
+        error_message = 'Deallocation failed in build_adj_phi_dense!'
+        error_flag = 1
+        return
     end if
 
 end subroutine build_adj_phi_dense
@@ -909,7 +969,9 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
         & sph_m((mmax + 1)**2, params % nsph), &
         & work((mmax + 1)**2 + 3*mmax), stat=info)
     if (info .ne. 0) then
-        stop "Allocation failed in build_adj_phi_fmm!"
+        workspace % error_message = "Allocation failed in build_adj_phi_fmm!"
+        workspace % error_flag = 1
+        return
     end if
 
     tmp_grid = zero
@@ -980,7 +1042,9 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
 
     deallocate(tmp_grid, work, stat=info)
     if (info .ne. 0) then
-        stop "Deallocation failed in build_adj_phi_fmm"
+        workspace % error_message = "Deallocation failed in build_adj_phi_fmm"
+        workspace % error_flag = 1
+        return
     end if
 
 end subroutine build_adj_phi_fmm

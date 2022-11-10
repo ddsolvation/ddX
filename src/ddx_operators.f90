@@ -1350,7 +1350,7 @@ subroutine prec_tstarx(params, constants, workspace, x, y)
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
     real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
-    integer :: n_iter, info
+    integer :: n_iter
     real(dp) :: r_norm
     real(dp), dimension(params % maxiter) :: x_rel_diff
 
@@ -1358,19 +1358,19 @@ subroutine prec_tstarx(params, constants, workspace, x, y)
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
     n_iter = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % inner_tol, y(:,:,1), &
-        & workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, ldm1x, hnorm, info)
-    if (info.ne.0) then
-        write(*,*) 'prec_tstarx: [1] ddCOSMO failed to converge'
-        stop 1
+        & workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, ldm1x, hnorm)
+    if (workspace % error_flag.ne.0) then
+        workspace % error_message = 'prec_tstarx: ddCOSMO failed to converge'
+        return
     end if
     y(:,:,1) = workspace % ddcosmo_guess
 
     n_iter = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
-        & n_iter, x_rel_diff, bstarx, bx_prec, hnorm, info)
-    if (info.ne.0) then
-        write(*,*) 'prec_tstarx: [1] HSP failed to converge'
-        stop 1
+        & n_iter, x_rel_diff, bstarx, bx_prec, hnorm)
+    if (workspace % error_flag.ne.0) then
+        workspace % error_message = 'prec_tstarx: HSP failed to converge'
+        return
     end if
     y(:,:,2) = workspace % hsp_guess
 
@@ -1389,17 +1389,17 @@ subroutine prec_tx(params, constants, workspace, x, y)
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
     real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
-    integer :: n_iter, info
+    integer :: n_iter
     real(dp) :: r_norm
     real(dp), dimension(params % maxiter) :: x_rel_diff
 
     ! perform A^-1 * Yr
     n_iter = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,1), &
-        & workspace % ddcosmo_guess, n_iter, x_rel_diff, lx, ldm1x, hnorm, info)
-    if (info.ne.0) then
-        write(*,*) 'prec_tx: [1] ddCOSMO failed to converge'
-        stop 1
+        & workspace % ddcosmo_guess, n_iter, x_rel_diff, lx, ldm1x, hnorm)
+    if (workspace % error_flag.ne.0) then
+        workspace % error_message = 'prec_tx: ddCOSMO failed to converge'
+        return
     end if
 
     ! Scale by the factor of (2l+1)/4Pi
@@ -1409,12 +1409,12 @@ subroutine prec_tx(params, constants, workspace, x, y)
     ! perform B^-1 * Ye
     n_iter = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
-        & n_iter, x_rel_diff, bx, bx_prec, hnorm, info)
+        & n_iter, x_rel_diff, bx, bx_prec, hnorm)
     y(:,:,2) = workspace % hsp_guess
 
-    if (info.ne.0) then
-        write(*,*) 'prec_tx: [1] HSP failed to converge'
-        stop 1
+    if (workspace % error_flag.ne.0) then
+        workspace % error_message = 'prec_tx: HSP failed to converge'
+        return
     end if
 end subroutine prec_tx
 !

@@ -1,4 +1,4 @@
-0           ! Printing flag. The larger, the more verbose the output
+''          ! Printing flag. The larger, the more verbose the output
 1           ! Number of OpenMP cores to be used
 1           ! Model. 1 for COSMO, 2 for PCM and 3 for LPB
 10          ! Maximal degree of modeling spherical harmonics

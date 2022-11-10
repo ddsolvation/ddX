@@ -1,7 +1,7 @@
-0           ! Printing flag. The larger, the more verbose the output
+''          ! Printing flag. The larger, the more verbose the output
 1           ! Number of OpenMP cores to be used
 1           ! Model. 1 for COSMO, 2 for PCM and 3 for LPB
-7          ! Maximal degree of modeling spherical harmonics
+7           ! Maximal degree of modeling spherical harmonics
 302         ! Approximate number of Lebedev grid points
 78.3553     ! Dielectric permittivity constant
 0.0         ! Shift of the regularized characteristic function

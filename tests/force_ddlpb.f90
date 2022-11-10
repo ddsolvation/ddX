@@ -20,7 +20,6 @@ implicit none
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
-integer :: info
 
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
                        & hessianphi_cav(:,:,:), psi(:, :), &
@@ -29,12 +28,13 @@ real(dp) :: esolv, esolv_plus_h, esolv_minus_h, &
           & step = 2.d-5, relerr, tol
 integer :: isph, i, iprint
 real(dp), external :: dnrm2
+character(len=255) :: dummy_file_name = ''
 
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol, iprint, info)
-if(info .ne. 0) stop "info != 0"
+call ddfromfile(fname, ddx_data, tol)
+if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 
 ! Allocation for variable vectors
@@ -60,7 +60,7 @@ call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
     & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
 
 call ddlpb(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
-    & state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)
+    & state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)
 
 do isph = 1, ddx_data % params % nsph
   do i = 1, 3
@@ -118,7 +118,7 @@ subroutine solve(ddx_data, esolv_in, tol)
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, &
         & ddx_data % params % matvecmem, ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, ddx_data2, info)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data2)
 
     call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state)
 
@@ -133,7 +133,7 @@ subroutine solve(ddx_data, esolv_in, tol)
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
         & 1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
     call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
-        & psi2, tol, esolv_in, force2, info)
+        & psi2, tol, esolv_in, force2)
 
     call ddx_free_state(state)
     call ddfree(ddx_data2)

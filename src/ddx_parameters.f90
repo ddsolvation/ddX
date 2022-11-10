@@ -84,6 +84,15 @@ type ddx_params_type
     procedure(print_func_interface), pointer, nopass :: print_func
     !> integer matvecmem. Build hsp matrix to speed up matrix-vec product
     integer :: matvecmem
+    !> variable to enable debug printins:
+    !> fname: name of the output file
+    character(len=255) :: output_filename
+    !> len_fname: actual length of the output file
+    integer :: len_output_filename
+    !> verbose: true if printing is enabled
+    logical :: verbose
+    !> output unit
+    integer :: iunit
 end type ddx_params_type
 
 contains
@@ -125,8 +134,8 @@ contains
 !! @param[in] csph: Coordinates of atoms. Dimension is `(3, nsph)`.
 !! @param[in] rsph: Van-der-Waals radii of atoms. Dimension is `(nsph)`.
 !! @param[in] print_func: Function to print errors.
+!! @param[in] output_filename: file name of log file.
 !! @param[out] params: Object containing all inputs.
-!! @param[out] info: flag of succesfull exit
 !!      = 0: Succesfull exit
 !!      = -1: One of the arguments had an illegal value, check
 !!          params % error_message
@@ -134,7 +143,7 @@ contains
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & fmm, pm, pl, nproc, nsph, charge, &
-        & csph, rsph, print_func, params, info)
+        & csph, rsph, print_func, output_filename, params)
     !! Inputs
     ! Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
     integer, intent(in) :: model
@@ -183,19 +192,31 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     real(dp), intent(in) :: rsph(nsph)
     ! Error printing function
     procedure(print_func_interface) :: print_func
+    ! log file name
+    character(len=255) :: output_filename
     !! Outputs
     type(ddx_params_type), intent(out) :: params
-    integer, intent(out) :: info
     !! Local variables
-    integer :: igrid, i
+    integer :: igrid, i, info
     character(len=255) :: string
     !! The code
+    ! Clear error state
+    params % error_flag = 0
+    params % error_message = ''
+    ! parse the log file name
+    if (len(trim(output_filename)) .ne. 0) then
+        params % output_filename = output_filename
+        params % verbose = .true.
+        params % len_output_filename = len(trim(output_filename))
+    else
+        params % output_filename = ''
+        params % verbose = .false.
+        params % len_output_filename = 0
+    end if
     ! Model, 1=COSMO, 2=PCM, 3=LPB
     if ((model .lt. 1) .or. (model .gt. 3)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `model`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % model = model
@@ -203,8 +224,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((force .lt. 0) .or. (force .gt. 1)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `force`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % force = force
@@ -212,8 +231,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (eps .le. one) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `eps`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % eps = eps
@@ -221,8 +238,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((model .eq. 3) .and. (kappa .le. zero)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `kappa`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % kappa = kappa
@@ -230,8 +245,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((eta .lt. zero) .or. (eta .gt. one)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `eta`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % eta = eta
@@ -239,8 +252,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((se .lt. -one) .or. (se .gt. one)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `se`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % se = se
@@ -248,8 +259,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (lmax .lt. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `lmax`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % lmax = lmax
@@ -264,8 +273,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (igrid .eq. 0) then
         params % error_flag = 1
         params % error_message = "params_init: Unsupported value of `ngrid`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % ngrid = ngrid
@@ -273,8 +280,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (maxiter .le. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `maxiter`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % maxiter = maxiter
@@ -282,8 +287,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (jacobi_ndiis .lt. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `jacobi_ndiis`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % jacobi_ndiis = jacobi_ndiis
@@ -291,8 +294,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((fmm .lt. 0) .or. (fmm .gt. 1)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `fmm`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % fmm = fmm
@@ -304,8 +305,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         if (pm .lt. -1) then
             params % error_flag = 1
             params % error_message = "params_init: invalid value of `pm`"
-            call print_func(params % error_message)
-            info = -1
             return
         end if
         ! Maximal degree of local spherical harmonics. Value -1 means no 
@@ -314,8 +313,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         if (pl .lt. -1) then
             params % error_flag = 1
             params % error_message = "params_init: invalid value of `pl`"
-            call print_func(params % error_message)
-            info = -1
             return
         end if
         ! If far-field interactions are to be ignored
@@ -337,8 +334,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (nproc .lt. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `nproc`"
-        call print_func(params % error_message)
-        info = -1
         return
     else if (nproc .eq. 0) then
         params % nproc = 1
@@ -350,8 +345,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (nsph .le. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `nsph`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % nsph = nsph
@@ -362,8 +355,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         params % error_flag = 1
         params % error_message = "params_init: `charge`, `csph` and `rsph` " &
             & // "allocations failed"
-        call print_func(params % error_message)
-        info = 1
         return
     end if
     params % charge = charge
@@ -374,16 +365,12 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     else
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `matvecmem`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     ! Set print function for errors
     params % print_func => print_func
-    ! Clear error state
-    info = 0
-    params % error_flag = 0
-    params % error_message = ""
+    ! init log
+    call init_printing(params)
 end subroutine params_init
 
 !> Print header with parameters
@@ -449,19 +436,11 @@ end subroutine params_print
 !!      = 0: Succesfull exit
 !!      = -1: params is in error state
 !!      = 1: Deallocation of memory failed.
-subroutine params_deinit(params, info)
+subroutine params_deinit(params)
     !! Input
     type(ddx_params_type), intent(inout) :: params
-    !! Output
-    integer, intent(out) :: info
+    integer :: info
     !! Code
-    ! Check if input params is in proper state
-    if (params % error_flag .eq. 1) then
-        params % error_flag = 1
-        params % error_message = "params_deinit: `params` is in error state"
-        info = -1
-        return
-    end if
     ! Deallocate memory to avoid leaks
     deallocate(params % charge, stat=info)
     if (info .ne. 0) then
@@ -524,40 +503,72 @@ subroutine print_func_default(string)
     write(6,"(A)") trim(string)
 end subroutine
 
-subroutine params_free(params, info)
+subroutine params_free(params)
     implicit none
     type(ddx_params_type), intent(out) :: params
-    integer, intent(out) :: info
     integer :: istat
 
     istat = 0
-    info = 0
+
+    call finalize_printing(params)
+    if (params % error_flag .ne. 0) return
 
     if (allocated(params % charge)) then
         deallocate(params % charge, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`charge` deallocation failed!"
-            stop 1
+            params % error_message = "`charge` deallocation failed!"
+            params % error_flag = 1
+            return
         end if
     end if
     if (allocated(params % csph)) then
         deallocate(params % csph, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`csph` deallocation failed!"
-            stop 1
+            params % error_message = "`csph` deallocation failed!"
+            params % error_flag = 1
+            return
         end if
     end if
     if (allocated(params % rsph)) then
         deallocate(params % rsph, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`rsph` deallocation failed!"
-            stop 1
+            params % error_message = "`rsph` deallocation failed!"
+            params % error_flag = 1
+            return
         end if
     end if
 end subroutine params_free
 
-end module ddx_parameters
+!> Open the log file.
+subroutine init_printing(params)
+    implicit none
+    type(ddx_params_type), intent(inout) :: params
+    logical :: exists
+    if (.not.params % verbose) return
+    inquire(file=params % output_filename(1:params % len_output_filename), &
+        & exist=exists)
+    if (exists) then
+        params % error_message = 'Log file already present'
+        params % error_flag = 1
+        return
+    else
+        params % iunit = 100
+        open(params % iunit, &
+            & file=params % output_filename(1: params % len_output_filename), &
+            & form='formatted')
+    end if
+end subroutine init_printing
 
+!> Close the log file.
+subroutine finalize_printing(params)
+    implicit none
+    type(ddx_params_type), intent(out) :: params
+    if (.not.params % verbose) return
+    close(params % iunit)
+    params % verbose = .false.
+    params % output_filename = ''
+    params % len_output_filename = 0
+    params % iunit = 0
+end subroutine finalize_printing
+
+end module ddx_parameters
