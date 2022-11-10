@@ -64,19 +64,6 @@ subroutine ddx_scaled_ylm(c_ddx, lmax, x, sphere, ylm) bind(C)
     end associate
 end
 
-subroutine ddx_nuclear_contributions(c_ddx, nsph, ncav, nbasis, phi, gradphi, psi) bind(C)
-    type(c_ptr), intent(in), value :: c_ddx
-    integer(c_int), intent(in), value :: nsph, ncav, nbasis
-    type(ddx_setup), pointer :: ddx
-    real(c_double), intent(out) :: phi(ncav)
-    real(c_double), intent(out) :: gradphi(3, ncav)
-    real(c_double), intent(out) :: psi(nbasis, nsph)
-    real(dp) :: hessianphi(3, 3, ncav)  ! not used, hence not allocated.
-    call c_f_pointer(c_ddx, ddx)
-    call mkrhs(ddx%params, ddx%constants, ddx%workspace, 1, phi, 1, gradphi, 0, &
-            & hessianphi, psi)
-end
-
 !
 ! Setup object
 !
@@ -510,65 +497,74 @@ end
 !
 ! multipolar solutes
 !
-
-subroutine ddx_build_g(c_ddx, multipoles, mmax, phi_cav, e_cav, g_cav, &
-        & nsph, ncav) bind(C)
+subroutine ddx_multipole_electrostatics_0(c_ddx, nsph, ncav, nmultipoles, multipoles, &
+        & phi_cav) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
     type(ddx_setup), pointer :: ddx
-    integer(c_int), intent(in), value :: mmax, nsph, ncav
-    real(c_double), intent(in) :: multipoles((mmax + 1)**2, nsph)
-    real(c_double), intent(out) :: phi_cav(ncav), e_cav(3, ncav), &
-        & g_cav(3, 3, ncav)
-    call c_f_pointer(c_ddx, ddx)
-    call build_g(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-        & phi_cav, e_cav, g_cav)
-end
-
-subroutine ddx_build_e(c_ddx, multipoles, mmax, phi_cav, e_cav, &
-        & nsph, ncav) bind(C)
-    type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
-    integer(c_int), intent(in), value :: mmax, nsph, ncav
-    real(c_double), intent(in) :: multipoles((mmax + 1)**2, nsph)
-    real(c_double), intent(out) :: phi_cav(ncav), e_cav(3, ncav)
-    call c_f_pointer(c_ddx, ddx)
-    call build_e(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-        & phi_cav, e_cav)
-end
-
-subroutine ddx_build_phi(c_ddx, multipoles, mmax, phi_cav, nsph, ncav) bind(C)
-    type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
-    integer(c_int), intent(in), value :: mmax, nsph, ncav
-    real(c_double), intent(in) :: multipoles((mmax + 1)**2, nsph)
+    integer(c_int), intent(in), value :: nsph, ncav, nmultipoles
+    real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
     real(c_double), intent(out) :: phi_cav(ncav)
+    integer :: mmax
     call c_f_pointer(c_ddx, ddx)
-    call build_phi(ddx%params, ddx%constants, ddx%workspace, multipoles, &
-        & mmax, phi_cav)
+    mmax = int(sqrt(dble(nmultipoles)) - 1d0)
+    call build_phi(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
+            & phi_cav)
 end
 
-subroutine ddx_build_psi(c_ddx, multipoles, mmax, psi, nsph, lmax) bind(C)
+subroutine ddx_multipole_electrostatics_1(c_ddx, nsph, ncav, nmultipoles, multipoles, &
+        & phi_cav, e_cav) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
     type(ddx_setup), pointer :: ddx
-    integer(c_int), intent(in), value :: mmax, nsph, lmax
-    real(c_double), intent(in) :: multipoles((mmax + 1)**2, nsph)
-    real(c_double), intent(out) :: psi((lmax + 1)**2, nsph)
+    integer(c_int), intent(in), value :: nsph, ncav, nmultipoles
+    real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
+    real(c_double), intent(out) :: phi_cav(ncav), e_cav(3, ncav)
+    integer :: mmax
     call c_f_pointer(c_ddx, ddx)
+    mmax = int(sqrt(dble(nmultipoles)) - 1d0)
+    call build_e(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
+            & phi_cav, e_cav)
+end
+
+subroutine ddx_multipole_electrostatics_2(c_ddx, nsph, ncav, nmultipoles, multipoles, &
+        & phi_cav, e_cav, g_cav) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx
+    type(ddx_setup), pointer :: ddx
+    integer(c_int), intent(in), value :: nsph, ncav, nmultipoles
+    real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
+    real(c_double), intent(out) :: phi_cav(ncav), e_cav(3, ncav), g_cav(3, 3, ncav)
+    integer :: mmax
+    call c_f_pointer(c_ddx, ddx)
+    mmax = int(sqrt(dble(nmultipoles)) - 1d0)
+    call build_g(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
+            & phi_cav, e_cav, g_cav)
+end
+
+subroutine ddx_multipole_psi(c_ddx, nbasis, nsph, nmultipoles, multipoles, psi) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx
+    type(ddx_setup), pointer :: ddx
+    integer(c_int), intent(in), value :: nmultipoles, nsph, nbasis
+    real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
+    real(c_double), intent(out) :: psi(nbasis, nsph)
+    integer :: mmax
+    call c_f_pointer(c_ddx, ddx)
+    mmax = int(sqrt(dble(nmultipoles)) - 1d0)
     call build_psi(ddx%params, ddx%constants, ddx%workspace, multipoles, &
         & mmax, psi)
 end
 
-subroutine ddx_grad_phi(c_ddx, c_state, multipoles, mmax, forces, e_cav, &
-        & nsph, ncav) bind(C)
+subroutine ddx_multipole_forces(c_ddx, c_state, nsph, ncav, nmultipoles, multipoles, &
+                & e_cav, forces) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     type(ddx_setup), pointer :: ddx
     type(ddx_state_type), pointer :: state
-    integer(c_int), intent(in), value :: mmax, nsph, ncav
-    real(c_double), intent(in) :: multipoles((mmax + 1)**2, nsph), &
+    integer(c_int), intent(in), value :: nmultipoles, nsph, ncav
+    integer :: mmax
+    real(c_double), intent(in) :: multipoles(nmultipoles, nsph), &
         & e_cav(3, ncav)
     real(c_double), intent(out) :: forces(3, nsph)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
+    mmax = int(sqrt(dble(nmultipoles)) - 1d0)
     call grad_phi(ddx%params, ddx%constants, ddx%workspace, state, mmax, &
         & multipoles, forces, e_cav)
 end

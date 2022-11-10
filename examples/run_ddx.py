@@ -26,11 +26,16 @@ centres = tobohr * np.array([
 ]).T
 
 model = pyddx.Model("pcm", charges, centres, rvdw, solvent_epsilon=78.3553)
-nuclear = model.solute_nuclear_contribution()
-state = model.initial_guess()
-state = model.solve(state, nuclear["phi"])
-state = model.adjoint_solve(state, nuclear["psi"])
-force = model.force_terms(state, nuclear["phi"], nuclear["gradphi"], nuclear["psi"])
 
-energy = 0.5 * np.sum(state.x * nuclear["psi"])
+solute_multipoles = charges.reshape(1, -1) / np.sqrt(4 * np.pi)
+solute_field = model.multipole_electrostatics(solute_multipoles)
+solute_psi = model.multipole_psi(solute_multipoles)
+
+state = model.initial_guess()
+state = model.solve(state, solute_field["phi"])
+state = model.adjoint_solve(state, solute_psi)
+force = model.solvation_force_terms(state, solute_field["phi"], solute_field["e"],
+                                    solute_psi)
+
+energy = 0.5 * np.sum(state.x * solute_psi)
 print(energy)
