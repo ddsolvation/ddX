@@ -32,9 +32,17 @@ integer :: i, j, isph
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol)
-if(ddx_data % error_flag .ne. 0) stop 1
+
+if (ddx_data % error_flag .ne. 0) then
+  write(6,*) ddx_data % error_message
+  stop
+end if
 
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
+if (state % error_flag .ne. 0) then
+  write(6,*) state % error_message
+  stop
+end if
 
 call print_header(ddx_data%params)
 ! determine needed arrays
