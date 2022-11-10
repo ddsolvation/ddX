@@ -255,6 +255,9 @@ subroutine ddx_init_state(params, constants, state)
     type(ddx_state_type), intent(out) :: state
     integer :: istatus
 
+    state % error_flag = 0
+    state % error_message = ''
+
     ! COSMO model
     if (params % model .eq. 1) then
         allocate(state % phi_grid(params % ngrid, &
