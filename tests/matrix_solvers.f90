@@ -47,36 +47,14 @@ esolv_two = zero
 ! Computation for different storage
 write(*,*) 'Different storage of matrix'
 default_value = 1
-call solve(ddx_data, state, default_value, &
-           & ddx_data % params % itersolver, esolv_one)
+call solve(ddx_data, state, default_value, esolv_one)
 write(*,*) 'Esolv : ', esolv_one
 default_value = 0
-call solve(ddx_data, state, default_value, &
-           & ddx_data % params % itersolver, esolv_two)
+call solve(ddx_data, state, default_value, esolv_two)
 write(*,*) 'Esolv : ', esolv_two
 
 if(abs(esolv_one - esolv_two) .gt. 1e-8) then
   write(*,*) 'Different solvation energies for storing and not storing the matrix'
-  stop 1
-endif
-
-default_value = zero
-esolv_one = zero
-esolv_two = zero
-
-! Computation for different solvers
-write(*,*) 'Different Solvers'
-default_value = 1
-call solve(ddx_data, state, ddx_data % params % matvecmem, &
-           & default_value, esolv_one)
-write(*,*) 'Esolv : ', esolv_one
-default_value = 2
-call solve(ddx_data, state, ddx_data % params % matvecmem, &
-           & default_value, esolv_two)
-write(*,*) 'Esolv : ', esolv_two
-
-if(abs(esolv_one - esolv_two) .gt. 1e-8) then
-  write(*,*) 'Different solvation energies for different solvers'
   stop 1
 endif
 
@@ -85,12 +63,11 @@ call ddfree(ddx_data)
 
 contains
 
-subroutine solve(ddx_data, state, matvecmem, iterative_solver, esolv)
+subroutine solve(ddx_data, state, matvecmem, esolv)
     type(ddx_type), intent(inout) :: ddx_data
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(inout) :: esolv
     integer, intent(in) :: matvecmem
-    integer, intent(in) :: iterative_solver
 
     type(ddx_type) :: ddx_data2
     real(dp), allocatable :: phi_cav2(:)
@@ -106,9 +83,9 @@ subroutine solve(ddx_data, state, matvecmem, iterative_solver, esolv)
         & ddx_data % params % fmm, ddx_data % params % pm, ddx_data % params % pl, &
         & ddx_data % params % se, &
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, matvecmem,&
-        & iterative_solver, ddx_data % params % maxiter, &
-        & ddx_data % params % jacobi_ndiis, ddx_data % params % gmresr_j, &
-        & ddx_data % params % gmresr_dim, ddx_data % params % nproc, ddx_data2, info)
+        & ddx_data % params % maxiter, &
+        & ddx_data % params % jacobi_ndiis, &
+        & ddx_data % params % nproc, ddx_data2, info)
 
     allocate(phi_cav2(ddx_data2 % constants % ncav), &
             & gradphi_cav2(3, ddx_data2 % constants % ncav), &
@@ -118,7 +95,6 @@ subroutine solve(ddx_data, state, matvecmem, iterative_solver, esolv)
 
 
     write(*,*) 'Store sparse matrices : ', ddx_data2 % params % matvecmem
-    write(*,*) 'Iterative Solver      : ', ddx_data2 % params % itersolver
 
     gradphi_cav2 = zero; phi_cav2 = zero
     hessianphi_cav2 = zero; psi2 = zero; force2 = zero

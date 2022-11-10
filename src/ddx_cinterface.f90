@@ -93,7 +93,7 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
     integer(c_int), intent(out) :: info
     !type(c_funptr), value :: printfctn
     type(c_ptr) :: c_ddx
-    integer :: passproc, gmresr_j, gmresr_dim, itersolver
+    integer :: passproc
     real(dp) :: se
     type(ddx_setup), pointer :: ddx
 
@@ -111,13 +111,10 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
 
     passproc = n_proc
     se = 0.0        ! Hard-code centred regularisation
-    itersolver = 1  ! Hard-code Jacobi DIIS
-    gmresr_j   = 1  ! Dummy as GMRES not used
-    gmresr_dim = 5  ! Dummy as GMRES not used
 
     ddx%error_message = "No error"
     call params_init(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
-        & n_lebedev, incore, itersolver, maxiter, jacobi_n_diis, gmresr_j, gmresr_dim, enable_fmm, &
+        & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, &
         & fmm_multipole_lmax, fmm_local_lmax, passproc, n_spheres, sphere_charges, &
         & sphere_centres, sphere_radii, print_func_default, ddx%params, info)
     if (info .ne. 0) then

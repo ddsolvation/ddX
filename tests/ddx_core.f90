@@ -358,8 +358,8 @@ contains
 subroutine check_ddinit_args()
     ! Example of correct args
     integer :: n=1, model=1, lmax=1, ngrid=1202, force=1, fmm=1, pm=0, pl=0, &
-        & fmm_precompute=0, iprint=0, matvecmem=0, itersolver=1, maxiter=10, &
-        & jacobi_ndiis=10, gmresr_j=1, gmresr_dim=0, nproc=1
+        & fmm_precompute=0, iprint=0, matvecmem=0, maxiter=10, &
+        & jacobi_ndiis=10, nproc=1
     real(dp) :: charge(10), x(10), y(10), z(10), rvdw(10), se=zero, eta=1d-1, &
         & eps=1.1d1, kappa=1d0
     type(ddx_type) :: ddx_data
@@ -375,8 +375,8 @@ subroutine check_ddinit_args()
     end do
     ! Check correct input
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "correct test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
@@ -384,7 +384,7 @@ subroutine check_ddinit_args()
     do i = 1, 10
         call ddinit(i, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
             & pm, pl, se, eta, eps, kappa, matvecmem, &
-            & itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, &
+            & maxiter, jacobi_ndiis, nproc, &
             & ddx_data, info)
         if (info .ne. 0) call error(-1, "`nsph` test failed in " // &
             & "check_ddinit_args()")
@@ -393,15 +393,15 @@ subroutine check_ddinit_args()
     ! Check incorrect input nsph <= 0
     i = 0
     call ddinit(i, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`nsph` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(i, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`nsph` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
@@ -409,8 +409,8 @@ subroutine check_ddinit_args()
     do i = 1, 3
         write(*, *) "model=", i
         call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
-            & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+            & pl, se, eta, eps, kappa, matvecmem, &
+            & maxiter, jacobi_ndiis, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`model` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
@@ -418,15 +418,15 @@ subroutine check_ddinit_args()
     ! Check incorrect models
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`model` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 4
     call ddinit(n, charge, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`model` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
@@ -435,7 +435,7 @@ subroutine check_ddinit_args()
     do i = 1, 6
         call ddinit(n, charge, x, y, z, rvdw, model, i, ngrid, force, fmm, &
             & pm, pl, se, eta, eps, kappa, &
-            & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, &
+            & matvecmem, maxiter, jacobi_ndiis, &
             & nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`lmax` test failed in " // &
             & "check_ddinit_args()")
@@ -444,8 +444,8 @@ subroutine check_ddinit_args()
     ! Check incorrect lmax < 0
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, i, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`lmax` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
@@ -453,8 +453,8 @@ subroutine check_ddinit_args()
     do i = 1, nllg
         j = ng0(i)
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, j, force, fmm, pm, &
-            & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+            & pl, se, eta, eps, kappa, matvecmem, &
+            & maxiter, jacobi_ndiis, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`ngrid` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
@@ -462,16 +462,16 @@ subroutine check_ddinit_args()
     ! Check incorrect ngrid < 0
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, i, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`ngrid` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct force (0, 1)
     do i = 0, 1
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
-            & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+            & pl, se, eta, eps, kappa, matvecmem, &
+            & maxiter, jacobi_ndiis, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`force` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
@@ -479,15 +479,15 @@ subroutine check_ddinit_args()
     ! Check incorrect force
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`force` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`force` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
@@ -495,7 +495,7 @@ subroutine check_ddinit_args()
     do i = 0, 1
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, i, &
             & pm, pl, se, eta, eps, kappa, &
-            & matvecmem, itersolver, maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+            & matvecmem, maxiter, jacobi_ndiis, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`fmm` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
@@ -503,15 +503,15 @@ subroutine check_ddinit_args()
     ! Check incorrect fmm
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`fmm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`fmm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
@@ -519,8 +519,8 @@ subroutine check_ddinit_args()
     j = 0
     do i = -2, 2
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & i, pl, se, eta, eps, kappa, matvecmem, itersolver, &
-            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+            & i, pl, se, eta, eps, kappa, matvecmem, &
+            & maxiter, jacobi_ndiis, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`pm` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
@@ -529,16 +529,16 @@ subroutine check_ddinit_args()
     j = 1
     do i = 0, 20, 5
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & i, pl, se, eta, eps, kappa, matvecmem, itersolver, &
-            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+            & i, pl, se, eta, eps, kappa, matvecmem, &
+            & maxiter, jacobi_ndiis, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`pm` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-        & i, pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & i, pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`pm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
@@ -546,8 +546,8 @@ subroutine check_ddinit_args()
     j = 1
     i = -2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, i, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`pm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
@@ -555,8 +555,8 @@ subroutine check_ddinit_args()
     j = 0
     do i = -2, 2
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & pm, i, se, eta, eps, kappa, matvecmem, itersolver, &
-            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+            & pm, i, se, eta, eps, kappa, matvecmem, &
+            & maxiter, jacobi_ndiis, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`pl` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
@@ -565,16 +565,16 @@ subroutine check_ddinit_args()
     j = 1
     do i = 0, 20, 5
         call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-            & pm, i, se, eta, eps, kappa, matvecmem, itersolver, &
-            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+            & pm, i, se, eta, eps, kappa, matvecmem, &
+            & maxiter, jacobi_ndiis, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`pl` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, &
-        & pm, i, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pm, i, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`pl` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
@@ -582,126 +582,126 @@ subroutine check_ddinit_args()
     j = 1
     i = -2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, j, pm, &
-        & i, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & i, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`pl` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct se (interval [-1,1])
     tmp = -one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, tmp, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, tmp, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = zero
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, tmp, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, tmp, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, tmp, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, tmp, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect se
     tmp = 1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, tmp, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, tmp, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, tmp, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, tmp, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct eta (interval [0,1])
     tmp = pt5
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, tmp, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, tmp, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, tmp, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, tmp, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect eta
     tmp = -0.0000005
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, tmp, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, tmp, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = 1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, tmp, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, tmp, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, tmp, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, tmp, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct eps
     tmp = 1.01d0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, tmp, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, tmp, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = dble(1000)
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, tmp, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, tmp, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect eps
     tmp = zero
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, tmp, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, tmp, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = pt5
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, tmp, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, tmp, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, tmp, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, tmp, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, tmp, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, tmp, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
@@ -709,16 +709,16 @@ subroutine check_ddinit_args()
     tmp = 1d-2
     j = 3 ! only referenced in case of LPB model
     call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, tmp, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, tmp, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`kappa` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2 ! not referenced in case of COSMO and PCM models
     do j = 1, 2
         call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-            & pl, se, eta, eps, tmp, matvecmem, itersolver, &
-            & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+            & pl, se, eta, eps, tmp, matvecmem, &
+            & maxiter, jacobi_ndiis, nproc, ddx_data, info)
         if (info .ne. 0) call error(-1, "`kappa` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
@@ -727,231 +727,127 @@ subroutine check_ddinit_args()
     j = 3
     tmp = -1d-2
     call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, tmp, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, tmp, matvecmem, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`kappa` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct matvecmem
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, i, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, i, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`matvecmem` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, i, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, i, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`matvecmem` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, i, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, i, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`matvecmem` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, i, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, i, &
+        & maxiter, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`matvecmem` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    ! Check correct itersolver
-    i = 1
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, i, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
-    if (info .ne. 0) call error(-1, "`itersolver` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    i = 2
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, i, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
-    if (info .ne. 0) call error(-1, "`itersolver` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    ! Check incorrect itersolver
-    i = 0
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, i, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
-    if (info .eq. 0) call error(-1, "`itersolver` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    i = -1
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, i, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
-    if (info .eq. 0) call error(-1, "`itersolver` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    i = 3
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, i, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
-    if (info .eq. 0) call error(-1, "`itersolver` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct maxiter
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & i, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & i, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1000000
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & i, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & i, jacobi_ndiis, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect maxiter
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & i, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & i, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & i, jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & i, jacobi_ndiis, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct ndiis
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, i, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, i, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, i, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, i, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1000
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, i, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, i, nproc, ddx_data, info)
     if (info .ne. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect jacobi_ndiis
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, i, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, i, nproc, ddx_data, info)
     if (info .eq. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    ! Check correct gmresr_j
-    i = 1
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
-    if (info .ne. 0) call error(-1, "`gmresr_j` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    i = 2
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
-    if (info .ne. 0) call error(-1, "`gmresr_j` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    i = 100000
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
-    if (info .ne. 0) call error(-1, "`gmresr_j` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    ! Check incorrect gmresr_j
-    i = 0
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
-    if (info .eq. 0) call error(-1, "`gmresr_j` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    i = -1
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, i, gmresr_dim, nproc, ddx_data, info)
-    if (info .eq. 0) call error(-1, "`gmresr_j` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    ! Check correct gmresr_dim
-    i = 0
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, i, nproc, ddx_data, info)
-    if (info .ne. 0) call error(-1, "`gmresr_dim` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    i = 1
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, i, nproc, ddx_data, info)
-    if (info .ne. 0) call error(-1, "`gmresr_dim` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    i = 100000
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, i, nproc, ddx_data, info)
-    if (info .ne. 0) call error(-1, "`gmresr_dim` test failed in " // &
-        & "check_ddinit_args()")
-    call ddfree(ddx_data)
-    ! Check incorrect gmresr_dim
-    i = -1
-    call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, i, nproc, ddx_data, info)
-    if (info .eq. 0) call error(-1, "`gmresr_dim` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct nproc
     i = 0
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, i, ddx_data, info)
     if (info .ne. 0) call error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, i, ddx_data, info)
     if (info .ne. 0) call error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect nproc
     i = 2
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, i, ddx_data, info)
     if (info .ne. 0) call error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
-        & pl, se, eta, eps, kappa, matvecmem, itersolver, &
-        & maxiter, jacobi_ndiis, gmresr_j, gmresr_dim, i, ddx_data, info)
+        & pl, se, eta, eps, kappa, matvecmem, &
+        & maxiter, jacobi_ndiis, i, ddx_data, info)
     if (info .eq. 0) call error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
@@ -986,7 +882,7 @@ subroutine check_polleg(p)
         call polleg(ctheta, stheta, p, vplm2)
         err = dnrm2((p+1)**2, vplm-vplm2, 1) / dnrm2((p+1)**2, vplm, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
 end subroutine check_polleg
@@ -1021,7 +917,7 @@ subroutine check_ylmbas(p)
             & vplm, vcos, vsin)
         err = dnrm2((p+1)**2, vylm-vylm2, 1) / dnrm2((p+1)**2, vylm, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
 end subroutine check_ylmbas
@@ -1066,7 +962,7 @@ subroutine check_m2p(p, alpha)
         end do
         err = dnrm2(nrand, dst_v2, 1)
         ok = err .eq. zero
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=one, beta=zero
         do j = 1, nrand
@@ -1077,7 +973,7 @@ subroutine check_m2p(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
         do j = 1, nrand
@@ -1088,7 +984,7 @@ subroutine check_m2p(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
         do j = 1, nrand
@@ -1097,7 +993,7 @@ subroutine check_m2p(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         do j = 1, nrand
@@ -1107,7 +1003,7 @@ subroutine check_m2p(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
         do j = 1, nrand
@@ -1118,7 +1014,7 @@ subroutine check_m2p(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -1164,7 +1060,7 @@ subroutine check_m2p_bessel(p, alpha)
         end do
         err = dnrm2(nrand, dst_v2, 1)
         ok = err .eq. zero
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=one, beta=zero
         do j = 1, nrand
@@ -1175,7 +1071,7 @@ subroutine check_m2p_bessel(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
         do j = 1, nrand
@@ -1186,7 +1082,7 @@ subroutine check_m2p_bessel(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
         do j = 1, nrand
@@ -1195,7 +1091,7 @@ subroutine check_m2p_bessel(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         do j = 1, nrand
@@ -1205,7 +1101,7 @@ subroutine check_m2p_bessel(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
         do j = 1, nrand
@@ -1216,7 +1112,7 @@ subroutine check_m2p_bessel(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -1266,7 +1162,7 @@ subroutine check_m2p_m2l(p, alpha)
         end do
         err = dnrm2(nrand, dst_v2, 1)
         ok = err .eq. zero
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         !if (.not. ok) stop 1
         ! Check alpha=one, beta=zero
         do j = 1, nrand
@@ -1278,7 +1174,7 @@ subroutine check_m2p_m2l(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. 2d-15
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
         do j = 1, nrand
@@ -1290,7 +1186,7 @@ subroutine check_m2p_m2l(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. 4d-15
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
         do j = 1, nrand
@@ -1299,7 +1195,7 @@ subroutine check_m2p_m2l(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. 4d-15
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         do j = 1, nrand
@@ -1309,7 +1205,7 @@ subroutine check_m2p_m2l(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. 4d-15
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
         do j = 1, nrand
@@ -1321,7 +1217,7 @@ subroutine check_m2p_m2l(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. 4d-15
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -1360,41 +1256,41 @@ subroutine check_m2p_adj(p, alpha)
         call fmm_m2p_adj(c, zero, r, p, vscales_rel, zero, dst_m2)
         err = dnrm2((p+1)**2, dst_m2, 1)
         ok = err .eq. zero
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check src_q=one, beta=zero
         call fmm_m2p_adj_baseline(c, one, r, p, vscales, zero, dst_m)
         call fmm_m2p_adj(c, one, r, p, vscales_rel, zero, dst_m2)
         err = dnrm2((p+1)**2, dst_m-dst_m2, 1) / dnrm2((p+1)**2, dst_m, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check src_q!={zero,one}, beta=zero
         call fmm_m2p_adj_baseline(c, -three, r, p, vscales, zero, dst_m)
         call fmm_m2p_adj(c, -three, r, p, vscales_rel, zero, dst_m2)
         err = dnrm2((p+1)**2, dst_m-dst_m2, 1) / dnrm2((p+1)**2, dst_m, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
         call fmm_m2p_adj(c, zero, r, p, vscales_rel, one, dst_m2)
         err = dnrm2((p+1)**2, dst_m-dst_m2, 1) / dnrm2((p+1)**2, dst_m, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         call fmm_m2p_adj_baseline(c, zero, r, p, vscales, -pt5, dst_m)
         call fmm_m2p_adj(c, zero, r, p, vscales_rel, -pt5, dst_m2)
         err = dnrm2((p+1)**2, dst_m-dst_m2, 1) / dnrm2((p+1)**2, dst_m, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
         call fmm_m2p_adj_baseline(c, -three, r, p, vscales, pt5, dst_m)
         call fmm_m2p_adj(c, -three, r, p, vscales_rel, pt5, dst_m2)
         err = dnrm2((p+1)**2, dst_m-dst_m2, 1) / dnrm2((p+1)**2, dst_m, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -1491,7 +1387,7 @@ subroutine check_l2p(p, alpha)
         end do
         err = dnrm2(nrand, dst_v2, 1)
         ok = err .eq. zero
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=one, beta=zero
         do j = 1, nrand
@@ -1502,7 +1398,7 @@ subroutine check_l2p(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
         do j = 1, nrand
@@ -1513,7 +1409,7 @@ subroutine check_l2p(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
         do j = 1, nrand
@@ -1522,7 +1418,7 @@ subroutine check_l2p(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         do j = 1, nrand
@@ -1533,7 +1429,7 @@ subroutine check_l2p(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
         do j = 1, nrand
@@ -1544,7 +1440,7 @@ subroutine check_l2p(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -1590,7 +1486,7 @@ subroutine check_l2p_bessel(p, alpha)
         end do
         err = dnrm2(nrand, dst_v2, 1)
         ok = err .eq. zero
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=one, beta=zero
         do j = 1, nrand
@@ -1601,7 +1497,7 @@ subroutine check_l2p_bessel(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
         do j = 1, nrand
@@ -1612,7 +1508,7 @@ subroutine check_l2p_bessel(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta=one
         do j = 1, nrand
@@ -1621,7 +1517,7 @@ subroutine check_l2p_bessel(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         do j = 1, nrand
@@ -1632,7 +1528,7 @@ subroutine check_l2p_bessel(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
         do j = 1, nrand
@@ -1643,7 +1539,7 @@ subroutine check_l2p_bessel(p, alpha)
         end do
         err = dnrm2(nrand, dst_v-dst_v2, 1) / dnrm2(nrand, dst_v, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -1681,36 +1577,36 @@ subroutine check_l2p_adj(p, alpha)
         call fmm_l2p_adj(c, zero, r, p, vscales_rel, zero, dst_l2)
         err = dnrm2((p+1)**2, dst_l2, 1)
         ok = err .eq. zero
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         call fmm_l2p_adj_baseline(c, one, r, p, vscales, zero, dst_l)
         call fmm_l2p_adj(c, one, r, p, vscales_rel, zero, dst_l2)
         err = dnrm2((p+1)**2, dst_l-dst_l2, 1) / dnrm2((p+1)**2, dst_l, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         call fmm_l2p_adj_baseline(c, -three, r, p, vscales, zero, dst_l)
         call fmm_l2p_adj(c, -three, r, p, vscales_rel, zero, dst_l2)
         err = dnrm2((p+1)**2, dst_l-dst_l2, 1) / dnrm2((p+1)**2, dst_l, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         call fmm_l2p_adj(c, zero, r, p, vscales_rel, one, dst_l2)
         err = dnrm2((p+1)**2, dst_l-dst_l2, 1) / dnrm2((p+1)**2, dst_l, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         call fmm_l2p_adj_baseline(c, zero, r, p, vscales, -pt5, dst_l)
         call fmm_l2p_adj(c, zero, r, p, vscales_rel, -pt5, dst_l2)
         err = dnrm2((p+1)**2, dst_l-dst_l2, 1) / dnrm2((p+1)**2, dst_l, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
         call fmm_l2p_adj_baseline(c, -three, r, p, vscales, pt5, dst_l)
         call fmm_l2p_adj(c, -three, r, p, vscales_rel, pt5, dst_l2)
         err = dnrm2((p+1)**2, dst_l-dst_l2, 1) / dnrm2((p+1)**2, dst_l, 1)
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -1815,7 +1711,7 @@ subroutine check_m2m(p, alpha)
         end do
         err = dnrm2(ndst_m, dst_m2, 1)
         ok = err .eq. zero
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=one, beta=zero
         dst_m = zero
@@ -1827,7 +1723,7 @@ subroutine check_m2m(p, alpha)
         end do
         err = dnrm2(ndst_m, dst_m-dst_m2, 1) / dnrm2(ndst_m, dst_m, 1)
         ok = err .le. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         ! Check alpha!={zero,one}, beta=zero
         do j = 1, nrand
             call fmm_m2m_rotation(c, r, dst_r, p, vscales, vcnk, -three, &
@@ -1835,7 +1731,7 @@ subroutine check_m2m(p, alpha)
         end do
         err = dnrm2(ndst_m, three*dst_m+dst_m2, 1) / dnrm2(ndst_m, dst_m, 1)
         ok = err .le. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta=one
         dst_m2 = dst_m
@@ -1845,7 +1741,7 @@ subroutine check_m2m(p, alpha)
         end do
         err = dnrm2(ndst_m, dst_m-dst_m2, 1) / dnrm2(ndst_m, dst_m, 1)
         ok = err .le. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         dst_m2 = dst_m
@@ -1856,7 +1752,7 @@ subroutine check_m2m(p, alpha)
         err = dnrm2((p+1)**2, pt5*dst_m+dst_m2, 1) / &
             & dnrm2((p+1)**2, dst_m, 1) / four
         ok = err .le. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
         dst_m2 = two * dst_m
@@ -1867,7 +1763,7 @@ subroutine check_m2m(p, alpha)
         err = dnrm2((p+1)**2, two*dst_m+dst_m2, 1) / &
             & dnrm2((p+1)**2, dst_m, 1) / four
         ok = err .le. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -1964,7 +1860,7 @@ subroutine check_m2m_adj(p, alpha)
             & src_m, (p+1)**2, one, tmp, nrand)
         err = dnrm2(nrand*nrand, tmp, 1) / err
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -2026,7 +1922,7 @@ subroutine check_m2m_bessel_adj(p, alpha)
             & src_m, (p+1)**2, one, tmp, nrand)
         err = dnrm2(nrand*nrand, tmp, 1) / err
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -2079,7 +1975,7 @@ subroutine check_l2l(p, alpha)
         end do
         err = dnrm2(ndst_l, dst_l2, 1)
         ok = err .eq. zero
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=one, beta=zero
         dst_l = zero
@@ -2091,7 +1987,7 @@ subroutine check_l2l(p, alpha)
         end do
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
         ok = err .le. 4d-14
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta=zero
         do j = 1, nrand
@@ -2100,7 +1996,7 @@ subroutine check_l2l(p, alpha)
         end do
         err = dnrm2(ndst_l, three*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
         ok = err .le. 4d-14
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta=one
         dst_l2 = dst_l
@@ -2110,7 +2006,7 @@ subroutine check_l2l(p, alpha)
         end do
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
         ok = err .le. 4d-14
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         dst_l2 = dst_l
@@ -2120,7 +2016,7 @@ subroutine check_l2l(p, alpha)
         end do
         err = dnrm2(ndst_l, pt5*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
         ok = err .le. 4d-14
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
         dst_l2 = two * dst_l
@@ -2130,7 +2026,7 @@ subroutine check_l2l(p, alpha)
         end do
         err = dnrm2(ndst_l, two*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
         ok = err .le. 4d-14
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -2226,7 +2122,7 @@ subroutine check_l2l_adj(p, alpha)
             & src_l, (p+1)**2, one, tmp, nrand)
         err = dnrm2(nrand*nrand, tmp, 1) / err
         ok = err .lt. 1d-14
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -2287,7 +2183,7 @@ subroutine check_l2l_bessel_adj(p, alpha)
             & src_l, (p+1)**2, one, tmp, nrand)
         err = dnrm2(nrand*nrand, tmp, 1) / err
         ok = err .lt. 1d-14
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -2344,7 +2240,7 @@ subroutine check_m2l(pm, pl, alpha)
         end do
         err = dnrm2(ndst_l, dst_l2, 1)
         ok = err .eq. zero
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=one, beta=zero
         dst_l = zero
@@ -2356,7 +2252,7 @@ subroutine check_m2l(pm, pl, alpha)
         end do
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
         ok = err .le. 1d-14
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         !if(.not. ok) stop 1
         if (.not. ok) then
             print *, src_m
@@ -2370,7 +2266,7 @@ subroutine check_m2l(pm, pl, alpha)
         end do
         err = dnrm2(ndst_l, three*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
         ok = err .le. 1d-14
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta=one
         dst_l2 = dst_l
@@ -2380,7 +2276,7 @@ subroutine check_m2l(pm, pl, alpha)
         end do
         err = dnrm2(ndst_l, dst_l-dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
         ok = err .le. 1d-14
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha=zero, beta!={zero,one}
         dst_l2 = dst_l
@@ -2390,7 +2286,7 @@ subroutine check_m2l(pm, pl, alpha)
         end do
         err = dnrm2(ndst_l, pt5*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
         ok = err .le. 1d-14
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
         ! Check alpha!={zero,one}, beta!={zero,one}
         dst_l2 = two * dst_l
@@ -2400,7 +2296,7 @@ subroutine check_m2l(pm, pl, alpha)
         end do
         err = dnrm2(ndst_l, two*dst_l+dst_l2, 1) / dnrm2(ndst_l, dst_l, 1)
         ok = err .le. 1d-14
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if(.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -2465,7 +2361,7 @@ subroutine check_m2l_adj(pm, pl, alpha)
             & (pm+1)**2, src_m, (pm+1)**2, one, tmp, nrand)
         err = dnrm2(nrand*nrand, tmp, 1) / err
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)
@@ -2564,7 +2460,7 @@ subroutine check_m2l_bessel_adj(p, alpha)
             & (p+1)**2, src_m, (p+1)**2, one, tmp, nrand)
         err = dnrm2(nrand*nrand, tmp, 1) / err
         ok = err .lt. threshold
-        print "(I3.2,A,L3,A,ES9.3E2)", i, " |", ok, " | ", err
+        print "(I3.2,A,L3,A,D12.4)", i, " |", ok, " | ", err
         if (.not. ok) stop 1
     end do
     print "(A)", repeat("=", 40)

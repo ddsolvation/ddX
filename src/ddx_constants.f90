@@ -241,9 +241,6 @@ type ddx_constants_type
     !> Whether the diagonal of the matrices has to be used in the mvp for
     !!       ddCOSMO, ddPCM or inner ddLPB iterations
     logical  :: dodiag
-    !> Whether the diagonal of the matrices has to be used in the mvp for 
-    !!       ddLPB external iterations
-    logical  :: dodiag_external
     !> Flag if there were an error
     integer :: error_flag = 2
     !> Last error message
@@ -284,9 +281,9 @@ subroutine constants_init(params, constants, info)
         info = -1
         return
     end if
-    ! activate inner iterations diagonal in mvp for gmres only:
-    constants % dodiag = params % itersolver .eq. 2
-    constants % dodiag_external = .false.
+    ! activate inner iterations diagonal in mvp for debugging purposes only.
+    ! could be useful for different linear solvers.
+    constants % dodiag = .false.
     
     ! Maximal number of modeling spherical harmonics
     constants % nbasis = (params % lmax+1) ** 2
