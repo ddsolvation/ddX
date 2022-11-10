@@ -46,7 +46,7 @@ subroutine ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
     state % s_niter = params % maxiter
     call ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, &
         & state % s, state % s_niter, state % s_rel_diff, state % s_time, &
-        & info)
+        & )
 end subroutine ddcosmo_adjoint
 
 subroutine ddcosmo_forces(params, constants, workspace, state, phi_cav, &
@@ -60,7 +60,6 @@ subroutine ddcosmo_forces(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     real(dp), intent(out) :: force(3, params % nsph)
-    integer :: info
 
     call ddcosmo_forces_worker(params, constants, workspace, &
         & state % phi_grid, gradphi_cav, psi, state % s, state % sgrid, &
@@ -98,7 +97,7 @@ end subroutine ddcosmo_geom_forces
 !! @param[out] force: Analytical forces
 !! @param[out] info
 subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
-        & psi, tol, esolv, force, info)
+        & psi, tol, esolv, force)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -112,6 +111,10 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
 
     call ddcosmo_guess(params, constants, state)
     call ddcosmo_solve(params, constants, workspace, state, phi_cav, tol)
+    !
+    if (params % error_flag .ne. 0) then
+        params % error_message = "Jacobi solver for ddCOSMO linear system " // &
+            & " did not converge."
 
     ! Solvation energy is computed
     esolv = pt5*ddot(constants % n, state % xs, 1, psi, 1)
@@ -119,6 +122,9 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
     ! Get forces if needed
     if (params % force .eq. 1) then
         call ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
+        if (params % error_flag .ne. 0) then
+            params % error_message = "Jacobi solver for ddCOSMO adjoint " // &
+                & " system did not converge."
         call ddcosmo_forces(params, constants, workspace, state, phi_cav, &
             & gradphi_cav, psi, force)
     end if
@@ -173,26 +179,6 @@ subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
     character(len=255) :: string
     real(dp) :: start_time, finish_time, r_norm
     !! The code
-    ! At first check if parameters, constants and workspace are correctly
-    ! initialized
-    if (params % error_flag .ne. 0) then
-        string = "ddcosmo_energy: `params` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
-    if (constants % error_flag .ne. 0) then
-        string = "ddcosmo_energy: `constants` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
-    if (workspace % error_flag .ne. 0) then
-        string = "ddcosmo_energy: `workspace` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
     ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
     ! and multiply it by characteristic function at cavity points ui
     call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
@@ -218,11 +204,7 @@ subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
     finish_time = omp_get_wtime()
     xs_time = finish_time - start_time
     ! Check if solver did not converge
-    if (info .ne. 0) then
-        string = "ddcosmo_energy: solver for ddCOSMO system did not converge"
-        call params % print_func(string)
-        return
-    end if
+    if (params % error_flag .ne. 0) return
     ! Clear status
     info = 0
 end subroutine ddcosmo_solve_worker
@@ -237,7 +219,7 @@ end subroutine ddcosmo_solve_worker
 !! @param[inout] s
 !! @param[out] info
 subroutine ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, s, &
-        & s_niter, s_rel_diff, s_time, info)
+        & s_niter, s_rel_diff, s_time)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -248,35 +230,15 @@ subroutine ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, s, &
     real(dp), intent(inout) :: s(constants % nbasis, params % nsph), s_time
     integer, intent(inout) :: s_niter
     real(dp), intent(out) :: s_rel_diff(s_niter)
-    integer, intent(out) :: info
     !! Local variables
     real(dp) :: start_time, finish_time, r_norm
     character(len=255) :: string
     real(dp), external :: ddot
     !! The code
-    ! At first check if parameters, constants and workspace are correctly
-    ! initialized
-    if (params % error_flag .ne. 0) then
-        string = "ddcosmo_adjoint: `params` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
-    if (constants % error_flag .ne. 0) then
-        string = "ddcosmo_adjoint: `constants` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
-    if (workspace % error_flag .ne. 0) then
-        string = "ddcosmo_adjoint: `workspace` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
     call cpu_time(start_time)
     call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
-        & s_rel_diff, lstarx, ldm1x, hnorm, info)
+        & s_rel_diff, lstarx, ldm1x, hnorm)
+    if (params % error_flag .ne. 0) return 
     call cpu_time(finish_time)
     s_time = finish_time - start_time
     ! Check if solver did not converge
@@ -291,7 +253,7 @@ subroutine ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, s, &
 end subroutine ddcosmo_adjoint_worker
 
 subroutine ddcosmo_forces_worker(params, constants, workspace, phi_grid, &
-        & gradphi_cav, psi, s, sgrid, xs, zeta, force, info)
+        & gradphi_cav, psi, s, sgrid, xs, zeta, force)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -306,33 +268,12 @@ subroutine ddcosmo_forces_worker(params, constants, workspace, phi_grid, &
     real(dp), intent(out) :: sgrid(params % ngrid, params % nsph), &
         & zeta(constants % ncav), &
         & force(3, params % nsph)
-    integer, intent(out) :: info
     !! Local variables
     integer :: isph, icav, igrid, inode, jnode, jsph, jnear
     real(dp) :: tmp1, tmp2, d(3), dnorm
     real(dp), external :: ddot, dnrm2
     character(len=255) :: string
     !! The code
-    ! At first check if parameters, constants and workspace are correctly
-    ! initialized
-    if (params % error_flag .ne. 0) then
-        string = "ddcosmo_forces: `params` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
-    if (constants % error_flag .ne. 0) then
-        string = "ddcosmo_forces: `constants` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
-    if (workspace % error_flag .ne. 0) then
-        string = "ddcosmo_forces: `workspace` is in error state"
-        call params % print_func(string)
-        info = 1
-        return
-    end if
     ! Get values of S on grid
     call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &
         & constants % vgrid, constants % vgrid_nbasis, one, s, zero, sgrid)
@@ -443,8 +384,6 @@ subroutine ddcosmo_forces_worker(params, constants, workspace, phi_grid, &
                 & + pt5*workspace % tmp_efld(:, isph)*params % charge(isph)
         end do
     end if
-    ! Clear status
-    info = 0
 end subroutine ddcosmo_forces_worker
 
 subroutine ddcosmo_geom_forces_worker(params, constants, workspace, phi_grid, &

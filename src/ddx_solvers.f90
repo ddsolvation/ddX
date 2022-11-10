@@ -141,7 +141,9 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
             return
         end if
     end do
-    info = 1
+    params % error_flag = 1
+    params % error_message = "Jacobi solver did not converge"
+    return
 endsubroutine jacobi_diis
 
 subroutine diis(n, nmat, ndiis, x, e, b, xnew)
