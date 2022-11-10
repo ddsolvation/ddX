@@ -792,148 +792,149 @@ subroutine ddx_free_state(state)
     if (allocated(state % phi_grid)) then
         deallocate(state % phi_grid, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`phi_grid` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`phi_grid` deallocation failed!"
+            return
         endif
     end if
     if (allocated(state % phi)) then
         deallocate(state % phi, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`phi` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`phi` deallocation failed!"
         endif
     end if
     if (allocated(state % phiinf)) then
         deallocate(state % phiinf, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`phiinf` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`phiinf` deallocation failed!"
         endif
     end if
     if (allocated(state % phieps)) then
         deallocate(state % phieps, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`phieps` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`phieps` deallocation failed!"
         endif
     end if
     if (allocated(state % phieps_rel_diff)) then
         deallocate(state % phieps_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`phieps_rel_diff` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`phieps_rel_diff` deallocation failed!"
         endif
     end if
     if (allocated(state % xs)) then
         deallocate(state % xs, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`xs` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`xs` deallocation failed!"
         endif
     end if
     if (allocated(state % xs_rel_diff)) then
         deallocate(state % xs_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`xs_rel_diff` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`xs_rel_diff` deallocation failed!"
         endif
     end if
     if (allocated(state % s)) then
         deallocate(state % s, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`s` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`s` deallocation failed!"
         endif
     end if
     if (allocated(state % s_rel_diff)) then
         deallocate(state % s_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`s_rel_diff` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`s_rel_diff` deallocation failed!"
         endif
     end if
     if (allocated(state % sgrid)) then
         deallocate(state % sgrid, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`sgrid` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`sgrid` deallocation failed!"
         endif
     end if
     if (allocated(state % y)) then
         deallocate(state % y, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`y` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`y` deallocation failed!"
         endif
     end if
     if (allocated(state % y_rel_diff)) then
         deallocate(state % y_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`y_rel_diff` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`y_rel_diff` deallocation failed!"
         endif
     end if
     if (allocated(state % ygrid)) then
         deallocate(state % ygrid, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`ygrid` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`ygrid` deallocation failed!"
         endif
     end if
     if (allocated(state % g)) then
         deallocate(state % g, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`g` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`g` deallocation failed!"
         endif
     end if
     if (allocated(state % q)) then
         deallocate(state % q, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`q` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`q` deallocation failed!"
         endif
     end if
     if (allocated(state % qgrid)) then
         deallocate(state % qgrid, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`qgrid` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`qgrid` deallocation failed!"
         endif
     end if
     if (allocated(state % zeta)) then
         deallocate(state % zeta, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "`zeta` deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`zeta` deallocation failed!"
         endif
     end if
     if (allocated(state % x_lpb)) then
         deallocate(state % x_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`x_lpb` deallocation failed!"
         endif
     end if
     if (allocated(state % x_adj_lpb)) then
         deallocate(state % x_adj_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "x_adj_lpb deallocation failed!"
         endif
     end if
     if (allocated(state % g_lpb)) then
         deallocate(state % g_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`g_lpb` deallocation failed!"
         endif
     end if
     if (allocated(state % f_lpb)) then
         deallocate(state % f_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            write(*, *) "ddfree: [36] deallocation failed!"
-            stop 1
+            state % error_flag = 1
+            state % error_message = "`f_lpb` deallocation failed!"
         endif
     end if
 end subroutine ddx_free_state
@@ -1342,26 +1343,18 @@ end subroutine hsnorm
 real(dp) function hnorm(lmax, nbasis, nsph, x)
     integer, intent(in) :: lmax, nbasis, nsph
     real(dp),  dimension(nbasis, nsph), intent(in) :: x
-    integer                                     :: isph, istatus
-    real(dp)                                      :: vrms, vmax
-    real(dp), allocatable                         :: u(:)
-    allocate( u(nsph) , stat=istatus )
-    if ( istatus.ne.0 ) then
-        write(*,*) 'hnorm: allocation failed !'
-        stop
-    endif
-    !$omp parallel do default(none) shared(nsph,lmax,nbasis,x,u) &
-    !$omp private(isph) schedule(dynamic)
+    integer                                        :: isph, istatus
+    real(dp)                                       :: vrms, fac
+!
+    vrms = 0.0_dp
+    !$omp parallel do default(none) shared(nsph,lmax,nbasis,x) &
+    !$omp private(isph,fac) schedule(dynamic) reduction(+:vrms)
     do isph = 1, nsph
-        call hsnorm(lmax, nbasis, x(:,isph), u(isph))
+        call hsnorm(lmax, nbasis, x(:,isph), fac)
+        vrms = vrms + fac*fac
     enddo
-    call rmsvec(nsph, u, vrms, vmax)
-    hnorm = vrms
-    deallocate( u , stat=istatus )
-    if ( istatus.ne.0 ) then
-        write(*,*) 'hnorm: deallocation failed !'
-        stop
-    endif
+!   call rmsvec(nsph, u, vrms, vmax)
+    hnorm = sqrt(vrms/dble(nsph))
 end function hnorm
 
 !------------------------------------------------------------------------------------------------

@@ -78,7 +78,7 @@ contains
 !! @param[in] norm_func:
 !! @param[out] info:
 subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
-        & x_rel_diff, matvec, dm1vec, norm_func, info)
+        & x_rel_diff, matvec, dm1vec, norm_func)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -89,7 +89,6 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
     real(dp), intent(inout) :: x(constants % n)
     integer, intent(inout) :: niter
     real(dp), intent(out) :: x_rel_diff(niter)
-    integer, intent(out) :: info
     !! External procedures
     procedure(matvec_interface) :: matvec, dm1vec
     procedure(norm_interface) :: norm_func
@@ -136,13 +135,12 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
         x = workspace % tmp_x_new
         ! Check stop condition
         if (rel_diff .le. tol) then
-            info = 0
             niter = it
             return
         end if
     end do
-    params % error_flag = 1
-    params % error_message = "Jacobi solver did not converge"
+    workspace % error_flag = 1
+    workspace % error_message = "Jacobi solver did not converge"
     return
 endsubroutine jacobi_diis
 
