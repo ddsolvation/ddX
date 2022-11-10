@@ -136,7 +136,6 @@ contains
 !! @param[in] print_func: Function to print errors.
 !! @param[in] output_filename: file name of log file.
 !! @param[out] params: Object containing all inputs.
-!! @param[out] info: flag of succesfull exit
 !!      = 0: Succesfull exit
 !!      = -1: One of the arguments had an illegal value, check
 !!          params % error_message
@@ -437,19 +436,11 @@ end subroutine params_print
 !!      = 0: Succesfull exit
 !!      = -1: params is in error state
 !!      = 1: Deallocation of memory failed.
-subroutine params_deinit(params, info)
+subroutine params_deinit(params)
     !! Input
     type(ddx_params_type), intent(inout) :: params
-    !! Output
-    integer, intent(out) :: info
+    integer :: info
     !! Code
-    ! Check if input params is in proper state
-    if (params % error_flag .eq. 1) then
-        params % error_flag = 1
-        params % error_message = "params_deinit: `params` is in error state"
-        info = -1
-        return
-    end if
     ! Deallocate memory to avoid leaks
     deallocate(params % charge, stat=info)
     if (info .ne. 0) then

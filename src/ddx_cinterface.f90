@@ -137,11 +137,10 @@ end function
 subroutine ddx_deallocate_model(c_ddx) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
     type(ddx_setup), pointer :: ddx
-    integer :: info
     call c_f_pointer(c_ddx, ddx)
-    call params_deinit(ddx%params, info)
-    call constants_free(ddx%constants, info)
-    call workspace_free(ddx%workspace, info)
+    call params_deinit(ddx%params)
+    call constants_free(ddx%constants)
+    call workspace_free(ddx%workspace)
     deallocate(ddx)
 end
 

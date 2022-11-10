@@ -23,7 +23,6 @@ implicit none
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
-integer :: info
 character(len=255) :: dummy_file_name = ''
 
 real(dp) :: esolv_one, esolv_two, tol
@@ -105,7 +104,7 @@ subroutine solve(ddx_data, state, matvecmem, esolv)
             &  1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
 
     call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
-        & psi2, tol, esolv, force2, info)
+        & psi2, tol, esolv, force2)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
     call ddfree(ddx_data2)
     return

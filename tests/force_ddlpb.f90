@@ -20,7 +20,6 @@ implicit none
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
-integer :: info
 
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
                        & hessianphi_cav(:,:,:), psi(:, :), &
@@ -61,7 +60,7 @@ call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
     & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
 
 call ddlpb(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
-    & state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)
+    & state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)
 
 do isph = 1, ddx_data % params % nsph
   do i = 1, 3
@@ -134,7 +133,7 @@ subroutine solve(ddx_data, esolv_in, tol)
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
         & 1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
     call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
-        & psi2, tol, esolv_in, force2, info)
+        & psi2, tol, esolv_in, force2)
 
     call ddx_free_state(state)
     call ddfree(ddx_data2)
