@@ -215,7 +215,11 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
     real(dp), allocatable :: rhs(:,:,:)
 
     allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        params % error_message = 'Allocation failed in ddlpb_solve_worker'
+        params % error_flag = 1
+        return
+    end if
 
     !! Use a tighter tolerance for the microiterations to ensure convergence
     constants % inner_tol =  tol/100.0d0
@@ -265,7 +269,11 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
     x_lpb_time = omp_get_wtime() - start_time
 
     deallocate(rhs)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        params % error_message = 'Deallocation failed in ddlpb_solve_worker'
+        params % error_flag = 1
+        return
+    end if
 end subroutine ddlpb_solve_worker
 
 subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
@@ -286,7 +294,11 @@ subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
     integer :: istat
 
     allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        params % error_message = 'Allocation failed in ddlpb_adjoint_worker'
+        params % error_flag = 1
+        return
+    end if
 
     !! Use a tighter tolerance for the microiterations to ensure convergence
     constants % inner_tol =  tol/100.0d0
@@ -311,7 +323,11 @@ subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
         & rmsnorm, istat)
     x_adj_lpb_time = omp_get_wtime() - start_time
     deallocate(rhs, stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        params % error_message = 'Deallocation failed in ddlpb_adjoint_worker'
+        params % error_flag = 1
+        return
+    end if
 end subroutine ddlpb_adjoint_worker
 
 subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
@@ -350,7 +366,11 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         & normal_hessian_cav(3, constants % ncav), &
         & diff_re(constants % nbasis, params % nsph), &
         & scaled_xr(constants % nbasis, params % nsph), stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        params % error_message = 'Allocation failed in ddlpb_force_worker'
+        params % error_flag = 1
+        return
+    end if
 
     diff_re = zero
     vsin = zero
@@ -516,7 +536,11 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
 
     deallocate(ef, xadj_r_sgrid, xadj_e_sgrid, normal_hessian_cav, &
         & diff_re, scaled_xr, stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        params % error_message = 'Deallocation failed in ddlpb_force_worker'
+        params % error_flag = 1
+        return
+    end if
 end subroutine ddlpb_force_worker
 
 end module ddx_lpb
