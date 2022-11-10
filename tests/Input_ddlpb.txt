@@ -1,4 +1,4 @@
-''          ! Printing flag. The larger, the more verbose the output
+''          ! Name of log-file for additional information
 1           ! Number of OpenMP cores to be used
 3           ! Model. 1 for COSMO, 2 for PCM and 3 for LPB
 7           ! Maximal degree of modeling spherical harmonics
