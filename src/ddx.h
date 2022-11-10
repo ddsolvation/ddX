@@ -16,9 +16,6 @@ int ddx_supported_lebedev_grids(int n, int* grids);
 void ddx_scaled_ylm(const void* c_ddx, int lmax, const double* x, int sphere,
                     double* ylm);
 
-void ddx_nuclear_contributions(const void* c_ddx, int nsph, int ncav, int nbasis,
-                               double* phi, double* gradphi, double* psi);
-
 //
 // Setup object
 //
@@ -92,19 +89,28 @@ void ddx_pcm_forces(const void* ddx, void* state, int nbasis, int nsph, int ncav
 // LPB
 // TODO
 
-// multipolar solutes
-void ddx_build_g(const void* ddx, const double* multipoles, int mmax,
-                 double* phi_cav, double* e_cav, double* g_cav, int nsph,
-                 int ncav);
-void ddx_build_e(const void* ddx, const double* multipoles, int mmax,
-                 double* phi_cav, double* e_cav, int nsph, int ncav);
-void ddx_build_phi(const void* ddx, const double* multipoles, int mmax,
-                   double* phi_cav, int nsph, int ncav);
-void ddx_build_psi(const void* ddx, const double* multipoles, int mmax,
-                   double* psi, int nsph, int lmax);
-void ddx_grad_phi(const void* ddx, void* state, const double* multipoles,
-                  int mmax, double* forces, const double* e_cav, int nsph,
-                  int ncav);
+//
+// Multipolar solutes
+//
+
+// Build potential, electric field (e_cav) and electric field gradient (g_cav) from a
+// multipolar charge distribution
+void ddx_multipole_electrostatics_0(const void* ddx, int nsph, int ncav, int nmultipoles,
+                                    const double* multipoles, double* phi_cav);
+void ddx_multipole_electrostatics_1(const void* ddx, int nsph, int ncav, int nmultipoles,
+                                    const double* multipoles, double* phi_cav,
+                                    double* e_cav);
+void ddx_multipole_electrostatics_2(const void* ddx, int nsph, int ncav, int nmultipoles,
+                                    const double* multipoles, double* phi_cav,
+                                    double* e_cav, double* g_cav);
+
+void ddx_multipole_psi(const void* ddx, int nbasis, int nsph, int nmultipoles,
+                       const double* multipoles, double* psi);
+
+// Multipolar contribution to the forces
+void ddx_multipole_forces(const void* ddx, void* state, int nsph, int ncav,
+                          int nmultipoles, const double* multipoles, const double* e_cav,
+                          double* forces);
 
 #ifdef __cplusplus
 }
