@@ -34,11 +34,6 @@ Line number  | type           | description
 18 | Integer  | Number of spheres of the atomic structure
 19--END | Float[5] | The flollowing lines specify for each atom (should be consistent with entry on line 20) the values c,x,y,z,r where the partial charge (c), x-coordinate (x), y-coordinate (y), z-coordinate (z), radius (r) are listed (see example below). The charges are in *atomic units* and the coordinates and the radii in *Ångstrom*.
 
-<sup>[1]</sup>: H.A. van der Vorst, C. Vuik, "GMRESR: a Family of Nested GMRES Methods", Num. Lin. Alg. Appl., vol. 1(4), 369--386 (1994): <a href="https://webspace.science.uu.nl/~vorst102/gmresr.f">[link to file]</a> 
-
-<sup>[2]</sup>: corresponds to the agrument *mgmres* in <sup>[1]</sup>.
-
-<sup>[3]</sup>: corresponds to the agrument *j* in <sup>[1]</sup>.
 
 **Remarks:**
 1. The order of the lines is essential
@@ -46,7 +41,7 @@ Line number  | type           | description
 
 **Example of an input file:**
 ```
-1           ! Printing flag. The larger the value[integer], the more verbose the output
+''          ! Name of log-file for additional information
 1           ! Number of OpenMP cores to be used
 1           ! Specification of the model: 1 for COSMO, 2 for PCM and 3 for LPB
 7           ! Maximal degree of modeling spherical harmonics
@@ -56,12 +51,9 @@ Line number  | type           | description
 0.1         ! Regularization parameter
 0.0         ! Debye Hückel parameter
 0           ! Whether to compute and store sparse matrices (1) or not (0)
-2           ! Iterative solver for linear systems: 1: Jacobi/DIIS , 2: GMRESR solver
 1d-8        ! The relative threshold for the iterative solver
 100         ! Maximum number of iterations
 20          ! Number of Jacobi DIIS extrapolation points
-1           ! Number of last vectors GMRESR works with
-0           ! Dimension of GMRESR
 1           ! Whether to compute (1) or not (0) forces
 1           ! Whether to use (1) or not (0) the FMM
 7           ! Max degree of multipole spherical harmonics for the FMM
