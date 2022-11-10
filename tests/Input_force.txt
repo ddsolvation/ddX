@@ -8,12 +8,9 @@
 0.1         ! Regularization parameter
 0.0         ! Debye H\"{u}ckel parameter
 0           ! Whether to compute and store sparse matrices (1) or not (0)
-1           ! Jacobi/DIIS iterative solver
 1d-14       ! Relative threshold for the iterative solver
 200         ! Maximum number of iterations
 25          ! Number of DIIS extrapolation points
-1           ! Number of last vectors GMRESR works with
-0           ! Dimension of GMRESR
 1           ! Whether to compute (1) or not (0) forces
 1           ! Whether to use (1) or not (0) the FMM
 20          ! Max degree of multipole spherical harmonics for the FMM

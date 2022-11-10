@@ -117,7 +117,7 @@ class Model {
     if (m_holder) ddx_deallocate_model(m_holder);
     m_holder = nullptr;
   }
-  Model(const Model&) = delete;
+  Model(const Model&)            = delete;
   Model& operator=(const Model&) = delete;
 
   // Return the holder pointer ... internal function. Use only if you know
@@ -192,7 +192,7 @@ class State {
     if (m_holder) ddx_deallocate_state(m_holder);
     m_holder = nullptr;
   }
-  State(const State&) = delete;
+  State(const State&)            = delete;
   State& operator=(const State&) = delete;
 
   // Return the holder pointer ... internal function. Use only if you know
@@ -242,16 +242,100 @@ array_f_t scaled_ylm(std::shared_ptr<Model> model, array_f_t coord, int sphere) 
   return scaled_ylm(model, coord, sphere, array_f_t({model->n_basis()}));
 }
 
+py::dict multipole_electrostatics(std::shared_ptr<Model> model, array_f_t multipoles,
+                                  int derivative_order) {
+  if (multipoles.ndim() != 2 || multipoles.shape(1) != model->n_spheres()) {
+    throw py::value_error(
+          "'multipoles' should be an (nmultipoles, n_spheres) sized array");
+  }
+  int mmax = static_cast<int>(sqrt(multipoles.shape(0)) - 1.0);  // Multipole order
+  if (mmax < 0 || (mmax + 1) * (mmax + 1) != multipoles.shape(0)) {
+    throw py::value_error(
+          "First axis of multipole array is not of form (mmax+1)^2 for an mmax >= 0");
+  }
+
+  array_f_t phi({model->n_cav()});
+  if (derivative_order == 0) {
+    ddx_multipole_electrostatics_0(model->holder(), model->n_spheres(), model->n_cav(),
+                                   multipoles.shape(0), multipoles.data(),
+                                   phi.mutable_data());
+    return py::dict("phi"_a = phi);
+  } else if (derivative_order == 1) {
+    array_f_t e({3, model->n_cav()});
+    ddx_multipole_electrostatics_1(model->holder(), model->n_spheres(), model->n_cav(),
+                                   multipoles.shape(0), multipoles.data(),
+                                   phi.mutable_data(), e.mutable_data());
+    return py::dict("phi"_a = phi, "e"_a = e);
+  } else if (derivative_order == 2) {
+    array_f_t e({3, model->n_cav()});
+    array_f_t g({3, 3, model->n_cav()});
+    ddx_multipole_electrostatics_2(
+          model->holder(), model->n_spheres(), model->n_cav(), multipoles.shape(0),
+          multipoles.data(), phi.mutable_data(), e.mutable_data(), g.mutable_data());
+    return py::dict("phi"_a = phi, "e"_a = e, "g"_a = g);
+  } else {
+    throw py::value_error("'derivative_order' only implemented up to 2");
+  }
+}
+
+array_f_t multipole_psi(std::shared_ptr<Model> model, array_f_t multipoles) {
+  if (multipoles.ndim() != 2 || multipoles.shape(1) != model->n_spheres()) {
+    throw py::value_error(
+          "'multipoles' should be an (nmultipoles, n_spheres) sized array");
+  }
+  int mmax = static_cast<int>(sqrt(multipoles.shape(0)) - 1.0);  // Multipole order
+  if (mmax < 0 || (mmax + 1) * (mmax + 1) != multipoles.shape(0)) {
+    throw py::value_error(
+          "First axis of multipole array is not of form (mmax+1)^2 for an mmax >= 0");
+  }
+
+  array_f_t psi({model->n_basis(), model->n_spheres()});
+  ddx_multipole_psi(model->holder(), model->n_basis(), model->n_spheres(),
+                    multipoles.shape(0), multipoles.data(), psi.mutable_data());
+  return psi;
+}
+
+// Obtain the force contributions from a solute represented using multipoles.
+// The state is updated in-place.
+array_f_t multipole_force_terms(std::shared_ptr<Model> model,
+                                std::shared_ptr<State> state, array_f_t multipoles,
+                                array_f_t e) {
+  if (state->model()->model() != model->model()) {
+    throw py::value_error("Model mismatch: The passed state is for " +
+                          state->model()->model());
+  }
+  if (e.ndim() != 2 || e.shape(0) != 3 || e.shape(1) != model->n_cav()) {
+    throw py::value_error("e not of shape (3, n_cav) == (3, " +
+                          std::to_string(model->n_cav()) + ").");
+  }
+  if (multipoles.ndim() != 2 || multipoles.shape(1) != model->n_spheres()) {
+    throw py::value_error(
+          "'multipoles' should be an (nmultipoles, n_spheres) sized array");
+  }
+  int mmax = static_cast<int>(sqrt(multipoles.shape(0)) - 1.0);  // Multipole order
+  if (mmax < 0 || (mmax + 1) * (mmax + 1) != multipoles.shape(0)) {
+    throw py::value_error(
+          "First axis of multipole array is not of form (mmax+1)^2 for an mmax >= 0");
+  }
+
+  array_f_t forces({3, model->n_spheres()});
+  ddx_multipole_forces(model->holder(), state->holder(), model->n_spheres(),
+                       model->n_cav(), multipoles.shape(0), multipoles.data(), e.data(),
+                       forces.mutable_data());
+  return forces;
+}
+
 /** Nuclear contribution to the cavity charges and potential */
 py::dict solute_nuclear_contribution(std::shared_ptr<Model> model) {
-  array_f_t phi({model->n_cav()});
-  array_f_t gradphi({3, model->n_cav()});
-  array_f_t psi({model->n_basis(), model->n_spheres()});
-  ddx_nuclear_contributions(model->holder(), model->n_spheres(), model->n_cav(),
-                            model->n_basis(), phi.mutable_data(), gradphi.mutable_data(),
-                            psi.mutable_data());
-  // TODO For LPB also return Hessian of phi
-  return py::dict("phi"_a = phi, "gradphi"_a = gradphi, "psi"_a = psi);
+  // Convert charges from the model to multipoles
+  array_f_t multipoles({1, model->n_spheres()});
+  for (size_t i = 0; i < model->n_spheres(); ++i) {
+    multipoles.mutable_data()[i] = model->sphere_charges().data()[i] / sqrt(4 * M_PI);
+  }
+  auto solute_field = multipole_electrostatics(model, multipoles, 1);
+  array_f_t psi     = multipole_psi(model, multipoles);
+  return py::dict("phi"_a = solute_field["phi"], "gradphi"_a = solute_field["e"],
+                  "psi"_a = psi);
 }
 
 std::shared_ptr<State> construct_initial_guess(std::shared_ptr<Model> model) {
@@ -316,8 +400,9 @@ std::shared_ptr<State> adjoint_solve(std::shared_ptr<Model> model,
 }
 
 // Obtain the COSMO / PCM forces. The state is modified in-place
-array_f_t force_terms(std::shared_ptr<Model> model, std::shared_ptr<State> state,
-                      array_f_t phi, array_f_t gradphi, array_f_t psi) {
+array_f_t solvation_force_terms(std::shared_ptr<Model> model,
+                                std::shared_ptr<State> state, array_f_t phi, array_f_t e,
+                                array_f_t psi) {
   if (state->model()->model() != model->model()) {
     throw py::value_error("Model mismatch: The passed state is for " +
                           state->model()->model());
@@ -332,20 +417,19 @@ array_f_t force_terms(std::shared_ptr<Model> model, std::shared_ptr<State> state
                           std::to_string(model->n_basis()) + ", " +
                           std::to_string(model->n_spheres()) + ").");
   }
-  if (gradphi.ndim() != 2 || gradphi.shape(0) != 3 ||
-      gradphi.shape(1) != model->n_cav()) {
-    throw py::value_error("gradphi not of shape (3, n_cav) == (3, " +
+  if (e.ndim() != 2 || e.shape(0) != 3 || e.shape(1) != model->n_cav()) {
+    throw py::value_error("e not of shape (3, n_cav) == (3, " +
                           std::to_string(model->n_cav()) + ").");
   }
 
   array_f_t forces({3, model->n_spheres()});
   if (model->model() == "cosmo") {
     ddx_cosmo_forces(model->holder(), state->holder(), model->n_basis(),
-                     model->n_spheres(), model->n_cav(), phi.data(), gradphi.data(),
-                     psi.data(), forces.mutable_data());
+                     model->n_spheres(), model->n_cav(), phi.data(), e.data(), psi.data(),
+                     forces.mutable_data());
   } else if (model->model() == "pcm") {
     ddx_pcm_forces(model->holder(), state->holder(), model->n_basis(), model->n_spheres(),
-                   model->n_cav(), phi.data(), gradphi.data(), psi.data(),
+                   model->n_cav(), phi.data(), e.data(), psi.data(),
                    forces.mutable_data());
   } else {
     throw py::value_error("Model " + model->model() + " not yet implemented.");
@@ -425,16 +509,32 @@ void export_pyddx_classes(py::module& m) {
               "coord"_a, "sphere"_a, "out"_a,
               "With reference to a atomic sphere `sphere` of radius `r` centred at `a` "
               "compute 4π/(2l+1) * (|x-a|/r)^l * Y_l^m(|x-a|).")
+        //
+        .def("multipole_electrostatics", &multipole_electrostatics,
+             "Return the solute potential, electric field and field gradients for a "
+             "solute represented by a distribution of multipoles on the cavity centres. "
+             "The order of potential derivatives is given by the 'derivative_order' flag "
+             "(0 for just the potential 'phi', 1 for 'phi' and field 'e', 2 for 'phi', "
+             "'e' and field gradient 'g').",
+             "multipoles"_a, "derivative_order"_a = 1)
+        .def("multipole_psi", &multipole_psi,
+             "Return the solute contribution to psi generated from a distribution of "
+             "multipoles on the cavity centres.",
+             "multipoles"_a)
+        .def("multipole_force_terms", &multipole_force_terms,
+             "Obtain the force contributions from a solute represented using multipoles. "
+             "The state is updated in-place.",
+             "state"_a, "multipoles"_a, "e"_a)
         .def("solute_nuclear_contribution", &solute_nuclear_contribution,
              "Return the terms of the nuclear contribution to the solvation as a python "
-             "dictionary.")
+             "dictionary (Deprecated).")
         //
         .def("initial_guess", &construct_initial_guess, "Return an initial guess state.")
         .def("solve", &solve, "state"_a, "phi"_a, "tol"_a = 1e-8, "TODO Docstring")
         .def("adjoint_solve", &adjoint_solve, "state"_a, "psi"_a, "tol"_a = 1e-8,
              "TODO Docstring")
-        .def("force_terms", &force_terms, "state"_a, "phi"_a, "gradphi"_a, "psi"_a,
-             "TODO Doctring")
+        .def("solvation_force_terms", &solvation_force_terms, "state"_a, "phi"_a, "e"_a,
+             "psi"_a, "TODO Doctring")
         //
         ;
 

@@ -13,6 +13,7 @@
 program main
 ! Get the high-level ddX-module 
 use ddx
+use ddx_multipolar_solutes
 ! Enable OpenMP
 use omp_lib
 implicit none
@@ -75,7 +76,7 @@ if (iprint .gt. 0) then
     ! Print info on the primal ddPCM system
     if (ddx_data % params % model .eq. 2) then
         ! Print each iteration if needed
-        if (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) then
+        if (iprint .gt. 1) then
             do i = 1, state % phieps_niter
                 print " (A,I4,A,ES20.14)", "iter=", i, &
                     & " relative difference: ", state % phieps_rel_diff(i)
@@ -90,7 +91,7 @@ if (iprint .gt. 0) then
     ! Print info on the primal ddLPB system
     if (ddx_data % params % model .eq. 3) then
         ! Print each iteration if needed
-        if (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) then
+        if (iprint .gt. 1) then
             do i = 1, state % phieps_niter
                 print " (A,I4,A,ES20.14)", "iter=", i, &
                     & " relative difference: ", state % x_lpb_rel_diff(i)
@@ -104,7 +105,7 @@ if (iprint .gt. 0) then
     end if
     ! Print info on the primal ddCOSMO system
     ! Print each iteration if needed
-    if (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) then
+    if (iprint .gt. 1) then
         do i = 1, state % xs_niter
             print "(A,I4,A,ES20.14)", " iter=", i, &
                 & " relative difference: ", state % xs_rel_diff(i)
@@ -115,7 +116,7 @@ if (iprint .gt. 0) then
         & " seconds"
     print "(A,I4)", " ddcosmo step iterations: ", state % xs_niter
     ! Print info on the adjoint solver
-    if (ddx_data % params % force .eq. 1 .and. ddx_data % params % itersolver.eq.1) then
+    if (ddx_data % params % force .eq. 1) then
         ! Print info on the adjoint ddCOSMO system
         ! Print each iteration if needed
         if (iprint .gt. 1) then
@@ -132,7 +133,7 @@ if (iprint .gt. 0) then
         ! Print info on the adjoint ddPCM system
         if (ddx_data % params % model .eq. 2) then
             ! Print each iteration if needed
-            if (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) then
+            if (iprint .gt. 1) then
                 do i = 1, state % y_niter
                     print "(A,I4,A,ES20.14)", " iter=", i, &
                         & " relative difference: ", state % y_rel_diff(i)
@@ -147,7 +148,7 @@ if (iprint .gt. 0) then
         ! Print info on the adjoint ddLPB system
         if (ddx_data % params % model .eq. 3) then
             ! Print each iteration if needed
-            if (iprint .gt. 1 .and. ddx_data % params % itersolver.eq.1) then
+            if (iprint .gt. 1) then
                 do i = 1, state % y_niter
                     print "(A,I4,A,ES20.14)", " iter=", i, &
                         & " relative difference: ", state % x_adj_lpb_rel_diff(i)
@@ -163,11 +164,11 @@ if (iprint .gt. 0) then
 end if
 write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time-start_time, " seconds"
 write(*, "(A,ES25.16E3)") " Solvation energy:", esolv
-write(*, "(A,ES25.16E3)") " Solvation energy (kJ/mol):", esolv*tokj
+write(*, "(A,ES25.16E3)") " Solvation energy (kcal/mol):", esolv*tokcal
 if (ddx_data % params % force .eq. 1) then
-    write(*, *) " Full forces (kJ/mol/A)"
+    write(*, *) " Full forces (kcal/mol/A)"
     do isph = 1, ddx_data % params % nsph
-        write(6,'(1x,i5,3ES25.16E3)') isph, force(:,isph)*tokj/toang
+        write(6,'(1x,i5,3ES25.16E3)') isph, force(:,isph)*tokcal/toang
     end do
 end if
 

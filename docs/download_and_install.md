@@ -27,7 +27,7 @@ setup.py test
 > cd ddX
 > mkdir build
 > cd build
-> cmake .. 
+> cmake ..
 > make
 ```
 Per default, the library is located in /src.
@@ -39,13 +39,13 @@ Per default, the library is located in /src.
 ```
 **To see the documentation**
 ``` markdown
-> cd ddX/build/docs/html
+> cd ../doxygen
 > pwd
 ```
 Copy the link shown by pwd and add /index.html in a web browser
 #### Hints and hacks
 1. For specifying compilers use
-``` markdown 
+``` markdown
 cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_C_COMPILER=/usr/local/bin/gcc-11 ..
 ```
 **NOTE**: Replace g++-11 and gcc-11 with the compilers you desire

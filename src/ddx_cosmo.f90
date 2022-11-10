@@ -67,6 +67,24 @@ subroutine ddcosmo_forces(params, constants, workspace, state, phi_cav, &
         & state % xs, state % zeta, force, info)
 end subroutine ddcosmo_forces
 
+subroutine ddcosmo_geom_forces(params, constants, workspace, state, phi_cav, &
+    & gradphi_cav, psi, force)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav)
+    real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    real(dp), intent(out) :: force(3, params % nsph)
+    integer :: info
+
+    call ddcosmo_geom_forces_worker(params, constants, workspace, &
+        & state % phi_grid, gradphi_cav, psi, state % s, state % sgrid, &
+        & state % xs, state % zeta, force, info)
+end subroutine ddcosmo_geom_forces
+
 !> ddCOSMO solver
 !!
 !! Solves the problem within COSMO model using a domain decomposition approach.
@@ -194,14 +212,9 @@ subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
     workspace % tmp_rhs = -phi
     ! Solve ddCOSMO system L X = -Phi with a given initial guess
     start_time = omp_get_wtime()
-    if (params % itersolver .eq. 1) then
-        call jacobi_diis(params, constants, workspace, tol, &
-            & workspace % tmp_rhs, xs, xs_niter, xs_rel_diff, lx, &
-            & ldm1x, hnorm, info)
-    else 
-        call gmresr(params, constants, workspace, tol, &
-            & workspace % tmp_rhs, xs, xs_niter, r_norm, lx, info)
-    end if
+    call jacobi_diis(params, constants, workspace, tol, &
+        & workspace % tmp_rhs, xs, xs_niter, xs_rel_diff, lx, &
+        & ldm1x, hnorm, info)
     finish_time = omp_get_wtime()
     xs_time = finish_time - start_time
     ! Check if solver did not converge
@@ -262,13 +275,8 @@ subroutine ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, s, &
         return
     end if
     call cpu_time(start_time)
-    if (params % itersolver .eq. 1) then
-        call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
-            & s_rel_diff, lstarx, ldm1x, hnorm, info)
-    else
-        call gmresr(params, constants, workspace, tol, &
-            & psi, s, s_niter, r_norm, lstarx, info)
-    end if
+    call jacobi_diis(params, constants, workspace, tol, psi, s, s_niter, &
+        & s_rel_diff, lstarx, ldm1x, hnorm, info)
     call cpu_time(finish_time)
     s_time = finish_time - start_time
     ! Check if solver did not converge
@@ -338,21 +346,23 @@ subroutine ddcosmo_forces_worker(params, constants, workspace, phi_grid, &
         call contract_grad_U(params, constants, isph, sgrid, phi_grid, &
             & force(:, isph))
     end do
-    force = -pt5 * force
+    force = - pt5 * force
+
     icav = 0
     do isph = 1, params % nsph
         do igrid = 1, params % ngrid
             if (constants % ui(igrid, isph) .ne. zero) then
                 icav = icav + 1
-                zeta(icav) = -pt5 * constants % wgrid(igrid) * &
+                zeta(icav) = constants % wgrid(igrid) * &
                     & constants % ui(igrid, isph) * ddot(constants % nbasis, &
                     & constants % vgrid(1, igrid), 1, &
                     & s(1, isph), 1)
-                force(:, isph) = force(:, isph) + &
-                    & zeta(icav)*gradphi_cav(:, icav)
+                force(:, isph) = force(:, isph) &
+                    & - pt5*zeta(icav)*gradphi_cav(:, icav)
             end if
         end do
     end do
+
     !! Last term where we compute gradients of potential at centers of atoms
     !! spawned by intermediate zeta.
     if(params % fmm .eq. 1) then
@@ -420,8 +430,8 @@ subroutine ddcosmo_forces_worker(params, constants, workspace, phi_grid, &
             end do
         end if
         do isph = 1, params % nsph
-            force(:, isph) = force(:, isph) + &
-                & workspace % tmp_efld(:, isph)*params % charge(isph)
+            force(:, isph) = force(:, isph) &
+                & -pt5*workspace % tmp_efld(:, isph)*params % charge(isph)
         end do
     ! Naive quadratically scaling implementation
     else
@@ -429,13 +439,89 @@ subroutine ddcosmo_forces_worker(params, constants, workspace, phi_grid, &
         call efld(constants % ncav, zeta, constants % ccav, &
             & params % nsph, params % csph, workspace % tmp_efld)
         do isph = 1, params % nsph
-            force(:, isph) = force(:, isph) - &
-                & workspace % tmp_efld(:, isph)*params % charge(isph)
+            force(:, isph) = force(:, isph) &
+                & + pt5*workspace % tmp_efld(:, isph)*params % charge(isph)
         end do
     end if
     ! Clear status
     info = 0
 end subroutine ddcosmo_forces_worker
+
+subroutine ddcosmo_geom_forces_worker(params, constants, workspace, phi_grid, &
+        & gradphi_cav, psi, s, sgrid, xs, zeta, force, info)
+    !! Inputs
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: phi_grid(params % ngrid, params % nsph), &
+        & gradphi_cav(3, constants % ncav), &
+        & psi(constants % nbasis, params % nsph), &
+        & s(constants % nbasis, params % nsph), &
+        & xs(constants % nbasis, params % nsph)
+    !! Temporary buffers
+    type(ddx_workspace_type), intent(inout) :: workspace
+    !! Outputs
+    real(dp), intent(out) :: sgrid(params % ngrid, params % nsph), &
+        & zeta(constants % ncav), &
+        & force(3, params % nsph)
+    integer, intent(out) :: info
+    !! Local variables
+    integer :: isph, icav, igrid, inode, jnode, jsph, jnear
+    real(dp) :: tmp1, tmp2, d(3), dnorm
+    real(dp), external :: ddot, dnrm2
+    character(len=255) :: string
+    !! The code
+    ! At first check if parameters, constants and workspace are correctly
+    ! initialized
+    if (params % error_flag .ne. 0) then
+        string = "ddcosmo_forces: `params` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (constants % error_flag .ne. 0) then
+        string = "ddcosmo_forces: `constants` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    if (workspace % error_flag .ne. 0) then
+        string = "ddcosmo_forces: `workspace` is in error state"
+        call params % print_func(string)
+        info = 1
+        return
+    end if
+    ! Get values of S on grid
+    call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &
+        & constants % vgrid, constants % vgrid_nbasis, one, s, zero, sgrid)
+    force = zero
+    do isph = 1, params % nsph
+        call contract_grad_L(params, constants, isph, xs, sgrid, &
+            & workspace % tmp_vylm(:, 1), workspace % tmp_vdylm(:, :, 1), &
+            & workspace % tmp_vplm(:, 1), &
+            & workspace % tmp_vcos(:, 1), &
+            & workspace % tmp_vsin(:, 1), force(:, isph))
+        call contract_grad_U(params, constants, isph, sgrid, phi_grid, &
+            & force(:, isph))
+    end do
+    force = - pt5 * force
+
+    ! assemble the intermediate zeta: S weighted by U evaluated on the
+    ! exposed grid points. This is not required here, but it is used
+    ! in later steps.
+    icav = 0
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .ne. zero) then
+                icav = icav + 1
+                zeta(icav) = constants % wgrid(igrid) * &
+                    & constants % ui(igrid, isph) * ddot(constants % nbasis, &
+                    & constants % vgrid(1, igrid), 1, &
+                    & s(1, isph), 1)
+            end if
+        end do
+    end do
+
+end subroutine ddcosmo_geom_forces_worker
 
 end module ddx_cosmo
 

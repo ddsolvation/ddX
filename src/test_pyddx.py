@@ -1,8 +1,5 @@
-import numpy as np
-
-from pytest import approx
-
 import pyddx
+import numpy as np
 
 
 def test_reference_pcm():
@@ -31,15 +28,35 @@ def test_reference_pcm():
         [ 0.00000,  0.00000,  4.68652],  # noqa: E201
     ]).T
 
-    model = pyddx.Model("pcm", charges, centres, rvdw, solvent_epsilon=78.3553, lmax=10)
-    nuclear = model.solute_nuclear_contribution()
-    state = model.initial_guess()
-    state = model.solve(state, nuclear["phi"], tol=1e-10)
-    state = model.adjoint_solve(state, nuclear["psi"], tol=1e-10)
-    # TODO Test force
-
-    energy = 0.5 * np.sum(state.x * nuclear["psi"])
     ref = -0.00017974013712832552
+    ref_force = np.array([
+         [ 3.5183990823008846E-09,  1.1275703611421737E-05,  5.0328483106444900E-06],
+         [ 3.5183990821928763E-09,  1.1275703611421761E-05, -5.0328483106445104E-06],
+         [-1.1746398344638896E-19, -1.5253454073801846E-20, -1.2378811472579764E-05],
+         [-3.5183990820914780E-09, -1.1275703611421757E-05, -5.0328483106445121E-06],
+         [-3.5183990819739290E-09, -1.1275703611421764E-05,  5.0328483106444892E-06],
+         [-2.8269124554634871E-19,  8.4593913117514543E-21,  1.2378811472579792E-05],
+         [-4.9461915004768456E-09, -1.2439161462118743E-05, -7.1078808420645150E-06],
+         [-4.9461915004767157E-09, -1.2439161462118744E-05,  7.1078808420645006E-06],
+         [-6.9779879053998397E-21,  5.3074464425653005E-21,  1.4376717119412496E-05],
+         [ 4.9461915004680485E-09,  1.2439161462118765E-05,  7.1078808420645040E-06],
+         [ 4.9461915004679426E-09,  1.2439161462118765E-05, -7.1078808420645032E-06],
+         [-2.0205380608822733E-21, -1.4299794681478375E-21, -1.4376717119412485E-05],
+    ]).T
+
+    model = pyddx.Model("pcm", charges, centres, rvdw, solvent_epsilon=78.3553, lmax=10)
+    solute_multipoles = charges.reshape(1, -1) / np.sqrt(4 * np.pi)
+    solute_field = model.multipole_electrostatics(solute_multipoles)
+    solute_psi = model.multipole_psi(solute_multipoles)
+
+    state = model.initial_guess()
+    state = model.solve(state, solute_field["phi"], tol=1e-10)
+    state = model.adjoint_solve(state, solute_psi, tol=1e-10)
+    force = model.solvation_force_terms(state, solute_field["phi"],
+                                        solute_field["e"], solute_psi)
+
+    energy = 0.5 * np.sum(state.x * solute_psi)
     assert abs(energy - ref) < 5e-9
+    assert np.max(np.abs(force - ref_force)) < 1e-5
 
 # TODO Test COSMO
