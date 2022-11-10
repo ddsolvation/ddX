@@ -34,7 +34,7 @@ call getarg(2, foutname)
 call getarg(3, tmpstr)
 read(tmpstr, *) threshold
 ! Init input from a file
-call ddfromfile(finname, ddx_data, tol, iprint, info)
+call ddfromfile(finname, ddx_data, tol)
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 
 if(info .ne. 0) call error(-1, "info != 0")

@@ -45,7 +45,7 @@ do i = 1, size(alpha)
     call ddinit(nsph, charge, csph(1, :), csph(2, :), csph(3, :), rsph, 2, &
         lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
         & matvecmem, maxiter, jacobi_ndiis, &
-        & nproc, ddx_data, info)
+        & nproc, '', ddx_data)
     if(info .ne. 0) stop 1
     call check_mkrhs(ddx_data, 0, 0, iprint, 1d-1)
     call check_mkrhs(ddx_data, 1, 1, iprint, 1d-2)
@@ -84,7 +84,7 @@ subroutine check_mkrhs(ddx_data, pm, pl, iprint, threshold)
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % matvecmem, &
         & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, &
-        & ddx_data_fmm, info)
+        & '', ddx_data_fmm)
     ! Allocate resources
     allocate(phi_cav(ddx_data % constants % ncav), &
         & phi2_cav(ddx_data % constants % ncav), &
@@ -151,7 +151,7 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % matvecmem, &
         & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, &
-        & ddx_data_fmm, info)
+        & '', ddx_data_fmm)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.
     ! Get random x
@@ -232,7 +232,7 @@ subroutine check_gradr(ddx_data, pm, pl, iprint, threshold)
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % matvecmem, &
         & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, &
-        & ddx_data_fmm, info)
+        & '', ddx_data_fmm)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.
     allocate(ygrid(ddx_data % params % ngrid, ddx_data % params % nsph), &

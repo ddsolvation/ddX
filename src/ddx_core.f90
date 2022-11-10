@@ -190,7 +190,7 @@ contains
 subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, se, eta, eps, kappa, &
         & matvecmem, maxiter, jacobi_ndiis, &
-        & nproc, output_filename, ddx_data, info)
+        & nproc, output_filename, ddx_data)
     ! Inputs
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
         & matvecmem, maxiter, jacobi_ndiis, &

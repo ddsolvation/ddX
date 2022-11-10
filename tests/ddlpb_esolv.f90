@@ -37,7 +37,7 @@ real(dp), external :: dnrm2
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol, iprint, info)
+call ddfromfile(fname, ddx_data, tol)
 if(info .ne. 0) stop "info != 0"
 
 ! Allocation for variable vectors
@@ -170,7 +170,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
         & eta, epsilon_solv, kappa, 0,&
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, ddx_data2, info)
+        & ddx_data % params % nproc, '', ddx_data2)
 
     ! the state depends on lmax, so it is allocated here
     call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state)

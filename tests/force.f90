@@ -30,7 +30,7 @@ real(dp), external :: dnrm2
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol, iprint, info)
+call ddfromfile(fname, ddx_data, tol)
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 if(info .ne. 0) stop "info != 0"
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
@@ -91,7 +91,7 @@ subroutine solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, &
         & ddx_data % params % matvecmem, ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, ddx_data2, info)
+        & ddx_data % params % nproc, '', ddx_data2)
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
         & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
     call ddsolve(ddx_data2, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, &

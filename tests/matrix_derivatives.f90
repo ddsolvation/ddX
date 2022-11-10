@@ -76,7 +76,7 @@ real(dp), external :: dnrm2, ddot
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file 12"
-call ddfromfile(fname, ddx_data, tol, iprint, info)
+call ddfromfile(fname, ddx_data, tol)
 if(info .ne. 0) stop "info != 0"
 
 ! lmax0 set to minimum of 6 or given lmax.
@@ -318,7 +318,7 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
         & ddx_data % params % kappa, 0, &
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, ddx_data2, info)
+        & ddx_data % params % nproc, '', ddx_data2)
     ! Allocation
     allocate(random_vector_n_one(ddx_data2 % constants % n), &
              & random_vector_n_two(ddx_data2 % constants % n), &
