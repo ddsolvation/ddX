@@ -141,13 +141,10 @@ $(document).ready(function(){initNavTree('label_run_as_standalone.html',''); ini
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">19&ndash;END   </td><td class="markdownTableBodyNone">Float[5]   </td><td class="markdownTableBodyNone">The flollowing lines specify for each atom (should be consistent with entry on line 20) the values c,x,y,z,r where the partial charge (c), x-coordinate (x), y-coordinate (y), z-coordinate (z), radius (r) are listed (see example below). The charges are in <em>atomic units</em> and the coordinates and the radii in <em>Ångstrom</em>.   </td></tr>
 </table>
-<p ><sup>[1]</sup>: H.A. van der Vorst, C. Vuik, "GMRESR: a Family of Nested GMRES Methods", Num. Lin. Alg. Appl., vol. 1(4), 369&ndash;386 (1994): <a href="https://webspace.science.uu.nl/~vorst102/gmresr.f">[link to file]</a></p>
-<p ><sup>[2]</sup>: corresponds to the agrument <em>mgmres</em> in <sup>[1]</sup>.</p>
-<p ><sup>[3]</sup>: corresponds to the agrument <em>j</em> in <sup>[1]</sup>.</p>
 <p ><b>Remarks:</b></p><ol type="1">
 <li>The order of the lines is essential</li>
 </ol>
-<p ><b>Example of an input file:</b> </p><div class="fragment"><div class="line">1           ! Printing flag. The larger the value[integer], the more verbose the output</div>
+<p ><b>Example of an input file:</b> </p><div class="fragment"><div class="line">&#39;&#39;          ! Name of log-file for additional information</div>
 <div class="line">1           ! Number of OpenMP cores to be used</div>
 <div class="line">1           ! Specification of the model: 1 for COSMO, 2 for PCM and 3 for LPB</div>
 <div class="line">7           ! Maximal degree of modeling spherical harmonics</div>
@@ -157,12 +154,9 @@ $(document).ready(function(){initNavTree('label_run_as_standalone.html',''); ini
 <div class="line">0.1         ! Regularization parameter</div>
 <div class="line">0.0         ! Debye Hückel parameter</div>
 <div class="line">0           ! Whether to compute and store sparse matrices (1) or not (0)</div>
-<div class="line">2           ! Iterative solver for linear systems: 1: Jacobi/DIIS , 2: GMRESR solver</div>
 <div class="line">1d-8        ! The relative threshold for the iterative solver</div>
 <div class="line">100         ! Maximum number of iterations</div>
 <div class="line">20          ! Number of Jacobi DIIS extrapolation points</div>
-<div class="line">1           ! Number of last vectors GMRESR works with</div>
-<div class="line">0           ! Dimension of GMRESR</div>
 <div class="line">1           ! Whether to compute (1) or not (0) forces</div>
 <div class="line">1           ! Whether to use (1) or not (0) the FMM</div>
 <div class="line">7           ! Max degree of multipole spherical harmonics for the FMM</div>
