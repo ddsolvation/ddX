@@ -335,8 +335,10 @@ subroutine contract_grad_C(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
 
     call contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
         & Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re)
+    if (workspace % error_flag .eq. 1) return
     call contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
         & Xadj_e_sgrid, diff_re, force)
+    if (workspace % error_flag .eq. 1) return
 
 end subroutine contract_grad_C
 
@@ -364,8 +366,10 @@ subroutine contract_grad_f(params, constants, workspace, sol_adj, sol_sgrid, &
 
     call contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sgrid, &
         & gradpsi, force)
+    if (workspace % error_flag .eq. 1) return
     call contract_grad_f_worker2(params, constants, workspace, sol_sgrid, gradpsi, &
         & normal_hessian_cav, icav_g, force)
+    if (workspace % error_flag .eq. 1) return
 
 end subroutine contract_grad_f
 
@@ -667,8 +671,12 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_
     allocate(phi_n_r(params % ngrid, params % nsph), &
         & phi_n_e(params % ngrid, params % nsph), &
         & diff_re_sgrid(params % ngrid, params % nsph), stat=istat)
-    if (istat.ne.0) stop 1
-
+    if (istat.ne.0) then
+        workspace % error_flag = 1
+        workspace % error_message = "allocation error in ddx_contract_grad_C_worker1"
+        return
+    end if
+!
     sum_int = zero
     sum_r = zero
     sum_e = zero
@@ -686,7 +694,11 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_
     if (params % fmm .eq. 0) then
         allocate(coefY_d(constants % ncav, params % ngrid, params % nsph), &
             & stat=istat)
-        if (istat.ne.0) stop 1
+        if (istat.ne.0) then
+            workspace % error_flag = 1
+            workspace % error_message = "allocation error in fmm ddx_contract_grad_C_worker1"
+            return
+        end if
         coefY_d = zero
         ! Compute  summation over l0, m0
         ! Loop over the sphers j
@@ -859,10 +871,18 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_
     end do
 
     deallocate(phi_n_r, phi_n_e, diff_re_sgrid, stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        workspace % error_flag = 1
+        workspace % error_message = "deallocation error in ddx_contract_grad_C_worker1"
+        return
+    end if
     if (allocated(coefY_d)) then
         deallocate(coefY_d, stat=istat)
-        if (istat.ne.0) stop 1
+        if (istat.ne.0) then
+            workspace % error_flag = 1
+            workspace % error_message = "deallocation error in ddx_contract_grad_C_worker1"
+            return
+        end if
     end if
 end subroutine contract_grad_C_worker1
 
@@ -934,7 +954,11 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
         & diff1(constants % nbasis0, params % nsph), &
         & diff1_grad((constants % lmax0+2)**2, 3, params % nsph), &
         & l2l_grad((params % pl+2)**2, 3, params % nsph), stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        workspace % error_flag = 1
+        workspace % error_message = "allocation error in ddx_contract_grad_C_worker2"
+        return
+    end if
 
     ! Setting initial values to zero
     SK_rijn = zero
@@ -1230,7 +1254,11 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
     end do
     deallocate(diff_ep_dim3, phi_in, sum_dim3, diff1_grad, l2l_grad, &
         & diff0, diff1, stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        workspace % error_flag = 1
+        workspace % error_message = "deallocation error in ddx_contract_grad_C_worker2"
+        return
+    end if
 end subroutine contract_grad_C_worker2
 
 !> Subroutine to compute the derivative of U_i(x_in) and \bf{k}^j_l0(x_in)Y^j_l0m0(x_in)
@@ -1301,7 +1329,11 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
         & sum_Sjin(params % ngrid, params % nsph), &
         & l2l_grad((params % pl+2)**2, 3, params % nsph), &
         & diff0(constants % nbasis0, params % nsph), stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        workspace % error_flag = 1
+        workspace % error_message = "allocation error in ddx_grad_f_worker1"
+        return
+    end if
 
 
     ! Setting initial values to zero
@@ -1579,7 +1611,11 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
 
     deallocate(phi_in, diff_ep_dim3, sum_dim3, c0_d, c0_d1, &
           & c0_d1_grad, sum_Sjin, l2l_grad, diff0, stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        workspace % error_flag = 1
+        workspace % error_message = "deallocation error in ddx_grad_f_worker1"
+        return
+    end if
 
 end subroutine contract_grad_f_worker1
 
@@ -1640,7 +1676,11 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
     allocate(phi_n(params % ngrid, params % nsph), &
         & phi_n2(params % ngrid, params % nsph), &
         & gradpsi_grid(params % ngrid, params % nsph), stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        workspace % error_flag = 1
+        workspace % error_message = "allocation error in ddx_grad_f_worker2"
+        return
+    end if
 
     ! Intial allocation of vectors
     sum_int = zero
@@ -1657,7 +1697,11 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
     if (params % fmm .eq. 0) then
         allocate(coefY_d(constants % ncav, params % ngrid, params % nsph), &
             & stat=istat)
-        if (istat.ne.0) stop 1
+        if (istat.ne.0) then
+            workspace % error_flag = 1
+            workspace % error_message = "allocation error in fmm ddx_grad_f_worker2"
+            return
+        end if
         coefY_d = zero
         ! Compute  summation over l0, m0
         ! Loop over the sphers j
@@ -1791,10 +1835,18 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
     end do
 
     deallocate(phi_n, phi_n2, gradpsi_grid, stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        workspace % error_flag = 1
+        workspace % error_message = "deallocation error in ddx_grad_f_worker2"
+        return
+    end if
     if (allocated(coefY_d)) then
         deallocate(coefY_d, stat=istat)
-        if (istat.ne.0) stop 1
+        if (istat.ne.0) then
+            workspace % error_flag = 1
+            workspace % error_message = "deallocation error in ddx_grad_f_worker2"
+            return
+        end if
     end if
 end subroutine contract_grad_f_worker2
 

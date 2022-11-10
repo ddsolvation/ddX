@@ -76,7 +76,6 @@ contains
 !! @param[in] matvec: Routine that performs
 !! @param[in] dm1vec:
 !! @param[in] norm_func:
-!! @param[out] info:
 subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
         & x_rel_diff, matvec, dm1vec, norm_func)
     !! Inputs
@@ -173,10 +172,6 @@ subroutine diis(n, nmat, ndiis, x, e, b, xnew)
     nmat1 = nmat + 1
 
     allocate(bloc(nmat1, nmat1), cex(nmat1), ipiv(nmat1), stat=istatus)
-    if (istatus.ne.0) then
-        write(*,*) 'diis: allocation failed!'
-        stop
-    end if
 
     call makeb(n, nmat, ndiis, e, b)
     bloc = b(1:nmat1, 1:nmat1)
@@ -196,10 +191,6 @@ subroutine diis(n, nmat, ndiis, x, e, b, xnew)
     nmat = nmat + 1
 
     deallocate (bloc, cex, stat=istatus)
-    if (istatus.ne.0) then
-        write(*,*) 'diis: deallocation failed!'
-        stop
-    end if
 end subroutine diis
 
 subroutine makeb(n, nmat, ndiis, e, b)
@@ -258,7 +249,7 @@ end subroutine makeb
 !       a user-given size for arrays
 !
 subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_iter, &
-          & x_rel_diff, matvec, dm1vec, norm_func, info)
+          & x_rel_diff, matvec, dm1vec, norm_func)
       type(ddx_params_type),    intent(in)    :: params
       type(ddx_constants_type), intent(in)    :: constants
       type(ddx_workspace_type), intent(inout) :: workspace
@@ -268,7 +259,7 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
       real(dp),  dimension(n),  intent(in)    :: rhs
       ! Outputs
       real(dp),  dimension(n),  intent(inout) :: x
-      integer,                  intent(inout) :: n_iter, info
+      integer,                  intent(inout) :: n_iter
       real(dp), intent(out) :: x_rel_diff(n_iter)
 !
       external                                :: matvec, dm1vec
@@ -293,8 +284,9 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
         lenb = params % jacobi_ndiis + 1
         allocate( x_diis(n,params % jacobi_ndiis), e_diis(n,params % jacobi_ndiis), bmat(lenb,lenb) , stat=istatus )
         if (istatus .ne. 0) then
-          write(*,*) ' jacobi_diis: [1] failed allocation (diis)'
-          stop
+          workspace % error_flag = 1
+          workspace % error_message = ' jacobi_diis: [1] failed allocation (diis)'
+          return
         endif
 !        
 !       initialize the number of points for diis to one.
@@ -306,8 +298,9 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
 !     allocate workspaces
       allocate( x_new(n), y(n) , stat=istatus )
       if (istatus .ne. 0) then
-        write(*,*) ' jacobi_diis: [2] failed allocation (scratch)' 
-        stop
+          workspace % error_flag = 1
+          workspace % error_message = ' jacobi_diis: [2] failed allocation (diis)'
+          return
       endif
 !
 !     Jacobi iterations
@@ -358,15 +351,14 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
 !       EXIT Jacobi loop here
 !       =====================
         if (rel_diff .le. tol) then
-            info = 0
             n_iter = it
             return
         end if
 !
       enddo
 !
-!     something went wrong...
-      info = 1
+      workspace % error_flag = 1
+      workspace % error_message = ' jacobi_diis: [2] failed allocation (diis)'
 !
       return
 !

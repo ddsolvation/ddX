@@ -175,6 +175,7 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
 
     call ddlpb_solve(params, constants, workspace, state, phi_cav, &
         & gradphi_cav, tol)
+    if (workspace % error_flag .eq. 1) return
 
     ! Compute the solvation energy
     ! note that psi is divided by fourpi
@@ -184,8 +185,10 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     ! Get forces if needed
     if(params % force .eq. 1) then
         call ddlpb_adjoint(params, constants, workspace, state, psi, tol)
+        if (workspace % error_flag .eq. 1) return
         call ddlpb_force(params, constants, workspace, state, phi_cav, &
             & gradphi_cav, hessianphi_cav, psi, force)
+        if (workspace % error_flag .eq. 1) return
     endif
 
 end subroutine ddlpb
@@ -264,11 +267,15 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
     start_time = omp_get_wtime()
     call jacobi_diis_external(params, constants, workspace, &
         & 2*constants % n, tol, rhs, x_lpb, x_lpb_niter, x_lpb_rel_diff, &
-        & cx, prec_tx, rmsnorm, istat)
+        & cx, prec_tx, rmsnorm)
+    if (workspace % error_flag .ne. 0) then
+        workspace % error_message = 'Jacobi solver failed to converge in ddlpb_solve_worker'
+        return
+    end if
     x_lpb_time = omp_get_wtime() - start_time
 
-    deallocate(rhs)
-    if (istat.ne.0) then
+    deallocate(rhs, stat = istat)
+    if (istat .ne. 0) then
         workspace % error_message = 'Deallocation failed in ddlpb_solve_worker'
         workspace % error_flag = 1
         return
@@ -319,7 +326,11 @@ subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
     call jacobi_diis_external(params, constants, workspace, &
         & 2*constants % n, tol, rhs, x_adj_lpb, x_adj_lpb_niter, &
         & x_adj_lpb_rel_diff, cstarx, prec_tstarx, &
-        & rmsnorm, istat)
+        & rmsnorm)
+    if (workspace % error_flag .ne. 0) then
+        workspace % error_message = 'Jacobi solver failed to converge in ddlpb_adjoint_worker'
+        return
+    end if
     x_adj_lpb_time = omp_get_wtime() - start_time
     deallocate(rhs, stat=istat)
     if (istat.ne.0) then
@@ -426,6 +437,7 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         & Xadj_e_sgrid, x_adj(:,:,1), x_adj(:,:,2), force, diff_re)
     ! Computation of G0 continued
     ! NOTE: contract_grad_U returns a positive summation
+    if (workspace % error_flag .eq. 1) return
     force = -force
     icav = 0
     do isph = 1, params % nsph
@@ -527,8 +539,10 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     ! Computation of F0
     call contract_grad_f(params, constants, workspace, x_adj(:,:,1), Xadj_r_sgrid, &
                   & gradphi, normal_hessian_cav, icav_gr, force)
+    if (workspace % error_flag .eq. 1) return
     call contract_grad_f(params, constants, workspace, x_adj(:,:,2), Xadj_e_sgrid, &
                   & gradphi, normal_hessian_cav, icav_ge, force)
+    if (workspace % error_flag .eq. 1) return
 
     force = - pt5*force
 
