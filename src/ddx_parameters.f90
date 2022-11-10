@@ -144,7 +144,7 @@ contains
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & fmm, pm, pl, nproc, nsph, charge, &
-        & csph, rsph, print_func, output_filename, params, info)
+        & csph, rsph, print_func, output_filename, params)
     !! Inputs
     ! Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
     integer, intent(in) :: model
@@ -197,18 +197,14 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     character(len=255) :: output_filename
     !! Outputs
     type(ddx_params_type), intent(out) :: params
-    integer, intent(out) :: info
     !! Local variables
-    integer :: igrid, i
+    integer :: igrid, i, info
     character(len=255) :: string
     !! The code
     if (len(trim(output_filename)) .ne. 0) then
         params % output_filename = output_filename
-        write(6,*) output_filename
-        write(6,*) params % output_filename
         params % verbose = .true.
         params % len_output_filename = len(trim(output_filename))
-        write(6,*) params % len_output_filename
     else
         params % output_filename = ''
         params % verbose = .false.
@@ -218,8 +214,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((model .lt. 1) .or. (model .gt. 3)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `model`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % model = model
@@ -227,8 +221,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((force .lt. 0) .or. (force .gt. 1)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `force`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % force = force
@@ -236,8 +228,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (eps .le. one) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `eps`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % eps = eps
@@ -245,8 +235,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((model .eq. 3) .and. (kappa .le. zero)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `kappa`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % kappa = kappa
@@ -254,8 +242,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((eta .lt. zero) .or. (eta .gt. one)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `eta`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % eta = eta
@@ -263,8 +249,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((se .lt. -one) .or. (se .gt. one)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `se`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % se = se
@@ -272,8 +256,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (lmax .lt. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `lmax`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % lmax = lmax
@@ -288,8 +270,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (igrid .eq. 0) then
         params % error_flag = 1
         params % error_message = "params_init: Unsupported value of `ngrid`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % ngrid = ngrid
@@ -297,8 +277,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (maxiter .le. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `maxiter`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % maxiter = maxiter
@@ -306,8 +284,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (jacobi_ndiis .lt. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `jacobi_ndiis`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % jacobi_ndiis = jacobi_ndiis
@@ -315,8 +291,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if ((fmm .lt. 0) .or. (fmm .gt. 1)) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `fmm`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % fmm = fmm
@@ -328,8 +302,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         if (pm .lt. -1) then
             params % error_flag = 1
             params % error_message = "params_init: invalid value of `pm`"
-            call print_func(params % error_message)
-            info = -1
             return
         end if
         ! Maximal degree of local spherical harmonics. Value -1 means no 
@@ -338,8 +310,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         if (pl .lt. -1) then
             params % error_flag = 1
             params % error_message = "params_init: invalid value of `pl`"
-            call print_func(params % error_message)
-            info = -1
             return
         end if
         ! If far-field interactions are to be ignored
@@ -361,8 +331,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (nproc .lt. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `nproc`"
-        call print_func(params % error_message)
-        info = -1
         return
     else if (nproc .eq. 0) then
         params % nproc = 1
@@ -374,8 +342,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (nsph .le. 0) then
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `nsph`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     params % nsph = nsph
@@ -386,8 +352,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         params % error_flag = 1
         params % error_message = "params_init: `charge`, `csph` and `rsph` " &
             & // "allocations failed"
-        call print_func(params % error_message)
-        info = 1
         return
     end if
     params % charge = charge
@@ -398,8 +362,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     else
         params % error_flag = 1
         params % error_message = "params_init: invalid value of `matvecmem`"
-        call print_func(params % error_message)
-        info = -1
         return
     end if
     ! Set print function for errors
@@ -407,7 +369,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! init log
     call init_printing(params)
     ! Clear error state
-    info = 0
     params % error_flag = 0
     params % error_message = ""
 end subroutine params_init

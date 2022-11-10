@@ -117,20 +117,18 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
     call params_init(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
         & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, &
         & fmm_multipole_lmax, fmm_local_lmax, passproc, n_spheres, sphere_charges, &
-        & sphere_centres, sphere_radii, print_func_default, logfile, ddx%params, info)
-    if (info .ne. 0) then
+        & sphere_centres, sphere_radii, print_func_default, logfile, ddx%params)
+    if (ddx%params%error_flag .ne. 0) then
         ddx%error_message = ddx%params%error_message
         return
     endif
-    info = 0
-    call constants_init(ddx%params, ddx%constants, info)
-    if (info .ne. 0) then
+    call constants_init(ddx%params, ddx%constants)
+    if (ddx%constants%error_flag .ne. 0) then
         ddx%error_message = ddx%constants%error_message
         return
     endif
-    info = 0
-    call workspace_init(ddx%params, ddx%constants, ddx%workspace, info)
-    if (info .ne. 0) then
+    call workspace_init(ddx%params, ddx%constants, ddx%workspace)
+    if (ddx%workspace%error_flag .ne. 0) then
         ddx%error_message = ddx%workspace%error_message
         return
     endif

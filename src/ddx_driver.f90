@@ -31,8 +31,8 @@ integer :: i, j, isph
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol, iprint, info)
-if(info .ne. 0) stop "info != 0"
+call ddfromfile(fname, ddx_data, tol)
+if(ddx_data % error_flag .ne. 0) stop 1
 
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 

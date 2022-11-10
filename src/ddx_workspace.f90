@@ -103,15 +103,15 @@ end type ddx_workspace_type
 
 contains
 
-subroutine workspace_init(params, constants, workspace, info)
+subroutine workspace_init(params, constants, workspace)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     !! Outputs
     type(ddx_workspace_type), intent(out) :: workspace
-    integer, intent(out) :: info
     !! Local variables
     character(len=255) :: string
+    integer :: info
     !! The code
     allocate(workspace % tmp_pot(params % ngrid, params % nproc), &
         & workspace % tmp_vplm(constants % vgrid_nbasis, params % nproc), &
@@ -125,7 +125,6 @@ subroutine workspace_init(params, constants, workspace, info)
             & // "allocations failed"
         workspace % error_message = string
         call params % print_func(string)
-        info = 1
         return
     end if
     allocate(workspace % tmp_vylm(constants % vgrid_nbasis, params % nproc), &
@@ -135,7 +134,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_vylm` " &
             & // "and `tmp_vdylm` allocations failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_sph(constants % nbasis, params % nsph), &
@@ -144,7 +142,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_sph` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     if (params % fmm .eq. 1) then
@@ -154,7 +151,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_sph2` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
         allocate(workspace % tmp_sph_grad( &
@@ -164,7 +160,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_sph_grad` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
         allocate(workspace % tmp_sph_l((params % pl+1)**2, params % nsph), &
@@ -173,7 +168,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_sph_l` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
         allocate(workspace % tmp_sph_l_grad( &
@@ -183,7 +177,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_sph_l_grad` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
         allocate(workspace % tmp_sph_l_grad2( &
@@ -193,7 +186,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_sph_l_grad2` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
         allocate(workspace % tmp_node_m((params % pm+1)**2, &
@@ -202,7 +194,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_node_m` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
         allocate(workspace % tmp_node_l((params % pl+1)**2, &
@@ -211,7 +202,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_node_l` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
     end if
@@ -221,7 +211,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_grid` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_grid2(params % ngrid, params % nsph), &
@@ -230,7 +219,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_grid2` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_cav(constants % ncav), stat=info)
@@ -238,7 +226,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_cav` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_efld(3, constants % ncav), stat=info)
@@ -246,7 +233,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_efld` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_x_new(constants % n), stat=info)
@@ -254,7 +240,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_x_new` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_y(constants % n), stat=info)
@@ -262,7 +247,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_y` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_x_diis(constants % n, 2*params % jacobi_ndiis), &
@@ -271,7 +255,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_x_diis` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_e_diis(constants % n, 2*params % jacobi_ndiis), &
@@ -280,7 +263,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_e_diis` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     allocate(workspace % tmp_bmat(2*params % jacobi_ndiis + 2, &
@@ -289,7 +271,6 @@ subroutine workspace_init(params, constants, workspace, info)
         workspace % error_flag = 1
         workspace % error_message = "workspace_init: `tmp_bmat` " // &
             & "allocation failed"
-        info = 1
         return
     end if
     ! Allocations for LPB model
@@ -301,7 +282,6 @@ subroutine workspace_init(params, constants, workspace, info)
             workspace % error_flag = 1
             workspace % error_message = "workspace_init: `tmp_bessel` " // &
                 & "allocation failed"
-            info = 1
             return
         end if
     end if

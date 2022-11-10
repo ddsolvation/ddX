@@ -186,16 +186,11 @@ contains
 !!      disabled, only possible input values are 0 or 1 and both inputs lead
 !!      to the same output nproc=1 since the library is not parallel.
 !! @param[out] ddx_data: Object containing all inputs
-!! @param[out] info: flag of succesfull exit
-!!      = 0: Succesfull exit
-!!      < 0: If info=-i then i-th argument had an illegal value
-!!      = 1: Allocation of one of buffers failed
-!!      = 2: Deallocation of a temporary buffer failed
 !------------------------------------------------------------------------------
 subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, se, eta, eps, kappa, &
         & matvecmem, maxiter, jacobi_ndiis, &
-        & nproc, output_filenam, eddx_data, info)
+        & nproc, output_filename, ddx_data, info)
     ! Inputs
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
         & matvecmem, maxiter, jacobi_ndiis, &
@@ -205,22 +200,18 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     character(len=255), intent(in) :: output_filename
     ! Output
     type(ddx_type), target, intent(out) :: ddx_data
-    integer, intent(out) :: info
     ! Inouts
     integer, intent(inout) :: nproc
     ! Local variables
-    integer :: istatus, i, indi, j, ii, inear, jnear, igrid, jgrid, isph, &
-        & jsph, lnl, l, indl, ithread, k, n, indjn
-    real(dp) :: v(3), maxv, ssqv, vv, t, swthr, fac, r, start_time, &
-        & finish_time, tmp1
-    real(dp) :: rho, ctheta, stheta, cphi, sphi
-    real(dp), allocatable :: sphcoo(:, :), csph(:, :)
-    double precision, external :: dnrm2
-    integer :: iwork, jwork, lwork, old_lwork, nngmax
-    integer, allocatable :: work(:, :), tmp_work(:, :), tmp_nl(:)
-    logical :: use_omp
+    real(dp), allocatable :: csph(:, :)
+    integer :: istatus
     ! Init underlying objects
-    allocate(csph(3, nsph))
+    allocate(csph(3, nsph), stat=istatus)
+    if (istatus.ne.0) then
+        write(ddx_data % error_message, *) 'Allocation failed in ddinit'
+        ddx_data % error_flag = 1
+        return
+    end if
     csph(1, :) = x
     csph(2, :) = y
     csph(3, :) = z
@@ -228,13 +219,19 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & fmm, pm, pl, nproc, nsph, charge, &
         & csph, rvdw, print_func_default, &
-        & output_filename, ddx_data % params, info)
-    if (info .ne. 0) return
-    call constants_init(ddx_data % params, ddx_data % constants, info)
-    if (info .ne. 0) return
+        & output_filename, ddx_data % params)
+    if (ddx_data % params % error_flag .ne. 0) return
+    call constants_init(ddx_data % params, ddx_data % constants)
+    if (ddx_data % constants % error_flag .ne. 0) return
     call workspace_init(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, info)
-    if (info .ne. 0) return
+        & ddx_data % workspace)
+    if (ddx_data % workspace % error_flag .ne. 0) return
+    deallocate(csph, stat=istatus)
+    if (istatus.ne.0) then
+        write(ddx_data % error_message, *) 'Deallocation failed in ddinit'
+        ddx_data % error_flag = 1
+        return
+    end if
 end subroutine ddinit
 
 subroutine ddx_init_state(params, constants, state)
@@ -282,7 +279,7 @@ subroutine ddx_init_state(params, constants, state)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "ddinit: `s` " // &
-                & "allocation failed"
+            & "allocation failed"
             return
         end if
         allocate(state % s_rel_diff(params % maxiter), &
@@ -526,13 +523,12 @@ end subroutine ddx_init_state
 !!      < 0: If info=-i then i-th argument had an illegal value
 !!      > 0: Allocation of a buffer for the output ddx_data failed
 !------------------------------------------------------------------------------
-subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
+subroutine ddfromfile(fname, ddx_data, tol)
     ! Input
     character(len=*), intent(in) :: fname
     ! Outputs
     type(ddx_type), intent(out) :: ddx_data
     real(dp), intent(out) :: tol
-    integer, intent(out) :: iprint, info
     ! Local variables
     integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
         & nsph, i, matvecmem, maxiter, jacobi_ndiis, &
@@ -548,128 +544,164 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     ! Number of OpenMP threads to be used
     read(100, *) nproc
     if(nproc .lt. 0) then
-        write(*, "(3A)") "Error on the 2nd line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 2nd line of a config file ", fname, &
             & ": `nproc` must be a positive integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Model to be used: 1 for COSMO, 2 for PCM and 3 for LPB
     read(100, *) model
     if((model .lt. 1) .or. (model .gt. 3)) then
-        write(*, "(3A)") "Error on the 3rd line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 3rd line of a config file ", fname, &
             & ": `model` must be an integer of a value 1, 2 or 3."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Max degree of modeling spherical harmonics
     read(100, *) lmax
     if(lmax .lt. 0) then
-        write(*, "(3A)") "Error on the 4th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 4th line of a config file ", fname, &
             & ": `lmax` must be a non-negative integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Approximate number of Lebedev points
     read(100, *) ngrid
     if(ngrid .lt. 0) then
-        write(*, "(3A)") "Error on the 5th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 5th line of a config file ", fname, &
             & ": `ngrid` must be a non-negative integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Dielectric permittivity constant of the solvent
     read(100, *) eps
     if(eps .lt. zero) then
-        write(*, "(3A)") "Error on the 6th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 6th line of a config file ", fname, &
             & ": `eps` must be a non-negative floating point value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Shift of the regularized characteristic function
     read(100, *) se
     if((se .lt. -one) .or. (se .gt. one)) then
-        write(*, "(3A)") "Error on the 7th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 7th line of a config file ", fname, &
             & ": `se` must be a floating point value in a range [-1, 1]."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Regularization parameter
     read(100, *) eta
     if((eta .lt. zero) .or. (eta .gt. one)) then
-        write(*, "(3A)") "Error on the 8th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 8th line of a config file ", fname, &
             & ": `eta` must be a floating point value in a range [0, 1]."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Debye H\"{u}ckel parameter
     read(100, *) kappa
     if(kappa .lt. zero) then
-        write(*, "(3A)") "Error on the 9th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 9th line of a config file ", fname, &
             & ": `kappa` must be a non-negative floating point value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! whether the (sparse) matrices are precomputed and kept in memory (1) or not (0).
     read(100, *) matvecmem 
     if((matvecmem.lt. 0) .or. (matvecmem .gt. 1)) then
-        write(*, "(3A)") "Error on the 10th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 10th line of a config file ", fname, &
             & ": `matvecmem` must be an integer value of a value 0 or 1."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Relative convergence threshold for the iterative solver
     read(100, *) tol
     if((tol .lt. 1d-14) .or. (tol .gt. one)) then
-        write(*, "(3A)") "Error on the 12th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 12th line of a config file ", fname, &
             & ": `tol` must be a floating point value in a range [1d-14, 1]."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Maximum number of iterations for the iterative solver
     read(100, *) maxiter
     if((maxiter .le. 0)) then
-        write(*, "(3A)") "Error on the 13th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 13th line of a config file ", fname, &
             & ": `maxiter` must be a positive integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Number of extrapolation points for Jacobi/DIIS solver
     read(100, *) jacobi_ndiis
     if((jacobi_ndiis .lt. 0)) then
-        write(*, "(3A)") "Error on the 14th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 14th line of a config file ", fname, &
             & ": `jacobi_ndiis` must be a non-negative integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Whether to compute (1) or not (0) forces as analytical gradients
     read(100, *) force
     if((force .lt. 0) .or. (force .gt. 1)) then
-        write(*, "(3A)") "Error on the 17th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 17th line of a config file ", fname, &
             & ": `force` must be an integer value of a value 0 or 1."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Whether to use (1) or not (0) the FMM to accelerate computations
     read(100, *) fmm
     if((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        write(*, "(3A)") "Error on the 18th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 18th line of a config file ", fname, &
             & ": `fmm` must be an integer value of a value 0 or 1."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Max degree of multipole spherical harmonics for the FMM
     read(100, *) pm
     if(pm .lt. 0) then
-        write(*, "(3A)") "Error on the 19th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 19th line of a config file ", fname, &
             & ": `pm` must be a non-negative integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Max degree of local spherical harmonics for the FMM
     read(100, *) pl
     if(pl .lt. 0) then
-        write(*, "(3A)") "Error on the 20th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 20th line of a config file ", fname, &
             & ": `pl` must be a non-negative integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Number of input spheres
     read(100, *) nsph
     if(nsph .le. 0) then
-        write(*, "(3A)") "Error on the 21th line of a config file ", fname, &
+        write(ddx_data % error_message, "(3A)") &
+            & "Error on the 21th line of a config file ", fname, &
             & ": `nsph` must be a positive integer value."
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     ! Coordinates, radii and charges
     allocate(charge(nsph), x(nsph), y(nsph), z(nsph), rvdw(nsph), stat=istatus)
     if(istatus .ne. 0) then
-        write(*, "(2A)") "Could not allocate space for coordinates, radii ", &
+        write(ddx_data % error_message, "(2A)") &
+            & "Could not allocate space for coordinates, radii ", &
             & "and charges of atoms"
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
     do i = 1, nsph
         read(100, *) charge(i), x(i), y(i), z(i), rvdw(i)
@@ -688,13 +720,15 @@ subroutine ddfromfile(fname, ddx_data, tol, iprint, info)
     !! Initialize ddx_data object
     call ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
         & pm, pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, output_filename, ddx_data, info)
+        & maxiter, jacobi_ndiis, nproc, output_filename, ddx_data)
     !! Clean local temporary data
     deallocate(charge, x, y, z, rvdw, stat=istatus)
     if(istatus .ne. 0) then
-        write(*, "(2A)") "Could not deallocate space for coordinates, ", &
+        write(ddx_data % error_message, "(2A)") &
+            & "Could not deallocate space for coordinates, ", &
             & "radii and charges of atoms"
-        stop 1
+        ddx_data % error_flag = 1
+        return
     end if
 end subroutine ddfromfile
 
@@ -710,18 +744,21 @@ subroutine ddfree(ddx_data)
     integer :: istatus
     call workspace_free(ddx_data % workspace, istatus)
     if (istatus .ne. 0) then
-        write(*, *) "workspace_free failed!"
-        stop 1
+        write(ddx_data % error_message, *) "workspace_free failed!"
+        ddx_data % error_flag = 1
+        return
     end if
     call constants_free(ddx_data % constants, istatus)
     if (istatus .ne. 0) then
-        write(*, *) "constants_free failed!"
-        stop 1
+        write(ddx_data % error_message, *) "constants_free failed!"
+        ddx_data % error_flag = 1
+        return
     end if
     call params_free(ddx_data % params, istatus)
     if (istatus .ne. 0) then
-        write(*, *) "params_free failed!"
-        stop 1
+        write(ddx_data % error_message, *) "params_free failed!"
+        ddx_data % error_flag = 1
+        return
     end if
 end subroutine ddfree
 
