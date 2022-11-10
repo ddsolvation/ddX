@@ -852,7 +852,8 @@ subroutine constants_geometry_init(params, constants)
         call tree_rib_build(params % nsph, params % csph, params % rsph, &
             & constants % order, constants % cluster, constants % children, &
             & constants % parent, constants % cnode, constants % rnode, &
-            & constants % snode, params % error_message, params % error_flag)
+            & constants % snode, constants % error_message, &
+            & constants % error_flag)
         if (params % error_flag .ne. 0) return
         ! Get number of far and near admissible pairs
         iwork = 0
@@ -1277,8 +1278,8 @@ subroutine constants_geometry_update(params, constants)
     !! Local variables
     !! The code
     ! Enforce error for now (not yet implemented)
-    params % error_message = 'constants geometry update is not yet implemented'
-    params % error_code = 1
+    constants % error_message = 'constants geometry update is not yet implemented'
+    constants % error_flag = 1
 end subroutine constants_geometry_update
 
 !> Switching function
@@ -1873,7 +1874,6 @@ subroutine constants_free(constants)
     integer :: istat
 
     istat = 0
-    info = 0
 
     if (allocated(constants % vscales)) then
         deallocate(constants % vscales, stat=istat)

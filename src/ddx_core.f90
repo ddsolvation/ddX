@@ -763,21 +763,20 @@ subroutine ddfree(ddx_data)
     ! Input/output
     type(ddx_type), intent(inout) :: ddx_data
     ! Local variables
-    integer :: istatus
-    call workspace_free(ddx_data % workspace, istatus)
-    if (istatus .ne. 0) then
+    call workspace_free(ddx_data % workspace)
+    if (ddx_data % workspace % error_flag .ne. 0) then
         write(ddx_data % error_message, *) "workspace_free failed!"
         ddx_data % error_flag = 1
         return
     end if
-    call constants_free(ddx_data % constants, istatus)
-    if (istatus .ne. 0) then
+    call constants_free(ddx_data % constants)
+    if (ddx_data % workspace % error_flag .ne. 0) then
         write(ddx_data % error_message, *) "constants_free failed!"
         ddx_data % error_flag = 1
         return
     end if
-    call params_free(ddx_data % params, istatus)
-    if (istatus .ne. 0) then
+    call params_free(ddx_data % params)
+    if (ddx_data % workspace % error_flag .ne. 0) then
         write(ddx_data % error_message, *) "params_free failed!"
         ddx_data % error_flag = 1
         return
