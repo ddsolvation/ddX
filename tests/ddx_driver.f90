@@ -19,7 +19,7 @@ implicit none
 character(len=255) :: finname, foutname, tmpstr
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
-integer :: iprint, info
+integer :: iprint
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
     & hessianphi_cav(:, :, :), psi(:, :), force(:, :)
 real(dp) :: tol, threshold, esolv, esolv2, fnorm, fdiff, ftmp(3)
@@ -49,7 +49,7 @@ if(istatus .ne. 0) call error(-1, "Allocation failed")
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
     & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
 ! Use the solver
-call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)
+call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)
 ! Open output file for reading
 open(unit=100, file=foutname, form='formatted', access='sequential')
 ! Skip 

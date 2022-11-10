@@ -2473,7 +2473,8 @@ subroutine check_tree_rib(alpha)
     real(dp) :: csph(3, nsph), rsph(nsph), csph2(3, nsph), rsph2(nsph), &
         & cnode(3, 2*nsph-1), rnode(2*nsph-1)
     integer :: order(nsph), i, reorder(nsph), cluster(2, 2*nsph-1), &
-        & children(2, 2*nsph-1), parent(2*nsph-1), snode(nsph)
+        & children(2, 2*nsph-1), parent(2*nsph-1), snode(nsph), flag
+    character (len=255) message
     ! Scale inputs
     csph(:, 1) = alpha * (/1d0, 1d0, 1d0/)
     csph(:, 2) = alpha * (/2d0, 2d0, 2d0/)
@@ -2495,7 +2496,7 @@ subroutine check_tree_rib(alpha)
     end do
     ! Build a recursive inertial binary tree
     call tree_rib_build(nsph, csph2, rsph2, reorder, cluster, children, &
-        & parent, cnode, rnode, snode)
+        & parent, cnode, rnode, snode, message, flag)
 end subroutine check_tree_rib
 
 !subroutine check_tree_m2m(p, alpha)
