@@ -23,7 +23,6 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
-integer :: info
 
 real(dp) :: esolv, default_value, tol
 integer :: i, istatus, iprint, default_lmax_val, n_iter
@@ -33,12 +32,13 @@ integer, allocatable :: default_iter_epsilon(:), default_iter_eta(:), &
                        & default_iter_kappa(:), default_iter_lmax(:)
 
 real(dp), external :: dnrm2
+character(len=255) :: dummy_file_name = ''
 
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol, iprint, info)
-if(info .ne. 0) stop "info != 0"
+call ddfromfile(fname, ddx_data, tol)
+if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 
 ! Allocation for variable vectors
 ! default_"variable_name" : These are the precomputed values
@@ -159,7 +159,6 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
     real(dp), allocatable :: hessianphi_cav2(:,:,:)
     real(dp), allocatable :: psi2(:,:)
     real(dp), allocatable :: force2(:,:)
-    integer :: info
 
     call ddinit(ddx_data % params % nsph, ddx_data % params % charge, &
         & ddx_data % params % csph(1, :), &
@@ -170,7 +169,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
         & eta, epsilon_solv, kappa, 0,&
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, ddx_data2, info)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data2)
 
     ! the state depends on lmax, so it is allocated here
     call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state)
@@ -187,7 +186,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
         &  1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
 
     call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
-        & psi2, tol, esolv_in, force2, info)
+        & psi2, tol, esolv_in, force2)
 
     n_iter = state % x_lpb_niter
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)

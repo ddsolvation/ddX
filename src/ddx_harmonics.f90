@@ -568,6 +568,7 @@ end subroutine polleg_work
 ! @param[in]  argument : Argument of Bessel function
 ! @param[out] SI       : Modified Bessel function of the first kind
 ! @param[out] DI       : Derivative of modified Bessel function of the first kind
+! @param[out] ierr     : error code
 subroutine modified_spherical_bessel_first_kind(lmax, argument, SI, DI, work)
     use Complex_Bessel
     !! Inputs
@@ -4571,11 +4572,59 @@ subroutine fmm_m2m_bessel_ztranslate_work(z, src_sk, dst_sk, p, vscales, vcnk, &
             end do
         ! Update output if beta is non-zero
         else
-            stop 111
+            do j = 0, p
+                ! Offset for dst_m
+                indj = j*j + j + 1
+                ! k = 0
+                k = 0
+                res1 = zero
+                do n = 0, p
+                    ! Offset for src_m
+                    indn = n*n + n + 1
+                    tmp1 = vscales(indn) * &
+                        & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+                        & src_sk(n+1) / vscales(indj) * dst_sk(j+1)
+                    tmp3 = zero
+                    do l = 0, min(j, n)
+                        tmp2 = (two**(-l)) / &
+                            & fact(l+1)*fact(2*l+1)/ &
+                            & fact(l+1)/fact(l+1)/fact(j-l+1)/fact(n-l+1)* &
+                            & (work(j+n-l+1) / (z**l))
+                        tmp3 = tmp3 + tmp2
+                    end do
+                    tmp3 = tmp3 * tmp1
+                    res1 = res1 + tmp3*src_m(indn)
+                end do
+                dst_m(indj) = beta*dst_m(indj) + res1
+                ! k != 0
+                do k = 1, j
+                    res1 = zero
+                    res2 = zero
+                    do n = k, p
+                        ! Offset for src_m
+                        indn = n*n + n + 1
+                        tmp1 = vscales(indn+k) * &
+                            & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                            & src_sk(n+1) / vscales(indj+k) * dst_sk(j+1)
+                        tmp3 = zero
+                        do l = k, min(j, n)
+                            tmp2 = (two**(-l)) / &
+                                & fact(l+k+1)*fact(2*l+1)/ &
+                                & fact(l+1)/fact(l-k+1)/fact(j-l+1)/fact(n-l+1)* &
+                                & (work(j+n-l+1) / (z**l))
+                            tmp3 = tmp3 + tmp2
+                        end do
+                        tmp3 = tmp3 * tmp1
+                        res1 = res1 + tmp3*src_m(indn+k)
+                        res2 = res2 + tmp3*src_m(indn-k)
+                    end do
+                    dst_m(indj+k) = beta*dst_m(indj+k) + res1
+                    dst_m(indj-k) = beta*dst_m(indj-k) + res2
+                end do
+            end do
         end if
     ! If harmonics are located at the same point
     else
-        stop 222
         ! Overwrite output if beta is zero
         if (beta .eq. zero) then
             !r1 = src_r / dst_r
@@ -4763,11 +4812,59 @@ subroutine fmm_m2m_bessel_ztranslate_adj_work(z, src_sk, dst_sk, p, vscales, vcn
             end do
         ! Update output if beta is non-zero
         else
-            stop 111
+            do n = 0, p
+                ! Offset for dst_m
+                indn = n*n + n + 1
+                ! k = 0
+                k = 0
+                res1 = zero
+                do j = 0, p
+                    ! Offset for src_m
+                    indj = j*j + j + 1
+                    tmp1 = vscales(indn) * &
+                        & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+                        & src_sk(n+1) / vscales(indj) * dst_sk(j+1)
+                    tmp3 = zero
+                    do l = 0, min(j, n)
+                        tmp2 = (two**(-l)) / &
+                            & fact(l+1)*fact(2*l+1)/ &
+                            & fact(l+1)/fact(l+1)/fact(j-l+1)/fact(n-l+1)* &
+                            & (work(j+n-l+1) / (z**l))
+                        tmp3 = tmp3 + tmp2
+                    end do
+                    tmp3 = tmp3 * tmp1
+                    res1 = res1 + tmp3*src_m(indj)
+                end do
+                dst_m(indn) = beta*dst_m(indn) + res1
+                ! k != 0
+                do k = 1, n
+                    res1 = zero
+                    res2 = zero
+                    do j = k, p
+                        ! Offset for src_m
+                        indj = j*j + j + 1
+                        tmp1 = vscales(indn+k) * &
+                            & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                            & src_sk(n+1) / vscales(indj+k) * dst_sk(j+1)
+                        tmp3 = zero
+                        do l = k, min(j, n)
+                            tmp2 = (two**(-l)) / &
+                                & fact(l+k+1)*fact(2*l+1)/ &
+                                & fact(l+1)/fact(l-k+1)/fact(j-l+1)/fact(n-l+1)* &
+                                & (work(j+n-l+1) / (z**l))
+                            tmp3 = tmp3 + tmp2
+                        end do
+                        tmp3 = tmp3 * tmp1
+                        res1 = res1 + tmp3*src_m(indj+k)
+                        res2 = res2 + tmp3*src_m(indj-k)
+                    end do
+                    dst_m(indn+k) = beta*dst_m(indn+k) + res1
+                    dst_m(indn-k) = beta*dst_m(indn-k) + res2
+                end do
+            end do
         end if
     ! If harmonics are located at the same point
     else
-        stop 222
         ! Overwrite output if beta is zero
         if (beta .eq. zero) then
             !r1 = src_r / dst_r
@@ -5070,7 +5167,217 @@ subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
         end do
     ! Update output if beta is non-zero
     else
-        stop 111
+        ! j=0, k=0, n=1, l=0
+        j = 0
+        k = 0
+        n = 1
+        l = 0
+        indj = 1
+        indn = 3
+        dst_m(1) = vscales(3) / src_sk(2) / vscales(1) * src_sk(1) / fact2(2) * &
+            & src_m(3) * alpha + dst_m(1)*beta
+        ! j=1..p-1
+        do j = 1, p-1
+            ! Offset for dst_m
+            indj = j*j + j + 1
+            ! k = 0
+            k = 0
+            res1 = zero
+            ! n=j-1
+            n = j-1
+            ! Offset for src_m
+            indn = n*n + n + 1
+            tmp1 = vscales(indn) * &
+                & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+                & src_sk(n+1) / vscales(indj) * src_sk(j+1) * alpha
+            tmp3 = zero
+            ! l=n
+            l = n
+            tmp2 = (two**(-l)) / &
+                & fact(l+1)*fact(2*l+1)/ &
+                & fact(l+1)/fact(l+1)/ &
+                & fact2(j+1)
+            tmp3 = tmp3 + tmp2
+            tmp3 = tmp3 * tmp1
+            res1 = res1 + tmp3*src_m(indn)
+            ! n=j+1
+            n = j+1
+            ! Offset for src_m
+            indn = n*n + n + 1
+            tmp1 = vscales(indn) * &
+                & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+                & src_sk(n+1) / vscales(indj) * src_sk(j+1) * alpha
+            tmp3 = zero
+            ! l=j
+            l = j
+            tmp2 = (two**(-l)) / &
+                & fact(l+1)*fact(2*l+1)/ &
+                & fact(l+1)/fact(l+1)/ &
+                & fact2(j+2)
+            tmp3 = tmp3 + tmp2
+            tmp3 = tmp3 * tmp1
+            res1 = res1 + tmp3*src_m(indn)
+            dst_m(indj) = beta*dst_m(indj) + res1
+            ! k=1..j-1
+            do k = 1, j-1
+                res1 = zero
+                res2 = zero
+                ! n=j-1
+                n = j-1
+                ! Offset for src_m
+                indn = n*n + n + 1
+                tmp1 = vscales(indn+k) * &
+                    & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                    & src_sk(n+1) / vscales(indj+k) * src_sk(j+1) * alpha
+                tmp3 = zero
+                l = n
+                tmp2 = (two**(-l)) / &
+                    & fact(l+k+1)*fact(2*l+1)/ &
+                    & fact(l+1)/fact(l-k+1)/ &
+                    & fact2(j+1)
+                tmp3 = tmp3 + tmp2
+                tmp3 = tmp3 * tmp1
+                res1 = res1 + tmp3*src_m(indn+k)
+                res2 = res2 + tmp3*src_m(indn-k)
+                ! n=j+1
+                n = j+1
+                ! Offset for src_m
+                indn = n*n + n + 1
+                tmp1 = vscales(indn+k) * &
+                    & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                    & src_sk(n+1) / vscales(indj+k) * src_sk(j+1) * alpha
+                tmp3 = zero
+                l = j
+                tmp2 = (two**(-l)) / &
+                    & fact(l+k+1)*fact(2*l+1)/ &
+                    & fact(l+1)/fact(l-k+1)/ &
+                    & fact2(j+2)
+                tmp3 = tmp3 + tmp2
+                tmp3 = tmp3 * tmp1
+                res1 = res1 + tmp3*src_m(indn+k)
+                res2 = res2 + tmp3*src_m(indn-k)
+                dst_m(indj+k) = beta*dst_m(indj+k) + res1
+                dst_m(indj-k) = beta*dst_m(indj-k) + res2
+            end do
+            ! k=j
+            k = j
+            res1 = zero
+            res2 = zero
+            ! n=j+1
+            n = j+1
+            ! Offset for src_m
+            indn = n*n + n + 1
+            tmp1 = vscales(indn+k) * &
+                & dble(2*j+1) * fact(n+k+1) / &
+                & src_sk(n+1) / vscales(indj+k) * src_sk(j+1) * alpha
+            tmp3 = zero
+            l = j
+            tmp2 = (two**(-l)) / &
+                & fact(l+k+1)*fact(2*l+1)/ &
+                & fact(l+1)/ &
+                & fact2(j+2)
+            tmp3 = tmp3 + tmp2
+            tmp3 = tmp3 * tmp1
+            res1 = res1 + tmp3*src_m(indn+k)
+            res2 = res2 + tmp3*src_m(indn-k)
+            dst_m(indj+k) = beta*dst_m(indj+k) + res1
+            dst_m(indj-k) = beta*dst_m(indj-k) + res2
+        end do
+        ! j=p, n=p-1, l=p-1
+        j = p
+        n = p-1
+        ! Offset for dst_m
+        indj = j*j + j + 1
+        ! k = 0
+        k = 0
+        res1 = zero
+        ! Offset for src_m
+        indn = n*n + n + 1
+        tmp1 = vscales(indn) * &
+            & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+            & src_sk(n+1) / vscales(indj) * src_sk(j+1) * alpha
+        tmp3 = zero
+        l = p-1
+        tmp2 = (two**(-l)) / &
+            & fact(l+1)*fact(2*l+1)/ &
+            & fact(l+1)/fact(l+1)/ &
+            & fact2(j+1)
+        tmp3 = tmp3 + tmp2
+        tmp3 = tmp3 * tmp1
+        res1 = res1 + tmp3*src_m(indn)
+        dst_m(indj) = beta*dst_m(indj) + res1
+        ! k=1..p-1
+        do k = 1, p-1
+            res1 = zero
+            res2 = zero
+            ! n=j-1
+            n = j-1
+            ! Offset for src_m
+            indn = n*n + n + 1
+            tmp1 = vscales(indn+k) * &
+                & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                & src_sk(n+1) / vscales(indj+k) * src_sk(j+1) * alpha
+            tmp3 = zero
+            l = n
+            tmp2 = (two**(-l)) / &
+                & fact(l+k+1)*fact(2*l+1)/ &
+                & fact(l+1)/fact(l-k+1)/fact(j-l+1)/fact(n-l+1)/ &
+                & fact2(j+1)
+            tmp3 = tmp3 + tmp2
+            tmp3 = tmp3 * tmp1
+            res1 = res1 + tmp3*src_m(indn+k)
+            res2 = res2 + tmp3*src_m(indn-k)
+            dst_m(indj+k) = beta*dst_m(indj+k) + res1
+            dst_m(indj-k) = beta*dst_m(indj-k) + res2
+        end do
+        ! j=p,k=p is impossible because n=p-1 or n=p+1 is impossible
+        ! j=p+1, n=p, l=p
+        j = p+1
+        n = p
+        ! Offset for dst_m
+        indj = j*j + j + 1
+        ! k = 0
+        k = 0
+        res1 = zero
+        ! Offset for src_m
+        indn = n*n + n + 1
+        tmp1 = vscales(indn) * &
+            & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+            & src_sk(n+1) / vscales(indj) * src_sk(j+1) * alpha
+        tmp3 = zero
+        l = n
+        tmp2 = (two**(-l)) / &
+            & fact(l+1)*fact(2*l+1)/ &
+            & fact(l+1)/fact(l+1)/fact(j-l+1)/fact(n-l+1)/ &
+            & fact2(j+1)
+        tmp3 = tmp3 + tmp2
+        tmp3 = tmp3 * tmp1
+        res1 = res1 + tmp3*src_m(indn)
+        dst_m(indj) = beta*dst_m(indj) + res1
+        ! k != 0
+        do k = 1, p
+            res1 = zero
+            res2 = zero
+            ! n=j-1
+            n = p
+            ! Offset for src_m
+            indn = n*n + n + 1
+            tmp1 = vscales(indn+k) * &
+                & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                & src_sk(n+1) / vscales(indj+k) * src_sk(j+1) * alpha
+            tmp3 = zero
+            l = n
+            tmp2 = (two**(-l)) / &
+                & fact(l+k+1)*fact(2*l+1)/ &
+                & fact(l+1)/fact(l-k+1)/fact(j-l+1)/fact(n-l+1)/ &
+                & fact2(j+1)
+            tmp3 = tmp3 + tmp2
+            tmp3 = tmp3 * tmp1
+            res1 = res1 + tmp3*src_m(indn+k)
+            res2 = res2 + tmp3*src_m(indn-k)
+            dst_m(indj+k) = beta*dst_m(indj+k) + res1
+            dst_m(indj-k) = beta*dst_m(indj-k) + res2
+        end do
     end if
 end subroutine fmm_m2m_bessel_derivative_ztranslate_work
 
@@ -8302,11 +8609,59 @@ subroutine fmm_m2l_bessel_ztranslate_work(z, src_sk, dst_si, p, vscales, vcnk, &
             end do
         ! Update output if beta is non-zero
         else
-            stop 111
+            do j = 0, p
+                ! Offset for dst_m
+                indj = j*j + j + 1
+                ! k = 0
+                k = 0
+                res1 = zero
+                do n = 0, p
+                    ! Offset for src_m
+                    indn = n*n + n + 1
+                    tmp1 = vscales(indn) * ((-one)**(n)) * &
+                        & dble(2*j+1) * fact(j+1) * fact(n+1) / &
+                        & src_sk(n+1) / vscales(indj) * dst_si(j+1)
+                    tmp3 = zero
+                    do l = 0, min(j, n)
+                        tmp2 = ((-two)**(-l)) / &
+                            & fact(l+1)*fact(2*l+1)/ &
+                            & fact(l+1)/fact(l+1)/fact(j-l+1)/fact(n-l+1)* &
+                            & (work(j+n-l+1) / (z**l))
+                        tmp3 = tmp3 + tmp2
+                    end do
+                    tmp3 = tmp3 * tmp1
+                    res1 = res1 + tmp3*src_m(indn)
+                end do
+                dst_l(indj) = beta*dst_l(indj) + res1
+                ! k != 0
+                do k = 1, j
+                    res1 = zero
+                    res2 = zero
+                    do n = k, p
+                        ! Offset for src_m
+                        indn = n*n + n + 1
+                        tmp1 = vscales(indn+k) * ((-one)**(n)) * &
+                            & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) / &
+                            & src_sk(n+1) / vscales(indj+k) * dst_si(j+1)
+                        tmp3 = zero
+                        do l = k, min(j, n)
+                            tmp2 = ((-two)**(-l)) / &
+                                & fact(l+k+1)*fact(2*l+1)/ &
+                                & fact(l+1)/fact(l-k+1)/fact(j-l+1)/fact(n-l+1)* &
+                                & (work(j+n-l+1) / (z**l))
+                            tmp3 = tmp3 + tmp2
+                        end do
+                        tmp3 = tmp3 * tmp1
+                        res1 = res1 + tmp3*src_m(indn+k)
+                        res2 = res2 + tmp3*src_m(indn-k)
+                    end do
+                    dst_l(indj+k) = beta*dst_l(indj+k) + res1
+                    dst_l(indj-k) = beta*dst_l(indj-k) + res2
+                end do
+            end do
         end if
     ! If harmonics are located at the same point
     else
-        stop 222
         ! Overwrite output if beta is zero
         if (beta .eq. zero) then
             !r1 = src_r / dst_r
@@ -8494,11 +8849,59 @@ subroutine fmm_m2l_bessel_ztranslate_adj_work(z, src_sk, dst_si, p, vscales, vcn
             end do
         ! Update output if beta is non-zero
         else
-            stop 111
+            do n = 0, p
+                ! Offset for dst_m
+                indn = n*n + n + 1
+                ! k = 0
+                k = 0
+                res1 = zero
+                do j = 0, p
+                    ! Offset for src_m
+                    indj = j*j + j + 1
+                    tmp1 = vscales(indn) * ((-one)**(n)) * &
+                        & dble(2*j+1) * fact(j+1) * fact(n+1) * &
+                        & src_sk(j+1) / vscales(indj) / dst_si(n+1)
+                    tmp3 = zero
+                    do l = 0, min(j, n)
+                        tmp2 = ((-two)**(-l)) / &
+                            & fact(l+1)*fact(2*l+1)/ &
+                            & fact(l+1)/fact(l+1)/fact(j-l+1)/fact(n-l+1)* &
+                            & (work(j+n-l+1) / (z**l))
+                        tmp3 = tmp3 + tmp2
+                    end do
+                    tmp3 = tmp3 * tmp1
+                    res1 = res1 + tmp3*src_m(indj)
+                end do
+                dst_l(indn) = beta*dst_l(indn) + res1
+                ! k != 0
+                do k = 1, n
+                    res1 = zero
+                    res2 = zero
+                    do j = k, p
+                        ! Offset for src_m
+                        indj = j*j + j + 1
+                        tmp1 = vscales(indn+k) * ((-one)**(n)) * &
+                            & dble(2*j+1) * fact(j-k+1) * fact(n+k+1) * &
+                            & src_sk(j+1) / vscales(indj+k) / dst_si(n+1)
+                        tmp3 = zero
+                        do l = k, min(j, n)
+                            tmp2 = ((-two)**(-l)) / &
+                                & fact(l+k+1)*fact(2*l+1)/ &
+                                & fact(l+1)/fact(l-k+1)/fact(j-l+1)/fact(n-l+1)* &
+                                & (work(j+n-l+1) / (z**l))
+                            tmp3 = tmp3 + tmp2
+                        end do
+                        tmp3 = tmp3 * tmp1
+                        res1 = res1 + tmp3*src_m(indj+k)
+                        res2 = res2 + tmp3*src_m(indj-k)
+                    end do
+                    dst_l(indn+k) = beta*dst_l(indn+k) + res1
+                    dst_l(indn-k) = beta*dst_l(indn-k) + res2
+                end do
+            end do
         end if
     ! If harmonics are located at the same point
     else
-        stop 222
         ! Overwrite output if beta is zero
         if (beta .eq. zero) then
             !r1 = src_r / dst_r

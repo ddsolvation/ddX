@@ -158,7 +158,7 @@ end subroutine ddlpb_guess
 !! @param[out] esolv   : Electrostatic solvation energy
 !!
 subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
-        & hessianphi_cav, psi, tol, esolv, force, info)
+        & hessianphi_cav, psi, tol, esolv, force)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -170,12 +170,12 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
         & psi( constants % nbasis,  params % nsph), tol
     real(dp), intent(out) :: esolv, force(3, params % nsph)
     real(dp), external :: ddot
-    integer, intent(inout) :: info
 
     ! TODO: find a consistent way to do the guess
 
     call ddlpb_solve(params, constants, workspace, state, phi_cav, &
         & gradphi_cav, tol)
+    if (workspace % error_flag .eq. 1) return
 
     ! Compute the solvation energy
     ! note that psi is divided by fourpi
@@ -185,8 +185,10 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     ! Get forces if needed
     if(params % force .eq. 1) then
         call ddlpb_adjoint(params, constants, workspace, state, psi, tol)
+        if (workspace % error_flag .eq. 1) return
         call ddlpb_force(params, constants, workspace, state, phi_cav, &
             & gradphi_cav, hessianphi_cav, psi, force)
+        if (workspace % error_flag .eq. 1) return
     endif
 
 end subroutine ddlpb
@@ -215,7 +217,11 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
     real(dp), allocatable :: rhs(:,:,:)
 
     allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        workspace % error_message = 'Allocation failed in ddlpb_solve_worker'
+        workspace % error_flag = 1
+        return
+    end if
 
     !! Use a tighter tolerance for the microiterations to ensure convergence
     constants % inner_tol =  tol/100.0d0
@@ -261,11 +267,19 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
     start_time = omp_get_wtime()
     call jacobi_diis_external(params, constants, workspace, &
         & 2*constants % n, tol, rhs, x_lpb, x_lpb_niter, x_lpb_rel_diff, &
-        & cx, prec_tx, rmsnorm, istat)
+        & cx, prec_tx, rmsnorm)
+    if (workspace % error_flag .ne. 0) then
+        workspace % error_message = 'Jacobi solver failed to converge in ddlpb_solve_worker'
+        return
+    end if
     x_lpb_time = omp_get_wtime() - start_time
 
-    deallocate(rhs)
-    if (istat.ne.0) stop 1
+    deallocate(rhs, stat = istat)
+    if (istat .ne. 0) then
+        workspace % error_message = 'Deallocation failed in ddlpb_solve_worker'
+        workspace % error_flag = 1
+        return
+    end if
 end subroutine ddlpb_solve_worker
 
 subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
@@ -286,7 +300,11 @@ subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
     integer :: istat
 
     allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        workspace % error_message = 'Allocation failed in ddlpb_adjoint_worker'
+        workspace % error_flag = 1
+        return
+    end if
 
     !! Use a tighter tolerance for the microiterations to ensure convergence
     constants % inner_tol =  tol/100.0d0
@@ -308,10 +326,18 @@ subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
     call jacobi_diis_external(params, constants, workspace, &
         & 2*constants % n, tol, rhs, x_adj_lpb, x_adj_lpb_niter, &
         & x_adj_lpb_rel_diff, cstarx, prec_tstarx, &
-        & rmsnorm, istat)
+        & rmsnorm)
+    if (workspace % error_flag .ne. 0) then
+        workspace % error_message = 'Jacobi solver failed to converge in ddlpb_adjoint_worker'
+        return
+    end if
     x_adj_lpb_time = omp_get_wtime() - start_time
     deallocate(rhs, stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        workspace % error_message = 'Deallocation failed in ddlpb_adjoint_worker'
+        workspace % error_flag = 1
+        return
+    end if
 end subroutine ddlpb_adjoint_worker
 
 subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
@@ -326,7 +352,6 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x, x_adj
     real(dp), dimension(3, params % nsph), intent(out) :: force
     real(dp), intent(out) :: zeta(constants % ncav)
-    integer :: info
 
     ! local
     real(dp), dimension(constants % nbasis) :: basloc, vplm
@@ -350,7 +375,11 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         & normal_hessian_cav(3, constants % ncav), &
         & diff_re(constants % nbasis, params % nsph), &
         & scaled_xr(constants % nbasis, params % nsph), stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        workspace % error_message = 'Allocation failed in ddlpb_force_worker'
+        workspace % error_flag = 1
+        return
+    end if
 
     diff_re = zero
     vsin = zero
@@ -408,6 +437,7 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         & Xadj_e_sgrid, x_adj(:,:,1), x_adj(:,:,2), force, diff_re)
     ! Computation of G0 continued
     ! NOTE: contract_grad_U returns a positive summation
+    if (workspace % error_flag .eq. 1) return
     force = -force
     icav = 0
     do isph = 1, params % nsph
@@ -509,14 +539,20 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     ! Computation of F0
     call contract_grad_f(params, constants, workspace, x_adj(:,:,1), Xadj_r_sgrid, &
                   & gradphi, normal_hessian_cav, icav_gr, force)
+    if (workspace % error_flag .eq. 1) return
     call contract_grad_f(params, constants, workspace, x_adj(:,:,2), Xadj_e_sgrid, &
                   & gradphi, normal_hessian_cav, icav_ge, force)
+    if (workspace % error_flag .eq. 1) return
 
     force = - pt5*force
 
     deallocate(ef, xadj_r_sgrid, xadj_e_sgrid, normal_hessian_cav, &
         & diff_re, scaled_xr, stat=istat)
-    if (istat.ne.0) stop 1
+    if (istat.ne.0) then
+        workspace % error_message = 'Deallocation failed in ddlpb_force_worker'
+        workspace % error_flag = 1
+        return
+    end if
 end subroutine ddlpb_force_worker
 
 end module ddx_lpb

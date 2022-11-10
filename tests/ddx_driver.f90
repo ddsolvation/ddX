@@ -19,7 +19,7 @@ implicit none
 character(len=255) :: finname, foutname, tmpstr
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
-integer :: iprint, info
+integer :: iprint
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
     & hessianphi_cav(:, :, :), psi(:, :), force(:, :)
 real(dp) :: tol, threshold, esolv, esolv2, fnorm, fdiff, ftmp(3)
@@ -34,10 +34,11 @@ call getarg(2, foutname)
 call getarg(3, tmpstr)
 read(tmpstr, *) threshold
 ! Init input from a file
-call ddfromfile(finname, ddx_data, tol, iprint, info)
+call ddfromfile(finname, ddx_data, tol)
+if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
+if(state % error_flag .ne. 0) stop "Initialization failed"
 
-if(info .ne. 0) call error(-1, "info != 0")
 ! Allocate resources
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
     & hessianphi_cav(3, 3, ddx_data % constants % ncav), &
@@ -48,7 +49,7 @@ if(istatus .ne. 0) call error(-1, "Allocation failed")
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
     & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
 ! Use the solver
-call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)
+call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)
 ! Open output file for reading
 open(unit=100, file=foutname, form='formatted', access='sequential')
 ! Skip 

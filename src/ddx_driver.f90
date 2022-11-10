@@ -31,12 +31,12 @@ integer :: i, j, isph
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol, iprint, info)
-if(info .ne. 0) stop "info != 0"
+call ddfromfile(fname, ddx_data, tol)
+if(ddx_data % error_flag .ne. 0) stop 1
 
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 
-call print_header(iprint,ddx_data%params)
+call print_header(ddx_data%params)
 ! determine needed arrays
 if (ddx_data % params % model .eq. 3) then
     phi_flag = 1
@@ -68,7 +68,7 @@ write(*, "(A,ES11.4E2,A)") " mkrhs time:", finish_time-start_time, " seconds"
 
 start_time = omp_get_wtime()
 call ddsolve(ddx_data, state,  phi_cav, gradphi_cav, hessianphi_cav, psi, &
-    & tol, esolv, force, info)
+    & tol, esolv, force)
 finish_time = omp_get_wtime()
 
 ! Print info depending on iprint flag
