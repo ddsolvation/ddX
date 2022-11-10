@@ -32,6 +32,7 @@ integer :: i, j, isph
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol)
+
 if (ddx_data % error_flag .ne. 0) then
   write(6,*) ddx_data % error_message
   stop

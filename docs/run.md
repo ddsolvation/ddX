@@ -12,7 +12,7 @@ Run the code as
 <br />
 **Description of input parameters in input-file**
 
-Line number  | Type           | Description   
+Line number  | type           | description   
 ------------- | ------------- | -------------- 
 1  | Integer | Printing flag, range=[-1,0,1,2,3,4]  <br /> -1: quiet 0: minimal verbosity (energy and forces), 1: + number of iterations of solvers, timers, 2: + solution vector, 3: + right hand side vector, 4: + all debug outputs   
 2  | Integer  | Number of OpenMP cores to be used
