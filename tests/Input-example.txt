@@ -1,4 +1,4 @@
-''          ! Output file.
+'out.txt'          ! Output file.
 1           ! Number of OpenMP cores to be used
 1           ! Specification of the model: 1 for COSMO, 2 for PCM and 3 for LPB
 7           ! Maximal degree of modeling spherical harmonics
