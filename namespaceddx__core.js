@@ -2,11 +2,11 @@ var namespaceddx__core =
 [
     [ "ddx_state_type", "structddx__core_1_1ddx__state__type.html", "structddx__core_1_1ddx__state__type" ],
     [ "ddx_type", "structddx__core_1_1ddx__type.html", "structddx__core_1_1ddx__type" ],
-    [ "ddinit", "namespaceddx__core.html#ac046b84ea96e317f2601f18f907dcba1", null ],
-    [ "ddfromfile", "namespaceddx__core.html#a7a2ec4809155b56be2c61ccb72b974ea", null ],
+    [ "ddinit", "namespaceddx__core.html#a926d27f6449f58274291844daf24a332", null ],
+    [ "ddfromfile", "namespaceddx__core.html#a7aec58ff2505372daa3da8bbe3a0eb04", null ],
     [ "ddfree", "namespaceddx__core.html#a3258ae6ef23a4f07ea8a14ccf612acaa", null ],
-    [ "print_spherical", "namespaceddx__core.html#aa76b7e526f53c93bf1492f51b3e1a8cc", null ],
-    [ "print_nodes", "namespaceddx__core.html#a7116b451c0d1427361e7d1437a1c5ae8", null ],
+    [ "print_spherical", "namespaceddx__core.html#af4eafcca2db08df6f222c4a9874f1350", null ],
+    [ "print_nodes", "namespaceddx__core.html#a4fb708956f0cfee0096fc319575ad228", null ],
     [ "print_ddvector", "namespaceddx__core.html#a7ee983451a2d6b52ce89801a59fb33e6", null ],
     [ "ddintegrate", "namespaceddx__core.html#a7c6ed3167dcc5edcd4efa59719858b72", null ],
     [ "dbasis", "namespaceddx__core.html#af4a63e9274aa8031ba29947ec4840da1", null ],
@@ -56,5 +56,5 @@ var namespaceddx__core =
     [ "efld", "namespaceddx__core.html#a3c8789fc01ba244fdaa0d4fef8e9d725", null ],
     [ "tree_grad_m2m", "namespaceddx__core.html#a86f701c3486a5b26c650d5b157b6e213", null ],
     [ "tree_grad_l2l", "namespaceddx__core.html#a0bbe738fff5a4d15f744dfa0b26938cf", null ],
-    [ "print_header", "namespaceddx__core.html#a1c6e9bf18af65b25aa115da10bb2e749", null ]
+    [ "print_header", "namespaceddx__core.html#a820b6019d6f9741b191602938688a1c6", null ]
 ];

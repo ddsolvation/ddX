@@ -22,5 +22,9 @@ var structddx__parameters_1_1ddx__params__type =
     [ "error_flag", "structddx__parameters_1_1ddx__params__type.html#a8f06c900e28484ed13ae3451e8649dfa", null ],
     [ "error_message", "structddx__parameters_1_1ddx__params__type.html#a3b61f56fc7c29be3f952c1cb1b98c49a", null ],
     [ "print_func", "structddx__parameters_1_1ddx__params__type.html#a0d0bc766c6012c19888e22174fd06beb", null ],
-    [ "matvecmem", "structddx__parameters_1_1ddx__params__type.html#aff335b17a4bd5435a7d7ef8ea618e19a", null ]
+    [ "matvecmem", "structddx__parameters_1_1ddx__params__type.html#aff335b17a4bd5435a7d7ef8ea618e19a", null ],
+    [ "output_filename", "structddx__parameters_1_1ddx__params__type.html#af4814958be9a90bfd2c6b338f4ec5ec2", null ],
+    [ "len_output_filename", "structddx__parameters_1_1ddx__params__type.html#afd9b77a7b4cc51a498df7e76ac89ba1b", null ],
+    [ "verbose", "structddx__parameters_1_1ddx__params__type.html#a1e4e35a45c9743c4fd01c22d72a51dc0", null ],
+    [ "iunit", "structddx__parameters_1_1ddx__params__type.html#a1ae55f771a5aacd6feaaad38155ccf07", null ]
 ];

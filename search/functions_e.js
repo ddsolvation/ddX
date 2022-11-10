@@ -32,8 +32,8 @@ var searchData=
   ['tree_5fm2p_5fbessel_29',['tree_m2p_bessel',['../namespaceddx__core.html#a62112cc7d3d77609e0e992504d8be125',1,'ddx_core']]],
   ['tree_5fm2p_5fbessel_5fadj_30',['tree_m2p_bessel_adj',['../namespaceddx__core.html#aa34ea25c06052ba20613b35da813f54e',1,'ddx_core']]],
   ['tree_5fm2p_5fbessel_5fnodiag_5fadj_31',['tree_m2p_bessel_nodiag_adj',['../namespaceddx__core.html#a7f61e8dc65fa676434374f7ea9a07743',1,'ddx_core']]],
-  ['tree_5frib_5fbuild_32',['tree_rib_build',['../namespaceddx__constants.html#a71a53ad578c20da9306b93deda562aeb',1,'ddx_constants']]],
-  ['tree_5frib_5fnode_5fbisect_33',['tree_rib_node_bisect',['../namespaceddx__constants.html#a7c5d6aebc32c85aa05d4a74678ff95f7',1,'ddx_constants']]],
+  ['tree_5frib_5fbuild_32',['tree_rib_build',['../namespaceddx__constants.html#a5ecabcc593500b5b2aad543f4edf890a',1,'ddx_constants']]],
+  ['tree_5frib_5fnode_5fbisect_33',['tree_rib_node_bisect',['../namespaceddx__constants.html#a22afda469241a635a1ca4f986cbda2b6',1,'ddx_constants']]],
   ['trgev_34',['trgev',['../namespaceddx__harmonics.html#a66b4e8bee63238c5c1c3f7a4210c8dd4',1,'ddx_harmonics']]],
   ['tstarx_35',['tstarx',['../namespaceddx__operators.html#a255d38c63d567d20e2844c8d015d1c0f',1,'ddx_operators']]]
 ];

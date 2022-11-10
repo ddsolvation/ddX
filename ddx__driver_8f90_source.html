@@ -116,12 +116,12 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="comment">! Read input file name</span></div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keyword">call </span>getarg(1, fname)</div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="keyword">write</span>(*, *) <span class="stringliteral">&quot;Using provided file &quot;</span>, trim(fname), <span class="stringliteral">&quot; as a config file&quot;</span></div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="keyword">call </span>ddfromfile(fname, ddx_data, tol, iprint, info)</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="keywordflow">if</span>(info .ne. 0) stop <span class="stringliteral">&quot;info != 0&quot;</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="keyword">call </span>ddfromfile(fname, ddx_data, tol)</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="keywordflow">if</span>(ddx_data % error_flag .ne. 0) stop 1</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="keyword">call </span>ddx_init_state(ddx_data % params, ddx_data % constants, state)</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="keyword">call </span>print_header(iprint,ddx_data%params)</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="keyword">call </span>print_header(ddx_data%params)</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="comment">! determine needed arrays</span></div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="keywordflow">if</span> (ddx_data % params % model .eq. 3) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    phi_flag = 1</div>
@@ -152,8 +152,8 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="keyword">write</span>(*, <span class="stringliteral">&quot;(A,ES11.4E2,A)&quot;</span>) <span class="stringliteral">&quot; mkrhs time:&quot;</span>, finish_time-start_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>start_time = omp_get_wtime()</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="keyword">call </span><a class="code hl_function" href="namespaceddx.html#a6e1eec4fc5c5a0186729a620c06047d2">ddsolve</a>(ddx_data, state,  phi_cav, gradphi_cav, hessianphi_cav, psi, &amp;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    &amp; tol, esolv, force, info)</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="keyword">call </span><a class="code hl_function" href="namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c">ddsolve</a>(ddx_data, state,  phi_cav, gradphi_cav, hessianphi_cav, psi, &amp;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    &amp; tol, esolv, force)</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>finish_time = omp_get_wtime()</div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="comment">! Print info depending on iprint flag</span></div>
@@ -268,7 +268,7 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="ttc" id="addx__driver_8f90_html_a8ec2266d83cd6c0b762cbcbc92c0af3d"><div class="ttname"><a href="ddx__driver_8f90.html#a8ec2266d83cd6c0b762cbcbc92c0af3d">main</a></div><div class="ttdeci">program main</div><div class="ttdoc">Standalone application of ddX.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__driver_8f90_source.html#l00013">ddx_driver.f90:13</a></div></div>
 <div class="ttc" id="anamespaceddx__multipolar__solutes_html"><div class="ttname"><a href="namespaceddx__multipolar__solutes.html">ddx_multipolar_solutes</a></div><div class="ttdoc">Routines to build rhs (phi and psi)</div><div class="ttdef"><b>Definition:</b> <a href="ddx__multipolar__solutes_8f90_source.html#l00002">ddx_multipolar_solutes.f90:2</a></div></div>
 <div class="ttc" id="anamespaceddx_html"><div class="ttname"><a href="namespaceddx.html">ddx</a></div><div class="ttdoc">High-level module of the ddX software.</div><div class="ttdef"><b>Definition:</b> <a href="ddx_8f90_source.html#l00013">ddx.f90:13</a></div></div>
-<div class="ttc" id="anamespaceddx_html_a6e1eec4fc5c5a0186729a620c06047d2"><div class="ttname"><a href="namespaceddx.html#a6e1eec4fc5c5a0186729a620c06047d2">ddx::ddsolve</a></div><div class="ttdeci">subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)</div><div class="ttdoc">Main solver routine.</div><div class="ttdef"><b>Definition:</b> <a href="ddx_8f90_source.html#l00035">ddx.f90:37</a></div></div>
+<div class="ttc" id="anamespaceddx_html_a0c17f050d226f836e5128a5b9a0e297c"><div class="ttname"><a href="namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c">ddx::ddsolve</a></div><div class="ttdeci">subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)</div><div class="ttdoc">Main solver routine.</div><div class="ttdef"><b>Definition:</b> <a href="ddx_8f90_source.html#l00035">ddx.f90:37</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

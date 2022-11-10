@@ -101,15 +101,15 @@ $(document).ready(function(){initNavTree('namespaceddx.html',''); initResizable(
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:a6e1eec4fc5c5a0186729a620c06047d2"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx.html#a6e1eec4fc5c5a0186729a620c06047d2">ddsolve</a> (ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)</td></tr>
-<tr class="memdesc:a6e1eec4fc5c5a0186729a620c06047d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main solver routine.  <a href="namespaceddx.html#a6e1eec4fc5c5a0186729a620c06047d2">More...</a><br /></td></tr>
-<tr class="separator:a6e1eec4fc5c5a0186729a620c06047d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c17f050d226f836e5128a5b9a0e297c"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c">ddsolve</a> (ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)</td></tr>
+<tr class="memdesc:a0c17f050d226f836e5128a5b9a0e297c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main solver routine.  <a href="namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c">More...</a><br /></td></tr>
+<tr class="separator:a0c17f050d226f836e5128a5b9a0e297c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >High-level module of the ddX software. </p>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="a6e1eec4fc5c5a0186729a620c06047d2" name="a6e1eec4fc5c5a0186729a620c06047d2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6e1eec4fc5c5a0186729a620c06047d2">&#9670;&nbsp;</a></span>ddsolve()</h2>
+<a id="a0c17f050d226f836e5128a5b9a0e297c" name="a0c17f050d226f836e5128a5b9a0e297c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c17f050d226f836e5128a5b9a0e297c">&#9670;&nbsp;</a></span>ddsolve()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -166,13 +166,7 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">real(dp), dimension(3, ddx_data % params % nsph), intent(out)&#160;</td>
-          <td class="paramname"><em>force</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(out)&#160;</td>
-          <td class="paramname"><em>info</em>&#160;</td>
+          <td class="paramname"><em>force</em>&#160;</td>
         </tr>
         <tr>
           <td></td>

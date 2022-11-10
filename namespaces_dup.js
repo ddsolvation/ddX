@@ -1,14 +1,14 @@
 var namespaces_dup =
 [
     [ "ddx", "namespaceddx.html", [
-      [ "ddsolve", "namespaceddx.html#a6e1eec4fc5c5a0186729a620c06047d2", null ]
+      [ "ddsolve", "namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c", null ]
     ] ],
     [ "ddx_constants", "namespaceddx__constants.html", "namespaceddx__constants" ],
     [ "ddx_core", "namespaceddx__core.html", "namespaceddx__core" ],
     [ "ddx_cosmo", "namespaceddx__cosmo.html", [
-      [ "ddcosmo", "namespaceddx__cosmo.html#a348ef4cb3774526d0e3cdfd792e725ff", null ],
-      [ "ddcosmo_solve_worker", "namespaceddx__cosmo.html#adfe77afff5b2d9c00e219ffce148eb80", null ],
-      [ "ddcosmo_adjoint_worker", "namespaceddx__cosmo.html#ad043ab858bd349aa9f51d16a4668cf3a", null ]
+      [ "ddcosmo", "namespaceddx__cosmo.html#ada69f95e42cb1aa2e93023745ca1e09d", null ],
+      [ "ddcosmo_solve_worker", "namespaceddx__cosmo.html#ac31ff0d441e507b02bd7ba36a4716232", null ],
+      [ "ddcosmo_adjoint_worker", "namespaceddx__cosmo.html#aaad1a0954f1a84a0bfe2ee98735f9d74", null ]
     ] ],
     [ "ddx_definitions", "namespaceddx__definitions.html", [
       [ "dp", "namespaceddx__definitions.html#a6e62179e6ac303908858a873e4db49c2", null ],
@@ -129,21 +129,21 @@ var namespaces_dup =
     ] ],
     [ "ddx_multipolar_solutes", "namespaceddx__multipolar__solutes.html", [
       [ "build_g", "namespaceddx__multipolar__solutes.html#abec05c36e4683b034461ddea3f93c3a0", null ],
-      [ "build_g_dense", "namespaceddx__multipolar__solutes.html#a21901e893cf9a0e6b74c213e77e2e6bb", null ],
+      [ "build_g_dense", "namespaceddx__multipolar__solutes.html#a66ab05d3cc0854a1ec3189cc290f0136", null ],
       [ "build_e", "namespaceddx__multipolar__solutes.html#aee11a592e3b3b9b12a28554e220ba202", null ],
-      [ "build_e_dense", "namespaceddx__multipolar__solutes.html#a2fa1001009a00125a7578e2fd7b56352", null ],
+      [ "build_e_dense", "namespaceddx__multipolar__solutes.html#a58527faa8d7ac5c06297bedd2943d6b9", null ],
       [ "build_phi", "namespaceddx__multipolar__solutes.html#a6611268f56ee74f9f64df0915594f8c7", null ],
-      [ "build_phi_dense", "namespaceddx__multipolar__solutes.html#a90fbfc445edad120a60b87d5360d557f", null ],
+      [ "build_phi_dense", "namespaceddx__multipolar__solutes.html#a1e4885f6f41acb3dfc988dcbc71dceeb", null ],
       [ "build_e_fmm", "namespaceddx__multipolar__solutes.html#adb70b786db1e8751f7c5b7faed714f41", null ],
       [ "build_phi_fmm", "namespaceddx__multipolar__solutes.html#a1b49c60c09fb229e96a9ce69d0808c8d", null ],
       [ "build_psi", "namespaceddx__multipolar__solutes.html#a5c89baf7330431c44d60f075ab516c5f", null ],
       [ "load_m", "namespaceddx__multipolar__solutes.html#a61c22d6edf664b23153d1d41a1036db8", null ],
       [ "do_fmm", "namespaceddx__multipolar__solutes.html#a854e543bad7f9523b75ce5037fed9bc9", null ],
-      [ "grad_m2m", "namespaceddx__multipolar__solutes.html#a215cf69da966942d80f48639e5cd97d2", null ],
+      [ "grad_m2m", "namespaceddx__multipolar__solutes.html#ac61380f591d7d06fac682ab4d6fa781d", null ],
       [ "grad_phi_for_charges", "namespaceddx__multipolar__solutes.html#aa56314068d15524fdb496363a8bd621f", null ],
       [ "grad_phi", "namespaceddx__multipolar__solutes.html#a29181299be03f0bb493cfd4cfb928a0b", null ],
       [ "build_adj_phi", "namespaceddx__multipolar__solutes.html#a9a9fa5a29ff449db9444710b285bcd80", null ],
-      [ "build_adj_phi_dense", "namespaceddx__multipolar__solutes.html#ac565e05e02661402639fae28bdacc577", null ],
+      [ "build_adj_phi_dense", "namespaceddx__multipolar__solutes.html#ae295de35e13855ebec3d0cb151b001b4", null ],
       [ "build_adj_phi_fmm", "namespaceddx__multipolar__solutes.html#a3a1c0765efbf39c7ef1a0cc2b6c1b826", null ]
     ] ],
     [ "ddx_operators", "namespaceddx__operators.html", [
@@ -167,9 +167,9 @@ var namespaces_dup =
     ] ],
     [ "ddx_parameters", "namespaceddx__parameters.html", "namespaceddx__parameters" ],
     [ "ddx_pcm", "namespaceddx__pcm.html", [
-      [ "ddpcm", "namespaceddx__pcm.html#a3ec601a57093e777b4e0806b66df8a3f", null ],
-      [ "ddpcm_solve_worker", "namespaceddx__pcm.html#a84e88ac9aa346c593597757cb454e4e1", null ],
-      [ "ddpcm_energy_worker", "namespaceddx__pcm.html#a47661ee5ea74d0c2406624c6ca113683", null ]
+      [ "ddpcm", "namespaceddx__pcm.html#acb14bc51a656707dcea90cf19a563d50", null ],
+      [ "ddpcm_solve_worker", "namespaceddx__pcm.html#ab0435577c42c55b4865dd4363308192f", null ],
+      [ "ddpcm_energy_worker", "namespaceddx__pcm.html#acc5d8cef0c0985b0a88d17eff10391e1", null ]
     ] ],
     [ "ddx_solvers", "namespaceddx__solvers.html", "namespaceddx__solvers" ],
     [ "ddx_workspace", "namespaceddx__workspace.html", "namespaceddx__workspace" ]

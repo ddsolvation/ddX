@@ -106,8 +106,8 @@ $(document).ready(function(){initNavTree('ddx_8f90_source.html',''); initResizab
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">contains</span></div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="namespaceddx.html#a6e1eec4fc5c5a0186729a620c06047d2">   35</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx.html#a6e1eec4fc5c5a0186729a620c06047d2">ddsolve</a>(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, &amp;</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>        &amp; psi, tol, esolv, force, info)</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c">   35</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c">ddsolve</a>(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, &amp;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>        &amp; psi, tol, esolv, force)</div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="comment">! Inputs</span></div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keywordtype">type</span>(ddx_type), <span class="keywordtype">intent(inout)</span> :: ddx_data</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
@@ -117,38 +117,40 @@ $(document).ready(function(){initNavTree('ddx_8f90_source.html',''); initResizab
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>        &amp; psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="comment">! Outputs</span></div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: esolv, force(3, ddx_data % params % nsph)</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(out)</span> :: info</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="comment">! Find proper model</span></div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keywordflow">select case</span>(ddx_data % params % model)</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>        <span class="comment">! COSMO model</span></div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        <span class="keywordflow">case</span> (1)</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>            <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__cosmo.html#a348ef4cb3774526d0e3cdfd792e725ff">ddcosmo</a>(ddx_data % params, ddx_data % constants, &amp;</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>                &amp; ddx_data % workspace, state, phi_cav, gradphi_cav, psi, &amp;</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>                &amp; tol, esolv, force, info)</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        <span class="comment">! PCM model</span></div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <span class="keywordflow">case</span> (2)</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>            <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__pcm.html#a3ec601a57093e777b4e0806b66df8a3f">ddpcm</a>(ddx_data % params, ddx_data % constants, &amp;</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>                &amp; ddx_data % workspace, state, phi_cav, gradphi_cav, psi, &amp;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>                &amp; tol, esolv, force, info)</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        <span class="comment">! LPB model</span></div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        <span class="keywordflow">case</span> (3)</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>            <span class="keyword">call </span>ddlpb(ddx_data % params, ddx_data % constants, &amp;</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>                &amp; ddx_data % workspace, state, phi_cav, gradphi_cav, &amp;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>                &amp; hessianphi_cav, psi, tol, esolv, force, info)</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>        <span class="comment">! Error case</span></div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="keywordflow">        case default</span></div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>            stop <span class="stringliteral">&quot;Non-supported model&quot;</span></div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="keywordflow">    end select</span></div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx.html#a6e1eec4fc5c5a0186729a620c06047d2">ddsolve</a></div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx.html">ddx</a></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="comment">! Find proper model</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordflow">select case</span>(ddx_data % params % model)</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        <span class="comment">! COSMO model</span></div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>        <span class="keywordflow">case</span> (1)</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>            <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__cosmo.html#ada69f95e42cb1aa2e93023745ca1e09d">ddcosmo</a>(ddx_data % params, ddx_data % constants, &amp;</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>                &amp; ddx_data % workspace, state, phi_cav, gradphi_cav, psi, &amp;</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>                &amp; tol, esolv, force)</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="comment">! PCM model</span></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        <span class="keywordflow">case</span> (2)</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>            <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__pcm.html#acb14bc51a656707dcea90cf19a563d50">ddpcm</a>(ddx_data % params, ddx_data % constants, &amp;</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>                &amp; ddx_data % workspace, state, phi_cav, gradphi_cav, psi, &amp;</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>                &amp; tol, esolv, force)</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="comment">! LPB model</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        <span class="keywordflow">case</span> (3)</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>            <span class="keyword">call </span>ddlpb(ddx_data % params, ddx_data % constants, &amp;</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>                &amp; ddx_data % workspace, state, phi_cav, gradphi_cav, &amp;</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>                &amp; hessianphi_cav, psi, tol, esolv, force)</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        <span class="comment">! Error case</span></div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="keywordflow">        case default</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>            ddx_data % params % error_flag = 1</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>            ddx_data % params % error_message = <span class="stringliteral">&quot;unsupported solvation &quot;</span> // &amp;</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>                &amp; <span class="stringliteral">&quot; model in the dd solver.&quot;</span></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>            <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="keywordflow">    end select</span></div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c">ddsolve</a></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx.html">ddx</a></div>
 <div class="ttc" id="anamespaceddx__cosmo_html"><div class="ttname"><a href="namespaceddx__cosmo.html">ddx_cosmo</a></div><div class="ttdoc">High-level subroutines for ddcosmo.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00013">ddx_cosmo.f90:13</a></div></div>
-<div class="ttc" id="anamespaceddx__cosmo_html_a348ef4cb3774526d0e3cdfd792e725ff"><div class="ttname"><a href="namespaceddx__cosmo.html#a348ef4cb3774526d0e3cdfd792e725ff">ddx_cosmo::ddcosmo</a></div><div class="ttdeci">subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, psi, tol, esolv, force, info)</div><div class="ttdoc">ddCOSMO solver</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00100">ddx_cosmo.f90:102</a></div></div>
+<div class="ttc" id="anamespaceddx__cosmo_html_ada69f95e42cb1aa2e93023745ca1e09d"><div class="ttname"><a href="namespaceddx__cosmo.html#ada69f95e42cb1aa2e93023745ca1e09d">ddx_cosmo::ddcosmo</a></div><div class="ttdeci">subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, psi, tol, esolv, force)</div><div class="ttdoc">ddCOSMO solver</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00094">ddx_cosmo.f90:96</a></div></div>
 <div class="ttc" id="anamespaceddx__lpb_html"><div class="ttname"><a href="namespaceddx__lpb.html">ddx_lpb</a></div><div class="ttdoc">High-level subroutines for ddlpb.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__lpb_8f90_source.html#l00013">ddx_lpb.f90:13</a></div></div>
 <div class="ttc" id="anamespaceddx__pcm_html"><div class="ttname"><a href="namespaceddx__pcm.html">ddx_pcm</a></div><div class="ttdoc">High-level subroutines for ddpcm.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00013">ddx_pcm.f90:13</a></div></div>
-<div class="ttc" id="anamespaceddx__pcm_html_a3ec601a57093e777b4e0806b66df8a3f"><div class="ttname"><a href="namespaceddx__pcm.html#a3ec601a57093e777b4e0806b66df8a3f">ddx_pcm::ddpcm</a></div><div class="ttdeci">subroutine ddpcm(params, constants, workspace, state, phi_cav, gradphi_cav, psi, tol, esolv, force, info)</div><div class="ttdoc">ddPCM solver</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00161">ddx_pcm.f90:163</a></div></div>
+<div class="ttc" id="anamespaceddx__pcm_html_acb14bc51a656707dcea90cf19a563d50"><div class="ttname"><a href="namespaceddx__pcm.html#acb14bc51a656707dcea90cf19a563d50">ddx_pcm::ddpcm</a></div><div class="ttdeci">subroutine ddpcm(params, constants, workspace, state, phi_cav, gradphi_cav, psi, tol, esolv, force)</div><div class="ttdoc">ddPCM solver</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00156">ddx_pcm.f90:158</a></div></div>
 <div class="ttc" id="anamespaceddx_html"><div class="ttname"><a href="namespaceddx.html">ddx</a></div><div class="ttdoc">High-level module of the ddX software.</div><div class="ttdef"><b>Definition:</b> <a href="ddx_8f90_source.html#l00013">ddx.f90:13</a></div></div>
-<div class="ttc" id="anamespaceddx_html_a6e1eec4fc5c5a0186729a620c06047d2"><div class="ttname"><a href="namespaceddx.html#a6e1eec4fc5c5a0186729a620c06047d2">ddx::ddsolve</a></div><div class="ttdeci">subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)</div><div class="ttdoc">Main solver routine.</div><div class="ttdef"><b>Definition:</b> <a href="ddx_8f90_source.html#l00035">ddx.f90:37</a></div></div>
+<div class="ttc" id="anamespaceddx_html_a0c17f050d226f836e5128a5b9a0e297c"><div class="ttname"><a href="namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c">ddx::ddsolve</a></div><div class="ttdeci">subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)</div><div class="ttdoc">Main solver routine.</div><div class="ttdef"><b>Definition:</b> <a href="ddx_8f90_source.html#l00035">ddx.f90:37</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

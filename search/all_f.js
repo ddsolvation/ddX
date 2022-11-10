@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['params_5fdeinit_0',['params_deinit',['../namespaceddx__parameters.html#a41f19aa9b4b7798b5374fa3f6a03ea00',1,'ddx_parameters']]],
-  ['params_5finit_1',['params_init',['../namespaceddx__parameters.html#a826d889e370516c88769a35f3e485ab3',1,'ddx_parameters']]],
+  ['params_5fdeinit_0',['params_deinit',['../namespaceddx__parameters.html#a0b9356d3d56bcd87e2f1b6fccc42009c',1,'ddx_parameters']]],
+  ['params_5finit_1',['params_init',['../namespaceddx__parameters.html#a96a3844200cece984775067e3123ae68',1,'ddx_parameters']]],
   ['params_5fprint_2',['params_print',['../namespaceddx__parameters.html#ab58f264af44239d745e1a571c1850576',1,'ddx_parameters']]],
   ['parent_3',['parent',['../structddx__constants_1_1ddx__constants__type.html#a3134e17f8c0cbbaea8f85923b1680e76',1,'ddx_constants::ddx_constants_type']]],
   ['pchi_4',['pchi',['../structddx__constants_1_1ddx__constants__type.html#a06258b9104516a49cf531b12c9b3c014',1,'ddx_constants::ddx_constants_type']]],
@@ -22,8 +22,8 @@ var searchData=
   ['print_5ffunc_19',['print_func',['../structddx__parameters_1_1ddx__params__type.html#a0d0bc766c6012c19888e22174fd06beb',1,'ddx_parameters::ddx_params_type']]],
   ['print_5ffunc_5fdefault_20',['print_func_default',['../namespaceddx__parameters.html#a63f973043b80c39c6f905fba9bd2aa09',1,'ddx_parameters']]],
   ['print_5ffunc_5finterface_21',['print_func_interface',['../interfaceddx__parameters_1_1print__func__interface.html',1,'ddx_parameters']]],
-  ['print_5fheader_22',['print_header',['../namespaceddx__core.html#a1c6e9bf18af65b25aa115da10bb2e749',1,'ddx_core']]],
-  ['print_5fnodes_23',['print_nodes',['../namespaceddx__core.html#a7116b451c0d1427361e7d1437a1c5ae8',1,'ddx_core']]],
-  ['print_5fspherical_24',['print_spherical',['../namespaceddx__core.html#aa76b7e526f53c93bf1492f51b3e1a8cc',1,'ddx_core']]],
+  ['print_5fheader_22',['print_header',['../namespaceddx__core.html#a820b6019d6f9741b191602938688a1c6',1,'ddx_core']]],
+  ['print_5fnodes_23',['print_nodes',['../namespaceddx__core.html#a4fb708956f0cfee0096fc319575ad228',1,'ddx_core']]],
+  ['print_5fspherical_24',['print_spherical',['../namespaceddx__core.html#af4eafcca2db08df6f222c4a9874f1350',1,'ddx_core']]],
   ['python_20interface_25',['Python interface',['../label_python_interface.html',1,'']]]
 ];

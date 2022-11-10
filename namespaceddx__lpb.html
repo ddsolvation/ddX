@@ -110,8 +110,8 @@ Functions/Subroutines</h2></td></tr>
 <tr class="separator:a712455dd9c9e04156fcfd482db62a831"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac267907f835f42a6b87d64954cc9276b"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#ac267907f835f42a6b87d64954cc9276b">ddlpb_guess</a> (params, constants, state)</td></tr>
 <tr class="separator:ac267907f835f42a6b87d64954cc9276b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac7bb64b6631ee97ee4077d711349cb85"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#ac7bb64b6631ee97ee4077d711349cb85">ddlpb</a> (params, constants, workspace, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force, info)</td></tr>
-<tr class="separator:ac7bb64b6631ee97ee4077d711349cb85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58213eb3a37181abd15767a5fe576b71"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#a58213eb3a37181abd15767a5fe576b71">ddlpb</a> (params, constants, workspace, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)</td></tr>
+<tr class="separator:a58213eb3a37181abd15767a5fe576b71"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd1c32f7ef61ae0f5653c8a651f8a0e5"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#abd1c32f7ef61ae0f5653c8a651f8a0e5">ddlpb_solve_worker</a> (params, constants, workspace, phi_cav, gradphi_cav, g_lpb, f_lpb, phi_grid, x_lpb, x_lpb_niter, x_lpb_time, x_lpb_rel_diff, tol)</td></tr>
 <tr class="separator:abd1c32f7ef61ae0f5653c8a651f8a0e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac060c5a84b80af1d44e392ba24966368"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#ac060c5a84b80af1d44e392ba24966368">ddlpb_adjoint_worker</a> (params, constants, workspace, psi, tol, x_adj_lpb, x_adj_lpb_niter, x_adj_lpb_time, x_adj_lpb_rel_diff)</td></tr>
@@ -359,8 +359,8 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
-<a id="ac7bb64b6631ee97ee4077d711349cb85" name="ac7bb64b6631ee97ee4077d711349cb85"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac7bb64b6631ee97ee4077d711349cb85">&#9670;&nbsp;</a></span>ddlpb()</h2>
+<a id="a58213eb3a37181abd15767a5fe576b71" name="a58213eb3a37181abd15767a5fe576b71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a58213eb3a37181abd15767a5fe576b71">&#9670;&nbsp;</a></span>ddlpb()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -429,13 +429,7 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">real(dp), dimension(3, params % nsph), intent(out)&#160;</td>
-          <td class="paramname"><em>force</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(inout)&#160;</td>
-          <td class="paramname"><em>info</em>&#160;</td>
+          <td class="paramname"><em>force</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -541,7 +535,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00194">194</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00196">196</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
 
 </div>
 </div>
@@ -613,7 +607,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00271">271</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00285">285</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
 
 </div>
 </div>
@@ -691,7 +685,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00317">317</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00343">343</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
 
 </div>
 </div>

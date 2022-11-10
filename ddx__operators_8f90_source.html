@@ -1391,27 +1391,27 @@ $(document).ready(function(){initNavTree('ddx__operators_8f90_source.html',''); 
 <div class="line"><a id="l01350" name="l01350"></a><span class="lineno"> 1350</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
 <div class="line"><a id="l01351" name="l01351"></a><span class="lineno"> 1351</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: x(constants % nbasis, params % nsph, 2)</div>
 <div class="line"><a id="l01352" name="l01352"></a><span class="lineno"> 1352</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(inout)</span> :: y(constants % nbasis, params % nsph, 2)</div>
-<div class="line"><a id="l01353" name="l01353"></a><span class="lineno"> 1353</span>    <span class="keywordtype">integer</span> :: n_iter, info</div>
+<div class="line"><a id="l01353" name="l01353"></a><span class="lineno"> 1353</span>    <span class="keywordtype">integer</span> :: n_iter</div>
 <div class="line"><a id="l01354" name="l01354"></a><span class="lineno"> 1354</span><span class="keywordtype">    real</span>(dp) :: r_norm</div>
 <div class="line"><a id="l01355" name="l01355"></a><span class="lineno"> 1355</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(params % maxiter)</span> :: x_rel_diff</div>
 <div class="line"><a id="l01356" name="l01356"></a><span class="lineno"> 1356</span> </div>
 <div class="line"><a id="l01357" name="l01357"></a><span class="lineno"> 1357</span>    y(:,:,1) = x(:,:,1)</div>
 <div class="line"><a id="l01358" name="l01358"></a><span class="lineno"> 1358</span>    <span class="keyword">call </span>convert_ddcosmo(params, constants, 1, y(:,:,1))</div>
 <div class="line"><a id="l01359" name="l01359"></a><span class="lineno"> 1359</span>    n_iter = params % maxiter</div>
-<div class="line"><a id="l01360" name="l01360"></a><span class="lineno"> 1360</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, y(:,:,1), &amp;</div>
-<div class="line"><a id="l01361" name="l01361"></a><span class="lineno"> 1361</span>        &amp; workspace % ddcosmo_guess, n_iter, x_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52">lstarx</a>, <a class="code hl_function" href="namespaceddx__operators.html#a73668d47230f4292955012f9910e4ecc">ldm1x</a>, hnorm, info)</div>
-<div class="line"><a id="l01362" name="l01362"></a><span class="lineno"> 1362</span>    <span class="keywordflow">if</span> (info.ne.0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l01363" name="l01363"></a><span class="lineno"> 1363</span>        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39;prec_tstarx: [1] ddCOSMO failed to converge&#39;</span></div>
-<div class="line"><a id="l01364" name="l01364"></a><span class="lineno"> 1364</span>        stop 1</div>
+<div class="line"><a id="l01360" name="l01360"></a><span class="lineno"> 1360</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__solvers.html#a1e4510a2d03b897c7b85fe46a764f1b3">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, y(:,:,1), &amp;</div>
+<div class="line"><a id="l01361" name="l01361"></a><span class="lineno"> 1361</span>        &amp; workspace % ddcosmo_guess, n_iter, x_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52">lstarx</a>, <a class="code hl_function" href="namespaceddx__operators.html#a73668d47230f4292955012f9910e4ecc">ldm1x</a>, hnorm)</div>
+<div class="line"><a id="l01362" name="l01362"></a><span class="lineno"> 1362</span>    <span class="keywordflow">if</span> (workspace % error_flag.ne.0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l01363" name="l01363"></a><span class="lineno"> 1363</span>        workspace % error_message = <span class="stringliteral">&#39;prec_tstarx: ddCOSMO failed to converge&#39;</span></div>
+<div class="line"><a id="l01364" name="l01364"></a><span class="lineno"> 1364</span>        <span class="keywordflow">return</span></div>
 <div class="line"><a id="l01365" name="l01365"></a><span class="lineno"> 1365</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l01366" name="l01366"></a><span class="lineno"> 1366</span>    y(:,:,1) = workspace % ddcosmo_guess</div>
 <div class="line"><a id="l01367" name="l01367"></a><span class="lineno"> 1367</span> </div>
 <div class="line"><a id="l01368" name="l01368"></a><span class="lineno"> 1368</span>    n_iter = params % maxiter</div>
-<div class="line"><a id="l01369" name="l01369"></a><span class="lineno"> 1369</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &amp;</div>
-<div class="line"><a id="l01370" name="l01370"></a><span class="lineno"> 1370</span>        &amp; n_iter, x_rel_diff, bstarx, bx_prec, hnorm, info)</div>
-<div class="line"><a id="l01371" name="l01371"></a><span class="lineno"> 1371</span>    <span class="keywordflow">if</span> (info.ne.0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l01372" name="l01372"></a><span class="lineno"> 1372</span>        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39;prec_tstarx: [1] HSP failed to converge&#39;</span></div>
-<div class="line"><a id="l01373" name="l01373"></a><span class="lineno"> 1373</span>        stop 1</div>
+<div class="line"><a id="l01369" name="l01369"></a><span class="lineno"> 1369</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__solvers.html#a1e4510a2d03b897c7b85fe46a764f1b3">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &amp;</div>
+<div class="line"><a id="l01370" name="l01370"></a><span class="lineno"> 1370</span>        &amp; n_iter, x_rel_diff, bstarx, bx_prec, hnorm)</div>
+<div class="line"><a id="l01371" name="l01371"></a><span class="lineno"> 1371</span>    <span class="keywordflow">if</span> (workspace % error_flag.ne.0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l01372" name="l01372"></a><span class="lineno"> 1372</span>        workspace % error_message = <span class="stringliteral">&#39;prec_tstarx: HSP failed to converge&#39;</span></div>
+<div class="line"><a id="l01373" name="l01373"></a><span class="lineno"> 1373</span>        <span class="keywordflow">return</span></div>
 <div class="line"><a id="l01374" name="l01374"></a><span class="lineno"> 1374</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l01375" name="l01375"></a><span class="lineno"> 1375</span>    y(:,:,2) = workspace % hsp_guess</div>
 <div class="line"><a id="l01376" name="l01376"></a><span class="lineno"> 1376</span> </div>
@@ -1430,17 +1430,17 @@ $(document).ready(function(){initNavTree('ddx__operators_8f90_source.html',''); 
 <div class="line"><a id="l01389" name="l01389"></a><span class="lineno"> 1389</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
 <div class="line"><a id="l01390" name="l01390"></a><span class="lineno"> 1390</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: x(constants % nbasis, params % nsph, 2)</div>
 <div class="line"><a id="l01391" name="l01391"></a><span class="lineno"> 1391</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(inout)</span> :: y(constants % nbasis, params % nsph, 2)</div>
-<div class="line"><a id="l01392" name="l01392"></a><span class="lineno"> 1392</span>    <span class="keywordtype">integer</span> :: n_iter, info</div>
+<div class="line"><a id="l01392" name="l01392"></a><span class="lineno"> 1392</span>    <span class="keywordtype">integer</span> :: n_iter</div>
 <div class="line"><a id="l01393" name="l01393"></a><span class="lineno"> 1393</span><span class="keywordtype">    real</span>(dp) :: r_norm</div>
 <div class="line"><a id="l01394" name="l01394"></a><span class="lineno"> 1394</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">dimension(params % maxiter)</span> :: x_rel_diff</div>
 <div class="line"><a id="l01395" name="l01395"></a><span class="lineno"> 1395</span> </div>
 <div class="line"><a id="l01396" name="l01396"></a><span class="lineno"> 1396</span>    <span class="comment">! perform A^-1 * Yr</span></div>
 <div class="line"><a id="l01397" name="l01397"></a><span class="lineno"> 1397</span>    n_iter = params % maxiter</div>
-<div class="line"><a id="l01398" name="l01398"></a><span class="lineno"> 1398</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, x(:,:,1), &amp;</div>
-<div class="line"><a id="l01399" name="l01399"></a><span class="lineno"> 1399</span>        &amp; workspace % ddcosmo_guess, n_iter, x_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#ac2a84b8394941ee2bf6d8f3e44127be3">lx</a>, <a class="code hl_function" href="namespaceddx__operators.html#a73668d47230f4292955012f9910e4ecc">ldm1x</a>, hnorm, info)</div>
-<div class="line"><a id="l01400" name="l01400"></a><span class="lineno"> 1400</span>    <span class="keywordflow">if</span> (info.ne.0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l01401" name="l01401"></a><span class="lineno"> 1401</span>        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39;prec_tx: [1] ddCOSMO failed to converge&#39;</span></div>
-<div class="line"><a id="l01402" name="l01402"></a><span class="lineno"> 1402</span>        stop 1</div>
+<div class="line"><a id="l01398" name="l01398"></a><span class="lineno"> 1398</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__solvers.html#a1e4510a2d03b897c7b85fe46a764f1b3">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, x(:,:,1), &amp;</div>
+<div class="line"><a id="l01399" name="l01399"></a><span class="lineno"> 1399</span>        &amp; workspace % ddcosmo_guess, n_iter, x_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#ac2a84b8394941ee2bf6d8f3e44127be3">lx</a>, <a class="code hl_function" href="namespaceddx__operators.html#a73668d47230f4292955012f9910e4ecc">ldm1x</a>, hnorm)</div>
+<div class="line"><a id="l01400" name="l01400"></a><span class="lineno"> 1400</span>    <span class="keywordflow">if</span> (workspace % error_flag.ne.0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l01401" name="l01401"></a><span class="lineno"> 1401</span>        workspace % error_message = <span class="stringliteral">&#39;prec_tx: ddCOSMO failed to converge&#39;</span></div>
+<div class="line"><a id="l01402" name="l01402"></a><span class="lineno"> 1402</span>        <span class="keywordflow">return</span></div>
 <div class="line"><a id="l01403" name="l01403"></a><span class="lineno"> 1403</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l01404" name="l01404"></a><span class="lineno"> 1404</span> </div>
 <div class="line"><a id="l01405" name="l01405"></a><span class="lineno"> 1405</span>    <span class="comment">! Scale by the factor of (2l+1)/4Pi</span></div>
@@ -1449,13 +1449,13 @@ $(document).ready(function(){initNavTree('ddx__operators_8f90_source.html',''); 
 <div class="line"><a id="l01408" name="l01408"></a><span class="lineno"> 1408</span> </div>
 <div class="line"><a id="l01409" name="l01409"></a><span class="lineno"> 1409</span>    <span class="comment">! perform B^-1 * Ye</span></div>
 <div class="line"><a id="l01410" name="l01410"></a><span class="lineno"> 1410</span>    n_iter = params % maxiter</div>
-<div class="line"><a id="l01411" name="l01411"></a><span class="lineno"> 1411</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &amp;</div>
-<div class="line"><a id="l01412" name="l01412"></a><span class="lineno"> 1412</span>        &amp; n_iter, x_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a">bx</a>, bx_prec, hnorm, info)</div>
+<div class="line"><a id="l01411" name="l01411"></a><span class="lineno"> 1411</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__solvers.html#a1e4510a2d03b897c7b85fe46a764f1b3">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &amp;</div>
+<div class="line"><a id="l01412" name="l01412"></a><span class="lineno"> 1412</span>        &amp; n_iter, x_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a">bx</a>, bx_prec, hnorm)</div>
 <div class="line"><a id="l01413" name="l01413"></a><span class="lineno"> 1413</span>    y(:,:,2) = workspace % hsp_guess</div>
 <div class="line"><a id="l01414" name="l01414"></a><span class="lineno"> 1414</span> </div>
-<div class="line"><a id="l01415" name="l01415"></a><span class="lineno"> 1415</span>    <span class="keywordflow">if</span> (info.ne.0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l01416" name="l01416"></a><span class="lineno"> 1416</span>        <span class="keyword">write</span>(*,*) <span class="stringliteral">&#39;prec_tx: [1] HSP failed to converge&#39;</span></div>
-<div class="line"><a id="l01417" name="l01417"></a><span class="lineno"> 1417</span>        stop 1</div>
+<div class="line"><a id="l01415" name="l01415"></a><span class="lineno"> 1415</span>    <span class="keywordflow">if</span> (workspace % error_flag.ne.0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l01416" name="l01416"></a><span class="lineno"> 1416</span>        workspace % error_message = <span class="stringliteral">&#39;prec_tx: HSP failed to converge&#39;</span></div>
+<div class="line"><a id="l01417" name="l01417"></a><span class="lineno"> 1417</span>        <span class="keywordflow">return</span></div>
 <div class="line"><a id="l01418" name="l01418"></a><span class="lineno"> 1418</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l01419" name="l01419"></a><span class="lineno"> 1419</span><span class="keyword">end subroutine </span>prec_tx</div>
 <div class="line"><a id="l01420" name="l01420"></a><span class="lineno"> 1420</span><span class="comment">!</span></div>
@@ -1737,7 +1737,7 @@ $(document).ready(function(){initNavTree('ddx__operators_8f90_source.html',''); 
 <div class="ttc" id="anamespaceddx__operators_html_ace05a424bd4e0a226b635723aba4389c"><div class="ttname"><a href="namespaceddx__operators.html#ace05a424bd4e0a226b635723aba4389c">ddx_operators::repsx</a></div><div class="ttdeci">subroutine repsx(params, constants, workspace, x, y)</div><div class="ttdoc">Apply  operator to spherical harmonics.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00488">ddx_operators.f90:489</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_ad322bb8c91dfbed143be683333be9430"><div class="ttname"><a href="namespaceddx__operators.html#ad322bb8c91dfbed143be683333be9430">ddx_operators::rinfx</a></div><div class="ttdeci">subroutine rinfx(params, constants, workspace, x, y)</div><div class="ttdoc">Apply  operator to spherical harmonics.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00543">ddx_operators.f90:544</a></div></div>
 <div class="ttc" id="anamespaceddx__solvers_html"><div class="ttname"><a href="namespaceddx__solvers.html">ddx_solvers</a></div><div class="ttdoc">Core routines and parameters of ddX software.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__solvers_8f90_source.html#l00013">ddx_solvers.f90:13</a></div></div>
-<div class="ttc" id="anamespaceddx__solvers_html_abf126087f0449850ca561c364488f20a"><div class="ttname"><a href="namespaceddx__solvers.html#abf126087f0449850ca561c364488f20a">ddx_solvers::jacobi_diis</a></div><div class="ttdeci">subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, x_rel_diff, matvec, dm1vec, norm_func, info)</div><div class="ttdoc">Jacobi iterative solver.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__solvers_8f90_source.html#l00080">ddx_solvers.f90:82</a></div></div>
+<div class="ttc" id="anamespaceddx__solvers_html_a1e4510a2d03b897c7b85fe46a764f1b3"><div class="ttname"><a href="namespaceddx__solvers.html#a1e4510a2d03b897c7b85fe46a764f1b3">ddx_solvers::jacobi_diis</a></div><div class="ttdeci">subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, x_rel_diff, matvec, dm1vec, norm_func)</div><div class="ttdoc">Jacobi iterative solver.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__solvers_8f90_source.html#l00079">ddx_solvers.f90:81</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
