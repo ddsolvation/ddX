@@ -512,39 +512,38 @@ subroutine print_func_default(string)
     write(6,"(A)") trim(string)
 end subroutine
 
-subroutine params_free(params, info)
+subroutine params_free(params)
     implicit none
     type(ddx_params_type), intent(out) :: params
-    integer, intent(out) :: info
     integer :: istat
 
     istat = 0
-    info = 0
 
     call finalize_printing(params)
+    if (params % error_flag .ne. 0) return
 
     if (allocated(params % charge)) then
         deallocate(params % charge, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`charge` deallocation failed!"
-            stop 1
+            params % error_message = "`charge` deallocation failed!"
+            params % error_flag = 1
+            return
         end if
     end if
     if (allocated(params % csph)) then
         deallocate(params % csph, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`csph` deallocation failed!"
-            stop 1
+            params % error_message = "`csph` deallocation failed!"
+            params % error_flag = 1
+            return
         end if
     end if
     if (allocated(params % rsph)) then
         deallocate(params % rsph, stat=istat)
         if (istat .ne. 0) then
-            info = 1
-            write(6, *) "`rsph` deallocation failed!"
-            stop 1
+            params % error_message = "`rsph` deallocation failed!"
+            params % error_flag = 1
+            return
         end if
     end if
 end subroutine params_free
