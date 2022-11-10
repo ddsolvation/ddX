@@ -93,8 +93,129 @@ $(document).ready(function(){initNavTree('label_python_interface.html',''); init
   <div class="headertitle"><div class="title">Python interface </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p ><a class="anchor" id="md_docs_python_interface"></a> Todo </p>
-</div></div><!-- contents -->
+<div class="textblock"><p ><a class="anchor" id="md_docs_python_interface"></a> </p>
+<h1><a class="anchor" id="autotoc_md12"></a>
+Download the python package pyddx</h1>
+<p >You can download the python-interface with ddx from pypi.org following: </p><div class="fragment"><div class="line">pip install pyddx</div>
+</div><!-- fragment --><p> Please find <a href="https://pypi.org/project/pyddx/">here</a> the PyPI-webpage.</p>
+<p ><br  />
+ </p>
+<h1><a class="anchor" id="autotoc_md13"></a>
+Example</h1>
+<p >It is simplest by starting with an example. The following example can be found in examples/run_ddx.py.</p>
+<p >In the terminal, run the example (from the home directory) </p><div class="fragment"><div class="line">python examples/run_ddx.py </div>
+</div><!-- fragment --><p >or launch it interactively within python: </p><div class="fragment"><div class="line">import pyddx</div>
+<div class="line">import numpy as np</div>
+<div class="line"> </div>
+<div class="line">tobohr = 1 / 0.52917721092</div>
+<div class="line">charges = np.array([</div>
+<div class="line">    -0.04192, -0.04192, -0.04198, -0.04192, -0.04192, -0.04198,</div>
+<div class="line">    0.04193, 0.04193,  0.04197,  0.04193,  0.04193,  0.04197</div>
+<div class="line">])</div>
+<div class="line">rvdw = tobohr * np.array([</div>
+<div class="line">    4.00253, 4.00253, 4.00253, 4.00253, 4.00253, 4.00253,</div>
+<div class="line">    2.99956, 2.99956, 2.99956, 2.99956, 2.99956, 2.99956</div>
+<div class="line">])</div>
+<div class="line">centres = tobohr * np.array([</div>
+<div class="line">    [ 0.00000,  2.29035,  1.32281],  </div>
+<div class="line">    [ 0.00000,  2.29035, -1.32281],  </div>
+<div class="line">    [ 0.00000,  0.00000, -2.64562],  </div>
+<div class="line">    [ 0.00000, -2.29035, -1.32281],  </div>
+<div class="line">    [ 0.00000, -2.29035,  1.32281],  </div>
+<div class="line">    [ 0.00000,  0.00000,  2.64562],  </div>
+<div class="line">    [ 0.00103,  4.05914,  2.34326],  </div>
+<div class="line">    [ 0.00103,  4.05914, -2.34326],  </div>
+<div class="line">    [ 0.00000,  0.00000, -4.68652],  </div>
+<div class="line">    [-0.00103, -4.05914, -2.34326],  </div>
+<div class="line">    [-0.00103, -4.05914,  2.34326],  </div>
+<div class="line">    [ 0.00000,  0.00000,  4.68652],  </div>
+<div class="line">]).T</div>
+<div class="line"> </div>
+<div class="line">model = pyddx.Model(&quot;pcm&quot;, charges, centres, rvdw, solvent_epsilon=78.3553)</div>
+<div class="line">nuclear = model.solute_nuclear_contribution()</div>
+<div class="line">state = model.initial_guess()</div>
+<div class="line">state = model.solve(state, nuclear[&quot;phi&quot;])</div>
+<div class="line">state = model.adjoint_solve(state, nuclear[&quot;psi&quot;])</div>
+<div class="line">force = model.force_terms(state, nuclear[&quot;phi&quot;], nuclear[&quot;gradphi&quot;], nuclear[&quot;psi&quot;])</div>
+<div class="line"> </div>
+<div class="line">energy = 0.5 * np.sum(state.x * nuclear[&quot;psi&quot;])</div>
+<div class="line">print(energy)</div>
+<div class="line">print(force)</div>
+</div><!-- fragment --><p ><br  />
+ </p>
+<h1><a class="anchor" id="autotoc_md14"></a>
+Use ddX in python</h1>
+<p >We now proceed with further informations. Within python, import the pyddx-package </p><div class="fragment"><div class="line">&gt;&gt;&gt; import pyddx</div>
+</div><!-- fragment --><p ><br  />
+ </p>
+<h2><a class="anchor" id="autotoc_md15"></a>
+Model constructor</h2>
+<p >Define the model as follows </p><div class="fragment"><div class="line">model = pyddx.Model(modelstr, charges, centres, rvdw, solvent_epsilon)</div>
+</div><!-- fragment --><p> Here, the model is constructed with the following mandatory arguments:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Argument number   </th><th class="markdownTableHeadNone">name   </th><th class="markdownTableHeadNone">type   </th><th class="markdownTableHeadNone">description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">1   </td><td class="markdownTableBodyNone">model   </td><td class="markdownTableBodyNone">string   </td><td class="markdownTableBodyNone">String with the model name, i.e. "cosmo", "pcm" or "lpb"    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">2   </td><td class="markdownTableBodyNone">sphere_charges   </td><td class="markdownTableBodyNone">array   </td><td class="markdownTableBodyNone">Numpy-array containing the charges (of dimension 1 x n_spheres)    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">3   </td><td class="markdownTableBodyNone">sphere_centres   </td><td class="markdownTableBodyNone">array   </td><td class="markdownTableBodyNone">Numpy-array containing the centres of the spheres/atoms (of dimension 3 x n_spheres)    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">4   </td><td class="markdownTableBodyNone">sphere_radii   </td><td class="markdownTableBodyNone">array   </td><td class="markdownTableBodyNone">Numpy-array containing the radii of the cavity spheres (of dimension 1 x n_spheres)    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">5   </td><td class="markdownTableBodyNone">solvent_epsilon   </td><td class="markdownTableBodyNone">double   </td><td class="markdownTableBodyNone">Value of the solvent dielectric permittivity   </td></tr>
+</table>
+<p >The following arguments are optional:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Name   </th><th class="markdownTableHeadNone">type   </th><th class="markdownTableHeadNone">description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">solvent_kappa   </td><td class="markdownTableBodyNone">double   </td><td class="markdownTableBodyNone">Debye Hückel parameter \(\kappa_s\) of the bulk solvent    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">eta   </td><td class="markdownTableBodyNone">double   </td><td class="markdownTableBodyNone">Regularization parameter \(\eta\) of the smoothing function \(\chi_\eta\), range=[0,1]    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">lmax   </td><td class="markdownTableBodyNone">int   </td><td class="markdownTableBodyNone">Maximal degree \(\ell_{\max}\) of modeling spherical harmonics    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">n_lebedev   </td><td class="markdownTableBodyNone">int   </td><td class="markdownTableBodyNone">Approximate number of Lebedev grid points    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">incore   </td><td class="markdownTableBodyNone">bool   </td><td class="markdownTableBodyNone">Whether to compute and store sparse matrices (1) or apply the matrix-vector product on the fly (0), range={0,1} <br  />
+ The sparse matrices are the solution matrix of ddCOSMO referred to as \(L\) used in ddCOSMO and ddPCM, and the matrices \(A\) and \(B\) in ddLPB.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">maxiter   </td><td class="markdownTableBodyNone">int   </td><td class="markdownTableBodyNone">Maximum number of iterations of the iterative solver before stopping    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">jacobi_n_diis   </td><td class="markdownTableBodyNone">int   </td><td class="markdownTableBodyNone">Number of Jacobi/DIIS extrapolation points    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">enable_fmm   </td><td class="markdownTableBodyNone">bool   </td><td class="markdownTableBodyNone">Whether to use (1) or not (0) the FMM, range={0,1}    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">fmm_multipole_lmax   </td><td class="markdownTableBodyNone">int   </td><td class="markdownTableBodyNone">Max degree of multipole spherical harmonics \(\tilde\ell_{\max}\) for the FMM (recommended value \(\tilde\ell_{\max}=\ell_{\max}\)).    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">fmm_local_lmax   </td><td class="markdownTableBodyNone">int   </td><td class="markdownTableBodyNone">Max degree of local spherical harmonics \(p_{\max}\) for the FMM (recommended value \(p_{\max}=6\)).    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">n_proc   </td><td class="markdownTableBodyNone">int   </td><td class="markdownTableBodyNone">Number of OpenMP cores to be used   </td></tr>
+</table>
+<p ><br  />
+ </p>
+<h2><a class="anchor" id="autotoc_md16"></a>
+Functions</h2>
+<p >The following functions are available </p><table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Name   </th><th class="markdownTableHeadNone">description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">initial_guess   </td><td class="markdownTableBodyNone">Builds an initial guess for the state variable    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">solve   </td><td class="markdownTableBodyNone">Solves the linear system that defines the state variable    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">adjoint_solve   </td><td class="markdownTableBodyNone">Solves the adjoint linear system that is required for the force computation and/or the contribution to the Fock-/DFT-operator    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">force_terms   </td><td class="markdownTableBodyNone">Computes the forces due to the presence of the solvent, i.e. minus the gradient of the solvation energy w.r.t. the nuclear coordinates    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">solute_nuclear_contribution   </td><td class="markdownTableBodyNone">Returns the terms of the nuclear contribution to the solvation as a python dictionary    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">scaled_ylm   </td><td class="markdownTableBodyNone">Computes the scaled harmonics with reference to a atomic sphere "sphere" of radius "r" centred at "a" compute \(\frac{4π}{2 \ell +1} \cdot \frac{\|x-a\|^\ell}{r^\ell} \cdot Y_\ell^m(\|x-a\|)\)   </td></tr>
+</table>
+<p >For further informations about the arguments, see the documentation in python </p><div class="fragment"><div class="line">&gt;&gt;&gt; help(pyddx)</div>
+</div><!-- fragment --> </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->
