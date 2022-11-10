@@ -26,45 +26,45 @@ var NAVTREE =
 [
   [ "ddx", "index.html", [
     [ "General information", "index.html", null ],
-    [ "The dd-story", "md_docs_ddstory.html", null ],
-    [ "ddX-References", "label_references.html", null ],
     [ "Download and Installation", "label_download_and_install.html", [
-      [ "Python package", "label_download_and_install.html#autotoc_md8", null ],
-      [ "Source code", "label_download_and_install.html#autotoc_md9", null ]
-    ] ],
-    [ "Licence", "label_licence.html", null ],
-    [ "Python interface", "label_python_interface.html", [
-      [ "Download the python package pyddx", "label_python_interface.html#autotoc_md12", null ],
-      [ "Example", "label_python_interface.html#autotoc_md13", null ],
-      [ "Use ddX in python", "label_python_interface.html#autotoc_md14", [
-        [ "Model constructor", "label_python_interface.html#autotoc_md15", null ],
-        [ "Functions", "label_python_interface.html#autotoc_md16", null ]
-      ] ]
+      [ "Python package", "label_download_and_install.html#autotoc_md1", null ],
+      [ "Source code", "label_download_and_install.html#autotoc_md2", null ]
     ] ],
     [ "Run as standalone", "label_run_as_standalone.html", null ],
-    [ "Theory", "md_docs_theory.html", [
-      [ "Introduction", "md_docs_theory.html#autotoc_md18", null ],
-      [ "Cavity and solute density", "md_docs_theory.html#autotoc_md19", [
-        [ "Fundamental solutions and free-space potentials", "md_docs_theory.html#autotoc_md20", null ]
-      ] ],
-      [ "Models", "md_docs_theory.html#autotoc_md21", [
-        [ "Linearized Poisson-Boltzmann model (LPB)", "md_docs_theory.html#autotoc_md22", null ],
-        [ "Polarizable Continuum Model (PCM)", "md_docs_theory.html#autotoc_md23", null ],
-        [ "COnductor-like Screening MOdel (COSMO)", "md_docs_theory.html#autotoc_md24", [
-          [ "General remarks", "md_docs_theory.html#autotoc_md25", null ]
-        ] ]
-      ] ],
-      [ "Discrete equations in a general framework - overview", "md_docs_theory.html#autotoc_md26", [
-        [ "ddCOSMO:", "md_docs_theory.html#autotoc_md27", null ],
-        [ "ddPCM:", "md_docs_theory.html#autotoc_md28", null ],
-        [ "ddLPB:", "md_docs_theory.html#autotoc_md29", null ]
-      ] ],
-      [ "Gradient computations", "md_docs_theory.html#autotoc_md30", [
-        [ "ddCOSMO:", "md_docs_theory.html#autotoc_md31", null ],
-        [ "ddPCM:", "md_docs_theory.html#autotoc_md32", null ],
-        [ "ddLPB:", "md_docs_theory.html#autotoc_md33", null ]
+    [ "Python interface", "label_python_interface.html", [
+      [ "Download the python package pyddx", "label_python_interface.html#autotoc_md4", null ],
+      [ "Example", "label_python_interface.html#autotoc_md5", null ],
+      [ "Use ddX in python", "label_python_interface.html#autotoc_md6", [
+        [ "Model constructor", "label_python_interface.html#autotoc_md7", null ],
+        [ "Functions", "label_python_interface.html#autotoc_md8", null ]
       ] ]
     ] ],
+    [ "Theory", "md_docs_theory.html", [
+      [ "Introduction", "md_docs_theory.html#autotoc_md10", null ],
+      [ "Cavity and solute density", "md_docs_theory.html#autotoc_md11", [
+        [ "Fundamental solutions and free-space potentials", "md_docs_theory.html#autotoc_md12", null ]
+      ] ],
+      [ "Models", "md_docs_theory.html#autotoc_md13", [
+        [ "Linearized Poisson-Boltzmann model (LPB)", "md_docs_theory.html#autotoc_md14", null ],
+        [ "Polarizable Continuum Model (PCM)", "md_docs_theory.html#autotoc_md15", null ],
+        [ "COnductor-like Screening MOdel (COSMO)", "md_docs_theory.html#autotoc_md16", [
+          [ "General remarks", "md_docs_theory.html#autotoc_md17", null ]
+        ] ]
+      ] ],
+      [ "Discrete equations in a general framework - overview", "md_docs_theory.html#autotoc_md18", [
+        [ "ddCOSMO:", "md_docs_theory.html#autotoc_md19", null ],
+        [ "ddPCM:", "md_docs_theory.html#autotoc_md20", null ],
+        [ "ddLPB:", "md_docs_theory.html#autotoc_md21", null ]
+      ] ],
+      [ "Gradient computations", "md_docs_theory.html#autotoc_md22", [
+        [ "ddCOSMO:", "md_docs_theory.html#autotoc_md23", null ],
+        [ "ddPCM:", "md_docs_theory.html#autotoc_md24", null ],
+        [ "ddLPB:", "md_docs_theory.html#autotoc_md25", null ]
+      ] ]
+    ] ],
+    [ "The dd-story", "md_docs_ddstory.html", null ],
+    [ "Licence", "label_licence.html", null ],
+    [ "ddX-References", "label_references.html", null ],
     [ "Bibliography", "citelist.html", null ],
     [ "Modules", "namespaces.html", [
       [ "Modules List", "namespaces.html", "namespaces_dup" ],
