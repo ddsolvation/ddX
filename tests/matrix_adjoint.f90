@@ -78,7 +78,7 @@ real(dp) :: lmax0, nbasis0
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file 12"
 call ddfromfile(fname, ddx_data, tol)
-if(info .ne. 0) stop "info != 0"
+if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 
 ! lmax0 set to minimum of 6 or given lmax.
 ! nbasis0 set to minimum of 49 or given (lmax+1)^2.

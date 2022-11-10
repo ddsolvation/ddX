@@ -32,8 +32,10 @@ character(len=255) :: dummy_file_name = ''
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol)
+if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
-if(info .ne. 0) stop "info != 0"
+if(state % error_flag .ne. 0) stop "Initialization failed"
+
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
     & hessianphi_cav(3, 3, ddx_data % constants % ncav), &
     & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), &

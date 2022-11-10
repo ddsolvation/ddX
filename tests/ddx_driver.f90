@@ -35,9 +35,10 @@ call getarg(3, tmpstr)
 read(tmpstr, *) threshold
 ! Init input from a file
 call ddfromfile(finname, ddx_data, tol)
+if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
+if(state % error_flag .ne. 0) stop "Initialization failed"
 
-if(info .ne. 0) call error(-1, "info != 0")
 ! Allocate resources
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
     & hessianphi_cav(3, 3, ddx_data % constants % ncav), &

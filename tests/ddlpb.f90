@@ -20,6 +20,7 @@ implicit none
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
 integer :: info
+real(dp) :: tol
 ! derivative_num_cosmo : Numerical derivatives for matrix A
 ! derivative_num_lpb   : Numerical derivatives for matrix B
 ! derivative_num_char  : Numerical derivatives for U_i^e(x_in)
@@ -91,8 +92,8 @@ real(dp), external :: dnrm2, ddot
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file 12"
-call ddfromfile(fname, ddx_data, info)
-if(info .ne. 0) stop "info != 0"
+call ddfromfile(fname, ddx_data, tol)
+if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 
 ! lmax0 set to minimum of 6 or given lmax.
 ! nbasis0 set to minimum of 49 or given (lmax+1)^2.

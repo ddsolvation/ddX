@@ -558,7 +558,9 @@ subroutine init_printing(params)
     inquire(file=params % output_filename(1:params % len_output_filename), &
         & exist=exists)
     if (exists) then
-        stop 'log file already present'
+        params % error_message = 'Log file already present'
+        params % error_flag = 1
+        return
     else
         params % iunit = 100
         open(params % iunit, &

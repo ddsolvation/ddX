@@ -37,8 +37,9 @@ real(dp), external :: dnrm2
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol)
-if(info .ne. 0) stop "info != 0"
+if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
+if(state % error_flag .ne. 0) stop "Initialization failed"
 
 ! Initial values
 default_value = zero
