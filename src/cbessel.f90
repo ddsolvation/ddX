@@ -9,7 +9,7 @@ Module Complex_Bessel
 ! Latest revision - 16 April 2002
 
 IMPLICIT NONE
-INTEGER, PARAMETER, PUBLIC  :: dp = SELECTED_REAL_KIND(12, 60)
+INTEGER, PARAMETER, PUBLIC  :: dp = kind(1.0d0)
 
 PRIVATE
 PUBLIC  :: cbesh, cbesi, cbesj, cbesk, cbesy, cairy, cbiry, gamln

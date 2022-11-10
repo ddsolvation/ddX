@@ -21,7 +21,7 @@ character(len=255) :: fname
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
 integer :: iprint, nproc, lmax, pmax, ngrid, iconv, igrad, n, force, fmm, model
-integer :: niter, jacobi_ndiis=25, gmresr_j=1, gmresr_dim=10, itersolver, maxiter
+integer :: niter, jacobi_ndiis=25, maxiter
 integer :: matvecmem
 logical :: ok
 real(dp) :: eps, eta, tol, se, kappa
@@ -116,12 +116,11 @@ force=0
 fmm=0
 se=-one
 matvecmem=0
-itersolver=1
 tol=1d-1**iconv
 maxiter=200
 call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pmax, pmax, &
-    & se, eta, eps, kappa, matvecmem, itersolver, maxiter, &
-    & jacobi_ndiis, gmresr_j, gmresr_dim, nproc, ddx_data, info)
+    & se, eta, eps, kappa, matvecmem, maxiter, &
+    & jacobi_ndiis, nproc, ddx_data, info)
 
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 

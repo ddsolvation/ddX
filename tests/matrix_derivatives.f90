@@ -315,10 +315,9 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
         & ddx_data % params % se, &
         & ddx_data % params % eta, &
         & ddx_data % params % eps, &
-        &ddx_data % params % kappa, 0, &
-        & ddx_data % params % itersolver, ddx_data % params % maxiter, &
-        & ddx_data % params % jacobi_ndiis, ddx_data % params % gmresr_j, &
-        & ddx_data % params % gmresr_dim, &
+        & ddx_data % params % kappa, 0, &
+        & ddx_data % params % maxiter, &
+        & ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, ddx_data2, info)
     ! Allocation
     allocate(random_vector_n_one(ddx_data2 % constants % n), &

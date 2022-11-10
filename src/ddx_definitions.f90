@@ -16,7 +16,7 @@ module ddx_definitions
 implicit none
 
 !> Kind of double precision
-integer, parameter :: dp = kind(1d0)
+integer, parameter :: dp = kind(1.0d0)
 
 !! Compile-time constants
 real(dp), parameter :: zero = 0d0, one = 1d0, two = 2d0, three = 3d0
@@ -41,8 +41,6 @@ integer, parameter :: ng0(nllg) = (/ 6, 14, 26, 38, 50, 74, 86, 110, 146, &
     & 2030, 2354, 2702, 3074, 3470, 3890, 4334, 4802, 5294, 5810 /)
 !> Names of ddX models
 character(len=255), parameter :: model_str(3) = (/ "COSMO", "PCM  ", "LPB  " /)
-!> Names of iterative solvers
-character(len=255), parameter :: itersolver_str(1) = (/ "Jacobi" /)
 
 end module ddx_definitions
 
