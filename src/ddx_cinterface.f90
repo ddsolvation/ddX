@@ -499,7 +499,7 @@ subroutine ddx_cosmo_solve_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) bind(
     real(c_double), intent(in) :: psi(nbasis, nsph)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddcosmo_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, psi, tol)
+    call ddcosmo_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol)
 end
 
 subroutine ddx_cosmo_forces(c_ddx, c_state, nbasis, nsph, ncav, phi, gradphi, psi, forces) bind(C)
@@ -547,7 +547,7 @@ subroutine ddx_pcm_solve_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) bind(C)
     real(c_double), intent(in) :: psi(nbasis, nsph)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddpcm_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, psi, tol)
+    call ddpcm_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol)
 end
 
 subroutine ddx_pcm_forces(c_ddx, c_state, nbasis, nsph, ncav, phi, gradphi, psi, forces) bind(C)

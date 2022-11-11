@@ -84,8 +84,8 @@ write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time-start_time, " second
 
 start_time = omp_get_wtime()
 call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, ddx_data % params % charge, &
-    & force, -gradphi_cav)
+    & ddx_data % workspace, state, ddx_data % params % charge/2.0d0, &
+    & force, gradphi_cav)
 start_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") " multipolar forces time:", finish_time-start_time, " seconds"
 
