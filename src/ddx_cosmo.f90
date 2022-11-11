@@ -45,7 +45,7 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
     real(dp), intent(out) :: esolv, force(3, params % nsph)
     real(dp), external :: ddot
 
-    call ddcosmo_setup(params, constants, workspace, state, phi_cav)
+    call ddcosmo_setup(params, constants, workspace, state, phi_cav, psi)
     call ddcosmo_guess(params, constants, workspace, state)
     call ddcosmo_solve(params, constants, workspace, state, tol)
 
@@ -55,7 +55,6 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
     ! Get forces if needed
     if (params % force .eq. 1) then
         ! solve the adjoint
-        call ddcosmo_setup_adjoint(params, constants, workspace, state, psi)
         call ddcosmo_guess_adjoint(params, constants, workspace, state)
         call ddcosmo_solve_adjoint(params, constants, workspace, state, tol)
 
@@ -74,35 +73,21 @@ end subroutine ddcosmo
 !! @param[inout] workspace: ddx workspace
 !! @param[inout] state: ddx state
 !! @param[in] phi_cav: electrostatic potential at the cavity points
-subroutine ddcosmo_setup(params, constants, workspace, state, phi_cav)
+!! @param[in] psi: representation of the solute density
+subroutine ddcosmo_setup(params, constants, workspace, state, phi_cav, psi)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_cav(constants % ncav)
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     call cav_to_spherical(params, constants, workspace, phi_cav, &
         & state % phi)
     state % phi = - state % phi
     state % phi_cav = phi_cav
-end subroutine ddcosmo_setup
-
-!> Load psi into the state.
-!!
-!! @param[in] params: ddx parameters
-!! @param[in] constants: ddx constants
-!! @param[inout] workspace: ddx workspace
-!! @param[inout] state: ddx state
-!! @param[in] psi: representation of the solute density
-subroutine ddcosmo_setup_adjoint(params, constants, workspace, state, psi)
-    implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     state % psi = psi
-end subroutine ddcosmo_setup_adjoint
+end subroutine ddcosmo_setup
 
 !> Do a guess for the primal ddCOSMO linear system
 !!
