@@ -86,5 +86,8 @@ var searchData=
   ['fmm_5fsph_5ftransform_83',['fmm_sph_transform',['../namespaceddx__harmonics.html#a8f2ebf0050f757ce65ffe0f5d8bbc654',1,'ddx_harmonics']]],
   ['fmm_5fsph_5ftransform_5fwork_84',['fmm_sph_transform_work',['../namespaceddx__harmonics.html#ab643a611d5cbc4b1a035546a01eb9bf5',1,'ddx_harmonics']]],
   ['force_85',['force',['../structddx__parameters_1_1ddx__params__type.html#a75c5b5e4ae578211113bdc7c7c0bde10',1,'ddx_parameters::ddx_params_type']]],
-  ['fsw_86',['fsw',['../namespaceddx__constants.html#abb0c060445e3b2d40b770eda26d20fdb',1,'ddx_constants']]]
+  ['fortran_20interface_3a_20ddcosmo_86',['Fortran interface: ddcosmo',['../group___fortran__interface__ddcosmo.html',1,'']]],
+  ['fortran_20interface_3a_20ddpcm_87',['Fortran interface: ddpcm',['../group___fortran__interface__ddpcm.html',1,'']]],
+  ['fortran_20interface_3a_20multipolar_20terms_88',['Fortran interface: multipolar terms',['../group___fortran__interface__multipolar.html',1,'']]],
+  ['fsw_89',['fsw',['../namespaceddx__constants.html#abb0c060445e3b2d40b770eda26d20fdb',1,'ddx_constants']]]
 ];

@@ -101,19 +101,23 @@ $(document).ready(function(){initNavTree('namespaceddx__pcm.html',''); initResiz
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:a5f957df6faca9f66accc5073f702df90"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__pcm.html#a5f957df6faca9f66accc5073f702df90">ddpcm_solve</a> (params, constants, workspace, state, phi_cav, tol)</td></tr>
-<tr class="separator:a5f957df6faca9f66accc5073f702df90"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7bb48ad6e3d03d47fab122a662dabd49"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__pcm.html#a7bb48ad6e3d03d47fab122a662dabd49">ddpcm_adjoint</a> (params, constants, workspace, state, psi, tol)</td></tr>
-<tr class="separator:a7bb48ad6e3d03d47fab122a662dabd49"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aae281a2a2211b1c19fe84d7d18bdbf38"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__pcm.html#aae281a2a2211b1c19fe84d7d18bdbf38">ddpcm_forces</a> (params, constants, workspace, state, phi_cav, gradphi_cav, psi, force)</td></tr>
-<tr class="separator:aae281a2a2211b1c19fe84d7d18bdbf38"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5f957df6faca9f66accc5073f702df90"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga5f957df6faca9f66accc5073f702df90">ddpcm_solve</a> (params, constants, workspace, state, phi_cav, tol)</td></tr>
+<tr class="memdesc:ga5f957df6faca9f66accc5073f702df90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrapper routine for the solution of the direct ddPCM linear system. It makes the interface easier to implement. If a fine control is needed, the worker routine should be directly called.  <a href="group___fortran__interface__ddpcm.html#ga5f957df6faca9f66accc5073f702df90">More...</a><br /></td></tr>
+<tr class="separator:ga5f957df6faca9f66accc5073f702df90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7bb48ad6e3d03d47fab122a662dabd49"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga7bb48ad6e3d03d47fab122a662dabd49">ddpcm_adjoint</a> (params, constants, workspace, state, psi, tol)</td></tr>
+<tr class="memdesc:ga7bb48ad6e3d03d47fab122a662dabd49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrapper routine for the solution of the adjoint ddPCM linear system. It makes the interface easier to implement. If a fine control is needed, the worker routine should be directly called.  <a href="group___fortran__interface__ddpcm.html#ga7bb48ad6e3d03d47fab122a662dabd49">More...</a><br /></td></tr>
+<tr class="separator:ga7bb48ad6e3d03d47fab122a662dabd49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaae281a2a2211b1c19fe84d7d18bdbf38"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#gaae281a2a2211b1c19fe84d7d18bdbf38">ddpcm_forces</a> (params, constants, workspace, state, phi_cav, gradphi_cav, psi, force)</td></tr>
+<tr class="memdesc:gaae281a2a2211b1c19fe84d7d18bdbf38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrapper routine for the computation of ddPCM forces. It makes the interface easier to implement. If a fine control is needed, the worker routine should be directly called.  <a href="group___fortran__interface__ddpcm.html#gaae281a2a2211b1c19fe84d7d18bdbf38">More...</a><br /></td></tr>
+<tr class="separator:gaae281a2a2211b1c19fe84d7d18bdbf38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16de112567fda83d41b494696948d2df"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__pcm.html#a16de112567fda83d41b494696948d2df">ddpcm_geom_forces</a> (params, constants, workspace, state, phi_cav, gradphi_cav, psi, force)</td></tr>
 <tr class="separator:a16de112567fda83d41b494696948d2df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb14bc51a656707dcea90cf19a563d50"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__pcm.html#acb14bc51a656707dcea90cf19a563d50">ddpcm</a> (params, constants, workspace, state, phi_cav, gradphi_cav, psi, tol, esolv, force)</td></tr>
 <tr class="memdesc:acb14bc51a656707dcea90cf19a563d50"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddPCM solver  <a href="namespaceddx__pcm.html#acb14bc51a656707dcea90cf19a563d50">More...</a><br /></td></tr>
 <tr class="separator:acb14bc51a656707dcea90cf19a563d50"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0e69b132a8d951ff0a77f82011fd22c8"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__pcm.html#a0e69b132a8d951ff0a77f82011fd22c8">ddpcm_guess</a> (params, constants, state)</td></tr>
-<tr class="separator:a0e69b132a8d951ff0a77f82011fd22c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0e69b132a8d951ff0a77f82011fd22c8"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga0e69b132a8d951ff0a77f82011fd22c8">ddpcm_guess</a> (params, constants, state)</td></tr>
+<tr class="memdesc:ga0e69b132a8d951ff0a77f82011fd22c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the ddpcm-state to zero.  <a href="group___fortran__interface__ddpcm.html#ga0e69b132a8d951ff0a77f82011fd22c8">More...</a><br /></td></tr>
+<tr class="separator:ga0e69b132a8d951ff0a77f82011fd22c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab0435577c42c55b4865dd4363308192f"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__pcm.html#ab0435577c42c55b4865dd4363308192f">ddpcm_solve_worker</a> (params, constants, workspace, phi_cav, xs, xs_niter, xs_rel_diff, xs_time, tol, phi_grid, phi, phiinf, phieps, phieps_niter, phieps_rel_diff, phieps_time)</td></tr>
 <tr class="memdesc:ab0435577c42c55b4865dd4363308192f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve primal ddPCM system.  <a href="namespaceddx__pcm.html#ab0435577c42c55b4865dd4363308192f">More...</a><br /></td></tr>
 <tr class="separator:ab0435577c42c55b4865dd4363308192f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -130,180 +134,6 @@ Functions/Subroutines</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >High-level subroutines for ddpcm. </p>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="a5f957df6faca9f66accc5073f702df90" name="a5f957df6faca9f66accc5073f702df90"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f957df6faca9f66accc5073f702df90">&#9670;&nbsp;</a></span>ddpcm_solve()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_pcm::ddpcm_solve </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>phi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>tol</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00032">32</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
-
-</div>
-</div>
-<a id="a7bb48ad6e3d03d47fab122a662dabd49" name="a7bb48ad6e3d03d47fab122a662dabd49"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7bb48ad6e3d03d47fab122a662dabd49">&#9670;&nbsp;</a></span>ddpcm_adjoint()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_pcm::ddpcm_adjoint </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>psi</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>tol</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00063">63</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
-
-</div>
-</div>
-<a id="aae281a2a2211b1c19fe84d7d18bdbf38" name="aae281a2a2211b1c19fe84d7d18bdbf38"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aae281a2a2211b1c19fe84d7d18bdbf38">&#9670;&nbsp;</a></span>ddpcm_forces()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_pcm::ddpcm_forces </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>phi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>gradphi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>psi</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(out)&#160;</td>
-          <td class="paramname"><em>force</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00094">94</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
-
-</div>
-</div>
 <a id="a16de112567fda83d41b494696948d2df" name="a16de112567fda83d41b494696948d2df"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a16de112567fda83d41b494696948d2df">&#9670;&nbsp;</a></span>ddpcm_geom_forces()</h2>
 
@@ -366,7 +196,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00128">128</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00131">131</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
@@ -458,43 +288,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00156">156</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
-
-</div>
-</div>
-<a id="a0e69b132a8d951ff0a77f82011fd22c8" name="a0e69b132a8d951ff0a77f82011fd22c8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0e69b132a8d951ff0a77f82011fd22c8">&#9670;&nbsp;</a></span>ddpcm_guess()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_pcm::ddpcm_guess </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00185">185</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00159">159</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
@@ -621,7 +415,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00206">206</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00215">215</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
@@ -761,7 +555,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00285">285</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00294">294</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
@@ -857,7 +651,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00362">362</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00371">371</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
@@ -983,7 +777,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00406">406</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00415">415</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
@@ -1109,7 +903,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00551">551</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00560">560</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>

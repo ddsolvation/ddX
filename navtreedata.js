@@ -66,6 +66,7 @@ var NAVTREE =
     [ "Licence", "label_licence.html", null ],
     [ "ddX-References", "label_references.html", null ],
     [ "Bibliography", "citelist.html", null ],
+    [ "Modules", "modules.html", "modules" ],
     [ "Modules", "namespaces.html", [
       [ "Modules List", "namespaces.html", "namespaces_dup" ],
       [ "Module Members", "namespacemembers.html", [
@@ -95,9 +96,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"md_docs_theory.html#autotoc_md11",
-"namespacemembers_c.html",
-"structddx__core_1_1ddx__type.html"
+"label_python_interface.html",
+"namespaceddx__pcm.html#ab0435577c42c55b4865dd4363308192f",
+"structddx__core_1_1ddx__state__type.html#ae7761162d404940bf9695d8d57124d58"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.4"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>ddx: Download and Installation</title>
+<title>ddx: Modules</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -71,7 +71,7 @@ $(function() {
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(document).ready(function(){initNavTree('label_download_and_install.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('modules.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -89,41 +89,18 @@ $(document).ready(function(){initNavTree('label_download_and_install.html',''); 
 </iframe>
 </div>
 
-<div><div class="header">
-  <div class="headertitle"><div class="title">Download and Installation </div></div>
+<div class="header">
+  <div class="headertitle"><div class="title">Modules</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p ><a class="anchor" id="md_docs_download_and_install"></a> </p>
-<h1><a class="anchor" id="autotoc_md1"></a>
-Python package</h1>
-<p >ddx is available in the form of the <code>pyddx</code> python package. This can be installed directly from pypi: </p><div class="fragment"><div class="line">pip install pyddx</div>
-</div><!-- fragment --><p> A conda-forge package will be added soon.</p>
-<p >If you want to build the python package from source, simply run: </p><div class="fragment"><div class="line">setup.py test</div>
-</div><!-- fragment --><p ><br  />
- </p>
-<h1><a class="anchor" id="autotoc_md2"></a>
-Source code</h1>
-<p ><b>Download the ddX source code</b> at: </p><div class="fragment"><div class="line">git@github.com:ddsolvation/ddX.git</div>
-</div><!-- fragment --><p> <b>Download and install</b> ddX as follows: </p><div class="fragment"><div class="line">&gt; git clone git@github.com:ddsolvation/ddX.git</div>
-<div class="line">&gt; cd ddX</div>
-<div class="line">&gt; mkdir build</div>
-<div class="line">&gt; cd build</div>
-<div class="line">&gt; cmake ..</div>
-<div class="line">&gt; make</div>
-</div><!-- fragment --><p> Per default, the library is located in /src.</p>
-<p ><b>Build the documentation</b> as follows (after you have done the above process): </p><div class="fragment"><div class="line">&gt; cd build</div>
-<div class="line">&gt; make docs</div>
-</div><!-- fragment --><p> <b>To see the documentation</b> </p><div class="fragment"><div class="line">&gt; cd ../doxygen</div>
-<div class="line">&gt; pwd</div>
-</div><!-- fragment --><p> Copy the link shown by pwd and add /index.html in a web browser </p>
-<h3><a class="anchor" id="autotoc_md3"></a>
-Hints and hacks</h3>
-<ol type="1">
-<li>For specifying compilers use <div class="fragment"><div class="line">cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_C_COMPILER=/usr/local/bin/gcc-11 ..</div>
-</div><!-- fragment --> <b>NOTE</b>: Replace g++-11 and gcc-11 with the compilers you desire </li>
-</ol>
-</div></div><!-- contents -->
-</div><!-- PageDoc -->
+<div class="textblock">Here is a list of all modules:</div><div class="directory">
+<table class="directory">
+<tr id="row_0_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a class="el" href="group___fortran__interface__ddcosmo.html" target="_self">Fortran interface: ddcosmo</a></td><td class="desc">Exposed ddcosmo modules in the Fortran API </td></tr>
+<tr id="row_1_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a class="el" href="group___fortran__interface__multipolar.html" target="_self">Fortran interface: multipolar terms</a></td><td class="desc">Exposed multipolar modules in the Fortran API </td></tr>
+<tr id="row_2_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a class="el" href="group___fortran__interface__ddpcm.html" target="_self">Fortran interface: ddpcm</a></td><td class="desc">Exposed ddpcm modules in the Fortran API </td></tr>
+</table>
+</div><!-- directory -->
+</div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
