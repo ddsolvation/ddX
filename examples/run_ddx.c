@@ -83,9 +83,7 @@ int main() {
   //
   double tol  = 1e-9;
   void* state = ddx_allocate_state(model);
-  ddx_pcm_setup(model, state, ncav, phi_cav);
-  ddx_pcm_setup_adjoint(model, state, nbasis, nsph, psi);
-
+  ddx_pcm_setup(model, state, ncav, nbasis, nsph, phi_cav, psi);
   ddx_pcm_guess(model, state);
   ddx_pcm_solve(model, state, tol);
   ddx_pcm_guess_adjoint(model, state);

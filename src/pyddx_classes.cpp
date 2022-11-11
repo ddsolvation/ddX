@@ -260,6 +260,10 @@ array_f_t scaled_ylm(std::shared_ptr<Model> model, array_f_t coord, int sphere) 
   return scaled_ylm(model, coord, sphere, array_f_t({model->n_basis()}));
 }
 
+//
+// Multipolar electrostatics
+//
+
 py::dict multipole_electrostatics(std::shared_ptr<Model> model, array_f_t multipoles,
                                   int derivative_order) {
   if (multipoles.ndim() != 2 || multipoles.shape(1) != model->n_spheres()) {
@@ -347,6 +351,10 @@ array_f_t multipole_force_terms(std::shared_ptr<Model> model,
   throw_if_error(model);
   return forces;
 }
+
+//
+// Solving COSMO / PCM
+//
 
 std::shared_ptr<State> construct_initial_guess(std::shared_ptr<Model> model) {
   auto state = std::make_shared<State>(model);

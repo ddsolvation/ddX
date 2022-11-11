@@ -68,26 +68,23 @@ void ddx_get_x(const void* state, int nbasis, int nsph, double* x);
 int ddx_get_x_niter(const void* state);
 void ddx_get_s(const void* state, int nbasis, int nsph, double* s);
 int ddx_get_s_niter(const void* state);
-// Hext one will change syntax later:
 void ddx_get_xi(const void* state, const void* ddx, int ncav, double* xi);
 
 // Cosmo
-void ddx_cosmo_setup(const void* ddx, void* state, int ncav, const double* phi_cav);
+void ddx_cosmo_setup(const void* ddx, void* state, int ncav, int nbasis, int nsph,
+                     const double* phi_cav, const double* psi);
 void ddx_cosmo_guess(const void* ddx, void* state);
 void ddx_cosmo_solve(const void* ddx, void* state, double tol);
-void ddx_cosmo_setup_adjoint(const void* ddx, void* state, int nbasis, int nsph,
-                             const double* psi);
 void ddx_cosmo_guess_adjoint(const void* ddx, void* state);
 void ddx_cosmo_solve_adjoint(const void* ddx, void* state, double tol);
 void ddx_cosmo_solvation_force_terms(const void* ddx, void* state, int nsph,
                                      double* forces);
 
 // PCM
-void ddx_pcm_setup(const void* ddx, void* state, int ncav, const double* phi_cav);
+void ddx_pcm_setup(const void* ddx, void* state, int ncav, int nbasis, int nsph,
+                   const double* phi_cav, const double* psi);
 void ddx_pcm_guess(const void* ddx, void* state);
 void ddx_pcm_solve(const void* ddx, void* state, double tol);
-void ddx_pcm_setup_adjoint(const void* ddx, void* state, int nbasis, int nsph,
-                           const double* psi);
 void ddx_pcm_guess_adjoint(const void* ddx, void* state);
 void ddx_pcm_solve_adjoint(const void* ddx, void* state, double tol);
 void ddx_pcm_solvation_force_terms(const void* ddx, void* state, int nsph,
@@ -99,7 +96,6 @@ void ddx_pcm_solvation_force_terms(const void* ddx, void* state, int nsph,
 //
 // Multipolar solutes
 //
-
 // Build potential, electric field (e_cav) and electric field gradient (g_cav) from a
 // multipolar charge distribution
 void ddx_multipole_electrostatics_0(const void* ddx, int nsph, int ncav, int nmultipoles,
