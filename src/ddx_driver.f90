@@ -19,6 +19,7 @@ use omp_lib
 implicit none
 
 character(len=255) :: fname
+character(len=4095) :: banner
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
 integer :: phi_flag=1, grad_flag=1, hessian_flag=1
@@ -43,7 +44,9 @@ if (state % error_flag .ne. 0) then
   stop
 end if
 
-call print_header(ddx_data%params)
+call get_banner(banner)
+write(6, *) banner
+
 ! determine needed arrays
 if (ddx_data % params % model .eq. 3) then
     phi_flag = 1
