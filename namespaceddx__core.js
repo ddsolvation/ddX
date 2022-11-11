@@ -18,11 +18,11 @@ var namespaceddx__core =
     [ "rmsvec", "namespaceddx__core.html#a4dcabcd0c6fe4d601c5a739d8d1bf86c", null ],
     [ "adjrhs", "namespaceddx__core.html#a506cc06b7ccdef7dae3c83c324ca2923", null ],
     [ "calcv", "namespaceddx__core.html#a96984a0f96c1a17e25c781d34ed73f80", null ],
-    [ "ddeval_grid", "namespaceddx__core.html#ad5b07f0450b5b0fae876973a3ce661d7", null ],
+    [ "ddeval_grid", "namespaceddx__core.html#ac250baa4e57bff6dfcb19bfd54b986e1", null ],
     [ "ddeval_grid_work", "namespaceddx__core.html#a52eaee7c9a67f2a9f317c2d6dd50426e", null ],
-    [ "ddintegrate_sph", "namespaceddx__core.html#ae804f0dbf4b9800bc75adaa57c842149", null ],
+    [ "ddintegrate_sph", "namespaceddx__core.html#a5efc63bf55f6ee9b3f57e05129d06f3c", null ],
     [ "ddintegrate_sph_work", "namespaceddx__core.html#a61156a8a0aec479ea2071dd6d6922fb1", null ],
-    [ "ddcav_to_grid", "namespaceddx__core.html#a8abb13e98d5d1eb3512e5ad55b701ef3", null ],
+    [ "ddcav_to_grid", "namespaceddx__core.html#adc759d996954a0fbab1eaf77c035c76a", null ],
     [ "ddcav_to_grid_work", "namespaceddx__core.html#accaee74767f44a369c6d2d1e106c0453", null ],
     [ "tree_m2m_rotation", "namespaceddx__core.html#a1caf6da4500220161384b51938ada1f8", null ],
     [ "tree_m2m_rotation_work", "namespaceddx__core.html#a824b2d46bc4f19b41d1e59efc101fe97", null ],
@@ -55,6 +55,5 @@ var namespaceddx__core =
     [ "tree_m2p_bessel_nodiag_adj", "namespaceddx__core.html#a7f61e8dc65fa676434374f7ea9a07743", null ],
     [ "efld", "namespaceddx__core.html#a3c8789fc01ba244fdaa0d4fef8e9d725", null ],
     [ "tree_grad_m2m", "namespaceddx__core.html#a86f701c3486a5b26c650d5b157b6e213", null ],
-    [ "tree_grad_l2l", "namespaceddx__core.html#a0bbe738fff5a4d15f744dfa0b26938cf", null ],
-    [ "print_header", "namespaceddx__core.html#a820b6019d6f9741b191602938688a1c6", null ]
+    [ "tree_grad_l2l", "namespaceddx__core.html#a0bbe738fff5a4d15f744dfa0b26938cf", null ]
 ];

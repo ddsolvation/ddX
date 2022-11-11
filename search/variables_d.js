@@ -10,6 +10,5 @@ var searchData=
   ['phieps_5ftime_7',['phieps_time',['../structddx__core_1_1ddx__state__type.html#a987b38d818104cabc9f7f3ba301b5235',1,'ddx_core::ddx_state_type']]],
   ['phiinf_8',['phiinf',['../structddx__core_1_1ddx__state__type.html#a83850fd12c4c5b915a9226afa3d90e17',1,'ddx_core::ddx_state_type']]],
   ['pl_9',['pl',['../structddx__parameters_1_1ddx__params__type.html#a397e9091585fe27187a2cbc72a63e737',1,'ddx_parameters::ddx_params_type']]],
-  ['pm_10',['pm',['../structddx__parameters_1_1ddx__params__type.html#a3345be5ea974b5e302e9cc3d83ce1940',1,'ddx_parameters::ddx_params_type']]],
-  ['print_5ffunc_11',['print_func',['../structddx__parameters_1_1ddx__params__type.html#a0d0bc766c6012c19888e22174fd06beb',1,'ddx_parameters::ddx_params_type']]]
+  ['pm_10',['pm',['../structddx__parameters_1_1ddx__params__type.html#a3345be5ea974b5e302e9cc3d83ce1940',1,'ddx_parameters::ddx_params_type']]]
 ];
