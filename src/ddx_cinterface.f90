@@ -471,7 +471,7 @@ end subroutine
 ! Cosmo
 !
 ! Setup the problem in the state
-subroutine ddx_cosmo_setup(c_ddx, c_state, ncav, phi_cav)
+subroutine ddx_cosmo_setup(c_ddx, c_state, ncav, phi_cav)bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     integer(c_int), intent(in), value :: ncav
     real(c_double), intent(in) :: phi_cav(ncav)
@@ -504,7 +504,7 @@ subroutine ddx_cosmo_solve(c_ddx, c_state, tol) bind(C)
 end subroutine
 
 ! Setup the adjoint problem in the state
-subroutine ddx_cosmo_setup_adjoint(c_ddx, c_state, nbasis, nsph, psi)
+subroutine ddx_cosmo_setup_adjoint(c_ddx, c_state, nbasis, nsph, psi)bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     integer(c_int), intent(in), value :: nbasis, nsph
     real(c_double), intent(in) :: psi(nbasis, nsph)
@@ -522,7 +522,7 @@ subroutine ddx_cosmo_guess_adjoint(c_ddx, c_state) bind(C)
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddcosmo_guess(ddx%params, ddx%constants, ddx%workspace, state)
+    call ddcosmo_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state)
 end
 
 ! Solve the adjoint problem inside the state
@@ -551,7 +551,7 @@ end
 !
 ! PCM
 !
-subroutine ddx_pcm_setup(c_ddx, c_state, ncav, phi_cav)
+subroutine ddx_pcm_setup(c_ddx, c_state, ncav, phi_cav) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     integer(c_int), intent(in), value :: ncav
     real(c_double), intent(in) :: phi_cav(ncav)
@@ -581,7 +581,7 @@ subroutine ddx_pcm_solve(c_ddx, c_state, tol) bind(C)
     call ddpcm_solve(ddx%params, ddx%constants, ddx%workspace, state, tol)
 end subroutine
 
-subroutine ddx_pcm_setup_adjoint(c_ddx, c_state, nbasis, nsph, psi)
+subroutine ddx_pcm_setup_adjoint(c_ddx, c_state, nbasis, nsph, psi) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     integer(c_int), intent(in), value :: nbasis, nsph
     real(c_double), intent(in) :: psi(nbasis, nsph)
@@ -598,7 +598,7 @@ subroutine ddx_pcm_guess_adjoint(c_ddx, c_state) bind(C)
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddpcm_guess(ddx%params, ddx%constants, ddx%workspace, state)
+    call ddpcm_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state)
 end
 
 subroutine ddx_pcm_solve_adjoint(c_ddx, c_state, tol) bind(C)

@@ -79,14 +79,21 @@ int main() {
   ddx_multipole_psi(model, nbasis, nsph, nmultipoles, solute_multipoles, psi);
 
   //
-  // Solve the problem
+  // Solve the PCM problem
   //
   double tol  = 1e-9;
   void* state = ddx_allocate_state(model);
-  ddx_pcm_fill_guess(model, state);
-  ddx_pcm_solve(model, state, ncav, phi_cav, tol);
-  ddx_pcm_solve_adjoint(model, state, nbasis, nsph, psi, tol);
+  ddx_pcm_setup(model, state, ncav, phi_cav);
+  ddx_pcm_setup_adjoint(model, state, nbasis, nsph, psi);
 
+  ddx_pcm_guess(model, state);
+  ddx_pcm_solve(model, state, tol);
+  ddx_pcm_guess_adjoint(model, state);
+  ddx_pcm_solve_adjoint(model, state, tol);
+
+  //
+  // Compute energy and forces
+  //
   double* solution_x = (double*)malloc(sizeof(double) * nsph * nbasis);
   ddx_get_x(state, nbasis, nsph, solution_x);
   double energy = 0.0;
@@ -95,7 +102,7 @@ int main() {
   }
 
   double* forces = (double*)malloc(sizeof(double) * 3 * nsph);
-  ddx_pcm_forces(model, state, nbasis, nsph, ncav, phi_cav, e_cav, psi, forces);
+  ddx_pcm_solvation_force_terms(model, state, nsph, forces);
 
   //
   // Check results

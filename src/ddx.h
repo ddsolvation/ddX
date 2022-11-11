@@ -72,24 +72,26 @@ int ddx_get_s_niter(const void* state);
 void ddx_get_xi(const void* state, const void* ddx, int ncav, double* xi);
 
 // Cosmo
-void ddx_cosmo_fill_guess(const void* ddx, void* state);
-void ddx_cosmo_solve(const void* ddx, void* state, int ncav, const double* phi_cav,
-                     double tol);
-void ddx_cosmo_solve_adjoint(const void* ddx, void* state, int nbasis, int nsph,
-                             const double* psi, double tol);
-void ddx_cosmo_forces(const void* ddx, void* state, int nbasis, int nsph, int ncav,
-                      const double* phi_cav, const double* e_cav, const double* psi,
-                      double* forces);
+void ddx_cosmo_setup(const void* ddx, void* state, int ncav, const double* phi_cav);
+void ddx_cosmo_guess(const void* ddx, void* state);
+void ddx_cosmo_solve(const void* ddx, void* state, double tol);
+void ddx_cosmo_setup_adjoint(const void* ddx, void* state, int nbasis, int nsph,
+                             const double* psi);
+void ddx_cosmo_guess_adjoint(const void* ddx, void* state);
+void ddx_cosmo_solve_adjoint(const void* ddx, void* state, double tol);
+void ddx_cosmo_solvation_force_terms(const void* ddx, void* state, int nsph,
+                                     double* forces);
 
 // PCM
-void ddx_pcm_fill_guess(const void* ddx, void* state);
-void ddx_pcm_solve(const void* ddx, void* state, int ncav, const double* phi_cav,
-                   double tol);
-void ddx_pcm_solve_adjoint(const void* ddx, void* state, int nbasis, int nsph,
-                           const double* psi, double tol);
-void ddx_pcm_forces(const void* ddx, void* state, int nbasis, int nsph, int ncav,
-                    const double* phi_cav, const double* e_cav, const double* psi,
-                    double* forces);
+void ddx_pcm_setup(const void* ddx, void* state, int ncav, const double* phi_cav);
+void ddx_pcm_guess(const void* ddx, void* state);
+void ddx_pcm_solve(const void* ddx, void* state, double tol);
+void ddx_pcm_setup_adjoint(const void* ddx, void* state, int nbasis, int nsph,
+                           const double* psi);
+void ddx_pcm_guess_adjoint(const void* ddx, void* state);
+void ddx_pcm_solve_adjoint(const void* ddx, void* state, double tol);
+void ddx_pcm_solvation_force_terms(const void* ddx, void* state, int nsph,
+                                   double* forces);
 
 // LPB
 // TODO
