@@ -511,7 +511,7 @@ subroutine ddx_cosmo_forces(c_ddx, c_state, nbasis, nsph, ncav, phi, gradphi, ps
     real(c_double), intent(out) :: forces(3, nsph)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddcosmo_forces(ddx%params, ddx%constants, ddx%workspace, state, phi, gradphi, psi, forces)
+    call ddcosmo_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, phi, gradphi, psi, forces)
 end
 
 !
