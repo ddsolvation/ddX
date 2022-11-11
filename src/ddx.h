@@ -75,8 +75,8 @@ void ddx_get_xi(const void* state, const void* ddx, int ncav, double* xi);
 void ddx_cosmo_fill_guess(const void* ddx, void* state);
 void ddx_cosmo_solve(const void* ddx, void* state, int ncav, const double* phi_cav,
                      double tol);
-void ddx_cosmo_adjoint(const void* ddx, void* state, int nbasis, int nsph,
-                       const double* psi, double tol);
+void ddx_cosmo_solve_adjoint(const void* ddx, void* state, int nbasis, int nsph,
+                             const double* psi, double tol);
 void ddx_cosmo_forces(const void* ddx, void* state, int nbasis, int nsph, int ncav,
                       const double* phi_cav, const double* e_cav, const double* psi,
                       double* forces);
@@ -85,8 +85,8 @@ void ddx_cosmo_forces(const void* ddx, void* state, int nbasis, int nsph, int nc
 void ddx_pcm_fill_guess(const void* ddx, void* state);
 void ddx_pcm_solve(const void* ddx, void* state, int ncav, const double* phi_cav,
                    double tol);
-void ddx_pcm_adjoint(const void* ddx, void* state, int nbasis, int nsph,
-                     const double* psi, double tol);
+void ddx_pcm_solve_adjoint(const void* ddx, void* state, int nbasis, int nsph,
+                           const double* psi, double tol);
 void ddx_pcm_forces(const void* ddx, void* state, int nbasis, int nsph, int ncav,
                     const double* phi_cav, const double* e_cav, const double* psi,
                     double* forces);
