@@ -83,6 +83,15 @@ if(istatus .ne. 0) call error(-1, "Deallocation failed")
 call ddx_free_state(state)
 call ddfree(ddx_data)
 
+contains
+!> Print error message and exit with provided error code
+subroutine error(code, message)
+    integer, intent(in) :: code
+    character(len=*), intent(in) :: message
+    write(0, "(A,A)") "ERROR: ", message
+    write(0, "(A,I2)") "CODE:  ", code
+    stop -1
+end subroutine
 end program main
 
 
