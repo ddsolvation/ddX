@@ -8,6 +8,10 @@ implicit none
 
 contains
 
+!> @defgroup Fortran_interface_multipolar Fortran interface: multipolar terms
+!! Exposed multipolar modules in the Fortran API
+
+!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution, compute the potential, its gradient and
 !> its hessian at the target points this is done with or without FMMs depending
 !> on the relevant flag
@@ -169,6 +173,7 @@ subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     end if
 end subroutine build_g_dense
 
+!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution, compute the potential and its gradient
 !> at the target points this is done with or without FMMs depending on the
 !> relevant flag
@@ -279,6 +284,7 @@ subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     end if
 end subroutine build_e_dense
 
+!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution, compute the potential at the target points
 !> this is done with or without FMMs depending on the relevant flag
 !> The multipoles must be centered on the ddx spheres.
@@ -530,6 +536,7 @@ subroutine build_phi_fmm(params, constants, workspace, multipoles, mmax, &
 
 end subroutine build_phi_fmm
 
+!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution, assemble the RHS psi.
 !> The multipoles must be centered on the ddx spheres.
 !! @param[in] params: ddx parameters
@@ -771,6 +778,7 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, mmax, &
 
 end subroutine grad_phi_for_charges
 
+!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution in real spherical harmonics and
 !> centered on the spheres, compute the contributions to the forces
 !> stemming from its electrostatic interactions.

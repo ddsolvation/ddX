@@ -17,7 +17,10 @@ implicit none
 
 contains
 
-!!
+!> @defgroup Fortran_interface_ddpcm Fortran interface: ddpcm
+!! Exposed ddpcm modules in the Fortran API
+
+!> @ingroup Fortran_interface_ddpcm
 !! Wrapper routine for the solution of the direct ddPCM linear
 !! system. It makes the interface easier to implement. If a fine
 !! control is needed, the worker routine should be directly called.
@@ -48,7 +51,7 @@ subroutine ddpcm_solve(params, constants, workspace, state, phi_cav, tol)
         & state % phieps_rel_diff, state % phieps_time)
 end subroutine ddpcm_solve
 
-!!
+!> @ingroup Fortran_interface_ddpcm
 !! Wrapper routine for the solution of the adjoint ddPCM linear
 !! system. It makes the interface easier to implement. If a fine
 !! control is needed, the worker routine should be directly called.
@@ -77,7 +80,7 @@ subroutine ddpcm_adjoint(params, constants, workspace, state, psi, tol)
         & state % y_time)
 end subroutine ddpcm_adjoint
 
-!!
+!> @ingroup Fortran_interface_ddpcm
 !! Wrapper routine for the computation of ddPCM forces. It makes the
 !! interface easier to implement. If a fine control is needed, the
 !! worker routine should be directly called.
@@ -182,6 +185,12 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, gradphi_cav, &
 
 end subroutine ddpcm
 
+!> @ingroup Fortran_interface_ddpcm
+!> Initialize the ddpcm-state to zero
+!! @param[in] params
+!! @param[in] constants
+!! @param[in] params
+!! @param[inout] state
 subroutine ddpcm_guess(params, constants, state)
     implicit none
     type(ddx_params_type), intent(in) :: params

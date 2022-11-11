@@ -9,6 +9,12 @@
 !! @author Aleksandr Mikhalev
 !! @date 2021-02-25
 
+
+
+
+
+
+
 !> High-level subroutines for ddcosmo
 module ddx_cosmo
 ! Get ddx-operators
@@ -17,6 +23,10 @@ implicit none
 
 contains
 
+!> @defgroup Fortran_interface_ddcosmo Fortran interface: ddcosmo
+!! Exposed ddcosmo modules in the Fortran API
+
+!> @ingroup Fortran_interface_ddcosmo
 subroutine ddcosmo_solve(params, constants, workspace, state, phi_cav, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -32,6 +42,7 @@ subroutine ddcosmo_solve(params, constants, workspace, state, phi_cav, tol)
         & tol, state % phi_grid, state % phi)
 end subroutine ddcosmo_solve
 
+!> @ingroup Fortran_interface_ddcosmo
 subroutine ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -46,6 +57,7 @@ subroutine ddcosmo_adjoint(params, constants, workspace, state, psi, tol)
         & state % s, state % s_niter, state % s_rel_diff, state % s_time)
 end subroutine ddcosmo_adjoint
 
+!> @ingroup Fortran_interface_ddcosmo
 subroutine ddcosmo_forces(params, constants, workspace, state, phi_cav, &
     & gradphi_cav, psi, force)
     implicit none
@@ -62,6 +74,7 @@ subroutine ddcosmo_forces(params, constants, workspace, state, phi_cav, &
         & state % phi_grid, gradphi_cav, psi, state % s, state % sgrid, &
         & state % xs, state % zeta, force)
 end subroutine ddcosmo_forces
+
 
 subroutine ddcosmo_geom_forces(params, constants, workspace, state, phi_cav, &
     & gradphi_cav, psi, force)
@@ -128,6 +141,14 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
     end if
 end subroutine ddcosmo
 
+
+
+!> @ingroup Fortran_interface_ddcosmo
+!> Initialize the ddcosmo-state to zero
+!! @param[in] params
+!! @param[in] constants
+!! @param[in] params
+!! @param[inout] state
 subroutine ddcosmo_guess(params, constants, state)
     implicit none
     type(ddx_params_type), intent(in) :: params
