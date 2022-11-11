@@ -19,11 +19,11 @@ setup.py test
 
 **Download the ddX source code** at: 
 ``` markdown
-> git clone git@github.com:ACoM-Computational-Mathematics/ddX.git
+git@github.com:ddsolvation/ddX.git
 ```
 **Download and install** ddX as follows:
 ``` markdown
-> git clone git@github.com:ACoM-Computational-Mathematics/ddX.git
+> git clone git@github.com:ddsolvation/ddX.git
 > cd ddX
 > mkdir build
 > cd build
