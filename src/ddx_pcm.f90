@@ -62,7 +62,7 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
 
         ! evaluate the solvent unspecific contribution analytical derivatives
         call ddpcm_solvation_force_terms(params, constants, workspace, &
-            & state, phi_cav, force)
+            & state, force)
     end if
 
 end subroutine ddpcm
@@ -85,6 +85,7 @@ subroutine ddpcm_setup(params, constants, workspace, state, phi_cav)
     call cav_to_spherical(params, constants, workspace, phi_cav, &
         & state % phi)
     state % phi = - state % phi
+    state % phi_cav = phi_cav
 end subroutine ddpcm_setup
 
 !> Load psi into the state.
@@ -242,26 +243,24 @@ end subroutine ddpcm_solve_adjoint
 !! @param[in] constants    : Precomputed constants
 !! @param[inout] workspace : Preallocated workspaces
 !! @param[inout] state     : Solutions and relevant quantities
-!! @param[in] phi_cav      : Electric potential at the grid points
-!! @param[in] gradphi_cav  : Electric field at the grid points
 !! @param[in] psi          : Representation of the solute's density
 !! @param[out] force       : Geometrical contribution to the forces
 !!
 subroutine ddpcm_solvation_force_terms(params, constants, workspace, &
-        & state, phi_cav, force)
+        & state, force)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(out) :: force(3, params % nsph)
     ! local
     real(dp), external :: ddot
     integer :: icav, isph, igrid
 
     call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
-        & constants % icav_ia, constants % icav_ja, phi_cav, state % phi_grid)
+        & constants % icav_ia, constants % icav_ja, state % phi_cav, &
+        & state % phi_grid)
     ! Get grid values of S and Y
     call dgemm('T', 'N', params % ngrid, params % nsph, &
         & constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &

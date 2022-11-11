@@ -62,7 +62,7 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
         call ddcosmo_solvation_force_terms(params, constants, workspace, &
-            & state, phi_cav, force)
+            & state, force)
     end if
 end subroutine ddcosmo
 
@@ -84,6 +84,7 @@ subroutine ddcosmo_setup(params, constants, workspace, state, phi_cav)
     call cav_to_spherical(params, constants, workspace, phi_cav, &
         & state % phi)
     state % phi = - state % phi
+    state % phi_cav = phi_cav
 end subroutine ddcosmo_setup
 
 !> Load psi into the state.
@@ -207,17 +208,15 @@ end subroutine ddcosmo_solve_adjoint
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
-!! @param[in] phi_cav: electric potential at the cavity points, size (ncav)
 !! @param[inout] force: force term
 !!
 subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
-        & state, phi_cav, force)
+        & state, force)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(inout) :: force(3, params % nsph)
     ! local variables
     real(dp), external :: ddot
@@ -229,7 +228,8 @@ subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
         & state % sgrid)
     ! Get the values of phi on the grid
     call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
-        & constants % icav_ia, constants % icav_ja, phi_cav, state % phi_grid)
+        & constants % icav_ia, constants % icav_ja, state % phi_cav, &
+        & state % phi_grid)
 
     force = zero
     do isph = 1, params % nsph

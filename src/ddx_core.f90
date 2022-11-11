@@ -48,6 +48,8 @@ type ddx_state_type
     real(dp), allocatable :: sgrid(:, :)
     !> rhs for the adjoint problem
     real(dp), allocatable :: psi(:, :)
+    !> potential at the cavity points
+    real(dp), allocatable :: phi_cav(:)
 
     !!
     !! ddPCM specific quantities
@@ -264,6 +266,12 @@ subroutine ddx_init_state(params, constants, state)
     if (istatus .ne. 0) then
         state % error_flag = 1
         state % error_message = "ddinit: `psi` allocation failed"
+        return
+    end if
+    allocate(state % phi_cav(constants % ncav), stat=istatus)
+    if (istatus .ne. 0) then
+        state % error_flag = 1
+        state % error_message = "ddinit: `phi_cav` allocation failed"
         return
     end if
 
@@ -800,6 +808,14 @@ subroutine ddx_free_state(state)
     type(ddx_state_type), intent(inout) :: state
     integer :: istatus
 
+    if (allocated(state % phi_cav)) then
+        deallocate(state % phi_cav, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`phi_cav` deallocation failed!"
+            return
+        endif
+    end if
     if (allocated(state % psi)) then
         deallocate(state % psi, stat=istatus)
         if (istatus .ne. 0) then
