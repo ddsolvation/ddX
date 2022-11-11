@@ -62,6 +62,7 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
             & psi, tol)
 
         ! evaluate the analytical derivatives
+        force = zero
         call ddcosmo_solvation_force_terms(params, constants, workspace, state, &
             & phi_cav, gradphi_cav, psi, force)
         call grad_phi_for_charges(params, constants, workspace, state, 0, &
@@ -194,11 +195,15 @@ subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
     real(dp), external :: ddot
     integer :: icav, isph, igrid
 
-    ! Get values of S on grid
+    ! Get values of S on the grid
     call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &
         & constants % vgrid, constants % vgrid_nbasis, one, state % s, zero, &
         & state % sgrid)
+    ! Get the values of phi on the grid
+    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
+        & constants % icav_ia, constants % icav_ja, phi_cav, state % phi_grid)
 
+    force = zero
     do isph = 1, params % nsph
         call contract_grad_l(params, constants, isph, state % xs, &
             & state % sgrid, workspace % tmp_vylm(:, 1), &
