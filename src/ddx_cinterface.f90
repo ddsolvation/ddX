@@ -491,7 +491,7 @@ subroutine ddx_cosmo_solve(c_ddx, c_state, ncav, phi, tol) bind(C)
     call ddcosmo_solve(ddx%params, ddx%constants, ddx%workspace, state, phi, tol)
 end subroutine
 
-subroutine ddx_cosmo_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) bind(C)
+subroutine ddx_cosmo_solve_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     type(ddx_setup), pointer :: ddx
     type(ddx_state_type), pointer :: state
@@ -539,7 +539,7 @@ subroutine ddx_pcm_solve(c_ddx, c_state, ncav, phi, tol) bind(C)
     call ddpcm_solve(ddx%params, ddx%constants, ddx%workspace, state, phi, tol)
 end subroutine
 
-subroutine ddx_pcm_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) bind(C)
+subroutine ddx_pcm_solve_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     type(ddx_setup), pointer :: ddx
     type(ddx_state_type), pointer :: state
