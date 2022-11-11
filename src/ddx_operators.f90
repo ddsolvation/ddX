@@ -203,8 +203,8 @@ subroutine dx_dense(params, constants, workspace, do_diag, x, y)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
     real(dp) :: c(3), vij(3), sij(3)
-    real(dp) :: vvij, tij, tt, f, f1, rho, ctheta, stheta, cphi, sphi
-    integer :: its, isph, jsph, l, m, ind, lm, istatus
+    real(dp) :: vvij, tij, tt, f, rho, ctheta, stheta, cphi, sphi
+    integer :: its, isph, jsph, l, m, ind
     real(dp), external :: dnrm2
     y = zero
     do isph = 1, params % nsph
@@ -279,8 +279,7 @@ subroutine dx_fmm(params, constants, workspace, do_diag, x, y)
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
-    integer :: isph, inode, l, indl, indl1, m
-    real(dp) :: finish_time, start_time
+    integer :: isph, inode, l, indl, indl1
     !! Scale input harmonics at first
     workspace % tmp_sph(1, :) = zero
     indl = 2
@@ -366,9 +365,9 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
-    real(dp) :: c(3), vji(3), sji(3)
-    real(dp) :: vvji, tji, fourpi, tt, f, f1, rho, ctheta, stheta, cphi, sphi
-    integer :: its, isph, jsph, l, m, ind, lm, istatus
+    real(dp) :: vji(3), sji(3)
+    real(dp) :: vvji, tji, tt, f, rho, ctheta, stheta, cphi, sphi
+    integer :: its, isph, jsph, l, m, ind
     real(dp), external :: dnrm2
     y = zero
     ! this loop is easily parallelizable
@@ -433,8 +432,7 @@ subroutine dstarx_fmm(params, constants, workspace, do_diag, x, y)
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
-    integer :: isph, inode, l, indl, indl1, m
-    real(dp) :: finish_time, start_time
+    integer :: isph, inode, l, indl, indl1
     ! Adjoint integration
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
         & one, constants % vwgrid, constants % vgrid_nbasis, x, &
@@ -550,8 +548,6 @@ subroutine rinfx(params, constants, workspace, x, y)
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Local variables
-    real(dp) :: fac
     !! note do_diag hardcoded to 1.
     !! Select implementation
     if (params % fmm .eq. 0) then
@@ -580,8 +576,6 @@ subroutine rstarinfx(params, constants, workspace, x, y)
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Local variables
-    real(dp) :: fac
     ! Output `y` is cleaned here
     call dstarx(params, constants, workspace, x, y)
     ! Apply diagonal
@@ -689,14 +683,14 @@ subroutine gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
         & dbsloc(3, constants % nbasis), fx(3)
     ! various scratch arrays
     real(dp) vik(3), sik(3), vki(3), ski(3), vkj(3), skj(3), vji(3), &
-        & sji(3), va(3), vb(3), a(3), d(3)
+        & sji(3), va(3), vb(3), a(3)
     ! jacobian matrix
     real(dp) sjac(3,3)
     ! indexes
     integer its, ik, ksph, l, m, ind, jsph, icomp, jcomp
     ! various scalar quantities
     real(dp) cx, cy, cz, vvki, tki, gg, fl, fac, vvkj, tkj
-    real(dp) tt, fcl, dij, fjj, gi, fii, vvji, tji, qji
+    real(dp) tt, fcl, fjj, gi, fii, vvji, tji, qji
     real(dp) b, vvik, tik, qik, tlow, thigh, duj
     real(dp) :: rho, ctheta, stheta, cphi, sphi
     real(dp), external :: dnrm2
@@ -992,11 +986,10 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
     ! Output
     real(dp), intent(out) :: fx(3, params % nsph)
     ! Local variables
-    integer :: i, j, indi, indj, indl, indl1, l, m, isph, igrid, ik, ksph, &
+    integer :: indl, indl1, l, isph, igrid, ik, ksph, &
         & jsph, jsph_node
-    real(dp) :: start, finish, time
     integer :: inear, inode, jnode
-    real(dp) :: fac, fl, gg, c(3), vki(3), vvki, tki, gg3(3), tmp1, tmp2, tmp_gg
+    real(dp) :: gg, c(3), vki(3), vvki, tki, gg3(3), tmp_gg
     real(dp) :: tlow, thigh
     real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
     real(dp), external :: ddot, dnrm2
@@ -1220,9 +1213,9 @@ subroutine bstarx(params, constants, workspace, x, y)
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
-    integer :: isph, jsph, ij, indmat, igrid, iproc
+    integer :: isph, jsph, ij, indmat, iproc
     y = zero
-    if (params % matvecmem .eq. 1) then 
+    if (params % matvecmem .eq. 1) then
         !$omp parallel do default(none) shared(params,constants,x,y) &
         !$omp private(isph,ij,jsph,indmat) schedule(dynamic)
         do isph = 1, params % nsph
@@ -1351,7 +1344,6 @@ subroutine prec_tstarx(params, constants, workspace, x, y)
     real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
     real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
     integer :: n_iter
-    real(dp) :: r_norm
     real(dp), dimension(params % maxiter) :: x_rel_diff
 
     y(:,:,1) = x(:,:,1)
@@ -1390,7 +1382,6 @@ subroutine prec_tx(params, constants, workspace, x, y)
     real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
     real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
     integer :: n_iter
-    real(dp) :: r_norm
     real(dp), dimension(params % maxiter) :: x_rel_diff
 
     ! perform A^-1 * Yr
@@ -1427,13 +1418,9 @@ subroutine cstarx(params, constants, workspace, x, y)
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
     ! local
-    real(dp), dimension(0:constants % lmax0) :: SK_rijn, DK_rijn
-    real(dp), dimension(constants % nbasis) :: basloc, vplm
-    real(dp), dimension(params % lmax + 1) :: vcos, vsin
-    complex(dp) :: bessel_work(max(2, params % lmax+1))
     complex(dp) :: work_complex(constants % lmax0+1)
     real(dp) :: work(constants % lmax0+1)
-    integer :: isph, igrid, jsph, ind, l0, m0, ind0, indl, inode, l, m
+    integer :: isph, igrid, jsph, ind, l0, ind0, indl, inode, l, m
     real(dp), dimension(3) :: vij, vtij
     real(dp) :: val, epsilon_ratio
     real(dp), allocatable :: scratch(:,:), scratch0(:,:)
