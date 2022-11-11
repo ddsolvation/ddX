@@ -11,12 +11,18 @@ namespace py = pybind11;
 using namespace pybind11::literals;
 using array_f_t = py::array_t<double, py::array::f_style | py::array::forcecast>;
 
+class Model;
+
+/** Throws if model is in error state */
+void throw_if_error(std::shared_ptr<Model> model);
+
 class Model {
  public:
   Model(std::string model, array_f_t sphere_charges, array_f_t sphere_centres,
         array_f_t sphere_radii, double solvent_epsilon, double solvent_kappa, double eta,
         int lmax, int n_lebedev, bool incore, int maxiter, int jacobi_n_diis,
-        bool enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax, int n_proc)
+        bool enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax, int n_proc,
+        std::string logfile)
         : m_holder(nullptr), m_model(model) {
     int model_id = 0;
     if (model == "cosmo") {
@@ -94,22 +100,18 @@ class Model {
             "disabling local FMM contributions.");
     }
 
-    const double se        = 0.0;  // Hard-code centred regularisation
-    const int enable_force = 1;    // Always support force calculations.
+    const int enable_force = 1;  // Always support force calculations.
     const int intfmm       = enable_fmm ? 1 : 0;
     const int intincore    = incore ? 1 : 0;
-    const int nproc        = 1;  // For now no parallelisation is supported
-    int info               = 0;
     m_holder = ddx_allocate_model(model_id, enable_force, solvent_epsilon, solvent_kappa,
                                   eta, lmax, n_lebedev, intincore, maxiter, jacobi_n_diis,
                                   intfmm, fmm_multipole_lmax, fmm_local_lmax, n_proc,
                                   n_spheres, sphere_charges.data(), sphere_centres.data(),
-                                  sphere_radii.data(), &info);
-
-    if (info != 0) {
+                                  sphere_radii.data(), logfile.size(), logfile.c_str());
+    if (ddx_get_error_flag(m_holder) != 0) {
       char message[256];
       ddx_get_error_message(m_holder, message, 256);
-      throw py::value_error("DDX initialisation failed: " + std::string(message) + ".");
+      throw py::value_error("DDX initialisation failed: " + std::string(message));
     }
   }
 
@@ -126,6 +128,7 @@ class Model {
 
   // Accessors to input parameters
   bool has_fmm_enabled() const { return 1 == ddx_get_enable_fmm(m_holder); }
+  bool has_force_enabled() const { return 1 == ddx_get_enable_force(m_holder); }
   int jacobi_n_diis() const { return ddx_get_jacobi_n_diis(m_holder); }
   int lmax() const { return ddx_get_lmax(m_holder); }
   int maxiter() const { return ddx_get_maxiter(m_holder); }
@@ -134,6 +137,11 @@ class Model {
   int n_lebedev() const { return ddx_get_n_lebedev(m_holder); }
   int n_spheres() const { return ddx_get_n_spheres(m_holder); }
   int n_proc() const { return ddx_get_n_proc(m_holder); }
+  std::string logfile() const {
+    char filename[256];
+    ddx_get_logfile(m_holder, filename, 256);
+    return std::string(filename);
+  }
   int fmm_local_lmax() const { return ddx_get_fmm_local_lmax(m_holder); }
   int fmm_multipole_lmax() const { return ddx_get_fmm_multipole_lmax(m_holder); }
   double solvent_epsilon() const { return ddx_get_solvent_epsilon(m_holder); }
@@ -166,7 +174,8 @@ class Model {
           "maxiter"_a = maxiter(), "incore"_a = incore(),
           "jacobi_n_diis"_a = jacobi_n_diis(), "enable_fmm"_a = has_fmm_enabled(),
           "fmm_multipole_lmax"_a = fmm_multipole_lmax(),
-          "fmm_local_lmax"_a = fmm_local_lmax(), "n_proc"_a = n_proc());
+          "fmm_local_lmax"_a = fmm_local_lmax(), "n_proc"_a = n_proc(),
+          "logfile"_a = logfile());
   }
 
   // Accessors to derived parameters
@@ -223,6 +232,14 @@ class State {
   std::shared_ptr<Model> m_model;
 };
 
+void throw_if_error(std::shared_ptr<Model> model) {
+  if (ddx_get_error_flag(model->holder()) != 0) {
+    char message[256];
+    ddx_get_error_message(model->holder(), message, 256);
+    throw std::runtime_error(std::string(message));
+  }
+}
+
 py::array_t<double> scaled_ylm(std::shared_ptr<Model> model, array_f_t coord, int sphere,
                                py::array_t<double> out) {
   if (out.size() != model->n_basis()) {
@@ -236,6 +253,7 @@ py::array_t<double> scaled_ylm(std::shared_ptr<Model> model, array_f_t coord, in
   }
   ddx_scaled_ylm(model->holder(), model->lmax(), coord.data(), sphere + 1,
                  out.mutable_data());
+  throw_if_error(model);
   return out;
 }
 array_f_t scaled_ylm(std::shared_ptr<Model> model, array_f_t coord, int sphere) {
@@ -259,12 +277,14 @@ py::dict multipole_electrostatics(std::shared_ptr<Model> model, array_f_t multip
     ddx_multipole_electrostatics_0(model->holder(), model->n_spheres(), model->n_cav(),
                                    multipoles.shape(0), multipoles.data(),
                                    phi.mutable_data());
+    throw_if_error(model);
     return py::dict("phi"_a = phi);
   } else if (derivative_order == 1) {
     array_f_t e({3, model->n_cav()});
     ddx_multipole_electrostatics_1(model->holder(), model->n_spheres(), model->n_cav(),
                                    multipoles.shape(0), multipoles.data(),
                                    phi.mutable_data(), e.mutable_data());
+    throw_if_error(model);
     return py::dict("phi"_a = phi, "e"_a = e);
   } else if (derivative_order == 2) {
     array_f_t e({3, model->n_cav()});
@@ -272,6 +292,7 @@ py::dict multipole_electrostatics(std::shared_ptr<Model> model, array_f_t multip
     ddx_multipole_electrostatics_2(
           model->holder(), model->n_spheres(), model->n_cav(), multipoles.shape(0),
           multipoles.data(), phi.mutable_data(), e.mutable_data(), g.mutable_data());
+    throw_if_error(model);
     return py::dict("phi"_a = phi, "e"_a = e, "g"_a = g);
   } else {
     throw py::value_error("'derivative_order' only implemented up to 2");
@@ -292,6 +313,7 @@ array_f_t multipole_psi(std::shared_ptr<Model> model, array_f_t multipoles) {
   array_f_t psi({model->n_basis(), model->n_spheres()});
   ddx_multipole_psi(model->holder(), model->n_basis(), model->n_spheres(),
                     multipoles.shape(0), multipoles.data(), psi.mutable_data());
+  throw_if_error(model);
   return psi;
 }
 
@@ -322,20 +344,8 @@ array_f_t multipole_force_terms(std::shared_ptr<Model> model,
   ddx_multipole_forces(model->holder(), state->holder(), model->n_spheres(),
                        model->n_cav(), multipoles.shape(0), multipoles.data(), e.data(),
                        forces.mutable_data());
+  throw_if_error(model);
   return forces;
-}
-
-/** Nuclear contribution to the cavity charges and potential */
-py::dict solute_nuclear_contribution(std::shared_ptr<Model> model) {
-  // Convert charges from the model to multipoles
-  array_f_t multipoles({1, model->n_spheres()});
-  for (size_t i = 0; i < model->n_spheres(); ++i) {
-    multipoles.mutable_data()[i] = model->sphere_charges().data()[i] / sqrt(4 * M_PI);
-  }
-  auto solute_field = multipole_electrostatics(model, multipoles, 1);
-  array_f_t psi     = multipole_psi(model, multipoles);
-  return py::dict("phi"_a = solute_field["phi"], "gradphi"_a = solute_field["e"],
-                  "psi"_a = psi);
 }
 
 std::shared_ptr<State> construct_initial_guess(std::shared_ptr<Model> model) {
@@ -347,6 +357,7 @@ std::shared_ptr<State> construct_initial_guess(std::shared_ptr<Model> model) {
   } else {
     throw py::value_error("Model " + model->model() + " not yet implemented.");
   }
+  throw_if_error(model);
   return state;
 }
 
@@ -369,11 +380,12 @@ std::shared_ptr<State> solve(std::shared_ptr<Model> model, std::shared_ptr<State
   } else {
     throw py::value_error("Model " + model->model() + " not yet implemented.");
   }
+  throw_if_error(model);
   return state;
 }
 
 // Solve the adjoint COSMO / PCM System. The state is modified in-place.
-std::shared_ptr<State> adjoint_solve(std::shared_ptr<Model> model,
+std::shared_ptr<State> solve_adjoint(std::shared_ptr<Model> model,
                                      std::shared_ptr<State> state, array_f_t psi,
                                      double tol) {
   if (state->model()->model() != model->model()) {
@@ -388,14 +400,15 @@ std::shared_ptr<State> adjoint_solve(std::shared_ptr<Model> model,
   }
 
   if (model->model() == "cosmo") {
-    ddx_cosmo_adjoint(model->holder(), state->holder(), model->n_basis(),
-                      model->n_spheres(), psi.data(), tol);
+    ddx_cosmo_solve_adjoint(model->holder(), state->holder(), model->n_basis(),
+                            model->n_spheres(), psi.data(), tol);
   } else if (model->model() == "pcm") {
-    ddx_pcm_adjoint(model->holder(), state->holder(), model->n_basis(),
-                    model->n_spheres(), psi.data(), tol);
+    ddx_pcm_solve_adjoint(model->holder(), state->holder(), model->n_basis(),
+                          model->n_spheres(), psi.data(), tol);
   } else {
     throw py::value_error("Model " + model->model() + " not yet implemented.");
   }
+  throw_if_error(model);
   return state;
 }
 
@@ -434,6 +447,7 @@ array_f_t solvation_force_terms(std::shared_ptr<Model> model,
   } else {
     throw py::value_error("Model " + model->model() + " not yet implemented.");
   }
+  throw_if_error(model);
   return forces;
 }
 
@@ -459,19 +473,23 @@ void export_pyddx_classes(py::module& m) {
         "fmm_local_lmax:   Maximal degree of local spherical harmonics, ignored in "
         "case `use_fmm=false`. Value `-1` means no local FFM interactions are "
         "computed.\n"
-        "n_proc:           Number of processors to use.";
+        "n_proc:           Number of processors to use.\n"
+        "logfile:          Logfile for debugging (very verbose output, use with care)\n";
 
   py::class_<Model, std::shared_ptr<Model>>(m, "Model",
                                             "Solvation model using ddX library.")
         .def(py::init<std::string, array_f_t, array_f_t, array_f_t, double, double,
-                      double, int, int, int, int, int, bool, int, int, int>(),
+                      double, int, int, int, int, int, bool, int, int, int,
+                      std::string>(),
              init_docstring, "model"_a, "sphere_charges"_a, "sphere_centres"_a,
              "sphere_radii"_a, "solvent_epsilon"_a, "solvent_kappa"_a = 0.0,
              "eta"_a = 0.1, "lmax"_a = 7, "n_lebedev"_a = 302, "incore"_a = false,
              "maxiter"_a = 100, "jacobi_n_diis"_a = 20, "enable_fmm"_a = true,
-             "fmm_multipole_lmax"_a = 7, "fmm_local_lmax"_a = 6, "n_proc"_a = 1)
+             "fmm_multipole_lmax"_a = 7, "fmm_local_lmax"_a = 6, "n_proc"_a = 1,
+             "logfile"_a = "")
         //
         .def_property_readonly("has_fmm_enabled", &Model::has_fmm_enabled)
+        .def_property_readonly("has_force_enabled", &Model::has_force_enabled)
         .def_property_readonly("jacobi_n_diis", &Model::jacobi_n_diis)
         .def_property_readonly("lmax", &Model::lmax)
         .def_property_readonly("incore", &Model::incore)
@@ -480,6 +498,7 @@ void export_pyddx_classes(py::module& m) {
         .def_property_readonly("n_lebedev", &Model::n_lebedev)
         .def_property_readonly("n_spheres", &Model::n_spheres)
         .def_property_readonly("n_proc", &Model::n_proc)
+        .def_property_readonly("logfile", &Model::logfile)
         .def_property_readonly("fmm_local_lmax", &Model::fmm_local_lmax)
         .def_property_readonly("fmm_multipole_lmax", &Model::fmm_multipole_lmax)
         .def_property_readonly("solvent_epsilon", &Model::solvent_epsilon)
@@ -500,38 +519,43 @@ void export_pyddx_classes(py::module& m) {
                 return scaled_ylm(model, x, sphere);
               },
               "x"_a, "sphere"_a,
-              "With reference to a atomic sphere `sphere` of radius `r` centred at `a` "
+              "With reference to a atomic sphere `sphere` of radius `r` centred at "
+              "`a` "
               "compute 4π/(2l+1) * (|x-a|/r)^l * Y_l^m(|x-a|).")
         .def(
               "scaled_ylm",
               [](std::shared_ptr<Model> model, array_f_t x, int sphere,
                  py::array_t<double> out) { return scaled_ylm(model, x, sphere, out); },
               "coord"_a, "sphere"_a, "out"_a,
-              "With reference to a atomic sphere `sphere` of radius `r` centred at `a` "
+              "With reference to a atomic sphere `sphere` of radius `r` centred at "
+              "`a` "
               "compute 4π/(2l+1) * (|x-a|/r)^l * Y_l^m(|x-a|).")
         //
         .def("multipole_electrostatics", &multipole_electrostatics,
-             "Return the solute potential, electric field and field gradients for a "
-             "solute represented by a distribution of multipoles on the cavity centres. "
-             "The order of potential derivatives is given by the 'derivative_order' flag "
-             "(0 for just the potential 'phi', 1 for 'phi' and field 'e', 2 for 'phi', "
+             "Return the solute potential, electric field and field gradients for "
+             "a "
+             "solute represented by a distribution of multipoles on the cavity "
+             "centres. "
+             "The order of potential derivatives is given by the "
+             "'derivative_order' flag "
+             "(0 for just the potential 'phi', 1 for 'phi' and field 'e', 2 for "
+             "'phi', "
              "'e' and field gradient 'g').",
              "multipoles"_a, "derivative_order"_a = 1)
         .def("multipole_psi", &multipole_psi,
-             "Return the solute contribution to psi generated from a distribution of "
+             "Return the solute contribution to psi generated from a distribution "
+             "of "
              "multipoles on the cavity centres.",
              "multipoles"_a)
         .def("multipole_force_terms", &multipole_force_terms,
-             "Obtain the force contributions from a solute represented using multipoles. "
+             "Obtain the force contributions from a solute represented using "
+             "multipoles. "
              "The state is updated in-place.",
              "state"_a, "multipoles"_a, "e"_a)
-        .def("solute_nuclear_contribution", &solute_nuclear_contribution,
-             "Return the terms of the nuclear contribution to the solvation as a python "
-             "dictionary (Deprecated).")
         //
         .def("initial_guess", &construct_initial_guess, "Return an initial guess state.")
         .def("solve", &solve, "state"_a, "phi"_a, "tol"_a = 1e-8, "TODO Docstring")
-        .def("adjoint_solve", &adjoint_solve, "state"_a, "psi"_a, "tol"_a = 1e-8,
+        .def("solve_adjoint", &solve_adjoint, "state"_a, "psi"_a, "tol"_a = 1e-8,
              "TODO Docstring")
         .def("solvation_force_terms", &solvation_force_terms, "state"_a, "phi"_a, "e"_a,
              "psi"_a, "TODO Doctring")

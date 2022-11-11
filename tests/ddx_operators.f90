@@ -63,6 +63,14 @@ do i = 1, size(alpha)
 end do
 
 contains
+!> Print error message and exit with provided error code
+subroutine error(code, message)
+    integer, intent(in) :: code
+    character(len=*), intent(in) :: message
+    write(0, "(A,A)") "ERROR: ", message
+    write(0, "(A,I2)") "CODE:  ", code
+    stop -1
+end subroutine
 
 subroutine check_mkrhs(ddx_data, pm, pl, iprint, threshold)
     ! Inputs

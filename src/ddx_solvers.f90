@@ -126,8 +126,11 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
             rel_diff = diff / norm
         end if
 
-        if (params % verbose) write(params % iunit, '(A,I3,X,A,E10.2)') &
-            & 'Iteration:', it, 'Rel. diff:', rel_diff
+        if (params % verbose) then
+            write(params % iunit, '(A,I3,X,A,E10.2)') &
+                & 'Iteration:', it, 'Rel. diff:', rel_diff
+            flush(params % iunit)
+        end if
 
         x_rel_diff(it) = rel_diff
         ! Update solution

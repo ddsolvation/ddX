@@ -12,6 +12,12 @@ on:
     - cron: '00 04 * * 1' # 4am every Monday
   workflow_dispatch:
 
+concurrency:
+  # Skip intermediate builds: always.
+  # Cancel intermediate builds: only if it is a pull request build.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
 jobs:
   #
   # Fortran-side build and tests
@@ -31,15 +37,17 @@ jobs:
         make
         ctest -VV
         make install
-    - name: test installation
+    - name: Run example
+      run: ./build/examples/run_ddx
+    - name: Test installation
       run: |
         mkdir /tmp/test
-        mv ./cmake/testddXinstall.cmake /tmp/test/CMakeLists.txt
-        cp ./tests/ddx_core.f90 /tmp/test/dd_core.f90
+        mv cmake/testddXinstall.cmake /tmp/test/CMakeLists.txt
+        cp tests/ddx_core.f90 /tmp/test/dd_core.f90
         cd /tmp/test
         mkdir build
         cd build
-        cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran-10" -DddX_DIR="/tmp/libddx/lib/ddX" ..
+        cmake -DddX_DIR="/tmp/libddx/lib/ddX" ..
         make
 
   #
@@ -75,3 +83,5 @@ jobs:
       - name: Run python tests
         run: |
           python setup.py test
+      - name: Run example
+        run: python examples/run_ddx.py

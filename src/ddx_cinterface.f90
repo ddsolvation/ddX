@@ -15,13 +15,34 @@ module ddx_cinterface
         type(ddx_params_type)    :: params
         type(ddx_constants_type) :: constants
         type(ddx_workspace_type) :: workspace
-        character(len=255)       :: error_message  ! most recent error message (if any)
     end type ddx_setup
 
 contains
 !
 ! Generic stuff
 !
+subroutine ddx_get_banner(message, maxlen) bind(C)
+    integer(c_int), intent(in), value :: maxlen
+    character(len=1, kind=C_char), intent(out) :: message(maxlen)
+    integer :: length, i
+    character :: ch
+    character (len=4095) :: header
+    call get_banner(header)
+    message(maxlen) = c_null_char
+    length = min(maxlen-1, 4095)
+    do i = length, 1, -1
+        if (header(i:i) .eq. ' ') then
+            length = i-1
+        else
+            exit
+        endif
+    enddo
+    message(length + 1) = c_null_char
+    do i = 1, length
+        message(i) = header(i:i)
+    enddo
+end
+
 function ddx_supported_lebedev_grids(n, grids) result(c_ngrids) bind(C)
     integer(c_int), intent(in), value ::  n
     integer(c_int), intent(out) :: grids(n)
@@ -70,53 +91,50 @@ end
 function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa, eta, lmax, &
         & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, fmm_multipole_lmax, fmm_local_lmax, &
         & n_proc, n_spheres, sphere_charges, sphere_centres, &
-        !& sphere_radii, printfctn, info) result(c_ddx) bind(C)
-        & sphere_radii, info) result(c_ddx) bind(C)
+        & sphere_radii, length_logfile, c_logfile) result(c_ddx) bind(C)
     integer(c_int), intent(in), value :: model, enable_force, lmax, n_lebedev, maxiter, &
-        & incore, jacobi_n_diis, enable_fmm, fmm_multipole_lmax, fmm_local_lmax, n_proc, n_spheres
+        & incore, jacobi_n_diis, enable_fmm, fmm_multipole_lmax, fmm_local_lmax, n_proc, &
+        & n_spheres, length_logfile
     real(c_double), intent(in) :: sphere_charges(n_spheres), sphere_centres(3, n_spheres), &
         & sphere_radii(n_spheres)
     real(c_double), intent(in), value :: eta, solvent_epsilon, solvent_kappa
-    integer(c_int), intent(out) :: info
     !type(c_funptr), value :: printfctn
     type(c_ptr) :: c_ddx
-    integer :: passproc
+    integer :: passproc, i
     real(dp) :: se
     type(ddx_setup), pointer :: ddx
-    character(len=255) logfile
-
-    ! interface
-    !     subroutine print_characters(string) bind(C)
-    !         character(kind=c_char), dimension(*), intent(in) :: string
-    !     end subroutine
-    ! end interface
-    ! procedure(print_characters), pointer :: cprint
-    ! call c_f_procpointer(printfctn, cprint)  ! Convert C to fortran procedure pointer
+    character(len=1, kind=C_char), intent(in) :: c_logfile(length_logfile)
+    character(len=255) :: logfile
 
     ! Allocate DDX object
     allocate(ddx)
     c_ddx = c_loc(ddx)
 
+    ! Convert to Fortran objects
     passproc = n_proc
-    se = 0.0        ! Hard-code centred regularisation
     logfile = ''
-    ddx%error_message = "No error"
+    do i = 1, min(length_logfile, 255)
+        if (c_logfile(i) .ne. c_null_char) then
+            logfile(i:i) = c_logfile(i)
+        endif
+    enddo
+
+    ! Hard-coded parameters
+    se = 0.0   ! Centred regularisation
+
     call params_init(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
         & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, &
         & fmm_multipole_lmax, fmm_local_lmax, passproc, n_spheres, sphere_charges, &
-        & sphere_centres, sphere_radii, print_func_default, logfile, ddx%params)
+        & sphere_centres, sphere_radii, logfile, ddx%params)
     if (ddx%params%error_flag .ne. 0) then
-        ddx%error_message = ddx%params%error_message
         return
     endif
     call constants_init(ddx%params, ddx%constants)
     if (ddx%constants%error_flag .ne. 0) then
-        ddx%error_message = ddx%constants%error_message
         return
     endif
     call workspace_init(ddx%params, ddx%constants, ddx%workspace)
     if (ddx%workspace%error_flag .ne. 0) then
-        ddx%error_message = ddx%workspace%error_message
         return
     endif
 end function
@@ -131,18 +149,46 @@ subroutine ddx_deallocate_model(c_ddx) bind(C)
     deallocate(ddx)
 end
 
+function ddx_get_error_flag(c_ddx) result(has_error) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx
+    type(ddx_setup), pointer :: ddx
+    integer(c_int) :: has_error
+    call c_f_pointer(c_ddx, ddx)
+    has_error = 0
+    if (ddx%params%error_flag .ne. 0) then
+        has_error = ddx%params%error_flag
+    elseif (ddx%constants%error_flag .ne. 0) then
+        has_error = ddx%constants%error_flag
+    elseif (ddx%workspace%error_flag .ne. 0) then
+        has_error = ddx%workspace%error_flag
+    endif
+end
+
 subroutine ddx_get_error_message(c_ddx, message, maxlen) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
     integer(c_int), intent(in), value :: maxlen
     character(len=1, kind=C_char), intent(out) :: message(maxlen)
+    character(len=255) :: error_message
     type(ddx_setup), pointer :: ddx
     integer :: length, i
     character :: ch
     call c_f_pointer(c_ddx, ddx)
+    ! Get the actual error message from the collection of structs
+    if (ddx%params%error_flag .ne. 0) then
+        error_message = ddx%params%error_message
+    elseif (ddx%constants%error_flag .ne. 0) then
+        error_message = ddx%constants%error_message
+    elseif (ddx%workspace%error_flag .ne. 0) then
+        error_message = ddx%workspace%error_message
+    else
+        error_message = ''
+    endif
+
+    ! Convert to C message
     message(maxlen) = c_null_char
     length = min(maxlen-1, 255)
     do i = length, 1, -1
-        if (ddx%error_message(i:i) .eq. ' ') then
+        if (error_message(i:i) .eq. ' ') then
             length = i-1
         else
             exit
@@ -150,7 +196,32 @@ subroutine ddx_get_error_message(c_ddx, message, maxlen) bind(C)
     enddo
     message(length + 1) = c_null_char
     do i = 1, length
-        message(i) = ddx%error_message(i:i)
+        message(i) = error_message(i:i)
+    enddo
+end
+
+
+subroutine ddx_get_logfile(c_ddx, message, maxlen) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx
+    integer(c_int), intent(in), value :: maxlen
+    character(len=1, kind=C_char), intent(out) :: message(maxlen)
+    type(ddx_setup), pointer :: ddx
+    integer :: length, i
+    character :: ch
+    call c_f_pointer(c_ddx, ddx)
+    ! Convert to C message
+    message(maxlen) = c_null_char
+    length = min(maxlen-1, 255)
+    do i = length, 1, -1
+        if (ddx%params%output_filename(i:i) .eq. ' ') then
+            length = i-1
+        else
+            exit
+        endif
+    enddo
+    message(length + 1) = c_null_char
+    do i = 1, length
+        message(i) = ddx%params%output_filename(i:i)
     enddo
 end
 
@@ -420,7 +491,7 @@ subroutine ddx_cosmo_solve(c_ddx, c_state, ncav, phi, tol) bind(C)
     call ddcosmo_solve(ddx%params, ddx%constants, ddx%workspace, state, phi, tol)
 end subroutine
 
-subroutine ddx_cosmo_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) bind(C)
+subroutine ddx_cosmo_solve_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     type(ddx_setup), pointer :: ddx
     type(ddx_state_type), pointer :: state
@@ -468,7 +539,7 @@ subroutine ddx_pcm_solve(c_ddx, c_state, ncav, phi, tol) bind(C)
     call ddpcm_solve(ddx%params, ddx%constants, ddx%workspace, state, phi, tol)
 end subroutine
 
-subroutine ddx_pcm_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) bind(C)
+subroutine ddx_pcm_solve_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     type(ddx_setup), pointer :: ddx
     type(ddx_state_type), pointer :: state

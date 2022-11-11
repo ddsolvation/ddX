@@ -124,7 +124,6 @@ subroutine workspace_init(params, constants, workspace)
         string = "workspace_init: `tmp_vplm`, `tmp_vcos` and `tmp_vsin` " &
             & // "allocations failed"
         workspace % error_message = string
-        call params % print_func(string)
         return
     end if
     allocate(workspace % tmp_vylm(constants % vgrid_nbasis, params % nproc), &
