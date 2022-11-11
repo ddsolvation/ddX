@@ -33,7 +33,7 @@ solute_psi = model.multipole_psi(solute_multipoles)
 
 state = model.initial_guess()
 state = model.solve(state, solute_field["phi"])
-state = model.adjoint_solve(state, solute_psi)
+state = model.solve_adjoint(state, solute_psi)
 force = model.solvation_force_terms(state, solute_field["phi"], solute_field["e"],
                                     solute_psi)
 

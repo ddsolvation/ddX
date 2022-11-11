@@ -85,7 +85,7 @@ int main() {
   void* state = ddx_allocate_state(model);
   ddx_pcm_fill_guess(model, state);
   ddx_pcm_solve(model, state, ncav, phi_cav, tol);
-  ddx_pcm_adjoint(model, state, nbasis, nsph, psi, tol);
+  ddx_pcm_solve_adjoint(model, state, nbasis, nsph, psi, tol);
 
   double* solution_x = (double*)malloc(sizeof(double) * nsph * nbasis);
   ddx_get_x(state, nbasis, nsph, solution_x);

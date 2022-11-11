@@ -51,7 +51,7 @@ def test_reference_pcm():
 
     state = model.initial_guess()
     state = model.solve(state, solute_field["phi"], tol=1e-10)
-    state = model.adjoint_solve(state, solute_psi, tol=1e-10)
+    state = model.solve_adjoint(state, solute_psi, tol=1e-10)
     force = model.solvation_force_terms(state, solute_field["phi"],
                                         solute_field["e"], solute_psi)
 

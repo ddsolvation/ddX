@@ -385,8 +385,9 @@ std::shared_ptr<State> solve(std::shared_ptr<Model> model, std::shared_ptr<State
 }
 
 // Solve the adjoint COSMO / PCM System. The state is modified in-place.
-std::shared_ptr<State> adjoint(std::shared_ptr<Model> model, std::shared_ptr<State> state,
-                               array_f_t psi, double tol) {
+std::shared_ptr<State> solve_adjoint(std::shared_ptr<Model> model,
+                                     std::shared_ptr<State> state, array_f_t psi,
+                                     double tol) {
   if (state->model()->model() != model->model()) {
     throw py::value_error("Model mismatch: The passed state is for " +
                           state->model()->model());
@@ -399,11 +400,11 @@ std::shared_ptr<State> adjoint(std::shared_ptr<Model> model, std::shared_ptr<Sta
   }
 
   if (model->model() == "cosmo") {
-    ddx_cosmo_adjoint(model->holder(), state->holder(), model->n_basis(),
-                      model->n_spheres(), psi.data(), tol);
+    ddx_cosmo_solve_adjoint(model->holder(), state->holder(), model->n_basis(),
+                            model->n_spheres(), psi.data(), tol);
   } else if (model->model() == "pcm") {
-    ddx_pcm_adjoint(model->holder(), state->holder(), model->n_basis(),
-                    model->n_spheres(), psi.data(), tol);
+    ddx_pcm_solve_adjoint(model->holder(), state->holder(), model->n_basis(),
+                          model->n_spheres(), psi.data(), tol);
   } else {
     throw py::value_error("Model " + model->model() + " not yet implemented.");
   }
@@ -554,7 +555,8 @@ void export_pyddx_classes(py::module& m) {
         //
         .def("initial_guess", &construct_initial_guess, "Return an initial guess state.")
         .def("solve", &solve, "state"_a, "phi"_a, "tol"_a = 1e-8, "TODO Docstring")
-        .def("adjoint", &adjoint, "state"_a, "psi"_a, "tol"_a = 1e-8, "TODO Docstring")
+        .def("solve_adjoint", &solve_adjoint, "state"_a, "psi"_a, "tol"_a = 1e-8,
+             "TODO Docstring")
         .def("solvation_force_terms", &solvation_force_terms, "state"_a, "phi"_a, "e"_a,
              "psi"_a, "TODO Doctring")
         //
