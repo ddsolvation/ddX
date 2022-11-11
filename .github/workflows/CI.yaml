@@ -37,6 +37,8 @@ jobs:
         make
         ctest -VV
         make install
+    - name: Run example
+      run: ./build/examples/run_ddx
     - name: Test installation
       run: |
         mkdir /tmp/test
@@ -81,3 +83,5 @@ jobs:
       - name: Run python tests
         run: |
           python setup.py test
+      - name: Run example
+        run: python examples/run_ddx.py
