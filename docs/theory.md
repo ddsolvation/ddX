@@ -140,7 +140,7 @@ where \f$\langle \cdot, \cdot \rangle\f$ denotes the scalar product of the two e
     \qquad
     \tilde{\Psi} = f(\varepsilon)\begin{pmatrix} \Psi \\ 0 \end{pmatrix}
 \f]
-*Note*: The notation used in the ddCOSMO-literature, see e.g. [1,2,7], uses \f$\operatorname{g} = -\Phi\f$. The references [1--7] also give the definition of the matrix \f$\operatorname{L}\f$ and the vectors \f$\operatorname{g} = -\Phi\f$, \f$\Psi\f$ as well as the scalar function \f$f(\varepsilon)\f$. 
+*Note*: The notation used in the ddCOSMO-literature, see e.g. [1,2,7], uses \f$\operatorname{g} = -\Phi\f$. The references [1--9] also give the definition of the matrix \f$\operatorname{L}\f$ and the vectors \f$\operatorname{g} = -\Phi\f$, \f$\Psi\f$ as well as the scalar function \f$f(\varepsilon)\f$. 
 
 The subroutine for matrix-vector multiplications of the \f${\operatorname{L}}\f$ with a vector is 
 ``` markdown
@@ -156,7 +156,7 @@ The subroutine for matrix-vector multiplications of the \f${\operatorname{L}}\f$
     \qquad
     \tilde{\Psi} = \begin{pmatrix} \Psi \\ 0 \end{pmatrix}
 \f]
-*Note*: The notation used in the references [8,9], uses \f$\sigma = \operatorname{X}\f$. The references [8--10] also give the definition of the matrices \f$\operatorname{R}_\varepsilon\f$, \f$\operatorname{R}_\infty\f$ and the vector \f$\operatorname{g} = -\Phi\f$. \f$\operatorname{I}_d\f$ denotes the identity matrix.
+*Note*: The notation used in the references [10,11], uses \f$\sigma = \operatorname{X}\f$. The references [10--13] also give the definition of the matrices \f$\operatorname{R}_\varepsilon\f$, \f$\operatorname{R}_\infty\f$ and the vector \f$\operatorname{g} = -\Phi\f$. \f$\operatorname{I}_d\f$ denotes the identity matrix.
 
 The subroutine for matrix-vector multiplications of the \f$\operatorname{R}_\varepsilon\f$ and \f$\operatorname{R}_\infty\f$ with a vector is 
 ``` markdown
@@ -175,7 +175,7 @@ The subroutine for matrix-vector multiplications of the \f$\operatorname{R}_\var
     \qquad
     \tilde{\Psi} = \begin{pmatrix} \Psi \\ 0 \end{pmatrix}
 \f]
-*Note*: The notation used in the ddLPB-literature, see e.g. [11,12], uses \f$\operatorname{X}_r = \operatorname{X}\f$ and \f$\operatorname{G}_0 = -\Phi\f$. These references also provide the definition of the matrices \f$\operatorname{A}\f$ (which is a scaled verion of \f$\operatorname{L}\f$), \f$\operatorname{B}\f$, \f$\operatorname{C}_1\f$, \f$\operatorname{C}_2\f$ as well as the vectors \f$\operatorname{F}_0\f$, \f$\operatorname{G}_0 = -\Phi\f$.
+*Note*: The notation used in the ddLPB-literature, see e.g. [14,15], uses \f$\operatorname{X}_r = \operatorname{X}\f$ and \f$\operatorname{G}_0 = -\Phi\f$. These references also provide the definition of the matrices \f$\operatorname{A}\f$ (which is a scaled verion of \f$\operatorname{L}\f$), \f$\operatorname{B}\f$, \f$\operatorname{C}_1\f$, \f$\operatorname{C}_2\f$ as well as the vectors \f$\operatorname{F}_0\f$, \f$\operatorname{G}_0 = -\Phi\f$.
 
 The subroutine for matrix-vector multiplications of the \f$\tilde{\operatorname{T}}\f$, \f$\operatorname{A}\f$,\f$\operatorname{B}\f$  and \f$\tilde{\operatorname{C}}\f$ with a vector is 
 ``` markdown
@@ -231,7 +231,7 @@ The subroutine for the contraction of the differentiated matrix \f$\operatorname
     \qquad
     \tilde{\operatorname{H}} = \begin{pmatrix} -\operatorname{L}^\lambda\operatorname{X} \\ \operatorname{R}^\lambda(\Phi-\Phi_\varepsilon)+\operatorname{R}_\infty\Phi^\lambda \end{pmatrix}
 \f]
-*Note*: The minus sign in front of \f$\operatorname{Y}\f$ appears for consistency with the notation introduced in [10].
+*Note*: The minus sign in front of \f$\operatorname{Y}\f$ appears for consistency with the notation introduced in [12].
 
 The subroutine for matrix-vector multiplications of the \f$\operatorname{R}_\varepsilon^\top\f$ and \f$\operatorname{R}_\infty^\top\f$ with a vector is 
 ``` markdown
@@ -240,7 +240,7 @@ The subroutine for matrix-vector multiplications of the \f$\operatorname{R}_\var
 ```
 **Remarks**:
 1. There holds \f$\operatorname{S}=\operatorname{R}_\varepsilon^\top\operatorname{Y}\f$.
-2. Since \f$\operatorname{R}_\infty-\operatorname{R}_\varepsilon=-\frac{4\pi}{\varepsilon_s-1}\f$ (?check sign?) is constant there holds \f$\operatorname{R}^\lambda:=\operatorname{R}^\lambda_\varepsilon=\operatorname{R}^\lambda_\infty\f$.
+2. Since \f$\operatorname{R}_\infty-\operatorname{R}_\varepsilon=-\frac{4\pi}{\varepsilon_s-1}\f$ is constant there holds \f$\operatorname{R}^\lambda:=\operatorname{R}^\lambda_\varepsilon=\operatorname{R}^\lambda_\infty\f$.
 3. As consequence of 1. and 2., it is advantageous to write
 \f[
     \langle \tilde{\operatorname{S}}, \tilde{\operatorname{H}} \rangle

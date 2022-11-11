@@ -14,7 +14,7 @@ Run the code as
 
 Line number  | type           | description   
 ------------- | ------------- | -------------- 
-1  | String | Filename for Log-file where additional information about the convergence of the linear solver is saved, the void string '' means that no log-file is saved
+1  | String | Filename for Log-file where information about the convergence of the linear solver is saved, the void string '' means that no log-file is saved
 2  | Integer  | Number of OpenMP cores to be used
 3  | Integer  | Specification of the model <br />  1: COSMO, 2: PCM, 3: LPB
 4  | Integer  | Maximal degree \f$\ell_{\max}\f$ of modeling spherical harmonics
@@ -41,7 +41,7 @@ Line number  | type           | description
 
 **Example of an input file:**
 ```
-''          ! Name of log-file for additional information
+''          ! Name of log-file for convergence history of the solvers 
 1           ! Number of OpenMP cores to be used
 1           ! Specification of the model: 1 for COSMO, 2 for PCM and 3 for LPB
 7           ! Maximal degree of modeling spherical harmonics
