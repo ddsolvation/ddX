@@ -706,20 +706,17 @@ end subroutine grad_m2m
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] mmax: maximum angular momentum of the multipolar distribution
-!! @param[in] multipoles: multipoles as real spherical harmonics,
-!!     size ((mmax+1)**2, nsph)
+!! @param[in] charges: charges, size (nsph)
 !! @param[inout] forces: forces array, size (3, nsph)
 !!
-subroutine grad_phi_for_charges(params, constants, workspace, state, mmax, &
-        & multipoles, forces, e_cav)
+subroutine grad_phi_for_charges(params, constants, workspace, state, &
+        & charges, forces, e_cav)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(inout) :: state
-    integer, intent(in) :: mmax
-    real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(in) :: charges(params % nsph)
     real(dp), intent(inout) :: forces(3, params % nsph)
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     ! local variables
@@ -755,11 +752,11 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, mmax, &
     ! harmonics to regular charges
     do isph = 1, params % nsph
         forces(1, isph) = forces(1, isph) &
-            & + sqrt4pi*pt5*multipoles(1, isph)*field(1, isph)
+            & + pt5*charges(isph)*field(1, isph)
         forces(2, isph) = forces(2, isph) &
-            & + sqrt4pi*pt5*multipoles(1, isph)*field(2, isph)
+            & + pt5*charges(isph)*field(2, isph)
         forces(3, isph) = forces(3, isph) &
-            & + sqrt4pi*pt5*multipoles(1, isph)*field(3, isph)
+            & + pt5*charges(isph)*field(3, isph)
     end do
 
     deallocate(field, stat=info)

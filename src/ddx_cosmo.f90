@@ -65,8 +65,6 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
         force = zero
         call ddcosmo_solvation_force_terms(params, constants, workspace, state, &
             & phi_cav, gradphi_cav, psi, force)
-        call grad_phi_for_charges(params, constants, workspace, state, 0, &
-            & params % charge/sqrt4pi, force, -gradphi_cav)
     end if
 end subroutine ddcosmo
 

@@ -77,9 +77,18 @@ finish_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") " mkrhs time:", finish_time-start_time, " seconds"
 
 start_time = omp_get_wtime()
-call ddsolve(ddx_data, state,  phi_cav, gradphi_cav, hessianphi_cav, psi, &
+call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, &
     & tol, esolv, force)
 finish_time = omp_get_wtime()
+write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time-start_time, " seconds"
+
+start_time = omp_get_wtime()
+call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
+    & ddx_data % workspace, state, ddx_data % params % charge, &
+    & force, -gradphi_cav)
+start_time = omp_get_wtime()
+write(*, "(A,ES11.4E2,A)") " multipolar forces time:", finish_time-start_time, " seconds"
+
 
 ! Print info on the primal ddPCM system
 if (ddx_data % params % model .eq. 2) then
@@ -157,7 +166,6 @@ if (ddx_data % params % force .eq. 1) then
             & state % x_adj_lpb_niter
     end if
 end if
-write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time-start_time, " seconds"
 write(*, "(A,ES25.16E3)") " Solvation energy:", esolv
 write(*, "(A,ES25.16E3)") " Solvation energy (kcal/mol):", esolv*tokcal
 if (ddx_data % params % force .eq. 1) then
