@@ -193,8 +193,7 @@ subroutine ddcosmo_solve_worker(params, constants, workspace, phi_cav, &
     real(dp), intent(out) :: phi_grid(params % ngrid, params % nsph)
     real(dp), intent(out) :: phi(constants % nbasis, params % nsph)
     !! Local variables
-    character(len=255) :: string
-    real(dp) :: start_time, finish_time, r_norm
+    real(dp) :: start_time, finish_time
     !! The code
     ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
     ! and multiply it by characteristic function at cavity points ui
@@ -246,8 +245,7 @@ subroutine ddcosmo_adjoint_worker(params, constants, workspace, psi, tol, s, &
     integer, intent(inout) :: s_niter
     real(dp), intent(out) :: s_rel_diff(s_niter)
     !! Local variables
-    real(dp) :: start_time, finish_time, r_norm
-    character(len=255) :: string
+    real(dp) :: start_time, finish_time
     real(dp), external :: ddot
     !! The code
     call cpu_time(start_time)
@@ -279,7 +277,6 @@ subroutine ddcosmo_forces_worker(params, constants, workspace, phi_grid, &
     integer :: isph, icav, igrid, inode, jnode, jsph, jnear
     real(dp) :: tmp1, tmp2, d(3), dnorm
     real(dp), external :: ddot, dnrm2
-    character(len=255) :: string
     !! The code
     ! Get values of S on grid
     call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &
@@ -410,10 +407,8 @@ subroutine ddcosmo_geom_forces_worker(params, constants, workspace, phi_grid, &
         & zeta(constants % ncav), &
         & force(3, params % nsph)
     !! Local variables
-    integer :: isph, icav, igrid, inode, jnode, jsph, jnear
-    real(dp) :: tmp1, tmp2, d(3), dnorm
+    integer :: isph, icav, igrid
     real(dp), external :: ddot, dnrm2
-    character(len=255) :: string
     !! The code
     ! Get values of S on grid
     call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &
