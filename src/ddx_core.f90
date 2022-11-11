@@ -1317,9 +1317,7 @@ subroutine wghpot(ncav, phi_cav, nsph, ngrid, ui, phi_grid, g)
     enddo
 end subroutine wghpot
 
-!------------------------------------------------------------------------------------------------
 !> Compute the local Sobolev H^(-1/2)-norm on one sphere of u
-!------------------------------------------------------------------------------
 subroutine hsnorm(lmax, nbasis, u, unorm)
     integer, intent(in) :: lmax, nbasis
     real(dp), dimension(nbasis), intent(in) :: u
@@ -1335,19 +1333,17 @@ subroutine hsnorm(lmax, nbasis, u, unorm)
             unorm = unorm + fac*u(ind+m)*u(ind+m)
         end do
     end do
-!   the much neglected square root
+    ! the much neglected square root
     unorm = sqrt(unorm)
 end subroutine hsnorm
 
-!------------------------------------------------------------------------------
-!> Compute the global  Sobolev H^(-1/2)-norm of x
-!-------------------------------------------------------------------------------
+!> Compute the global Sobolev H^(-1/2)-norm of x
 real(dp) function hnorm(lmax, nbasis, nsph, x)
     integer, intent(in) :: lmax, nbasis, nsph
     real(dp),  dimension(nbasis, nsph), intent(in) :: x
-    integer                                        :: isph, istatus
-    real(dp)                                       :: vrms, fac
-!
+    integer :: isph
+    real(dp) :: vrms, fac
+
     vrms = 0.0_dp
     !$omp parallel do default(none) shared(nsph,lmax,nbasis,x) &
     !$omp private(isph,fac) schedule(dynamic) reduction(+:vrms)
@@ -1355,35 +1351,25 @@ real(dp) function hnorm(lmax, nbasis, nsph, x)
         call hsnorm(lmax, nbasis, x(:,isph), fac)
         vrms = vrms + fac*fac
     enddo
-!   call rmsvec(nsph, u, vrms, vmax)
     hnorm = sqrt(vrms/dble(nsph))
 end function hnorm
 
-!------------------------------------------------------------------------------------------------
-!> TODO
-!------------------------------------------------------------------------------
 real(dp) function rmsnorm(lmax, nbasis, nsph, x)
-    integer,                            intent(in) :: lmax, nbasis, nsph
+    integer, intent(in) :: lmax, nbasis, nsph
     real(dp),  dimension(nbasis, nsph), intent(in) :: x
-!
-    integer  :: n
+    integer :: n
     real(dp) :: vrms, vmax
-!
     n = nbasis*nsph
     call rmsvec(n,x,vrms,vmax)
-!
     rmsnorm = vrms
-  
 end function rmsnorm
 
-!------------------------------------------------------------------------------
 !> compute root-mean-square and max norm
-!------------------------------------------------------------------------------
-subroutine rmsvec( n, v, vrms, vmax )
+subroutine rmsvec(n, v, vrms, vmax)
     implicit none
-    integer,               intent(in)    :: n
-    real(dp),  dimension(n), intent(in)    :: v
-    real(dp),                intent(inout) :: vrms, vmax
+    integer, intent(in) :: n
+    real(dp), dimension(n), intent(in) :: v
+    real(dp), intent(inout) :: vrms, vmax
     integer :: i
     real(dp), parameter :: zero=0.0d0
 
@@ -1397,9 +1383,6 @@ subroutine rmsvec( n, v, vrms, vmax )
     vrms = sqrt(vrms/dble(n))
 endsubroutine rmsvec
 
-!------------------------------------------------------------------------------
-!> TODO
-!------------------------------------------------------------------------------
 subroutine adjrhs(params, constants, isph, xi, vlm, work)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1408,9 +1391,8 @@ subroutine adjrhs(params, constants, isph, xi, vlm, work)
     real(dp), dimension(constants % nbasis), intent(inout) :: vlm
     real(dp), dimension(params % lmax+1), intent(inout) :: work
 
-    integer :: ij, jsph, ig, l, ind, m
-    real(dp)  :: vji(3), vvji, tji, sji(3), xji, oji, fac, ffac, t
-    real(dp) :: rho, ctheta, stheta, cphi, sphi
+    integer :: ij, jsph, ig
+    real(dp)  :: vji(3), vvji, tji, xji, oji, fac
 
     do ij = constants % inl(isph), constants % inl(isph+1)-1
       jsph = constants % nl(ij)
@@ -1434,9 +1416,6 @@ subroutine adjrhs(params, constants, isph, xi, vlm, work)
     enddo
 end subroutine adjrhs
 
-!------------------------------------------------------------------------------
-!> TODO
-!------------------------------------------------------------------------------
 subroutine calcv(params, constants, isph, pot, sigma, work)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1446,9 +1425,8 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
     real(dp), dimension(params % lmax+1), intent(inout) :: work
 
     integer :: its, ij, jsph
-    real(dp) :: vij(3), sij(3)
-    real(dp) :: vvij, tij, xij, oij, stslm, stslm2, stslm3, &
-        & thigh, rho, ctheta, stheta, cphi, sphi
+    real(dp) :: vij(3)
+    real(dp) :: vvij, tij, xij, oij, thigh
 
     thigh = one + pt5*(params % se + one)*params % eta
     pot(:) = zero
@@ -1556,8 +1534,6 @@ subroutine ddcav_to_grid(params, constants, x_cav, x_grid)
     real(dp), intent(in) :: x_cav(constants % ncav)
     !! Output
     real(dp), intent(inout) :: x_grid(params % ngrid, params % nsph)
-    !! Local variables
-    character(len=255) :: string
     !! The code
     call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
         & constants % icav_ia, constants % icav_ja, x_cav, x_grid)
@@ -1770,7 +1746,7 @@ subroutine tree_m2m_rotation_adj_work(params, constants, node_m, work)
     ! Temporary workspace
     real(dp), intent(out) :: work(6*params % pm**2 + 19*params % pm + 8)
     ! Local variables
-    integer :: i, j, k
+    integer :: i, j
     real(dp) :: c1(3), c(3), r1, r
     ! Top-to-bottom pass
     do i = 2, constants % nclusters
@@ -1812,8 +1788,8 @@ subroutine tree_m2m_bessel_rotation_adj_work(params, constants, node_m)
     real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
     complex(dp) :: work_complex(2*params % pm+1)
     ! Local variables
-    integer :: i, j, k
-    real(dp) :: c1(3), c(3), r1, r
+    integer :: i, j
+    real(dp) :: c1(3), c(3)
     ! Top-to-bottom pass
     do i = 2, constants % nclusters
         j = constants % parent(i)
@@ -1944,7 +1920,7 @@ subroutine tree_l2l_rotation_adj_work(params, constants, node_l, work)
     ! Temporary workspace
     real(dp), intent(out) :: work(6*params % pl**2 + 19*params % pl + 8)
     ! Local variables
-    integer :: i, j, k
+    integer :: i, j
     real(dp) :: c1(3), c(3), r1, r
     ! Bottom-to-top pass
     do i = constants % nclusters, 1, -1
@@ -2062,7 +2038,7 @@ subroutine tree_m2l_bessel_rotation(params, constants, node_m, node_l)
     real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
     complex(dp) :: work_complex(2*params % pm+1)
     ! Local variables
-    integer :: i, j, k, NZ, ierr
+    integer :: i, j, k
     real(dp) :: c1(3), c(3), r1, r
     ! Any order of this cycle is OK
     do i = 1, constants % nclusters
@@ -2134,7 +2110,7 @@ subroutine tree_m2l_bessel_rotation_adj_work(params, constants, node_l, node_m)
     complex(dp) :: work_complex(2*params % pm+1)
     ! Local variables
     integer :: i, j, k
-    real(dp) :: c1(3), c(3), r1, r
+    real(dp) :: c1(3), c(3), r
     ! Any order of this cycle is OK
     node_m = zero
     do i = 1, constants % nclusters
@@ -2218,7 +2194,6 @@ subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v, sph_l)
     ! Scratch
     real(dp), intent(out) :: sph_l((params % pl+1)**2, params % nsph)
     ! Local variables
-    real(dp) :: c(3)
     integer :: isph
     external :: dgemm
 
@@ -2255,7 +2230,7 @@ subroutine tree_l2p_bessel(params, constants, alpha, node_l, beta, grid_v)
     ! Output
     real(dp), intent(inout) :: grid_v(params % ngrid, params % nsph)
     ! Local variables
-    real(dp) :: sph_l((params % pl+1)**2, params % nsph), c(3)
+    real(dp) :: sph_l((params % pl+1)**2, params % nsph)
     integer :: isph
     external :: dgemm
     ! Init output
@@ -2290,7 +2265,6 @@ subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l, sph_l)
     ! Scractch
     real(dp), intent(out) :: sph_l((params % pl+1)**2, params % nsph)
     ! Local variables
-    real(dp) :: c(3)
     integer :: isph, inode
     external :: dgemm
     ! Init output
@@ -2324,7 +2298,7 @@ subroutine tree_l2p_bessel_adj(params, constants, alpha, grid_v, beta, node_l)
     real(dp), intent(inout) :: node_l((params % pl+1)**2, &
         & constants % nclusters)
     ! Local variables
-    real(dp) :: sph_l((params % pl+1)**2, params % nsph), c(3)
+    real(dp) :: sph_l((params % pl+1)**2, params % nsph)
     integer :: isph, inode
     external :: dgemm
     ! Init output
@@ -2502,8 +2476,6 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
         & beta
     ! Output
     real(dp), intent(inout) :: sph_m((sph_p+1)**2, params % nsph)
-    ! Temporary workspace
-    real(dp) :: work(p+1)
     ! Local variables
     integer :: isph, inode, jnear, jnode, jsph, igrid
     real(dp) :: c(3)
@@ -2550,8 +2522,6 @@ subroutine tree_m2p_bessel_nodiag_adj(params, constants, p, alpha, grid_v, beta,
         & beta
     ! Output
     real(dp), intent(inout) :: sph_m((sph_p+1)**2, params % nsph)
-    ! Temporary workspace
-    real(dp) :: work(p+1)
     ! Local variables
     integer :: isph, inode, jnear, jnode, jsph, igrid
     real(dp) :: c(3)
