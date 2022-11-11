@@ -7,7 +7,7 @@ if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
         "directory. Example: mkdir build && cd build && cmake ..")
 endif()
 
-project(ddX VERSION 0.0.4 LANGUAGES Fortran C CXX)
+project(ddX VERSION 0.0.4 LANGUAGES Fortran CXX)
 # If ddX is a subproject, append ddx_ prefix to all targets.
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(ddx_is_subproject false)
@@ -67,7 +67,13 @@ if (PYTHON)  # Builds for python
 else()
     # Pass onto subdirectories
     add_subdirectory(src)
-    add_subdirectory(examples)
+
+    option(EXAMPLES "Compile examples" ON)
+    if (EXAMPLES)
+        enable_language(C)
+        add_subdirectory(examples)
+    endif()
+
     enable_testing()
     add_subdirectory(tests)
 endif()
