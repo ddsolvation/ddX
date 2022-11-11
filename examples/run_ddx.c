@@ -8,10 +8,14 @@ int main() {
   double charges[12] = {-0.04192, -0.04192, -0.04198, -0.04192, -0.04192, -0.04198,
                         0.04193,  0.04193,  0.04197,  0.04193,  0.04193,  0.04197};
 
-  double radii[12] = {7.56368551, 7.56368551, 7.56368551, 7.56368551,
-                      7.56368551, 7.56368551, 5.66834689, 5.66834689,
-                      5.66834689, 5.66834689, 5.66834689, 5.66834689};
+  // Radii in Aangstroem
+  double radii[12] = {4.00253, 4.00253, 4.00253, 4.00253, 4.00253, 4.00253,
+                      2.99956, 2.99956, 2.99956, 2.99956, 2.99956, 2.99956};
+  for (int i = 0; i < 12; ++i) {
+    radii[i] /= 0.5291772109;
+  }
 
+  // Coordinates in Aangstroem
   double centres[36];
   double x[12] = {0.00000, 0.00000, 0.00000, 0.00000,  0.00000,  0.00000,
                   0.00103, 0.00103, 0.00000, -0.00103, -0.00103, 0.00000};
@@ -30,14 +34,14 @@ int main() {
   double epsilon         = 78.3553;
   double kappa           = 0.0;
   double eta             = 0.1;
-  int lmax               = 10;
+  int lmax               = 8;
   int n_lebedev          = 302;
   int incore             = 0;
   int maxiter            = 100;
   int jacobi_n_diis      = 20;
   int enable_fmm         = 1;
-  int fmm_multipole_lmax = 20;
-  int fmm_local_lmax     = 20;
+  int fmm_multipole_lmax = 7;
+  int fmm_local_lmax     = 6;
   int n_proc             = 1;
   int info               = 0;
   int length_logfile     = 0;
@@ -63,10 +67,10 @@ int main() {
   double* phi_cav = (double*)malloc(sizeof(double) * ncav);
   double* e_cav   = (double*)malloc(sizeof(double) * 3 * ncav);
 
-  int nmultipoles           = 1 * nsph;  // Just charges
-  double* solute_multipoles = (double*)malloc(sizeof(double) * nmultipoles);
-  for (int i = 0; i < 12; ++i) {
-    solute_multipoles[i] = charges[i] / sqrt(M_PI);
+  int nmultipoles           = 1;  // Just charges
+  double* solute_multipoles = (double*)malloc(sizeof(double) * nmultipoles * nsph);
+  for (int i = 0; i < nmultipoles * nsph; ++i) {
+    solute_multipoles[i] = charges[i] / sqrt(4.0 * M_PI);
   }
   ddx_multipole_electrostatics_1(model, nsph, ncav, nmultipoles, solute_multipoles,
                                  phi_cav, e_cav);
@@ -98,7 +102,7 @@ int main() {
   //
   int ret     = 0;
   double eref = -0.00017974013712832552;
-  if (fabs(eref - energy) > 1e-8) {
+  if (fabs(eref - energy) > 1e-6) {
     printf("Large deviation:   %15.9g\n", eref - energy);
     ret = 1;
   }
