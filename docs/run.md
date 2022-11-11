@@ -20,8 +20,8 @@ Line number  | type           | description
 4  | Integer  | Maximal degree \f$\ell_{\max}\f$ of modeling spherical harmonics
 5  | Integer  | Approximate number of Lebedev grid points
 6  | Float    | Dielectric permittivity constant \f$\varepsilon_s\f$ of the bulk solvent
-7  | Float    | Shift \f$s\f$ of the regularized characteristic function \f$\chi_\eta\f$, range=[-1,1] 
-8  | Float    | Regularization parameter \f$\eta\f$ of the smoothing function \f$\chi_\eta\f$, range=[0,1]
+7  | Float    | Shift \f$s\f$ of the regularized characteristic function \f$\chi_\eta\f$, range=[-1,1]. Recommended value: -1 for ddcosmo and 0 for ddpcm or ddplpb
+8  | Float    | Regularization parameter \f$\eta\f$ of the smoothing function \f$\chi_\eta\f$, range=[0,1]. Recommended value: 0.1
 9  | Float    | Debye Hückel parameter \f$\kappa_s\f$ of the bulk solvent
 10  | Integer  | Whether to compute and store sparse matrices (1) or apply the matrix-vector product on the fly (0), range={0,1} <br /> The sparse matrices are the solution matrix of ddCOSMO referred to as \f$L\f$ used in ddCOSMO and ddPCM, and the matrices \f$A\f$ and \f$B\f$ in ddLPB.
 11 | Float    | The relative threshold \f$tol\f$ for the iterative solver
