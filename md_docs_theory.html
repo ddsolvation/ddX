@@ -245,7 +245,7 @@ ddCOSMO:</h2>
     \tilde{\Psi} = f(\varepsilon)\begin{pmatrix} \Psi \\ 0 \end{pmatrix}
 \]
 </p>
-<p> <em>Note</em>: The notation used in the ddCOSMO-literature, see e.g. [1,2,7], uses \(\operatorname{g} = -\Phi\). The references [1&ndash;7] also give the definition of the matrix \(\operatorname{L}\) and the vectors \(\operatorname{g} = -\Phi\), \(\Psi\) as well as the scalar function \(f(\varepsilon)\).</p>
+<p> <em>Note</em>: The notation used in the ddCOSMO-literature, see e.g. [1,2,7], uses \(\operatorname{g} = -\Phi\). The references [1&ndash;9] also give the definition of the matrix \(\operatorname{L}\) and the vectors \(\operatorname{g} = -\Phi\), \(\Psi\) as well as the scalar function \(f(\varepsilon)\).</p>
 <p >The subroutine for matrix-vector multiplications of the \({\operatorname{L}}\) with a vector is </p><div class="fragment"><div class="line">&gt; lx(...)     in ddx_operators.f90</div>
 </div><!-- fragment --> <h2><a class="anchor" id="autotoc_md20"></a>
 ddPCM:</h2>
@@ -260,7 +260,7 @@ ddPCM:</h2>
     \tilde{\Psi} = \begin{pmatrix} \Psi \\ 0 \end{pmatrix}
 \]
 </p>
-<p> <em>Note</em>: The notation used in the references [8,9], uses \(\sigma = \operatorname{X}\). The references [8&ndash;10] also give the definition of the matrices \(\operatorname{R}_\varepsilon\), \(\operatorname{R}_\infty\) and the vector \(\operatorname{g} = -\Phi\). \(\operatorname{I}_d\) denotes the identity matrix.</p>
+<p> <em>Note</em>: The notation used in the references [10,11], uses \(\sigma = \operatorname{X}\). The references [10&ndash;13] also give the definition of the matrices \(\operatorname{R}_\varepsilon\), \(\operatorname{R}_\infty\) and the vector \(\operatorname{g} = -\Phi\). \(\operatorname{I}_d\) denotes the identity matrix.</p>
 <p >The subroutine for matrix-vector multiplications of the \(\operatorname{R}_\varepsilon\) and \(\operatorname{R}_\infty\) with a vector is </p><div class="fragment"><div class="line">&gt; repsx(...)     in ddx_operators.f90</div>
 <div class="line">&gt; rinfx(...)     in ddx_operators.f90</div>
 </div><!-- fragment --> <h2><a class="anchor" id="autotoc_md21"></a>
@@ -278,7 +278,7 @@ ddLPB:</h2>
     \tilde{\Psi} = \begin{pmatrix} \Psi \\ 0 \end{pmatrix}
 \]
 </p>
-<p> <em>Note</em>: The notation used in the ddLPB-literature, see e.g. [11,12], uses \(\operatorname{X}_r = \operatorname{X}\) and \(\operatorname{G}_0 = -\Phi\). These references also provide the definition of the matrices \(\operatorname{A}\) (which is a scaled verion of \(\operatorname{L}\)), \(\operatorname{B}\), \(\operatorname{C}_1\), \(\operatorname{C}_2\) as well as the vectors \(\operatorname{F}_0\), \(\operatorname{G}_0 = -\Phi\).</p>
+<p> <em>Note</em>: The notation used in the ddLPB-literature, see e.g. [14,15], uses \(\operatorname{X}_r = \operatorname{X}\) and \(\operatorname{G}_0 = -\Phi\). These references also provide the definition of the matrices \(\operatorname{A}\) (which is a scaled verion of \(\operatorname{L}\)), \(\operatorname{B}\), \(\operatorname{C}_1\), \(\operatorname{C}_2\) as well as the vectors \(\operatorname{F}_0\), \(\operatorname{G}_0 = -\Phi\).</p>
 <p >The subroutine for matrix-vector multiplications of the \(\tilde{\operatorname{T}}\), \(\operatorname{A}\), \(\operatorname{B}\) and \(\tilde{\operatorname{C}}\) with a vector is </p><div class="fragment"><div class="line">&gt; tx(...)     in ddx_operators.f90</div>
 <div class="line">&gt; ax(...)     in ddx_operators.f90</div>
 <div class="line">&gt; bx(...)     in ddx_operators.f90</div>
@@ -334,12 +334,12 @@ ddPCM:</h2>
     \tilde{\operatorname{H}} = \begin{pmatrix} -\operatorname{L}^\lambda\operatorname{X} \\ \operatorname{R}^\lambda(\Phi-\Phi_\varepsilon)+\operatorname{R}_\infty\Phi^\lambda \end{pmatrix}
 \]
 </p>
-<p> <em>Note</em>: The minus sign in front of \(\operatorname{Y}\) appears for consistency with the notation introduced in [10].</p>
+<p> <em>Note</em>: The minus sign in front of \(\operatorname{Y}\) appears for consistency with the notation introduced in [12].</p>
 <p >The subroutine for matrix-vector multiplications of the \(\operatorname{R}_\varepsilon^\top\) and \(\operatorname{R}_\infty^\top\) with a vector is </p><div class="fragment"><div class="line">&gt; repsstarx(...)     in ddx_operators.f90</div>
 <div class="line">&gt; rinfstarx(...)     in ddx_operators.f90</div>
 </div><!-- fragment --><p> <b>Remarks</b>:</p><ol type="1">
 <li>There holds \(\operatorname{S}=\operatorname{R}_\varepsilon^\top\operatorname{Y}\).</li>
-<li>Since \(\operatorname{R}_\infty-\operatorname{R}_\varepsilon=-\frac{4\pi}{\varepsilon_s-1}\) (?check sign?) is constant there holds \(\operatorname{R}^\lambda:=\operatorname{R}^\lambda_\varepsilon=\operatorname{R}^\lambda_\infty\).</li>
+<li>Since \(\operatorname{R}_\infty-\operatorname{R}_\varepsilon=-\frac{4\pi}{\varepsilon_s-1}\) is constant there holds \(\operatorname{R}^\lambda:=\operatorname{R}^\lambda_\varepsilon=\operatorname{R}^\lambda_\infty\).</li>
 <li>As consequence of 1. and 2., it is advantageous to write <p class="formulaDsp">
 \[
     \langle \tilde{\operatorname{S}}, \tilde{\operatorname{H}} \rangle
