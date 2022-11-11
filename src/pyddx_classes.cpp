@@ -128,6 +128,7 @@ class Model {
 
   // Accessors to input parameters
   bool has_fmm_enabled() const { return 1 == ddx_get_enable_fmm(m_holder); }
+  bool has_forces_enabled() const { return 1 == ddx_get_enable_forces(m_holder); }
   int jacobi_n_diis() const { return ddx_get_jacobi_n_diis(m_holder); }
   int lmax() const { return ddx_get_lmax(m_holder); }
   int maxiter() const { return ddx_get_maxiter(m_holder); }
@@ -347,19 +348,6 @@ array_f_t multipole_force_terms(std::shared_ptr<Model> model,
   return forces;
 }
 
-/** Nuclear contribution to the cavity charges and potential */
-py::dict solute_nuclear_contribution(std::shared_ptr<Model> model) {
-  // Convert charges from the model to multipoles
-  array_f_t multipoles({1, model->n_spheres()});
-  for (size_t i = 0; i < model->n_spheres(); ++i) {
-    multipoles.mutable_data()[i] = model->sphere_charges().data()[i] / sqrt(4 * M_PI);
-  }
-  auto solute_field = multipole_electrostatics(model, multipoles, 1);
-  array_f_t psi     = multipole_psi(model, multipoles);
-  return py::dict("phi"_a = solute_field["phi"], "gradphi"_a = solute_field["e"],
-                  "psi"_a = psi);
-}
-
 std::shared_ptr<State> construct_initial_guess(std::shared_ptr<Model> model) {
   auto state = std::make_shared<State>(model);
   if (model->model() == "cosmo") {
@@ -397,9 +385,8 @@ std::shared_ptr<State> solve(std::shared_ptr<Model> model, std::shared_ptr<State
 }
 
 // Solve the adjoint COSMO / PCM System. The state is modified in-place.
-std::shared_ptr<State> adjoint_solve(std::shared_ptr<Model> model,
-                                     std::shared_ptr<State> state, array_f_t psi,
-                                     double tol) {
+std::shared_ptr<State> adjoint(std::shared_ptr<Model> model, std::shared_ptr<State> state,
+                               array_f_t psi, double tol) {
   if (state->model()->model() != model->model()) {
     throw py::value_error("Model mismatch: The passed state is for " +
                           state->model()->model());
@@ -501,6 +488,7 @@ void export_pyddx_classes(py::module& m) {
              "logfile"_a = "")
         //
         .def_property_readonly("has_fmm_enabled", &Model::has_fmm_enabled)
+        .def_property_readonly("has_forces_enabled", &Model::has_forces_enabled)
         .def_property_readonly("jacobi_n_diis", &Model::jacobi_n_diis)
         .def_property_readonly("lmax", &Model::lmax)
         .def_property_readonly("incore", &Model::incore)
@@ -563,15 +551,10 @@ void export_pyddx_classes(py::module& m) {
              "multipoles. "
              "The state is updated in-place.",
              "state"_a, "multipoles"_a, "e"_a)
-        .def("solute_nuclear_contribution", &solute_nuclear_contribution,
-             "Return the terms of the nuclear contribution to the solvation as a "
-             "python "
-             "dictionary (Deprecated).")
         //
         .def("initial_guess", &construct_initial_guess, "Return an initial guess state.")
         .def("solve", &solve, "state"_a, "phi"_a, "tol"_a = 1e-8, "TODO Docstring")
-        .def("adjoint_solve", &adjoint_solve, "state"_a, "psi"_a, "tol"_a = 1e-8,
-             "TODO Docstring")
+        .def("adjoint", &adjoint, "state"_a, "psi"_a, "tol"_a = 1e-8, "TODO Docstring")
         .def("solvation_force_terms", &solvation_force_terms, "state"_a, "phi"_a, "e"_a,
              "psi"_a, "TODO Doctring")
         //
