@@ -25,7 +25,7 @@ centres = tobohr * np.array([
     [ 0.00000,  0.00000,  4.68652],  # noqa: E201
 ]).T
 
-model = pyddx.Model("pcm", charges, centres, rvdw, solvent_epsilon=78.3553, logfile="/tmp/out")
+model = pyddx.Model("pcm", charges, centres, rvdw, solvent_epsilon=78.3553)
 
 solute_multipoles = charges.reshape(1, -1) / np.sqrt(4 * np.pi)
 solute_field = model.multipole_electrostatics(solute_multipoles)
