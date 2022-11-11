@@ -27,22 +27,20 @@ contains
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] phi_cav: Potential at cavity points, size (ncav)
-!! @param[in] gradphi_cav: Gradient of a potential at cavity points, required
 !!     by the forces, size (3, ncav)
 !! @param[in] psi: Representation of the solute potential in spherical
 !!     harmonics, size (nbasis, nsph)
 !! @param[in] tol: Tolerance for the linear system solver
 !! @param[out] esolv: Solvation energy
-!! @param[out] force: Analytical forces
+!! @param[out] force: Solvation contribution to the forces
 !!
-subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
+subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
         & psi, tol, esolv, force)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_cav(constants % ncav), &
-        & gradphi_cav(3, constants % ncav), &
         & psi(constants % nbasis, params % nsph), tol
     real(dp), intent(out) :: esolv, force(3, params % nsph)
     real(dp), external :: ddot
@@ -61,10 +59,10 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, gradphi_cav, &
         call ddcosmo_solve_adjoint(params, constants, workspace, state, &
             & psi, tol)
 
-        ! evaluate the analytical derivatives
+        ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
-        call ddcosmo_solvation_force_terms(params, constants, workspace, state, &
-            & phi_cav, gradphi_cav, psi, force)
+        call ddcosmo_solvation_force_terms(params, constants, workspace, &
+            & state, phi_cav, force)
     end if
 end subroutine ddcosmo
 
@@ -84,6 +82,7 @@ subroutine ddcosmo_guess(params, constants, workspace, state)
 
     ! apply the diagonal preconditioner as a guess
     call ldm1x(params, constants, workspace, state % phi, state % xs)
+
 end subroutine ddcosmo_guess
 
 !> Do a guess for the adjoint ddCOSMO linear system
@@ -105,6 +104,7 @@ subroutine ddcosmo_guess_adjoint(params, constants, workspace, state, psi)
 
     ! apply the diagonal preconditioner as a guess
     call ldm1x(params, constants, workspace, psi, state % s)
+
 end subroutine ddcosmo_guess_adjoint
 
 !> Solve the primal ddCOSMO linear system
@@ -174,20 +174,16 @@ end subroutine ddcosmo_solve_adjoint
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] phi_cav: electric potential at the cavity points, size (ncav)
-!! @param[in] gradphi_cav: electric field at the cavity points, size (3, ncav)
-!! @param[in] psi: representation of the solute density, size (nbasis, nsph)
 !! @param[inout] force: force term
 !!
 subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
-        & state, phi_cav, gradphi_cav, psi, force)
+        & state, phi_cav, force)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_cav(constants % ncav)
-    real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
-    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     real(dp), intent(inout) :: force(3, params % nsph)
     ! local variables
     real(dp), external :: ddot
