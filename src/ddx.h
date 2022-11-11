@@ -10,6 +10,8 @@ extern "C" {
 //
 // Generic stuff
 //
+void ddx_get_banner(char* header, int maxlen);
+
 int ddx_supported_lebedev_grids(int n, int* grids);
 
 // Get scaled ylm at a point and with respect to a cavity sphere
@@ -25,10 +27,12 @@ void* ddx_allocate_model(int model, int enable_force, double solvent_epsilon,
                          int fmm_multipole_lmax, int fmm_local_lmax, int n_proc,
                          int n_spheres, const double* sphere_charges,
                          const double* sphere_centres, const double* sphere_radii,
-                         int* info);
+                         int length_logfile, const char* c_logfile);
 void ddx_deallocate_model(void* ddx);
 
+int ddx_get_error_flag(const void* ddx);
 void ddx_get_error_message(const void* ddx, char* message, int maxlen);
+void ddx_get_logfile(const void* ddx, char* logfile, int maxlen);
 
 // Generated block, see scripts/generate_cinterface.py
 int ddx_get_enable_fmm(const void* ddx);
