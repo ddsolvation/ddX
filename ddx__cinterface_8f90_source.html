@@ -586,7 +586,7 @@ $(document).ready(function(){initNavTree('ddx__cinterface_8f90_source.html','');
 <div class="line"><a id="l00491" name="l00491"></a><span class="lineno">  491</span>    <span class="keyword">call </span>ddcosmo_solve(<a class="code hl_namespace" href="namespaceddx.html">ddx</a>%params, <a class="code hl_namespace" href="namespaceddx.html">ddx</a>%constants, <a class="code hl_namespace" href="namespaceddx.html">ddx</a>%workspace, state, phi, tol)</div>
 <div class="line"><a id="l00492" name="l00492"></a><span class="lineno">  492</span><span class="keyword">end subroutine</span></div>
 <div class="line"><a id="l00493" name="l00493"></a><span class="lineno">  493</span> </div>
-<div class="line"><a id="l00494" name="l00494"></a><span class="lineno">  494</span><span class="keyword">subroutine </span>ddx_cosmo_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) <span class="keyword">bind(C)</span></div>
+<div class="line"><a id="l00494" name="l00494"></a><span class="lineno">  494</span><span class="keyword">subroutine </span>ddx_cosmo_solve_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) <span class="keyword">bind(C)</span></div>
 <div class="line"><a id="l00495" name="l00495"></a><span class="lineno">  495</span>    <span class="keywordtype">type</span>(c_ptr), <span class="keywordtype">intent(in)</span>, <span class="keywordtype">value</span> :: c_ddx, c_state</div>
 <div class="line"><a id="l00496" name="l00496"></a><span class="lineno">  496</span>    <span class="keywordtype">type</span>(ddx_setup), <span class="keywordtype">pointer</span> :: ddx</div>
 <div class="line"><a id="l00497" name="l00497"></a><span class="lineno">  497</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">pointer</span> :: state</div>
@@ -634,7 +634,7 @@ $(document).ready(function(){initNavTree('ddx__cinterface_8f90_source.html','');
 <div class="line"><a id="l00539" name="l00539"></a><span class="lineno">  539</span>    <span class="keyword">call </span>ddpcm_solve(<a class="code hl_namespace" href="namespaceddx.html">ddx</a>%params, <a class="code hl_namespace" href="namespaceddx.html">ddx</a>%constants, <a class="code hl_namespace" href="namespaceddx.html">ddx</a>%workspace, state, phi, tol)</div>
 <div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span><span class="keyword">end subroutine</span></div>
 <div class="line"><a id="l00541" name="l00541"></a><span class="lineno">  541</span> </div>
-<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span><span class="keyword">subroutine </span>ddx_pcm_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) <span class="keyword">bind(C)</span></div>
+<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span><span class="keyword">subroutine </span>ddx_pcm_solve_adjoint(c_ddx, c_state, nbasis, nsph, psi, tol) <span class="keyword">bind(C)</span></div>
 <div class="line"><a id="l00543" name="l00543"></a><span class="lineno">  543</span>    <span class="keywordtype">type</span>(c_ptr), <span class="keywordtype">intent(in)</span>, <span class="keywordtype">value</span> :: c_ddx, c_state</div>
 <div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>    <span class="keywordtype">type</span>(ddx_setup), <span class="keywordtype">pointer</span> :: ddx</div>
 <div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">pointer</span> :: state</div>
