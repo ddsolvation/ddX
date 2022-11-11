@@ -128,7 +128,7 @@ class Model {
 
   // Accessors to input parameters
   bool has_fmm_enabled() const { return 1 == ddx_get_enable_fmm(m_holder); }
-  bool has_forces_enabled() const { return 1 == ddx_get_enable_forces(m_holder); }
+  bool has_force_enabled() const { return 1 == ddx_get_enable_force(m_holder); }
   int jacobi_n_diis() const { return ddx_get_jacobi_n_diis(m_holder); }
   int lmax() const { return ddx_get_lmax(m_holder); }
   int maxiter() const { return ddx_get_maxiter(m_holder); }
@@ -488,7 +488,7 @@ void export_pyddx_classes(py::module& m) {
              "logfile"_a = "")
         //
         .def_property_readonly("has_fmm_enabled", &Model::has_fmm_enabled)
-        .def_property_readonly("has_forces_enabled", &Model::has_forces_enabled)
+        .def_property_readonly("has_force_enabled", &Model::has_force_enabled)
         .def_property_readonly("jacobi_n_diis", &Model::jacobi_n_diis)
         .def_property_readonly("lmax", &Model::lmax)
         .def_property_readonly("incore", &Model::incore)
