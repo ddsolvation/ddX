@@ -46,7 +46,7 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
     real(dp), intent(out) :: esolv, force(3, params % nsph)
     real(dp), external :: ddot
 
-    call ddcosmo_ddpcm_setup(params, constants, workspace, state, phi_cav)
+    call ddpcm_setup(params, constants, workspace, state, phi_cav)
     call ddpcm_guess(params, constants, workspace, state)
     call ddpcm_solve(params, constants, workspace, state, tol)
 
@@ -56,8 +56,7 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
     ! Get forces if needed
     if (params % force .eq. 1) then
         ! solve the adjoint
-        call ddcosmo_ddpcm_setup_adjoint(params, constants, workspace, &
-            & state, psi)
+        call ddpcm_setup_adjoint(params, constants, workspace, state, psi)
         call ddpcm_guess_adjoint(params, constants, workspace, state)
         call ddpcm_solve_adjoint(params, constants, workspace, state, tol)
 
@@ -67,6 +66,43 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
     end if
 
 end subroutine ddpcm
+
+!> Given the potential at the cavity points, assemble the RHS for ddCOSMO
+!> or for ddPCM.
+!!
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[inout] state: ddx state
+!! @param[in] phi_cav: electrostatic potential at the cavity points
+subroutine ddpcm_setup(params, constants, workspace, state, phi_cav)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav)
+    call cav_to_spherical(params, constants, workspace, phi_cav, &
+        & state % phi)
+    state % phi = - state % phi
+end subroutine ddpcm_setup
+
+!> Load psi into the state.
+!!
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[inout] state: ddx state
+!! @param[in] psi: representation of the solute density
+subroutine ddpcm_setup_adjoint(params, constants, workspace, state, psi)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    state % psi = psi
+end subroutine ddpcm_setup_adjoint
 
 !> Do a guess for the primal ddPCM linear system
 !!
