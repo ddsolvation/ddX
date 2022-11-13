@@ -489,9 +489,9 @@ array_f_t multipole_psi(std::shared_ptr<Model> model, array_f_t multipoles) {
 //
 
 void export_pyddx_classes(py::module& m) {
-  // TODO Better docstring
   const char* init_docstring =
         "Setup solvation model in ddX.\n\n"
+        "model:            'cosmo', 'pcm' or 'lpb'\n"
         "sphere_charges:   (n_spheres) array\n"
         "atomic_centers:   (n_spheres, 3) array\n"
         "sphere_radii:     (n_spheres) array\n"
@@ -499,10 +499,10 @@ void export_pyddx_classes(py::module& m) {
         "solvent_kappa:    Debye-Hückel parameter (inverse screening length)\n"
         "eta:              Regularization parameter\n"
         "lmax:             Maximal degree of modelling spherical harmonics\n"
+        "n_lebedev:        Number of Lebedev grid points to use\n"
+        "incore:           Store more large objects in memory\n"
         "maxiter:          Maximal number of iterations\n"
         "jacobi_n_diis:    Number of iterates stored in the DIIS space for acceleration\n"
-        "incore:           Store more large objects in memory\n"
-        "n_lebedev:        Number of Lebedev grid points to use\n"
         "enable_fmm:       Use fast-multipole method (true) or not (false)\n"
         "fmm_multipole_lmax:  Maximal degree of multipole spherical harmonics, "
         "ignored "
@@ -566,24 +566,23 @@ void export_pyddx_classes(py::module& m) {
                  py::array_t<double> out) { return scaled_ylm(model, x, sphere, out); },
               "coord"_a, "sphere"_a, "out"_a,
               "With reference to a atomic sphere `sphere` of radius `r` centred at "
-              "`a` "
-              "compute 4π/(2l+1) * (|x-a|/r)^l * Y_l^m(|x-a|).")
+              "`a` compute 4π/(2l+1) * (|x-a|/r)^l * Y_l^m(|x-a|).")
         //
         .def("multipole_electrostatics", &multipole_electrostatics,
              "Return the solute potential, electric field and field gradients for "
-             "a "
-             "solute represented by a distribution of multipoles on the cavity "
-             "centres. "
+             "a solute represented by a distribution of multipoles on the cavity "
+             "centres. `multipoles` is a (nmultipoles, n_spheres) array, where "
+             "nmultipoles "
+             "are the number of multipoles on each site (i.e. (mmax+x)^2 entries) where "
+             "mmax is the maximal angular momentum of the multipoles. "
              "The order of potential derivatives is given by the "
              "'derivative_order' flag "
              "(0 for just the potential 'phi', 1 for 'phi' and field 'e', 2 for "
-             "'phi', "
-             "'e' and field gradient 'g').",
+             "'phi', 'e' and field gradient 'g').",
              "multipoles"_a, "derivative_order"_a = 1)
         .def("multipole_psi", &multipole_psi,
              "Return the solute contribution to psi generated from a distribution "
-             "of "
-             "multipoles on the cavity centres.",
+             "of multipoles on the cavity centres.",
              "multipoles"_a)
         //
         ;
@@ -593,14 +592,20 @@ void export_pyddx_classes(py::module& m) {
         .def(py::init<std::shared_ptr<Model>, array_f_t, array_f_t>(),
              "Construct a state from the model and a phi and psi to set up the problem.",
              "model"_a, "phi"_a, "psi"_a)
-        .def_property_readonly("model", &State::model)
-        .def_property_readonly("x", &State::x)
-        .def_property_readonly("x_n_iter", &State::x_n_iter)
-        .def_property_readonly("s", &State::s)
-        .def_property_readonly("s_n_iter", &State::s_n_iter)
+        .def_property_readonly("model", &State::model, "Model definition")
+        .def_property_readonly("x", &State::x, "Solution of the forward problem.")
+        .def_property_readonly(
+              "x_n_iter", &State::x_n_iter,
+              "Number of iterations required to solve the forward problem.")
+        .def_property_readonly("s", &State::s, "Solution of the adjoint problem.")
+        .def_property_readonly(
+              "s_n_iter", &State::s_n_iter,
+              "Number of iterations required to solve the adjoint problem.")
         .def_property_readonly("xi", &State::xi)
-        .def_property_readonly("is_solved", &State::is_solved)
-        .def_property_readonly("is_solved_adjoint", &State::is_solved_adjoint)
+        .def_property_readonly("is_solved", &State::is_solved,
+                               "Return whether the forward problem is solved.")
+        .def_property_readonly("is_solved_adjoint", &State::is_solved_adjoint,
+                               "Return whether the adjoint problem is solved.")
         //
         .def("update_problem", &State::update_problem,
              "Update the definition of of the forward and adjoint problem", "phi"_a,
@@ -613,9 +618,10 @@ void export_pyddx_classes(py::module& m) {
              "In-place construct an initial guess for the forward solver. Don't call "
              "this if you want to use the previous solution stored in this state as a "
              "guess")
-        .def("solve", &State::solve, "Solve the forward problem", "tol"_a = 1e-8)
-        .def("solve_adjoint", &State::solve_adjoint, "Solve the adjoint problem",
+        .def("solve", &State::solve, "Solve the forward problem contained in the state.",
              "tol"_a = 1e-8)
+        .def("solve_adjoint", &State::solve_adjoint,
+             "Solve the adjoint problem contained in the state.", "tol"_a = 1e-8)
         .def("solvation_force_terms", &State::solvation_force_terms,
              "Compute and return the force terms of the solvation part of the solvation "
              "model.")
