@@ -500,6 +500,7 @@ void export_pyddx_classes(py::module& m) {
         "eta:              Regularization parameter\n"
         "lmax:             Maximal degree of modelling spherical harmonics\n"
         "maxiter:          Maximal number of iterations\n"
+        "jacobi_n_diis:    Number of iterates stored in the DIIS space for acceleration\n"
         "incore:           Store more large objects in memory\n"
         "n_lebedev:        Number of Lebedev grid points to use\n"
         "enable_fmm:       Use fast-multipole method (true) or not (false)\n"
