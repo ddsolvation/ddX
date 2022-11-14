@@ -50,6 +50,10 @@ call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
     & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
 ! Use the solver
 call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)
+! compute the second contribution to the forces
+call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
+    & ddx_data % workspace, state, ddx_data % params % charge, &
+    & force, -gradphi_cav)
 ! Open output file for reading
 open(unit=100, file=foutname, form='formatted', access='sequential')
 ! Skip 
