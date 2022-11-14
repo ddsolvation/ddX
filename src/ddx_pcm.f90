@@ -15,12 +15,16 @@ module ddx_pcm
 use ddx_operators
 implicit none
 
+!> @defgroup Fortran_interface_ddpcm Fortran interface: ddpcm
+!! Exposed ddpcm modules in the Fortran API
+
 contains
 
 !> ddPCM solver
 !!
 !! Solves the problem within PCM model using a domain decomposition approach.
 !!
+!> @ingroup Fortran_interface_ddpcm
 !! @param[in] params: User specified parameters
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
@@ -69,12 +73,14 @@ end subroutine ddpcm
 !> Given the potential at the cavity points, assemble the RHS for ddCOSMO
 !> or for ddPCM.
 !!
+!> @ingroup Fortran_interface_ddpcm
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
 !! @param[inout] state: ddx state
 !! @param[in] phi_cav: electrostatic potential at the cavity points
 !! @param[in] psi: representation of the solute density
+!!
 subroutine ddpcm_setup(params, constants, workspace, state, phi_cav, psi)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -92,6 +98,7 @@ end subroutine ddpcm_setup
 
 !> Do a guess for the primal ddPCM linear system
 !!
+!> @ingroup Fortran_interface_ddpcm
 !! @param[in] params: User specified parameters
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
@@ -111,6 +118,7 @@ end subroutine ddpcm_guess
 
 !> Do a guess for the adjoint ddPCM linear system
 !!
+!> @ingroup Fortran_interface_ddpcm
 !! @param[in] params: User specified parameters
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
@@ -128,7 +136,9 @@ subroutine ddpcm_guess_adjoint(params, constants, workspace, state)
 
 end subroutine ddpcm_guess_adjoint
 
+!> Solve the ddPCM primal linear system
 !!
+!> @ingroup Fortran_interface_ddpcm
 !! @param[in] params       : General options
 !! @param[in] constants    : Precomputed constants
 !! @param[inout] workspace : Preallocated workspaces
@@ -176,7 +186,9 @@ subroutine ddpcm_solve(params, constants, workspace, state, tol)
 
 end subroutine ddpcm_solve
 
+!> Solve the ddPCM adjpint linear system
 !!
+!> @ingroup Fortran_interface_ddpcm
 !! @param[in] params       : General options
 !! @param[in] constants    : Precomputed constants
 !! @param[inout] workspace : Preallocated workspaces
@@ -223,12 +235,13 @@ subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol)
 
 end subroutine ddpcm_solve_adjoint
 
+!> Compute the solvation contribution to the ddPCM forces
 !!
+!> @ingroup Fortran_interface_ddpcm
 !! @param[in] params       : General options
 !! @param[in] constants    : Precomputed constants
 !! @param[inout] workspace : Preallocated workspaces
 !! @param[inout] state     : Solutions and relevant quantities
-!! @param[in] psi          : Representation of the solute's density
 !! @param[out] force       : Geometrical contribution to the forces
 !!
 subroutine ddpcm_solvation_force_terms(params, constants, workspace, &

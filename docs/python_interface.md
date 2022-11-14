@@ -13,7 +13,7 @@ Please find [here](https://pypi.org/project/pyddx/) the PyPI-webpage.
 It is simplest by starting with an example. 
 The following example can be found in examples/run_ddx.py. 
 
-In the terminal, run the example (from the home directory)
+In the terminal, run the example (from the root directory)
 ``` markdown
 python examples/run_ddx.py 
 ```

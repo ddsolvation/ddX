@@ -16,12 +16,16 @@ use ddx_operators
 use ddx_multipolar_solutes
 implicit none
 
+!> @defgroup Fortran_interface_ddcosmo Fortran interface: ddcosmo
+!! Exposed ddcosmo modules in the Fortran API
+
 contains
 
 !> ddCOSMO solver
 !!
 !! Solves the problem within COSMO model using a domain decomposition approach.
 !!
+!> @ingroup Fortran_interface_ddcosmo
 !! @param[in] params: User specified parameters
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
@@ -68,12 +72,14 @@ end subroutine ddcosmo
 !> Given the potential at the cavity points, assemble the RHS for ddCOSMO
 !> or for ddPCM.
 !!
+!> @ingroup Fortran_interface_ddcosmo
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
 !! @param[inout] state: ddx state
 !! @param[in] phi_cav: electrostatic potential at the cavity points
 !! @param[in] psi: representation of the solute density
+!!
 subroutine ddcosmo_setup(params, constants, workspace, state, phi_cav, psi)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -91,6 +97,7 @@ end subroutine ddcosmo_setup
 
 !> Do a guess for the primal ddCOSMO linear system
 !!
+!> @ingroup Fortran_interface_ddcosmo
 !! @param[in] params: User specified parameters
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
@@ -110,6 +117,7 @@ end subroutine ddcosmo_guess
 
 !> Do a guess for the adjoint ddCOSMO linear system
 !!
+!> @ingroup Fortran_interface_ddcosmo
 !! @param[in] params: User specified parameters
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
@@ -131,6 +139,7 @@ end subroutine ddcosmo_guess_adjoint
 
 !> Solve the primal ddCOSMO linear system
 !!
+!> @ingroup Fortran_interface_ddcosmo
 !! @param[in] params: User specified parameters
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
@@ -159,6 +168,7 @@ end subroutine ddcosmo_solve
 
 !> Solve the adjoint ddCOSMO linear system
 !!
+!> @ingroup Fortran_interface_ddcosmo
 !! @param[in] params: User specified parameters
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
@@ -189,6 +199,7 @@ end subroutine ddcosmo_solve_adjoint
 !> Compute the solvation term of the forces (solute aspecific). This must
 !> be summed to the solute specific term to get the full forces.
 !!
+!> @ingroup Fortran_interface_ddcosmo
 !! @param[in] params: User specified parameters
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
