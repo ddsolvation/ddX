@@ -46,6 +46,10 @@ type ddx_state_type
     !> Values of s at grid points. Dimension is (ngrid, nsph). Allocated and
     !!      used by COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: sgrid(:, :)
+    !> rhs for the adjoint problem
+    real(dp), allocatable :: psi(:, :)
+    !> potential at the cavity points
+    real(dp), allocatable :: phi_cav(:)
 
     !!
     !! ddPCM specific quantities
@@ -257,6 +261,19 @@ subroutine ddx_init_state(params, constants, state)
 
     state % error_flag = 0
     state % error_message = ''
+
+    allocate(state % psi(constants % nbasis, params % nsph), stat=istatus)
+    if (istatus .ne. 0) then
+        state % error_flag = 1
+        state % error_message = "ddinit: `psi` allocation failed"
+        return
+    end if
+    allocate(state % phi_cav(constants % ncav), stat=istatus)
+    if (istatus .ne. 0) then
+        state % error_flag = 1
+        state % error_message = "ddinit: `phi_cav` allocation failed"
+        return
+    end if
 
     ! COSMO model
     if (params % model .eq. 1) then
@@ -791,6 +808,22 @@ subroutine ddx_free_state(state)
     type(ddx_state_type), intent(inout) :: state
     integer :: istatus
 
+    if (allocated(state % phi_cav)) then
+        deallocate(state % phi_cav, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`phi_cav` deallocation failed!"
+            return
+        endif
+    end if
+    if (allocated(state % psi)) then
+        deallocate(state % psi, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`psi` deallocation failed!"
+            return
+        endif
+    end if
     if (allocated(state % phi_grid)) then
         deallocate(state % phi_grid, stat=istatus)
         if (istatus .ne. 0) then
@@ -2784,6 +2817,40 @@ subroutine get_banner(string)
         & "  |                                                                  |", &
         & NEW_LINE('a'), &
         & "  +------------------------------------------------------------------+"
-end subroutine
+end subroutine get_banner
+
+!> Transform a function defined at the exposed cavity points (cav) to
+!> a spherical harmonics expansion. Note that the function is also
+!> multiplied by the characteristic function U.
+!!
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[in] property_cav: property defined at the exposed cavity points,
+!!      size (ncav)
+!! @param[out] property_sph: property as a spherical harmonics expansion,
+!!      size (nbasis, nsph)
+subroutine cav_to_spherical(params, constants, workspace, property_cav, &
+        & property_sph)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: property_cav(constants % ncav)
+    real(dp), intent(out) :: property_sph(constants % nbasis, params % nsph)
+
+    ! multiply by the characteristic function U
+    workspace % tmp_cav = property_cav * constants % ui_cav
+
+    ! extend the function to the sphere intersection with zeros
+    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
+        & constants % icav_ia, constants % icav_ja, workspace % tmp_cav, &
+        & workspace % tmp_grid)
+
+    ! integrate against spherical harmonics
+    call ddintegrate(params % nsph, constants % nbasis, &
+        & params % ngrid, constants % vwgrid, constants % vgrid_nbasis, &
+        & workspace % tmp_grid, property_sph)
+end subroutine cav_to_spherical
 
 end module ddx_core

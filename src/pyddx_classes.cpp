@@ -196,7 +196,13 @@ class Model {
 class State {
  public:
   State(std::shared_ptr<Model> model)
-        : m_holder(ddx_allocate_state(model->holder())), m_model(model) {}
+        : m_holder(ddx_allocate_state(model->holder())),
+          m_model(model),
+          m_solved(false),
+          m_solved_adjoint(false) {}
+  State(std::shared_ptr<Model> model, array_f_t phi, array_f_t psi) : State(model) {
+    update_problem(phi, psi);
+  }
   ~State() {
     if (m_holder) ddx_deallocate_state(m_holder);
     m_holder = nullptr;
@@ -204,33 +210,190 @@ class State {
   State(const State&)            = delete;
   State& operator=(const State&) = delete;
 
+  //
+  // Accessors
+  //
+
   // Return the holder pointer ... internal function. Use only if you know
   // what you are doing.
   void* holder() const { return m_holder; }
-
   std::shared_ptr<Model> model() const { return m_model; }
+
+  bool is_solved() const { return m_solved; }
+  bool is_solved_adjoint() const { return m_solved_adjoint; }
+
   array_f_t x() const {
+    check_solved();
     array_f_t x({m_model->n_basis(), m_model->n_spheres()});
     ddx_get_x(m_holder, m_model->n_basis(), m_model->n_spheres(), x.mutable_data());
     return x;
   }
-  int x_n_iter() const { return ddx_get_x_niter(m_holder); }
+  int x_n_iter() const {
+    check_solved();
+    return ddx_get_x_niter(m_holder);
+  }
   array_f_t s() const {
+    check_solved_adjoint();
     array_f_t s({m_model->n_basis(), m_model->n_spheres()});
     ddx_get_s(m_holder, m_model->n_basis(), m_model->n_spheres(), s.mutable_data());
     return s;
   }
-  int s_n_iter() const { return ddx_get_s_niter(m_holder); }
+  int s_n_iter() const {
+    check_solved_adjoint();
+    return ddx_get_s_niter(m_holder);
+  }
   array_f_t xi() const {
+    check_solved_adjoint();
     array_f_t xi({m_model->n_cav()});
     ddx_get_xi(m_holder, m_model->holder(), m_model->n_cav(), xi.mutable_data());
     return xi;
   }
 
+  //
+  // Solving COSMO / PCM
+  //
+  void update_problem(array_f_t phi, array_f_t psi) {
+    if (psi.ndim() != 2 || psi.shape(0) != model()->n_basis() ||
+        psi.shape(1) != model()->n_spheres()) {
+      throw py::value_error("psi not of shape (n_basis, n_spheres) == (" +
+                            std::to_string(model()->n_basis()) + ", " +
+                            std::to_string(model()->n_spheres()) + ").");
+    }
+    if (phi.ndim() != 1 || phi.shape(0) != model()->n_cav()) {
+      throw py::value_error("phi not of shape (n_cav, ) == (" +
+                            std::to_string(model()->n_cav()) + ").");
+    }
+
+    if (model()->model() == "cosmo") {
+      ddx_cosmo_setup(model()->holder(), holder(), model()->n_cav(), model()->n_basis(),
+                      model()->n_spheres(), phi.data(), psi.data());
+    } else if (model()->model() == "pcm") {
+      ddx_pcm_setup(model()->holder(), holder(), model()->n_cav(), model()->n_basis(),
+                    model()->n_spheres(), phi.data(), psi.data());
+    } else {
+      throw py::value_error("Model " + model()->model() + " not yet implemented.");
+    }
+    throw_if_error(model());
+    m_solved         = false;
+    m_solved_adjoint = false;
+  }
+
+  void fill_guess() {
+    if (model()->model() == "cosmo") {
+      ddx_cosmo_guess(model()->holder(), holder());
+    } else if (model()->model() == "pcm") {
+      ddx_pcm_guess(model()->holder(), holder());
+    } else {
+      throw py::value_error("Model " + model()->model() + " not yet implemented.");
+    }
+    throw_if_error(model());
+    m_solved = false;
+  }
+
+  void fill_guess_adjoint() {
+    if (model()->model() == "cosmo") {
+      ddx_cosmo_guess_adjoint(model()->holder(), holder());
+    } else if (model()->model() == "pcm") {
+      ddx_pcm_guess_adjoint(model()->holder(), holder());
+    } else {
+      throw py::value_error("Model " + model()->model() + " not yet implemented.");
+    }
+    throw_if_error(model());
+    m_solved_adjoint = false;
+  }
+
+  // Solve the forward COSMO / PCM System. The state is modified in-place.
+  void solve(double tol) {
+    if (model()->model() == "cosmo") {
+      ddx_cosmo_solve(model()->holder(), holder(), tol);
+    } else if (model()->model() == "pcm") {
+      ddx_pcm_solve(model()->holder(), holder(), tol);
+    } else {
+      throw py::value_error("Model " + model()->model() + " not yet implemented.");
+    }
+    throw_if_error(model());
+    m_solved = true;
+  }
+
+  // Solve the adjoint COSMO / PCM System. The state is modified in-place.
+  void solve_adjoint(double tol) {
+    if (model()->model() == "cosmo") {
+      ddx_cosmo_solve_adjoint(model()->holder(), holder(), tol);
+    } else if (model()->model() == "pcm") {
+      ddx_pcm_solve_adjoint(model()->holder(), holder(), tol);
+    } else {
+      throw py::value_error("Model " + model()->model() + " not yet implemented.");
+    }
+    throw_if_error(model());
+    m_solved_adjoint = true;
+  }
+
+  // Obtain the COSMO / PCM forces. The state is modified in-place
+  array_f_t solvation_force_terms() {
+    check_solved_adjoint();
+    array_f_t forces({3, model()->n_spheres()});
+    if (model()->model() == "cosmo") {
+      ddx_cosmo_solvation_force_terms(model()->holder(), holder(), model()->n_spheres(),
+                                      forces.mutable_data());
+    } else if (model()->model() == "pcm") {
+      ddx_pcm_solvation_force_terms(model()->holder(), holder(), model()->n_spheres(),
+                                    forces.mutable_data());
+    } else {
+      throw py::value_error("Model " + model()->model() + " not yet implemented.");
+    }
+    throw_if_error(model());
+    return forces;
+  }
+
+  //
+  // Multipolar functions
+  //
+  array_f_t multipole_force_terms(array_f_t multipoles, array_f_t e) {
+    if (e.ndim() != 2 || e.shape(0) != 3 || e.shape(1) != model()->n_cav()) {
+      throw py::value_error("e not of shape (3, n_cav) == (3, " +
+                            std::to_string(model()->n_cav()) + ").");
+    }
+    if (multipoles.ndim() != 2 || multipoles.shape(1) != model()->n_spheres()) {
+      throw py::value_error(
+            "'multipoles' should be an (nmultipoles, n_spheres) sized array");
+    }
+    int mmax = static_cast<int>(sqrt(multipoles.shape(0)) - 1.0);  // Multipole order
+    if (mmax < 0 || (mmax + 1) * (mmax + 1) != multipoles.shape(0)) {
+      throw py::value_error(
+            "First axis of multipole array is not of form (mmax+1)^2 for an mmax >= 0");
+    }
+
+    array_f_t forces({3, model()->n_spheres()});
+    ddx_multipole_forces(model()->holder(), holder(), model()->n_spheres(),
+                         model()->n_cav(), multipoles.shape(0), multipoles.data(),
+                         e.data(), forces.mutable_data());
+    throw_if_error(model());
+    return forces;
+  }
+
  private:
+  void check_solved() const {
+    if (!m_solved)
+      throw std::runtime_error(
+            "State does currently not hold a solution to the forward problem. Call "
+            "solve() first.");
+  }
+  void check_solved_adjoint() const {
+    if (!m_solved)
+      throw std::runtime_error(
+            "State does currently not hold a solution to the adjoint problem. Call "
+            "solve_adjoint() first.");
+  }
+
   void* m_holder;
   std::shared_ptr<Model> m_model;
+  bool m_solved;          // Has forward problem been solved
+  bool m_solved_adjoint;  // Has adjoint problem been solved
 };
+
+//
+// General functions
+//
 
 void throw_if_error(std::shared_ptr<Model> model) {
   if (ddx_get_error_flag(model->holder()) != 0) {
@@ -259,6 +422,10 @@ py::array_t<double> scaled_ylm(std::shared_ptr<Model> model, array_f_t coord, in
 array_f_t scaled_ylm(std::shared_ptr<Model> model, array_f_t coord, int sphere) {
   return scaled_ylm(model, coord, sphere, array_f_t({model->n_basis()}));
 }
+
+//
+// Multipolar electrostatics
+//
 
 py::dict multipole_electrostatics(std::shared_ptr<Model> model, array_f_t multipoles,
                                   int derivative_order) {
@@ -317,144 +484,14 @@ array_f_t multipole_psi(std::shared_ptr<Model> model, array_f_t multipoles) {
   return psi;
 }
 
-// Obtain the force contributions from a solute represented using multipoles.
-// The state is updated in-place.
-array_f_t multipole_force_terms(std::shared_ptr<Model> model,
-                                std::shared_ptr<State> state, array_f_t multipoles,
-                                array_f_t e) {
-  if (state->model()->model() != model->model()) {
-    throw py::value_error("Model mismatch: The passed state is for " +
-                          state->model()->model());
-  }
-  if (e.ndim() != 2 || e.shape(0) != 3 || e.shape(1) != model->n_cav()) {
-    throw py::value_error("e not of shape (3, n_cav) == (3, " +
-                          std::to_string(model->n_cav()) + ").");
-  }
-  if (multipoles.ndim() != 2 || multipoles.shape(1) != model->n_spheres()) {
-    throw py::value_error(
-          "'multipoles' should be an (nmultipoles, n_spheres) sized array");
-  }
-  int mmax = static_cast<int>(sqrt(multipoles.shape(0)) - 1.0);  // Multipole order
-  if (mmax < 0 || (mmax + 1) * (mmax + 1) != multipoles.shape(0)) {
-    throw py::value_error(
-          "First axis of multipole array is not of form (mmax+1)^2 for an mmax >= 0");
-  }
-
-  array_f_t forces({3, model->n_spheres()});
-  ddx_multipole_forces(model->holder(), state->holder(), model->n_spheres(),
-                       model->n_cav(), multipoles.shape(0), multipoles.data(), e.data(),
-                       forces.mutable_data());
-  throw_if_error(model);
-  return forces;
-}
-
-std::shared_ptr<State> construct_initial_guess(std::shared_ptr<Model> model) {
-  auto state = std::make_shared<State>(model);
-  if (model->model() == "cosmo") {
-    ddx_cosmo_fill_guess(model->holder(), state->holder());
-  } else if (model->model() == "pcm") {
-    ddx_pcm_fill_guess(model->holder(), state->holder());
-  } else {
-    throw py::value_error("Model " + model->model() + " not yet implemented.");
-  }
-  throw_if_error(model);
-  return state;
-}
-
-// Solve the forward COSMO / PCM System. The state is modified in-place.
-std::shared_ptr<State> solve(std::shared_ptr<Model> model, std::shared_ptr<State> state,
-                             array_f_t phi, double tol) {
-  if (state->model()->model() != model->model()) {
-    throw py::value_error("Model mismatch: The passed state is for " +
-                          state->model()->model());
-  }
-  if (phi.ndim() != 1 || phi.shape(0) != model->n_cav()) {
-    throw py::value_error("phi not of shape (n_cav, ) == (" +
-                          std::to_string(model->n_cav()) + ").");
-  }
-
-  if (model->model() == "cosmo") {
-    ddx_cosmo_solve(model->holder(), state->holder(), model->n_cav(), phi.data(), tol);
-  } else if (model->model() == "pcm") {
-    ddx_pcm_solve(model->holder(), state->holder(), model->n_cav(), phi.data(), tol);
-  } else {
-    throw py::value_error("Model " + model->model() + " not yet implemented.");
-  }
-  throw_if_error(model);
-  return state;
-}
-
-// Solve the adjoint COSMO / PCM System. The state is modified in-place.
-std::shared_ptr<State> solve_adjoint(std::shared_ptr<Model> model,
-                                     std::shared_ptr<State> state, array_f_t psi,
-                                     double tol) {
-  if (state->model()->model() != model->model()) {
-    throw py::value_error("Model mismatch: The passed state is for " +
-                          state->model()->model());
-  }
-  if (psi.ndim() != 2 || psi.shape(0) != model->n_basis() ||
-      psi.shape(1) != model->n_spheres()) {
-    throw py::value_error("psi not of shape (n_basis, n_spheres) == (" +
-                          std::to_string(model->n_basis()) + ", " +
-                          std::to_string(model->n_spheres()) + ").");
-  }
-
-  if (model->model() == "cosmo") {
-    ddx_cosmo_solve_adjoint(model->holder(), state->holder(), model->n_basis(),
-                            model->n_spheres(), psi.data(), tol);
-  } else if (model->model() == "pcm") {
-    ddx_pcm_solve_adjoint(model->holder(), state->holder(), model->n_basis(),
-                          model->n_spheres(), psi.data(), tol);
-  } else {
-    throw py::value_error("Model " + model->model() + " not yet implemented.");
-  }
-  throw_if_error(model);
-  return state;
-}
-
-// Obtain the COSMO / PCM forces. The state is modified in-place
-array_f_t solvation_force_terms(std::shared_ptr<Model> model,
-                                std::shared_ptr<State> state, array_f_t phi, array_f_t e,
-                                array_f_t psi) {
-  if (state->model()->model() != model->model()) {
-    throw py::value_error("Model mismatch: The passed state is for " +
-                          state->model()->model());
-  }
-  if (phi.ndim() != 1 || phi.shape(0) != model->n_cav()) {
-    throw py::value_error("phi not of shape (n_cav, ) == (" +
-                          std::to_string(model->n_cav()) + ").");
-  }
-  if (psi.ndim() != 2 || psi.shape(0) != model->n_basis() ||
-      psi.shape(1) != model->n_spheres()) {
-    throw py::value_error("psi not of shape (n_basis, n_spheres) == (" +
-                          std::to_string(model->n_basis()) + ", " +
-                          std::to_string(model->n_spheres()) + ").");
-  }
-  if (e.ndim() != 2 || e.shape(0) != 3 || e.shape(1) != model->n_cav()) {
-    throw py::value_error("e not of shape (3, n_cav) == (3, " +
-                          std::to_string(model->n_cav()) + ").");
-  }
-
-  array_f_t forces({3, model->n_spheres()});
-  if (model->model() == "cosmo") {
-    ddx_cosmo_forces(model->holder(), state->holder(), model->n_basis(),
-                     model->n_spheres(), model->n_cav(), phi.data(), e.data(), psi.data(),
-                     forces.mutable_data());
-  } else if (model->model() == "pcm") {
-    ddx_pcm_forces(model->holder(), state->holder(), model->n_basis(), model->n_spheres(),
-                   model->n_cav(), phi.data(), e.data(), psi.data(),
-                   forces.mutable_data());
-  } else {
-    throw py::value_error("Model " + model->model() + " not yet implemented.");
-  }
-  throw_if_error(model);
-  return forces;
-}
+//
+// Python export
+//
 
 void export_pyddx_classes(py::module& m) {
-  // TODO Better docstring
   const char* init_docstring =
         "Setup solvation model in ddX.\n\n"
+        "model:            'cosmo', 'pcm' or 'lpb'\n"
         "sphere_charges:   (n_spheres) array\n"
         "atomic_centers:   (n_spheres, 3) array\n"
         "sphere_radii:     (n_spheres) array\n"
@@ -462,9 +499,10 @@ void export_pyddx_classes(py::module& m) {
         "solvent_kappa:    Debye-Hückel parameter (inverse screening length)\n"
         "eta:              Regularization parameter\n"
         "lmax:             Maximal degree of modelling spherical harmonics\n"
-        "maxiter:          Maximal number of iterations\n"
-        "incore:           Store more large objects in memory\n"
         "n_lebedev:        Number of Lebedev grid points to use\n"
+        "incore:           Store more large objects in memory\n"
+        "maxiter:          Maximal number of iterations\n"
+        "jacobi_n_diis:    Number of iterates stored in the DIIS space for acceleration\n"
         "enable_fmm:       Use fast-multipole method (true) or not (false)\n"
         "fmm_multipole_lmax:  Maximal degree of multipole spherical harmonics, "
         "ignored "
@@ -528,48 +566,67 @@ void export_pyddx_classes(py::module& m) {
                  py::array_t<double> out) { return scaled_ylm(model, x, sphere, out); },
               "coord"_a, "sphere"_a, "out"_a,
               "With reference to a atomic sphere `sphere` of radius `r` centred at "
-              "`a` "
-              "compute 4π/(2l+1) * (|x-a|/r)^l * Y_l^m(|x-a|).")
+              "`a` compute 4π/(2l+1) * (|x-a|/r)^l * Y_l^m(|x-a|).")
         //
         .def("multipole_electrostatics", &multipole_electrostatics,
              "Return the solute potential, electric field and field gradients for "
-             "a "
-             "solute represented by a distribution of multipoles on the cavity "
-             "centres. "
+             "a solute represented by a distribution of multipoles on the cavity "
+             "centres. `multipoles` is a (nmultipoles, n_spheres) array, where "
+             "nmultipoles "
+             "are the number of multipoles on each site (i.e. (mmax+x)^2 entries) where "
+             "mmax is the maximal angular momentum of the multipoles. "
              "The order of potential derivatives is given by the "
              "'derivative_order' flag "
              "(0 for just the potential 'phi', 1 for 'phi' and field 'e', 2 for "
-             "'phi', "
-             "'e' and field gradient 'g').",
+             "'phi', 'e' and field gradient 'g').",
              "multipoles"_a, "derivative_order"_a = 1)
         .def("multipole_psi", &multipole_psi,
              "Return the solute contribution to psi generated from a distribution "
-             "of "
-             "multipoles on the cavity centres.",
+             "of multipoles on the cavity centres.",
              "multipoles"_a)
-        .def("multipole_force_terms", &multipole_force_terms,
-             "Obtain the force contributions from a solute represented using "
-             "multipoles. "
-             "The state is updated in-place.",
-             "state"_a, "multipoles"_a, "e"_a)
-        //
-        .def("initial_guess", &construct_initial_guess, "Return an initial guess state.")
-        .def("solve", &solve, "state"_a, "phi"_a, "tol"_a = 1e-8, "TODO Docstring")
-        .def("solve_adjoint", &solve_adjoint, "state"_a, "psi"_a, "tol"_a = 1e-8,
-             "TODO Docstring")
-        .def("solvation_force_terms", &solvation_force_terms, "state"_a, "phi"_a, "e"_a,
-             "psi"_a, "TODO Doctring")
         //
         ;
 
   py::class_<State, std::shared_ptr<State>>(
         m, "State", "Computational state and results of ddX models")
-        .def_property_readonly("model", &State::model)
-        .def_property_readonly("x", &State::x)
-        .def_property_readonly("x_n_iter", &State::x_n_iter)
-        .def_property_readonly("s", &State::s)
-        .def_property_readonly("s_n_iter", &State::s_n_iter)
+        .def(py::init<std::shared_ptr<Model>, array_f_t, array_f_t>(),
+             "Construct a state from the model and a phi and psi to set up the problem.",
+             "model"_a, "phi"_a, "psi"_a)
+        .def_property_readonly("model", &State::model, "Model definition")
+        .def_property_readonly("x", &State::x, "Solution of the forward problem.")
+        .def_property_readonly(
+              "x_n_iter", &State::x_n_iter,
+              "Number of iterations required to solve the forward problem.")
+        .def_property_readonly("s", &State::s, "Solution of the adjoint problem.")
+        .def_property_readonly(
+              "s_n_iter", &State::s_n_iter,
+              "Number of iterations required to solve the adjoint problem.")
         .def_property_readonly("xi", &State::xi)
+        .def_property_readonly("is_solved", &State::is_solved,
+                               "Return whether the forward problem is solved.")
+        .def_property_readonly("is_solved_adjoint", &State::is_solved_adjoint,
+                               "Return whether the adjoint problem is solved.")
         //
-        ;
+        .def("update_problem", &State::update_problem,
+             "Update the definition of of the forward and adjoint problem", "phi"_a,
+             "psi"_a)
+        .def("fill_guess", &State::fill_guess,
+             "In-place construct an initial guess for the adjoint solver. Don't call "
+             "this if you want to use the previous solution stored in this state as a "
+             "guess")
+        .def("fill_guess_adjoint", &State::fill_guess_adjoint,
+             "In-place construct an initial guess for the forward solver. Don't call "
+             "this if you want to use the previous solution stored in this state as a "
+             "guess")
+        .def("solve", &State::solve, "Solve the forward problem contained in the state.",
+             "tol"_a = 1e-8)
+        .def("solve_adjoint", &State::solve_adjoint,
+             "Solve the adjoint problem contained in the state.", "tol"_a = 1e-8)
+        .def("solvation_force_terms", &State::solvation_force_terms,
+             "Compute and return the force terms of the solvation part of the solvation "
+             "model.")
+        .def("multipole_force_terms", &State::multipole_force_terms,
+             "Obtain the solute force contributions from a solute represented using "
+             "multipoles. ",
+             "multipoles"_a, "e"_a);
 }

@@ -49,14 +49,13 @@ def test_reference_pcm():
     solute_field = model.multipole_electrostatics(solute_multipoles)
     solute_psi = model.multipole_psi(solute_multipoles)
 
-    state = model.initial_guess()
-    state = model.solve(state, solute_field["phi"], tol=1e-10)
-    state = model.solve_adjoint(state, solute_psi, tol=1e-10)
-    force = model.solvation_force_terms(state, solute_field["phi"],
-                                        solute_field["e"], solute_psi)
+    state = pyddx.State(model, solute_field["phi"], solute_psi)
+    state.fill_guess()
+    state.fill_guess_adjoint()
+    state.solve()
+    state.solve_adjoint()
 
     energy = 0.5 * np.sum(state.x * solute_psi)
+    force = state.solvation_force_terms()
     assert abs(energy - ref) < 5e-9
     assert np.max(np.abs(force - ref_force)) < 1e-5
-
-# TODO Test COSMO
