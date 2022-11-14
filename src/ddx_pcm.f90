@@ -64,6 +64,7 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
         call ddpcm_solve_adjoint(params, constants, workspace, state, tol)
 
         ! evaluate the solvent unspecific contribution analytical derivatives
+        force = zero
         call ddpcm_solvation_force_terms(params, constants, workspace, &
             & state, force)
     end if

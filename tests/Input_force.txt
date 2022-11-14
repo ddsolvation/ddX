@@ -15,7 +15,7 @@
 1           ! Whether to use (1) or not (0) the FMM
 20          ! Max degree of multipole spherical harmonics for the FMM
 20          ! Max degree of local spherical harmonics for the FMM
-24                           # nsph
+5                           # nsph
  0.09581   1.64052   0.26811   0.00079   4.00253
  0.17352   0.53040  -2.07460  -0.00051   4.00253
 -0.25694  -1.93056  -2.33500  -0.00018   3.80402
