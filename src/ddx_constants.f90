@@ -294,7 +294,7 @@ subroutine constants_init(params, constants)
         ! If forces are required then we need the M2P of a degree lmax+1 for
         ! the near-field analytical gradients
         if (params % force .eq. 1) then
-            constants % dmax = max(params % pm+params % pl, &
+            constants % dmax = max(params % pm+params % pl+1, &
                 & params % lmax+1)
             constants % m2p_lmax = params % lmax + 1
             constants % grad_nbasis = (params % lmax+2) ** 2

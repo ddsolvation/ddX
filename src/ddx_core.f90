@@ -953,7 +953,10 @@ subroutine ddx_free_state(state)
     end if
     if (allocated(state % x_lpb_rel_diff)) then
         deallocate(state % x_lpb_rel_diff, stat=istatus)
-        if (istatus .ne. 0) call ddx_error("`x_lpb_rel_diff` deallocation failed!")
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`x_lpb_rel_diff` deallocation failed!"
+        end if
     end if
     if (allocated(state % x_adj_lpb)) then
         deallocate(state % x_adj_lpb, stat=istatus)
@@ -964,7 +967,10 @@ subroutine ddx_free_state(state)
     end if
     if (allocated(state % x_adj_lpb_rel_diff)) then
         deallocate(state % x_adj_lpb_rel_diff, stat=istatus)
-        if (istatus .ne. 0) call ddx_error("`x_adj_lpb_rel_diff` deallocation failed!")
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`x_adj_lpb_rel_diff` deallocation failed!"
+        end if
     end if
     if (allocated(state % g_lpb)) then
         deallocate(state % g_lpb, stat=istatus)
@@ -2571,11 +2577,6 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
     else
         sph_m = beta * sph_m
     end if
-    !allocate(tmp((sph_p + 1)**2, params % nsph, params % nproc), stat=info)
-    !if (info .ne. 0) then
-    !    call ddx_error("Allocation failed in tree_m2p_bessel_adj!")
-    !end if
-    !tmp = zero
     ! Cycle over all spheres
     !!$omp parallel do default(none) shared(params,constants,p,sph_m,tmp, &
     !!$omp alpha,grid_v) private(isph,inode,jnear,jnode,jsph,igrid,c, &
@@ -2602,13 +2603,6 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
             end do
         end do
     end do
-    !do iproc = 1, params % nproc
-    !    sph_m(:,:) = sph_m(:,:) + tmp(:,:,iproc)
-    !end do
-    !deallocate(tmp,stat=info)
-    !if (info .ne. 0) then
-    !    call ddx_error("Deallocation failed in tree_m2p_bessel_adj!")
-    !end if
 end subroutine tree_m2p_bessel_adj
 
 !------------------------------------------------------------------------------
