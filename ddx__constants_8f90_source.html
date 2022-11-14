@@ -231,7 +231,7 @@ $(document).ready(function(){initNavTree('ddx__constants_8f90_source.html',''); 
 <div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>        <span class="comment">! If forces are required then we need the M2P of a degree lmax+1 for</span></div>
 <div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>        <span class="comment">! the near-field analytical gradients</span></div>
 <div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>        <span class="keywordflow">if</span> (params % force .eq. 1) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>            constants % dmax = max(params % pm+params % pl, &amp;</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>            constants % dmax = max(params % pm+params % pl+1, &amp;</div>
 <div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>                &amp; params % lmax+1)</div>
 <div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>            constants % m2p_lmax = params % lmax + 1</div>
 <div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>            constants % grad_nbasis = (params % lmax+2) ** 2</div>
