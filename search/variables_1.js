@@ -7,7 +7,5 @@ var searchData=
   ['children_4',['children',['../structddx__constants_1_1ddx__constants__type.html#ac58ac40fe1faec6ed685f6dbf049ba6a',1,'ddx_constants::ddx_constants_type']]],
   ['cluster_5',['cluster',['../structddx__constants_1_1ddx__constants__type.html#a3460ae17cafa4159e6b7d61f4e1ccf54',1,'ddx_constants::ddx_constants_type']]],
   ['cnode_6',['cnode',['../structddx__constants_1_1ddx__constants__type.html#a22bc6781bc52228876914a09793b498c',1,'ddx_constants::ddx_constants_type']]],
-  ['coefvec_7',['coefvec',['../structddx__constants_1_1ddx__constants__type.html#a6097205a097406b3065e2cd259249aab',1,'ddx_constants::ddx_constants_type']]],
-  ['coefy_8',['coefy',['../structddx__constants_1_1ddx__constants__type.html#a3a5cc487f47e021fc12acf7769e3798d',1,'ddx_constants::ddx_constants_type']]],
-  ['csph_9',['csph',['../structddx__parameters_1_1ddx__params__type.html#ae8f332ff28e787d8bc0b30cd5f36bbb4',1,'ddx_parameters::ddx_params_type']]]
+  ['csph_7',['csph',['../structddx__parameters_1_1ddx__params__type.html#ae8f332ff28e787d8bc0b30cd5f36bbb4',1,'ddx_parameters::ddx_params_type']]]
 ];

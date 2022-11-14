@@ -323,7 +323,7 @@ $(document).ready(function(){initNavTree('ddx__solvers_8f90_source.html',''); in
 <div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span><span class="keyword">subroutine </span>jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_iter, &amp;</div>
 <div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>          &amp; x_rel_diff, matvec, dm1vec, norm_func)</div>
 <div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>      <span class="keywordtype">type</span>(ddx_params_type),    <span class="keywordtype">intent(in)</span>    :: params</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>      <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span>    :: constants</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>      <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(inout)</span> :: constants</div>
 <div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>      <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
 <div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>      <span class="comment">! Inputs</span></div>
 <div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>      <span class="keywordtype">integer</span>,                  <span class="keywordtype">intent(in)</span>    :: n</div>
@@ -416,28 +416,30 @@ $(document).ready(function(){initNavTree('ddx__solvers_8f90_source.html',''); in
 <div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span><span class="keywordflow">        end if</span></div>
 <div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span> </div>
 <div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>        x_rel_diff(it) = rel_diff</div>
-<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span><span class="comment">!</span></div>
-<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span><span class="comment">!       update</span></div>
-<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>        x = x_new</div>
-<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span><span class="comment">!</span></div>
-<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span><span class="comment">!       EXIT Jacobi loop here</span></div>
-<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span><span class="comment">!       =====================</span></div>
-<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>        <span class="keywordflow">if</span> (rel_diff .le. tol) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>            n_iter = it</div>
-<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>            <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span><span class="keywordflow">        end if</span></div>
-<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span><span class="comment">!</span></div>
-<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span><span class="keywordflow">      enddo</span></div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span> </div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>        constants % inner_tol = max(rel_diff*sqrt(tol), tol/100.0d0)</div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span><span class="comment">!</span></div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span><span class="comment">!       update</span></div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>        x = x_new</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span><span class="comment">!</span></div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span><span class="comment">!       EXIT Jacobi loop here</span></div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span><span class="comment">!       =====================</span></div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>        <span class="keywordflow">if</span> (rel_diff .le. tol) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>            n_iter = it</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>            <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span><span class="keywordflow">        end if</span></div>
 <div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span><span class="comment">!</span></div>
-<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>      workspace % error_flag = 1</div>
-<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>      workspace % error_message = <span class="stringliteral">&#39; jacobi_diis: [2] failed allocation (diis)&#39;</span></div>
-<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span><span class="comment">!</span></div>
-<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>      <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span><span class="keywordflow">      enddo</span></div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span><span class="comment">!</span></div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>      workspace % error_flag = 1</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>      workspace % error_message = <span class="stringliteral">&#39; jacobi_diis: [2] failed allocation (diis)&#39;</span></div>
 <div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span><span class="comment">!</span></div>
-<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span><span class="comment">!</span></div>
-<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span><span class="keyword">endsubroutine </span>jacobi_diis_external</div>
-<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span> </div>
-<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx__solvers.html">ddx_solvers</a></div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>      <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span><span class="comment">!</span></div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span><span class="comment">!</span></div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span><span class="keyword">endsubroutine </span>jacobi_diis_external</div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span> </div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx__solvers.html">ddx_solvers</a></div>
 <div class="ttc" id="ainterfaceddx__solvers_1_1matvec__interface__external_html"><div class="ttname"><a href="interfaceddx__solvers_1_1matvec__interface__external.html">ddx_solvers::matvec_interface_external</a></div><div class="ttdef"><b>Definition:</b> <a href="ddx__solvers_8f90_source.html#l00038">ddx_solvers.f90:38</a></div></div>
 <div class="ttc" id="ainterfaceddx__solvers_1_1matvec__interface_html"><div class="ttname"><a href="interfaceddx__solvers_1_1matvec__interface.html">ddx_solvers::matvec_interface</a></div><div class="ttdef"><b>Definition:</b> <a href="ddx__solvers_8f90_source.html#l00023">ddx_solvers.f90:23</a></div></div>
 <div class="ttc" id="ainterfaceddx__solvers_1_1norm__interface_html"><div class="ttname"><a href="interfaceddx__solvers_1_1norm__interface.html">ddx_solvers::norm_interface</a></div><div class="ttdef"><b>Definition:</b> <a href="ddx__solvers_8f90_source.html#l00052">ddx_solvers.f90:52</a></div></div>

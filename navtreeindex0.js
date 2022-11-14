@@ -246,8 +246,8 @@ var NAVTREEINDEX0 =
 "index.html":[],
 "interfaceddx__solvers_1_1matvec__interface.html":[10,0,13,0],
 "interfaceddx__solvers_1_1matvec__interface.html":[11,0,4,0],
-"interfaceddx__solvers_1_1matvec__interface__external.html":[10,0,13,1],
 "interfaceddx__solvers_1_1matvec__interface__external.html":[11,0,4,1],
-"interfaceddx__solvers_1_1norm__interface.html":[10,0,13,2],
-"interfaceddx__solvers_1_1norm__interface.html":[11,0,4,2]
+"interfaceddx__solvers_1_1matvec__interface__external.html":[10,0,13,1],
+"interfaceddx__solvers_1_1norm__interface.html":[11,0,4,2],
+"interfaceddx__solvers_1_1norm__interface.html":[10,0,13,2]
 };

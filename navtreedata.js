@@ -98,7 +98,7 @@ var NAVTREEINDEX =
 "annotated.html",
 "label_download_and_install.html",
 "namespaceddx__parameters.html#afc162de2f4b5352119d0c14a96dda845",
-"structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7"
+"structddx__core_1_1ddx__state__type.html#ae8b26ac0e03b0dd5fb4c5013723d982c"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
