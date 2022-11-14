@@ -1234,7 +1234,7 @@ subroutine bstarx(params, constants, workspace, x, y)
                     & one, y(:,isph), 1)
             end do
         end do
-    else 
+    else
         !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
         !$omp private(isph) schedule(static,1)
         do isph = 1, params % nsph
@@ -1476,7 +1476,8 @@ subroutine cstarx(params, constants, workspace, x, y)
         workspace % tmp_sph = zero
         ! Do FMM operations adjointly
         call tree_m2p_bessel_adj(params, constants, constants % lmax0, &
-            & one, workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
+            & one, workspace % tmp_grid, zero, params % lmax, &
+            & workspace % tmp_sph)
         call tree_l2p_bessel_adj(params, constants, one, &
             & workspace % tmp_grid, zero, workspace % tmp_node_l)
         call tree_l2l_bessel_rotation_adj(params, constants, &

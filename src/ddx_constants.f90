@@ -104,15 +104,9 @@ type ddx_constants_type
     integer :: lmax0
     !> LPB value max of nbasis and 49
     integer :: nbasis0
-    !> LPB value w_n*U_i(x_in)*Y_lm(x_n). Dimension is (ngrid, nbasis, nsph)
-    real(dp), allocatable :: coefvec(:, :, :)
     !> LPB matrix, Eq. (87) from [QSM19.SISC]. Dimension is
     !!      (nbasis, nbasis0, nsph)
     real(dp), allocatable :: Pchi(:, :, :)
-    !> LPB intermediate calculation in Q Matrix Eq. (91).
-    !!      C_ik*\bold{k}_l^j(x_in)*Y_lm^j(x_in). Dimension is
-    !!      (ncav, nbasis0, nsph)
-    real(dp), allocatable :: coefY(:, :, :)
     !> LPB value (i'_l0(r_j)/i_l0(r_j)-k'_l0(r_j)/k_l0(r_j))^{-1}. Dimension
     !!      is ???
     real(dp), allocatable :: C_ik(:, :)
@@ -128,8 +122,6 @@ type ddx_constants_type
     real(dp), allocatable :: DK_ri(:, :)
     !> LPB value i'_l(r_j)/i_l(r_j). Dimension is (lmax, nsph).
     real(dp), allocatable :: termimat(:, :)
-    !> LPB value sum_{l0,m0}Pchi*coefY. Dimension is (ncav, nbasis, nsph)
-    real(dp), allocatable :: diff_ep_adj(:, :, :)
     !> LPB B matrix for doing incore BX product
     real(dp), allocatable :: b(:,:,:)
     !> ddCOSMO L matrix fo doing incore LX product
@@ -306,13 +298,14 @@ subroutine constants_init(params, constants)
                 & params % lmax+1)
             constants % m2p_lmax = params % lmax + 1
             constants % grad_nbasis = (params % lmax+2) ** 2
+            constants % vgrid_dmax = max(params % pl, params % lmax) + 1
         else
             constants % dmax = max(params % pm+params % pl, &
                 & params % lmax)
             constants % m2p_lmax = params % lmax
             constants % grad_nbasis = -1
+            constants % vgrid_dmax = max(params % pl, params % lmax)
         end if
-        constants % vgrid_dmax = max(params % pl, params % lmax)
         constants % m2p_nbasis = (constants % m2p_lmax+1) ** 2
     end if
     ! Compute sizes of vgrid, vfact and vscales
@@ -459,8 +452,8 @@ subroutine constants_init(params, constants)
     if (constants % error_flag .ne. 0) return
     ! Precompute LPB-related constants
     if (params % model .eq. 3) then
-        constants % lmax0 = min(6, params % lmax)
-        constants % nbasis0 = min(49, constants % nbasis)
+        constants % lmax0 = params % lmax
+        constants % nbasis0 = constants % nbasis
         allocate(vylm(constants % vgrid_nbasis), &
             & SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0), &
             & bessel_work(constants % dmax+2), stat=info)
@@ -474,13 +467,7 @@ subroutine constants_init(params, constants)
         allocate(constants % DI_ri(0:constants % dmax+1, params % nsph))
         allocate(constants % SK_ri(0:params % lmax+1, params % nsph))
         allocate(constants % DK_ri(0:params % lmax+1, params % nsph))
-        allocate(constants % diff_ep_adj(constants % ncav, &
-            & constants % nbasis, params % nsph))
-        allocate(constants % coefvec(params % ngrid, constants % nbasis, &
-            & params % nsph))
         allocate(constants % Pchi(constants % nbasis, constants % nbasis0, &
-            & params % nsph))
-        allocate(constants % coefY(constants % ncav, constants % nbasis0, &
             & params % nsph))
         allocate(constants % C_ik(0:params % lmax, params % nsph))
         allocate(constants % termimat(0:params % lmax, params % nsph))
@@ -501,16 +488,6 @@ subroutine constants_init(params, constants)
             ! Previous implementation in update_rhs. Made it in ddinit, so as to use
             ! it in Forces as well.
             call mkpmat(params, constants, isph, constants % Pchi(:, :, isph))
-            ! Compute w_n*Ui(x_in)*Y_lm(s_n)
-            do igrid = 1, params % ngrid
-                if (constants % ui(igrid, isph) .gt. 0) then
-                    do ind = 1, constants % nbasis
-                        constants % coefvec(igrid, ind, isph) = &
-                            & constants % ui(igrid, isph) * &
-                            & constants % vwgrid(ind, igrid)
-                    end do
-                end if
-            end do
             ! Compute i'_l(r_i)/i_l(r_i)
             do l = 0, params % lmax
                 constants % termimat(l, isph) = constants % DI_ri(l, isph) / &
@@ -675,9 +652,10 @@ subroutine build_b(constants, params)
     real(dp), dimension(0:params % lmax) :: SI_rijn, DI_rijn
     real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
     real(dp) :: t
+    integer :: info
 
     allocate(constants % b(constants % nbasis, constants % nbasis, &
-        & constants % inl(params % nsph + 1)))
+        & constants % inl(params % nsph + 1)), stat=info)
 
     thigh = one + pt5*(params % se + one)*params % eta
 
@@ -1971,14 +1949,6 @@ subroutine constants_free(constants)
             return
         end if
     end if
-    if (allocated(constants % coefvec)) then
-        deallocate(constants % coefvec, stat=istat)
-        if (istat .ne. 0) then
-            constants % error_message = "`coefvec` deallocation failed!"
-            constants % error_flag = 1
-            return
-        end if
-    end if
     if (allocated(constants % pchi)) then
         deallocate(constants % pchi, stat=istat)
         if (istat .ne. 0) then
@@ -2031,14 +2001,6 @@ subroutine constants_free(constants)
         deallocate(constants % termimat, stat=istat)
         if (istat .ne. 0) then
             constants % error_message = "`termimat` deallocation failed!"
-            constants % error_flag = 1
-            return
-        end if
-    end if
-    if (allocated(constants % diff_ep_adj)) then
-         deallocate(constants % diff_ep_adj, stat=istat)
-        if (istat .ne. 0) then
-            constants % error_message = "`diff_ep_adj` deallocation failed!"
             constants % error_flag = 1
             return
         end if

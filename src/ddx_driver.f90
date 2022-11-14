@@ -45,7 +45,7 @@ if (state % error_flag .ne. 0) then
 end if
 
 call get_banner(banner)
-write(6, *) banner
+write(6, *) trim(banner)
 
 ! determine needed arrays
 if (ddx_data % params % model .eq. 3) then
@@ -118,27 +118,32 @@ if (ddx_data % params % model .eq. 3) then
 end if
 ! Print info on the primal ddCOSMO system
 ! Print each iteration if needed
-do i = 1, state % xs_niter
-    print "(A,I4,A,ES20.14)", " iter=", i, &
-        & " relative difference: ", state % xs_rel_diff(i)
-end do
-! Print number of iterations and time
-print "(A,ES11.4E2,A)", " ddcosmo step time: ", state % xs_time, &
-    & " seconds"
-print "(A,I4)", " ddcosmo step iterations: ", state % xs_niter
+if ((ddx_data % params % model.eq.1) .or. (ddx_data % params % model.eq.2)) then
+    do i = 1, state % xs_niter
+        print "(A,I4,A,ES20.14)", " iter=", i, &
+            & " relative difference: ", state % xs_rel_diff(i)
+    end do
+    ! Print number of iterations and time
+    print "(A,ES11.4E2,A)", " ddcosmo step time: ", state % xs_time, &
+        & " seconds"
+    print "(A,I4)", " ddcosmo step iterations: ", state % xs_niter
+end if
+
 ! Print info on the adjoint solver
 if (ddx_data % params % force .eq. 1) then
     ! Print info on the adjoint ddCOSMO system
     ! Print each iteration if needed
-    do i = 1, state % s_niter
-        print "(A,I4,A,ES20.14)", " iter=", i, &
-            & " relative difference: ", state % s_rel_diff(i)
-    end do
-    ! Print number of iterations and time
-    print "(A,ES11.4E2,A)", " adjoint ddcosmo step time: ", &
-        & state % s_time, " seconds"
-    print "(A,I4)", " adjoint ddcosmo step iterations: ", &
-        & state % s_niter
+    if ((ddx_data % params % model.eq.1) .or. (ddx_data % params % model.eq.2)) then
+        do i = 1, state % s_niter
+            print "(A,I4,A,ES20.14)", " iter=", i, &
+                & " relative difference: ", state % s_rel_diff(i)
+        end do
+        ! Print number of iterations and time
+        print "(A,ES11.4E2,A)", " adjoint ddcosmo step time: ", &
+            & state % s_time, " seconds"
+        print "(A,I4)", " adjoint ddcosmo step iterations: ", &
+            & state % s_niter
+    end if
     ! Print info on the adjoint ddPCM system
     if (ddx_data % params % model .eq. 2) then
         ! Print each iteration if needed
@@ -166,7 +171,7 @@ if (ddx_data % params % force .eq. 1) then
             & state % x_adj_lpb_niter
     end if
 end if
-write(*, "(A,ES25.16E3)") " Solvation energy:", esolv
+write(*, "(A,ES25.16E3)") " Solvation energy (Hartree):", esolv
 write(*, "(A,ES25.16E3)") " Solvation energy (kcal/mol):", esolv*tokcal
 if (ddx_data % params % force .eq. 1) then
     write(*, *) " Full forces (kcal/mol/A)"
