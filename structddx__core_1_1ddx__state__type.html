@@ -117,6 +117,12 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a3f54780b6bbb34070a8f38c83b742254"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a3f54780b6bbb34070a8f38c83b742254">sgrid</a></td></tr>
 <tr class="memdesc:a3f54780b6bbb34070a8f38c83b742254"><td class="mdescLeft">&#160;</td><td class="mdescRight">Values of s at grid points. Dimension is (ngrid, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#a3f54780b6bbb34070a8f38c83b742254">More...</a><br /></td></tr>
 <tr class="separator:a3f54780b6bbb34070a8f38c83b742254"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6708562e4f7a959cf4272bef83771a8d"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a6708562e4f7a959cf4272bef83771a8d">psi</a></td></tr>
+<tr class="memdesc:a6708562e4f7a959cf4272bef83771a8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">rhs for the adjoint problem  <a href="structddx__core_1_1ddx__state__type.html#a6708562e4f7a959cf4272bef83771a8d">More...</a><br /></td></tr>
+<tr class="separator:a6708562e4f7a959cf4272bef83771a8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a160af68bec958a00f1c20bf28fbacb7e"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a160af68bec958a00f1c20bf28fbacb7e">phi_cav</a></td></tr>
+<tr class="memdesc:a160af68bec958a00f1c20bf28fbacb7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">potential at the cavity points  <a href="structddx__core_1_1ddx__state__type.html#a160af68bec958a00f1c20bf28fbacb7e">More...</a><br /></td></tr>
+<tr class="separator:a160af68bec958a00f1c20bf28fbacb7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83850fd12c4c5b915a9226afa3d90e17"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a83850fd12c4c5b915a9226afa3d90e17">phiinf</a></td></tr>
 <tr class="memdesc:a83850fd12c4c5b915a9226afa3d90e17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Variable \( \Phi_\infty \) of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a83850fd12c4c5b915a9226afa3d90e17">More...</a><br /></td></tr>
 <tr class="separator:a83850fd12c4c5b915a9226afa3d90e17"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -317,6 +323,42 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a6708562e4f7a959cf4272bef83771a8d" name="a6708562e4f7a959cf4272bef83771a8d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6708562e4f7a959cf4272bef83771a8d">&#9670;&nbsp;</a></span>psi</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::psi</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>rhs for the adjoint problem </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00050">50</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a160af68bec958a00f1c20bf28fbacb7e" name="a160af68bec958a00f1c20bf28fbacb7e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a160af68bec958a00f1c20bf28fbacb7e">&#9670;&nbsp;</a></span>phi_cav</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::phi_cav</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>potential at the cavity points </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00052">52</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
 <a id="a83850fd12c4c5b915a9226afa3d90e17" name="a83850fd12c4c5b915a9226afa3d90e17"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a83850fd12c4c5b915a9226afa3d90e17">&#9670;&nbsp;</a></span>phiinf</h2>
 
@@ -331,7 +373,7 @@ Public Attributes</h2></td></tr>
 
 <p>Variable \( \Phi_\infty \) of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00055">55</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00059">59</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -349,7 +391,7 @@ Public Attributes</h2></td></tr>
 
 <p>Variable \( \Phi_\varepsilon \) of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00058">58</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00062">62</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -367,7 +409,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of iteration to solve ddPCM system. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00061">61</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00065">65</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -385,7 +427,7 @@ Public Attributes</h2></td></tr>
 
 <p>Relative error of each step of iterative solver for ddPCM system. Dimension is (maxiter). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00064">64</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00068">68</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -403,7 +445,7 @@ Public Attributes</h2></td></tr>
 
 <p>Time to solve primal ddPCM system. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00066">66</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00070">70</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -421,7 +463,7 @@ Public Attributes</h2></td></tr>
 
 <p>Shortcut of \( \Phi_\varepsilon - \Phi \). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00068">68</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00072">72</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -439,7 +481,7 @@ Public Attributes</h2></td></tr>
 
 <p>Solution of the adjoint ddCOSMO system of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00073">73</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00077">77</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -457,7 +499,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of iteration to solve adoint ddCOSMO system. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00075">75</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00079">79</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -475,7 +517,7 @@ Public Attributes</h2></td></tr>
 
 <p>Relative error of each step of iterative solver for adjoint ddCOSMO system. Dimension is (maxiter). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00078">78</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00082">82</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -493,7 +535,7 @@ Public Attributes</h2></td></tr>
 
 <p>Time to solve adjoint ddCOSMO system. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00080">80</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00084">84</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -511,7 +553,7 @@ Public Attributes</h2></td></tr>
 
 <p>Solution of the adjoint ddPCM system of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00083">83</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00087">87</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -529,7 +571,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of iteration to solve adjoint ddPCM system. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00085">85</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00089">89</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -547,7 +589,7 @@ Public Attributes</h2></td></tr>
 
 <p>Relative error of each step of iterative solver for adjoint ddPCM system. Dimension is (maxiter). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00088">88</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00092">92</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -565,7 +607,7 @@ Public Attributes</h2></td></tr>
 
 <p>Time to solve adjoint ddPCM system. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00090">90</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00094">94</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -583,7 +625,7 @@ Public Attributes</h2></td></tr>
 
 <p>Values of y at grid points. Dimension is (ngrid, nsph). Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00093">93</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00097">97</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -601,7 +643,7 @@ Public Attributes</h2></td></tr>
 
 <p>s-4pi/(eps-1)y of dimension (nbasis, nsph) </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00095">95</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00099">99</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -619,7 +661,7 @@ Public Attributes</h2></td></tr>
 
 <p>Values of q at grid points. Dimension is (ngrid, nsph) </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00097">97</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00101">101</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -637,7 +679,7 @@ Public Attributes</h2></td></tr>
 
 <p>Solution to the ddLPB linear system. Dimension is (nbasis,nsph,2). Allocated and used only by LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00104">104</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00108">108</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -655,7 +697,7 @@ Public Attributes</h2></td></tr>
 
 <p>Solution to the ddLPB ajoint system. Dimension is (nbasis,nsph,2). Allocated and used only by LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00107">107</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00111">111</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -673,7 +715,7 @@ Public Attributes</h2></td></tr>
 
 <p>g intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only by LPB (model=3) model </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00110">110</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00114">114</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -691,7 +733,7 @@ Public Attributes</h2></td></tr>
 
 <p>d intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only by LPB (model=3) model </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00114">114</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00118">118</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -707,7 +749,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00115">115</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00119">119</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -723,7 +765,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00116">116</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00120">120</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -739,7 +781,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00117">117</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00121">121</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -755,7 +797,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00118">118</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00122">122</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -771,7 +813,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00119">119</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00123">123</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -787,7 +829,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00120">120</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00124">124</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -805,7 +847,7 @@ Public Attributes</h2></td></tr>
 
 <p>Zeta intermediate for forces. Dimension is (ncav) </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00126">126</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00130">130</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -823,7 +865,7 @@ Public Attributes</h2></td></tr>
 
 <p>Potential at all grid points. Dimension is (ngrid, nsph). Allocated and used by all models. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00129">129</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00133">133</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -841,7 +883,7 @@ Public Attributes</h2></td></tr>
 
 <p>Flag if there were an error. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00131">131</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00135">135</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -859,7 +901,7 @@ Public Attributes</h2></td></tr>
 
 <p>Last error message. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00133">133</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00137">137</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>

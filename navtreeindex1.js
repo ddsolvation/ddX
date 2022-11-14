@@ -1,5 +1,9 @@
 var NAVTREEINDEX1 =
 {
+"label_download_and_install.html":[1],
+"label_download_and_install.html#autotoc_md1":[1,0],
+"label_download_and_install.html#autotoc_md2":[1,1],
+"label_licence.html":[6],
 "label_python_interface.html":[3],
 "label_python_interface.html#autotoc_md4":[3,0],
 "label_python_interface.html#autotoc_md5":[3,1],
@@ -52,6 +56,7 @@ var NAVTREEINDEX1 =
 "namespaceddx__core.html#a202929912f5b0db1b6fd9f6c8809074c":[10,0,2,11],
 "namespaceddx__core.html#a2b3e39f4eaa589b097d4e9f37673e8f1":[10,0,2,13],
 "namespaceddx__core.html#a2ee14de3640c3649fe523dfb4d083bc9":[10,0,2,46],
+"namespaceddx__core.html#a2ff2b3f242a701748d2ce58e54acdee5":[10,0,2,56],
 "namespaceddx__core.html#a3258ae6ef23a4f07ea8a14ccf612acaa":[10,0,2,4],
 "namespaceddx__core.html#a343cdc81dac01fcc275b329aaff6584d":[10,0,2,33],
 "namespaceddx__core.html#a3c8789fc01ba244fdaa0d4fef8e9d725":[10,0,2,53],
@@ -97,9 +102,6 @@ var NAVTREEINDEX1 =
 "namespaceddx__core.html#af57c0e1c6dd13f71fee44d975a1080cd":[10,0,2,10],
 "namespaceddx__core.html#af6525c3026ed48bc2e9711d7f5f993a1":[10,0,2,14],
 "namespaceddx__cosmo.html":[10,0,3],
-"namespaceddx__cosmo.html#aaad1a0954f1a84a0bfe2ee98735f9d74":[10,0,3,3],
-"namespaceddx__cosmo.html#ac31ff0d441e507b02bd7ba36a4716232":[10,0,3,2],
-"namespaceddx__cosmo.html#ada69f95e42cb1aa2e93023745ca1e09d":[10,0,3,0],
 "namespaceddx__definitions.html":[10,0,4],
 "namespaceddx__definitions.html#a27faa3db3323ba2c6427084fcbf7b953":[10,0,4,3],
 "namespaceddx__definitions.html#a31904c9990cc087f2808a4c1c662800a":[10,0,4,2],
@@ -216,12 +218,12 @@ var NAVTREEINDEX1 =
 "namespaceddx__multipolar__solutes.html#a1b49c60c09fb229e96a9ce69d0808c8d":[10,0,9,7],
 "namespaceddx__multipolar__solutes.html#a1e4885f6f41acb3dfc988dcbc71dceeb":[10,0,9,5],
 "namespaceddx__multipolar__solutes.html#a3a1c0765efbf39c7ef1a0cc2b6c1b826":[10,0,9,16],
+"namespaceddx__multipolar__solutes.html#a3ba186ec158060205f5363c2ac45cffa":[10,0,9,12],
 "namespaceddx__multipolar__solutes.html#a58527faa8d7ac5c06297bedd2943d6b9":[10,0,9,3],
 "namespaceddx__multipolar__solutes.html#a61c22d6edf664b23153d1d41a1036db8":[10,0,9,9],
 "namespaceddx__multipolar__solutes.html#a66ab05d3cc0854a1ec3189cc290f0136":[10,0,9,1],
 "namespaceddx__multipolar__solutes.html#a854e543bad7f9523b75ce5037fed9bc9":[10,0,9,10],
 "namespaceddx__multipolar__solutes.html#a9a9fa5a29ff449db9444710b285bcd80":[10,0,9,14],
-"namespaceddx__multipolar__solutes.html#aa56314068d15524fdb496363a8bd621f":[10,0,9,12],
 "namespaceddx__multipolar__solutes.html#ac61380f591d7d06fac682ab4d6fa781d":[10,0,9,11],
 "namespaceddx__multipolar__solutes.html#adb70b786db1e8751f7c5b7faed714f41":[10,0,9,6],
 "namespaceddx__multipolar__solutes.html#ae295de35e13855ebec3d0cb151b001b4":[10,0,9,15],
@@ -247,7 +249,5 @@ var NAVTREEINDEX1 =
 "namespaceddx__parameters.html#a0b9356d3d56bcd87e2f1b6fccc42009c":[10,0,11,2],
 "namespaceddx__parameters.html#a1b84e0732491759d44bb63d14f7c77a5":[10,0,11,3],
 "namespaceddx__parameters.html#a74f7b18d32c86cd64e6b155a2cae2581":[10,0,11,5],
-"namespaceddx__parameters.html#ac42505d5183f507764f25e6926d5cb34":[10,0,11,4],
-"namespaceddx__parameters.html#afc162de2f4b5352119d0c14a96dda845":[10,0,11,1],
-"namespaceddx__pcm.html":[10,0,12]
+"namespaceddx__parameters.html#ac42505d5183f507764f25e6926d5cb34":[10,0,11,4]
 };

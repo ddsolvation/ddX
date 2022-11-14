@@ -55,5 +55,6 @@ var namespaceddx__core =
     [ "tree_m2p_bessel_nodiag_adj", "namespaceddx__core.html#a7f61e8dc65fa676434374f7ea9a07743", null ],
     [ "efld", "namespaceddx__core.html#a3c8789fc01ba244fdaa0d4fef8e9d725", null ],
     [ "tree_grad_m2m", "namespaceddx__core.html#a86f701c3486a5b26c650d5b157b6e213", null ],
-    [ "tree_grad_l2l", "namespaceddx__core.html#a0bbe738fff5a4d15f744dfa0b26938cf", null ]
+    [ "tree_grad_l2l", "namespaceddx__core.html#a0bbe738fff5a4d15f744dfa0b26938cf", null ],
+    [ "cav_to_spherical", "namespaceddx__core.html#a2ff2b3f242a701748d2ce58e54acdee5", null ]
 ];

@@ -655,315 +655,314 @@ $(document).ready(function(){initNavTree('ddx__multipolar__solutes_8f90_source.h
 <div class="line"><a id="l00708" name="l00708"></a><span class="lineno">  708</span> </div>
 <div class="line"><a id="l00709" name="l00709"></a><span class="lineno">  709</span><span class="keyword">end subroutine </span>grad_m2m</div>
 <div class="line"><a id="l00710" name="l00710"></a><span class="lineno">  710</span> </div>
-<div class="line"><a id="l00721" name="l00721"></a><span class="lineno"><a class="line" href="namespaceddx__multipolar__solutes.html#aa56314068d15524fdb496363a8bd621f">  721</a></span><span class="keyword">subroutine </span>grad_phi_for_charges(params, constants, workspace, state, mmax, &amp;</div>
-<div class="line"><a id="l00722" name="l00722"></a><span class="lineno">  722</span>        &amp; multipoles, forces, e_cav)</div>
-<div class="line"><a id="l00723" name="l00723"></a><span class="lineno">  723</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00724" name="l00724"></a><span class="lineno">  724</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00725" name="l00725"></a><span class="lineno">  725</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00726" name="l00726"></a><span class="lineno">  726</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00727" name="l00727"></a><span class="lineno">  727</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), <span class="keywordtype">intent(inout)</span> :: state</div>
-<div class="line"><a id="l00728" name="l00728"></a><span class="lineno">  728</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(in)</span> :: mmax</div>
-<div class="line"><a id="l00729" name="l00729"></a><span class="lineno">  729</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: multipoles((mmax + 1)**2, params % nsph)</div>
-<div class="line"><a id="l00730" name="l00730"></a><span class="lineno">  730</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(inout)</span> :: forces(3, params % nsph)</div>
-<div class="line"><a id="l00731" name="l00731"></a><span class="lineno">  731</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: e_cav(3, constants % ncav)</div>
-<div class="line"><a id="l00732" name="l00732"></a><span class="lineno">  732</span>    <span class="comment">! local variables</span></div>
-<div class="line"><a id="l00733" name="l00733"></a><span class="lineno">  733</span>    <span class="keywordtype">integer</span> :: isph, igrid, icav, info, im, lm</div>
-<div class="line"><a id="l00734" name="l00734"></a><span class="lineno">  734</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: field(:, :)</div>
-<div class="line"><a id="l00735" name="l00735"></a><span class="lineno">  735</span><span class="keywordtype">    real</span>(dp) :: ex, ey, ez, c(3), r2, r, r3</div>
-<div class="line"><a id="l00736" name="l00736"></a><span class="lineno">  736</span> </div>
-<div class="line"><a id="l00737" name="l00737"></a><span class="lineno">  737</span>    <span class="comment">! get some space for the adjoint potential, note that we need it</span></div>
-<div class="line"><a id="l00738" name="l00738"></a><span class="lineno">  738</span>    <span class="comment">! up to mmax + 1 as we are doing derivatives</span></div>
-<div class="line"><a id="l00739" name="l00739"></a><span class="lineno">  739</span>    <span class="keyword">allocate</span>(field(3, params % nsph), stat=info)</div>
-<div class="line"><a id="l00740" name="l00740"></a><span class="lineno">  740</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00741" name="l00741"></a><span class="lineno">  741</span>        workspace % error_message = <span class="stringliteral">&quot;Allocation failed in grad_phi_for_charges!&quot;</span></div>
-<div class="line"><a id="l00742" name="l00742"></a><span class="lineno">  742</span>        workspace % error_flag = 1</div>
-<div class="line"><a id="l00743" name="l00743"></a><span class="lineno">  743</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00744" name="l00744"></a><span class="lineno">  744</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00745" name="l00745"></a><span class="lineno">  745</span> </div>
-<div class="line"><a id="l00746" name="l00746"></a><span class="lineno">  746</span>    <span class="comment">! first contribution</span></div>
-<div class="line"><a id="l00747" name="l00747"></a><span class="lineno">  747</span>    icav = 0</div>
-<div class="line"><a id="l00748" name="l00748"></a><span class="lineno">  748</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l00749" name="l00749"></a><span class="lineno">  749</span>        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a id="l00750" name="l00750"></a><span class="lineno">  750</span>            <span class="keywordflow">if</span> (constants % ui(igrid, isph) .eq. zero) cycle</div>
-<div class="line"><a id="l00751" name="l00751"></a><span class="lineno">  751</span>            icav = icav + 1</div>
-<div class="line"><a id="l00752" name="l00752"></a><span class="lineno">  752</span>            forces(:, isph) = forces(:, isph) + pt5*state % zeta(icav) &amp;</div>
-<div class="line"><a id="l00753" name="l00753"></a><span class="lineno">  753</span>                &amp; *e_cav(:, icav)</div>
-<div class="line"><a id="l00754" name="l00754"></a><span class="lineno">  754</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l00755" name="l00755"></a><span class="lineno">  755</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00756" name="l00756"></a><span class="lineno">  756</span> </div>
-<div class="line"><a id="l00757" name="l00757"></a><span class="lineno">  757</span>    <span class="comment">! second contribution</span></div>
-<div class="line"><a id="l00758" name="l00758"></a><span class="lineno">  758</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__core.html#a3c8789fc01ba244fdaa0d4fef8e9d725">efld</a>(constants % ncav, state % zeta, constants % ccav, &amp;</div>
-<div class="line"><a id="l00759" name="l00759"></a><span class="lineno">  759</span>        &amp; params % nsph, params % csph, field)</div>
-<div class="line"><a id="l00760" name="l00760"></a><span class="lineno">  760</span> </div>
-<div class="line"><a id="l00761" name="l00761"></a><span class="lineno">  761</span>    <span class="comment">! sqrt4pi is required to go from multipoles in real spherical</span></div>
-<div class="line"><a id="l00762" name="l00762"></a><span class="lineno">  762</span>    <span class="comment">! harmonics to regular charges</span></div>
-<div class="line"><a id="l00763" name="l00763"></a><span class="lineno">  763</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l00764" name="l00764"></a><span class="lineno">  764</span>        forces(1, isph) = forces(1, isph) &amp;</div>
-<div class="line"><a id="l00765" name="l00765"></a><span class="lineno">  765</span>            &amp; + sqrt4pi*pt5*multipoles(1, isph)*field(1, isph)</div>
-<div class="line"><a id="l00766" name="l00766"></a><span class="lineno">  766</span>        forces(2, isph) = forces(2, isph) &amp;</div>
-<div class="line"><a id="l00767" name="l00767"></a><span class="lineno">  767</span>            &amp; + sqrt4pi*pt5*multipoles(1, isph)*field(2, isph)</div>
-<div class="line"><a id="l00768" name="l00768"></a><span class="lineno">  768</span>        forces(3, isph) = forces(3, isph) &amp;</div>
-<div class="line"><a id="l00769" name="l00769"></a><span class="lineno">  769</span>            &amp; + sqrt4pi*pt5*multipoles(1, isph)*field(3, isph)</div>
-<div class="line"><a id="l00770" name="l00770"></a><span class="lineno">  770</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00771" name="l00771"></a><span class="lineno">  771</span> </div>
-<div class="line"><a id="l00772" name="l00772"></a><span class="lineno">  772</span>    <span class="keyword">deallocate</span>(field, stat=info)</div>
-<div class="line"><a id="l00773" name="l00773"></a><span class="lineno">  773</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00774" name="l00774"></a><span class="lineno">  774</span>        workspace % error_message = <span class="stringliteral">&quot;Deallocation failed in grad_phi_for_charges!&quot;</span></div>
-<div class="line"><a id="l00775" name="l00775"></a><span class="lineno">  775</span>        workspace % error_flag = 1</div>
-<div class="line"><a id="l00776" name="l00776"></a><span class="lineno">  776</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00777" name="l00777"></a><span class="lineno">  777</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00778" name="l00778"></a><span class="lineno">  778</span> </div>
-<div class="line"><a id="l00779" name="l00779"></a><span class="lineno">  779</span><span class="keyword">end subroutine </span>grad_phi_for_charges</div>
-<div class="line"><a id="l00780" name="l00780"></a><span class="lineno">  780</span> </div>
-<div class="line"><a id="l00793" name="l00793"></a><span class="lineno"><a class="line" href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">  793</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">grad_phi</a>(params, constants, workspace, state, mmax, &amp;</div>
-<div class="line"><a id="l00794" name="l00794"></a><span class="lineno">  794</span>        &amp; multipoles, forces, e_cav)</div>
-<div class="line"><a id="l00795" name="l00795"></a><span class="lineno">  795</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00796" name="l00796"></a><span class="lineno">  796</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00797" name="l00797"></a><span class="lineno">  797</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00798" name="l00798"></a><span class="lineno">  798</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00799" name="l00799"></a><span class="lineno">  799</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), <span class="keywordtype">intent(inout)</span> :: state</div>
-<div class="line"><a id="l00800" name="l00800"></a><span class="lineno">  800</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(in)</span> :: mmax</div>
-<div class="line"><a id="l00801" name="l00801"></a><span class="lineno">  801</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: multipoles((mmax + 1)**2, params % nsph)</div>
-<div class="line"><a id="l00802" name="l00802"></a><span class="lineno">  802</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(inout)</span> :: forces(3, params % nsph)</div>
-<div class="line"><a id="l00803" name="l00803"></a><span class="lineno">  803</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: e_cav(3, constants % ncav)</div>
-<div class="line"><a id="l00804" name="l00804"></a><span class="lineno">  804</span>    <span class="comment">! local variables</span></div>
-<div class="line"><a id="l00805" name="l00805"></a><span class="lineno">  805</span>    <span class="keywordtype">integer</span> :: isph, igrid, icav, info, im, lm, ind, l, m</div>
-<div class="line"><a id="l00806" name="l00806"></a><span class="lineno">  806</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: adj_phi(:, :), m_grad(:, :, :)</div>
-<div class="line"><a id="l00807" name="l00807"></a><span class="lineno">  807</span><span class="keywordtype">    real</span>(dp) :: fac</div>
-<div class="line"><a id="l00808" name="l00808"></a><span class="lineno">  808</span> </div>
-<div class="line"><a id="l00809" name="l00809"></a><span class="lineno">  809</span>    <span class="comment">! get some space for the adjoint potential, note that we need it</span></div>
-<div class="line"><a id="l00810" name="l00810"></a><span class="lineno">  810</span>    <span class="comment">! up to mmax + 1 as we are doing derivatives</span></div>
-<div class="line"><a id="l00811" name="l00811"></a><span class="lineno">  811</span>    <span class="keyword">allocate</span>(adj_phi((mmax + 2)**2, params % nsph), &amp;</div>
-<div class="line"><a id="l00812" name="l00812"></a><span class="lineno">  812</span>        &amp; m_grad((mmax + 2)**2, 3, params % nsph), stat=info)</div>
-<div class="line"><a id="l00813" name="l00813"></a><span class="lineno">  813</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00814" name="l00814"></a><span class="lineno">  814</span>        workspace % error_message = <span class="stringliteral">&quot;Allocation failed in grad_phi!&quot;</span></div>
-<div class="line"><a id="l00815" name="l00815"></a><span class="lineno">  815</span>        workspace % error_flag = 1</div>
-<div class="line"><a id="l00816" name="l00816"></a><span class="lineno">  816</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00817" name="l00817"></a><span class="lineno">  817</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span> </div>
-<div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span>    <span class="comment">! first contribution</span></div>
-<div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>    <span class="comment">! zeta * field</span></div>
-<div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span>    icav = 0</div>
-<div class="line"><a id="l00822" name="l00822"></a><span class="lineno">  822</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l00823" name="l00823"></a><span class="lineno">  823</span>        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a id="l00824" name="l00824"></a><span class="lineno">  824</span>            <span class="keywordflow">if</span> (constants % ui(igrid, isph) .eq. zero) cycle</div>
-<div class="line"><a id="l00825" name="l00825"></a><span class="lineno">  825</span>            icav = icav + 1</div>
-<div class="line"><a id="l00826" name="l00826"></a><span class="lineno">  826</span>            forces(:, isph) = forces(:, isph) + pt5 &amp;</div>
-<div class="line"><a id="l00827" name="l00827"></a><span class="lineno">  827</span>                &amp; *state % zeta(icav)*e_cav(:, icav)</div>
-<div class="line"><a id="l00828" name="l00828"></a><span class="lineno">  828</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l00829" name="l00829"></a><span class="lineno">  829</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00830" name="l00830"></a><span class="lineno">  830</span> </div>
-<div class="line"><a id="l00831" name="l00831"></a><span class="lineno">  831</span>    <span class="comment">! build the adjoint potential</span></div>
-<div class="line"><a id="l00832" name="l00832"></a><span class="lineno">  832</span>    <span class="keyword">call </span>build_adj_phi(params, constants, workspace, state % zeta, &amp;</div>
-<div class="line"><a id="l00833" name="l00833"></a><span class="lineno">  833</span>        &amp; mmax + 1, adj_phi)</div>
-<div class="line"><a id="l00834" name="l00834"></a><span class="lineno">  834</span> </div>
-<div class="line"><a id="l00835" name="l00835"></a><span class="lineno">  835</span>    <span class="comment">! build the gradient of the M2M transformation</span></div>
-<div class="line"><a id="l00836" name="l00836"></a><span class="lineno">  836</span>    <span class="keyword">call </span>grad_m2m(multipoles, mmax, params % nsph, m_grad, &amp;</div>
-<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span>        &amp; workspace % error_flag, workspace % error_message)</div>
-<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span> </div>
-<div class="line"><a id="l00839" name="l00839"></a><span class="lineno">  839</span>    <span class="comment">! contract the two ingredients to build the second contribution</span></div>
-<div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>    <span class="keywordflow">do</span> im = 1, params % nsph</div>
-<div class="line"><a id="l00841" name="l00841"></a><span class="lineno">  841</span>        <span class="keywordflow">do</span> l = 1, mmax + 1</div>
-<div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span>            ind = l*l + l + 1</div>
-<div class="line"><a id="l00843" name="l00843"></a><span class="lineno">  843</span>            fac = (-one)**(l+1)</div>
-<div class="line"><a id="l00844" name="l00844"></a><span class="lineno">  844</span>            <span class="keywordflow">do</span> m = -l, l</div>
-<div class="line"><a id="l00845" name="l00845"></a><span class="lineno">  845</span>                lm = ind + m</div>
-<div class="line"><a id="l00846" name="l00846"></a><span class="lineno">  846</span>                forces(1, im) = forces(1, im) &amp;</div>
-<div class="line"><a id="l00847" name="l00847"></a><span class="lineno">  847</span>                    &amp; + fac*pt5*m_grad(lm, 1, im)*adj_phi(lm, im)</div>
-<div class="line"><a id="l00848" name="l00848"></a><span class="lineno">  848</span>                forces(2, im) = forces(2, im) &amp;</div>
-<div class="line"><a id="l00849" name="l00849"></a><span class="lineno">  849</span>                    &amp; + fac*pt5*m_grad(lm, 2, im)*adj_phi(lm, im)</div>
-<div class="line"><a id="l00850" name="l00850"></a><span class="lineno">  850</span>                forces(3, im) = forces(3, im) &amp;</div>
-<div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span>                    &amp; + fac*pt5*m_grad(lm, 3, im)*adj_phi(lm, im)</div>
-<div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span><span class="keywordflow">            end do</span></div>
-<div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00855" name="l00855"></a><span class="lineno">  855</span> </div>
-<div class="line"><a id="l00856" name="l00856"></a><span class="lineno">  856</span>    <span class="keyword">deallocate</span>(adj_phi, m_grad, stat=info)</div>
-<div class="line"><a id="l00857" name="l00857"></a><span class="lineno">  857</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00858" name="l00858"></a><span class="lineno">  858</span>        workspace % error_message = <span class="stringliteral">&quot;Deallocation failed in grad_phi!&quot;</span></div>
-<div class="line"><a id="l00859" name="l00859"></a><span class="lineno">  859</span>        workspace % error_flag = 1</div>
-<div class="line"><a id="l00860" name="l00860"></a><span class="lineno">  860</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00861" name="l00861"></a><span class="lineno">  861</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00862" name="l00862"></a><span class="lineno">  862</span> </div>
-<div class="line"><a id="l00863" name="l00863"></a><span class="lineno">  863</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">grad_phi</a></div>
-<div class="line"><a id="l00864" name="l00864"></a><span class="lineno">  864</span> </div>
-<div class="line"><a id="l00877" name="l00877"></a><span class="lineno"><a class="line" href="namespaceddx__multipolar__solutes.html#a9a9fa5a29ff449db9444710b285bcd80">  877</a></span><span class="keyword">subroutine </span>build_adj_phi(params, constants, workspace, charges, mmax, adj_phi)</div>
-<div class="line"><a id="l00878" name="l00878"></a><span class="lineno">  878</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00880" name="l00880"></a><span class="lineno">  880</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(in)</span> :: mmax</div>
-<div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: charges(constants % ncav)</div>
-<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: adj_phi((mmax + 1)**2, params % nsph)</div>
-<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>    <span class="keywordtype">integer</span> :: isph, lm</div>
-<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>    <span class="keywordflow">if</span> (params % fmm .eq. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>        <span class="keyword">call </span>build_adj_phi_dense(charges, constants % ccav, constants % ncav, &amp;</div>
-<div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>            &amp; params % csph, mmax, params % nsph, adj_phi, &amp;</div>
-<div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>            &amp; workspace % error_flag, workspace % error_message)</div>
-<div class="line"><a id="l00890" name="l00890"></a><span class="lineno">  890</span>    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (params % fmm .eq. 1) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span>        <span class="keyword">call </span>build_adj_phi_fmm(params, constants, workspace, charges, mmax, &amp;</div>
-<div class="line"><a id="l00892" name="l00892"></a><span class="lineno">  892</span>            &amp; adj_phi)</div>
-<div class="line"><a id="l00893" name="l00893"></a><span class="lineno">  893</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00894" name="l00894"></a><span class="lineno">  894</span><span class="keyword">end subroutine </span>build_adj_phi</div>
-<div class="line"><a id="l00895" name="l00895"></a><span class="lineno">  895</span> </div>
-<div class="line"><a id="l00908" name="l00908"></a><span class="lineno"><a class="line" href="namespaceddx__multipolar__solutes.html#ae295de35e13855ebec3d0cb151b001b4">  908</a></span><span class="keyword">subroutine </span>build_adj_phi_dense(qcav, ccav, ncav, cm, mmax, nm, adj_phi, &amp;</div>
-<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>        &amp; error_flag, error_message)</div>
-<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00911" name="l00911"></a><span class="lineno">  911</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent (in)</span> :: ncav, mmax, nm</div>
-<div class="line"><a id="l00912" name="l00912"></a><span class="lineno">  912</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: qcav(ncav), ccav(3, ncav), cm(3, nm)</div>
-<div class="line"><a id="l00913" name="l00913"></a><span class="lineno">  913</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: adj_phi((mmax + 1)**2, nm)</div>
-<div class="line"><a id="l00914" name="l00914"></a><span class="lineno">  914</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(inout)</span> :: error_flag</div>
-<div class="line"><a id="l00915" name="l00915"></a><span class="lineno">  915</span>    <span class="keywordtype">character(len=255)</span>, <span class="keywordtype">intent(inout)</span> :: error_message</div>
-<div class="line"><a id="l00916" name="l00916"></a><span class="lineno">  916</span>    <span class="comment">! local variables</span></div>
-<div class="line"><a id="l00917" name="l00917"></a><span class="lineno">  917</span>    <span class="keywordtype">integer</span> :: icav, im, info</div>
-<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span><span class="keywordtype">    real</span>(dp) :: c(3)</div>
-<div class="line"><a id="l00919" name="l00919"></a><span class="lineno">  919</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: vscales(:), vscales_rel(:), v4pi2lp1(:), &amp;</div>
-<div class="line"><a id="l00920" name="l00920"></a><span class="lineno">  920</span>        &amp; work(:)</div>
-<div class="line"><a id="l00921" name="l00921"></a><span class="lineno">  921</span> </div>
-<div class="line"><a id="l00922" name="l00922"></a><span class="lineno">  922</span>    <span class="keyword">allocate</span>(vscales((mmax + 1)**2), vscales_rel((mmax + 1)**2), &amp;</div>
-<div class="line"><a id="l00923" name="l00923"></a><span class="lineno">  923</span>        &amp; v4pi2lp1(mmax + 1), work((mmax + 1)**2 + 3*mmax), stat=info)</div>
-<div class="line"><a id="l00924" name="l00924"></a><span class="lineno">  924</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00925" name="l00925"></a><span class="lineno">  925</span>        error_message = <span class="stringliteral">&#39;Allocation failed in build_adj_phi_dense!&#39;</span></div>
-<div class="line"><a id="l00926" name="l00926"></a><span class="lineno">  926</span>        error_flag = 1</div>
-<div class="line"><a id="l00927" name="l00927"></a><span class="lineno">  927</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00928" name="l00928"></a><span class="lineno">  928</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00929" name="l00929"></a><span class="lineno">  929</span>    <span class="keyword">call </span>ylmscale(mmax, vscales, v4pi2lp1, vscales_rel)</div>
-<div class="line"><a id="l00930" name="l00930"></a><span class="lineno">  930</span> </div>
-<div class="line"><a id="l00931" name="l00931"></a><span class="lineno">  931</span>    <span class="keywordflow">do</span> im = 1, nm</div>
-<div class="line"><a id="l00932" name="l00932"></a><span class="lineno">  932</span>        adj_phi(:, im) = zero</div>
-<div class="line"><a id="l00933" name="l00933"></a><span class="lineno">  933</span>        <span class="keywordflow">do</span> icav = 1, ncav</div>
-<div class="line"><a id="l00934" name="l00934"></a><span class="lineno">  934</span>            c(:) = cm(:, im) - ccav(:, icav)</div>
-<div class="line"><a id="l00935" name="l00935"></a><span class="lineno">  935</span>            <span class="keyword">call </span>fmm_m2p_adj_work(c, qcav(icav), one, mmax, vscales_rel, &amp;</div>
-<div class="line"><a id="l00936" name="l00936"></a><span class="lineno">  936</span>                &amp; one, adj_phi(:, im), work)</div>
-<div class="line"><a id="l00937" name="l00937"></a><span class="lineno">  937</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l00938" name="l00938"></a><span class="lineno">  938</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00939" name="l00939"></a><span class="lineno">  939</span> </div>
-<div class="line"><a id="l00940" name="l00940"></a><span class="lineno">  940</span>    <span class="keyword">deallocate</span>(vscales, vscales_rel, v4pi2lp1, work, stat=info)</div>
-<div class="line"><a id="l00941" name="l00941"></a><span class="lineno">  941</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00942" name="l00942"></a><span class="lineno">  942</span>        error_message = <span class="stringliteral">&#39;Deallocation failed in build_adj_phi_dense!&#39;</span></div>
-<div class="line"><a id="l00943" name="l00943"></a><span class="lineno">  943</span>        error_flag = 1</div>
-<div class="line"><a id="l00944" name="l00944"></a><span class="lineno">  944</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00945" name="l00945"></a><span class="lineno">  945</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00946" name="l00946"></a><span class="lineno">  946</span> </div>
-<div class="line"><a id="l00947" name="l00947"></a><span class="lineno">  947</span><span class="keyword">end subroutine </span>build_adj_phi_dense</div>
-<div class="line"><a id="l00948" name="l00948"></a><span class="lineno">  948</span> </div>
-<div class="line"><a id="l00961" name="l00961"></a><span class="lineno"><a class="line" href="namespaceddx__multipolar__solutes.html#a3a1c0765efbf39c7ef1a0cc2b6c1b826">  961</a></span><span class="keyword">subroutine </span>build_adj_phi_fmm(params, constants, workspace, charges, mmax, &amp;</div>
-<div class="line"><a id="l00962" name="l00962"></a><span class="lineno">  962</span>        &amp; adj_phi)</div>
-<div class="line"><a id="l00963" name="l00963"></a><span class="lineno">  963</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00964" name="l00964"></a><span class="lineno">  964</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00965" name="l00965"></a><span class="lineno">  965</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00966" name="l00966"></a><span class="lineno">  966</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00967" name="l00967"></a><span class="lineno">  967</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(in)</span> :: mmax</div>
-<div class="line"><a id="l00968" name="l00968"></a><span class="lineno">  968</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: charges(constants % ncav)</div>
-<div class="line"><a id="l00969" name="l00969"></a><span class="lineno">  969</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: adj_phi((mmax + 1)**2, params % nsph)</div>
-<div class="line"><a id="l00970" name="l00970"></a><span class="lineno">  970</span>    <span class="comment">! local variables</span></div>
-<div class="line"><a id="l00971" name="l00971"></a><span class="lineno">  971</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: tmp_grid(:, :), sph_m(:, :), work(:)</div>
-<div class="line"><a id="l00972" name="l00972"></a><span class="lineno">  972</span>    <span class="keywordtype">integer</span> :: info, icav, isph, igrid, inode, indl, l, indl1, jnear, &amp;</div>
-<div class="line"><a id="l00973" name="l00973"></a><span class="lineno">  973</span>        &amp; jnode, jsph, m, ind</div>
-<div class="line"><a id="l00974" name="l00974"></a><span class="lineno">  974</span>    <span class="keywordtype">real(dp)</span> :: c(3), fac</div>
-<div class="line"><a id="l00975" name="l00975"></a><span class="lineno">  975</span> </div>
-<div class="line"><a id="l00976" name="l00976"></a><span class="lineno">  976</span>    <span class="keyword">allocate</span>(tmp_grid(params % ngrid, params % nsph), &amp;</div>
-<div class="line"><a id="l00977" name="l00977"></a><span class="lineno">  977</span>        &amp; sph_m((mmax + 1)**2, params % nsph), &amp;</div>
-<div class="line"><a id="l00978" name="l00978"></a><span class="lineno">  978</span>        &amp; work((mmax + 1)**2 + 3*mmax), stat=info)</div>
-<div class="line"><a id="l00979" name="l00979"></a><span class="lineno">  979</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00980" name="l00980"></a><span class="lineno">  980</span>        workspace % error_message = <span class="stringliteral">&quot;Allocation failed in build_adj_phi_fmm!&quot;</span></div>
-<div class="line"><a id="l00981" name="l00981"></a><span class="lineno">  981</span>        workspace % error_flag = 1</div>
-<div class="line"><a id="l00982" name="l00982"></a><span class="lineno">  982</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00983" name="l00983"></a><span class="lineno">  983</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00984" name="l00984"></a><span class="lineno">  984</span> </div>
-<div class="line"><a id="l00985" name="l00985"></a><span class="lineno">  985</span>    tmp_grid = zero</div>
-<div class="line"><a id="l00986" name="l00986"></a><span class="lineno">  986</span> </div>
-<div class="line"><a id="l00987" name="l00987"></a><span class="lineno">  987</span>    <span class="comment">! expand the input from cavity points to all the Lebedev points</span></div>
-<div class="line"><a id="l00988" name="l00988"></a><span class="lineno">  988</span>    icav = 0</div>
-<div class="line"><a id="l00989" name="l00989"></a><span class="lineno">  989</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l00990" name="l00990"></a><span class="lineno">  990</span>        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a id="l00991" name="l00991"></a><span class="lineno">  991</span>            <span class="keywordflow">if</span> (constants % ui(igrid, isph) .eq. zero) cycle</div>
-<div class="line"><a id="l00992" name="l00992"></a><span class="lineno">  992</span>            icav = icav + 1</div>
-<div class="line"><a id="l00993" name="l00993"></a><span class="lineno">  993</span>            tmp_grid(igrid, isph) = charges(icav)</div>
-<div class="line"><a id="l00994" name="l00994"></a><span class="lineno">  994</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l00995" name="l00995"></a><span class="lineno">  995</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00996" name="l00996"></a><span class="lineno">  996</span>    adj_phi = zero</div>
-<div class="line"><a id="l00997" name="l00997"></a><span class="lineno">  997</span> </div>
-<div class="line"><a id="l00998" name="l00998"></a><span class="lineno">  998</span>    <span class="comment">! near field. We do not call tree_m2p_adj as this routine skips the</span></div>
-<div class="line"><a id="l00999" name="l00999"></a><span class="lineno">  999</span>    <span class="comment">! isph = jsph case which instead is needed.</span></div>
-<div class="line"><a id="l01000" name="l01000"></a><span class="lineno"> 1000</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l01001" name="l01001"></a><span class="lineno"> 1001</span>        inode = constants % snode(isph)</div>
-<div class="line"><a id="l01002" name="l01002"></a><span class="lineno"> 1002</span>        <span class="keywordflow">do</span> jnear = constants % snear(inode), constants % snear(inode+1)-1</div>
-<div class="line"><a id="l01003" name="l01003"></a><span class="lineno"> 1003</span>            jnode = constants % near(jnear)</div>
-<div class="line"><a id="l01004" name="l01004"></a><span class="lineno"> 1004</span>            jsph = constants % order(constants % cluster(1, jnode))</div>
-<div class="line"><a id="l01005" name="l01005"></a><span class="lineno"> 1005</span>            <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a id="l01006" name="l01006"></a><span class="lineno"> 1006</span>                c = constants % cgrid(:, igrid)*params % rsph(isph) - &amp;</div>
-<div class="line"><a id="l01007" name="l01007"></a><span class="lineno"> 1007</span>                    &amp; params % csph(:, jsph) + params % csph(:, isph)</div>
-<div class="line"><a id="l01008" name="l01008"></a><span class="lineno"> 1008</span>                <span class="keyword">call </span>fmm_m2p_adj_work(c, tmp_grid(igrid, isph), &amp;</div>
-<div class="line"><a id="l01009" name="l01009"></a><span class="lineno"> 1009</span>                    &amp; params % rsph(jsph), mmax, constants % vscales_rel, one, &amp;</div>
-<div class="line"><a id="l01010" name="l01010"></a><span class="lineno"> 1010</span>                    &amp; adj_phi(:, jsph), work)</div>
-<div class="line"><a id="l01011" name="l01011"></a><span class="lineno"> 1011</span><span class="keywordflow">            end do</span></div>
-<div class="line"><a id="l01012" name="l01012"></a><span class="lineno"> 1012</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l01013" name="l01013"></a><span class="lineno"> 1013</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l01014" name="l01014"></a><span class="lineno"> 1014</span> </div>
-<div class="line"><a id="l01015" name="l01015"></a><span class="lineno"> 1015</span>    <span class="comment">! compute the far field and store it in tmp_node_m</span></div>
-<div class="line"><a id="l01016" name="l01016"></a><span class="lineno"> 1016</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__core.html#a2ee14de3640c3649fe523dfb4d083bc9">tree_l2p_adj</a>(params, constants, one, tmp_grid, zero, &amp;</div>
-<div class="line"><a id="l01017" name="l01017"></a><span class="lineno"> 1017</span>        &amp; workspace % tmp_node_l, workspace % tmp_sph_l)</div>
-<div class="line"><a id="l01018" name="l01018"></a><span class="lineno"> 1018</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__core.html#ab1e1fe0e572c015d8f51b716e6ec8fc4">tree_l2l_rotation_adj</a>(params, constants, workspace % tmp_node_l)</div>
-<div class="line"><a id="l01019" name="l01019"></a><span class="lineno"> 1019</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__core.html#aa9e82e22265265ab215bb831a2dbdf1a">tree_m2l_rotation_adj</a>(params, constants, workspace % tmp_node_l, &amp;</div>
-<div class="line"><a id="l01020" name="l01020"></a><span class="lineno"> 1020</span>        &amp; workspace % tmp_node_m)</div>
-<div class="line"><a id="l01021" name="l01021"></a><span class="lineno"> 1021</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__core.html#ab680c1da4d087c3064e9fcbe4c439698">tree_m2m_rotation_adj</a>(params, constants, workspace % tmp_node_m)</div>
-<div class="line"><a id="l01022" name="l01022"></a><span class="lineno"> 1022</span> </div>
-<div class="line"><a id="l01023" name="l01023"></a><span class="lineno"> 1023</span>    <span class="comment">! move the far field from tmp_node_m to adj_phi</span></div>
-<div class="line"><a id="l01024" name="l01024"></a><span class="lineno"> 1024</span>    <span class="keywordflow">if</span>(mmax .lt. params % pm) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l01025" name="l01025"></a><span class="lineno"> 1025</span>        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l01026" name="l01026"></a><span class="lineno"> 1026</span>            inode = constants % snode(isph)</div>
-<div class="line"><a id="l01027" name="l01027"></a><span class="lineno"> 1027</span>            adj_phi(:, isph) = adj_phi(:, isph) &amp;</div>
-<div class="line"><a id="l01028" name="l01028"></a><span class="lineno"> 1028</span>                &amp; + workspace % tmp_node_m(1:(mmax + 1)**2, inode)</div>
-<div class="line"><a id="l01029" name="l01029"></a><span class="lineno"> 1029</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l01030" name="l01030"></a><span class="lineno"> 1030</span>    <span class="keywordflow">else</span></div>
-<div class="line"><a id="l01031" name="l01031"></a><span class="lineno"> 1031</span>        indl = (params % pm+1)**2</div>
-<div class="line"><a id="l01032" name="l01032"></a><span class="lineno"> 1032</span>        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l01033" name="l01033"></a><span class="lineno"> 1033</span>            inode = constants % snode(isph)</div>
-<div class="line"><a id="l01034" name="l01034"></a><span class="lineno"> 1034</span>            adj_phi(1:indl, isph) = adj_phi(1:indl, isph) &amp;</div>
-<div class="line"><a id="l01035" name="l01035"></a><span class="lineno"> 1035</span>                &amp; + workspace % tmp_node_m(:, inode)</div>
-<div class="line"><a id="l01036" name="l01036"></a><span class="lineno"> 1036</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l01037" name="l01037"></a><span class="lineno"> 1037</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l01038" name="l01038"></a><span class="lineno"> 1038</span> </div>
-<div class="line"><a id="l01039" name="l01039"></a><span class="lineno"> 1039</span>    <span class="comment">! scale by a factor to make it consistent with the non FMMized adjoint</span></div>
-<div class="line"><a id="l01040" name="l01040"></a><span class="lineno"> 1040</span>    <span class="comment">! potential</span></div>
-<div class="line"><a id="l01041" name="l01041"></a><span class="lineno"> 1041</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l01042" name="l01042"></a><span class="lineno"> 1042</span>        <span class="keywordflow">do</span> l = 0, mmax</div>
-<div class="line"><a id="l01043" name="l01043"></a><span class="lineno"> 1043</span>           ind = l*l + l + 1</div>
-<div class="line"><a id="l01044" name="l01044"></a><span class="lineno"> 1044</span>           fac = - (-one/params % rsph(isph))**(l + 1)</div>
-<div class="line"><a id="l01045" name="l01045"></a><span class="lineno"> 1045</span>           <span class="keywordflow">do</span> m = -l, l</div>
-<div class="line"><a id="l01046" name="l01046"></a><span class="lineno"> 1046</span>               adj_phi(ind + m, isph) = fac*adj_phi(ind + m, isph)</div>
-<div class="line"><a id="l01047" name="l01047"></a><span class="lineno"> 1047</span><span class="keywordflow">           end do</span></div>
-<div class="line"><a id="l01048" name="l01048"></a><span class="lineno"> 1048</span><span class="keywordflow">       end do</span></div>
-<div class="line"><a id="l01049" name="l01049"></a><span class="lineno"> 1049</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l01050" name="l01050"></a><span class="lineno"> 1050</span> </div>
-<div class="line"><a id="l01051" name="l01051"></a><span class="lineno"> 1051</span>    <span class="keyword">deallocate</span>(tmp_grid, work, stat=info)</div>
-<div class="line"><a id="l01052" name="l01052"></a><span class="lineno"> 1052</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l01053" name="l01053"></a><span class="lineno"> 1053</span>        workspace % error_message = <span class="stringliteral">&quot;Deallocation failed in build_adj_phi_fmm&quot;</span></div>
-<div class="line"><a id="l01054" name="l01054"></a><span class="lineno"> 1054</span>        workspace % error_flag = 1</div>
-<div class="line"><a id="l01055" name="l01055"></a><span class="lineno"> 1055</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l01056" name="l01056"></a><span class="lineno"> 1056</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l01057" name="l01057"></a><span class="lineno"> 1057</span> </div>
-<div class="line"><a id="l01058" name="l01058"></a><span class="lineno"> 1058</span><span class="keyword">end subroutine </span>build_adj_phi_fmm</div>
-<div class="line"><a id="l01059" name="l01059"></a><span class="lineno"> 1059</span> </div>
-<div class="line"><a id="l01060" name="l01060"></a><span class="lineno"> 1060</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx__multipolar__solutes.html">ddx_multipolar_solutes</a></div>
-<div class="ttc" id="agroup___fortran__interface__multipolar_html_ga29181299be03f0bb493cfd4cfb928a0b"><div class="ttname"><a href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">ddx_multipolar_solutes::grad_phi</a></div><div class="ttdeci">subroutine grad_phi(params, constants, workspace, state, mmax, multipoles, forces, e_cav)</div><div class="ttdoc">Given a multipolar distribution in real spherical harmonics and centered on the spheres,...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__multipolar__solutes_8f90_source.html#l00793">ddx_multipolar_solutes.f90:795</a></div></div>
+<div class="line"><a id="l00719" name="l00719"></a><span class="lineno"><a class="line" href="namespaceddx__multipolar__solutes.html#a3ba186ec158060205f5363c2ac45cffa">  719</a></span><span class="keyword">subroutine </span>grad_phi_for_charges(params, constants, workspace, state, &amp;</div>
+<div class="line"><a id="l00720" name="l00720"></a><span class="lineno">  720</span>        &amp; charges, forces, e_cav)</div>
+<div class="line"><a id="l00721" name="l00721"></a><span class="lineno">  721</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00722" name="l00722"></a><span class="lineno">  722</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00723" name="l00723"></a><span class="lineno">  723</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00724" name="l00724"></a><span class="lineno">  724</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00725" name="l00725"></a><span class="lineno">  725</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), <span class="keywordtype">intent(inout)</span> :: state</div>
+<div class="line"><a id="l00726" name="l00726"></a><span class="lineno">  726</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: charges(params % nsph)</div>
+<div class="line"><a id="l00727" name="l00727"></a><span class="lineno">  727</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(inout)</span> :: forces(3, params % nsph)</div>
+<div class="line"><a id="l00728" name="l00728"></a><span class="lineno">  728</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: e_cav(3, constants % ncav)</div>
+<div class="line"><a id="l00729" name="l00729"></a><span class="lineno">  729</span>    <span class="comment">! local variables</span></div>
+<div class="line"><a id="l00730" name="l00730"></a><span class="lineno">  730</span>    <span class="keywordtype">integer</span> :: isph, igrid, icav, info, im, lm</div>
+<div class="line"><a id="l00731" name="l00731"></a><span class="lineno">  731</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: field(:, :)</div>
+<div class="line"><a id="l00732" name="l00732"></a><span class="lineno">  732</span><span class="keywordtype">    real</span>(dp) :: ex, ey, ez, c(3), r2, r, r3</div>
+<div class="line"><a id="l00733" name="l00733"></a><span class="lineno">  733</span> </div>
+<div class="line"><a id="l00734" name="l00734"></a><span class="lineno">  734</span>    <span class="comment">! get some space for the adjoint potential, note that we need it</span></div>
+<div class="line"><a id="l00735" name="l00735"></a><span class="lineno">  735</span>    <span class="comment">! up to mmax + 1 as we are doing derivatives</span></div>
+<div class="line"><a id="l00736" name="l00736"></a><span class="lineno">  736</span>    <span class="keyword">allocate</span>(field(3, params % nsph), stat=info)</div>
+<div class="line"><a id="l00737" name="l00737"></a><span class="lineno">  737</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00738" name="l00738"></a><span class="lineno">  738</span>        workspace % error_message = <span class="stringliteral">&quot;Allocation failed in grad_phi_for_charges!&quot;</span></div>
+<div class="line"><a id="l00739" name="l00739"></a><span class="lineno">  739</span>        workspace % error_flag = 1</div>
+<div class="line"><a id="l00740" name="l00740"></a><span class="lineno">  740</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00741" name="l00741"></a><span class="lineno">  741</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00742" name="l00742"></a><span class="lineno">  742</span> </div>
+<div class="line"><a id="l00743" name="l00743"></a><span class="lineno">  743</span>    <span class="comment">! first contribution</span></div>
+<div class="line"><a id="l00744" name="l00744"></a><span class="lineno">  744</span>    icav = 0</div>
+<div class="line"><a id="l00745" name="l00745"></a><span class="lineno">  745</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l00746" name="l00746"></a><span class="lineno">  746</span>        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a id="l00747" name="l00747"></a><span class="lineno">  747</span>            <span class="keywordflow">if</span> (constants % ui(igrid, isph) .eq. zero) cycle</div>
+<div class="line"><a id="l00748" name="l00748"></a><span class="lineno">  748</span>            icav = icav + 1</div>
+<div class="line"><a id="l00749" name="l00749"></a><span class="lineno">  749</span>            forces(:, isph) = forces(:, isph) + pt5*state % zeta(icav) &amp;</div>
+<div class="line"><a id="l00750" name="l00750"></a><span class="lineno">  750</span>                &amp; *e_cav(:, icav)</div>
+<div class="line"><a id="l00751" name="l00751"></a><span class="lineno">  751</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l00752" name="l00752"></a><span class="lineno">  752</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00753" name="l00753"></a><span class="lineno">  753</span> </div>
+<div class="line"><a id="l00754" name="l00754"></a><span class="lineno">  754</span>    <span class="comment">! second contribution</span></div>
+<div class="line"><a id="l00755" name="l00755"></a><span class="lineno">  755</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__core.html#a3c8789fc01ba244fdaa0d4fef8e9d725">efld</a>(constants % ncav, state % zeta, constants % ccav, &amp;</div>
+<div class="line"><a id="l00756" name="l00756"></a><span class="lineno">  756</span>        &amp; params % nsph, params % csph, field)</div>
+<div class="line"><a id="l00757" name="l00757"></a><span class="lineno">  757</span> </div>
+<div class="line"><a id="l00758" name="l00758"></a><span class="lineno">  758</span>    <span class="comment">! sqrt4pi is required to go from multipoles in real spherical</span></div>
+<div class="line"><a id="l00759" name="l00759"></a><span class="lineno">  759</span>    <span class="comment">! harmonics to regular charges</span></div>
+<div class="line"><a id="l00760" name="l00760"></a><span class="lineno">  760</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l00761" name="l00761"></a><span class="lineno">  761</span>        forces(1, isph) = forces(1, isph) &amp;</div>
+<div class="line"><a id="l00762" name="l00762"></a><span class="lineno">  762</span>            &amp; + pt5*charges(isph)*field(1, isph)</div>
+<div class="line"><a id="l00763" name="l00763"></a><span class="lineno">  763</span>        forces(2, isph) = forces(2, isph) &amp;</div>
+<div class="line"><a id="l00764" name="l00764"></a><span class="lineno">  764</span>            &amp; + pt5*charges(isph)*field(2, isph)</div>
+<div class="line"><a id="l00765" name="l00765"></a><span class="lineno">  765</span>        forces(3, isph) = forces(3, isph) &amp;</div>
+<div class="line"><a id="l00766" name="l00766"></a><span class="lineno">  766</span>            &amp; + pt5*charges(isph)*field(3, isph)</div>
+<div class="line"><a id="l00767" name="l00767"></a><span class="lineno">  767</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00768" name="l00768"></a><span class="lineno">  768</span> </div>
+<div class="line"><a id="l00769" name="l00769"></a><span class="lineno">  769</span>    <span class="keyword">deallocate</span>(field, stat=info)</div>
+<div class="line"><a id="l00770" name="l00770"></a><span class="lineno">  770</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00771" name="l00771"></a><span class="lineno">  771</span>        workspace % error_message = <span class="stringliteral">&quot;Deallocation failed in grad_phi_for_charges!&quot;</span></div>
+<div class="line"><a id="l00772" name="l00772"></a><span class="lineno">  772</span>        workspace % error_flag = 1</div>
+<div class="line"><a id="l00773" name="l00773"></a><span class="lineno">  773</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00774" name="l00774"></a><span class="lineno">  774</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00775" name="l00775"></a><span class="lineno">  775</span> </div>
+<div class="line"><a id="l00776" name="l00776"></a><span class="lineno">  776</span><span class="keyword">end subroutine </span>grad_phi_for_charges</div>
+<div class="line"><a id="l00777" name="l00777"></a><span class="lineno">  777</span> </div>
+<div class="line"><a id="l00790" name="l00790"></a><span class="lineno"><a class="line" href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">  790</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">grad_phi</a>(params, constants, workspace, state, mmax, &amp;</div>
+<div class="line"><a id="l00791" name="l00791"></a><span class="lineno">  791</span>        &amp; multipoles, forces, e_cav)</div>
+<div class="line"><a id="l00792" name="l00792"></a><span class="lineno">  792</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00793" name="l00793"></a><span class="lineno">  793</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00794" name="l00794"></a><span class="lineno">  794</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00795" name="l00795"></a><span class="lineno">  795</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00796" name="l00796"></a><span class="lineno">  796</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), <span class="keywordtype">intent(inout)</span> :: state</div>
+<div class="line"><a id="l00797" name="l00797"></a><span class="lineno">  797</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(in)</span> :: mmax</div>
+<div class="line"><a id="l00798" name="l00798"></a><span class="lineno">  798</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: multipoles((mmax + 1)**2, params % nsph)</div>
+<div class="line"><a id="l00799" name="l00799"></a><span class="lineno">  799</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(inout)</span> :: forces(3, params % nsph)</div>
+<div class="line"><a id="l00800" name="l00800"></a><span class="lineno">  800</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: e_cav(3, constants % ncav)</div>
+<div class="line"><a id="l00801" name="l00801"></a><span class="lineno">  801</span>    <span class="comment">! local variables</span></div>
+<div class="line"><a id="l00802" name="l00802"></a><span class="lineno">  802</span>    <span class="keywordtype">integer</span> :: isph, igrid, icav, info, im, lm, ind, l, m</div>
+<div class="line"><a id="l00803" name="l00803"></a><span class="lineno">  803</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: adj_phi(:, :), m_grad(:, :, :)</div>
+<div class="line"><a id="l00804" name="l00804"></a><span class="lineno">  804</span><span class="keywordtype">    real</span>(dp) :: fac</div>
+<div class="line"><a id="l00805" name="l00805"></a><span class="lineno">  805</span> </div>
+<div class="line"><a id="l00806" name="l00806"></a><span class="lineno">  806</span>    <span class="comment">! get some space for the adjoint potential, note that we need it</span></div>
+<div class="line"><a id="l00807" name="l00807"></a><span class="lineno">  807</span>    <span class="comment">! up to mmax + 1 as we are doing derivatives</span></div>
+<div class="line"><a id="l00808" name="l00808"></a><span class="lineno">  808</span>    <span class="keyword">allocate</span>(adj_phi((mmax + 2)**2, params % nsph), &amp;</div>
+<div class="line"><a id="l00809" name="l00809"></a><span class="lineno">  809</span>        &amp; m_grad((mmax + 2)**2, 3, params % nsph), stat=info)</div>
+<div class="line"><a id="l00810" name="l00810"></a><span class="lineno">  810</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00811" name="l00811"></a><span class="lineno">  811</span>        workspace % error_message = <span class="stringliteral">&quot;Allocation failed in grad_phi!&quot;</span></div>
+<div class="line"><a id="l00812" name="l00812"></a><span class="lineno">  812</span>        workspace % error_flag = 1</div>
+<div class="line"><a id="l00813" name="l00813"></a><span class="lineno">  813</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00814" name="l00814"></a><span class="lineno">  814</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00815" name="l00815"></a><span class="lineno">  815</span> </div>
+<div class="line"><a id="l00816" name="l00816"></a><span class="lineno">  816</span>    <span class="comment">! first contribution</span></div>
+<div class="line"><a id="l00817" name="l00817"></a><span class="lineno">  817</span>    <span class="comment">! zeta * field</span></div>
+<div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span>    icav = 0</div>
+<div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span>            <span class="keywordflow">if</span> (constants % ui(igrid, isph) .eq. zero) cycle</div>
+<div class="line"><a id="l00822" name="l00822"></a><span class="lineno">  822</span>            icav = icav + 1</div>
+<div class="line"><a id="l00823" name="l00823"></a><span class="lineno">  823</span>            forces(:, isph) = forces(:, isph) + pt5 &amp;</div>
+<div class="line"><a id="l00824" name="l00824"></a><span class="lineno">  824</span>                &amp; *state % zeta(icav)*e_cav(:, icav)</div>
+<div class="line"><a id="l00825" name="l00825"></a><span class="lineno">  825</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l00826" name="l00826"></a><span class="lineno">  826</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00827" name="l00827"></a><span class="lineno">  827</span> </div>
+<div class="line"><a id="l00828" name="l00828"></a><span class="lineno">  828</span>    <span class="comment">! build the adjoint potential</span></div>
+<div class="line"><a id="l00829" name="l00829"></a><span class="lineno">  829</span>    <span class="keyword">call </span>build_adj_phi(params, constants, workspace, state % zeta, &amp;</div>
+<div class="line"><a id="l00830" name="l00830"></a><span class="lineno">  830</span>        &amp; mmax + 1, adj_phi)</div>
+<div class="line"><a id="l00831" name="l00831"></a><span class="lineno">  831</span> </div>
+<div class="line"><a id="l00832" name="l00832"></a><span class="lineno">  832</span>    <span class="comment">! build the gradient of the M2M transformation</span></div>
+<div class="line"><a id="l00833" name="l00833"></a><span class="lineno">  833</span>    <span class="keyword">call </span>grad_m2m(multipoles, mmax, params % nsph, m_grad, &amp;</div>
+<div class="line"><a id="l00834" name="l00834"></a><span class="lineno">  834</span>        &amp; workspace % error_flag, workspace % error_message)</div>
+<div class="line"><a id="l00835" name="l00835"></a><span class="lineno">  835</span> </div>
+<div class="line"><a id="l00836" name="l00836"></a><span class="lineno">  836</span>    <span class="comment">! contract the two ingredients to build the second contribution</span></div>
+<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span>    <span class="keywordflow">do</span> im = 1, params % nsph</div>
+<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span>        <span class="keywordflow">do</span> l = 1, mmax + 1</div>
+<div class="line"><a id="l00839" name="l00839"></a><span class="lineno">  839</span>            ind = l*l + l + 1</div>
+<div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>            fac = (-one)**(l+1)</div>
+<div class="line"><a id="l00841" name="l00841"></a><span class="lineno">  841</span>            <span class="keywordflow">do</span> m = -l, l</div>
+<div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span>                lm = ind + m</div>
+<div class="line"><a id="l00843" name="l00843"></a><span class="lineno">  843</span>                forces(1, im) = forces(1, im) &amp;</div>
+<div class="line"><a id="l00844" name="l00844"></a><span class="lineno">  844</span>                    &amp; + fac*pt5*m_grad(lm, 1, im)*adj_phi(lm, im)</div>
+<div class="line"><a id="l00845" name="l00845"></a><span class="lineno">  845</span>                forces(2, im) = forces(2, im) &amp;</div>
+<div class="line"><a id="l00846" name="l00846"></a><span class="lineno">  846</span>                    &amp; + fac*pt5*m_grad(lm, 2, im)*adj_phi(lm, im)</div>
+<div class="line"><a id="l00847" name="l00847"></a><span class="lineno">  847</span>                forces(3, im) = forces(3, im) &amp;</div>
+<div class="line"><a id="l00848" name="l00848"></a><span class="lineno">  848</span>                    &amp; + fac*pt5*m_grad(lm, 3, im)*adj_phi(lm, im)</div>
+<div class="line"><a id="l00849" name="l00849"></a><span class="lineno">  849</span><span class="keywordflow">            end do</span></div>
+<div class="line"><a id="l00850" name="l00850"></a><span class="lineno">  850</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span> </div>
+<div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span>    <span class="keyword">deallocate</span>(adj_phi, m_grad, stat=info)</div>
+<div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00855" name="l00855"></a><span class="lineno">  855</span>        workspace % error_message = <span class="stringliteral">&quot;Deallocation failed in grad_phi!&quot;</span></div>
+<div class="line"><a id="l00856" name="l00856"></a><span class="lineno">  856</span>        workspace % error_flag = 1</div>
+<div class="line"><a id="l00857" name="l00857"></a><span class="lineno">  857</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00858" name="l00858"></a><span class="lineno">  858</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00859" name="l00859"></a><span class="lineno">  859</span> </div>
+<div class="line"><a id="l00860" name="l00860"></a><span class="lineno">  860</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">grad_phi</a></div>
+<div class="line"><a id="l00861" name="l00861"></a><span class="lineno">  861</span> </div>
+<div class="line"><a id="l00874" name="l00874"></a><span class="lineno"><a class="line" href="namespaceddx__multipolar__solutes.html#a9a9fa5a29ff449db9444710b285bcd80">  874</a></span><span class="keyword">subroutine </span>build_adj_phi(params, constants, workspace, charges, mmax, adj_phi)</div>
+<div class="line"><a id="l00875" name="l00875"></a><span class="lineno">  875</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00876" name="l00876"></a><span class="lineno">  876</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00877" name="l00877"></a><span class="lineno">  877</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00878" name="l00878"></a><span class="lineno">  878</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(in)</span> :: mmax</div>
+<div class="line"><a id="l00880" name="l00880"></a><span class="lineno">  880</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: charges(constants % ncav)</div>
+<div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: adj_phi((mmax + 1)**2, params % nsph)</div>
+<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>    <span class="keywordtype">integer</span> :: isph, lm</div>
+<div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span>    <span class="keywordflow">if</span> (params % fmm .eq. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span>        <span class="keyword">call </span>build_adj_phi_dense(charges, constants % ccav, constants % ncav, &amp;</div>
+<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>            &amp; params % csph, mmax, params % nsph, adj_phi, &amp;</div>
+<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>            &amp; workspace % error_flag, workspace % error_message)</div>
+<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (params % fmm .eq. 1) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>        <span class="keyword">call </span>build_adj_phi_fmm(params, constants, workspace, charges, mmax, &amp;</div>
+<div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>            &amp; adj_phi)</div>
+<div class="line"><a id="l00890" name="l00890"></a><span class="lineno">  890</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span><span class="keyword">end subroutine </span>build_adj_phi</div>
+<div class="line"><a id="l00892" name="l00892"></a><span class="lineno">  892</span> </div>
+<div class="line"><a id="l00905" name="l00905"></a><span class="lineno"><a class="line" href="namespaceddx__multipolar__solutes.html#ae295de35e13855ebec3d0cb151b001b4">  905</a></span><span class="keyword">subroutine </span>build_adj_phi_dense(qcav, ccav, ncav, cm, mmax, nm, adj_phi, &amp;</div>
+<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>        &amp; error_flag, error_message)</div>
+<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent (in)</span> :: ncav, mmax, nm</div>
+<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: qcav(ncav), ccav(3, ncav), cm(3, nm)</div>
+<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: adj_phi((mmax + 1)**2, nm)</div>
+<div class="line"><a id="l00911" name="l00911"></a><span class="lineno">  911</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(inout)</span> :: error_flag</div>
+<div class="line"><a id="l00912" name="l00912"></a><span class="lineno">  912</span>    <span class="keywordtype">character(len=255)</span>, <span class="keywordtype">intent(inout)</span> :: error_message</div>
+<div class="line"><a id="l00913" name="l00913"></a><span class="lineno">  913</span>    <span class="comment">! local variables</span></div>
+<div class="line"><a id="l00914" name="l00914"></a><span class="lineno">  914</span>    <span class="keywordtype">integer</span> :: icav, im, info</div>
+<div class="line"><a id="l00915" name="l00915"></a><span class="lineno">  915</span><span class="keywordtype">    real</span>(dp) :: c(3)</div>
+<div class="line"><a id="l00916" name="l00916"></a><span class="lineno">  916</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: vscales(:), vscales_rel(:), v4pi2lp1(:), &amp;</div>
+<div class="line"><a id="l00917" name="l00917"></a><span class="lineno">  917</span>        &amp; work(:)</div>
+<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span> </div>
+<div class="line"><a id="l00919" name="l00919"></a><span class="lineno">  919</span>    <span class="keyword">allocate</span>(vscales((mmax + 1)**2), vscales_rel((mmax + 1)**2), &amp;</div>
+<div class="line"><a id="l00920" name="l00920"></a><span class="lineno">  920</span>        &amp; v4pi2lp1(mmax + 1), work((mmax + 1)**2 + 3*mmax), stat=info)</div>
+<div class="line"><a id="l00921" name="l00921"></a><span class="lineno">  921</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00922" name="l00922"></a><span class="lineno">  922</span>        error_message = <span class="stringliteral">&#39;Allocation failed in build_adj_phi_dense!&#39;</span></div>
+<div class="line"><a id="l00923" name="l00923"></a><span class="lineno">  923</span>        error_flag = 1</div>
+<div class="line"><a id="l00924" name="l00924"></a><span class="lineno">  924</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00925" name="l00925"></a><span class="lineno">  925</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00926" name="l00926"></a><span class="lineno">  926</span>    <span class="keyword">call </span>ylmscale(mmax, vscales, v4pi2lp1, vscales_rel)</div>
+<div class="line"><a id="l00927" name="l00927"></a><span class="lineno">  927</span> </div>
+<div class="line"><a id="l00928" name="l00928"></a><span class="lineno">  928</span>    <span class="keywordflow">do</span> im = 1, nm</div>
+<div class="line"><a id="l00929" name="l00929"></a><span class="lineno">  929</span>        adj_phi(:, im) = zero</div>
+<div class="line"><a id="l00930" name="l00930"></a><span class="lineno">  930</span>        <span class="keywordflow">do</span> icav = 1, ncav</div>
+<div class="line"><a id="l00931" name="l00931"></a><span class="lineno">  931</span>            c(:) = cm(:, im) - ccav(:, icav)</div>
+<div class="line"><a id="l00932" name="l00932"></a><span class="lineno">  932</span>            <span class="keyword">call </span>fmm_m2p_adj_work(c, qcav(icav), one, mmax, vscales_rel, &amp;</div>
+<div class="line"><a id="l00933" name="l00933"></a><span class="lineno">  933</span>                &amp; one, adj_phi(:, im), work)</div>
+<div class="line"><a id="l00934" name="l00934"></a><span class="lineno">  934</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l00935" name="l00935"></a><span class="lineno">  935</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00936" name="l00936"></a><span class="lineno">  936</span> </div>
+<div class="line"><a id="l00937" name="l00937"></a><span class="lineno">  937</span>    <span class="keyword">deallocate</span>(vscales, vscales_rel, v4pi2lp1, work, stat=info)</div>
+<div class="line"><a id="l00938" name="l00938"></a><span class="lineno">  938</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00939" name="l00939"></a><span class="lineno">  939</span>        error_message = <span class="stringliteral">&#39;Deallocation failed in build_adj_phi_dense!&#39;</span></div>
+<div class="line"><a id="l00940" name="l00940"></a><span class="lineno">  940</span>        error_flag = 1</div>
+<div class="line"><a id="l00941" name="l00941"></a><span class="lineno">  941</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00942" name="l00942"></a><span class="lineno">  942</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00943" name="l00943"></a><span class="lineno">  943</span> </div>
+<div class="line"><a id="l00944" name="l00944"></a><span class="lineno">  944</span><span class="keyword">end subroutine </span>build_adj_phi_dense</div>
+<div class="line"><a id="l00945" name="l00945"></a><span class="lineno">  945</span> </div>
+<div class="line"><a id="l00958" name="l00958"></a><span class="lineno"><a class="line" href="namespaceddx__multipolar__solutes.html#a3a1c0765efbf39c7ef1a0cc2b6c1b826">  958</a></span><span class="keyword">subroutine </span>build_adj_phi_fmm(params, constants, workspace, charges, mmax, &amp;</div>
+<div class="line"><a id="l00959" name="l00959"></a><span class="lineno">  959</span>        &amp; adj_phi)</div>
+<div class="line"><a id="l00960" name="l00960"></a><span class="lineno">  960</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00961" name="l00961"></a><span class="lineno">  961</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00962" name="l00962"></a><span class="lineno">  962</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00963" name="l00963"></a><span class="lineno">  963</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00964" name="l00964"></a><span class="lineno">  964</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(in)</span> :: mmax</div>
+<div class="line"><a id="l00965" name="l00965"></a><span class="lineno">  965</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: charges(constants % ncav)</div>
+<div class="line"><a id="l00966" name="l00966"></a><span class="lineno">  966</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: adj_phi((mmax + 1)**2, params % nsph)</div>
+<div class="line"><a id="l00967" name="l00967"></a><span class="lineno">  967</span>    <span class="comment">! local variables</span></div>
+<div class="line"><a id="l00968" name="l00968"></a><span class="lineno">  968</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: tmp_grid(:, :), sph_m(:, :), work(:)</div>
+<div class="line"><a id="l00969" name="l00969"></a><span class="lineno">  969</span>    <span class="keywordtype">integer</span> :: info, icav, isph, igrid, inode, indl, l, indl1, jnear, &amp;</div>
+<div class="line"><a id="l00970" name="l00970"></a><span class="lineno">  970</span>        &amp; jnode, jsph, m, ind</div>
+<div class="line"><a id="l00971" name="l00971"></a><span class="lineno">  971</span>    <span class="keywordtype">real(dp)</span> :: c(3), fac</div>
+<div class="line"><a id="l00972" name="l00972"></a><span class="lineno">  972</span> </div>
+<div class="line"><a id="l00973" name="l00973"></a><span class="lineno">  973</span>    <span class="keyword">allocate</span>(tmp_grid(params % ngrid, params % nsph), &amp;</div>
+<div class="line"><a id="l00974" name="l00974"></a><span class="lineno">  974</span>        &amp; sph_m((mmax + 1)**2, params % nsph), &amp;</div>
+<div class="line"><a id="l00975" name="l00975"></a><span class="lineno">  975</span>        &amp; work((mmax + 1)**2 + 3*mmax), stat=info)</div>
+<div class="line"><a id="l00976" name="l00976"></a><span class="lineno">  976</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00977" name="l00977"></a><span class="lineno">  977</span>        workspace % error_message = <span class="stringliteral">&quot;Allocation failed in build_adj_phi_fmm!&quot;</span></div>
+<div class="line"><a id="l00978" name="l00978"></a><span class="lineno">  978</span>        workspace % error_flag = 1</div>
+<div class="line"><a id="l00979" name="l00979"></a><span class="lineno">  979</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00980" name="l00980"></a><span class="lineno">  980</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00981" name="l00981"></a><span class="lineno">  981</span> </div>
+<div class="line"><a id="l00982" name="l00982"></a><span class="lineno">  982</span>    tmp_grid = zero</div>
+<div class="line"><a id="l00983" name="l00983"></a><span class="lineno">  983</span> </div>
+<div class="line"><a id="l00984" name="l00984"></a><span class="lineno">  984</span>    <span class="comment">! expand the input from cavity points to all the Lebedev points</span></div>
+<div class="line"><a id="l00985" name="l00985"></a><span class="lineno">  985</span>    icav = 0</div>
+<div class="line"><a id="l00986" name="l00986"></a><span class="lineno">  986</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l00987" name="l00987"></a><span class="lineno">  987</span>        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a id="l00988" name="l00988"></a><span class="lineno">  988</span>            <span class="keywordflow">if</span> (constants % ui(igrid, isph) .eq. zero) cycle</div>
+<div class="line"><a id="l00989" name="l00989"></a><span class="lineno">  989</span>            icav = icav + 1</div>
+<div class="line"><a id="l00990" name="l00990"></a><span class="lineno">  990</span>            tmp_grid(igrid, isph) = charges(icav)</div>
+<div class="line"><a id="l00991" name="l00991"></a><span class="lineno">  991</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l00992" name="l00992"></a><span class="lineno">  992</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00993" name="l00993"></a><span class="lineno">  993</span>    adj_phi = zero</div>
+<div class="line"><a id="l00994" name="l00994"></a><span class="lineno">  994</span> </div>
+<div class="line"><a id="l00995" name="l00995"></a><span class="lineno">  995</span>    <span class="comment">! near field. We do not call tree_m2p_adj as this routine skips the</span></div>
+<div class="line"><a id="l00996" name="l00996"></a><span class="lineno">  996</span>    <span class="comment">! isph = jsph case which instead is needed.</span></div>
+<div class="line"><a id="l00997" name="l00997"></a><span class="lineno">  997</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l00998" name="l00998"></a><span class="lineno">  998</span>        inode = constants % snode(isph)</div>
+<div class="line"><a id="l00999" name="l00999"></a><span class="lineno">  999</span>        <span class="keywordflow">do</span> jnear = constants % snear(inode), constants % snear(inode+1)-1</div>
+<div class="line"><a id="l01000" name="l01000"></a><span class="lineno"> 1000</span>            jnode = constants % near(jnear)</div>
+<div class="line"><a id="l01001" name="l01001"></a><span class="lineno"> 1001</span>            jsph = constants % order(constants % cluster(1, jnode))</div>
+<div class="line"><a id="l01002" name="l01002"></a><span class="lineno"> 1002</span>            <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a id="l01003" name="l01003"></a><span class="lineno"> 1003</span>                c = constants % cgrid(:, igrid)*params % rsph(isph) - &amp;</div>
+<div class="line"><a id="l01004" name="l01004"></a><span class="lineno"> 1004</span>                    &amp; params % csph(:, jsph) + params % csph(:, isph)</div>
+<div class="line"><a id="l01005" name="l01005"></a><span class="lineno"> 1005</span>                <span class="keyword">call </span>fmm_m2p_adj_work(c, tmp_grid(igrid, isph), &amp;</div>
+<div class="line"><a id="l01006" name="l01006"></a><span class="lineno"> 1006</span>                    &amp; params % rsph(jsph), mmax, constants % vscales_rel, one, &amp;</div>
+<div class="line"><a id="l01007" name="l01007"></a><span class="lineno"> 1007</span>                    &amp; adj_phi(:, jsph), work)</div>
+<div class="line"><a id="l01008" name="l01008"></a><span class="lineno"> 1008</span><span class="keywordflow">            end do</span></div>
+<div class="line"><a id="l01009" name="l01009"></a><span class="lineno"> 1009</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l01010" name="l01010"></a><span class="lineno"> 1010</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l01011" name="l01011"></a><span class="lineno"> 1011</span> </div>
+<div class="line"><a id="l01012" name="l01012"></a><span class="lineno"> 1012</span>    <span class="comment">! compute the far field and store it in tmp_node_m</span></div>
+<div class="line"><a id="l01013" name="l01013"></a><span class="lineno"> 1013</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__core.html#a2ee14de3640c3649fe523dfb4d083bc9">tree_l2p_adj</a>(params, constants, one, tmp_grid, zero, &amp;</div>
+<div class="line"><a id="l01014" name="l01014"></a><span class="lineno"> 1014</span>        &amp; workspace % tmp_node_l, workspace % tmp_sph_l)</div>
+<div class="line"><a id="l01015" name="l01015"></a><span class="lineno"> 1015</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__core.html#ab1e1fe0e572c015d8f51b716e6ec8fc4">tree_l2l_rotation_adj</a>(params, constants, workspace % tmp_node_l)</div>
+<div class="line"><a id="l01016" name="l01016"></a><span class="lineno"> 1016</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__core.html#aa9e82e22265265ab215bb831a2dbdf1a">tree_m2l_rotation_adj</a>(params, constants, workspace % tmp_node_l, &amp;</div>
+<div class="line"><a id="l01017" name="l01017"></a><span class="lineno"> 1017</span>        &amp; workspace % tmp_node_m)</div>
+<div class="line"><a id="l01018" name="l01018"></a><span class="lineno"> 1018</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__core.html#ab680c1da4d087c3064e9fcbe4c439698">tree_m2m_rotation_adj</a>(params, constants, workspace % tmp_node_m)</div>
+<div class="line"><a id="l01019" name="l01019"></a><span class="lineno"> 1019</span> </div>
+<div class="line"><a id="l01020" name="l01020"></a><span class="lineno"> 1020</span>    <span class="comment">! move the far field from tmp_node_m to adj_phi</span></div>
+<div class="line"><a id="l01021" name="l01021"></a><span class="lineno"> 1021</span>    <span class="keywordflow">if</span>(mmax .lt. params % pm) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l01022" name="l01022"></a><span class="lineno"> 1022</span>        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l01023" name="l01023"></a><span class="lineno"> 1023</span>            inode = constants % snode(isph)</div>
+<div class="line"><a id="l01024" name="l01024"></a><span class="lineno"> 1024</span>            adj_phi(:, isph) = adj_phi(:, isph) &amp;</div>
+<div class="line"><a id="l01025" name="l01025"></a><span class="lineno"> 1025</span>                &amp; + workspace % tmp_node_m(1:(mmax + 1)**2, inode)</div>
+<div class="line"><a id="l01026" name="l01026"></a><span class="lineno"> 1026</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l01027" name="l01027"></a><span class="lineno"> 1027</span>    <span class="keywordflow">else</span></div>
+<div class="line"><a id="l01028" name="l01028"></a><span class="lineno"> 1028</span>        indl = (params % pm+1)**2</div>
+<div class="line"><a id="l01029" name="l01029"></a><span class="lineno"> 1029</span>        <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l01030" name="l01030"></a><span class="lineno"> 1030</span>            inode = constants % snode(isph)</div>
+<div class="line"><a id="l01031" name="l01031"></a><span class="lineno"> 1031</span>            adj_phi(1:indl, isph) = adj_phi(1:indl, isph) &amp;</div>
+<div class="line"><a id="l01032" name="l01032"></a><span class="lineno"> 1032</span>                &amp; + workspace % tmp_node_m(:, inode)</div>
+<div class="line"><a id="l01033" name="l01033"></a><span class="lineno"> 1033</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l01034" name="l01034"></a><span class="lineno"> 1034</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l01035" name="l01035"></a><span class="lineno"> 1035</span> </div>
+<div class="line"><a id="l01036" name="l01036"></a><span class="lineno"> 1036</span>    <span class="comment">! scale by a factor to make it consistent with the non FMMized adjoint</span></div>
+<div class="line"><a id="l01037" name="l01037"></a><span class="lineno"> 1037</span>    <span class="comment">! potential</span></div>
+<div class="line"><a id="l01038" name="l01038"></a><span class="lineno"> 1038</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l01039" name="l01039"></a><span class="lineno"> 1039</span>        <span class="keywordflow">do</span> l = 0, mmax</div>
+<div class="line"><a id="l01040" name="l01040"></a><span class="lineno"> 1040</span>           ind = l*l + l + 1</div>
+<div class="line"><a id="l01041" name="l01041"></a><span class="lineno"> 1041</span>           fac = - (-one/params % rsph(isph))**(l + 1)</div>
+<div class="line"><a id="l01042" name="l01042"></a><span class="lineno"> 1042</span>           <span class="keywordflow">do</span> m = -l, l</div>
+<div class="line"><a id="l01043" name="l01043"></a><span class="lineno"> 1043</span>               adj_phi(ind + m, isph) = fac*adj_phi(ind + m, isph)</div>
+<div class="line"><a id="l01044" name="l01044"></a><span class="lineno"> 1044</span><span class="keywordflow">           end do</span></div>
+<div class="line"><a id="l01045" name="l01045"></a><span class="lineno"> 1045</span><span class="keywordflow">       end do</span></div>
+<div class="line"><a id="l01046" name="l01046"></a><span class="lineno"> 1046</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l01047" name="l01047"></a><span class="lineno"> 1047</span> </div>
+<div class="line"><a id="l01048" name="l01048"></a><span class="lineno"> 1048</span>    <span class="keyword">deallocate</span>(tmp_grid, work, stat=info)</div>
+<div class="line"><a id="l01049" name="l01049"></a><span class="lineno"> 1049</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l01050" name="l01050"></a><span class="lineno"> 1050</span>        workspace % error_message = <span class="stringliteral">&quot;Deallocation failed in build_adj_phi_fmm&quot;</span></div>
+<div class="line"><a id="l01051" name="l01051"></a><span class="lineno"> 1051</span>        workspace % error_flag = 1</div>
+<div class="line"><a id="l01052" name="l01052"></a><span class="lineno"> 1052</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l01053" name="l01053"></a><span class="lineno"> 1053</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l01054" name="l01054"></a><span class="lineno"> 1054</span> </div>
+<div class="line"><a id="l01055" name="l01055"></a><span class="lineno"> 1055</span><span class="keyword">end subroutine </span>build_adj_phi_fmm</div>
+<div class="line"><a id="l01056" name="l01056"></a><span class="lineno"> 1056</span> </div>
+<div class="line"><a id="l01057" name="l01057"></a><span class="lineno"> 1057</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx__multipolar__solutes.html">ddx_multipolar_solutes</a></div>
+<div class="ttc" id="agroup___fortran__interface__multipolar_html_ga29181299be03f0bb493cfd4cfb928a0b"><div class="ttname"><a href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">ddx_multipolar_solutes::grad_phi</a></div><div class="ttdeci">subroutine grad_phi(params, constants, workspace, state, mmax, multipoles, forces, e_cav)</div><div class="ttdoc">Given a multipolar distribution in real spherical harmonics and centered on the spheres,...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__multipolar__solutes_8f90_source.html#l00790">ddx_multipolar_solutes.f90:792</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__multipolar_html_ga5c89baf7330431c44d60f075ab516c5f"><div class="ttname"><a href="group___fortran__interface__multipolar.html#ga5c89baf7330431c44d60f075ab516c5f">ddx_multipolar_solutes::build_psi</a></div><div class="ttdeci">subroutine build_psi(params, constants, workspace, multipoles, mmax, psi)</div><div class="ttdoc">Given a multipolar distribution, assemble the RHS psi. The multipoles must be centered on the ddx sph...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__multipolar__solutes_8f90_source.html#l00551">ddx_multipolar_solutes.f90:552</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__multipolar_html_ga6611268f56ee74f9f64df0915594f8c7"><div class="ttname"><a href="group___fortran__interface__multipolar.html#ga6611268f56ee74f9f64df0915594f8c7">ddx_multipolar_solutes::build_phi</a></div><div class="ttdeci">subroutine build_phi(params, constants, workspace, multipoles, mmax, phi_cav)</div><div class="ttdoc">Given a multipolar distribution, compute the potential at the target points this is done with or with...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__multipolar__solutes_8f90_source.html#l00299">ddx_multipolar_solutes.f90:301</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__multipolar_html_gabec05c36e4683b034461ddea3f93c3a0"><div class="ttname"><a href="group___fortran__interface__multipolar.html#gabec05c36e4683b034461ddea3f93c3a0">ddx_multipolar_solutes::build_g</a></div><div class="ttdeci">subroutine build_g(params, constants, workspace, multipoles, mmax, phi_cav, e_cav, g_cav)</div><div class="ttdoc">Given a multipolar distribution, compute the potential, its gradient and its hessian at the target po...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__multipolar__solutes_8f90_source.html#l00031">ddx_multipolar_solutes.f90:33</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__multipolar_html_gaee11a592e3b3b9b12a28554e220ba202"><div class="ttname"><a href="group___fortran__interface__multipolar.html#gaee11a592e3b3b9b12a28554e220ba202">ddx_multipolar_solutes::build_e</a></div><div class="ttdeci">subroutine build_e(params, constants, workspace, multipoles, mmax, phi_cav, e_cav)</div><div class="ttdoc">Given a multipolar distribution, compute the potential and its gradient at the target points this is ...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__multipolar__solutes_8f90_source.html#l00191">ddx_multipolar_solutes.f90:193</a></div></div>
 <div class="ttc" id="anamespaceddx__core_html"><div class="ttname"><a href="namespaceddx__core.html">ddx_core</a></div><div class="ttdoc">Core routines and parameters of the ddX software.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l00013">ddx_core.f90:13</a></div></div>
-<div class="ttc" id="anamespaceddx__core_html_a0bbe738fff5a4d15f744dfa0b26938cf"><div class="ttname"><a href="namespaceddx__core.html#a0bbe738fff5a4d15f744dfa0b26938cf">ddx_core::tree_grad_l2l</a></div><div class="ttdeci">subroutine tree_grad_l2l(params, constants, node_l, sph_l_grad, work)</div><div class="ttdoc">TODO.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02687">ddx_core.f90:2688</a></div></div>
-<div class="ttc" id="anamespaceddx__core_html_a144b53f7df72de5a2717b78c6b903160"><div class="ttname"><a href="namespaceddx__core.html#a144b53f7df72de5a2717b78c6b903160">ddx_core::tree_l2l_rotation</a></div><div class="ttdeci">subroutine tree_l2l_rotation(params, constants, node_l)</div><div class="ttdoc">Transfer local coefficients over a tree.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l01834">ddx_core.f90:1835</a></div></div>
-<div class="ttc" id="anamespaceddx__core_html_a1caf6da4500220161384b51938ada1f8"><div class="ttname"><a href="namespaceddx__core.html#a1caf6da4500220161384b51938ada1f8">ddx_core::tree_m2m_rotation</a></div><div class="ttdeci">subroutine tree_m2m_rotation(params, constants, node_m)</div><div class="ttdoc">Transfer multipole coefficients over a tree.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l01618">ddx_core.f90:1619</a></div></div>
-<div class="ttc" id="anamespaceddx__core_html_a1d81120958f62351b12a9036ab6cbf6e"><div class="ttname"><a href="namespaceddx__core.html#a1d81120958f62351b12a9036ab6cbf6e">ddx_core::tree_l2p</a></div><div class="ttdeci">subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v, sph_l)</div><div class="ttdoc">TODO.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02210">ddx_core.f90:2211</a></div></div>
-<div class="ttc" id="anamespaceddx__core_html_a2ee14de3640c3649fe523dfb4d083bc9"><div class="ttname"><a href="namespaceddx__core.html#a2ee14de3640c3649fe523dfb4d083bc9">ddx_core::tree_l2p_adj</a></div><div class="ttdeci">subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l, sph_l)</div><div class="ttdoc">TODO.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02281">ddx_core.f90:2282</a></div></div>
-<div class="ttc" id="anamespaceddx__core_html_a3c8789fc01ba244fdaa0d4fef8e9d725"><div class="ttname"><a href="namespaceddx__core.html#a3c8789fc01ba244fdaa0d4fef8e9d725">ddx_core::efld</a></div><div class="ttdeci">subroutine efld(ncav, zeta, ccav, nsph, csph, force)</div><div class="ttdoc">TODO.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02591">ddx_core.f90:2592</a></div></div>
-<div class="ttc" id="anamespaceddx__core_html_a559f8f129ce2d481446c4325526aa277"><div class="ttname"><a href="namespaceddx__core.html#a559f8f129ce2d481446c4325526aa277">ddx_core::tree_m2l_rotation</a></div><div class="ttdeci">subroutine tree_m2l_rotation(params, constants, node_m, node_l)</div><div class="ttdoc">Transfer multipole local coefficients into local over a tree.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02005">ddx_core.f90:2006</a></div></div>
-<div class="ttc" id="anamespaceddx__core_html_a60a40706c306b954af9fccb186c305e0"><div class="ttname"><a href="namespaceddx__core.html#a60a40706c306b954af9fccb186c305e0">ddx_core::tree_m2p</a></div><div class="ttdeci">subroutine tree_m2p(params, constants, p, alpha, sph_m, beta, grid_v)</div><div class="ttdoc">TODO.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02351">ddx_core.f90:2352</a></div></div>
-<div class="ttc" id="anamespaceddx__core_html_aa9e82e22265265ab215bb831a2dbdf1a"><div class="ttname"><a href="namespaceddx__core.html#aa9e82e22265265ab215bb831a2dbdf1a">ddx_core::tree_m2l_rotation_adj</a></div><div class="ttdeci">subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)</div><div class="ttdoc">Adjoint transfer multipole local coefficients into local over a tree.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02170">ddx_core.f90:2171</a></div></div>
-<div class="ttc" id="anamespaceddx__core_html_ab1e1fe0e572c015d8f51b716e6ec8fc4"><div class="ttname"><a href="namespaceddx__core.html#ab1e1fe0e572c015d8f51b716e6ec8fc4">ddx_core::tree_l2l_rotation_adj</a></div><div class="ttdeci">subroutine tree_l2l_rotation_adj(params, constants, node_l)</div><div class="ttdoc">Adjoint transfer local coefficients over a tree.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l01923">ddx_core.f90:1924</a></div></div>
-<div class="ttc" id="anamespaceddx__core_html_ab680c1da4d087c3064e9fcbe4c439698"><div class="ttname"><a href="namespaceddx__core.html#ab680c1da4d087c3064e9fcbe4c439698">ddx_core::tree_m2m_rotation_adj</a></div><div class="ttdeci">subroutine tree_m2m_rotation_adj(params, constants, node_m)</div><div class="ttdoc">Adjoint transfer multipole coefficients over a tree.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l01749">ddx_core.f90:1750</a></div></div>
+<div class="ttc" id="anamespaceddx__core_html_a0bbe738fff5a4d15f744dfa0b26938cf"><div class="ttname"><a href="namespaceddx__core.html#a0bbe738fff5a4d15f744dfa0b26938cf">ddx_core::tree_grad_l2l</a></div><div class="ttdeci">subroutine tree_grad_l2l(params, constants, node_l, sph_l_grad, work)</div><div class="ttdoc">TODO.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02720">ddx_core.f90:2721</a></div></div>
+<div class="ttc" id="anamespaceddx__core_html_a144b53f7df72de5a2717b78c6b903160"><div class="ttname"><a href="namespaceddx__core.html#a144b53f7df72de5a2717b78c6b903160">ddx_core::tree_l2l_rotation</a></div><div class="ttdeci">subroutine tree_l2l_rotation(params, constants, node_l)</div><div class="ttdoc">Transfer local coefficients over a tree.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l01867">ddx_core.f90:1868</a></div></div>
+<div class="ttc" id="anamespaceddx__core_html_a1caf6da4500220161384b51938ada1f8"><div class="ttname"><a href="namespaceddx__core.html#a1caf6da4500220161384b51938ada1f8">ddx_core::tree_m2m_rotation</a></div><div class="ttdeci">subroutine tree_m2m_rotation(params, constants, node_m)</div><div class="ttdoc">Transfer multipole coefficients over a tree.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l01651">ddx_core.f90:1652</a></div></div>
+<div class="ttc" id="anamespaceddx__core_html_a1d81120958f62351b12a9036ab6cbf6e"><div class="ttname"><a href="namespaceddx__core.html#a1d81120958f62351b12a9036ab6cbf6e">ddx_core::tree_l2p</a></div><div class="ttdeci">subroutine tree_l2p(params, constants, alpha, node_l, beta, grid_v, sph_l)</div><div class="ttdoc">TODO.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02243">ddx_core.f90:2244</a></div></div>
+<div class="ttc" id="anamespaceddx__core_html_a2ee14de3640c3649fe523dfb4d083bc9"><div class="ttname"><a href="namespaceddx__core.html#a2ee14de3640c3649fe523dfb4d083bc9">ddx_core::tree_l2p_adj</a></div><div class="ttdeci">subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l, sph_l)</div><div class="ttdoc">TODO.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02314">ddx_core.f90:2315</a></div></div>
+<div class="ttc" id="anamespaceddx__core_html_a3c8789fc01ba244fdaa0d4fef8e9d725"><div class="ttname"><a href="namespaceddx__core.html#a3c8789fc01ba244fdaa0d4fef8e9d725">ddx_core::efld</a></div><div class="ttdeci">subroutine efld(ncav, zeta, ccav, nsph, csph, force)</div><div class="ttdoc">TODO.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02624">ddx_core.f90:2625</a></div></div>
+<div class="ttc" id="anamespaceddx__core_html_a559f8f129ce2d481446c4325526aa277"><div class="ttname"><a href="namespaceddx__core.html#a559f8f129ce2d481446c4325526aa277">ddx_core::tree_m2l_rotation</a></div><div class="ttdeci">subroutine tree_m2l_rotation(params, constants, node_m, node_l)</div><div class="ttdoc">Transfer multipole local coefficients into local over a tree.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02038">ddx_core.f90:2039</a></div></div>
+<div class="ttc" id="anamespaceddx__core_html_a60a40706c306b954af9fccb186c305e0"><div class="ttname"><a href="namespaceddx__core.html#a60a40706c306b954af9fccb186c305e0">ddx_core::tree_m2p</a></div><div class="ttdeci">subroutine tree_m2p(params, constants, p, alpha, sph_m, beta, grid_v)</div><div class="ttdoc">TODO.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02384">ddx_core.f90:2385</a></div></div>
+<div class="ttc" id="anamespaceddx__core_html_aa9e82e22265265ab215bb831a2dbdf1a"><div class="ttname"><a href="namespaceddx__core.html#aa9e82e22265265ab215bb831a2dbdf1a">ddx_core::tree_m2l_rotation_adj</a></div><div class="ttdeci">subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)</div><div class="ttdoc">Adjoint transfer multipole local coefficients into local over a tree.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l02203">ddx_core.f90:2204</a></div></div>
+<div class="ttc" id="anamespaceddx__core_html_ab1e1fe0e572c015d8f51b716e6ec8fc4"><div class="ttname"><a href="namespaceddx__core.html#ab1e1fe0e572c015d8f51b716e6ec8fc4">ddx_core::tree_l2l_rotation_adj</a></div><div class="ttdeci">subroutine tree_l2l_rotation_adj(params, constants, node_l)</div><div class="ttdoc">Adjoint transfer local coefficients over a tree.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l01956">ddx_core.f90:1957</a></div></div>
+<div class="ttc" id="anamespaceddx__core_html_ab680c1da4d087c3064e9fcbe4c439698"><div class="ttname"><a href="namespaceddx__core.html#ab680c1da4d087c3064e9fcbe4c439698">ddx_core::tree_m2m_rotation_adj</a></div><div class="ttdeci">subroutine tree_m2m_rotation_adj(params, constants, node_m)</div><div class="ttdoc">Adjoint transfer multipole coefficients over a tree.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l01782">ddx_core.f90:1783</a></div></div>
 <div class="ttc" id="anamespaceddx__definitions_html"><div class="ttname"><a href="namespaceddx__definitions.html">ddx_definitions</a></div><div class="ttdoc">Compile-time constants and definitions.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__definitions_8f90_source.html#l00013">ddx_definitions.f90:13</a></div></div>
 <div class="ttc" id="anamespaceddx__multipolar__solutes_html"><div class="ttname"><a href="namespaceddx__multipolar__solutes.html">ddx_multipolar_solutes</a></div><div class="ttdoc">Routines to build rhs (phi and psi)</div><div class="ttdef"><b>Definition:</b> <a href="ddx__multipolar__solutes_8f90_source.html#l00002">ddx_multipolar_solutes.f90:2</a></div></div>
 <div class="ttc" id="astructddx__core_1_1ddx__state__type_html"><div class="ttname"><a href="structddx__core_1_1ddx__state__type.html">ddx_core::ddx_state_type</a></div><div class="ttdef"><b>Definition:</b> <a href="ddx__core_8f90_source.html#l00026">ddx_core.f90:26</a></div></div>

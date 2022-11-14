@@ -6,6 +6,8 @@ var structddx__core_1_1ddx__state__type =
     [ "xs_rel_diff", "structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7", null ],
     [ "xs_time", "structddx__core_1_1ddx__state__type.html#afea532fb7fd4160a2984ce1aca68934b", null ],
     [ "sgrid", "structddx__core_1_1ddx__state__type.html#a3f54780b6bbb34070a8f38c83b742254", null ],
+    [ "psi", "structddx__core_1_1ddx__state__type.html#a6708562e4f7a959cf4272bef83771a8d", null ],
+    [ "phi_cav", "structddx__core_1_1ddx__state__type.html#a160af68bec958a00f1c20bf28fbacb7e", null ],
     [ "phiinf", "structddx__core_1_1ddx__state__type.html#a83850fd12c4c5b915a9226afa3d90e17", null ],
     [ "phieps", "structddx__core_1_1ddx__state__type.html#a85a9a635519db969914d9b977f2bf3b1", null ],
     [ "phieps_niter", "structddx__core_1_1ddx__state__type.html#a85b122812d525480a3f97c1891087441", null ],

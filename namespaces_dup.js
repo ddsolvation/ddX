@@ -6,10 +6,13 @@ var namespaces_dup =
     [ "ddx_constants", "namespaceddx__constants.html", "namespaceddx__constants" ],
     [ "ddx_core", "namespaceddx__core.html", "namespaceddx__core" ],
     [ "ddx_cosmo", "namespaceddx__cosmo.html", [
-      [ "ddcosmo", "namespaceddx__cosmo.html#ada69f95e42cb1aa2e93023745ca1e09d", null ],
-      [ "ddcosmo_guess", "group___fortran__interface__ddcosmo.html#ga34395a4e3f5f4fcf5210990cc0b13dd9", null ],
-      [ "ddcosmo_solve_worker", "namespaceddx__cosmo.html#ac31ff0d441e507b02bd7ba36a4716232", null ],
-      [ "ddcosmo_adjoint_worker", "namespaceddx__cosmo.html#aaad1a0954f1a84a0bfe2ee98735f9d74", null ]
+      [ "ddcosmo", "group___fortran__interface__ddcosmo.html#ga7c83eee1200de86e45846ae434a5236a", null ],
+      [ "ddcosmo_setup", "group___fortran__interface__ddcosmo.html#ga501c58483a775fe4829bb94d7155f4f1", null ],
+      [ "ddcosmo_guess", "group___fortran__interface__ddcosmo.html#ga19e04e21fa4063a92520a59cc2f316b9", null ],
+      [ "ddcosmo_guess_adjoint", "group___fortran__interface__ddcosmo.html#ga7c10125a1107726da4c18e90d20dff1e", null ],
+      [ "ddcosmo_solve", "group___fortran__interface__ddcosmo.html#ga8437b9aa1205fce64eb67c376293a673", null ],
+      [ "ddcosmo_solve_adjoint", "group___fortran__interface__ddcosmo.html#ga997081b4362a37c671d1b0668acda3e3", null ],
+      [ "ddcosmo_solvation_force_terms", "group___fortran__interface__ddcosmo.html#ga82f05cf5eee50c7bb50b3f542c3222fe", null ]
     ] ],
     [ "ddx_definitions", "namespaceddx__definitions.html", [
       [ "dp", "namespaceddx__definitions.html#a6e62179e6ac303908858a873e4db49c2", null ],
@@ -141,7 +144,7 @@ var namespaces_dup =
       [ "load_m", "namespaceddx__multipolar__solutes.html#a61c22d6edf664b23153d1d41a1036db8", null ],
       [ "do_fmm", "namespaceddx__multipolar__solutes.html#a854e543bad7f9523b75ce5037fed9bc9", null ],
       [ "grad_m2m", "namespaceddx__multipolar__solutes.html#ac61380f591d7d06fac682ab4d6fa781d", null ],
-      [ "grad_phi_for_charges", "namespaceddx__multipolar__solutes.html#aa56314068d15524fdb496363a8bd621f", null ],
+      [ "grad_phi_for_charges", "namespaceddx__multipolar__solutes.html#a3ba186ec158060205f5363c2ac45cffa", null ],
       [ "grad_phi", "group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b", null ],
       [ "build_adj_phi", "namespaceddx__multipolar__solutes.html#a9a9fa5a29ff449db9444710b285bcd80", null ],
       [ "build_adj_phi_dense", "namespaceddx__multipolar__solutes.html#ae295de35e13855ebec3d0cb151b001b4", null ],
@@ -168,13 +171,13 @@ var namespaces_dup =
     ] ],
     [ "ddx_parameters", "namespaceddx__parameters.html", "namespaceddx__parameters" ],
     [ "ddx_pcm", "namespaceddx__pcm.html", [
-      [ "ddpcm_solve", "group___fortran__interface__ddpcm.html#ga5f957df6faca9f66accc5073f702df90", null ],
-      [ "ddpcm_adjoint", "group___fortran__interface__ddpcm.html#ga7bb48ad6e3d03d47fab122a662dabd49", null ],
-      [ "ddpcm_forces", "group___fortran__interface__ddpcm.html#gaae281a2a2211b1c19fe84d7d18bdbf38", null ],
-      [ "ddpcm", "namespaceddx__pcm.html#acb14bc51a656707dcea90cf19a563d50", null ],
-      [ "ddpcm_guess", "group___fortran__interface__ddpcm.html#ga0e69b132a8d951ff0a77f82011fd22c8", null ],
-      [ "ddpcm_solve_worker", "namespaceddx__pcm.html#ab0435577c42c55b4865dd4363308192f", null ],
-      [ "ddpcm_energy_worker", "namespaceddx__pcm.html#acc5d8cef0c0985b0a88d17eff10391e1", null ]
+      [ "ddpcm", "group___fortran__interface__ddpcm.html#gaac7e2eb04f8acc0b10a8aa7096d735e0", null ],
+      [ "ddpcm_setup", "group___fortran__interface__ddpcm.html#ga372f8ee7283b914b8e18cdb3fe191961", null ],
+      [ "ddpcm_guess", "group___fortran__interface__ddpcm.html#gafcf10e5bf414f7bbb08631623e021ee8", null ],
+      [ "ddpcm_guess_adjoint", "group___fortran__interface__ddpcm.html#ga19181358de0ded287e1e5426f11da2e5", null ],
+      [ "ddpcm_solve", "group___fortran__interface__ddpcm.html#gaad1df8961dc4af2e658ebab9510c2807", null ],
+      [ "ddpcm_solve_adjoint", "group___fortran__interface__ddpcm.html#ga39d2a1ee8cb28f8a12bbbb023a66ccf2", null ],
+      [ "ddpcm_solvation_force_terms", "group___fortran__interface__ddpcm.html#gae5bf3638d2a8c2ffd89f551fffe38814", null ]
     ] ],
     [ "ddx_solvers", "namespaceddx__solvers.html", "namespaceddx__solvers" ],
     [ "ddx_workspace", "namespaceddx__workspace.html", "namespaceddx__workspace" ]

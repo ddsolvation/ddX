@@ -137,9 +137,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:ac61380f591d7d06fac682ab4d6fa781d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__multipolar__solutes.html#ac61380f591d7d06fac682ab4d6fa781d">grad_m2m</a> (multipoles, mmax, nm, tmp_m_grad, error_flag, error_message)</td></tr>
 <tr class="memdesc:ac61380f591d7d06fac682ab4d6fa781d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution compute the action of dP on it, this is required in the computation of the forces.  <a href="namespaceddx__multipolar__solutes.html#ac61380f591d7d06fac682ab4d6fa781d">More...</a><br /></td></tr>
 <tr class="separator:ac61380f591d7d06fac682ab4d6fa781d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa56314068d15524fdb496363a8bd621f"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__multipolar__solutes.html#aa56314068d15524fdb496363a8bd621f">grad_phi_for_charges</a> (params, constants, workspace, state, mmax, multipoles, forces, e_cav)</td></tr>
-<tr class="memdesc:aa56314068d15524fdb496363a8bd621f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a charge distribution centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions.  <a href="namespaceddx__multipolar__solutes.html#aa56314068d15524fdb496363a8bd621f">More...</a><br /></td></tr>
-<tr class="separator:aa56314068d15524fdb496363a8bd621f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ba186ec158060205f5363c2ac45cffa"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__multipolar__solutes.html#a3ba186ec158060205f5363c2ac45cffa">grad_phi_for_charges</a> (params, constants, workspace, state, charges, forces, e_cav)</td></tr>
+<tr class="memdesc:a3ba186ec158060205f5363c2ac45cffa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a charge distribution centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions.  <a href="namespaceddx__multipolar__solutes.html#a3ba186ec158060205f5363c2ac45cffa">More...</a><br /></td></tr>
+<tr class="separator:a3ba186ec158060205f5363c2ac45cffa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga29181299be03f0bb493cfd4cfb928a0b"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">grad_phi</a> (params, constants, workspace, state, mmax, multipoles, forces, e_cav)</td></tr>
 <tr class="memdesc:ga29181299be03f0bb493cfd4cfb928a0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions.  <a href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">More...</a><br /></td></tr>
 <tr class="separator:ga29181299be03f0bb493cfd4cfb928a0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -749,8 +749,8 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
-<a id="aa56314068d15524fdb496363a8bd621f" name="aa56314068d15524fdb496363a8bd621f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa56314068d15524fdb496363a8bd621f">&#9670;&nbsp;</a></span>grad_phi_for_charges()</h2>
+<a id="a3ba186ec158060205f5363c2ac45cffa" name="a3ba186ec158060205f5363c2ac45cffa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3ba186ec158060205f5363c2ac45cffa">&#9670;&nbsp;</a></span>grad_phi_for_charges()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -782,14 +782,8 @@ Functions/Subroutines</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>mmax</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension((mmax + 1)**2, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>multipoles</em>, </td>
+          <td class="paramtype">real(dp), dimension(params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>charges</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -817,14 +811,13 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>ddx constants </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspace </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">mmax</td><td>maximum angular momentum of the multipolar distribution </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">multipoles</td><td>multipoles as real spherical harmonics, size ((mmax+1)**2, nsph) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">charges</td><td>charges, size (nsph) </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">forces</td><td>forces array, size (3, nsph) </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00721">721</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00719">719</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -891,7 +884,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00877">877</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00874">874</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -977,7 +970,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00908">908</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00905">905</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -1044,7 +1037,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00961">961</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00958">958</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>

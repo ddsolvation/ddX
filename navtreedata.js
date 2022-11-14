@@ -96,9 +96,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"label_python_interface.html",
-"namespaceddx__pcm.html#ab0435577c42c55b4865dd4363308192f",
-"structddx__core_1_1ddx__state__type.html#ae7761162d404940bf9695d8d57124d58"
+"label_download_and_install.html",
+"namespaceddx__parameters.html#afc162de2f4b5352119d0c14a96dda845",
+"structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
