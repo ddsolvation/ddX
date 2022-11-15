@@ -122,8 +122,6 @@ end subroutine ddcosmo_guess
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
-!! @param[in] psi: Representation of the solute potential in spherical
-!!     harmonics, size (nbasis, nsph)
 !!
 subroutine ddcosmo_guess_adjoint(params, constants, workspace, state)
     implicit none
@@ -173,8 +171,6 @@ end subroutine ddcosmo_solve
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
-!! @param[in] psi: Representation of the solute potential in spherical
-!!     harmonics, size (nbasis, nsph)
 !! @param[in] tol: Tolerance for the linear system solver
 !!
 subroutine ddcosmo_solve_adjoint(params, constants, workspace, state, tol)

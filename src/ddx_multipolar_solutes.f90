@@ -782,10 +782,12 @@ end subroutine grad_phi_for_charges
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
+!! @param[inout] state: ddx state
 !! @param[in] mmax: maximum angular momentum of the multipolar distribution
 !! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[inout] forces: forces array, size (3, nsph)
+!! @param[in] e_cav: electric field, size (3, ncav)
 !!
 subroutine grad_phi(params, constants, workspace, state, mmax, &
         & multipoles, forces, e_cav)

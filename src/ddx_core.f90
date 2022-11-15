@@ -23,122 +23,155 @@ use ddx_harmonics
 use omp_lib
 implicit none
 
+!> This defined type contains the primal and adjoint RHSs, the solution of
+!! the primal and adjoint linear systems, useful intermediates for the
+!! computation of the forces, and the information about the convergence of
+!! the linear system solver (time, number of iterations, relative difference
+!! at each iteration).
 type ddx_state_type
     !! High-level entities to be stored and accessed by users
 
     !!
-    !! ddCOSMO quantities (used also by ddPCM)
+    !! Quantities common to all models.
     !!
-    !> Variable \f$ \Phi \f$ of a dimension (nbasis, nsph). Allocated and used
-    !!      by COSMO (model=1) and PCM (model=2) models.
-    real(dp), allocatable :: phi(:, :)
-    !> Solution of the ddCOSMO system of a dimension (nbasis, nsph). Allocated
-    !!      and used by COSMO (model=1) and PCM (model=2) models.
-    real(dp), allocatable :: xs(:, :)
-
-    !> Number of iteration to solve ddCOSMO system
-    integer :: xs_niter
-    !> Relative error of each step of iterative solver for ddCOSMO system.
-    !!      Dimension is (maxiter).
-    real(dp), allocatable :: xs_rel_diff(:)
-    !> Time to solve primal ddCOSMO system
-    real(dp) :: xs_time
-    !> Values of s at grid points. Dimension is (ngrid, nsph). Allocated and
-    !!      used by COSMO (model=1) and PCM (model=2) models.
-    real(dp), allocatable :: sgrid(:, :)
-    !> rhs for the adjoint problem
+    !> Representation of the solute density in spherical harmonics
+    !! (\f$ \Psi \f$). It is used as RHS for the adjoint linear system.
+    !! Dimension (nbasis, nsph).
     real(dp), allocatable :: psi(:, :)
-    !> potential at the cavity points
+    !> Electric potential at the cavity points. It is used to construct
+    !! the RHS for the primal linear system. Dimension (ncav).
     real(dp), allocatable :: phi_cav(:)
+    !> Potential at all the grid points. Dimension (ngrid, nsph).
+    real(dp), allocatable :: phi_grid(:, :)
+    !> Zeta intermediate for the forces. Dimension (ncav).
+    real(dp), allocatable :: zeta(:)
+    !> Error flag, nonzero in case of an error.
+    integer :: error_flag
+    !> Last error message.
+    character(len=255) :: error_message
 
     !!
-    !! ddPCM specific quantities
+    !! ddCOSMO quantities (used also by ddPCM).
     !!
-    !> Variable \f$ \Phi_\infty \f$ of a dimension (nbasis, nsph). Allocated
-    !!      and used only by PCM (model=2) model.
+    !> Variable \f$ \Phi \f$ of a dimension (nbasis, nsph).
+    !! Allocated and used by the COSMO (model=1) and PCM (model=2) models.
+    real(dp), allocatable :: phi(:, :)
+    !> Solution of the ddCOSMO system of a dimension (nbasis, nsph).
+    !! Allocated and used by the COSMO (model=1) and PCM (model=2) models.
+    real(dp), allocatable :: xs(:, :)
+    !> Number of iterations to solve the primal ddCOSMO linear system.
+    !! Used by the COSMO (model=1) and PCM (model=2) models.
+    integer :: xs_niter
+    !> Relative error of the iterative solver at each iteration of the primal
+    !! ddCOSMO linear system, dimension (maxiter).
+    !! Allocated and used by the COSMO (model=1) and PCM (model=2) models.
+    real(dp), allocatable :: xs_rel_diff(:)
+    !> Time to solve the primal ddCOSMO linear system.
+    !! Used by the COSMO (model=1) and PCM (model=2) models.
+    real(dp) :: xs_time
+    !> Values of s at grid points. Dimension is (ngrid, nsph).
+    !! Allocated and used by the COSMO (model=1) and PCM (model=2) models.
+    real(dp), allocatable :: sgrid(:, :)
+    !> Solution of the adjoint ddCOSMO linear system, dimension (nbasis, nsph).
+    !! Allocated and used by the COSMO (model=1) and PCM (model=2) models.
+    real(dp), allocatable :: s(:, :)
+    !> Number of iterations required to solve the adjoint ddCOSMO linear
+    !! system. Used by the COSMO (model=1) and PCM (model=2) models.
+    integer :: s_niter
+    !> Relative error of the iterative solver at each iteration of the adjoint
+    !! ddCOSMO linear system, dimension (maxiter).
+    !! Allocated and used by the COSMO (model=1) and PCM (model=2) models.
+    real(dp), allocatable :: s_rel_diff(:)
+    !> Time to solve the adjoint ddCOSMO linear system.
+    !! Used by the COSMO (model=1) and PCM (model=2) models.
+    real(dp) :: s_time
+
+    !!
+    !! ddPCM specific quantities.
+    !!
+    !> Variable \f$ \Phi_\infty \f$ of a dimension (nbasis, nsph).
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: phiinf(:, :)
     !> Variable \f$ \Phi_\varepsilon \f$ of a dimension (nbasis, nsph).
-    !!      Allocated and used only by PCM (model=2) model.
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: phieps(:, :)
-
-    !> Number of iteration to solve ddPCM system
+    !> Number of iterations to solve the primal ddPCM linear system system.
+    !! Allocated and used only by PCM (model=2) model.
     integer :: phieps_niter
-    !> Relative error of each step of iterative solver for ddPCM system.
-    !!      Dimension is (maxiter).
+    !> Relative error of the iterative solver at each iteration of the primal
+    !! ddPCM linear system, dimension (maxiter).
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: phieps_rel_diff(:)
-    !> Time to solve primal ddPCM system
+    !> Time to solve the primal ddPCM linear system.
+    !! Used only by PCM (model=2) model.
     real(dp) :: phieps_time
-    !> Shortcut of \f$ \Phi_\varepsilon - \Phi \f$
+    !> Shortcut of \f$ \Phi_\varepsilon - \Phi \f$ for the computation of
+    !! the ddPCM forces.
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: g(:, :)
-
-
-    !> Solution of the adjoint ddCOSMO system of a dimension (nbasis, nsph).
-    !!      Allocated and used by COSMO (model=1) and PCM (model=2) models.
-    real(dp), allocatable :: s(:, :)
-    !> Number of iteration to solve adoint ddCOSMO system
-    integer :: s_niter
-    !> Relative error of each step of iterative solver for adjoint ddCOSMO
-    !!      system. Dimension is (maxiter).
-    real(dp), allocatable :: s_rel_diff(:)
-    !> Time to solve adjoint ddCOSMO system
-    real(dp) :: s_time
-    !> Solution of the adjoint ddPCM system of a dimension (nbasis, nsph).
-    !!      Allocated and used only by PCM (model=2) model.
+    !> Solution of the adjoint ddPCM linear system, dimension (nbasis, nsph).
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: y(:, :)
-    !> Number of iteration to solve adjoint ddPCM system
+    !> Number of iteration to solve the adjoint ddPCM linear system.
+    !! Used only by PCM (model=2) model.
     integer :: y_niter
-    !> Relative error of each step of iterative solver for adjoint ddPCM
-    !!      system. Dimension is (maxiter).
+    !> Relative error of the iterative solver at each iteration of the adjoint
+    !! ddPCM linear system. Allocated and used only by the PCM (model=2) model.
     real(dp), allocatable :: y_rel_diff(:)
     !> Time to solve adjoint ddPCM system
     real(dp) :: y_time
-    !> Values of y at grid points. Dimension is (ngrid, nsph). Allocated and
-    !!      used only by PCM (model=2) model.
+    !> Solution of the adjoint ddPCM linear system, dimension (nbasis, nsph).
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: ygrid(:, :)
-    !> s-4pi/(eps-1)y of dimension (nbasis, nsph)
+    !> Effective total adjoint solution of the ddPCM model, defined as
+    !! \f$ Q := S - \frac{4\pi}{\varepsilon-1}Y \f$. Dimension (nbasis, nsph).
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: q(:, :)
-    !> Values of q at grid points. Dimension is (ngrid, nsph)
+    !> Values of Q at grid points. Dimension (ngrid, nsph).
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: qgrid(:, :)
 
     !!
     !! ddLPB quantities
     !!
-    !> Solution to the ddLPB linear system. Dimension is (nbasis,nsph,2). Allocated
-    !! and used only by LPB (model=3) model
+    !> Solution to the ddLPB linear system. Dimension (nbasis, nsph, 2).
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: x_lpb(:,:,:)
-    !> Solution to the ddLPB ajoint system. Dimension is (nbasis,nsph,2).
-    !! Allocated and used only by LPB (model=3) model
+    !> Solution to the ddLPB adjoint linear system.
+    !! Dimension (nbasis, nsph, 2).
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: x_adj_lpb(:,:,:)
-    !> g intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and
-    !! used only by LPB (model=3) model
+    !> g RHS for ddLPB.
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: g_lpb(:,:)
-    !> d intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and
-    !! used only
-    !! by LPB (model=3) model
+    !> f RHS for ddLPB.
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: f_lpb(:,:)
+    !> Number of iterations required to solve the primal ddLPB linear system.
+    !! Allocated and used only by the LPB (model=3) model.
     integer :: x_lpb_niter
+    !> Number of iterations required to solve the adjoint ddLPB linear ststem.
+    !! Allocated and used only by the LPB (model=3) model.
     integer :: x_adj_lpb_niter
+    !> Time required to solve the primal ddLPB linear system.
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp) :: x_lpb_time
+    !> Time required to solve the adjoint ddLPB linear system.
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp) :: x_adj_lpb_time
+    !> Relative error of the iterative solver at each iteration of the primal
+    !! ddLPB linear system, dimension (maxiter).
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: x_lpb_rel_diff(:)
+    !> Relative error of the iterative solver at each iteration of the adjoint
+    !! ddLPB linear system, dimension (maxiter).
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: x_adj_lpb_rel_diff(:)
-
-    !!
-    !! Misc
-    !!
-    !> Zeta intermediate for forces. Dimension is (ncav)
-    real(dp), allocatable :: zeta(:)
-    !> Potential at all grid points. Dimension is (ngrid, nsph). Allocated
-    !!      and used by all models.
-    real(dp), allocatable :: phi_grid(:, :)
-    !> Flag if there were an error
-    integer :: error_flag
-    !> Last error message
-    character(len=255) :: error_message
 
 end type ddx_state_type
 
-!> Main ddX type that stores all required information
+!> Main ddX type that stores all the required information.
+!! Container for the params, contants and workspace derived types.
 type ddx_type
     !! New types inside the old one for an easier shift to the new design
     type(ddx_params_type) :: params
