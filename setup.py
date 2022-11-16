@@ -50,11 +50,13 @@ class CMakeBuild(build_ext):
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(extdir),
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
             "-DCMAKE_BUILD_TYPE={}".format(cfg),  # not used on MSVC, but no harm
+            "-DCMAKE_CXX_STANDARD=14"
         ]
         build_args = []
 
-        # special case for us:
-        cmake_args += ["-DPYTHON=ON", "-DCMAKE_CXX_STANDARD=14"]
+        # Enable required feature set in DDXspecial case for DDX:
+        cmake_args += ["-DPYTHON=ON", "-DTESTS=OFF", "-DEXAMPLES=OFF",
+                       "-DDDX_LIBRARY=OFF"]
 
         # Add Pybind11 info
         cmake_args += [f"-DPYBIND11_DIR={pybind11.get_cmake_dir()}"]
