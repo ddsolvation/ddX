@@ -41,7 +41,9 @@ void ddx_scaled_ylm(const void* ddx, int lmax, const double* x, int sphere, doub
  * \param enable_force     If 1 enable force calculations
  * \param solvent_epsilon  Relative dielectric permittivity
  * \param solvent_kappa    Debye-Hückel parameter (inverse screening length)
- * \param eta              Regularisation parameter
+ * \param eta              Regularization parameter for the regularised characteristic
+ *                         function chi_eta. Range [0,1]
+ * \param shift            Shift for the regularized characteristic function chi_eta
  * \param lmax             Maximal degree of modelling spherical harmonics
  * \param n_lebedev        Number of Lebedev grid points to use
  * \param incore           If 1 store more large objects in memory
@@ -66,10 +68,10 @@ void ddx_scaled_ylm(const void* ddx, int lmax, const double* x, int sphere, doub
  * \param logfile          The logfile name (empty if no log)
  */
 void* ddx_allocate_model(int model, int enable_force, double solvent_epsilon,
-                         double solvent_kappa, double eta, int lmax, int n_lebedev,
-                         int incore, int maxiter, int jacobi_n_diis, int enable_fmm,
-                         int fmm_multipole_lmax, int fmm_local_lmax, int n_proc,
-                         int n_spheres, const double* sphere_charges,
+                         double solvent_kappa, double eta, double shift, int lmax,
+                         int n_lebedev, int incore, int maxiter, int jacobi_n_diis,
+                         int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax,
+                         int n_proc, int n_spheres, const double* sphere_charges,
                          const double* sphere_centres, const double* sphere_radii,
                          int length_logfile, const char* logfile);
 
@@ -110,6 +112,7 @@ int ddx_get_fmm_multipole_lmax(const void* ddx);
 double ddx_get_solvent_epsilon(const void* ddx);
 double ddx_get_eta(const void* ddx);
 double ddx_get_solvent_kappa(const void* ddx);
+double ddx_get_shift(const void* ddx);
 void ddx_get_sphere_charges(const void* ddx, int nsph, double* c_charge);
 void ddx_get_sphere_centres(const void* ddx, int nsph, double* c_csph);
 void ddx_get_sphere_radii(const void* ddx, int nsph, double* c_rsph);
