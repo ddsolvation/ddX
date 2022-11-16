@@ -34,6 +34,7 @@ int main() {
   double epsilon         = 78.3553;
   double kappa           = 0.0;
   double eta             = 0.1;
+  double shift           = 0.0;
   int lmax               = 8;
   int n_lebedev          = 302;
   int incore             = 0;
@@ -50,7 +51,7 @@ int main() {
   //
   // Allocate model and print some info
   //
-  void* model = ddx_allocate_model(pcm, enable_forces, epsilon, kappa, eta, lmax,
+  void* model = ddx_allocate_model(pcm, enable_forces, epsilon, kappa, eta, shift, lmax,
                                    n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm,
                                    fmm_multipole_lmax, fmm_local_lmax, n_proc, n_spheres,
                                    charges, centres, radii, length_logfile, logfile);
