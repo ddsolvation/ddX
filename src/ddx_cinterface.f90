@@ -88,7 +88,7 @@ end
 !
 ! Setup object
 !
-function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa, eta, lmax, &
+function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
         & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, fmm_multipole_lmax, fmm_local_lmax, &
         & n_proc, n_spheres, sphere_charges, sphere_centres, &
         & sphere_radii, length_logfile, c_logfile) result(c_ddx) bind(C)
@@ -97,11 +97,10 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
         & n_spheres, length_logfile
     real(c_double), intent(in) :: sphere_charges(n_spheres), sphere_centres(3, n_spheres), &
         & sphere_radii(n_spheres)
-    real(c_double), intent(in), value :: eta, solvent_epsilon, solvent_kappa
+    real(c_double), intent(in), value :: eta, se, solvent_epsilon, solvent_kappa
     !type(c_funptr), value :: printfctn
     type(c_ptr) :: c_ddx
     integer :: passproc, i
-    real(dp) :: se
     type(ddx_setup), pointer :: ddx
     character(len=1, kind=C_char), intent(in) :: c_logfile(length_logfile)
     character(len=255) :: logfile
@@ -118,9 +117,6 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
             logfile(i:i) = c_logfile(i)
         endif
     enddo
-
-    ! Hard-coded parameters
-    se = 0.0   ! Centred regularisation
 
     call params_init(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
         & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, &
@@ -344,6 +340,14 @@ function ddx_get_solvent_kappa(c_ddx) result(c_kappa) bind(C)
     real(c_double) :: c_kappa
     call c_f_pointer(c_ddx, ddx)
     c_kappa = ddx % params % kappa
+end function
+
+function ddx_get_shift(c_ddx) result(c_se) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx
+    type(ddx_setup), pointer :: ddx
+    real(c_double) :: c_se
+    call c_f_pointer(c_ddx, ddx)
+    c_se = ddx % params % se
 end function
 
 subroutine ddx_get_sphere_charges(c_ddx, nsph, c_charge) bind(C)

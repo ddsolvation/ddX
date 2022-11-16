@@ -3,6 +3,7 @@
 REMAP = {
     "force": "enable_force",
     "eps": "solvent_epsilon",
+    "se": "shift",
     "kappa": "solvent_kappa",
     "pm": "fmm_multipole_lmax",
     "pl": "fmm_local_lmax",
@@ -22,7 +23,7 @@ REMAP = {
 
 PARAMS_INT = ["model", "force", "lmax", "ngrid", "maxiter", "jacobi_ndiis",
               "fmm", "pm", "pl", "nsph", "nproc", "matvecmem"]
-PARAMS_FLOAT = ["eta", "eps", "kappa"]
+PARAMS_FLOAT = ["eta", "se", "eps", "kappa"]
 PARAMS_ARRAY = [("charge", "nsph", "nsph"),
                 ("csph",   "nsph", "3, nsph"),
                 ("rsph",   "nsph", "nsph")]
