@@ -196,7 +196,6 @@ subroutine ddx_get_error_message(c_ddx, message, maxlen) bind(C)
     enddo
 end
 
-
 subroutine ddx_get_logfile(c_ddx, message, maxlen) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
     integer(c_int), intent(in), value :: maxlen
@@ -424,6 +423,46 @@ subroutine ddx_deallocate_state(c_state) bind(C)
     call ddx_free_state(state)
     deallocate(state)
 end subroutine
+
+function ddx_get_state_error_flag(c_state) result(has_error) bind(C)
+    type(c_ptr), intent(in), value :: c_state
+    type(ddx_state_type), pointer :: state
+    integer(c_int) :: has_error
+    call c_f_pointer(c_state, state)
+    has_error = state%error_flag
+end
+
+subroutine ddx_get_state_error_message(c_state, message, maxlen) bind(C)
+    type(c_ptr), intent(in), value :: c_state
+    type(ddx_state_type), pointer :: state
+    integer(c_int), intent(in), value :: maxlen
+    character(len=1, kind=C_char), intent(out) :: message(maxlen)
+    character(len=255) :: error_message
+    integer :: length, i
+    character :: ch
+    call c_f_pointer(c_state, state)
+
+    if (state%error_flag .ne. 0) then
+        error_message = state%error_message
+    else
+        error_message = ''
+    endif
+
+    ! Convert to C message
+    message(maxlen) = c_null_char
+    length = min(maxlen-1, 255)
+    do i = length, 1, -1
+        if (error_message(i:i) .eq. ' ') then
+            length = i-1
+        else
+            exit
+        endif
+    enddo
+    message(length + 1) = c_null_char
+    do i = 1, length
+        message(i) = error_message(i:i)
+    enddo
+end
 
 subroutine ddx_get_x(c_state, nbasis, nsph, x) bind(C)
     type(c_ptr), intent(in), value :: c_state
