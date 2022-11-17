@@ -119,7 +119,7 @@ setup(
     zip_safe=False,
     platforms=["Linux", "Mac OS-X"],
     python_requires=">=3.8",
-    install_requires=["pybind11 >= 2.6", "numpy >= 1.14"],
+    install_requires=["numpy >= 1.14"],
     tests_require=["pytest", "numpy"],
     cmdclass={"build_ext": CMakeBuild, "pytest": PyTest, },
 )
