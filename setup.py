@@ -30,10 +30,6 @@ class CMakeBuild(build_ext):
         cfg = "Debug" if self.debug else "Release"
         # cfg = "Debug"
 
-        # CMake lets you override the generator - we need to check this.
-        # Can be set with Conda-Build, for example.
-        cmake_generator = os.environ.get("CMAKE_GENERATOR", "")
-
         # Set Python_EXECUTABLE instead if you use PYBIND11_FINDPYTHON
         # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
         # from Python.
@@ -51,14 +47,6 @@ class CMakeBuild(build_ext):
 
         # Add Pybind11 info
         cmake_args += [f"-DPYBIND11_DIR={pybind11.get_cmake_dir()}"]
-
-        # Using Ninja-build since it a) is available as a wheel and b)
-        # multithreads automatically. MSVC would require all variables be
-        # exported for Ninja to pick it up, which is a little tricky to do.
-        # Users can override the generator with CMAKE_GENERATOR in CMake
-        # 3.15+.
-        if not cmake_generator:
-            cmake_args += ["-GNinja"]
 
         # Set CMAKE_BUILD_PARALLEL_LEVEL to control the parallel build level
         # across all generators.
@@ -131,7 +119,7 @@ setup(
     zip_safe=False,
     platforms=["Linux", "Mac OS-X"],
     python_requires=">=3.8",
-    install_requires=["ninja", "pybind11 >= 2.6", "numpy >= 1.14"],
+    install_requires=["pybind11 >= 2.6", "numpy >= 1.14"],
     tests_require=["pytest", "numpy"],
     cmdclass={"build_ext": CMakeBuild, "pytest": PyTest, },
 )
