@@ -11,11 +11,6 @@ namespace py = pybind11;
 using namespace pybind11::literals;
 using array_f_t = py::array_t<double, py::array::f_style | py::array::forcecast>;
 
-class Model;
-
-/** Throws if model is in error state */
-void throw_if_error(std::shared_ptr<Model> model);
-
 class Model {
  public:
   Model(std::string model, array_f_t sphere_charges, array_f_t sphere_centres,
@@ -119,16 +114,13 @@ class Model {
     const int enable_force = 1;  // Always support force calculations.
     const int intfmm       = enable_fmm ? 1 : 0;
     const int intincore    = incore ? 1 : 0;
-    m_holder               = ddx_allocate_model(
-                        model_id, enable_force, solvent_epsilon, solvent_kappa, eta, shift, lmax,
-                        n_lebedev, intincore, maxiter, jacobi_n_diis, intfmm, fmm_multipole_lmax,
-                        fmm_local_lmax, n_proc, n_spheres, sphere_charges.data(), sphere_centres.data(),
-                        sphere_radii.data(), logfile.size(), logfile.c_str());
-    if (ddx_get_error_flag(m_holder) != 0) {
-      char message[256];
-      ddx_get_error_message(m_holder, message, 256);
-      throw py::value_error("DDX initialisation failed: " + std::string(message));
-    }
+
+    m_holder = ddx_allocate_model(
+          model_id, enable_force, solvent_epsilon, solvent_kappa, eta, shift, lmax,
+          n_lebedev, intincore, maxiter, jacobi_n_diis, intfmm, fmm_multipole_lmax,
+          fmm_local_lmax, n_proc, n_spheres, sphere_charges.data(), sphere_centres.data(),
+          sphere_radii.data(), logfile.size(), logfile.c_str());
+    throw_if_error();
   }
 
   ~Model() {
@@ -138,11 +130,23 @@ class Model {
   Model(const Model&)            = delete;
   Model& operator=(const Model&) = delete;
 
+  // Check for errors
+  void throw_if_error() const {
+    if (ddx_get_error_flag(holder()) != 0) {
+      char message[256];
+      ddx_get_error_message(holder(), message, 256);
+      throw std::runtime_error(std::string(message));
+    }
+  }
+
+  //
+  // Accessors
+  //
+
   // Return the holder pointer ... internal function. Use only if you know
   // what you are doing.
   void* holder() const { return m_holder; }
 
-  // Accessors to input parameters
   bool has_fmm_enabled() const { return 1 == ddx_get_enable_fmm(m_holder); }
   bool has_force_enabled() const { return 1 == ddx_get_enable_force(m_holder); }
   int jacobi_n_diis() const { return ddx_get_jacobi_n_diis(m_holder); }
@@ -219,6 +223,8 @@ class State {
           m_solved_adjoint(false) {}
   State(std::shared_ptr<Model> model, array_f_t phi, array_f_t psi) : State(model) {
     update_problem(phi, psi);
+    fill_guess();
+    fill_guess_adjoint();
   }
   ~State() {
     if (m_holder) ddx_deallocate_state(m_holder);
@@ -226,6 +232,15 @@ class State {
   }
   State(const State&)            = delete;
   State& operator=(const State&) = delete;
+
+  void throw_if_error() const {
+    if (ddx_get_state_error_flag(holder()) != 0) {
+      char message[256];
+      ddx_get_state_error_message(holder(), message, 256);
+      throw std::runtime_error(std::string(message));
+    }
+    model()->throw_if_error();
+  }
 
   //
   // Accessors
@@ -290,7 +305,7 @@ class State {
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
-    throw_if_error(model());
+    throw_if_error();
     m_solved         = false;
     m_solved_adjoint = false;
   }
@@ -303,7 +318,7 @@ class State {
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
-    throw_if_error(model());
+    throw_if_error();
     m_solved = false;
   }
 
@@ -315,7 +330,7 @@ class State {
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
-    throw_if_error(model());
+    throw_if_error();
     m_solved_adjoint = false;
   }
 
@@ -328,7 +343,7 @@ class State {
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
-    throw_if_error(model());
+    throw_if_error();
     m_solved = true;
   }
 
@@ -341,7 +356,7 @@ class State {
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
-    throw_if_error(model());
+    throw_if_error();
     m_solved_adjoint = true;
   }
 
@@ -358,7 +373,7 @@ class State {
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
-    throw_if_error(model());
+    throw_if_error();
     return forces;
   }
 
@@ -384,7 +399,7 @@ class State {
     ddx_multipole_forces(model()->holder(), holder(), model()->n_spheres(),
                          model()->n_cav(), multipoles.shape(0), multipoles.data(),
                          e.data(), forces.mutable_data());
-    throw_if_error(model());
+    throw_if_error();
     return forces;
   }
 
@@ -396,7 +411,7 @@ class State {
             "solve() first.");
   }
   void check_solved_adjoint() const {
-    if (!m_solved)
+    if (!m_solved_adjoint)
       throw std::runtime_error(
             "State does currently not hold a solution to the adjoint problem. Call "
             "solve_adjoint() first.");
@@ -412,14 +427,6 @@ class State {
 // General functions
 //
 
-void throw_if_error(std::shared_ptr<Model> model) {
-  if (ddx_get_error_flag(model->holder()) != 0) {
-    char message[256];
-    ddx_get_error_message(model->holder(), message, 256);
-    throw std::runtime_error(std::string(message));
-  }
-}
-
 py::array_t<double> scaled_ylm(std::shared_ptr<Model> model, array_f_t coord, int sphere,
                                py::array_t<double> out) {
   if (out.size() != model->n_basis()) {
@@ -433,7 +440,7 @@ py::array_t<double> scaled_ylm(std::shared_ptr<Model> model, array_f_t coord, in
   }
   ddx_scaled_ylm(model->holder(), model->lmax(), coord.data(), sphere + 1,
                  out.mutable_data());
-  throw_if_error(model);
+  model->throw_if_error();
   return out;
 }
 array_f_t scaled_ylm(std::shared_ptr<Model> model, array_f_t coord, int sphere) {
@@ -461,14 +468,14 @@ py::dict multipole_electrostatics(std::shared_ptr<Model> model, array_f_t multip
     ddx_multipole_electrostatics_0(model->holder(), model->n_spheres(), model->n_cav(),
                                    multipoles.shape(0), multipoles.data(),
                                    phi.mutable_data());
-    throw_if_error(model);
+    model->throw_if_error();
     return py::dict("phi"_a = phi);
   } else if (derivative_order == 1) {
     array_f_t e({3, model->n_cav()});
     ddx_multipole_electrostatics_1(model->holder(), model->n_spheres(), model->n_cav(),
                                    multipoles.shape(0), multipoles.data(),
                                    phi.mutable_data(), e.mutable_data());
-    throw_if_error(model);
+    model->throw_if_error();
     return py::dict("phi"_a = phi, "e"_a = e);
   } else if (derivative_order == 2) {
     array_f_t e({3, model->n_cav()});
@@ -476,7 +483,7 @@ py::dict multipole_electrostatics(std::shared_ptr<Model> model, array_f_t multip
     ddx_multipole_electrostatics_2(
           model->holder(), model->n_spheres(), model->n_cav(), multipoles.shape(0),
           multipoles.data(), phi.mutable_data(), e.mutable_data(), g.mutable_data());
-    throw_if_error(model);
+    model->throw_if_error();
     return py::dict("phi"_a = phi, "e"_a = e, "g"_a = g);
   } else {
     throw py::value_error("'derivative_order' only implemented up to 2");
@@ -497,7 +504,7 @@ array_f_t multipole_psi(std::shared_ptr<Model> model, array_f_t multipoles) {
   array_f_t psi({model->n_basis(), model->n_spheres()});
   ddx_multipole_psi(model->holder(), model->n_basis(), model->n_spheres(),
                     multipoles.shape(0), multipoles.data(), psi.mutable_data());
-  throw_if_error(model);
+  model->throw_if_error();
   return psi;
 }
 

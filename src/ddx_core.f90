@@ -2823,35 +2823,39 @@ end subroutine tree_grad_l2l
 
 subroutine get_banner(string)
     implicit none
-    character (len=4095), intent(out) :: string
+    character (len=2047), intent(out) :: string
+    character (len=10) :: vstr
+    write(vstr, *) "0.1.0"
     write(string, *) &
-        & " +------------------------------------------------------------------+", &
+        & " +----------------------------------------------------------------+", &
         & NEW_LINE('a'), &
-        & "  |                                                                  |", &
+        & "  |                                                                |", &
         & NEW_LINE('a'), &
-        & "  |                         888      888 Y8b    d8Y                  |", &
+        & "  |                        888      888 Y8b    d8Y                 |", &
         & NEW_LINE('a'), &
-        & "  |                         888      888  Y8b  d8Y                   |", &
+        & "  |                        888      888  Y8b  d8Y                  |", &
         & NEW_LINE('a'), &
-        & "  |                         888      888   Y8888Y                    |", &
+        & "  |                        888      888   Y8888Y                   |", &
         & NEW_LINE('a'), &
-        & "  |                     .d88888  .d88888    Y88Y                     |", &
+        & "  |                    .d88888  .d88888    Y88Y                    |", &
         & NEW_LINE('a'), &
-        & "  |                    d88  888 d88  888    d88b                     |", &
+        & "  |                   d88  888 d88  888    d88b                    |", &
         & NEW_LINE('a'), &
-        & "  |                    888  888 888  888   d8888b                    |", &
+        & "  |                   888  888 888  888   d8888b                   |", &
         & NEW_LINE('a'), &
-        & "  |                    Y88b 888 Y88b 888  d8Y  Y8b                   |", &
+        & "  |                   Y88b 888 Y88b 888  d8Y  Y8b                  |", &
         & NEW_LINE('a'), &
-        & "  |                      Y88888   Y88888 d8Y    Y8b                  |", &
+        & "  |                     Y88888   Y88888 d8Y    Y8b                 |", &
         & NEW_LINE('a'), &
-        & "  |                                                                  |", &
+        & "  |                                                                |", &
         & NEW_LINE('a'), &
-        & "  |                  https://ddsolvation.github.io/ddX/              |", &
+        & "  |                 https://ddsolvation.github.io/ddX/             |", &
         & NEW_LINE('a'), &
-        & "  |                                                                  |", &
+        & "  |                         Version:", vstr, "                     |", &
         & NEW_LINE('a'), &
-        & "  +------------------------------------------------------------------+"
+        & "  |                                                                |", &
+        & NEW_LINE('a'), &
+        & "  +----------------------------------------------------------------+"
 end subroutine get_banner
 
 !> Transform a function defined at the exposed cavity points (cav) to

@@ -19,7 +19,7 @@ use omp_lib
 implicit none
 
 character(len=255) :: fname
-character(len=4095) :: banner
+character(len=2047) :: banner
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
 integer :: phi_flag=1, grad_flag=1, hessian_flag=1

@@ -15,8 +15,8 @@ PYBIND11_MODULE(pyddx, m) {
   m.def(
         "banner",
         []() {
-          char message[4098];
-          ddx_get_banner(message, 4098);
+          char message[2048];
+          ddx_get_banner(message, 2048);
           return std::string(message);
         },
         "Return a nice banner describing ddx.");

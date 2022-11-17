@@ -130,6 +130,16 @@ void* ddx_allocate_state(const void* ddx);
 /** Deallocate a state object */
 void ddx_deallocate_state(void* state);
 
+/** Get the error flag stored inside the state (0 is no error). It is the responsibility
+ * of the user of DDX to regularly check for a non-zero error flag and take appropriate
+ * actions if an error is present. */
+int ddx_get_state_error_flag(const void* state);
+
+/** Store the error message corresponding to the most recent error inside the passed char
+ * array. At most maxlen characters are copied. So best set maxlen to the number of
+ * allocated characters in the passed array to avoid a buffer overflow. */
+void ddx_get_state_error_message(const void* state, char* message, int maxlen);
+
 /** Get the solution of the forward problem stored inside the state
  *  as a (nbasis, nsph) array in column-major ordering.
  *  \param state   DDX state
