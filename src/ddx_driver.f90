@@ -83,10 +83,11 @@ finish_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time-start_time, " seconds"
 
 start_time = omp_get_wtime()
-call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, ddx_data % params % charge, &
-    & force, -gradphi_cav)
-start_time = omp_get_wtime()
+! ddLPB still uses the old way of computing the forces
+if (model.ne.3) call grad_phi_for_charges(ddx_data % params, &
+    & ddx_data % constants, ddx_data % workspace, state, &
+    & ddx_data % params % charge, force, -gradphi_cav)
+finish_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") " multipolar forces time:", finish_time-start_time, " seconds"
 
 
