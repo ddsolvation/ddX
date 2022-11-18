@@ -31,7 +31,11 @@ integer :: i, j, isph
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
+start_time = omp_get_wtime()
 call ddfromfile(fname, ddx_data, tol)
+finish_time = omp_get_wtime()
+write(*, "(A,ES11.4E2,A)") " Initialization time:", finish_time - start_time, &
+    & " seconds"
 
 if (ddx_data % error_flag .ne. 0) then
   write(6,*) ddx_data % error_message
@@ -71,8 +75,8 @@ allocate(phi_cav(ddx_data % constants % ncav), &
 
 start_time = omp_get_wtime()
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
-    & phi_flag, phi_cav, grad_flag, gradphi_cav, hessian_flag, hessianphi_cav, &
-    & psi)
+    & phi_flag, phi_cav, grad_flag, gradphi_cav, hessian_flag, &
+    & hessianphi_cav, psi)
 finish_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") " mkrhs time:", finish_time-start_time, " seconds"
 
@@ -80,22 +84,30 @@ start_time = omp_get_wtime()
 call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, &
     & tol, esolv, force)
 finish_time = omp_get_wtime()
-write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time-start_time, " seconds"
+write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time - start_time, &
+    & " seconds"
 
-start_time = omp_get_wtime()
+write(*, "(A,ES11.4E2,A)") " solvation force terms time:", &
+    & state % force_time, " seconds"
+
 ! ddLPB still uses the old way of computing the forces
-if (model.ne.3) call grad_phi_for_charges(ddx_data % params, &
-    & ddx_data % constants, ddx_data % workspace, state, &
-    & ddx_data % params % charge, force, -gradphi_cav)
-finish_time = omp_get_wtime()
-write(*, "(A,ES11.4E2,A)") " multipolar forces time:", finish_time-start_time, " seconds"
+! TODO: to be removed
+if (ddx_data % params % model.ne.3) then
+    start_time = omp_get_wtime()
+    call grad_phi_for_charges(ddx_data % params, &
+        & ddx_data % constants, ddx_data % workspace, state, &
+        & ddx_data % params % charge, force, -gradphi_cav)
+    finish_time = omp_get_wtime()
+    write(*, "(A,ES11.4E2,A)") " multipolar force terms time:", &
+        & finish_time - start_time, " seconds"
+end if
 
 
 ! Print info on the primal ddPCM system
 if (ddx_data % params % model .eq. 2) then
     ! Print each iteration if needed
     do i = 1, state % phieps_niter
-        print " (A,I4,A,ES20.14)", "iter=", i, &
+        print " (A,I4,A,ES20.14)", " iter=", i, &
             & " relative difference: ", state % phieps_rel_diff(i)
     end do
     ! Print number of iterations and time
@@ -107,8 +119,8 @@ end if
 ! Print info on the primal ddLPB system
 if (ddx_data % params % model .eq. 3) then
     ! Print each iteration if needed
-    do i = 1, state % phieps_niter
-        print " (A,I4,A,ES20.14)", "iter=", i, &
+    do i = 1, state % x_lpb_niter
+        print " (A,I4,A,ES20.14)", " iter=", i, &
             & " relative difference: ", state % x_lpb_rel_diff(i)
     end do
     ! Print number of iterations and time
@@ -119,7 +131,8 @@ if (ddx_data % params % model .eq. 3) then
 end if
 ! Print info on the primal ddCOSMO system
 ! Print each iteration if needed
-if ((ddx_data % params % model.eq.1) .or. (ddx_data % params % model.eq.2)) then
+if ((ddx_data % params % model.eq.1) .or. &
+        & (ddx_data % params % model.eq.2)) then
     do i = 1, state % xs_niter
         print "(A,I4,A,ES20.14)", " iter=", i, &
             & " relative difference: ", state % xs_rel_diff(i)
@@ -134,7 +147,8 @@ end if
 if (ddx_data % params % force .eq. 1) then
     ! Print info on the adjoint ddCOSMO system
     ! Print each iteration if needed
-    if ((ddx_data % params % model.eq.1) .or. (ddx_data % params % model.eq.2)) then
+    if ((ddx_data % params % model.eq.1) .or. &
+            & (ddx_data % params % model.eq.2)) then
         do i = 1, state % s_niter
             print "(A,I4,A,ES20.14)", " iter=", i, &
                 & " relative difference: ", state % s_rel_diff(i)
@@ -161,7 +175,7 @@ if (ddx_data % params % force .eq. 1) then
     ! Print info on the adjoint ddLPB system
     if (ddx_data % params % model .eq. 3) then
         ! Print each iteration if needed
-        do i = 1, state % y_niter
+        do i = 1, state % x_adj_lpb_niter
             print "(A,I4,A,ES20.14)", " iter=", i, &
                 & " relative difference: ", state % x_adj_lpb_rel_diff(i)
         end do

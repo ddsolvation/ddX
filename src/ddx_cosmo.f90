@@ -212,8 +212,10 @@ subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
     real(dp), intent(inout) :: force(3, params % nsph)
     ! local variables
     real(dp), external :: ddot
+    real(dp) :: start_time, finish_time
     integer :: icav, isph, igrid
 
+    start_time = omp_get_wtime()
     ! Get values of S on the grid
     call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &
         & constants % vgrid, constants % vgrid_nbasis, one, state % s, zero, &
@@ -249,6 +251,8 @@ subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
             end if
         end do
     end do
+    finish_time = omp_get_wtime()
+    state % force_time = finish_time - start_time
 
 end subroutine ddcosmo_solvation_force_terms
 

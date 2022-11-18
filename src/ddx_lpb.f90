@@ -137,7 +137,8 @@ subroutine ddlpb_force(params, constants, workspace, state, phi_cav, &
 
     call ddlpb_force_worker(params, constants, workspace, &
         & hessianphi_cav, state % phi_grid, gradphi_cav, &
-        & state % x_lpb, state % x_adj_lpb, state % zeta, force)
+        & state % x_lpb, state % x_adj_lpb, state % zeta, force, &
+        & state % force_time)
 end subroutine ddlpb_force
 
 subroutine ddlpb_guess(params, constants, state)
@@ -342,7 +343,7 @@ subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
 end subroutine ddlpb_adjoint_worker
 
 subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
-        & phi_grid, gradphi, x, x_adj, zeta, force)
+        & phi_grid, gradphi, x, x_adj, zeta, force, force_time)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -353,7 +354,7 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x, x_adj
     real(dp), dimension(3, params % nsph), intent(out) :: force
     real(dp), intent(out) :: zeta(constants % ncav)
-
+    real(dp), intent(out) :: force_time
     ! local
     real(dp), dimension(constants % nbasis) :: basloc, vplm
     real(dp), dimension(3, constants % nbasis) :: dbasloc
@@ -369,7 +370,9 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         & tcontract_gradi_Bik, tcontract_gradi_Bji, tcontract_grad_U, &
         & tcontract_grad_C_worker1, tcontract_grad_C_worker2
     real(dp) :: d(3), dnorm, tmp1, tmp2
+    real(dp) :: start_time, finish_time
 
+    start_time = omp_get_wtime()
     allocate(ef(3, params % nsph), &
         & xadj_r_sgrid(params % ngrid, params % nsph), &
         & xadj_e_sgrid(params % ngrid, params % nsph), &
@@ -556,6 +559,9 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         workspace % error_flag = 1
         return
     end if
+    finish_time = omp_get_wtime()
+    force_time = finish_time - start_time
+
 end subroutine ddlpb_force_worker
 
 end module ddx_lpb

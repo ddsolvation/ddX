@@ -51,6 +51,8 @@ type ddx_state_type
     integer :: error_flag
     !> Last error message.
     character(len=255) :: error_message
+    !> Time to compute the solvation force terms
+    real(dp) :: force_time
 
     !!
     !! ddCOSMO quantities (used also by ddPCM).

@@ -252,9 +252,11 @@ subroutine ddpcm_solvation_force_terms(params, constants, workspace, &
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(out) :: force(3, params % nsph)
     ! local
+    real(dp) :: start_time, finish_time
     real(dp), external :: ddot
     integer :: icav, isph, igrid
 
+    start_time = omp_get_wtime()
     call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
         & constants % icav_ia, constants % icav_ja, state % phi_cav, &
         & state % phi_grid)
@@ -295,6 +297,8 @@ subroutine ddpcm_solvation_force_terms(params, constants, workspace, &
             end if
         end do
     end do
+    finish_time = omp_get_wtime()
+    state % force_time = finish_time - start_time
 
 end subroutine ddpcm_solvation_force_terms
 
