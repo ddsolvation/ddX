@@ -30,8 +30,6 @@ contains
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] phi_cav: Potential at cavity points, size (ncav)
-!! @param[in] gradphi_cav: Gradient of a potential at cavity points, required
-!!     by the forces, size (3, ncav)
 !! @param[in] psi: Representation of the solute potential in spherical
 !!     harmonics, size (nbasis, nsph)
 !! @param[in] tol: Tolerance for the linear system solver

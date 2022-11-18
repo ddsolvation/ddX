@@ -14,7 +14,7 @@ use ddx_core
 !
 contains
 
-
+!> Compute the gradients of the ddCOSMO matrix
 subroutine contract_grad_L(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx)
 type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -31,6 +31,7 @@ type(ddx_params_type), intent(in) :: params
 
 end subroutine contract_grad_L
 
+!> Contribution to the gradients of the ddCOSMO matrix
 subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -41,17 +42,13 @@ subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc
       real(dp),  dimension(3, constants % nbasis),    intent(inout) :: dbsloc
       real(dp),  dimension(params % lmax+1),      intent(inout) :: vcos, vsin
       real(dp),  dimension(3),           intent(inout) :: fx
-!
       integer :: ig, ij, jsph, l, ind, m
       real(dp)  :: vvij, tij, xij, oij, t, fac, fl, f1, f2, f3, beta, tlow, thigh
       real(dp)  :: vij(3), sij(3), alp(3), va(3)
       real(dp), external :: dnrm2
-!
-!-----------------------------------------------------------------------------------
-!
       tlow  = one - pt5*(one - params % se)*params % eta
       thigh = one + pt5*(one + params % se)*params % eta
-!
+
       do ig = 1, params % ngrid
         va = zero
         do ij = constants % inl(isph), constants % inl(isph+1) - 1
@@ -62,9 +59,9 @@ subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc
           !vvij = sqrt(dot_product(vij,vij))
           vvij = dnrm2(3, vij, 1)
           tij  = vvij/params % rsph(jsph)
-!
+
           if (tij.ge.thigh) cycle
-!
+
           sij  = vij/vvij
           !call dbasis(sij,basloc,dbsloc,vplm,vcos,vsin)
           call dbasis(params, constants, sij, basloc, dbsloc, vplm, vcos, vsin)
@@ -100,17 +97,9 @@ subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc
         end do
         fx = fx - constants % wgrid(ig)*xi(ig)*va(:)
       end do
-!
-      return
-!
-!
 end subroutine contract_gradi_Lik
-!-----------------------------------------------------------------------------------
-!
-!
-!
-!
-!-----------------------------------------------------------------------------------
+
+!> Contribution to the gradients of the ddCOSMO matrix
 subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -121,7 +110,7 @@ subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc
       real(dp),  dimension(3, constants % nbasis),    intent(inout) :: dbsloc
       real(dp),  dimension(params % lmax+1),      intent(inout) :: vcos, vsin
       real(dp),  dimension(3),           intent(inout) :: fx
-!
+
       integer :: ig, ji, jsph, l, ind, m, jk, ksph
       logical :: proc
       real(dp)  :: vvji, tji, xji, oji, t, fac, fl, f1, f2, beta, di, tlow, thigh
@@ -129,12 +118,10 @@ subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc
       real(dp)  :: vji(3), sji(3), alp(3), vb(3), vjk(3), sjk(3), vc(3)
       real(dp) :: rho, ctheta, stheta, cphi, sphi
       real(dp), external :: dnrm2
-!
-!-----------------------------------------------------------------------------------
-!
+
       tlow  = one - pt5*(one - params % se)*params % eta
       thigh = one + pt5*(one + params % se)*params % eta
-!
+
       do ig = 1, params % ngrid
         vb = zero
         vc = zero
@@ -146,13 +133,13 @@ subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc
           !vvji = sqrt(dot_product(vji,vji))
           vvji = dnrm2(3, vji, 1)
           tji  = vvji/params % rsph(isph)
-!
+
           if (tji.gt.thigh) cycle
-!
+
           sji  = vji/vvji
           !call dbasis(sji,basloc,dbsloc,vplm,vcos,vsin)
           call dbasis(params, constants, sji, basloc, dbsloc, vplm, vcos, vsin)
-!
+
           alp = zero
           t   = one
           do l = 1, params % lmax
@@ -218,28 +205,19 @@ subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc
         end do
         fx = fx + constants % wgrid(ig)*(vb - vc)
       end do
-      return
-  end subroutine contract_gradi_Lji
-!-----------------------------------------------------------------------------------
-!
-!
-!
-!
-!-----------------------------------------------------------------------------------
+end subroutine contract_gradi_Lji
+
+!> Gradient of the characteristic function U
 subroutine contract_grad_U(params, constants, isph, xi, phi, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
       integer,                        intent(in)    :: isph
       real(dp),  dimension(params % ngrid, params % nsph), intent(in)    :: xi, phi
       real(dp),  dimension(3),          intent(inout) :: fx
-!
       integer :: ig, ji, jsph
       real(dp)  :: vvji, tji, fac, swthr
       real(dp)  :: alp(3), vji(3), sji(3)
       real(dp), external :: dnrm2
-!
-!-----------------------------------------------------------------------------------
-!
       do ig = 1, params % ngrid
         alp = zero
         if (constants % ui(ig,isph) .gt. zero .and. constants % ui(ig,isph).lt.one) then
@@ -262,12 +240,7 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx )
         end do
         fx = fx - constants % wgrid(ig)*alp
       end do
-!
-      return
-!
-!
 end subroutine contract_grad_U
-
 
 !> Subroutine to compute contraction of B matrix
 !!

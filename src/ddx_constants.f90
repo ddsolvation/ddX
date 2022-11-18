@@ -21,18 +21,18 @@ use ddx_parameters
 use ddx_harmonics
 use omp_lib, only : omp_get_wtime
 
-! Disable implicit types
 implicit none
 
+!> @defgroup Fortran_interface_core Fortran interface: core routines
+
+!> Container for precomputed constants
 type ddx_constants_type
     !> Number modeling spherical harmonics per sphere.
     integer :: nbasis
     !> Total number of modeling degrees of freedom.
-    !!
     !! This is equal to `nsph*nbasis`.
     integer :: n
     !> Maximal degree of used real normalized spherical harmonics.
-    !!
     !! For example, if FMM is
     !! used, its M2L operation requires computing spherical harmonics of all
     !! degrees up to `pm+pl`. If `force=1` then this parameter might be
@@ -42,37 +42,31 @@ type ddx_constants_type
     !> Total number of used real spherical harmonics and a size of `vscales`.
     integer :: nscales
     !> Scales of real normalized spherical harmonics of degree up to dmax.
-    !!
     !! This array has a dimension (nscales).
     real(dp), allocatable :: vscales(:)
     !> Array of values 4pi/(2l+1), dimension is (dmax+1). Referenced only if
-    !!      fmm=1, but allocated and computed in any case.
+    !! fmm=1, but allocated and computed in any case.
     real(dp), allocatable :: v4pi2lp1(:)
     !> Relative scales of real normalized spherical harmonics.
-    !!
     !! Each values is multiplied by a corresponding 4pi/(2l+1). Dimension of
     !! this array is (nscales). Referenced only if fmm=1, but allocated and
     !! computed in any case.
     real(dp), allocatable :: vscales_rel(:)
     !> Number of precomputed square roots of factorials.
-    !!
     !! Just like with `dmax` parameter, number of used factorials is either
     !! `2*lmax+1` or `2*(pm+pl)+1` depending on whether FMM is used or not.
     integer :: nfact
     !> Array of square roots of factorials of a dimension (nfact).
     real(dp), allocatable :: vfact(:)
     !> Array of square roots of combinatorial numbers C_n^k.
-    !!
     !! Dimension of this array is ((2*dmax+1)*(dmax+1)). Allocated, computed
     !! and referenced only if fmm=1 or if force=1
     real(dp), allocatable :: vcnk(:)
     !> Array of common M2L coefficients for any OZ translation.
-    !!
     !! This array has a dimension (pm+1, pl+1, pl+1). Allocated, computed and
     !! referenced only if fmm=1.
     real(dp), allocatable :: m2l_ztranslate_coef(:, :, :)
     !> Array of common M2L coefficients for any adjoint OZ translation.
-    !!
     !! Dimension of this array is (pl+1, pl+1, pm+1). It is allocated, computed
     !! and referenced only if fmm=1.
     real(dp), allocatable :: m2l_ztranslate_adj_coef(:, :, :)
@@ -81,7 +75,6 @@ type ddx_constants_type
     !> Weights of Lebedev quadrature points of a dimension (ngrid).
     real(dp), allocatable :: wgrid(:)
     !> Maximal degree of spherical harmonics evaluated at Lebedev grid points.
-    !!
     !! Although we use spherical harmonics of degree up to `dmax`, only
     !! spherical harmonics of degree up to `lmax` and `pl` are evaluated
     !! at Lebedev grid points. In the case `force=1` this degrees might be
@@ -90,11 +83,9 @@ type ddx_constants_type
     !> Number of spherical harmonics evaluated at Lebedev grid points.
     integer :: vgrid_nbasis
     !> Values of spherical harmonics at Lebedev grid points.
-    !!
     !! Dimensions of this array are (vgrid_nbasis, ngrid)
     real(dp), allocatable :: vgrid(:, :)
     !> Weighted values of spherical harmonics at Lebedev grid points.
-    !!
     !! vwgrid(:, igrid) = vgrid(:, igrid) * wgrid(igrid)
     !! Dimension of this array is (vgrid_nbasis, ngrid).
     real(dp), allocatable :: vwgrid(:, :)
@@ -105,20 +96,20 @@ type ddx_constants_type
     !> LPB value max of nbasis and 49
     integer :: nbasis0
     !> LPB matrix, Eq. (87) from [QSM19.SISC]. Dimension is
-    !!      (nbasis, nbasis0, nsph)
+    !! (nbasis, nbasis0, nsph)
     real(dp), allocatable :: Pchi(:, :, :)
     !> LPB value (i'_l0(r_j)/i_l0(r_j)-k'_l0(r_j)/k_l0(r_j))^{-1}. Dimension
-    !!      is ???
+    !! is ???
     real(dp), allocatable :: C_ik(:, :)
     !> LPB Bessel function of the first kind. Dimension is (dmax+1, nsph).
     real(dp), allocatable :: SI_ri(:, :)
     !> LPB Derivative of Bessel function of the first kind. Dimension is
-    !!      (dmax+1, nsph).
+    !! (dmax+1, nsph).
     real(dp), allocatable :: DI_ri(:, :)
     !> LPB Bessel function of the second kind. Dimension is (lmax+2, nsph).
     real(dp), allocatable :: SK_ri(:, :)
     !> LPB Derivative Bessel function of the second kind. Dimension is
-    !!      (lmax+2, nsph).
+    !! (lmax+2, nsph).
     real(dp), allocatable :: DK_ri(:, :)
     !> LPB value i'_l(r_j)/i_l(r_j). Dimension is (lmax, nsph).
     real(dp), allocatable :: termimat(:, :)
@@ -127,26 +118,26 @@ type ddx_constants_type
     !> ddCOSMO L matrix fo doing incore LX product
     real(dp), allocatable :: l(:,:,:)
     !> Upper limit on a number of neighbours per sphere. This value is just an
-    !!      upper bound that is not guaranteed to be the actual maximum.
+    !! upper bound that is not guaranteed to be the actual maximum.
     integer :: nngmax
     !> List of intersecting spheres in a CSR format. Dimension is (nsph+1).
     integer, allocatable :: inl(:)
     !> List of intersecting spheres in a CSR format. Dimension is
-    !!      (nsph*nngmax).
+    !! (nsph*nngmax).
     integer, allocatable :: nl(:)
     !> transpose list of intersecting spheres
     integer, allocatable :: itrnl(:)
     !> Values of a characteristic function f at all grid points of all spheres.
-    !!      Dimension is (ngrid, npsh).
+    !! Dimension is (ngrid, npsh).
     real(dp), allocatable :: fi(:, :)
     !> Values of a characteristic function U at all grid points of all spheres.
-    !!      Dimension is (ngrid, nsph).
+    !! Dimension is (ngrid, nsph).
     real(dp), allocatable :: ui(:, :)
     !> Values of a characteristic function U at cavity points. Dimension is
-    !!      (ncav).
+    !! (ncav).
     real(dp), allocatable :: ui_cav(:)
     !> Derivative of the characteristic function U at all grid points of all
-    !!      spheres. Dimension is (3, ngrid, nsph).
+    !! spheres. Dimension is (3, ngrid, nsph).
     real(dp), allocatable :: zi(:, :, :)
     !> Number of external Lebedev grid points on a molecular surface.
     integer :: ncav
@@ -159,79 +150,79 @@ type ddx_constants_type
     !> Column indexes in CSR format of all cavity points. Dimension is (ncav).
     integer, allocatable :: icav_ja(:)
     !> Preconditioner for an operator R_eps. Allocated and computed only for
-    !!      the PCM model (model=3). Dimension is (nbasis, nbasis, nsph).
+    !! the PCM model (model=3). Dimension is (nbasis, nbasis, nsph).
     real(dp), allocatable :: rx_prc(:, :, :)
     !! Cluster tree information that is allocated and computed only if fmm=1.
     !> Reordering of spheres for better locality. This array has a dimension
-    !!      (nsph) and is allocated/used only if fmm=1.
+    !! (nsph) and is allocated/used only if fmm=1.
     integer, allocatable :: order(:)
     !> Number of clusters. Defined only if fmm=1.
     integer :: nclusters
     !> The first and the last spheres of each node. Dimension of this array is
-    !!      (2, nclusters) and it is allocated/used only if fmm=1.
+    !! (2, nclusters) and it is allocated/used only if fmm=1.
     integer, allocatable :: cluster(:, :)
     !> Children of each cluster. Dimension is (2, nclusters). Allocated and
-    !!      used only if fmm=1.
+    !! used only if fmm=1.
     integer, allocatable :: children(:, :)
     !> Parent of each cluster. Dimension is (nclusters). Allocated and used
-    !!      only if fmm=1.
+    !! only if fmm=1.
     integer, allocatable :: parent(:)
     !> Center of bounding sphere of each cluster. Dimension is (3, nclusters).
-    !!      This array is allocated and used only if fmm=1.
+    !! This array is allocated and used only if fmm=1.
     real(dp), allocatable :: cnode(:, :)
     !> Radius of bounding sphere of each cluster. Dimension is (nclusters).
-    !!      This array is allocated and used only if fmm=1.
+    !! This array is allocated and used only if fmm=1.
     real(dp), allocatable :: rnode(:)
     !> Which leaf node contains only given input sphere. Dimension is (nsph).
-    !!      This array is allocated and used only if fmm=1.
+    !! This array is allocated and used only if fmm=1.
     integer, allocatable :: snode(:)
     !> Bessel function for bounding sphere of each cluster. Dimension is
-    !!      (pm, nclusters). This array is allocated and used only if fmm=1.
+    !! (pm, nclusters). This array is allocated and used only if fmm=1.
     real(dp), allocatable :: SK_rnode(:, :)
     !> Bessel function for bounding sphere of each cluster. Dimension is
-    !!      (pm, nclusters). This array is allocated and used only if fmm=1.
+    !! (pm, nclusters). This array is allocated and used only if fmm=1.
     real(dp), allocatable :: SI_rnode(:, :)
     !> Total number of far admissible pairs. Defined only if fmm=1.
     integer :: nnfar
     !> Total number of near admissible pairs. Defined only if fmm=1.
     integer :: nnnear
     !> Number of admissible far pairs for each node. Dimension is (nclusters).
-    !!      This array is allocated and used only if fmm=1.
+    !! This array is allocated and used only if fmm=1.
     integer, allocatable :: nfar(:)
     !> Number of admissible near pairs for each node. Dimension is (nclusters).
-    !!      This array is allocated and used only if fmm=1.
+    !! This array is allocated and used only if fmm=1.
     integer, allocatable :: nnear(:)
     !> Arrays of admissible far pairs. Dimension is (nnfar). This array is
-    !!      allocated and used only if fmm=1.
+    !! allocated and used only if fmm=1.
     integer, allocatable :: far(:)
     !> Arrays of admissible near pairs. Dimension is (nnnear). This array is
-    !!      allocated and used only if fmm=1.
+    !! allocated and used only if fmm=1.
     integer, allocatable :: near(:)
     !> Index of the first element of array of all admissible far pairs stored
-    !!      in the array `far`. Dimension is (nclusters+1). This array is
-    !!      allocated and used only if fmm=1.
+    !! in the array `far`. Dimension is (nclusters+1). This array is
+    !! allocated and used only if fmm=1.
     integer, allocatable :: sfar(:)
     !> Index of the first element of array of all admissible near pairs stored
-    !!      in the array `near`. Dimension is (nclusters+1). This array is
-    !!      allocated and used only if fmm=1.
+    !! in the array `near`. Dimension is (nclusters+1). This array is
+    !! allocated and used only if fmm=1.
     integer, allocatable :: snear(:)
     !> Number of near-field M2P interactions with cavity points. Defined only
-    !!      if fmm=1.
+    !! if fmm=1.
     integer :: nnear_m2p
     !> Maximal degree of near-field M2P spherical harmonics. Defined only if
-    !!      fmm=1.
+    !! fmm=1.
     integer :: m2p_lmax
     !> Number of spherical harmonics used for near-field M2P. Defined only if
-    !!      fmm=1.
+    !! fmm=1.
     integer :: m2p_nbasis
     !> Number of spherical harmonics of degree up to lmax+1 used for
-    !!      computation of forces (gradients). Allocated and used only if
-    !!      fmm=1.
+    !! computation of forces (gradients). Allocated and used only if
+    !! fmm=1.
     integer :: grad_nbasis
     !> Inner tolerance for microiterations done when using ddLPB
     real(dp) :: inner_tol
     !> Whether the diagonal of the matrices has to be used in the mvp for
-    !!       ddCOSMO, ddPCM or inner ddLPB iterations
+    !! ddCOSMO, ddPCM or inner ddLPB iterations
     logical  :: dodiag
     !> Flag if there were an error
     integer :: error_flag = 2
@@ -242,8 +233,11 @@ end type ddx_constants_type
 contains
 
 !> Compute all necessary constants
+!> @ingroup Fortran_interface_core
+!!
 !! @param[in] params: Object containing all inputs.
 !! @param[out] constants: Object containing all constants.
+!!
 subroutine constants_init(params, constants)
     use complex_bessel
     !! Inputs
@@ -547,6 +541,7 @@ subroutine constants_init(params, constants)
     end if
 end subroutine constants_init
 
+!> Build the transposed neighbor list
 subroutine build_itrnl(constants, params)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -571,6 +566,7 @@ subroutine build_itrnl(constants, params)
     end do
 end subroutine build_itrnl
 
+!> Allocate and build the ddCOSMO sparse matrix, only if incore is set
 subroutine build_l(constants, params)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -638,6 +634,7 @@ subroutine build_l(constants, params)
     end do
 end subroutine build_l
 
+!> Allocate and build the HSP sparse matrix, only if incore is set
 subroutine build_b(constants, params)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -707,11 +704,11 @@ subroutine build_b(constants, params)
     end do
 end subroutine build_b
 
-!
-! Computation of P_chi
-! @param[in]  isph : Sphere number
-! @param[out] pmat : Matrix of size nbasis X (lmax0+1)^2, Fixed lmax0
-!
+!> Computation of P_chi
+!!
+!! @param[in]  isph : Sphere number
+!! @param[out] pmat : Matrix of size nbasis X (lmax0+1)^2, Fixed lmax0
+!!
 subroutine mkpmat(params, constants, isph, pmat)
     type(ddx_params_type), intent(in)  :: params
     type(ddx_constants_type), intent(in)  :: constants
@@ -1064,6 +1061,7 @@ subroutine constants_geometry_init(params, constants)
     end if
 end subroutine constants_geometry_init
 
+!> Build the neighbor list using a N^2 code
 subroutine neighbor_list_init(params, constants)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -1147,6 +1145,8 @@ subroutine neighbor_list_init(params, constants)
     constants % nngmax = nngmax
 end subroutine neighbor_list_init
 
+!> Build the neighbor list using a linear scaling code (only if FMMs
+!! are enabled)
 subroutine neighbor_list_init_fmm(params, constants)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -1790,8 +1790,8 @@ subroutine tree_get_farnear_work(n, children, cnode, rnode, lwork, iwork, &
     nnnear = sum(nnear)
 end subroutine tree_get_farnear_work
 
-! Get near and far admissible pairs from work array of tree_get_farnear_work
-! Works only for binary tree
+!> Get near and far admissible pairs from work array of tree_get_farnear_work
+!! Works only for binary tree
 subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
         & nnnear, nnear, snear, near)
 !   Parameters:
@@ -1846,6 +1846,11 @@ subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
 
 end subroutine tree_get_farnear
 
+!> Deallocate the constants
+!> @ingroup Fortran_interface_core
+!!
+!! @param[out] constants: Precomputed constants
+!!
 subroutine constants_free(constants)
     implicit none
     type(ddx_constants_type), intent(out) :: constants

@@ -27,7 +27,9 @@ contains
 !!
 !! @param[in] ddx_data: ddX object with all input information
 !! @param[in] phi_cav: Potential at cavity points
-!! @param[in] gradphi_cav: Gradient of a potential at cavity points
+!! @param[in] gradphi_cav: Gradient of the eletric potential at cavity points
+!! @param[in] hessianphi_cav: Hessian of the eletric potential at cavity points
+!! @param[inout] state: ddx state (contains RHSs and solutions)
 !! @param[in] psi: RHS of the adjoint problem
 !! @param[in] tol
 !! @param[out] esolv: Solvation energy
