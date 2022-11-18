@@ -32,34 +32,37 @@ var NAVTREE =
     ] ],
     [ "Run as standalone", "label_run_as_standalone.html", null ],
     [ "Python interface", "label_python_interface.html", [
-      [ "Download the python package pyddx", "label_python_interface.html#autotoc_md4", null ],
-      [ "Example", "label_python_interface.html#autotoc_md5", null ],
-      [ "Use ddX in python", "label_python_interface.html#autotoc_md6", [
-        [ "Model constructor", "label_python_interface.html#autotoc_md7", null ],
-        [ "Functions", "label_python_interface.html#autotoc_md8", null ]
+      [ "Download the python package pyddx", "label_python_interface.html#autotoc_md4", [
+        [ "Using conda", "label_python_interface.html#autotoc_md5", null ],
+        [ "Using pip", "label_python_interface.html#autotoc_md6", null ]
+      ] ],
+      [ "Example", "label_python_interface.html#autotoc_md7", null ],
+      [ "Use ddX in python", "label_python_interface.html#autotoc_md8", [
+        [ "Model constructor", "label_python_interface.html#autotoc_md9", null ],
+        [ "Functions", "label_python_interface.html#autotoc_md10", null ]
       ] ]
     ] ],
     [ "Theory", "md_docs_theory.html", [
-      [ "Introduction", "md_docs_theory.html#autotoc_md10", null ],
-      [ "Cavity and solute density", "md_docs_theory.html#autotoc_md11", [
-        [ "Fundamental solutions and free-space potentials", "md_docs_theory.html#autotoc_md12", null ]
+      [ "Introduction", "md_docs_theory.html#autotoc_md12", null ],
+      [ "Cavity and solute density", "md_docs_theory.html#autotoc_md13", [
+        [ "Fundamental solutions and free-space potentials", "md_docs_theory.html#autotoc_md14", null ]
       ] ],
-      [ "Models", "md_docs_theory.html#autotoc_md13", [
-        [ "Linearized Poisson-Boltzmann model (LPB)", "md_docs_theory.html#autotoc_md14", null ],
-        [ "Polarizable Continuum Model (PCM)", "md_docs_theory.html#autotoc_md15", null ],
-        [ "COnductor-like Screening MOdel (COSMO)", "md_docs_theory.html#autotoc_md16", [
-          [ "General remarks", "md_docs_theory.html#autotoc_md17", null ]
+      [ "Models", "md_docs_theory.html#autotoc_md15", [
+        [ "Linearized Poisson-Boltzmann model (LPB)", "md_docs_theory.html#autotoc_md16", null ],
+        [ "Polarizable Continuum Model (PCM)", "md_docs_theory.html#autotoc_md17", null ],
+        [ "COnductor-like Screening MOdel (COSMO)", "md_docs_theory.html#autotoc_md18", [
+          [ "General remarks", "md_docs_theory.html#autotoc_md19", null ]
         ] ]
       ] ],
-      [ "Discrete equations in a general framework - overview", "md_docs_theory.html#autotoc_md18", [
-        [ "ddCOSMO:", "md_docs_theory.html#autotoc_md19", null ],
-        [ "ddPCM:", "md_docs_theory.html#autotoc_md20", null ],
-        [ "ddLPB:", "md_docs_theory.html#autotoc_md21", null ]
+      [ "Discrete equations in a general framework - overview", "md_docs_theory.html#autotoc_md20", [
+        [ "ddCOSMO:", "md_docs_theory.html#autotoc_md21", null ],
+        [ "ddPCM:", "md_docs_theory.html#autotoc_md22", null ],
+        [ "ddLPB:", "md_docs_theory.html#autotoc_md23", null ]
       ] ],
-      [ "Gradient computations", "md_docs_theory.html#autotoc_md22", [
-        [ "ddCOSMO:", "md_docs_theory.html#autotoc_md23", null ],
-        [ "ddPCM:", "md_docs_theory.html#autotoc_md24", null ],
-        [ "ddLPB:", "md_docs_theory.html#autotoc_md25", null ]
+      [ "Gradient computations", "md_docs_theory.html#autotoc_md24", [
+        [ "ddCOSMO:", "md_docs_theory.html#autotoc_md25", null ],
+        [ "ddPCM:", "md_docs_theory.html#autotoc_md26", null ],
+        [ "ddLPB:", "md_docs_theory.html#autotoc_md27", null ]
       ] ]
     ] ],
     [ "The dd-story", "md_docs_ddstory.html", null ],
@@ -97,8 +100,8 @@ var NAVTREEINDEX =
 [
 "annotated.html",
 "label_download_and_install.html",
-"namespaceddx__parameters.html#afc162de2f4b5352119d0c14a96dda845",
-"structddx__core_1_1ddx__state__type.html#ae8b26ac0e03b0dd5fb4c5013723d982c"
+"namespaceddx__parameters.html#a74f7b18d32c86cd64e6b155a2cae2581",
+"structddx__core_1_1ddx__state__type.html#ae88a2a0537d509eec93de2f47f0ae49e"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

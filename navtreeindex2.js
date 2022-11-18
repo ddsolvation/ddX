@@ -1,12 +1,14 @@
 var NAVTREEINDEX2 =
 {
+"namespaceddx__parameters.html#a74f7b18d32c86cd64e6b155a2cae2581":[10,0,11,5],
+"namespaceddx__parameters.html#ac42505d5183f507764f25e6926d5cb34":[10,0,11,4],
 "namespaceddx__parameters.html#afc162de2f4b5352119d0c14a96dda845":[10,0,11,1],
 "namespaceddx__pcm.html":[10,0,12],
 "namespaceddx__solvers.html":[10,0,13],
 "namespaceddx__solvers.html#a1e4510a2d03b897c7b85fe46a764f1b3":[10,0,13,3],
 "namespaceddx__workspace.html":[10,0,14],
-"namespacemembers.html":[10,1,0],
 "namespacemembers.html":[10,1,0,0],
+"namespacemembers.html":[10,1,0],
 "namespacemembers_b.html":[10,1,0,1],
 "namespacemembers_c.html":[10,1,0,2],
 "namespacemembers_d.html":[10,1,0,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX2 =
 "structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7":[11,0,2,0,3],
 "structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7":[10,0,2,0,3],
 "structddx__core_1_1ddx__state__type.html#ae7761162d404940bf9695d8d57124d58":[11,0,2,0,21],
-"structddx__core_1_1ddx__state__type.html#ae7761162d404940bf9695d8d57124d58":[10,0,2,0,21],
-"structddx__core_1_1ddx__state__type.html#ae88a2a0537d509eec93de2f47f0ae49e":[10,0,2,0,28],
-"structddx__core_1_1ddx__state__type.html#ae88a2a0537d509eec93de2f47f0ae49e":[11,0,2,0,28]
+"structddx__core_1_1ddx__state__type.html#ae7761162d404940bf9695d8d57124d58":[10,0,2,0,21]
 };

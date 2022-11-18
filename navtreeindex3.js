@@ -1,5 +1,7 @@
 var NAVTREEINDEX3 =
 {
+"structddx__core_1_1ddx__state__type.html#ae88a2a0537d509eec93de2f47f0ae49e":[10,0,2,0,28],
+"structddx__core_1_1ddx__state__type.html#ae88a2a0537d509eec93de2f47f0ae49e":[11,0,2,0,28],
 "structddx__core_1_1ddx__state__type.html#ae8b26ac0e03b0dd5fb4c5013723d982c":[10,0,2,0,15],
 "structddx__core_1_1ddx__state__type.html#ae8b26ac0e03b0dd5fb4c5013723d982c":[11,0,2,0,15],
 "structddx__core_1_1ddx__state__type.html#aee7846568db8bab39129c9cb946ddd2e":[11,0,2,0,0],

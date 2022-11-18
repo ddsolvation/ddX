@@ -96,16 +96,21 @@ $(document).ready(function(){initNavTree('label_python_interface.html',''); init
 <div class="textblock"><p ><a class="anchor" id="md_docs_python_interface"></a> </p>
 <h1><a class="anchor" id="autotoc_md4"></a>
 Download the python package pyddx</h1>
+<h2><a class="anchor" id="autotoc_md5"></a>
+Using conda</h2>
+<p >Pyddx is available on <a href="https://anaconda.org/conda-forge/pyddx">conda-forge</a> and can be seamlessly installed via <code>conda</code>: </p><div class="fragment"><div class="line">conda install -c conda-forge pyddx</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md6"></a>
+Using pip</h2>
 <p >You can download the python-interface with ddx from pypi.org following: </p><div class="fragment"><div class="line">pip install pyddx</div>
-</div><!-- fragment --><p> Please find <a href="https://pypi.org/project/pyddx/">here</a> the PyPI-webpage.</p>
+</div><!-- fragment --><p> Note that at least pip 10 is required. Please find <a href="https://pypi.org/project/pyddx/">here</a> the PyPI-webpage.</p>
 <p ><br  />
  </p>
-<h1><a class="anchor" id="autotoc_md5"></a>
+<h1><a class="anchor" id="autotoc_md7"></a>
 Example</h1>
 <p >It is simplest by starting with an example. The following example can be found in examples/run_ddx.py.</p>
-<p >In the terminal, run the example (from the root directory) </p><div class="fragment"><div class="line">python examples/run_ddx.py </div>
-</div><!-- fragment --><p >or launch it interactively within python: </p><div class="fragment"><div class="line">import pyddx</div>
-<div class="line">import numpy as np</div>
+<p >In the terminal, run the example (from the root directory) </p><div class="fragment"><div class="line">python examples/run_ddx.py</div>
+</div><!-- fragment --><p >or launch it interactively within python: </p><div class="fragment"><div class="line"><span class="keyword">import</span> pyddx</div>
+<div class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</div>
 <div class="line"> </div>
 <div class="line">tobohr = 1 / 0.52917721092</div>
 <div class="line">charges = np.array([</div>
@@ -117,40 +122,51 @@ Example</h1>
 <div class="line">    2.99956, 2.99956, 2.99956, 2.99956, 2.99956, 2.99956</div>
 <div class="line">])</div>
 <div class="line">centres = tobohr * np.array([</div>
-<div class="line">    [ 0.00000,  2.29035,  1.32281],  </div>
-<div class="line">    [ 0.00000,  2.29035, -1.32281],  </div>
-<div class="line">    [ 0.00000,  0.00000, -2.64562],  </div>
-<div class="line">    [ 0.00000, -2.29035, -1.32281],  </div>
-<div class="line">    [ 0.00000, -2.29035,  1.32281],  </div>
-<div class="line">    [ 0.00000,  0.00000,  2.64562],  </div>
-<div class="line">    [ 0.00103,  4.05914,  2.34326],  </div>
-<div class="line">    [ 0.00103,  4.05914, -2.34326],  </div>
-<div class="line">    [ 0.00000,  0.00000, -4.68652],  </div>
-<div class="line">    [-0.00103, -4.05914, -2.34326],  </div>
-<div class="line">    [-0.00103, -4.05914,  2.34326],  </div>
-<div class="line">    [ 0.00000,  0.00000,  4.68652],  </div>
+<div class="line">    [ 0.00000,  2.29035,  1.32281],</div>
+<div class="line">    [ 0.00000,  2.29035, -1.32281],</div>
+<div class="line">    [ 0.00000,  0.00000, -2.64562],</div>
+<div class="line">    [ 0.00000, -2.29035, -1.32281],</div>
+<div class="line">    [ 0.00000, -2.29035,  1.32281],</div>
+<div class="line">    [ 0.00000,  0.00000,  2.64562],</div>
+<div class="line">    [ 0.00103,  4.05914,  2.34326],</div>
+<div class="line">    [ 0.00103,  4.05914, -2.34326],</div>
+<div class="line">    [ 0.00000,  0.00000, -4.68652],</div>
+<div class="line">    [-0.00103, -4.05914, -2.34326],</div>
+<div class="line">    [-0.00103, -4.05914,  2.34326],</div>
+<div class="line">    [ 0.00000,  0.00000,  4.68652],</div>
 <div class="line">]).T</div>
 <div class="line"> </div>
-<div class="line">model = pyddx.Model(&quot;pcm&quot;, charges, centres, rvdw, solvent_epsilon=78.3553)</div>
-<div class="line">nuclear = model.solute_nuclear_contribution()</div>
-<div class="line">state = model.initial_guess()</div>
-<div class="line">state = model.solve(state, nuclear[&quot;phi&quot;])</div>
-<div class="line">state = model.adjoint_solve(state, nuclear[&quot;psi&quot;])</div>
-<div class="line">force = model.force_terms(state, nuclear[&quot;phi&quot;], nuclear[&quot;gradphi&quot;], nuclear[&quot;psi&quot;])</div>
+<div class="line">print(pyddx.banner())</div>
 <div class="line"> </div>
-<div class="line">energy = 0.5 * np.sum(state.x * nuclear[&quot;psi&quot;])</div>
+<div class="line">model = pyddx.Model(<span class="stringliteral">&quot;pcm&quot;</span>, charges, centres, rvdw, solvent_epsilon=78.3553)</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Compute solute contributions (here just charges)</span></div>
+<div class="line">solute_multipoles = charges.reshape(1, -1) / np.sqrt(4 * np.pi)</div>
+<div class="line">solute_field = model.multipole_electrostatics(solute_multipoles)</div>
+<div class="line">solute_psi = model.multipole_psi(solute_multipoles)</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Solve the problem</span></div>
+<div class="line">state = pyddx.State(model, solute_field[<span class="stringliteral">&quot;phi&quot;</span>], solute_psi)</div>
+<div class="line">state.fill_guess()</div>
+<div class="line">state.solve()</div>
+<div class="line">state.fill_guess_adjoint()</div>
+<div class="line">state.solve_adjoint()</div>
+<div class="line"> </div>
+<div class="line"><span class="comment"># Show results</span></div>
+<div class="line">energy = 0.5 * np.sum(state.x * solute_psi)</div>
+<div class="line">force = state.solvation_force_terms()</div>
 <div class="line">print(energy)</div>
 <div class="line">print(force)</div>
 </div><!-- fragment --><p ><br  />
  </p>
-<h1><a class="anchor" id="autotoc_md6"></a>
+<h1><a class="anchor" id="autotoc_md8"></a>
 Use ddX in python</h1>
 <p >We now proceed with further informations. Within python, import the pyddx-package </p><div class="fragment"><div class="line">&gt;&gt;&gt; import pyddx</div>
 </div><!-- fragment --><p ><br  />
  </p>
-<h2><a class="anchor" id="autotoc_md7"></a>
+<h2><a class="anchor" id="autotoc_md9"></a>
 Model constructor</h2>
-<p >Define the model as follows </p><div class="fragment"><div class="line">model = pyddx.Model(modelstr, charges, centres, rvdw, solvent_epsilon)</div>
+<p >Define the model as follows </p><div class="fragment"><div class="line">model = pyddx.Model(model, sphere_charges, sphere_centres, sphere_radii, solvent_epsilon)</div>
 </div><!-- fragment --><p> Here, the model is constructed with the following mandatory arguments:</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -196,7 +212,7 @@ Model constructor</h2>
 </table>
 <p ><br  />
  </p>
-<h2><a class="anchor" id="autotoc_md8"></a>
+<h2><a class="anchor" id="autotoc_md10"></a>
 Functions</h2>
 <p >The following functions are available </p><table class="markdownTable">
 <tr class="markdownTableHead">
@@ -215,6 +231,8 @@ Functions</h2>
 <td class="markdownTableBodyNone">scaled_ylm   </td><td class="markdownTableBodyNone">Computes the scaled harmonics with reference to a atomic sphere "sphere" of radius "r" centred at "a" compute \(\frac{4π}{2 \ell +1} \cdot \frac{\|x-a\|^\ell}{r^\ell} \cdot Y_\ell^m(\|x-a\|)\)   </td></tr>
 </table>
 <p >For further informations about the arguments, see the documentation in python </p><div class="fragment"><div class="line">&gt;&gt;&gt; help(pyddx)</div>
+<div class="line">&gt;&gt;&gt; help(pyddx.Model)</div>
+<div class="line">&gt;&gt;&gt; help(pyddx.State)</div>
 </div><!-- fragment --> </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
