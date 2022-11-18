@@ -1,10 +1,19 @@
 # Python interface  {#label_python_interface}
 
 ## Download the python package pyddx
+### Using conda
+Pyddx is available on [conda-forge](https://anaconda.org/conda-forge/pyddx)
+and can be seamlessly installed via `conda`:
+```
+conda install -c conda-forge pyddx
+```
+
+### Using pip
 You can download the python-interface with ddx from pypi.org following:
-``` markdown
+```
 pip install pyddx
 ```
+Note that at least pip 10 is required.
 Please find [here](https://pypi.org/project/pyddx/) the PyPI-webpage.
 
 
@@ -14,12 +23,12 @@ It is simplest by starting with an example.
 The following example can be found in examples/run_ddx.py. 
 
 In the terminal, run the example (from the root directory)
-``` markdown
-python examples/run_ddx.py 
+```
+python examples/run_ddx.py
 ```
 
 or launch it interactively within python:
-``` markdown
+```python
 import pyddx
 import numpy as np
 
@@ -33,28 +42,39 @@ rvdw = tobohr * np.array([
     2.99956, 2.99956, 2.99956, 2.99956, 2.99956, 2.99956
 ])
 centres = tobohr * np.array([
-    [ 0.00000,  2.29035,  1.32281],  
-    [ 0.00000,  2.29035, -1.32281],  
-    [ 0.00000,  0.00000, -2.64562],  
-    [ 0.00000, -2.29035, -1.32281],  
-    [ 0.00000, -2.29035,  1.32281],  
-    [ 0.00000,  0.00000,  2.64562],  
-    [ 0.00103,  4.05914,  2.34326],  
-    [ 0.00103,  4.05914, -2.34326],  
-    [ 0.00000,  0.00000, -4.68652],  
-    [-0.00103, -4.05914, -2.34326],  
-    [-0.00103, -4.05914,  2.34326],  
-    [ 0.00000,  0.00000,  4.68652],  
+    [ 0.00000,  2.29035,  1.32281],
+    [ 0.00000,  2.29035, -1.32281],
+    [ 0.00000,  0.00000, -2.64562],
+    [ 0.00000, -2.29035, -1.32281],
+    [ 0.00000, -2.29035,  1.32281],
+    [ 0.00000,  0.00000,  2.64562],
+    [ 0.00103,  4.05914,  2.34326],
+    [ 0.00103,  4.05914, -2.34326],
+    [ 0.00000,  0.00000, -4.68652],
+    [-0.00103, -4.05914, -2.34326],
+    [-0.00103, -4.05914,  2.34326],
+    [ 0.00000,  0.00000,  4.68652],
 ]).T
 
-model = pyddx.Model("pcm", charges, centres, rvdw, solvent_epsilon=78.3553)
-nuclear = model.solute_nuclear_contribution()
-state = model.initial_guess()
-state = model.solve(state, nuclear["phi"])
-state = model.adjoint_solve(state, nuclear["psi"])
-force = model.force_terms(state, nuclear["phi"], nuclear["gradphi"], nuclear["psi"])
+print(pyddx.banner())
 
-energy = 0.5 * np.sum(state.x * nuclear["psi"])
+model = pyddx.Model("pcm", charges, centres, rvdw, solvent_epsilon=78.3553)
+
+# Compute solute contributions (here just charges)
+solute_multipoles = charges.reshape(1, -1) / np.sqrt(4 * np.pi)
+solute_field = model.multipole_electrostatics(solute_multipoles)
+solute_psi = model.multipole_psi(solute_multipoles)
+
+# Solve the problem
+state = pyddx.State(model, solute_field["phi"], solute_psi)
+state.fill_guess()
+state.solve()
+state.fill_guess_adjoint()
+state.solve_adjoint()
+
+# Show results
+energy = 0.5 * np.sum(state.x * solute_psi)
+force = state.solvation_force_terms()
 print(energy)
 print(force)
 ```
@@ -63,15 +83,15 @@ print(force)
 ## Use ddX in python
 We now proceed with further informations.
 Within python, import the pyddx-package
-``` markdown
+```
 >>> import pyddx
 ```
 
 <br />
 ### Model constructor
 Define the model as follows
-``` markdown
-model = pyddx.Model(modelstr, charges, centres, rvdw, solvent_epsilon)
+```python
+model = pyddx.Model(model, sphere_charges, sphere_centres, sphere_radii, solvent_epsilon)
 ```
 Here, the model is constructed with the following mandatory arguments:
 
@@ -112,8 +132,10 @@ solute_nuclear_contribution | Returns the terms of the nuclear contribution to t
 scaled_ylm    | Computes the scaled harmonics with reference to a atomic sphere "sphere" of radius "r" centred at "a" compute \f$\frac{4π}{2 \ell +1} \cdot \frac{\|x-a\|^\ell}{r^\ell} \cdot Y_\ell^m(\|x-a\|)\f$
 
 For further informations about the arguments, see the documentation in python 
-``` markdown
+```
 >>> help(pyddx)
+>>> help(pyddx.Model)
+>>> help(pyddx.State)
 ```
 
 
