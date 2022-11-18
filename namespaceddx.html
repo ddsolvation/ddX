@@ -182,7 +182,9 @@ Functions/Subroutines</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">ddx_data</td><td>ddX object with all input information </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">phi_cav</td><td>Potential at cavity points </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">gradphi_cav</td><td>Gradient of a potential at cavity points </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">gradphi_cav</td><td>Gradient of the eletric potential at cavity points </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">hessianphi_cav</td><td>Hessian of the eletric potential at cavity points </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains RHSs and solutions) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">psi</td><td>RHS of the adjoint problem </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td></td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">esolv</td><td>Solvation energy </td></tr>
@@ -191,7 +193,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00035">35</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00037">37</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
 
 </div>
 </div>

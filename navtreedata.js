@@ -69,8 +69,8 @@ var NAVTREE =
     [ "Licence", "label_licence.html", null ],
     [ "ddX-References", "label_references.html", null ],
     [ "Bibliography", "citelist.html", null ],
-    [ "Modules", "modules.html", "modules" ],
-    [ "Modules", "namespaces.html", [
+    [ "API", "modules.html", "modules" ],
+    [ "Fortran Modules", "namespaces.html", [
       [ "Modules List", "namespaces.html", "namespaces_dup" ],
       [ "Module Members", "namespacemembers.html", [
         [ "All", "namespacemembers.html", "namespacemembers_dup" ],
@@ -99,9 +99,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"label_download_and_install.html",
-"namespaceddx__parameters.html#a74f7b18d32c86cd64e6b155a2cae2581",
-"structddx__core_1_1ddx__state__type.html#ae88a2a0537d509eec93de2f47f0ae49e"
+"group___fortran__interface__ddcosmo.html#ga19e04e21fa4063a92520a59cc2f316b9",
+"namespaceddx__lpb__core.html#a27155fbfc41650ee384956aabcf6406c",
+"structddx__core_1_1ddx__state__type.html#a0b1492447f2bef9ff3b132f68f8d67cc"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

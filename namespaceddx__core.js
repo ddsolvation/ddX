@@ -3,8 +3,10 @@ var namespaceddx__core =
     [ "ddx_state_type", "structddx__core_1_1ddx__state__type.html", "structddx__core_1_1ddx__state__type" ],
     [ "ddx_type", "structddx__core_1_1ddx__type.html", "structddx__core_1_1ddx__type" ],
     [ "ddinit", "namespaceddx__core.html#a926d27f6449f58274291844daf24a332", null ],
+    [ "ddx_init_state", "group___fortran__interface__core.html#gab34ec195fbaa7838303efa0b7e0f0453", null ],
     [ "ddfromfile", "namespaceddx__core.html#a7aec58ff2505372daa3da8bbe3a0eb04", null ],
     [ "ddfree", "namespaceddx__core.html#a3258ae6ef23a4f07ea8a14ccf612acaa", null ],
+    [ "ddx_free_state", "group___fortran__interface__core.html#ga5614410792c4a18a359eae6fd226cc8e", null ],
     [ "print_spherical", "namespaceddx__core.html#af4eafcca2db08df6f222c4a9874f1350", null ],
     [ "print_nodes", "namespaceddx__core.html#a4fb708956f0cfee0096fc319575ad228", null ],
     [ "print_ddvector", "namespaceddx__core.html#a7ee983451a2d6b52ce89801a59fb33e6", null ],
@@ -24,6 +26,7 @@ var namespaceddx__core =
     [ "ddintegrate_sph_work", "namespaceddx__core.html#a61156a8a0aec479ea2071dd6d6922fb1", null ],
     [ "ddcav_to_grid", "namespaceddx__core.html#adc759d996954a0fbab1eaf77c035c76a", null ],
     [ "ddcav_to_grid_work", "namespaceddx__core.html#accaee74767f44a369c6d2d1e106c0453", null ],
+    [ "ddproject_cav", "namespaceddx__core.html#ac11b27bb31b5df45e810537fcb887b85", null ],
     [ "tree_m2m_rotation", "namespaceddx__core.html#a1caf6da4500220161384b51938ada1f8", null ],
     [ "tree_m2m_rotation_work", "namespaceddx__core.html#a824b2d46bc4f19b41d1e59efc101fe97", null ],
     [ "tree_m2m_bessel_rotation", "namespaceddx__core.html#ad0d3d3c1ab770177d8e62b74b7b70a7f", null ],
@@ -56,5 +59,6 @@ var namespaceddx__core =
     [ "efld", "namespaceddx__core.html#a3c8789fc01ba244fdaa0d4fef8e9d725", null ],
     [ "tree_grad_m2m", "namespaceddx__core.html#a86f701c3486a5b26c650d5b157b6e213", null ],
     [ "tree_grad_l2l", "namespaceddx__core.html#a0bbe738fff5a4d15f744dfa0b26938cf", null ],
+    [ "get_banner", "group___fortran__interface__core.html#gaf7818bc26493b4749c2b8656c9a772d5", null ],
     [ "cav_to_spherical", "namespaceddx__core.html#a2ff2b3f242a701748d2ce58e54acdee5", null ]
 ];

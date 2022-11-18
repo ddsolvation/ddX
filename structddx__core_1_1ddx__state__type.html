@@ -96,33 +96,60 @@ $(document).ready(function(){initNavTree('structddx__core_1_1ddx__state__type.ht
   <div class="headertitle"><div class="title">ddx_core::ddx_state_type Type Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>This defined type contains the primal and adjoint RHSs, the solution of the primal and adjoint linear systems, useful intermediates for the computation of the forces, and the information about the convergence of the linear system solver (time, number of iterations, relative difference at each iteration).  
+ <a href="structddx__core_1_1ddx__state__type.html#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:aee7846568db8bab39129c9cb946ddd2e"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#aee7846568db8bab39129c9cb946ddd2e">phi</a></td></tr>
-<tr class="memdesc:aee7846568db8bab39129c9cb946ddd2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Variable \( \Phi \) of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#aee7846568db8bab39129c9cb946ddd2e">More...</a><br /></td></tr>
-<tr class="separator:aee7846568db8bab39129c9cb946ddd2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a08d23dc0eceb14dcb6f623871c208529"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a08d23dc0eceb14dcb6f623871c208529">xs</a></td></tr>
-<tr class="memdesc:a08d23dc0eceb14dcb6f623871c208529"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution of the ddCOSMO system of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#a08d23dc0eceb14dcb6f623871c208529">More...</a><br /></td></tr>
-<tr class="separator:a08d23dc0eceb14dcb6f623871c208529"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8180c3d20b4cb8effeb4f8b65f170445"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a8180c3d20b4cb8effeb4f8b65f170445">xs_niter</a></td></tr>
-<tr class="memdesc:a8180c3d20b4cb8effeb4f8b65f170445"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iteration to solve ddCOSMO system.  <a href="structddx__core_1_1ddx__state__type.html#a8180c3d20b4cb8effeb4f8b65f170445">More...</a><br /></td></tr>
-<tr class="separator:a8180c3d20b4cb8effeb4f8b65f170445"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb77809d89986f4c02824d297fd966d7"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7">xs_rel_diff</a></td></tr>
-<tr class="memdesc:adb77809d89986f4c02824d297fd966d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of each step of iterative solver for ddCOSMO system. Dimension is (maxiter).  <a href="structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7">More...</a><br /></td></tr>
-<tr class="separator:adb77809d89986f4c02824d297fd966d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afea532fb7fd4160a2984ce1aca68934b"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#afea532fb7fd4160a2984ce1aca68934b">xs_time</a></td></tr>
-<tr class="memdesc:afea532fb7fd4160a2984ce1aca68934b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to solve primal ddCOSMO system.  <a href="structddx__core_1_1ddx__state__type.html#afea532fb7fd4160a2984ce1aca68934b">More...</a><br /></td></tr>
-<tr class="separator:afea532fb7fd4160a2984ce1aca68934b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f54780b6bbb34070a8f38c83b742254"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a3f54780b6bbb34070a8f38c83b742254">sgrid</a></td></tr>
-<tr class="memdesc:a3f54780b6bbb34070a8f38c83b742254"><td class="mdescLeft">&#160;</td><td class="mdescRight">Values of s at grid points. Dimension is (ngrid, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#a3f54780b6bbb34070a8f38c83b742254">More...</a><br /></td></tr>
-<tr class="separator:a3f54780b6bbb34070a8f38c83b742254"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6708562e4f7a959cf4272bef83771a8d"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a6708562e4f7a959cf4272bef83771a8d">psi</a></td></tr>
-<tr class="memdesc:a6708562e4f7a959cf4272bef83771a8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">rhs for the adjoint problem  <a href="structddx__core_1_1ddx__state__type.html#a6708562e4f7a959cf4272bef83771a8d">More...</a><br /></td></tr>
+<tr class="memdesc:a6708562e4f7a959cf4272bef83771a8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Representation of the solute density in spherical harmonics ( \( \Psi \)). It is used as RHS for the adjoint linear system. Dimension (nbasis, nsph).  <a href="structddx__core_1_1ddx__state__type.html#a6708562e4f7a959cf4272bef83771a8d">More...</a><br /></td></tr>
 <tr class="separator:a6708562e4f7a959cf4272bef83771a8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a160af68bec958a00f1c20bf28fbacb7e"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a160af68bec958a00f1c20bf28fbacb7e">phi_cav</a></td></tr>
-<tr class="memdesc:a160af68bec958a00f1c20bf28fbacb7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">potential at the cavity points  <a href="structddx__core_1_1ddx__state__type.html#a160af68bec958a00f1c20bf28fbacb7e">More...</a><br /></td></tr>
+<tr class="memdesc:a160af68bec958a00f1c20bf28fbacb7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Electric potential at the cavity points. It is used to construct the RHS for the primal linear system. Dimension (ncav).  <a href="structddx__core_1_1ddx__state__type.html#a160af68bec958a00f1c20bf28fbacb7e">More...</a><br /></td></tr>
 <tr class="separator:a160af68bec958a00f1c20bf28fbacb7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a903ec491e30ffa2a5a4012bac9641900"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a903ec491e30ffa2a5a4012bac9641900">phi_grid</a></td></tr>
+<tr class="memdesc:a903ec491e30ffa2a5a4012bac9641900"><td class="mdescLeft">&#160;</td><td class="mdescRight">Potential at all the grid points. Dimension (ngrid, nsph).  <a href="structddx__core_1_1ddx__state__type.html#a903ec491e30ffa2a5a4012bac9641900">More...</a><br /></td></tr>
+<tr class="separator:a903ec491e30ffa2a5a4012bac9641900"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d25ed184b0365b44a597556edec3b49"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a6d25ed184b0365b44a597556edec3b49">zeta</a></td></tr>
+<tr class="memdesc:a6d25ed184b0365b44a597556edec3b49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zeta intermediate for the forces. Dimension (ncav).  <a href="structddx__core_1_1ddx__state__type.html#a6d25ed184b0365b44a597556edec3b49">More...</a><br /></td></tr>
+<tr class="separator:a6d25ed184b0365b44a597556edec3b49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b1492447f2bef9ff3b132f68f8d67cc"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a0b1492447f2bef9ff3b132f68f8d67cc">error_flag</a></td></tr>
+<tr class="memdesc:a0b1492447f2bef9ff3b132f68f8d67cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error flag, nonzero in case of an error.  <a href="structddx__core_1_1ddx__state__type.html#a0b1492447f2bef9ff3b132f68f8d67cc">More...</a><br /></td></tr>
+<tr class="separator:a0b1492447f2bef9ff3b132f68f8d67cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56c8add2d008d542df338eb2e7c5c890"><td class="memItemLeft" align="right" valign="top">character(len=255)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a56c8add2d008d542df338eb2e7c5c890">error_message</a></td></tr>
+<tr class="memdesc:a56c8add2d008d542df338eb2e7c5c890"><td class="mdescLeft">&#160;</td><td class="mdescRight">Last error message.  <a href="structddx__core_1_1ddx__state__type.html#a56c8add2d008d542df338eb2e7c5c890">More...</a><br /></td></tr>
+<tr class="separator:a56c8add2d008d542df338eb2e7c5c890"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee7846568db8bab39129c9cb946ddd2e"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#aee7846568db8bab39129c9cb946ddd2e">phi</a></td></tr>
+<tr class="memdesc:aee7846568db8bab39129c9cb946ddd2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Variable \( \Phi \) of a dimension (nbasis, nsph). Allocated and used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#aee7846568db8bab39129c9cb946ddd2e">More...</a><br /></td></tr>
+<tr class="separator:aee7846568db8bab39129c9cb946ddd2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a08d23dc0eceb14dcb6f623871c208529"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a08d23dc0eceb14dcb6f623871c208529">xs</a></td></tr>
+<tr class="memdesc:a08d23dc0eceb14dcb6f623871c208529"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution of the ddCOSMO system of a dimension (nbasis, nsph). Allocated and used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#a08d23dc0eceb14dcb6f623871c208529">More...</a><br /></td></tr>
+<tr class="separator:a08d23dc0eceb14dcb6f623871c208529"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8180c3d20b4cb8effeb4f8b65f170445"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a8180c3d20b4cb8effeb4f8b65f170445">xs_niter</a></td></tr>
+<tr class="memdesc:a8180c3d20b4cb8effeb4f8b65f170445"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iterations to solve the primal ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#a8180c3d20b4cb8effeb4f8b65f170445">More...</a><br /></td></tr>
+<tr class="separator:a8180c3d20b4cb8effeb4f8b65f170445"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb77809d89986f4c02824d297fd966d7"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7">xs_rel_diff</a></td></tr>
+<tr class="memdesc:adb77809d89986f4c02824d297fd966d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of the iterative solver at each iteration of the primal ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7">More...</a><br /></td></tr>
+<tr class="separator:adb77809d89986f4c02824d297fd966d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afea532fb7fd4160a2984ce1aca68934b"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#afea532fb7fd4160a2984ce1aca68934b">xs_time</a></td></tr>
+<tr class="memdesc:afea532fb7fd4160a2984ce1aca68934b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to solve the primal ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#afea532fb7fd4160a2984ce1aca68934b">More...</a><br /></td></tr>
+<tr class="separator:afea532fb7fd4160a2984ce1aca68934b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f54780b6bbb34070a8f38c83b742254"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a3f54780b6bbb34070a8f38c83b742254">sgrid</a></td></tr>
+<tr class="memdesc:a3f54780b6bbb34070a8f38c83b742254"><td class="mdescLeft">&#160;</td><td class="mdescRight">Values of s at grid points. Dimension is (ngrid, nsph). Allocated and used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#a3f54780b6bbb34070a8f38c83b742254">More...</a><br /></td></tr>
+<tr class="separator:a3f54780b6bbb34070a8f38c83b742254"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5570afac25a88ebd483149e1ac2dc66"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ab5570afac25a88ebd483149e1ac2dc66">s</a></td></tr>
+<tr class="memdesc:ab5570afac25a88ebd483149e1ac2dc66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution of the adjoint ddCOSMO linear system, dimension (nbasis, nsph). Allocated and used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#ab5570afac25a88ebd483149e1ac2dc66">More...</a><br /></td></tr>
+<tr class="separator:ab5570afac25a88ebd483149e1ac2dc66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8b26ac0e03b0dd5fb4c5013723d982c"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ae8b26ac0e03b0dd5fb4c5013723d982c">s_niter</a></td></tr>
+<tr class="memdesc:ae8b26ac0e03b0dd5fb4c5013723d982c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iterations required to solve the adjoint ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#ae8b26ac0e03b0dd5fb4c5013723d982c">More...</a><br /></td></tr>
+<tr class="separator:ae8b26ac0e03b0dd5fb4c5013723d982c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ff8561962833ab28dcf5fdac281d9f7"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a3ff8561962833ab28dcf5fdac281d9f7">s_rel_diff</a></td></tr>
+<tr class="memdesc:a3ff8561962833ab28dcf5fdac281d9f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of the iterative solver at each iteration of the adjoint ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#a3ff8561962833ab28dcf5fdac281d9f7">More...</a><br /></td></tr>
+<tr class="separator:a3ff8561962833ab28dcf5fdac281d9f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe53093bb83bd41277e53848474610a8"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#abe53093bb83bd41277e53848474610a8">s_time</a></td></tr>
+<tr class="memdesc:abe53093bb83bd41277e53848474610a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to solve the adjoint ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#abe53093bb83bd41277e53848474610a8">More...</a><br /></td></tr>
+<tr class="separator:abe53093bb83bd41277e53848474610a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83850fd12c4c5b915a9226afa3d90e17"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a83850fd12c4c5b915a9226afa3d90e17">phiinf</a></td></tr>
 <tr class="memdesc:a83850fd12c4c5b915a9226afa3d90e17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Variable \( \Phi_\infty \) of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a83850fd12c4c5b915a9226afa3d90e17">More...</a><br /></td></tr>
 <tr class="separator:a83850fd12c4c5b915a9226afa3d90e17"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -130,199 +157,74 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a85a9a635519db969914d9b977f2bf3b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Variable \( \Phi_\varepsilon \) of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a85a9a635519db969914d9b977f2bf3b1">More...</a><br /></td></tr>
 <tr class="separator:a85a9a635519db969914d9b977f2bf3b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85b122812d525480a3f97c1891087441"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a85b122812d525480a3f97c1891087441">phieps_niter</a></td></tr>
-<tr class="memdesc:a85b122812d525480a3f97c1891087441"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iteration to solve ddPCM system.  <a href="structddx__core_1_1ddx__state__type.html#a85b122812d525480a3f97c1891087441">More...</a><br /></td></tr>
+<tr class="memdesc:a85b122812d525480a3f97c1891087441"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iterations to solve the primal ddPCM linear system system. Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a85b122812d525480a3f97c1891087441">More...</a><br /></td></tr>
 <tr class="separator:a85b122812d525480a3f97c1891087441"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4dfbeb29f87cf4040d8633b0b1c54e33"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a4dfbeb29f87cf4040d8633b0b1c54e33">phieps_rel_diff</a></td></tr>
-<tr class="memdesc:a4dfbeb29f87cf4040d8633b0b1c54e33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of each step of iterative solver for ddPCM system. Dimension is (maxiter).  <a href="structddx__core_1_1ddx__state__type.html#a4dfbeb29f87cf4040d8633b0b1c54e33">More...</a><br /></td></tr>
+<tr class="memdesc:a4dfbeb29f87cf4040d8633b0b1c54e33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of the iterative solver at each iteration of the primal ddPCM linear system, dimension (maxiter). Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a4dfbeb29f87cf4040d8633b0b1c54e33">More...</a><br /></td></tr>
 <tr class="separator:a4dfbeb29f87cf4040d8633b0b1c54e33"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a987b38d818104cabc9f7f3ba301b5235"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a987b38d818104cabc9f7f3ba301b5235">phieps_time</a></td></tr>
-<tr class="memdesc:a987b38d818104cabc9f7f3ba301b5235"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to solve primal ddPCM system.  <a href="structddx__core_1_1ddx__state__type.html#a987b38d818104cabc9f7f3ba301b5235">More...</a><br /></td></tr>
+<tr class="memdesc:a987b38d818104cabc9f7f3ba301b5235"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to solve the primal ddPCM linear system. Used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a987b38d818104cabc9f7f3ba301b5235">More...</a><br /></td></tr>
 <tr class="separator:a987b38d818104cabc9f7f3ba301b5235"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80d564db3f80ca02474529f94a7fb858"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a80d564db3f80ca02474529f94a7fb858">g</a></td></tr>
-<tr class="memdesc:a80d564db3f80ca02474529f94a7fb858"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shortcut of \( \Phi_\varepsilon - \Phi \).  <a href="structddx__core_1_1ddx__state__type.html#a80d564db3f80ca02474529f94a7fb858">More...</a><br /></td></tr>
+<tr class="memdesc:a80d564db3f80ca02474529f94a7fb858"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shortcut of \( \Phi_\varepsilon - \Phi \) for the computation of the ddPCM forces. Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a80d564db3f80ca02474529f94a7fb858">More...</a><br /></td></tr>
 <tr class="separator:a80d564db3f80ca02474529f94a7fb858"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5570afac25a88ebd483149e1ac2dc66"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ab5570afac25a88ebd483149e1ac2dc66">s</a></td></tr>
-<tr class="memdesc:ab5570afac25a88ebd483149e1ac2dc66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution of the adjoint ddCOSMO system of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#ab5570afac25a88ebd483149e1ac2dc66">More...</a><br /></td></tr>
-<tr class="separator:ab5570afac25a88ebd483149e1ac2dc66"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae8b26ac0e03b0dd5fb4c5013723d982c"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ae8b26ac0e03b0dd5fb4c5013723d982c">s_niter</a></td></tr>
-<tr class="memdesc:ae8b26ac0e03b0dd5fb4c5013723d982c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iteration to solve adoint ddCOSMO system.  <a href="structddx__core_1_1ddx__state__type.html#ae8b26ac0e03b0dd5fb4c5013723d982c">More...</a><br /></td></tr>
-<tr class="separator:ae8b26ac0e03b0dd5fb4c5013723d982c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3ff8561962833ab28dcf5fdac281d9f7"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a3ff8561962833ab28dcf5fdac281d9f7">s_rel_diff</a></td></tr>
-<tr class="memdesc:a3ff8561962833ab28dcf5fdac281d9f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of each step of iterative solver for adjoint ddCOSMO system. Dimension is (maxiter).  <a href="structddx__core_1_1ddx__state__type.html#a3ff8561962833ab28dcf5fdac281d9f7">More...</a><br /></td></tr>
-<tr class="separator:a3ff8561962833ab28dcf5fdac281d9f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe53093bb83bd41277e53848474610a8"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#abe53093bb83bd41277e53848474610a8">s_time</a></td></tr>
-<tr class="memdesc:abe53093bb83bd41277e53848474610a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to solve adjoint ddCOSMO system.  <a href="structddx__core_1_1ddx__state__type.html#abe53093bb83bd41277e53848474610a8">More...</a><br /></td></tr>
-<tr class="separator:abe53093bb83bd41277e53848474610a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a289b95040949952de1e86111f440a838"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a289b95040949952de1e86111f440a838">y</a></td></tr>
-<tr class="memdesc:a289b95040949952de1e86111f440a838"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution of the adjoint ddPCM system of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a289b95040949952de1e86111f440a838">More...</a><br /></td></tr>
+<tr class="memdesc:a289b95040949952de1e86111f440a838"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution of the adjoint ddPCM linear system, dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a289b95040949952de1e86111f440a838">More...</a><br /></td></tr>
 <tr class="separator:a289b95040949952de1e86111f440a838"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0905754357c8025076591272cd88812f"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a0905754357c8025076591272cd88812f">y_niter</a></td></tr>
-<tr class="memdesc:a0905754357c8025076591272cd88812f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iteration to solve adjoint ddPCM system.  <a href="structddx__core_1_1ddx__state__type.html#a0905754357c8025076591272cd88812f">More...</a><br /></td></tr>
+<tr class="memdesc:a0905754357c8025076591272cd88812f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iteration to solve the adjoint ddPCM linear system. Used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a0905754357c8025076591272cd88812f">More...</a><br /></td></tr>
 <tr class="separator:a0905754357c8025076591272cd88812f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5a1f3314992f8aef6fcfe45abbb2f24"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ac5a1f3314992f8aef6fcfe45abbb2f24">y_rel_diff</a></td></tr>
-<tr class="memdesc:ac5a1f3314992f8aef6fcfe45abbb2f24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of each step of iterative solver for adjoint ddPCM system. Dimension is (maxiter).  <a href="structddx__core_1_1ddx__state__type.html#ac5a1f3314992f8aef6fcfe45abbb2f24">More...</a><br /></td></tr>
+<tr class="memdesc:ac5a1f3314992f8aef6fcfe45abbb2f24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of the iterative solver at each iteration of the adjoint ddPCM linear system. Allocated and used only by the PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#ac5a1f3314992f8aef6fcfe45abbb2f24">More...</a><br /></td></tr>
 <tr class="separator:ac5a1f3314992f8aef6fcfe45abbb2f24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7761162d404940bf9695d8d57124d58"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ae7761162d404940bf9695d8d57124d58">y_time</a></td></tr>
 <tr class="memdesc:ae7761162d404940bf9695d8d57124d58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to solve adjoint ddPCM system.  <a href="structddx__core_1_1ddx__state__type.html#ae7761162d404940bf9695d8d57124d58">More...</a><br /></td></tr>
 <tr class="separator:ae7761162d404940bf9695d8d57124d58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac7c4e2212dc6d7d677d3612cad389c8f"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ac7c4e2212dc6d7d677d3612cad389c8f">ygrid</a></td></tr>
-<tr class="memdesc:ac7c4e2212dc6d7d677d3612cad389c8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Values of y at grid points. Dimension is (ngrid, nsph). Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#ac7c4e2212dc6d7d677d3612cad389c8f">More...</a><br /></td></tr>
+<tr class="memdesc:ac7c4e2212dc6d7d677d3612cad389c8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution of the adjoint ddPCM linear system, dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#ac7c4e2212dc6d7d677d3612cad389c8f">More...</a><br /></td></tr>
 <tr class="separator:ac7c4e2212dc6d7d677d3612cad389c8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad1757dc3ef7f36af7e1767c2ae827bfd"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ad1757dc3ef7f36af7e1767c2ae827bfd">q</a></td></tr>
-<tr class="memdesc:ad1757dc3ef7f36af7e1767c2ae827bfd"><td class="mdescLeft">&#160;</td><td class="mdescRight">s-4pi/(eps-1)y of dimension (nbasis, nsph)  <a href="structddx__core_1_1ddx__state__type.html#ad1757dc3ef7f36af7e1767c2ae827bfd">More...</a><br /></td></tr>
+<tr class="memdesc:ad1757dc3ef7f36af7e1767c2ae827bfd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Effective total adjoint solution of the ddPCM model, defined as \( Q := S - \frac{4\pi}{\varepsilon-1}Y \). Dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#ad1757dc3ef7f36af7e1767c2ae827bfd">More...</a><br /></td></tr>
 <tr class="separator:ad1757dc3ef7f36af7e1767c2ae827bfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66ba3c75158728fff99a9ea26b0e0d7b"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a66ba3c75158728fff99a9ea26b0e0d7b">qgrid</a></td></tr>
-<tr class="memdesc:a66ba3c75158728fff99a9ea26b0e0d7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Values of q at grid points. Dimension is (ngrid, nsph)  <a href="structddx__core_1_1ddx__state__type.html#a66ba3c75158728fff99a9ea26b0e0d7b">More...</a><br /></td></tr>
+<tr class="memdesc:a66ba3c75158728fff99a9ea26b0e0d7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Values of Q at grid points. Dimension (ngrid, nsph). Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a66ba3c75158728fff99a9ea26b0e0d7b">More...</a><br /></td></tr>
 <tr class="separator:a66ba3c75158728fff99a9ea26b0e0d7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa87796b2be1f31aa84b0c4a9e914c7c5"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:,:,:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#aa87796b2be1f31aa84b0c4a9e914c7c5">x_lpb</a></td></tr>
-<tr class="memdesc:aa87796b2be1f31aa84b0c4a9e914c7c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution to the ddLPB linear system. Dimension is (nbasis,nsph,2). Allocated and used only by LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#aa87796b2be1f31aa84b0c4a9e914c7c5">More...</a><br /></td></tr>
+<tr class="memdesc:aa87796b2be1f31aa84b0c4a9e914c7c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution to the ddLPB linear system. Dimension (nbasis, nsph, 2). Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#aa87796b2be1f31aa84b0c4a9e914c7c5">More...</a><br /></td></tr>
 <tr class="separator:aa87796b2be1f31aa84b0c4a9e914c7c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a20bca950fa436fd0eecc5064250572ea"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:,:,:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a20bca950fa436fd0eecc5064250572ea">x_adj_lpb</a></td></tr>
-<tr class="memdesc:a20bca950fa436fd0eecc5064250572ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution to the ddLPB ajoint system. Dimension is (nbasis,nsph,2). Allocated and used only by LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#a20bca950fa436fd0eecc5064250572ea">More...</a><br /></td></tr>
+<tr class="memdesc:a20bca950fa436fd0eecc5064250572ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solution to the ddLPB adjoint linear system. Dimension (nbasis, nsph, 2). Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#a20bca950fa436fd0eecc5064250572ea">More...</a><br /></td></tr>
 <tr class="separator:a20bca950fa436fd0eecc5064250572ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae8bae38bfaba096f11adebb60e4ee14"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:,:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#aae8bae38bfaba096f11adebb60e4ee14">g_lpb</a></td></tr>
-<tr class="memdesc:aae8bae38bfaba096f11adebb60e4ee14"><td class="mdescLeft">&#160;</td><td class="mdescRight">g intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only by LPB (model=3) model  <a href="structddx__core_1_1ddx__state__type.html#aae8bae38bfaba096f11adebb60e4ee14">More...</a><br /></td></tr>
+<tr class="memdesc:aae8bae38bfaba096f11adebb60e4ee14"><td class="mdescLeft">&#160;</td><td class="mdescRight">g RHS for ddLPB. Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#aae8bae38bfaba096f11adebb60e4ee14">More...</a><br /></td></tr>
 <tr class="separator:aae8bae38bfaba096f11adebb60e4ee14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae88a2a0537d509eec93de2f47f0ae49e"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:,:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ae88a2a0537d509eec93de2f47f0ae49e">f_lpb</a></td></tr>
-<tr class="memdesc:ae88a2a0537d509eec93de2f47f0ae49e"><td class="mdescLeft">&#160;</td><td class="mdescRight">d intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only by LPB (model=3) model  <a href="structddx__core_1_1ddx__state__type.html#ae88a2a0537d509eec93de2f47f0ae49e">More...</a><br /></td></tr>
+<tr class="memdesc:ae88a2a0537d509eec93de2f47f0ae49e"><td class="mdescLeft">&#160;</td><td class="mdescRight">f RHS for ddLPB. Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#ae88a2a0537d509eec93de2f47f0ae49e">More...</a><br /></td></tr>
 <tr class="separator:ae88a2a0537d509eec93de2f47f0ae49e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a64d3459b5ccca296a0b8faad0f67bb36"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a64d3459b5ccca296a0b8faad0f67bb36">x_lpb_niter</a></td></tr>
+<tr class="memdesc:a64d3459b5ccca296a0b8faad0f67bb36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iterations required to solve the primal ddLPB linear system. Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#a64d3459b5ccca296a0b8faad0f67bb36">More...</a><br /></td></tr>
 <tr class="separator:a64d3459b5ccca296a0b8faad0f67bb36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef5945ddebad01b238bf8afdbe3209e4"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#aef5945ddebad01b238bf8afdbe3209e4">x_adj_lpb_niter</a></td></tr>
+<tr class="memdesc:aef5945ddebad01b238bf8afdbe3209e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iterations required to solve the adjoint ddLPB linear ststem. Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#aef5945ddebad01b238bf8afdbe3209e4">More...</a><br /></td></tr>
 <tr class="separator:aef5945ddebad01b238bf8afdbe3209e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af2ea4dfbd78d6a36d59ee5170363c529"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#af2ea4dfbd78d6a36d59ee5170363c529">x_lpb_time</a></td></tr>
+<tr class="memdesc:af2ea4dfbd78d6a36d59ee5170363c529"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time required to solve the primal ddLPB linear system. Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#af2ea4dfbd78d6a36d59ee5170363c529">More...</a><br /></td></tr>
 <tr class="separator:af2ea4dfbd78d6a36d59ee5170363c529"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a69492e0195fe9f56d681f8b72b2056"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a8a69492e0195fe9f56d681f8b72b2056">x_adj_lpb_time</a></td></tr>
+<tr class="memdesc:a8a69492e0195fe9f56d681f8b72b2056"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time required to solve the adjoint ddLPB linear system. Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#a8a69492e0195fe9f56d681f8b72b2056">More...</a><br /></td></tr>
 <tr class="separator:a8a69492e0195fe9f56d681f8b72b2056"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaa3c249bd7e7820e3f3b9bbf36333ed6"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#aaa3c249bd7e7820e3f3b9bbf36333ed6">x_lpb_rel_diff</a></td></tr>
+<tr class="memdesc:aaa3c249bd7e7820e3f3b9bbf36333ed6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of the iterative solver at each iteration of the primal ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#aaa3c249bd7e7820e3f3b9bbf36333ed6">More...</a><br /></td></tr>
 <tr class="separator:aaa3c249bd7e7820e3f3b9bbf36333ed6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af51f9714898918d4824a8158e4c4b67b"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#af51f9714898918d4824a8158e4c4b67b">x_adj_lpb_rel_diff</a></td></tr>
+<tr class="memdesc:af51f9714898918d4824a8158e4c4b67b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of the iterative solver at each iteration of the adjoint ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#af51f9714898918d4824a8158e4c4b67b">More...</a><br /></td></tr>
 <tr class="separator:af51f9714898918d4824a8158e4c4b67b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6d25ed184b0365b44a597556edec3b49"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a6d25ed184b0365b44a597556edec3b49">zeta</a></td></tr>
-<tr class="memdesc:a6d25ed184b0365b44a597556edec3b49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zeta intermediate for forces. Dimension is (ncav)  <a href="structddx__core_1_1ddx__state__type.html#a6d25ed184b0365b44a597556edec3b49">More...</a><br /></td></tr>
-<tr class="separator:a6d25ed184b0365b44a597556edec3b49"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a903ec491e30ffa2a5a4012bac9641900"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a903ec491e30ffa2a5a4012bac9641900">phi_grid</a></td></tr>
-<tr class="memdesc:a903ec491e30ffa2a5a4012bac9641900"><td class="mdescLeft">&#160;</td><td class="mdescRight">Potential at all grid points. Dimension is (ngrid, nsph). Allocated and used by all models.  <a href="structddx__core_1_1ddx__state__type.html#a903ec491e30ffa2a5a4012bac9641900">More...</a><br /></td></tr>
-<tr class="separator:a903ec491e30ffa2a5a4012bac9641900"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0b1492447f2bef9ff3b132f68f8d67cc"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a0b1492447f2bef9ff3b132f68f8d67cc">error_flag</a></td></tr>
-<tr class="memdesc:a0b1492447f2bef9ff3b132f68f8d67cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flag if there were an error.  <a href="structddx__core_1_1ddx__state__type.html#a0b1492447f2bef9ff3b132f68f8d67cc">More...</a><br /></td></tr>
-<tr class="separator:a0b1492447f2bef9ff3b132f68f8d67cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a56c8add2d008d542df338eb2e7c5c890"><td class="memItemLeft" align="right" valign="top">character(len=255)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a56c8add2d008d542df338eb2e7c5c890">error_message</a></td></tr>
-<tr class="memdesc:a56c8add2d008d542df338eb2e7c5c890"><td class="mdescLeft">&#160;</td><td class="mdescRight">Last error message.  <a href="structddx__core_1_1ddx__state__type.html#a56c8add2d008d542df338eb2e7c5c890">More...</a><br /></td></tr>
-<tr class="separator:a56c8add2d008d542df338eb2e7c5c890"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock">
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00026">26</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<div class="textblock"><p >This defined type contains the primal and adjoint RHSs, the solution of the primal and adjoint linear systems, useful intermediates for the computation of the forces, and the information about the convergence of the linear system solver (time, number of iterations, relative difference at each iteration). </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00033">33</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
-<a id="aee7846568db8bab39129c9cb946ddd2e" name="aee7846568db8bab39129c9cb946ddd2e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aee7846568db8bab39129c9cb946ddd2e">&#9670;&nbsp;</a></span>phi</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::phi</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Variable \( \Phi \) of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00034">34</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a08d23dc0eceb14dcb6f623871c208529" name="a08d23dc0eceb14dcb6f623871c208529"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a08d23dc0eceb14dcb6f623871c208529">&#9670;&nbsp;</a></span>xs</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::xs</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Solution of the ddCOSMO system of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00037">37</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a8180c3d20b4cb8effeb4f8b65f170445" name="a8180c3d20b4cb8effeb4f8b65f170445"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8180c3d20b4cb8effeb4f8b65f170445">&#9670;&nbsp;</a></span>xs_niter</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">integer ddx_core::ddx_state_type::xs_niter</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Number of iteration to solve ddCOSMO system. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00040">40</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="adb77809d89986f4c02824d297fd966d7" name="adb77809d89986f4c02824d297fd966d7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adb77809d89986f4c02824d297fd966d7">&#9670;&nbsp;</a></span>xs_rel_diff</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::xs_rel_diff</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Relative error of each step of iterative solver for ddCOSMO system. Dimension is (maxiter). </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00043">43</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="afea532fb7fd4160a2984ce1aca68934b" name="afea532fb7fd4160a2984ce1aca68934b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afea532fb7fd4160a2984ce1aca68934b">&#9670;&nbsp;</a></span>xs_time</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp) ddx_core::ddx_state_type::xs_time</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Time to solve primal ddCOSMO system. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00045">45</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a3f54780b6bbb34070a8f38c83b742254" name="a3f54780b6bbb34070a8f38c83b742254"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3f54780b6bbb34070a8f38c83b742254">&#9670;&nbsp;</a></span>sgrid</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::sgrid</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Values of s at grid points. Dimension is (ngrid, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00048">48</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
 <a id="a6708562e4f7a959cf4272bef83771a8d" name="a6708562e4f7a959cf4272bef83771a8d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6708562e4f7a959cf4272bef83771a8d">&#9670;&nbsp;</a></span>psi</h2>
 
@@ -335,9 +237,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>rhs for the adjoint problem </p>
+<p>Representation of the solute density in spherical harmonics ( \( \Psi \)). It is used as RHS for the adjoint linear system. Dimension (nbasis, nsph). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00050">50</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00042">42</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -353,501 +255,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>potential at the cavity points </p>
+<p>Electric potential at the cavity points. It is used to construct the RHS for the primal linear system. Dimension (ncav). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00052">52</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a83850fd12c4c5b915a9226afa3d90e17" name="a83850fd12c4c5b915a9226afa3d90e17"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a83850fd12c4c5b915a9226afa3d90e17">&#9670;&nbsp;</a></span>phiinf</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::phiinf</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Variable \( \Phi_\infty \) of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00059">59</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a85a9a635519db969914d9b977f2bf3b1" name="a85a9a635519db969914d9b977f2bf3b1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a85a9a635519db969914d9b977f2bf3b1">&#9670;&nbsp;</a></span>phieps</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::phieps</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Variable \( \Phi_\varepsilon \) of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00062">62</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a85b122812d525480a3f97c1891087441" name="a85b122812d525480a3f97c1891087441"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a85b122812d525480a3f97c1891087441">&#9670;&nbsp;</a></span>phieps_niter</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">integer ddx_core::ddx_state_type::phieps_niter</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Number of iteration to solve ddPCM system. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00065">65</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a4dfbeb29f87cf4040d8633b0b1c54e33" name="a4dfbeb29f87cf4040d8633b0b1c54e33"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4dfbeb29f87cf4040d8633b0b1c54e33">&#9670;&nbsp;</a></span>phieps_rel_diff</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::phieps_rel_diff</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Relative error of each step of iterative solver for ddPCM system. Dimension is (maxiter). </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00068">68</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a987b38d818104cabc9f7f3ba301b5235" name="a987b38d818104cabc9f7f3ba301b5235"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a987b38d818104cabc9f7f3ba301b5235">&#9670;&nbsp;</a></span>phieps_time</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp) ddx_core::ddx_state_type::phieps_time</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Time to solve primal ddPCM system. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00070">70</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a80d564db3f80ca02474529f94a7fb858" name="a80d564db3f80ca02474529f94a7fb858"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a80d564db3f80ca02474529f94a7fb858">&#9670;&nbsp;</a></span>g</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::g</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Shortcut of \( \Phi_\varepsilon - \Phi \). </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00072">72</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="ab5570afac25a88ebd483149e1ac2dc66" name="ab5570afac25a88ebd483149e1ac2dc66"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab5570afac25a88ebd483149e1ac2dc66">&#9670;&nbsp;</a></span>s</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::s</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Solution of the adjoint ddCOSMO system of a dimension (nbasis, nsph). Allocated and used by COSMO (model=1) and PCM (model=2) models. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00077">77</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="ae8b26ac0e03b0dd5fb4c5013723d982c" name="ae8b26ac0e03b0dd5fb4c5013723d982c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae8b26ac0e03b0dd5fb4c5013723d982c">&#9670;&nbsp;</a></span>s_niter</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">integer ddx_core::ddx_state_type::s_niter</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Number of iteration to solve adoint ddCOSMO system. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00079">79</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a3ff8561962833ab28dcf5fdac281d9f7" name="a3ff8561962833ab28dcf5fdac281d9f7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3ff8561962833ab28dcf5fdac281d9f7">&#9670;&nbsp;</a></span>s_rel_diff</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::s_rel_diff</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Relative error of each step of iterative solver for adjoint ddCOSMO system. Dimension is (maxiter). </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00082">82</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="abe53093bb83bd41277e53848474610a8" name="abe53093bb83bd41277e53848474610a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abe53093bb83bd41277e53848474610a8">&#9670;&nbsp;</a></span>s_time</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp) ddx_core::ddx_state_type::s_time</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Time to solve adjoint ddCOSMO system. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00084">84</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a289b95040949952de1e86111f440a838" name="a289b95040949952de1e86111f440a838"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a289b95040949952de1e86111f440a838">&#9670;&nbsp;</a></span>y</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::y</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Solution of the adjoint ddPCM system of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00087">87</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a0905754357c8025076591272cd88812f" name="a0905754357c8025076591272cd88812f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0905754357c8025076591272cd88812f">&#9670;&nbsp;</a></span>y_niter</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">integer ddx_core::ddx_state_type::y_niter</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Number of iteration to solve adjoint ddPCM system. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00089">89</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="ac5a1f3314992f8aef6fcfe45abbb2f24" name="ac5a1f3314992f8aef6fcfe45abbb2f24"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac5a1f3314992f8aef6fcfe45abbb2f24">&#9670;&nbsp;</a></span>y_rel_diff</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::y_rel_diff</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Relative error of each step of iterative solver for adjoint ddPCM system. Dimension is (maxiter). </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00092">92</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="ae7761162d404940bf9695d8d57124d58" name="ae7761162d404940bf9695d8d57124d58"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae7761162d404940bf9695d8d57124d58">&#9670;&nbsp;</a></span>y_time</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp) ddx_core::ddx_state_type::y_time</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Time to solve adjoint ddPCM system. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00094">94</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="ac7c4e2212dc6d7d677d3612cad389c8f" name="ac7c4e2212dc6d7d677d3612cad389c8f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac7c4e2212dc6d7d677d3612cad389c8f">&#9670;&nbsp;</a></span>ygrid</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::ygrid</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Values of y at grid points. Dimension is (ngrid, nsph). Allocated and used only by PCM (model=2) model. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00097">97</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="ad1757dc3ef7f36af7e1767c2ae827bfd" name="ad1757dc3ef7f36af7e1767c2ae827bfd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1757dc3ef7f36af7e1767c2ae827bfd">&#9670;&nbsp;</a></span>q</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::q</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>s-4pi/(eps-1)y of dimension (nbasis, nsph) </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00099">99</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a66ba3c75158728fff99a9ea26b0e0d7b" name="a66ba3c75158728fff99a9ea26b0e0d7b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a66ba3c75158728fff99a9ea26b0e0d7b">&#9670;&nbsp;</a></span>qgrid</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::qgrid</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Values of q at grid points. Dimension is (ngrid, nsph) </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00101">101</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="aa87796b2be1f31aa84b0c4a9e914c7c5" name="aa87796b2be1f31aa84b0c4a9e914c7c5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa87796b2be1f31aa84b0c4a9e914c7c5">&#9670;&nbsp;</a></span>x_lpb</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:,:,:), allocatable ddx_core::ddx_state_type::x_lpb</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Solution to the ddLPB linear system. Dimension is (nbasis,nsph,2). Allocated and used only by LPB (model=3) model. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00108">108</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a20bca950fa436fd0eecc5064250572ea" name="a20bca950fa436fd0eecc5064250572ea"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a20bca950fa436fd0eecc5064250572ea">&#9670;&nbsp;</a></span>x_adj_lpb</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:,:,:), allocatable ddx_core::ddx_state_type::x_adj_lpb</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Solution to the ddLPB ajoint system. Dimension is (nbasis,nsph,2). Allocated and used only by LPB (model=3) model. </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00111">111</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="aae8bae38bfaba096f11adebb60e4ee14" name="aae8bae38bfaba096f11adebb60e4ee14"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aae8bae38bfaba096f11adebb60e4ee14">&#9670;&nbsp;</a></span>g_lpb</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:,:), allocatable ddx_core::ddx_state_type::g_lpb</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>g intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only by LPB (model=3) model </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00114">114</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="ae88a2a0537d509eec93de2f47f0ae49e" name="ae88a2a0537d509eec93de2f47f0ae49e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae88a2a0537d509eec93de2f47f0ae49e">&#9670;&nbsp;</a></span>f_lpb</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:,:), allocatable ddx_core::ddx_state_type::f_lpb</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>d intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and used only by LPB (model=3) model </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00118">118</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a64d3459b5ccca296a0b8faad0f67bb36" name="a64d3459b5ccca296a0b8faad0f67bb36"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a64d3459b5ccca296a0b8faad0f67bb36">&#9670;&nbsp;</a></span>x_lpb_niter</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">integer ddx_core::ddx_state_type::x_lpb_niter</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00119">119</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="aef5945ddebad01b238bf8afdbe3209e4" name="aef5945ddebad01b238bf8afdbe3209e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aef5945ddebad01b238bf8afdbe3209e4">&#9670;&nbsp;</a></span>x_adj_lpb_niter</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">integer ddx_core::ddx_state_type::x_adj_lpb_niter</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00120">120</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="af2ea4dfbd78d6a36d59ee5170363c529" name="af2ea4dfbd78d6a36d59ee5170363c529"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af2ea4dfbd78d6a36d59ee5170363c529">&#9670;&nbsp;</a></span>x_lpb_time</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp) ddx_core::ddx_state_type::x_lpb_time</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00121">121</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a8a69492e0195fe9f56d681f8b72b2056" name="a8a69492e0195fe9f56d681f8b72b2056"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8a69492e0195fe9f56d681f8b72b2056">&#9670;&nbsp;</a></span>x_adj_lpb_time</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp) ddx_core::ddx_state_type::x_adj_lpb_time</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00122">122</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="aaa3c249bd7e7820e3f3b9bbf36333ed6" name="aaa3c249bd7e7820e3f3b9bbf36333ed6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaa3c249bd7e7820e3f3b9bbf36333ed6">&#9670;&nbsp;</a></span>x_lpb_rel_diff</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::x_lpb_rel_diff</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00123">123</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="af51f9714898918d4824a8158e4c4b67b" name="af51f9714898918d4824a8158e4c4b67b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af51f9714898918d4824a8158e4c4b67b">&#9670;&nbsp;</a></span>x_adj_lpb_rel_diff</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::x_adj_lpb_rel_diff</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00124">124</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="a6d25ed184b0365b44a597556edec3b49" name="a6d25ed184b0365b44a597556edec3b49"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6d25ed184b0365b44a597556edec3b49">&#9670;&nbsp;</a></span>zeta</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::zeta</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Zeta intermediate for forces. Dimension is (ncav) </p>
-
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00130">130</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00045">45</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -863,9 +273,27 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Potential at all grid points. Dimension is (ngrid, nsph). Allocated and used by all models. </p>
+<p>Potential at all the grid points. Dimension (ngrid, nsph). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00133">133</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00047">47</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a6d25ed184b0365b44a597556edec3b49" name="a6d25ed184b0365b44a597556edec3b49"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d25ed184b0365b44a597556edec3b49">&#9670;&nbsp;</a></span>zeta</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::zeta</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Zeta intermediate for the forces. Dimension (ncav). </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00049">49</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -881,9 +309,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Flag if there were an error. </p>
+<p>Error flag, nonzero in case of an error. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00135">135</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00051">51</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -901,7 +329,601 @@ Public Attributes</h2></td></tr>
 
 <p>Last error message. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00137">137</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00053">53</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="aee7846568db8bab39129c9cb946ddd2e" name="aee7846568db8bab39129c9cb946ddd2e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee7846568db8bab39129c9cb946ddd2e">&#9670;&nbsp;</a></span>phi</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::phi</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Variable \( \Phi \) of a dimension (nbasis, nsph). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00060">60</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a08d23dc0eceb14dcb6f623871c208529" name="a08d23dc0eceb14dcb6f623871c208529"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a08d23dc0eceb14dcb6f623871c208529">&#9670;&nbsp;</a></span>xs</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::xs</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Solution of the ddCOSMO system of a dimension (nbasis, nsph). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00063">63</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a8180c3d20b4cb8effeb4f8b65f170445" name="a8180c3d20b4cb8effeb4f8b65f170445"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8180c3d20b4cb8effeb4f8b65f170445">&#9670;&nbsp;</a></span>xs_niter</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">integer ddx_core::ddx_state_type::xs_niter</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Number of iterations to solve the primal ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00066">66</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="adb77809d89986f4c02824d297fd966d7" name="adb77809d89986f4c02824d297fd966d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb77809d89986f4c02824d297fd966d7">&#9670;&nbsp;</a></span>xs_rel_diff</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::xs_rel_diff</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Relative error of the iterative solver at each iteration of the primal ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00070">70</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="afea532fb7fd4160a2984ce1aca68934b" name="afea532fb7fd4160a2984ce1aca68934b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afea532fb7fd4160a2984ce1aca68934b">&#9670;&nbsp;</a></span>xs_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp) ddx_core::ddx_state_type::xs_time</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Time to solve the primal ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00073">73</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a3f54780b6bbb34070a8f38c83b742254" name="a3f54780b6bbb34070a8f38c83b742254"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f54780b6bbb34070a8f38c83b742254">&#9670;&nbsp;</a></span>sgrid</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::sgrid</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Values of s at grid points. Dimension is (ngrid, nsph). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00076">76</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ab5570afac25a88ebd483149e1ac2dc66" name="ab5570afac25a88ebd483149e1ac2dc66"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5570afac25a88ebd483149e1ac2dc66">&#9670;&nbsp;</a></span>s</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::s</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Solution of the adjoint ddCOSMO linear system, dimension (nbasis, nsph). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00079">79</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ae8b26ac0e03b0dd5fb4c5013723d982c" name="ae8b26ac0e03b0dd5fb4c5013723d982c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8b26ac0e03b0dd5fb4c5013723d982c">&#9670;&nbsp;</a></span>s_niter</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">integer ddx_core::ddx_state_type::s_niter</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Number of iterations required to solve the adjoint ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00082">82</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a3ff8561962833ab28dcf5fdac281d9f7" name="a3ff8561962833ab28dcf5fdac281d9f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3ff8561962833ab28dcf5fdac281d9f7">&#9670;&nbsp;</a></span>s_rel_diff</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::s_rel_diff</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Relative error of the iterative solver at each iteration of the adjoint ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00086">86</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="abe53093bb83bd41277e53848474610a8" name="abe53093bb83bd41277e53848474610a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe53093bb83bd41277e53848474610a8">&#9670;&nbsp;</a></span>s_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp) ddx_core::ddx_state_type::s_time</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Time to solve the adjoint ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00089">89</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a83850fd12c4c5b915a9226afa3d90e17" name="a83850fd12c4c5b915a9226afa3d90e17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a83850fd12c4c5b915a9226afa3d90e17">&#9670;&nbsp;</a></span>phiinf</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::phiinf</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Variable \( \Phi_\infty \) of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00096">96</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a85a9a635519db969914d9b977f2bf3b1" name="a85a9a635519db969914d9b977f2bf3b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85a9a635519db969914d9b977f2bf3b1">&#9670;&nbsp;</a></span>phieps</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::phieps</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Variable \( \Phi_\varepsilon \) of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00099">99</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a85b122812d525480a3f97c1891087441" name="a85b122812d525480a3f97c1891087441"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85b122812d525480a3f97c1891087441">&#9670;&nbsp;</a></span>phieps_niter</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">integer ddx_core::ddx_state_type::phieps_niter</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Number of iterations to solve the primal ddPCM linear system system. Allocated and used only by PCM (model=2) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00102">102</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a4dfbeb29f87cf4040d8633b0b1c54e33" name="a4dfbeb29f87cf4040d8633b0b1c54e33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4dfbeb29f87cf4040d8633b0b1c54e33">&#9670;&nbsp;</a></span>phieps_rel_diff</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::phieps_rel_diff</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Relative error of the iterative solver at each iteration of the primal ddPCM linear system, dimension (maxiter). Allocated and used only by PCM (model=2) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00106">106</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a987b38d818104cabc9f7f3ba301b5235" name="a987b38d818104cabc9f7f3ba301b5235"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a987b38d818104cabc9f7f3ba301b5235">&#9670;&nbsp;</a></span>phieps_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp) ddx_core::ddx_state_type::phieps_time</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Time to solve the primal ddPCM linear system. Used only by PCM (model=2) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00109">109</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a80d564db3f80ca02474529f94a7fb858" name="a80d564db3f80ca02474529f94a7fb858"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80d564db3f80ca02474529f94a7fb858">&#9670;&nbsp;</a></span>g</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::g</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Shortcut of \( \Phi_\varepsilon - \Phi \) for the computation of the ddPCM forces. Allocated and used only by PCM (model=2) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00113">113</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a289b95040949952de1e86111f440a838" name="a289b95040949952de1e86111f440a838"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a289b95040949952de1e86111f440a838">&#9670;&nbsp;</a></span>y</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::y</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Solution of the adjoint ddPCM linear system, dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00116">116</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a0905754357c8025076591272cd88812f" name="a0905754357c8025076591272cd88812f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0905754357c8025076591272cd88812f">&#9670;&nbsp;</a></span>y_niter</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">integer ddx_core::ddx_state_type::y_niter</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Number of iteration to solve the adjoint ddPCM linear system. Used only by PCM (model=2) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00119">119</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ac5a1f3314992f8aef6fcfe45abbb2f24" name="ac5a1f3314992f8aef6fcfe45abbb2f24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5a1f3314992f8aef6fcfe45abbb2f24">&#9670;&nbsp;</a></span>y_rel_diff</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::y_rel_diff</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Relative error of the iterative solver at each iteration of the adjoint ddPCM linear system. Allocated and used only by the PCM (model=2) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00122">122</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ae7761162d404940bf9695d8d57124d58" name="ae7761162d404940bf9695d8d57124d58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7761162d404940bf9695d8d57124d58">&#9670;&nbsp;</a></span>y_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp) ddx_core::ddx_state_type::y_time</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Time to solve adjoint ddPCM system. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00124">124</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ac7c4e2212dc6d7d677d3612cad389c8f" name="ac7c4e2212dc6d7d677d3612cad389c8f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac7c4e2212dc6d7d677d3612cad389c8f">&#9670;&nbsp;</a></span>ygrid</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::ygrid</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Solution of the adjoint ddPCM linear system, dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00127">127</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ad1757dc3ef7f36af7e1767c2ae827bfd" name="ad1757dc3ef7f36af7e1767c2ae827bfd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1757dc3ef7f36af7e1767c2ae827bfd">&#9670;&nbsp;</a></span>q</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::q</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Effective total adjoint solution of the ddPCM model, defined as \( Q := S - \frac{4\pi}{\varepsilon-1}Y \). Dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00131">131</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a66ba3c75158728fff99a9ea26b0e0d7b" name="a66ba3c75158728fff99a9ea26b0e0d7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a66ba3c75158728fff99a9ea26b0e0d7b">&#9670;&nbsp;</a></span>qgrid</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::qgrid</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Values of Q at grid points. Dimension (ngrid, nsph). Allocated and used only by PCM (model=2) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00134">134</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="aa87796b2be1f31aa84b0c4a9e914c7c5" name="aa87796b2be1f31aa84b0c4a9e914c7c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa87796b2be1f31aa84b0c4a9e914c7c5">&#9670;&nbsp;</a></span>x_lpb</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:,:,:), allocatable ddx_core::ddx_state_type::x_lpb</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Solution to the ddLPB linear system. Dimension (nbasis, nsph, 2). Allocated and used only by the LPB (model=3) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00141">141</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a20bca950fa436fd0eecc5064250572ea" name="a20bca950fa436fd0eecc5064250572ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a20bca950fa436fd0eecc5064250572ea">&#9670;&nbsp;</a></span>x_adj_lpb</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:,:,:), allocatable ddx_core::ddx_state_type::x_adj_lpb</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Solution to the ddLPB adjoint linear system. Dimension (nbasis, nsph, 2). Allocated and used only by the LPB (model=3) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00145">145</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="aae8bae38bfaba096f11adebb60e4ee14" name="aae8bae38bfaba096f11adebb60e4ee14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aae8bae38bfaba096f11adebb60e4ee14">&#9670;&nbsp;</a></span>g_lpb</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:,:), allocatable ddx_core::ddx_state_type::g_lpb</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>g RHS for ddLPB. Allocated and used only by the LPB (model=3) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00148">148</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ae88a2a0537d509eec93de2f47f0ae49e" name="ae88a2a0537d509eec93de2f47f0ae49e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae88a2a0537d509eec93de2f47f0ae49e">&#9670;&nbsp;</a></span>f_lpb</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:,:), allocatable ddx_core::ddx_state_type::f_lpb</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>f RHS for ddLPB. Allocated and used only by the LPB (model=3) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00151">151</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a64d3459b5ccca296a0b8faad0f67bb36" name="a64d3459b5ccca296a0b8faad0f67bb36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64d3459b5ccca296a0b8faad0f67bb36">&#9670;&nbsp;</a></span>x_lpb_niter</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">integer ddx_core::ddx_state_type::x_lpb_niter</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Number of iterations required to solve the primal ddLPB linear system. Allocated and used only by the LPB (model=3) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00154">154</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="aef5945ddebad01b238bf8afdbe3209e4" name="aef5945ddebad01b238bf8afdbe3209e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef5945ddebad01b238bf8afdbe3209e4">&#9670;&nbsp;</a></span>x_adj_lpb_niter</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">integer ddx_core::ddx_state_type::x_adj_lpb_niter</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Number of iterations required to solve the adjoint ddLPB linear ststem. Allocated and used only by the LPB (model=3) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00157">157</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="af2ea4dfbd78d6a36d59ee5170363c529" name="af2ea4dfbd78d6a36d59ee5170363c529"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af2ea4dfbd78d6a36d59ee5170363c529">&#9670;&nbsp;</a></span>x_lpb_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp) ddx_core::ddx_state_type::x_lpb_time</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Time required to solve the primal ddLPB linear system. Allocated and used only by the LPB (model=3) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00160">160</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a8a69492e0195fe9f56d681f8b72b2056" name="a8a69492e0195fe9f56d681f8b72b2056"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a69492e0195fe9f56d681f8b72b2056">&#9670;&nbsp;</a></span>x_adj_lpb_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp) ddx_core::ddx_state_type::x_adj_lpb_time</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Time required to solve the adjoint ddLPB linear system. Allocated and used only by the LPB (model=3) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00163">163</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="aaa3c249bd7e7820e3f3b9bbf36333ed6" name="aaa3c249bd7e7820e3f3b9bbf36333ed6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa3c249bd7e7820e3f3b9bbf36333ed6">&#9670;&nbsp;</a></span>x_lpb_rel_diff</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::x_lpb_rel_diff</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Relative error of the iterative solver at each iteration of the primal ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00167">167</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="af51f9714898918d4824a8158e4c4b67b" name="af51f9714898918d4824a8158e4c4b67b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af51f9714898918d4824a8158e4c4b67b">&#9670;&nbsp;</a></span>x_adj_lpb_rel_diff</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:), allocatable ddx_core::ddx_state_type::x_adj_lpb_rel_diff</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Relative error of the iterative solver at each iteration of the adjoint ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00171">171</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>

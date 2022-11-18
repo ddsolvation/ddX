@@ -136,10 +136,10 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:ae371e5372cfe4451853cbca04e83813d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable (1) or disable (0) use of FMM techniques.  <a href="structddx__parameters_1_1ddx__params__type.html#ae371e5372cfe4451853cbca04e83813d">More...</a><br /></td></tr>
 <tr class="separator:ae371e5372cfe4451853cbca04e83813d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3345be5ea974b5e302e9cc3d83ce1940"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__parameters_1_1ddx__params__type.html#a3345be5ea974b5e302e9cc3d83ce1940">pm</a></td></tr>
-<tr class="memdesc:a3345be5ea974b5e302e9cc3d83ce1940"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximal degree of spherical harmonics for a multipole expansion.  <a href="structddx__parameters_1_1ddx__params__type.html#a3345be5ea974b5e302e9cc3d83ce1940">More...</a><br /></td></tr>
+<tr class="memdesc:a3345be5ea974b5e302e9cc3d83ce1940"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximal degree of spherical harmonics for a multipole expansion. If this value is -1 then no far-field FMM interactions are performed.  <a href="structddx__parameters_1_1ddx__params__type.html#a3345be5ea974b5e302e9cc3d83ce1940">More...</a><br /></td></tr>
 <tr class="separator:a3345be5ea974b5e302e9cc3d83ce1940"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a397e9091585fe27187a2cbc72a63e737"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__parameters_1_1ddx__params__type.html#a397e9091585fe27187a2cbc72a63e737">pl</a></td></tr>
-<tr class="memdesc:a397e9091585fe27187a2cbc72a63e737"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximal degree of spherical harmonics for a local expansion.  <a href="structddx__parameters_1_1ddx__params__type.html#a397e9091585fe27187a2cbc72a63e737">More...</a><br /></td></tr>
+<tr class="memdesc:a397e9091585fe27187a2cbc72a63e737"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximal degree of spherical harmonics for a local expansion. If this value is -1 then no far-field FMM interactions are performed.  <a href="structddx__parameters_1_1ddx__params__type.html#a397e9091585fe27187a2cbc72a63e737">More...</a><br /></td></tr>
 <tr class="separator:a397e9091585fe27187a2cbc72a63e737"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a43c24fc6c797bdb7c3bffbf3df3ba4e2"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__parameters_1_1ddx__params__type.html#a43c24fc6c797bdb7c3bffbf3df3ba4e2">nproc</a></td></tr>
 <tr class="memdesc:a43c24fc6c797bdb7c3bffbf3df3ba4e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of OpenMP threads to be used. Currently, only nproc=1 is supported as the ddX is sequential right now.  <a href="structddx__parameters_1_1ddx__params__type.html#a43c24fc6c797bdb7c3bffbf3df3ba4e2">More...</a><br /></td></tr>
@@ -396,10 +396,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Maximal degree of spherical harmonics for a multipole expansion. </p>
-<p >If this value is -1 then no far-field FMM interactions are performed. </p>
+<p>Maximal degree of spherical harmonics for a multipole expansion. If this value is -1 then no far-field FMM interactions are performed. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00053">53</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00052">52</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -415,10 +414,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Maximal degree of spherical harmonics for a local expansion. </p>
-<p >If this value is -1 then no far-field FMM interactions are performed. </p>
+<p>Maximal degree of spherical harmonics for a local expansion. If this value is -1 then no far-field FMM interactions are performed. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00057">57</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00055">55</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -436,7 +434,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of OpenMP threads to be used. Currently, only nproc=1 is supported as the ddX is sequential right now. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00060">60</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00058">58</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -454,7 +452,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of atoms in the molecule. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00062">62</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00060">60</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -472,7 +470,7 @@ Public Attributes</h2></td></tr>
 
 <p>Charges of atoms of a dimension (nsph). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00064">64</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00062">62</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -490,7 +488,7 @@ Public Attributes</h2></td></tr>
 
 <p>Centers of atoms of a dimension (3, nsph). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00066">66</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00064">64</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -508,7 +506,7 @@ Public Attributes</h2></td></tr>
 
 <p>Array of radii of atoms of a dimension (nsph). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00068">68</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00066">66</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -526,7 +524,7 @@ Public Attributes</h2></td></tr>
 
 <p>Dielectric permittivity of the cavity (used by ddLPB), hardcoded to one. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00070">70</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00068">68</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -544,7 +542,7 @@ Public Attributes</h2></td></tr>
 
 <p>Error state. 0 in case of no error or 1 if there were errors and 2 if the object is not initialised. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00073">73</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00071">71</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -562,7 +560,7 @@ Public Attributes</h2></td></tr>
 
 <p>Last error message. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00075">75</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00073">73</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -580,7 +578,7 @@ Public Attributes</h2></td></tr>
 
 <p>integer matvecmem. Build hsp matrix to speed up matrix-vec product </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00077">77</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00075">75</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -598,7 +596,7 @@ Public Attributes</h2></td></tr>
 
 <p>variable to enable debug printins: fname: name of the output file </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00080">80</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00078">78</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -616,7 +614,7 @@ Public Attributes</h2></td></tr>
 
 <p>len_fname: actual length of the output file </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00082">82</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00080">80</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -634,7 +632,7 @@ Public Attributes</h2></td></tr>
 
 <p>verbose: true if printing is enabled </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00084">84</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00082">82</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>
@@ -652,7 +650,7 @@ Public Attributes</h2></td></tr>
 
 <p>output unit </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00086">86</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00084">84</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
 
 </div>
 </div>

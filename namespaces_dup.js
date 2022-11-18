@@ -21,6 +21,10 @@ var namespaces_dup =
       [ "model_str", "namespaceddx__definitions.html#a27faa3db3323ba2c6427084fcbf7b953", null ]
     ] ],
     [ "ddx_gradients", "namespaceddx__gradients.html", [
+      [ "contract_grad_l", "namespaceddx__gradients.html#a3052d20ce14479c1ae9edbd03decf475", null ],
+      [ "contract_gradi_lik", "namespaceddx__gradients.html#ae3c5219079e9f9275a8a481234d8bc00", null ],
+      [ "contract_gradi_lji", "namespaceddx__gradients.html#a5da0a4096bea393102478a2fd1811391", null ],
+      [ "contract_grad_u", "namespaceddx__gradients.html#aefec7f2fa9ee7ac358d0eb9476fcef2d", null ],
       [ "contract_grad_b", "namespaceddx__gradients.html#a1b063543b53d8ba088f081b913bd426b", null ],
       [ "contract_grad_c", "namespaceddx__gradients.html#a515e26a6bcd464a24d86bda4ceedba18", null ],
       [ "contract_grad_f", "namespaceddx__gradients.html#aad4ebe541e1bca0cac433506b1cd7bcf", null ],
@@ -166,8 +170,18 @@ var namespaces_dup =
       [ "rstarinfx", "namespaceddx__operators.html#a9c02c21086e56924eec13cc33a96eebb", null ],
       [ "prec_repsx", "namespaceddx__operators.html#a35303800b0d9c1749358f5e90bcbd52f", null ],
       [ "prec_repsstarx", "namespaceddx__operators.html#a682ecf4161b6846177c71db55924c586", null ],
+      [ "gradr", "namespaceddx__operators.html#a8720945fa2c227689250a0e3e3353e3d", null ],
+      [ "gradr_dense", "namespaceddx__operators.html#a985ff275f194faa2b8d5fbd3ce36dab0", null ],
+      [ "gradr_sph", "namespaceddx__operators.html#aea20868b7a77f9914089bdd99e1aaefb", null ],
+      [ "gradr_fmm", "namespaceddx__operators.html#a56e5aed806e650ee042f7a09b81b672f", null ],
+      [ "bstarx", "namespaceddx__operators.html#a76da5c9463ec313c71c7f3764c572165", null ],
       [ "bx", "namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a", null ],
-      [ "tstarx", "namespaceddx__operators.html#a255d38c63d567d20e2844c8d015d1c0f", null ]
+      [ "tstarx", "namespaceddx__operators.html#a255d38c63d567d20e2844c8d015d1c0f", null ],
+      [ "bx_prec", "namespaceddx__operators.html#aa910ba16eb7aa581ab1f314124e6e0fd", null ],
+      [ "prec_tstarx", "namespaceddx__operators.html#ab5909858cddd80271567d2d910d730f2", null ],
+      [ "prec_tx", "namespaceddx__operators.html#a31ded2fe034b4750fa14adbb07cb50dd", null ],
+      [ "cstarx", "namespaceddx__operators.html#ac915c9397fb193105a6cb419b4ecfc37", null ],
+      [ "cx", "namespaceddx__operators.html#afe779d813f428e2c85015629976de9f8", null ]
     ] ],
     [ "ddx_parameters", "namespaceddx__parameters.html", "namespaceddx__parameters" ],
     [ "ddx_pcm", "namespaceddx__pcm.html", [

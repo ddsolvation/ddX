@@ -15,6 +15,16 @@ var ddx__operators_8f90 =
     [ "rstarinfx", "ddx__operators_8f90.html#a9c02c21086e56924eec13cc33a96eebb", null ],
     [ "prec_repsx", "ddx__operators_8f90.html#a35303800b0d9c1749358f5e90bcbd52f", null ],
     [ "prec_repsstarx", "ddx__operators_8f90.html#a682ecf4161b6846177c71db55924c586", null ],
+    [ "gradr", "ddx__operators_8f90.html#a8720945fa2c227689250a0e3e3353e3d", null ],
+    [ "gradr_dense", "ddx__operators_8f90.html#a985ff275f194faa2b8d5fbd3ce36dab0", null ],
+    [ "gradr_sph", "ddx__operators_8f90.html#aea20868b7a77f9914089bdd99e1aaefb", null ],
+    [ "gradr_fmm", "ddx__operators_8f90.html#a56e5aed806e650ee042f7a09b81b672f", null ],
+    [ "bstarx", "ddx__operators_8f90.html#a76da5c9463ec313c71c7f3764c572165", null ],
     [ "bx", "ddx__operators_8f90.html#a68303147fb9fe072ab34096910280f1a", null ],
-    [ "tstarx", "ddx__operators_8f90.html#a255d38c63d567d20e2844c8d015d1c0f", null ]
+    [ "tstarx", "ddx__operators_8f90.html#a255d38c63d567d20e2844c8d015d1c0f", null ],
+    [ "bx_prec", "ddx__operators_8f90.html#aa910ba16eb7aa581ab1f314124e6e0fd", null ],
+    [ "prec_tstarx", "ddx__operators_8f90.html#ab5909858cddd80271567d2d910d730f2", null ],
+    [ "prec_tx", "ddx__operators_8f90.html#a31ded2fe034b4750fa14adbb07cb50dd", null ],
+    [ "cstarx", "ddx__operators_8f90.html#ac915c9397fb193105a6cb419b4ecfc37", null ],
+    [ "cx", "ddx__operators_8f90.html#afe779d813f428e2c85015629976de9f8", null ]
 ];
