@@ -2,9 +2,8 @@
 
 ## Download the python package pyddx
 ### Using conda
-pyddx is available on [conda-forge](
-
-so you can just install it as such:
+Pyddx is available on [conda-forge](https://anaconda.org/conda-forge/pyddx)
+and can be seamlessly installed via `conda`:
 ```
 conda install -c conda-forge pyddx
 ```
