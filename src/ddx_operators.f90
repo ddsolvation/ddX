@@ -588,7 +588,7 @@ subroutine rstarinfx(params, constants, workspace, x, y)
     y = twopi*x - y
 end subroutine rstarinfx
 
-!> Apply preconditioner for 
+!> Apply preconditioner for ddPCM primal linear system
 subroutine prec_repsx(params, constants, workspace, x, y)
     implicit none
     ! Inputs
@@ -610,7 +610,7 @@ subroutine prec_repsx(params, constants, workspace, x, y)
     end do
 end subroutine prec_repsx
 
-!> Apply preconditioner for 
+!> Apply preconditioner for ddPCM adjoint linear system
 subroutine prec_repsstarx(params, constants, workspace, x, y)
     implicit none
     ! Inputs
@@ -633,6 +633,7 @@ subroutine prec_repsstarx(params, constants, workspace, x, y)
     end do
 end subroutine prec_repsstarx
 
+!> Gradient of the ddPCM matrix
 subroutine gradr(params, constants, workspace, g, ygrid, fx)
     implicit none
     ! Inputs
@@ -652,6 +653,7 @@ subroutine gradr(params, constants, workspace, g, ygrid, fx)
     end if
 end subroutine gradr
 
+!> Gradient of the ddPCM matrix using N^2 code
 subroutine gradr_dense(params, constants, workspace, g, ygrid, fx)
     implicit none
     ! Inputs
@@ -675,6 +677,7 @@ subroutine gradr_dense(params, constants, workspace, g, ygrid, fx)
     end do
 end subroutine gradr_dense
 
+!> Sphere contribution to the ddPCM matrix gradient using N^2 code
 subroutine gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
         & dbsloc, g, ygrid, fx)
     implicit none
@@ -979,7 +982,7 @@ subroutine gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
     end do
 end subroutine gradr_sph
 
-! Compute PCM portion of forces (2 matvecs)
+!> Compute the ddPCM matrix gradient using FMMS (2 matvecs)
 subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
     implicit none
     ! Inputs
@@ -1211,7 +1214,8 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
         end do
     end do
 end subroutine gradr_fmm
-!
+
+!> Adjoint HSP matrix vector product
 subroutine bstarx(params, constants, workspace, x, y)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -1258,11 +1262,7 @@ subroutine bstarx(params, constants, workspace, x, y)
     if (constants % dodiag) y = y + x
 end subroutine bstarx
 
-!> Subroutine used for the GMRES solver
-!! @param[in]      n : Size of the matrix
-!! @param[in]      x : Input vector
-!! @param[in, out] y : y=A*x
-!!
+!> Primal HSP matrix vector product
 subroutine bx(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -1300,10 +1300,7 @@ subroutine bx(params, constants, workspace, x, y)
     if (constants % dodiag) y = y + x
 end subroutine bx
 
-!> Subroutine used for the GMRES solver with complete matrix adjoint system
-!! @param[in]      x : Input vector
-!! @param[in, out] y : y=Tstar*x
-!!
+!> Adjoint ddLPB matrix-vector product
 subroutine tstarx(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -1333,6 +1330,7 @@ subroutine tstarx(params, constants, workspace, x, y)
     y = y + temp_vector
 end subroutine tstarx
 
+!> Apply the preconditioner to the primal HSP linear system
 subroutine bx_prec(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -1343,6 +1341,7 @@ subroutine bx_prec(params, constants, workspace, x, y)
     y = x
 end subroutine bx_prec
 
+!> Apply the preconditioner to the ddLPB adjoint linear system
 subroutine prec_tstarx(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -1375,13 +1374,13 @@ subroutine prec_tstarx(params, constants, workspace, x, y)
     y(:,:,2) = workspace % hsp_guess
 
 end subroutine prec_tstarx
-!
-! apply preconditioner
-! |Yr| = |A^-1 0 |*|Xr|
-! |Ye|   |0 B^-1 | |Xe|
-! @param[in] ddx_data : dd Data
-! @param[in] x        : Input array
-! @param[out] y       : Linear system solution at current iteration
+
+!> Apply the preconditioner to the primal ddLPB linear system
+!! |Yr| = |A^-1 0 |*|Xr|
+!! |Ye|   |0 B^-1 | |Xe|
+!! @param[in] ddx_data : dd Data
+!! @param[in] x        : Input array
+!! @param[out] y       : Linear system solution at current iteration
 subroutine prec_tx(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -1417,7 +1416,8 @@ subroutine prec_tx(params, constants, workspace, x, y)
         return
     end if
 end subroutine prec_tx
-!
+
+!> ddLPB adjoint matrix-vector product
 subroutine cstarx(params, constants, workspace, x, y)
     implicit none
     ! input/output
@@ -1531,12 +1531,8 @@ subroutine cstarx(params, constants, workspace, x, y)
     end do
 
 end subroutine cstarx
-!
-! Perform |Yr| = |C1 C2|*|Xr|
-!         |Ye|   |C1 C2| |Xe|
-! @param[in] ddx_data : dd Data
-! @param[in] x        : Input array X (Xr, Xe)
-! @param[out] y       : Matrix-vector product result Y
+
+!> ddLPB matrix-vector product
 subroutine cx(params, constants, workspace, x, y)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -1674,5 +1670,6 @@ subroutine cx(params, constants, workspace, x, y)
     deallocate(diff_re, diff0)
 
 end subroutine cx
+
 end module ddx_operators
 

@@ -23,6 +23,8 @@ use ddx_harmonics
 use omp_lib
 implicit none
 
+!> @defgroup Fortran_interface_core Fortran interface: core routines
+
 !> This defined type contains the primal and adjoint RHSs, the solution of
 !! the primal and adjoint linear systems, useful intermediates for the
 !! computation of the forces, and the information about the convergence of
@@ -286,6 +288,13 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     end if
 end subroutine ddinit
 
+!> Initialize the ddx_state object
+!> @ingroup Fortran_interface_core
+!!
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!!
 subroutine ddx_init_state(params, constants, state)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -836,6 +845,11 @@ subroutine ddfree(ddx_data)
     end if
 end subroutine ddfree
 
+!> Deallocate the ddx_state object
+!> @ingroup Fortran_interface_core
+!!
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!!
 subroutine ddx_free_state(state)
     implicit none
     type(ddx_state_type), intent(inout) :: state
@@ -1670,25 +1684,25 @@ subroutine ddcav_to_grid_work(ngrid, nsph, ncav, icav_ia, icav_ja, x_cav, &
     end do
 end subroutine ddcav_to_grid_work
 
-!------------------------------------------------------------------------------
-! Integrate by a characteristic function at Lebedev grid points
-! \xi(n,i) = sum w_n U_n^i Y_l^m(s_n) [S_i]_l^m
-!            l,m
+!> Integrate by a characteristic function at Lebedev grid points
+!! \xi(n,i) = sum w_n U_n^i Y_l^m(s_n) [S_i]_l^m
+!!            l,m
+!!
 subroutine ddproject_cav(params, constants, s, xi)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     real(dp), intent(in)  :: s(constants%nbasis, params%nsph)
     real(dp), intent(out) :: xi(constants%ncav)
     integer :: its, isph, ii
-!
     ii = 0
     do isph = 1, params%nsph
-      do its = 1, params%ngrid
-        if (constants%ui(its, isph) .gt. zero) then
-          ii     = ii + 1
-          xi(ii) = constants%ui(its, isph) * dot_product(constants%vwgrid(:, its), s(:, isph))
-        end if
-      end do
+        do its = 1, params%ngrid
+            if (constants%ui(its, isph) .gt. zero) then
+                ii     = ii + 1
+                xi(ii) = constants%ui(its, isph) &
+                    &* dot_product(constants%vwgrid(:, its), s(:, isph))
+            end if
+        end do
     end do
 end subroutine ddproject_cav
 
@@ -2854,6 +2868,11 @@ subroutine tree_grad_l2l(params, constants, node_l, sph_l_grad, work)
     sph_l_grad(indi-l:indi+l, :, :) = zero
 end subroutine tree_grad_l2l
 
+!> Print the ddX logo
+!> @ingroup Fortran_interface_core
+!!
+!! @param[out] string: container for the logo
+!!
 subroutine get_banner(string)
     implicit none
     character (len=2047), intent(out) :: string
