@@ -141,6 +141,9 @@ void export_pyddx_data(py::module& m) {
   data.attr("radius_bondi") = radius_bondi;  // Recommended radii are scale * bondi
   data.attr("radius_bondi_scaling") = 1.2;
 
+  // The full list of supported radii sets
+  data.attr("radii_sets") = std::vector<std::string>{"uff", "bondi"};
+
   // Tabulated dielectric constants of solvents.
   // Taken from https://gaussian.com/scrf/. More can also be found at
   // https://comp.chem.umn.edu/solvation. Keys are normalised to lower case.

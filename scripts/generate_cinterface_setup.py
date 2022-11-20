@@ -52,7 +52,10 @@ function ddx_get_{outname}(c_ddx) result(c_{name}) bind(C)
 end function
     """.strip() + "\n\n"
 
-    header = f"{ctypestr} ddx_get_{outname}(const void* ddx);\n"
+    header = f"""
+/** Return the current value of {outname} stored in the model. */
+{ctypestr} ddx_get_{outname}(const void* ddx);
+    """.strip() + "\n\n"
 
     return dict(header=header, fortran=fortran)
 
@@ -76,14 +79,17 @@ end subroutine
     """.strip() + "\n\n"
 
     header = f"""
-    void ddx_get_{outname}(const void* ddx, {sizeargs}, double* c_{name});
-    """.strip() + "\n"
+/** Store the current values of {outname} into the passed pointer location.
+ *  The pointer should refer to the memory location of an array of
+ *  size ({sizes}). Data will be stored in column-major format. */
+void ddx_get_{outname}(const void* ddx, {sizeargs}, double* c_{name});
+    """.strip() + "\n\n"
 
     return dict(header=header, fortran=fortran)
 
 
-fortran_iface = "! Generated block, see scripts/generate_cinterface.py\n"
-c_header = "// Generated block, see scripts/generate_cinterface.py\n"
+fortran_iface = "! Generated block, see scripts/generate_cinterface_setup.py\n"
+c_header = "// Generated block, see scripts/generate_cinterface_setup.py.\n"
 for name in sorted(PARAMS_INT):
     res = generate_type(name, "int", "params")
     fortran_iface += res["fortran"]
