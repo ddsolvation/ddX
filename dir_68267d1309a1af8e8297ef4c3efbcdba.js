@@ -2,7 +2,7 @@ var dir_68267d1309a1af8e8297ef4c3efbcdba =
 [
     [ "cbessel.f90", "cbessel_8f90_source.html", null ],
     [ "ddx.f90", "ddx_8f90.html", "ddx_8f90" ],
-    [ "ddx.h", "ddx_8h_source.html", null ],
+    [ "ddx.h", "ddx_8h.html", "ddx_8h" ],
     [ "ddx_cinterface.f90", "ddx__cinterface_8f90_source.html", null ],
     [ "ddx_constants.f90", "ddx__constants_8f90.html", "ddx__constants_8f90" ],
     [ "ddx_core.f90", "ddx__core_8f90.html", "ddx__core_8f90" ],
