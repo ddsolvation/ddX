@@ -534,7 +534,7 @@ void export_pyddx_classes(py::module& m) {
         "fmm_multipole_lmax:  Maximal degree of multipole spherical harmonics, "
         "ignored "
         "in case `!enable_fmm`. Value `-1` means no far-field FFM interactions "
-        "are computed.\n"
+        "are computed. Using the same value as lmax is recommended. \n"
         "fmm_local_lmax:   Maximal degree of local spherical harmonics, ignored in "
         "case `use_fmm=false`. Value `-1` means no local FFM interactions are "
         "computed.\n"
