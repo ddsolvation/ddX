@@ -1993,8 +1993,8 @@ subroutine tree_l2l_bessel_rotation_work(params, constants, node_l)
     ! Output
     real(dp), intent(inout) :: node_l((params % pl+1)**2, constants % nclusters)
     ! Temporary workspace
-    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
-    complex(dp) :: work_complex(2*params % pm+1)
+    real(dp) :: work(6*params % pl**2 + 19*params % pl + 8)
+    complex(dp) :: work_complex(2*params % pl+1)
     ! Local variables
     integer :: i, j
     real(dp) :: c_child(3), c_parent(3), c_diff(3)
