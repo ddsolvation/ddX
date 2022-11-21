@@ -246,7 +246,7 @@ subroutine constants_init(params, constants)
     type(ddx_constants_type), intent(out) :: constants
     !! Local variables
     integer :: i, alloc_size, l, indl, igrid, isph, ind, icav, l0, m0, ind0, &
-        & jsph, ibasis, ibasis0, NZ, ierr, info
+        & jsph, ibasis, ibasis0, NZ, ierr, info, tmp_pmax
     real(dp) :: rho, ctheta, stheta, cphi, sphi, termi, termk, term, rijn, &
         & sijn(3), vij(3), val, s1, s2
     real(dp), allocatable :: vplm(:), vcos(:), vsin(:), vylm(:), SK_rijn(:), &
@@ -497,8 +497,16 @@ subroutine constants_init(params, constants)
             end do
         end do
         if (params % fmm .eq. 1) then
-            allocate(constants % SI_rnode(params % pm+1, constants % nclusters))
-            allocate(constants % SK_rnode(params % pm+1, constants % nclusters))
+            tmp_pmax = max(params % pm, params % pl)
+            allocate(constants % SI_rnode(tmp_pmax+1, constants % nclusters), &
+                & constants % SK_rnode(tmp_pmax+1, constants % nclusters), &
+                & stat=info)
+            if (info.ne.0) then
+                constants % error_flag = 1
+                constants % error_message = "constants_init: `si_rnode, " // &
+                    & "sk_rnode allocation failed"
+                return
+            end if
             do i = 1, constants % nclusters
                 z = constants % rnode(i) * params % kappa
                 s1 = sqrt(two/(pi*real(z)))
@@ -507,11 +515,11 @@ subroutine constants_init(params, constants)
                 constants % SK_rnode(1, i) = s1 * real(bessel_work(1))
                 call cbesi(z, pt5, 1, 1, bessel_work(1), NZ, ierr)
                 constants % SI_rnode(1, i) = s2 * real(bessel_work(1))
-                if (params % pm .gt. 0) then
-                    call cbesk(z, 1.5d0, 1, params % pm, bessel_work(2:), NZ, ierr)
-                    constants % SK_rnode(2:, i) = s1 * real(bessel_work(2:params % pm+1))
-                    call cbesi(z, 1.5d0, 1, params % pm, bessel_work(2:), NZ, ierr)
-                    constants % SI_rnode(2:, i) = s2 * real(bessel_work(2:params % pm+1))
+                if (tmp_pmax .gt. 0) then
+                    call cbesk(z, 1.5d0, 1, tmp_pmax, bessel_work(2:), NZ, ierr)
+                    constants % SK_rnode(2:, i) = s1 * real(bessel_work(2:tmp_pmax+1))
+                    call cbesi(z, 1.5d0, 1, tmp_pmax, bessel_work(2:), NZ, ierr)
+                    constants % SI_rnode(2:, i) = s2 * real(bessel_work(2:tmp_pmax+1))
                 end if
             end do
         end if
