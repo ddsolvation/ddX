@@ -191,7 +191,7 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span><span class="comment">! Print info on the primal ddLPB system</span></div>
 <div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span><span class="keywordflow">if</span> (ddx_data % params % model .eq. 3) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    <span class="comment">! Print each iteration if needed</span></div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    <span class="keywordflow">do</span> i = 1, state % phieps_niter</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    <span class="keywordflow">do</span> i = 1, state % x_lpb_niter</div>
 <div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>        print <span class="stringliteral">&quot; (A,I4,A,ES20.14)&quot;</span>, <span class="stringliteral">&quot;iter=&quot;</span>, i, &amp;</div>
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>            &amp; <span class="stringliteral">&quot; relative difference: &quot;</span>, state % x_lpb_rel_diff(i)</div>
 <div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span><span class="keywordflow">    end do</span></div>
@@ -245,7 +245,7 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    <span class="comment">! Print info on the adjoint ddLPB system</span></div>
 <div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    <span class="keywordflow">if</span> (ddx_data % params % model .eq. 3) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>        <span class="comment">! Print each iteration if needed</span></div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>        <span class="keywordflow">do</span> i = 1, state % y_niter</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>        <span class="keywordflow">do</span> i = 1, state % x_adj_lpb_niter</div>
 <div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>            print <span class="stringliteral">&quot;(A,I4,A,ES20.14)&quot;</span>, <span class="stringliteral">&quot; iter=&quot;</span>, i, &amp;</div>
 <div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>                &amp; <span class="stringliteral">&quot; relative difference: &quot;</span>, state % x_adj_lpb_rel_diff(i)</div>
 <div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span><span class="keywordflow">        end do</span></div>
