@@ -421,7 +421,7 @@ end subroutine
 !!
 subroutine params_free(params)
     implicit none
-    type(ddx_params_type), intent(out) :: params
+    type(ddx_params_type), intent(inout) :: params
     integer :: istat
 
     istat = 0
@@ -478,7 +478,7 @@ end subroutine init_printing
 !> Close the log file.
 subroutine finalize_printing(params)
     implicit none
-    type(ddx_params_type), intent(out) :: params
+    type(ddx_params_type), intent(inout) :: params
     if (.not.params % verbose) return
     close(params % iunit)
     params % verbose = .false.

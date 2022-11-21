@@ -106,7 +106,7 @@ end if
 ! Print info on the primal ddLPB system
 if (ddx_data % params % model .eq. 3) then
     ! Print each iteration if needed
-    do i = 1, state % phieps_niter
+    do i = 1, state % x_lpb_niter
         print " (A,I4,A,ES20.14)", "iter=", i, &
             & " relative difference: ", state % x_lpb_rel_diff(i)
     end do
@@ -160,7 +160,7 @@ if (ddx_data % params % force .eq. 1) then
     ! Print info on the adjoint ddLPB system
     if (ddx_data % params % model .eq. 3) then
         ! Print each iteration if needed
-        do i = 1, state % y_niter
+        do i = 1, state % x_adj_lpb_niter
             print "(A,I4,A,ES20.14)", " iter=", i, &
                 & " relative difference: ", state % x_adj_lpb_rel_diff(i)
         end do
