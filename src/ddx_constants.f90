@@ -2242,6 +2242,24 @@ subroutine constants_free(constants)
             return
         end if
     end if
+    if (allocated(constants % m2l_ztranslate_coef)) then
+        deallocate(constants % m2l_ztranslate_coef, stat=istat)
+        if (istat .ne. 0) then
+            constants % error_message = "`m2l_ztranslate_coef` " // &
+                & "deallocation failed!"
+            constants % error_flag = 1
+            return
+        end if
+    end if
+    if (allocated(constants % m2l_ztranslate_adj_coef)) then
+        deallocate(constants % m2l_ztranslate_adj_coef, stat=istat)
+        if (istat .ne. 0) then
+            constants % error_message = "`m2l_ztranslate_adj_coef` " // &
+                & "deallocation failed!"
+            constants % error_flag = 1
+            return
+        end if
+    end if
 end subroutine constants_free
 
 end module ddx_constants

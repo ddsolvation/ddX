@@ -311,6 +311,8 @@ subroutine workspace_free(workspace)
     integer :: istat
 
     istat = 0
+    workspace % error_message = ''
+    workspace % error_flag = 0
 
     if (allocated(workspace % tmp_pot)) then
         deallocate(workspace % tmp_pot, stat=istat)
