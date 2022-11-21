@@ -2573,9 +2573,9 @@ subroutine tree_m2p_adj(params, constants, p, alpha, grid_v, beta, sph_m)
         sph_m = beta * sph_m
     end if
     ! Cycle over all spheres
-    !$omp parallel do default(none) shared(params,constants,grid_v,p, &
-    !$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work) &
-    !$omp schedule(dynamic)
+    !!$omp parallel do default(none) shared(params,constants,grid_v,p, &
+    !!$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work) &
+    !!$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
