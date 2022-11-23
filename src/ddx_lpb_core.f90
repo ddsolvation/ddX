@@ -33,19 +33,23 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
     !! Outputs
     real(dp), intent(out) :: f(params % ngrid, params % nsph)
     !! Local variables
-    integer :: isph, ig, ic, ind, ind0, jg, l, m, jsph
-    real(dp) :: nderphi, sumSijn, rijn, coef_Ylm, sumSijn_pre, termi, &
-        & termk, term, tmp1, tmp2
-    real(dp), dimension(3) :: sijn, vij, vtij
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, start_time, finish_time
+    integer :: isph, ig, ic, ind, ind0, jsph
+    real(dp) :: nderphi, sumSijn, sumSijn_pre
+    real(dp), dimension(3) :: vij, vtij
     real(dp), allocatable :: SK_rijn(:), DK_rijn(:), c0(:,:), c1(:,:)
-    integer :: l0, m0, icav, istatus, indl, inode
+    integer :: l0, icav, istatus, indl, inode
     complex(dp) :: work_complex(constants % lmax0 + 1)
     real(dp) :: work(constants % lmax0 + 1)
 
 
     allocate(SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0), &
-        & c0(constants % nbasis0, params % nsph), c1(constants % nbasis0, params % nsph))
+        & c0(constants % nbasis0, params % nsph), &
+        & c1(constants % nbasis0, params % nsph), stat=istatus)
+    if (istatus.ne.0) then
+        workspace % error_flag = 1
+        workspace % error_message = 'Allocation in wghpot_f failed'
+        return
+    end if
 
     ic = 0
     f = zero
@@ -162,10 +166,8 @@ subroutine calcv2_lpb (params, constants, isph, pot, x, basloc, vplm, vcos, &
     complex(dp), intent(out) :: bessel_work(max(2, params % lmax+1))
     complex(dp) :: work_complex(params % lmax+1)
     real(dp) :: work(params % lmax+1)
-    real(dp), dimension(constants % nbasis) :: fac_cosmo, fac_hsp
     real(dp), dimension(params % ngrid) :: pot2
     integer :: its, ij, jsph
-    real(dp) :: rho, ctheta, stheta, cphi, sphi
     real(dp) :: vij(3), sij(3), vtij(3)
     real(dp) :: vvij, tij, xij, oij
 

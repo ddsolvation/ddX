@@ -25,7 +25,6 @@ subroutine ddx_get_banner(message, maxlen) bind(C)
     integer(c_int), intent(in), value :: maxlen
     character(len=1, kind=C_char), intent(out) :: message(maxlen)
     integer :: length, i
-    character :: ch
     character (len=4095) :: header
     call get_banner(header)
     message(maxlen) = c_null_char
@@ -167,7 +166,6 @@ subroutine ddx_get_error_message(c_ddx, message, maxlen) bind(C)
     character(len=255) :: error_message
     type(ddx_setup), pointer :: ddx
     integer :: length, i
-    character :: ch
     call c_f_pointer(c_ddx, ddx)
     ! Get the actual error message from the collection of structs
     if (ddx%params%error_flag .ne. 0) then
@@ -202,7 +200,6 @@ subroutine ddx_get_logfile(c_ddx, message, maxlen) bind(C)
     character(len=1, kind=C_char), intent(out) :: message(maxlen)
     type(ddx_setup), pointer :: ddx
     integer :: length, i
-    character :: ch
     call c_f_pointer(c_ddx, ddx)
     ! Convert to C message
     message(maxlen) = c_null_char
@@ -439,7 +436,6 @@ subroutine ddx_get_state_error_message(c_state, message, maxlen) bind(C)
     character(len=1, kind=C_char), intent(out) :: message(maxlen)
     character(len=255) :: error_message
     integer :: length, i
-    character :: ch
     call c_f_pointer(c_state, state)
 
     if (state%error_flag .ne. 0) then
@@ -696,8 +692,7 @@ subroutine ddx_multipole_psi(c_ddx, nbasis, nsph, nmultipoles, multipoles, psi) 
     integer :: mmax
     call c_f_pointer(c_ddx, ddx)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
-    call build_psi(ddx%params, ddx%constants, ddx%workspace, multipoles, &
-        & mmax, psi)
+    call build_psi(ddx%params, multipoles, mmax, psi)
 end
 
 subroutine ddx_multipole_forces(c_ddx, c_state, nsph, ncav, nmultipoles, multipoles, &

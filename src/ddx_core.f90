@@ -2588,8 +2588,8 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
     real(dp), intent(inout) :: sph_m((sph_p+1)**2, params % nsph)
     ! Local variables
     !real(dp), allocatable :: tmp(:, :, :)
-    integer :: isph, inode, jnear, jnode, jsph, igrid, info, iproc
-    real(dp) :: c(3), w
+    integer :: isph, inode, jnear, jnode, jsph, igrid
+    real(dp) :: c(3)
     ! Init output
     if (beta .eq. zero) then
         sph_m = zero

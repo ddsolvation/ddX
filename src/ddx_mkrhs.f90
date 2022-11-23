@@ -28,12 +28,11 @@ subroutine mkrhs(params, constants, workspace, phi_flag, phi_cav, grad_flag, &
     real(dp), intent(out) :: psi(constants % nbasis, &
         & params % nsph)
     ! Local variables
-    integer :: isph, igrid, icav, inode, inear, jnear, jnode, jsph, i
-    real(dp) :: d(3), v, tmpv, r, gradv(3), hessianv(3, 3), tmpd(3), epsp=one
+    integer :: isph, igrid, icav, inode, jnear, jnode, jsph, i
+    real(dp) :: d(3), v, tmpv, r, gradv(3), hessianv(3, 3), tmpd(3)
     real(dp), allocatable :: grid_grad(:,:,:), grid_hessian(:,:,:,:), &
         & grid_hessian2(:,:,:)
     real(dp), external :: dnrm2
-    real(dp) :: t
 
     if (grad_flag .eq. 1) allocate(grid_grad(params % ngrid, 3, &
         & params % nsph))
