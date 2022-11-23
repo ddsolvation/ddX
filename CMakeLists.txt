@@ -7,7 +7,7 @@ if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
         "directory. Example: mkdir build && cd build && cmake ..")
 endif()
 
-project(ddX VERSION 0.0.4 LANGUAGES Fortran C CXX)
+project(ddX VERSION 0.1.3 LANGUAGES Fortran CXX)
 # If ddX is a subproject, append ddx_ prefix to all targets.
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(ddx_is_subproject false)
@@ -49,25 +49,17 @@ if(DOXYGEN_FOUND)
                       WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 endif()
 
-if (PYTHON)  # Builds for python
-    message(STATUS "Switching to python-only build.")
-    find_package(pybind11 CONFIG PATHS "${PYBIND11_DIR}")
-    if (NOT pybind11_FOUND)
-        message(FATAL_ERROR "Pybind11 not found. Please install it.")
-    endif()
-    include(src/define_sources.cmake)
-    list(TRANSFORM SRC_PYDDX PREPEND src/)
-    pybind11_add_module(pyddx ${SRC_PYDDX})
-    target_compile_definitions(pyddx PRIVATE VERSION_INFO=${PROJECT_VERSION})
-    target_link_libraries(pyddx PUBLIC
-        ${BLAS_LIBRARIES}
-        ${LAPACK_LIBRARIES}
-        OpenMP::OpenMP_Fortran
-    )
-else()
-    # Pass onto subdirectories
-    add_subdirectory(src)
+# Pass onto subdirectories
+add_subdirectory(src)
+
+option(EXAMPLES "Compile examples" ON)
+if (EXAMPLES)
+    enable_language(C)
     add_subdirectory(examples)
+endif()
+
+option(TESTS "Compile tests" ON)
+if (TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()

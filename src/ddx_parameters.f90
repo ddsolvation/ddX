@@ -17,9 +17,9 @@ module ddx_parameters
 use ddx_definitions
 ! Enable OpenMP 
 use omp_lib
-
-! Disable implicit types
 implicit none
+
+!> @defgroup Fortran_interface_core Fortran interface: core routines
 
 !> Type to check and store user input parameters
 type ddx_params_type
@@ -34,7 +34,7 @@ type ddx_params_type
     !> Regularization parameter.
     real(dp) :: eta
     !> Shift of the regularization. -1 for interior, 0 for centered and
-    !!      1 for outer regularization.
+    !! 1 for outer regularization.
     real(dp) :: se
     !> Maximal degree of modeling spherical harmonics.
     integer :: lmax
@@ -43,20 +43,18 @@ type ddx_params_type
     !> Maximum number of iterations for the iterative solver.
     integer :: maxiter
     !> Number of extrapolation points for Jacobi/DIIS solver. Referenced only
-    !!      if Jacobi solver is used.
+    !! if Jacobi solver is used.
     integer :: jacobi_ndiis
     !> Enable (1) or disable (0) use of FMM techniques.
     integer :: fmm
     !> Maximal degree of spherical harmonics for a multipole expansion.
-    !!
     !! If this value is -1 then no far-field FMM interactions are performed.
     integer :: pm
     !> Maximal degree of spherical harmonics for a local expansion.
-    !!
     !! If this value is -1 then no far-field FMM interactions are performed.
     integer :: pl
     !> Number of OpenMP threads to be used. Currently, only nproc=1 is
-    !!      supported as the ddX is sequential right now.
+    !! supported as the ddX is sequential right now.
     integer :: nproc
     !> Number of atoms in the molecule.
     integer :: nsph
@@ -89,6 +87,7 @@ end type ddx_params_type
 contains
 
 !> Initialize and check input parameters
+!> @ingroup Fortran_interface_core
 !!
 !! @param[in] model: Choose model: 1 for COSMO, 2 for PCM and 3 for LPB.
 !! @param[in] force: 1 if forces will probably be required and 0 otherwise.
@@ -415,9 +414,14 @@ subroutine closest_supported_lebedev_grid(ngrid)
     ngrid = ng0(igrid)
 end subroutine
 
+!> Deallocate the parameter object
+!> @ingroup Fortran_interface_core
+!!
+!! @param[out] params: User specified parameters
+!!
 subroutine params_free(params)
     implicit none
-    type(ddx_params_type), intent(out) :: params
+    type(ddx_params_type), intent(inout) :: params
     integer :: istat
 
     istat = 0
@@ -474,7 +478,7 @@ end subroutine init_printing
 !> Close the log file.
 subroutine finalize_printing(params)
     implicit none
-    type(ddx_params_type), intent(out) :: params
+    type(ddx_params_type), intent(inout) :: params
     if (.not.params % verbose) return
     close(params % iunit)
     params % verbose = .false.

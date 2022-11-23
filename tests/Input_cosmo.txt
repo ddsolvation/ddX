@@ -11,7 +11,7 @@
 1d-14       ! Relative threshold for the iterative solver
 200         ! Maximum number of iterations
 25          ! Number of DIIS extrapolation points
-0           ! Whether to compute (1) or not (0) forces
+1           ! Whether to compute (1) or not (0) forces
 0           ! Whether to use (1) or not (0) the FMM
 20          ! Max degree of multipole spherical harmonics for the FMM
 20          ! Max degree of local spherical harmonics for the FMM

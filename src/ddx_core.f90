@@ -23,118 +23,157 @@ use ddx_harmonics
 use omp_lib
 implicit none
 
+!> @defgroup Fortran_interface_core Fortran interface: core routines
+
+!> This defined type contains the primal and adjoint RHSs, the solution of
+!! the primal and adjoint linear systems, useful intermediates for the
+!! computation of the forces, and the information about the convergence of
+!! the linear system solver (time, number of iterations, relative difference
+!! at each iteration).
 type ddx_state_type
     !! High-level entities to be stored and accessed by users
 
     !!
-    !! ddCOSMO quantities (used also by ddPCM)
+    !! Quantities common to all models.
     !!
-    !> Variable \f$ \Phi \f$ of a dimension (nbasis, nsph). Allocated and used
-    !!      by COSMO (model=1) and PCM (model=2) models.
+    !> Representation of the solute density in spherical harmonics
+    !! (\f$ \Psi \f$). It is used as RHS for the adjoint linear system.
+    !! Dimension (nbasis, nsph).
+    real(dp), allocatable :: psi(:, :)
+    !> Electric potential at the cavity points. It is used to construct
+    !! the RHS for the primal linear system. Dimension (ncav).
+    real(dp), allocatable :: phi_cav(:)
+    !> Potential at all the grid points. Dimension (ngrid, nsph).
+    real(dp), allocatable :: phi_grid(:, :)
+    !> Zeta intermediate for the forces. Dimension (ncav).
+    real(dp), allocatable :: zeta(:)
+    !> Error flag, nonzero in case of an error.
+    integer :: error_flag
+    !> Last error message.
+    character(len=255) :: error_message
+
+    !!
+    !! ddCOSMO quantities (used also by ddPCM).
+    !!
+    !> Variable \f$ \Phi \f$ of a dimension (nbasis, nsph).
+    !! Allocated and used by the COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: phi(:, :)
-    !> Solution of the ddCOSMO system of a dimension (nbasis, nsph). Allocated
-    !!      and used by COSMO (model=1) and PCM (model=2) models.
+    !> Solution of the ddCOSMO system of a dimension (nbasis, nsph).
+    !! Allocated and used by the COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: xs(:, :)
-
-    !> Number of iteration to solve ddCOSMO system
+    !> Number of iterations to solve the primal ddCOSMO linear system.
+    !! Used by the COSMO (model=1) and PCM (model=2) models.
     integer :: xs_niter
-    !> Relative error of each step of iterative solver for ddCOSMO system.
-    !!      Dimension is (maxiter).
+    !> Relative error of the iterative solver at each iteration of the primal
+    !! ddCOSMO linear system, dimension (maxiter).
+    !! Allocated and used by the COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: xs_rel_diff(:)
-    !> Time to solve primal ddCOSMO system
+    !> Time to solve the primal ddCOSMO linear system.
+    !! Used by the COSMO (model=1) and PCM (model=2) models.
     real(dp) :: xs_time
-    !> Values of s at grid points. Dimension is (ngrid, nsph). Allocated and
-    !!      used by COSMO (model=1) and PCM (model=2) models.
+    !> Values of s at grid points. Dimension is (ngrid, nsph).
+    !! Allocated and used by the COSMO (model=1) and PCM (model=2) models.
     real(dp), allocatable :: sgrid(:, :)
+    !> Solution of the adjoint ddCOSMO linear system, dimension (nbasis, nsph).
+    !! Allocated and used by the COSMO (model=1) and PCM (model=2) models.
+    real(dp), allocatable :: s(:, :)
+    !> Number of iterations required to solve the adjoint ddCOSMO linear
+    !! system. Used by the COSMO (model=1) and PCM (model=2) models.
+    integer :: s_niter
+    !> Relative error of the iterative solver at each iteration of the adjoint
+    !! ddCOSMO linear system, dimension (maxiter).
+    !! Allocated and used by the COSMO (model=1) and PCM (model=2) models.
+    real(dp), allocatable :: s_rel_diff(:)
+    !> Time to solve the adjoint ddCOSMO linear system.
+    !! Used by the COSMO (model=1) and PCM (model=2) models.
+    real(dp) :: s_time
 
     !!
-    !! ddPCM specific quantities
+    !! ddPCM specific quantities.
     !!
-    !> Variable \f$ \Phi_\infty \f$ of a dimension (nbasis, nsph). Allocated
-    !!      and used only by PCM (model=2) model.
+    !> Variable \f$ \Phi_\infty \f$ of a dimension (nbasis, nsph).
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: phiinf(:, :)
     !> Variable \f$ \Phi_\varepsilon \f$ of a dimension (nbasis, nsph).
-    !!      Allocated and used only by PCM (model=2) model.
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: phieps(:, :)
-
-    !> Number of iteration to solve ddPCM system
+    !> Number of iterations to solve the primal ddPCM linear system system.
+    !! Allocated and used only by PCM (model=2) model.
     integer :: phieps_niter
-    !> Relative error of each step of iterative solver for ddPCM system.
-    !!      Dimension is (maxiter).
+    !> Relative error of the iterative solver at each iteration of the primal
+    !! ddPCM linear system, dimension (maxiter).
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: phieps_rel_diff(:)
-    !> Time to solve primal ddPCM system
+    !> Time to solve the primal ddPCM linear system.
+    !! Used only by PCM (model=2) model.
     real(dp) :: phieps_time
-    !> Shortcut of \f$ \Phi_\varepsilon - \Phi \f$
+    !> Shortcut of \f$ \Phi_\varepsilon - \Phi \f$ for the computation of
+    !! the ddPCM forces.
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: g(:, :)
-
-
-    !> Solution of the adjoint ddCOSMO system of a dimension (nbasis, nsph).
-    !!      Allocated and used by COSMO (model=1) and PCM (model=2) models.
-    real(dp), allocatable :: s(:, :)
-    !> Number of iteration to solve adoint ddCOSMO system
-    integer :: s_niter
-    !> Relative error of each step of iterative solver for adjoint ddCOSMO
-    !!      system. Dimension is (maxiter).
-    real(dp), allocatable :: s_rel_diff(:)
-    !> Time to solve adjoint ddCOSMO system
-    real(dp) :: s_time
-    !> Solution of the adjoint ddPCM system of a dimension (nbasis, nsph).
-    !!      Allocated and used only by PCM (model=2) model.
+    !> Solution of the adjoint ddPCM linear system, dimension (nbasis, nsph).
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: y(:, :)
-    !> Number of iteration to solve adjoint ddPCM system
+    !> Number of iteration to solve the adjoint ddPCM linear system.
+    !! Used only by PCM (model=2) model.
     integer :: y_niter
-    !> Relative error of each step of iterative solver for adjoint ddPCM
-    !!      system. Dimension is (maxiter).
+    !> Relative error of the iterative solver at each iteration of the adjoint
+    !! ddPCM linear system. Allocated and used only by the PCM (model=2) model.
     real(dp), allocatable :: y_rel_diff(:)
     !> Time to solve adjoint ddPCM system
     real(dp) :: y_time
-    !> Values of y at grid points. Dimension is (ngrid, nsph). Allocated and
-    !!      used only by PCM (model=2) model.
+    !> Solution of the adjoint ddPCM linear system, dimension (nbasis, nsph).
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: ygrid(:, :)
-    !> s-4pi/(eps-1)y of dimension (nbasis, nsph)
+    !> Effective total adjoint solution of the ddPCM model, defined as
+    !! \f$ Q := S - \frac{4\pi}{\varepsilon-1}Y \f$. Dimension (nbasis, nsph).
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: q(:, :)
-    !> Values of q at grid points. Dimension is (ngrid, nsph)
+    !> Values of Q at grid points. Dimension (ngrid, nsph).
+    !! Allocated and used only by PCM (model=2) model.
     real(dp), allocatable :: qgrid(:, :)
 
     !!
     !! ddLPB quantities
     !!
-    !> Solution to the ddLPB linear system. Dimension is (nbasis,nsph,2). Allocated
-    !! and used only by LPB (model=3) model
+    !> Solution to the ddLPB linear system. Dimension (nbasis, nsph, 2).
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: x_lpb(:,:,:)
-    !> Solution to the ddLPB ajoint system. Dimension is (nbasis,nsph,2).
-    !! Allocated and used only by LPB (model=3) model
+    !> Solution to the ddLPB adjoint linear system.
+    !! Dimension (nbasis, nsph, 2).
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: x_adj_lpb(:,:,:)
-    !> g intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and
-    !! used only by LPB (model=3) model
+    !> g RHS for ddLPB.
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: g_lpb(:,:)
-    !> d intermediate for ddLPB. Dimension in (ngrid,nsph). Allocated and
-    !! used only
-    !! by LPB (model=3) model
+    !> f RHS for ddLPB.
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: f_lpb(:,:)
+    !> Number of iterations required to solve the primal ddLPB linear system.
+    !! Allocated and used only by the LPB (model=3) model.
     integer :: x_lpb_niter
+    !> Number of iterations required to solve the adjoint ddLPB linear ststem.
+    !! Allocated and used only by the LPB (model=3) model.
     integer :: x_adj_lpb_niter
+    !> Time required to solve the primal ddLPB linear system.
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp) :: x_lpb_time
+    !> Time required to solve the adjoint ddLPB linear system.
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp) :: x_adj_lpb_time
+    !> Relative error of the iterative solver at each iteration of the primal
+    !! ddLPB linear system, dimension (maxiter).
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: x_lpb_rel_diff(:)
+    !> Relative error of the iterative solver at each iteration of the adjoint
+    !! ddLPB linear system, dimension (maxiter).
+    !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: x_adj_lpb_rel_diff(:)
-
-    !!
-    !! Misc
-    !!
-    !> Zeta intermediate for forces. Dimension is (ncav)
-    real(dp), allocatable :: zeta(:)
-    !> Potential at all grid points. Dimension is (ngrid, nsph). Allocated
-    !!      and used by all models.
-    real(dp), allocatable :: phi_grid(:, :)
-    !> Flag if there were an error
-    integer :: error_flag
-    !> Last error message
-    character(len=255) :: error_message
 
 end type ddx_state_type
 
-!> Main ddX type that stores all required information
+!> Main ddX type that stores all the required information.
+!! Container for the params, contants and workspace derived types.
 type ddx_type
     !! New types inside the old one for an easier shift to the new design
     type(ddx_params_type) :: params
@@ -249,6 +288,13 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     end if
 end subroutine ddinit
 
+!> Initialize the ddx_state object
+!> @ingroup Fortran_interface_core
+!!
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!!
 subroutine ddx_init_state(params, constants, state)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -257,6 +303,19 @@ subroutine ddx_init_state(params, constants, state)
 
     state % error_flag = 0
     state % error_message = ''
+
+    allocate(state % psi(constants % nbasis, params % nsph), stat=istatus)
+    if (istatus .ne. 0) then
+        state % error_flag = 1
+        state % error_message = "ddinit: `psi` allocation failed"
+        return
+    end if
+    allocate(state % phi_cav(constants % ncav), stat=istatus)
+    if (istatus .ne. 0) then
+        state % error_flag = 1
+        state % error_message = "ddinit: `phi_cav` allocation failed"
+        return
+    end if
 
     ! COSMO model
     if (params % model .eq. 1) then
@@ -786,11 +845,32 @@ subroutine ddfree(ddx_data)
     end if
 end subroutine ddfree
 
+!> Deallocate the ddx_state object
+!> @ingroup Fortran_interface_core
+!!
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!!
 subroutine ddx_free_state(state)
     implicit none
     type(ddx_state_type), intent(inout) :: state
     integer :: istatus
 
+    if (allocated(state % phi_cav)) then
+        deallocate(state % phi_cav, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`phi_cav` deallocation failed!"
+            return
+        endif
+    end if
+    if (allocated(state % psi)) then
+        deallocate(state % psi, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`psi` deallocation failed!"
+            return
+        endif
+    end if
     if (allocated(state % phi_grid)) then
         deallocate(state % phi_grid, stat=istatus)
         if (istatus .ne. 0) then
@@ -918,12 +998,26 @@ subroutine ddx_free_state(state)
             state % error_message = "`x_lpb` deallocation failed!"
         endif
     end if
+    if (allocated(state % x_lpb_rel_diff)) then
+        deallocate(state % x_lpb_rel_diff, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`x_lpb_rel_diff` deallocation failed!"
+        end if
+    end if
     if (allocated(state % x_adj_lpb)) then
         deallocate(state % x_adj_lpb, stat=istatus)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "x_adj_lpb deallocation failed!"
         endif
+    end if
+    if (allocated(state % x_adj_lpb_rel_diff)) then
+        deallocate(state % x_adj_lpb_rel_diff, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`x_adj_lpb_rel_diff` deallocation failed!"
+        end if
     end if
     if (allocated(state % g_lpb)) then
         deallocate(state % g_lpb, stat=istatus)
@@ -1566,25 +1660,25 @@ subroutine ddcav_to_grid_work(ngrid, nsph, ncav, icav_ia, icav_ja, x_cav, &
     end do
 end subroutine ddcav_to_grid_work
 
-!------------------------------------------------------------------------------
-! Integrate by a characteristic function at Lebedev grid points
-! \xi(n,i) = sum w_n U_n^i Y_l^m(s_n) [S_i]_l^m
-!            l,m
+!> Integrate by a characteristic function at Lebedev grid points
+!! \xi(n,i) = sum w_n U_n^i Y_l^m(s_n) [S_i]_l^m
+!!            l,m
+!!
 subroutine ddproject_cav(params, constants, s, xi)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     real(dp), intent(in)  :: s(constants%nbasis, params%nsph)
     real(dp), intent(out) :: xi(constants%ncav)
     integer :: its, isph, ii
-!
     ii = 0
     do isph = 1, params%nsph
-      do its = 1, params%ngrid
-        if (constants%ui(its, isph) .gt. zero) then
-          ii     = ii + 1
-          xi(ii) = constants%ui(its, isph) * dot_product(constants%vwgrid(:, its), s(:, isph))
-        end if
-      end do
+        do its = 1, params%ngrid
+            if (constants%ui(its, isph) .gt. zero) then
+                ii     = ii + 1
+                xi(ii) = constants%ui(its, isph) &
+                    &* dot_product(constants%vwgrid(:, its), s(:, isph))
+            end if
+        end do
     end do
 end subroutine ddproject_cav
 
@@ -1875,8 +1969,8 @@ subroutine tree_l2l_bessel_rotation_work(params, constants, node_l)
     ! Output
     real(dp), intent(inout) :: node_l((params % pl+1)**2, constants % nclusters)
     ! Temporary workspace
-    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
-    complex(dp) :: work_complex(2*params % pm+1)
+    real(dp) :: work(6*params % pl**2 + 19*params % pl + 8)
+    complex(dp) :: work_complex(2*params % pl+1)
     ! Local variables
     integer :: i, j
     real(dp) :: c_child(3), c_parent(3), c_diff(3)
@@ -2041,6 +2135,8 @@ subroutine tree_m2l_bessel_rotation(params, constants, node_m, node_l)
     integer :: i, j, k
     real(dp) :: c1(3), c(3), r1, r
     ! Any order of this cycle is OK
+    !$omp parallel do default(none) shared(constants,params,node_m,node_l) &
+    !$omp private(i,c,r,k,c1,r1,work,work_complex) schedule(dynamic)
     do i = 1, constants % nclusters
         ! If no far admissible pairs just set output to zero
         if (constants % nfar(i) .eq. 0) then
@@ -2113,6 +2209,8 @@ subroutine tree_m2l_bessel_rotation_adj_work(params, constants, node_l, node_m)
     real(dp) :: c1(3), c(3), r
     ! Any order of this cycle is OK
     node_m = zero
+    !!$omp parallel do shared(constants,params,node_l,node_m) &
+    !!$omp private(i,c,r,k,c1,work,work_complex,j) schedule(dynamic)
     do i = 1, constants % nclusters
         ! If no far admissible pairs just set output to zero
         if (constants % nfar(i) .eq. 0) then
@@ -2240,6 +2338,8 @@ subroutine tree_l2p_bessel(params, constants, alpha, node_l, beta, grid_v)
         grid_v = beta * grid_v
     end if
     ! Get data from all clusters to spheres
+    !$omp parallel do default(none) shared(params,constants,node_l,sph_l) &
+    !$omp private(isph) schedule(dynamic)
     do isph = 1, params % nsph
         sph_l(:, isph) = node_l(:, constants % snode(isph))
     end do
@@ -2279,6 +2379,8 @@ subroutine tree_l2p_adj(params, constants, alpha, grid_v, beta, node_l, sph_l)
         & grid_v, params % ngrid, zero, sph_l, &
         & (params % pl+1)**2)
     ! Get data from all clusters to spheres
+    !$omp parallel do default(none) shared(params,constants,node_l,sph_l, &
+    !$omp alpha) private(isph,inode) schedule(dynamic)
     do isph = 1, params % nsph
         inode = constants % snode(isph)
         node_l(:, inode) = node_l(:, inode) + alpha*sph_l(:, isph)
@@ -2313,6 +2415,8 @@ subroutine tree_l2p_bessel_adj(params, constants, alpha, grid_v, beta, node_l)
         & grid_v, params % ngrid, zero, sph_l, &
         & (params % pl+1)**2)
     ! Get data from all clusters to spheres
+    !$omp parallel do default(none) shared(params,constants,node_l,sph_l, &
+    !$omp alpha) private(isph,inode) schedule(dynamic)
     do isph = 1, params % nsph
         inode = constants % snode(isph)
         node_l(:, inode) = node_l(:, inode) + alpha*sph_l(:, isph)
@@ -2392,6 +2496,9 @@ subroutine tree_m2p_bessel(params, constants, p, alpha, sph_p, sph_m, beta, grid
         grid_v = beta * grid_v
     end if
     ! Cycle over all spheres
+    !$omp parallel do default(none) shared(params,constants,grid_v,p, &
+    !$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work, &
+    !$omp work_complex) schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
@@ -2440,6 +2547,9 @@ subroutine tree_m2p_adj(params, constants, p, alpha, grid_v, beta, sph_m)
         sph_m = beta * sph_m
     end if
     ! Cycle over all spheres
+    !!$omp parallel do default(none) shared(params,constants,grid_v,p, &
+    !!$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work) &
+    !!$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
@@ -2477,8 +2587,9 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
     ! Output
     real(dp), intent(inout) :: sph_m((sph_p+1)**2, params % nsph)
     ! Local variables
-    integer :: isph, inode, jnear, jnode, jsph, igrid
-    real(dp) :: c(3)
+    !real(dp), allocatable :: tmp(:, :, :)
+    integer :: isph, inode, jnear, jnode, jsph, igrid, info, iproc
+    real(dp) :: c(3), w
     ! Init output
     if (beta .eq. zero) then
         sph_m = zero
@@ -2486,9 +2597,13 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
         sph_m = beta * sph_m
     end if
     ! Cycle over all spheres
+    !!$omp parallel do default(none) shared(params,constants,p,sph_m,tmp, &
+    !!$omp alpha,grid_v) private(isph,inode,jnear,jnode,jsph,igrid,c, &
+    !!$omp iproc) schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
+        ! iproc = omp_get_thread_num() + 1
         do jnear = constants % snear(inode), constants % snear(inode+1)-1
             ! Near-field interactions are possible only between leaf nodes,
             ! which must contain only a single input sphere
@@ -2502,8 +2617,8 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
                 c = constants % cgrid(:, igrid)*params % rsph(isph) - &
                     & params % csph(:, jsph) + params % csph(:, isph)
                 call fmm_m2p_bessel_adj(c, alpha*grid_v(igrid, isph), &
-                    & params % rsph(jsph), params % kappa, p, constants % vscales, one, &
-                    & sph_m(:, jsph))
+                    & params % rsph(jsph), params % kappa, p, &
+                    & constants % vscales, one, sph_m(:, jsph))
             end do
         end do
     end do
@@ -2723,37 +2838,80 @@ subroutine tree_grad_l2l(params, constants, node_l, sph_l_grad, work)
     sph_l_grad(indi-l:indi+l, :, :) = zero
 end subroutine tree_grad_l2l
 
+!> Print the ddX logo
+!> @ingroup Fortran_interface_core
+!!
+!! @param[out] string: container for the logo
+!!
 subroutine get_banner(string)
     implicit none
-    character (len=4095), intent(out) :: string
+    character (len=2047), intent(out) :: string
+    character (len=10) :: vstr
+    write(vstr, *) "0.1.3"
     write(string, *) &
-        & " +------------------------------------------------------------------+", &
+        & " +----------------------------------------------------------------+", &
         & NEW_LINE('a'), &
-        & "  |                                                                  |", &
+        & "  |                                                                |", &
         & NEW_LINE('a'), &
-        & "  |                         888      888 Y8b    d8Y                  |", &
+        & "  |                        888      888 Y8b    d8Y                 |", &
         & NEW_LINE('a'), &
-        & "  |                         888      888  Y8b  d8Y                   |", &
+        & "  |                        888      888  Y8b  d8Y                  |", &
         & NEW_LINE('a'), &
-        & "  |                         888      888   Y8888Y                    |", &
+        & "  |                        888      888   Y8888Y                   |", &
         & NEW_LINE('a'), &
-        & "  |                     .d88888  .d88888    Y88Y                     |", &
+        & "  |                    .d88888  .d88888    Y88Y                    |", &
         & NEW_LINE('a'), &
-        & "  |                    d88  888 d88  888    d88b                     |", &
+        & "  |                   d88  888 d88  888    d88b                    |", &
         & NEW_LINE('a'), &
-        & "  |                    888  888 888  888   d8888b                    |", &
+        & "  |                   888  888 888  888   d8888b                   |", &
         & NEW_LINE('a'), &
-        & "  |                    Y88b 888 Y88b 888  d8Y  Y8b                   |", &
+        & "  |                   Y88b 888 Y88b 888  d8Y  Y8b                  |", &
         & NEW_LINE('a'), &
-        & "  |                      Y88888   Y88888 d8Y    Y8b                  |", &
+        & "  |                     Y88888   Y88888 d8Y    Y8b                 |", &
         & NEW_LINE('a'), &
-        & "  |                                                                  |", &
+        & "  |                                                                |", &
         & NEW_LINE('a'), &
-        & "  |                  https://ddsolvation.github.io/ddX/              |", &
+        & "  |                 https://ddsolvation.github.io/ddX/             |", &
         & NEW_LINE('a'), &
-        & "  |                                                                  |", &
+        & "  |                         Version:", vstr, "                     |", &
         & NEW_LINE('a'), &
-        & "  +------------------------------------------------------------------+"
-end subroutine
+        & "  |                                                                |", &
+        & NEW_LINE('a'), &
+        & "  +----------------------------------------------------------------+"
+end subroutine get_banner
+
+!> Transform a function defined at the exposed cavity points (cav) to
+!> a spherical harmonics expansion. Note that the function is also
+!> multiplied by the characteristic function U.
+!!
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[in] property_cav: property defined at the exposed cavity points,
+!!      size (ncav)
+!! @param[out] property_sph: property as a spherical harmonics expansion,
+!!      size (nbasis, nsph)
+subroutine cav_to_spherical(params, constants, workspace, property_cav, &
+        & property_sph)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: property_cav(constants % ncav)
+    real(dp), intent(out) :: property_sph(constants % nbasis, params % nsph)
+
+    ! multiply by the characteristic function U
+    workspace % tmp_cav = property_cav * constants % ui_cav
+
+    ! extend the function to the sphere intersection with zeros
+    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
+        & constants % icav_ia, constants % icav_ja, workspace % tmp_cav, &
+        & workspace % tmp_grid)
+
+    ! integrate against spherical harmonics
+    call ddintegrate(params % nsph, constants % nbasis, &
+        & params % ngrid, constants % vwgrid, constants % vgrid_nbasis, &
+        & workspace % tmp_grid, property_sph)
+end subroutine cav_to_spherical
 
 end module ddx_core

@@ -21,18 +21,18 @@ use ddx_parameters
 use ddx_harmonics
 use omp_lib, only : omp_get_wtime
 
-! Disable implicit types
 implicit none
 
+!> @defgroup Fortran_interface_core Fortran interface: core routines
+
+!> Container for precomputed constants
 type ddx_constants_type
     !> Number modeling spherical harmonics per sphere.
     integer :: nbasis
     !> Total number of modeling degrees of freedom.
-    !!
     !! This is equal to `nsph*nbasis`.
     integer :: n
     !> Maximal degree of used real normalized spherical harmonics.
-    !!
     !! For example, if FMM is
     !! used, its M2L operation requires computing spherical harmonics of all
     !! degrees up to `pm+pl`. If `force=1` then this parameter might be
@@ -42,37 +42,31 @@ type ddx_constants_type
     !> Total number of used real spherical harmonics and a size of `vscales`.
     integer :: nscales
     !> Scales of real normalized spherical harmonics of degree up to dmax.
-    !!
     !! This array has a dimension (nscales).
     real(dp), allocatable :: vscales(:)
     !> Array of values 4pi/(2l+1), dimension is (dmax+1). Referenced only if
-    !!      fmm=1, but allocated and computed in any case.
+    !! fmm=1, but allocated and computed in any case.
     real(dp), allocatable :: v4pi2lp1(:)
     !> Relative scales of real normalized spherical harmonics.
-    !!
     !! Each values is multiplied by a corresponding 4pi/(2l+1). Dimension of
     !! this array is (nscales). Referenced only if fmm=1, but allocated and
     !! computed in any case.
     real(dp), allocatable :: vscales_rel(:)
     !> Number of precomputed square roots of factorials.
-    !!
     !! Just like with `dmax` parameter, number of used factorials is either
     !! `2*lmax+1` or `2*(pm+pl)+1` depending on whether FMM is used or not.
     integer :: nfact
     !> Array of square roots of factorials of a dimension (nfact).
     real(dp), allocatable :: vfact(:)
     !> Array of square roots of combinatorial numbers C_n^k.
-    !!
     !! Dimension of this array is ((2*dmax+1)*(dmax+1)). Allocated, computed
     !! and referenced only if fmm=1 or if force=1
     real(dp), allocatable :: vcnk(:)
     !> Array of common M2L coefficients for any OZ translation.
-    !!
     !! This array has a dimension (pm+1, pl+1, pl+1). Allocated, computed and
     !! referenced only if fmm=1.
     real(dp), allocatable :: m2l_ztranslate_coef(:, :, :)
     !> Array of common M2L coefficients for any adjoint OZ translation.
-    !!
     !! Dimension of this array is (pl+1, pl+1, pm+1). It is allocated, computed
     !! and referenced only if fmm=1.
     real(dp), allocatable :: m2l_ztranslate_adj_coef(:, :, :)
@@ -81,7 +75,6 @@ type ddx_constants_type
     !> Weights of Lebedev quadrature points of a dimension (ngrid).
     real(dp), allocatable :: wgrid(:)
     !> Maximal degree of spherical harmonics evaluated at Lebedev grid points.
-    !!
     !! Although we use spherical harmonics of degree up to `dmax`, only
     !! spherical harmonics of degree up to `lmax` and `pl` are evaluated
     !! at Lebedev grid points. In the case `force=1` this degrees might be
@@ -90,11 +83,9 @@ type ddx_constants_type
     !> Number of spherical harmonics evaluated at Lebedev grid points.
     integer :: vgrid_nbasis
     !> Values of spherical harmonics at Lebedev grid points.
-    !!
     !! Dimensions of this array are (vgrid_nbasis, ngrid)
     real(dp), allocatable :: vgrid(:, :)
     !> Weighted values of spherical harmonics at Lebedev grid points.
-    !!
     !! vwgrid(:, igrid) = vgrid(:, igrid) * wgrid(igrid)
     !! Dimension of this array is (vgrid_nbasis, ngrid).
     real(dp), allocatable :: vwgrid(:, :)
@@ -104,57 +95,49 @@ type ddx_constants_type
     integer :: lmax0
     !> LPB value max of nbasis and 49
     integer :: nbasis0
-    !> LPB value w_n*U_i(x_in)*Y_lm(x_n). Dimension is (ngrid, nbasis, nsph)
-    real(dp), allocatable :: coefvec(:, :, :)
     !> LPB matrix, Eq. (87) from [QSM19.SISC]. Dimension is
-    !!      (nbasis, nbasis0, nsph)
+    !! (nbasis, nbasis0, nsph)
     real(dp), allocatable :: Pchi(:, :, :)
-    !> LPB intermediate calculation in Q Matrix Eq. (91).
-    !!      C_ik*\bold{k}_l^j(x_in)*Y_lm^j(x_in). Dimension is
-    !!      (ncav, nbasis0, nsph)
-    real(dp), allocatable :: coefY(:, :, :)
     !> LPB value (i'_l0(r_j)/i_l0(r_j)-k'_l0(r_j)/k_l0(r_j))^{-1}. Dimension
-    !!      is ???
+    !! is ???
     real(dp), allocatable :: C_ik(:, :)
     !> LPB Bessel function of the first kind. Dimension is (dmax+1, nsph).
     real(dp), allocatable :: SI_ri(:, :)
     !> LPB Derivative of Bessel function of the first kind. Dimension is
-    !!      (dmax+1, nsph).
+    !! (dmax+1, nsph).
     real(dp), allocatable :: DI_ri(:, :)
     !> LPB Bessel function of the second kind. Dimension is (lmax+2, nsph).
     real(dp), allocatable :: SK_ri(:, :)
     !> LPB Derivative Bessel function of the second kind. Dimension is
-    !!      (lmax+2, nsph).
+    !! (lmax+2, nsph).
     real(dp), allocatable :: DK_ri(:, :)
     !> LPB value i'_l(r_j)/i_l(r_j). Dimension is (lmax, nsph).
     real(dp), allocatable :: termimat(:, :)
-    !> LPB value sum_{l0,m0}Pchi*coefY. Dimension is (ncav, nbasis, nsph)
-    real(dp), allocatable :: diff_ep_adj(:, :, :)
     !> LPB B matrix for doing incore BX product
     real(dp), allocatable :: b(:,:,:)
     !> ddCOSMO L matrix fo doing incore LX product
     real(dp), allocatable :: l(:,:,:)
     !> Upper limit on a number of neighbours per sphere. This value is just an
-    !!      upper bound that is not guaranteed to be the actual maximum.
+    !! upper bound that is not guaranteed to be the actual maximum.
     integer :: nngmax
     !> List of intersecting spheres in a CSR format. Dimension is (nsph+1).
     integer, allocatable :: inl(:)
     !> List of intersecting spheres in a CSR format. Dimension is
-    !!      (nsph*nngmax).
+    !! (nsph*nngmax).
     integer, allocatable :: nl(:)
     !> transpose list of intersecting spheres
     integer, allocatable :: itrnl(:)
     !> Values of a characteristic function f at all grid points of all spheres.
-    !!      Dimension is (ngrid, npsh).
+    !! Dimension is (ngrid, npsh).
     real(dp), allocatable :: fi(:, :)
     !> Values of a characteristic function U at all grid points of all spheres.
-    !!      Dimension is (ngrid, nsph).
+    !! Dimension is (ngrid, nsph).
     real(dp), allocatable :: ui(:, :)
     !> Values of a characteristic function U at cavity points. Dimension is
-    !!      (ncav).
+    !! (ncav).
     real(dp), allocatable :: ui_cav(:)
     !> Derivative of the characteristic function U at all grid points of all
-    !!      spheres. Dimension is (3, ngrid, nsph).
+    !! spheres. Dimension is (3, ngrid, nsph).
     real(dp), allocatable :: zi(:, :, :)
     !> Number of external Lebedev grid points on a molecular surface.
     integer :: ncav
@@ -167,79 +150,79 @@ type ddx_constants_type
     !> Column indexes in CSR format of all cavity points. Dimension is (ncav).
     integer, allocatable :: icav_ja(:)
     !> Preconditioner for an operator R_eps. Allocated and computed only for
-    !!      the PCM model (model=3). Dimension is (nbasis, nbasis, nsph).
+    !! the PCM model (model=3). Dimension is (nbasis, nbasis, nsph).
     real(dp), allocatable :: rx_prc(:, :, :)
     !! Cluster tree information that is allocated and computed only if fmm=1.
     !> Reordering of spheres for better locality. This array has a dimension
-    !!      (nsph) and is allocated/used only if fmm=1.
+    !! (nsph) and is allocated/used only if fmm=1.
     integer, allocatable :: order(:)
     !> Number of clusters. Defined only if fmm=1.
     integer :: nclusters
     !> The first and the last spheres of each node. Dimension of this array is
-    !!      (2, nclusters) and it is allocated/used only if fmm=1.
+    !! (2, nclusters) and it is allocated/used only if fmm=1.
     integer, allocatable :: cluster(:, :)
     !> Children of each cluster. Dimension is (2, nclusters). Allocated and
-    !!      used only if fmm=1.
+    !! used only if fmm=1.
     integer, allocatable :: children(:, :)
     !> Parent of each cluster. Dimension is (nclusters). Allocated and used
-    !!      only if fmm=1.
+    !! only if fmm=1.
     integer, allocatable :: parent(:)
     !> Center of bounding sphere of each cluster. Dimension is (3, nclusters).
-    !!      This array is allocated and used only if fmm=1.
+    !! This array is allocated and used only if fmm=1.
     real(dp), allocatable :: cnode(:, :)
     !> Radius of bounding sphere of each cluster. Dimension is (nclusters).
-    !!      This array is allocated and used only if fmm=1.
+    !! This array is allocated and used only if fmm=1.
     real(dp), allocatable :: rnode(:)
     !> Which leaf node contains only given input sphere. Dimension is (nsph).
-    !!      This array is allocated and used only if fmm=1.
+    !! This array is allocated and used only if fmm=1.
     integer, allocatable :: snode(:)
     !> Bessel function for bounding sphere of each cluster. Dimension is
-    !!      (pm, nclusters). This array is allocated and used only if fmm=1.
+    !! (pm, nclusters). This array is allocated and used only if fmm=1.
     real(dp), allocatable :: SK_rnode(:, :)
     !> Bessel function for bounding sphere of each cluster. Dimension is
-    !!      (pm, nclusters). This array is allocated and used only if fmm=1.
+    !! (pm, nclusters). This array is allocated and used only if fmm=1.
     real(dp), allocatable :: SI_rnode(:, :)
     !> Total number of far admissible pairs. Defined only if fmm=1.
     integer :: nnfar
     !> Total number of near admissible pairs. Defined only if fmm=1.
     integer :: nnnear
     !> Number of admissible far pairs for each node. Dimension is (nclusters).
-    !!      This array is allocated and used only if fmm=1.
+    !! This array is allocated and used only if fmm=1.
     integer, allocatable :: nfar(:)
     !> Number of admissible near pairs for each node. Dimension is (nclusters).
-    !!      This array is allocated and used only if fmm=1.
+    !! This array is allocated and used only if fmm=1.
     integer, allocatable :: nnear(:)
     !> Arrays of admissible far pairs. Dimension is (nnfar). This array is
-    !!      allocated and used only if fmm=1.
+    !! allocated and used only if fmm=1.
     integer, allocatable :: far(:)
     !> Arrays of admissible near pairs. Dimension is (nnnear). This array is
-    !!      allocated and used only if fmm=1.
+    !! allocated and used only if fmm=1.
     integer, allocatable :: near(:)
     !> Index of the first element of array of all admissible far pairs stored
-    !!      in the array `far`. Dimension is (nclusters+1). This array is
-    !!      allocated and used only if fmm=1.
+    !! in the array `far`. Dimension is (nclusters+1). This array is
+    !! allocated and used only if fmm=1.
     integer, allocatable :: sfar(:)
     !> Index of the first element of array of all admissible near pairs stored
-    !!      in the array `near`. Dimension is (nclusters+1). This array is
-    !!      allocated and used only if fmm=1.
+    !! in the array `near`. Dimension is (nclusters+1). This array is
+    !! allocated and used only if fmm=1.
     integer, allocatable :: snear(:)
     !> Number of near-field M2P interactions with cavity points. Defined only
-    !!      if fmm=1.
+    !! if fmm=1.
     integer :: nnear_m2p
     !> Maximal degree of near-field M2P spherical harmonics. Defined only if
-    !!      fmm=1.
+    !! fmm=1.
     integer :: m2p_lmax
     !> Number of spherical harmonics used for near-field M2P. Defined only if
-    !!      fmm=1.
+    !! fmm=1.
     integer :: m2p_nbasis
     !> Number of spherical harmonics of degree up to lmax+1 used for
-    !!      computation of forces (gradients). Allocated and used only if
-    !!      fmm=1.
+    !! computation of forces (gradients). Allocated and used only if
+    !! fmm=1.
     integer :: grad_nbasis
     !> Inner tolerance for microiterations done when using ddLPB
     real(dp) :: inner_tol
     !> Whether the diagonal of the matrices has to be used in the mvp for
-    !!       ddCOSMO, ddPCM or inner ddLPB iterations
+    !! ddCOSMO, ddPCM or inner ddLPB iterations
     logical  :: dodiag
     !> Flag if there were an error
     integer :: error_flag = 2
@@ -250,8 +233,11 @@ end type ddx_constants_type
 contains
 
 !> Compute all necessary constants
+!> @ingroup Fortran_interface_core
+!!
 !! @param[in] params: Object containing all inputs.
 !! @param[out] constants: Object containing all constants.
+!!
 subroutine constants_init(params, constants)
     use complex_bessel
     !! Inputs
@@ -259,9 +245,10 @@ subroutine constants_init(params, constants)
     !! Outputs
     type(ddx_constants_type), intent(out) :: constants
     !! Local variables
-    integer :: i, alloc_size, l, indl, igrid, isph, ind, l0, &
-        & NZ, ierr, info
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, termi, termk, s1, s2
+    integer :: i, alloc_size, l, indl, igrid, isph, ind, icav, l0, m0, ind0, &
+        & jsph, ibasis, ibasis0, NZ, ierr, info, tmp_pmax
+    real(dp) :: rho, ctheta, stheta, cphi, sphi, termi, termk, term, rijn, &
+        & sijn(3), vij(3), val, s1, s2
     real(dp), allocatable :: vplm(:), vcos(:), vsin(:), vylm(:), SK_rijn(:), &
         & DK_rijn(:)
     complex(dp), allocatable :: bessel_work(:)
@@ -301,17 +288,18 @@ subroutine constants_init(params, constants)
         ! If forces are required then we need the M2P of a degree lmax+1 for
         ! the near-field analytical gradients
         if (params % force .eq. 1) then
-            constants % dmax = max(params % pm+params % pl, &
+            constants % dmax = max(params % pm+params % pl+1, &
                 & params % lmax+1)
             constants % m2p_lmax = params % lmax + 1
             constants % grad_nbasis = (params % lmax+2) ** 2
+            constants % vgrid_dmax = max(params % pl, params % lmax) + 1
         else
             constants % dmax = max(params % pm+params % pl, &
                 & params % lmax)
             constants % m2p_lmax = params % lmax
             constants % grad_nbasis = -1
+            constants % vgrid_dmax = max(params % pl, params % lmax)
         end if
-        constants % vgrid_dmax = max(params % pl, params % lmax)
         constants % m2p_nbasis = (constants % m2p_lmax+1) ** 2
     end if
     ! Compute sizes of vgrid, vfact and vscales
@@ -458,8 +446,8 @@ subroutine constants_init(params, constants)
     if (constants % error_flag .ne. 0) return
     ! Precompute LPB-related constants
     if (params % model .eq. 3) then
-        constants % lmax0 = min(6, params % lmax)
-        constants % nbasis0 = min(49, constants % nbasis)
+        constants % lmax0 = params % lmax
+        constants % nbasis0 = constants % nbasis
         allocate(vylm(constants % vgrid_nbasis), &
             & SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0), &
             & bessel_work(constants % dmax+2), stat=info)
@@ -473,13 +461,7 @@ subroutine constants_init(params, constants)
         allocate(constants % DI_ri(0:constants % dmax+1, params % nsph))
         allocate(constants % SK_ri(0:params % lmax+1, params % nsph))
         allocate(constants % DK_ri(0:params % lmax+1, params % nsph))
-        allocate(constants % diff_ep_adj(constants % ncav, &
-            & constants % nbasis, params % nsph))
-        allocate(constants % coefvec(params % ngrid, constants % nbasis, &
-            & params % nsph))
         allocate(constants % Pchi(constants % nbasis, constants % nbasis0, &
-            & params % nsph))
-        allocate(constants % coefY(constants % ncav, constants % nbasis0, &
             & params % nsph))
         allocate(constants % C_ik(0:params % lmax, params % nsph))
         allocate(constants % termimat(0:params % lmax, params % nsph))
@@ -500,16 +482,6 @@ subroutine constants_init(params, constants)
             ! Previous implementation in update_rhs. Made it in ddinit, so as to use
             ! it in Forces as well.
             call mkpmat(params, constants, isph, constants % Pchi(:, :, isph))
-            ! Compute w_n*Ui(x_in)*Y_lm(s_n)
-            do igrid = 1, params % ngrid
-                if (constants % ui(igrid, isph) .gt. 0) then
-                    do ind = 1, constants % nbasis
-                        constants % coefvec(igrid, ind, isph) = &
-                            & constants % ui(igrid, isph) * &
-                            & constants % vwgrid(ind, igrid)
-                    end do
-                end if
-            end do
             ! Compute i'_l(r_i)/i_l(r_i)
             do l = 0, params % lmax
                 constants % termimat(l, isph) = constants % DI_ri(l, isph) / &
@@ -525,8 +497,16 @@ subroutine constants_init(params, constants)
             end do
         end do
         if (params % fmm .eq. 1) then
-            allocate(constants % SI_rnode(params % pm+1, constants % nclusters))
-            allocate(constants % SK_rnode(params % pm+1, constants % nclusters))
+            tmp_pmax = max(params % pm, params % pl)
+            allocate(constants % SI_rnode(tmp_pmax+1, constants % nclusters), &
+                & constants % SK_rnode(tmp_pmax+1, constants % nclusters), &
+                & stat=info)
+            if (info.ne.0) then
+                constants % error_flag = 1
+                constants % error_message = "constants_init: `si_rnode, " // &
+                    & "sk_rnode allocation failed"
+                return
+            end if
             do i = 1, constants % nclusters
                 z = constants % rnode(i) * params % kappa
                 s1 = sqrt(two/(pi*real(z)))
@@ -535,11 +515,11 @@ subroutine constants_init(params, constants)
                 constants % SK_rnode(1, i) = s1 * real(bessel_work(1))
                 call cbesi(z, pt5, 1, 1, bessel_work(1), NZ, ierr)
                 constants % SI_rnode(1, i) = s2 * real(bessel_work(1))
-                if (params % pm .gt. 0) then
-                    call cbesk(z, 1.5d0, 1, params % pm, bessel_work(2:), NZ, ierr)
-                    constants % SK_rnode(2:, i) = s1 * real(bessel_work(2:params % pm+1))
-                    call cbesi(z, 1.5d0, 1, params % pm, bessel_work(2:), NZ, ierr)
-                    constants % SI_rnode(2:, i) = s2 * real(bessel_work(2:params % pm+1))
+                if (tmp_pmax .gt. 0) then
+                    call cbesk(z, 1.5d0, 1, tmp_pmax, bessel_work(2:), NZ, ierr)
+                    constants % SK_rnode(2:, i) = s1 * real(bessel_work(2:tmp_pmax+1))
+                    call cbesi(z, 1.5d0, 1, tmp_pmax, bessel_work(2:), NZ, ierr)
+                    constants % SI_rnode(2:, i) = s2 * real(bessel_work(2:tmp_pmax+1))
                 end if
             end do
         end if
@@ -569,6 +549,7 @@ subroutine constants_init(params, constants)
     end if
 end subroutine constants_init
 
+!> Build the transposed neighbor list
 subroutine build_itrnl(constants, params)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -593,6 +574,7 @@ subroutine build_itrnl(constants, params)
     end do
 end subroutine build_itrnl
 
+!> Allocate and build the ddCOSMO sparse matrix, only if incore is set
 subroutine build_l(constants, params)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -660,6 +642,7 @@ subroutine build_l(constants, params)
     end do
 end subroutine build_l
 
+!> Allocate and build the HSP sparse matrix, only if incore is set
 subroutine build_b(constants, params)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -674,9 +657,10 @@ subroutine build_b(constants, params)
     real(dp), dimension(0:params % lmax) :: SI_rijn, DI_rijn
     real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
     real(dp) :: t
+    integer :: info
 
     allocate(constants % b(constants % nbasis, constants % nbasis, &
-        & constants % inl(params % nsph + 1)))
+        & constants % inl(params % nsph + 1)), stat=info)
 
     thigh = one + pt5*(params % se + one)*params % eta
 
@@ -728,11 +712,11 @@ subroutine build_b(constants, params)
     end do
 end subroutine build_b
 
-!
-! Computation of P_chi
-! @param[in]  isph : Sphere number
-! @param[out] pmat : Matrix of size nbasis X (lmax0+1)^2, Fixed lmax0
-!
+!> Computation of P_chi
+!!
+!! @param[in]  isph : Sphere number
+!! @param[out] pmat : Matrix of size nbasis X (lmax0+1)^2, Fixed lmax0
+!!
 subroutine mkpmat(params, constants, isph, pmat)
     type(ddx_params_type), intent(in)  :: params
     type(ddx_constants_type), intent(in)  :: constants
@@ -1085,6 +1069,7 @@ subroutine constants_geometry_init(params, constants)
     end if
 end subroutine constants_geometry_init
 
+!> Build the neighbor list using a N^2 code
 subroutine neighbor_list_init(params, constants)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -1168,6 +1153,8 @@ subroutine neighbor_list_init(params, constants)
     constants % nngmax = nngmax
 end subroutine neighbor_list_init
 
+!> Build the neighbor list using a linear scaling code (only if FMMs
+!! are enabled)
 subroutine neighbor_list_init_fmm(params, constants)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -1788,8 +1775,8 @@ subroutine tree_get_farnear_work(n, children, cnode, rnode, lwork, iwork, &
     nnnear = sum(nnear)
 end subroutine tree_get_farnear_work
 
-! Get near and far admissible pairs from work array of tree_get_farnear_work
-! Works only for binary tree
+!> Get near and far admissible pairs from work array of tree_get_farnear_work
+!! Works only for binary tree
 subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
         & nnnear, nnear, snear, near)
 !   Parameters:
@@ -1844,6 +1831,11 @@ subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
 
 end subroutine tree_get_farnear
 
+!> Deallocate the constants
+!> @ingroup Fortran_interface_core
+!!
+!! @param[out] constants: Precomputed constants
+!!
 subroutine constants_free(constants)
     implicit none
     type(ddx_constants_type), intent(out) :: constants
@@ -1947,14 +1939,6 @@ subroutine constants_free(constants)
             return
         end if
     end if
-    if (allocated(constants % coefvec)) then
-        deallocate(constants % coefvec, stat=istat)
-        if (istat .ne. 0) then
-            constants % error_message = "`coefvec` deallocation failed!"
-            constants % error_flag = 1
-            return
-        end if
-    end if
     if (allocated(constants % pchi)) then
         deallocate(constants % pchi, stat=istat)
         if (istat .ne. 0) then
@@ -2007,14 +1991,6 @@ subroutine constants_free(constants)
         deallocate(constants % termimat, stat=istat)
         if (istat .ne. 0) then
             constants % error_message = "`termimat` deallocation failed!"
-            constants % error_flag = 1
-            return
-        end if
-    end if
-    if (allocated(constants % diff_ep_adj)) then
-         deallocate(constants % diff_ep_adj, stat=istat)
-        if (istat .ne. 0) then
-            constants % error_message = "`diff_ep_adj` deallocation failed!"
             constants % error_flag = 1
             return
         end if
@@ -2247,6 +2223,24 @@ subroutine constants_free(constants)
         deallocate(constants % snear, stat=istat)
         if (istat .ne. 0) then
             constants % error_message = "`snear` deallocation failed!"
+            constants % error_flag = 1
+            return
+        end if
+    end if
+    if (allocated(constants % m2l_ztranslate_coef)) then
+        deallocate(constants % m2l_ztranslate_coef, stat=istat)
+        if (istat .ne. 0) then
+            constants % error_message = "`m2l_ztranslate_coef` " // &
+                & "deallocation failed!"
+            constants % error_flag = 1
+            return
+        end if
+    end if
+    if (allocated(constants % m2l_ztranslate_adj_coef)) then
+        deallocate(constants % m2l_ztranslate_adj_coef, stat=istat)
+        if (istat .ne. 0) then
+            constants % error_message = "`m2l_ztranslate_adj_coef` " // &
+                & "deallocation failed!"
             constants % error_flag = 1
             return
         end if

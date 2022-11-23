@@ -20,6 +20,9 @@ use ddx_constants
 
 implicit none
 
+!> @defgroup Fortran_interface_core Fortran interface: core routines
+
+!> Container for temporary arrays
 type ddx_workspace_type
     !> Temporary workspace for scalar at the grid points. Dimension is
     !!      (ngrid, nproc)
@@ -103,6 +106,13 @@ end type ddx_workspace_type
 
 contains
 
+!> Initialize and allocate the temporary workspaces
+!> @ingroup Fortran_interface_core
+!!
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[out] workspace: Preallocated workspaces
+!!
 subroutine workspace_init(params, constants, workspace)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -290,12 +300,19 @@ subroutine workspace_init(params, constants, workspace)
     workspace % error_message = ""
 end subroutine workspace_init
 
+!> Deallocate the temporary workspaces
+!> @ingroup Fortran_interface_core
+!!
+!! @param[out] workspace: Preallocated workspaces
+!!
 subroutine workspace_free(workspace)
     implicit none
     type(ddx_workspace_type), intent(out) :: workspace
     integer :: istat
 
     istat = 0
+    workspace % error_message = ''
+    workspace % error_flag = 0
 
     if (allocated(workspace % tmp_pot)) then
         deallocate(workspace % tmp_pot, stat=istat)

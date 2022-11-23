@@ -19,7 +19,7 @@ use omp_lib
 implicit none
 
 character(len=255) :: fname
-character(len=4095) :: banner
+character(len=2047) :: banner
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
 integer :: phi_flag=1, grad_flag=1, hessian_flag=1
@@ -45,7 +45,7 @@ if (state % error_flag .ne. 0) then
 end if
 
 call get_banner(banner)
-write(6, *) banner
+write(6, *) trim(banner)
 
 ! determine needed arrays
 if (ddx_data % params % model .eq. 3) then
@@ -77,9 +77,18 @@ finish_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") " mkrhs time:", finish_time-start_time, " seconds"
 
 start_time = omp_get_wtime()
-call ddsolve(ddx_data, state,  phi_cav, gradphi_cav, hessianphi_cav, psi, &
+call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, &
     & tol, esolv, force)
 finish_time = omp_get_wtime()
+write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time-start_time, " seconds"
+
+start_time = omp_get_wtime()
+call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
+    & ddx_data % workspace, state, ddx_data % params % charge, &
+    & force, -gradphi_cav)
+start_time = omp_get_wtime()
+write(*, "(A,ES11.4E2,A)") " multipolar forces time:", finish_time-start_time, " seconds"
+
 
 ! Print info on the primal ddPCM system
 if (ddx_data % params % model .eq. 2) then
@@ -97,7 +106,7 @@ end if
 ! Print info on the primal ddLPB system
 if (ddx_data % params % model .eq. 3) then
     ! Print each iteration if needed
-    do i = 1, state % phieps_niter
+    do i = 1, state % x_lpb_niter
         print " (A,I4,A,ES20.14)", "iter=", i, &
             & " relative difference: ", state % x_lpb_rel_diff(i)
     end do
@@ -109,27 +118,32 @@ if (ddx_data % params % model .eq. 3) then
 end if
 ! Print info on the primal ddCOSMO system
 ! Print each iteration if needed
-do i = 1, state % xs_niter
-    print "(A,I4,A,ES20.14)", " iter=", i, &
-        & " relative difference: ", state % xs_rel_diff(i)
-end do
-! Print number of iterations and time
-print "(A,ES11.4E2,A)", " ddcosmo step time: ", state % xs_time, &
-    & " seconds"
-print "(A,I4)", " ddcosmo step iterations: ", state % xs_niter
+if ((ddx_data % params % model.eq.1) .or. (ddx_data % params % model.eq.2)) then
+    do i = 1, state % xs_niter
+        print "(A,I4,A,ES20.14)", " iter=", i, &
+            & " relative difference: ", state % xs_rel_diff(i)
+    end do
+    ! Print number of iterations and time
+    print "(A,ES11.4E2,A)", " ddcosmo step time: ", state % xs_time, &
+        & " seconds"
+    print "(A,I4)", " ddcosmo step iterations: ", state % xs_niter
+end if
+
 ! Print info on the adjoint solver
 if (ddx_data % params % force .eq. 1) then
     ! Print info on the adjoint ddCOSMO system
     ! Print each iteration if needed
-    do i = 1, state % s_niter
-        print "(A,I4,A,ES20.14)", " iter=", i, &
-            & " relative difference: ", state % s_rel_diff(i)
-    end do
-    ! Print number of iterations and time
-    print "(A,ES11.4E2,A)", " adjoint ddcosmo step time: ", &
-        & state % s_time, " seconds"
-    print "(A,I4)", " adjoint ddcosmo step iterations: ", &
-        & state % s_niter
+    if ((ddx_data % params % model.eq.1) .or. (ddx_data % params % model.eq.2)) then
+        do i = 1, state % s_niter
+            print "(A,I4,A,ES20.14)", " iter=", i, &
+                & " relative difference: ", state % s_rel_diff(i)
+        end do
+        ! Print number of iterations and time
+        print "(A,ES11.4E2,A)", " adjoint ddcosmo step time: ", &
+            & state % s_time, " seconds"
+        print "(A,I4)", " adjoint ddcosmo step iterations: ", &
+            & state % s_niter
+    end if
     ! Print info on the adjoint ddPCM system
     if (ddx_data % params % model .eq. 2) then
         ! Print each iteration if needed
@@ -146,7 +160,7 @@ if (ddx_data % params % force .eq. 1) then
     ! Print info on the adjoint ddLPB system
     if (ddx_data % params % model .eq. 3) then
         ! Print each iteration if needed
-        do i = 1, state % y_niter
+        do i = 1, state % x_adj_lpb_niter
             print "(A,I4,A,ES20.14)", " iter=", i, &
                 & " relative difference: ", state % x_adj_lpb_rel_diff(i)
         end do
@@ -157,8 +171,7 @@ if (ddx_data % params % force .eq. 1) then
             & state % x_adj_lpb_niter
     end if
 end if
-write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time-start_time, " seconds"
-write(*, "(A,ES25.16E3)") " Solvation energy:", esolv
+write(*, "(A,ES25.16E3)") " Solvation energy (Hartree):", esolv
 write(*, "(A,ES25.16E3)") " Solvation energy (kcal/mol):", esolv*tokcal
 if (ddx_data % params % force .eq. 1) then
     write(*, *) " Full forces (kcal/mol/A)"

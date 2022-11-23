@@ -78,7 +78,7 @@ jobs:
         if: contains( matrix.os, 'macos')
       - name: Install python dependencies
         run: |
-          python -m pip install --user wheel
+          python -m pip install --user wheel pybind11
           python -m pip install --user -r requirements.txt
       - name: Run python tests
         run: |

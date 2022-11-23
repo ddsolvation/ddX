@@ -223,8 +223,9 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
         return
     end if
 
-    !! Use a tighter tolerance for the microiterations to ensure convergence
-    constants % inner_tol =  tol/100.0d0
+    ! set the initial convergence for the microiterations, it will be
+    ! adjusted depending on the external one
+    constants % inner_tol =  sqrt(tol)
 
     !! Setting initial values to zero
     g_lpb = zero
@@ -274,7 +275,7 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
     end if
     x_lpb_time = omp_get_wtime() - start_time
 
-    deallocate(rhs, stat = istat)
+    deallocate(rhs, stat=istat)
     if (istat .ne. 0) then
         workspace % error_message = 'Deallocation failed in ddlpb_solve_worker'
         workspace % error_flag = 1
@@ -307,7 +308,7 @@ subroutine ddlpb_adjoint_worker(params, constants, workspace, psi, tol, &
     end if
 
     !! Use a tighter tolerance for the microiterations to ensure convergence
-    constants % inner_tol =  tol/100.0d0
+    constants % inner_tol =  sqrt(tol)
 
     ! Psi shall be divided by a factor 4pi for the LPB case
     ! It is intended to take into account this constant in the LPB
@@ -418,23 +419,25 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
     !$omp parallel do default(none) shared(params,constants,workspace, &
-    !$omp scaled_xr,xadj_r_sgrid,force,x,xadj_e_sgrid,phi_grid) private(isph, &
-    !$omp basloc,dbasloc,vplm,vcos,vsin)
+    !$omp scaled_xr,xadj_r_sgrid,x,force,xadj_e_sgrid,phi_grid) &
+    !$omp private(isph,basloc,dbasloc,vplm,vcos,vsin) &
+    !$omp schedule(static,1)
     do isph = 1, params % nsph
         ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
         call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
             & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
         ! Compute B^k*Xadj_e
-        call contract_grad_B(params, constants, workspace, isph, x(:,:,2), Xadj_e_sgrid, &
-            & basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
+        call contract_grad_B(params, constants, workspace, isph, x(:,:,2), &
+            & Xadj_e_sgrid, basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
         ! Computation of G0
         call contract_grad_U(params, constants, isph, Xadj_r_sgrid, phi_grid, &
             & force(:, isph))
     end do
     ! Compute C1 and C2 contributions
     diff_re = zero
-    call contract_grad_C(params, constants, workspace, x(:,:,1), x(:,:,2), Xadj_r_sgrid, &
-        & Xadj_e_sgrid, x_adj(:,:,1), x_adj(:,:,2), force, diff_re)
+    call contract_grad_C(params, constants, workspace, x(:,:,1), x(:,:,2), &
+        & Xadj_r_sgrid, Xadj_e_sgrid, x_adj(:,:,1), x_adj(:,:,2), force, &
+        & diff_re)
     ! Computation of G0 continued
     ! NOTE: contract_grad_U returns a positive summation
     if (workspace % error_flag .eq. 1) return
@@ -537,11 +540,11 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     icav_gr = zero
     icav_ge = zero
     ! Computation of F0
-    call contract_grad_f(params, constants, workspace, x_adj(:,:,1), Xadj_r_sgrid, &
-                  & gradphi, normal_hessian_cav, icav_gr, force)
+    call contract_grad_f(params, constants, workspace, x_adj(:,:,1), &
+        & Xadj_r_sgrid, gradphi, normal_hessian_cav, icav_gr, force)
     if (workspace % error_flag .eq. 1) return
-    call contract_grad_f(params, constants, workspace, x_adj(:,:,2), Xadj_e_sgrid, &
-                  & gradphi, normal_hessian_cav, icav_ge, force)
+    call contract_grad_f(params, constants, workspace, x_adj(:,:,2), &
+        & Xadj_e_sgrid, gradphi, normal_hessian_cav, icav_ge, force)
     if (workspace % error_flag .eq. 1) return
 
     force = - pt5*force

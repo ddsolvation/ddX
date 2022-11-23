@@ -3,6 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void print_model_error(void* model) {
+  char message[256];
+  ddx_get_error_message(model, message, 256);
+  printf("Model error: %s\n", message);
+}
+void print_state_error(void* state) {
+  char message[256];
+  ddx_get_state_error_message(state, message, 256);
+  printf("Model error: %s\n", message);
+}
+
 int main() {
   int n_spheres      = 12;
   double charges[12] = {-0.04192, -0.04192, -0.04198, -0.04192, -0.04192, -0.04198,
@@ -29,11 +40,16 @@ int main() {
     centres[3 * i + 2] = z[i] / 0.5291772109;
   }
 
+  char banner[2048];
+  ddx_get_banner(banner, 2048);
+  printf("%s\n", banner);
+
   int pcm                = 2;
   int enable_forces      = 1;
   double epsilon         = 78.3553;
   double kappa           = 0.0;
   double eta             = 0.1;
+  double shift           = 0.0;
   int lmax               = 8;
   int n_lebedev          = 302;
   int incore             = 0;
@@ -50,13 +66,18 @@ int main() {
   //
   // Allocate model and print some info
   //
-  void* model = ddx_allocate_model(pcm, enable_forces, epsilon, kappa, eta, lmax,
+  void* model = ddx_allocate_model(pcm, enable_forces, epsilon, kappa, eta, shift, lmax,
                                    n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm,
                                    fmm_multipole_lmax, fmm_local_lmax, n_proc, n_spheres,
                                    charges, centres, radii, length_logfile, logfile);
-  int nsph    = ddx_get_n_spheres(model);
-  int nbasis  = ddx_get_n_basis(model);
-  int ncav    = ddx_get_n_cav(model);
+  if (ddx_get_error_flag(model) != 0) {
+    print_model_error(model);
+    return 1;
+  }
+
+  int nsph   = ddx_get_n_spheres(model);
+  int nbasis = ddx_get_n_basis(model);
+  int ncav   = ddx_get_n_cav(model);
   printf("nsph   = %4d\n", nsph);
   printf("nbasis = %4d\n", nbasis);
   printf("ncav   = %4d\n", ncav);
@@ -74,19 +95,48 @@ int main() {
   }
   ddx_multipole_electrostatics_1(model, nsph, ncav, nmultipoles, solute_multipoles,
                                  phi_cav, e_cav);
+  if (ddx_get_error_flag(model) != 0) {
+    print_model_error(model);
+    return 1;
+  }
 
   double* psi = (double*)malloc(sizeof(double) * nsph * nbasis);
   ddx_multipole_psi(model, nbasis, nsph, nmultipoles, solute_multipoles, psi);
+  if (ddx_get_error_flag(model) != 0) {
+    print_model_error(model);
+    return 1;
+  }
 
   //
-  // Solve the problem
+  // Solve the PCM problem
   //
-  double tol  = 1e-9;
   void* state = ddx_allocate_state(model);
-  ddx_pcm_fill_guess(model, state);
-  ddx_pcm_solve(model, state, ncav, phi_cav, tol);
-  ddx_pcm_solve_adjoint(model, state, nbasis, nsph, psi, tol);
+  if (ddx_get_state_error_flag(model) != 0) {
+    print_state_error(state);
+    return 1;
+  }
 
+  double tol = 1e-9;
+  ddx_pcm_setup(model, state, ncav, nbasis, nsph, phi_cav, psi);
+  ddx_pcm_guess(model, state);
+  ddx_pcm_solve(model, state, tol);
+  if (ddx_get_error_flag(model) != 0) {
+    print_model_error(model);
+    return 1;
+  }
+  printf("Forward system solved after %i iterations.\n", ddx_get_x_niter(state));
+
+  ddx_pcm_guess_adjoint(model, state);
+  ddx_pcm_solve_adjoint(model, state, tol);
+  if (ddx_get_error_flag(model) != 0) {
+    print_model_error(model);
+    return 1;
+  }
+  printf("Adjoint system solved after %i iterations.\n", ddx_get_s_niter(state));
+
+  //
+  // Compute energy and forces
+  //
   double* solution_x = (double*)malloc(sizeof(double) * nsph * nbasis);
   ddx_get_x(state, nbasis, nsph, solution_x);
   double energy = 0.0;
@@ -95,7 +145,11 @@ int main() {
   }
 
   double* forces = (double*)malloc(sizeof(double) * 3 * nsph);
-  ddx_pcm_forces(model, state, nbasis, nsph, ncav, phi_cav, e_cav, psi, forces);
+  ddx_pcm_solvation_force_terms(model, state, nsph, forces);
+  if (ddx_get_error_flag(model) != 0) {
+    print_model_error(model);
+    return 1;
+  }
 
   //
   // Check results

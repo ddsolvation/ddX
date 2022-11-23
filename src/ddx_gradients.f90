@@ -14,7 +14,7 @@ use ddx_core
 !
 contains
 
-
+!> Compute the gradients of the ddCOSMO matrix
 subroutine contract_grad_L(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx)
 type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -31,6 +31,7 @@ type(ddx_params_type), intent(in) :: params
 
 end subroutine contract_grad_L
 
+!> Contribution to the gradients of the ddCOSMO matrix
 subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -41,17 +42,13 @@ subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc
       real(dp),  dimension(3, constants % nbasis),    intent(inout) :: dbsloc
       real(dp),  dimension(params % lmax+1),      intent(inout) :: vcos, vsin
       real(dp),  dimension(3),           intent(inout) :: fx
-!
       integer :: ig, ij, jsph, l, ind, m
       real(dp)  :: vvij, tij, xij, oij, t, fac, fl, f1, f2, f3, beta, tlow, thigh
       real(dp)  :: vij(3), sij(3), alp(3), va(3)
       real(dp), external :: dnrm2
-!
-!-----------------------------------------------------------------------------------
-!
       tlow  = one - pt5*(one - params % se)*params % eta
       thigh = one + pt5*(one + params % se)*params % eta
-!
+
       do ig = 1, params % ngrid
         va = zero
         do ij = constants % inl(isph), constants % inl(isph+1) - 1
@@ -62,9 +59,9 @@ subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc
           !vvij = sqrt(dot_product(vij,vij))
           vvij = dnrm2(3, vij, 1)
           tij  = vvij/params % rsph(jsph)
-!
+
           if (tij.ge.thigh) cycle
-!
+
           sij  = vij/vvij
           !call dbasis(sij,basloc,dbsloc,vplm,vcos,vsin)
           call dbasis(params, constants, sij, basloc, dbsloc, vplm, vcos, vsin)
@@ -100,17 +97,9 @@ subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc
         end do
         fx = fx - constants % wgrid(ig)*xi(ig)*va(:)
       end do
-!
-      return
-!
-!
 end subroutine contract_gradi_Lik
-!-----------------------------------------------------------------------------------
-!
-!
-!
-!
-!-----------------------------------------------------------------------------------
+
+!> Contribution to the gradients of the ddCOSMO matrix
 subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -121,7 +110,7 @@ subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc
       real(dp),  dimension(3, constants % nbasis),    intent(inout) :: dbsloc
       real(dp),  dimension(params % lmax+1),      intent(inout) :: vcos, vsin
       real(dp),  dimension(3),           intent(inout) :: fx
-!
+
       integer :: ig, ji, jsph, l, ind, m, jk, ksph
       logical :: proc
       real(dp)  :: vvji, tji, xji, oji, t, fac, fl, f1, f2, beta, di, tlow, thigh
@@ -129,12 +118,10 @@ subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc
       real(dp)  :: vji(3), sji(3), alp(3), vb(3), vjk(3), sjk(3), vc(3)
       real(dp) :: rho, ctheta, stheta, cphi, sphi
       real(dp), external :: dnrm2
-!
-!-----------------------------------------------------------------------------------
-!
+
       tlow  = one - pt5*(one - params % se)*params % eta
       thigh = one + pt5*(one + params % se)*params % eta
-!
+
       do ig = 1, params % ngrid
         vb = zero
         vc = zero
@@ -146,13 +133,13 @@ subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc
           !vvji = sqrt(dot_product(vji,vji))
           vvji = dnrm2(3, vji, 1)
           tji  = vvji/params % rsph(isph)
-!
+
           if (tji.gt.thigh) cycle
-!
+
           sji  = vji/vvji
           !call dbasis(sji,basloc,dbsloc,vplm,vcos,vsin)
           call dbasis(params, constants, sji, basloc, dbsloc, vplm, vcos, vsin)
-!
+
           alp = zero
           t   = one
           do l = 1, params % lmax
@@ -218,28 +205,19 @@ subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc
         end do
         fx = fx + constants % wgrid(ig)*(vb - vc)
       end do
-      return
-  end subroutine contract_gradi_Lji
-!-----------------------------------------------------------------------------------
-!
-!
-!
-!
-!-----------------------------------------------------------------------------------
+end subroutine contract_gradi_Lji
+
+!> Gradient of the characteristic function U
 subroutine contract_grad_U(params, constants, isph, xi, phi, fx )
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
       integer,                        intent(in)    :: isph
       real(dp),  dimension(params % ngrid, params % nsph), intent(in)    :: xi, phi
       real(dp),  dimension(3),          intent(inout) :: fx
-!
       integer :: ig, ji, jsph
       real(dp)  :: vvji, tji, fac, swthr
       real(dp)  :: alp(3), vji(3), sji(3)
       real(dp), external :: dnrm2
-!
-!-----------------------------------------------------------------------------------
-!
       do ig = 1, params % ngrid
         alp = zero
         if (constants % ui(ig,isph) .gt. zero .and. constants % ui(ig,isph).lt.one) then
@@ -262,12 +240,7 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx )
         end do
         fx = fx - constants % wgrid(ig)*alp
       end do
-!
-      return
-!
-!
 end subroutine contract_grad_U
-
 
 !> Subroutine to compute contraction of B matrix
 !!
@@ -904,8 +877,8 @@ end subroutine contract_grad_C_worker1
 !! @param[inout] force     : Force
 !! @param[out] diff_re     : epsilon_1/epsilon_2 * l'/r_j[Xr]_jl'm'
 !!                         - (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
-subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
-    & Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re)
+subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, &
+        & Xadj_r_sgrid, Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re)
     !! input/output
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -966,6 +939,8 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
 
     diff_re = zero
     ! Compute l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
+    !$omp parallel do default(none) shared(params,diff_re,constants,xr,xe) &
+    !$omp private(jsph,l,m,ind) schedule(dynamic)
     do jsph = 1, params % nsph
       do l = 0, params % lmax
         do m = -l,l
@@ -978,6 +953,8 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
 
     ! diff0 = Pchi * diff_re, linear scaling
     diff0 = zero
+    !$omp parallel do default(none) shared(params,constants,diff_re,diff0, &
+    !$omp diff1,diff1_grad) private(jsph,l0,ind0) schedule(dynamic)
     do jsph = 1, params % nsph
       do l0 = 0, constants % lmax0
         do ind0 = l0*l0+1, l0*l0+2*l0+1
@@ -1050,6 +1027,8 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
             & params % lmax, workspace % tmp_sph, one, &
             & phi_in)
         ! Make phi_in zero at internal grid points
+        !$omp parallel do default(none) shared(params,constants,phi_in) &
+        !$omp private(isph,igrid) schedule(dynamic)
         do isph = 1, params % nsph
             do igrid = 1, params % ngrid
                 if (constants % ui(igrid, isph) .eq. zero) then
@@ -1058,6 +1037,8 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
             end do
         end do
         ! Get gradients of the L2L
+        !$omp parallel do default(none) shared(params,constants,workspace, &
+        !$omp l2l_grad) private(isph,igrid,inode) schedule(dynamic)
         do isph = 1, params % nsph
             inode = constants % snode(isph)
             workspace % tmp_sph_l(:, isph) = workspace % tmp_node_l(:, inode)
@@ -1085,6 +1066,8 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
         ! Properly load adjoint multipole harmonics into tmp_sph2 that holds
         ! harmonics of a degree up to lmax+1
         if(constants % lmax0+1 .lt. params % pm) then
+            !$omp parallel do default(none) shared(params,constants, &
+            !$omp workspace) private(isph,inode) schedule(dynamic)
             do isph = 1, params % nsph
                 inode = constants % snode(isph)
                 workspace % tmp_sph2(1:(constants % lmax0+2)**2, isph) = &
@@ -1093,6 +1076,8 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
             end do
         else
             indl = (params % pm+1)**2
+            !$omp parallel do default(none) shared(params,constants,indl, &
+            !$omp workspace) private(isph,inode) schedule(dynamic)
             do isph = 1, params % nsph
                 inode = constants % snode(isph)
                 workspace % tmp_sph2(1:indl, isph) = &
@@ -1182,8 +1167,9 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
             if(constants % ui(igrid, ksph) .gt. zero) then
                 icav = icav + 1
                 do ind = 1, constants % nbasis
-                    sum_dim3(:,ind,ksph) = sum_dim3(:,ind,ksph) + &
-                        & constants % coefvec(igrid, ind, ksph)*diff_ep_dim3(:,icav)
+                    sum_dim3(:,ind,ksph) = sum_dim3(:,ind,ksph) &
+                        & + diff_ep_dim3(:,icav)*constants % ui(igrid, ksph) &
+                        & *constants % vwgrid(ind, igrid)
                 end do
             end if
         end do
@@ -1232,8 +1218,9 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_
                 if(constants % ui(igrid, isph) .gt. zero) then
                   icav = icav + 1
                   do ind = 1, constants % nbasis
-                    sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) + &
-                        & constants % coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
+                    sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) &
+                        & + diff_ep_dim3(:,icav)*constants % ui(igrid, isph) &
+                        & *constants % vwgrid(ind, igrid)
                   end do
                 end if
               end do
@@ -1542,9 +1529,10 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
             if(constants % ui(igrid, ksph) .gt. zero) then
                 icav = icav + 1
                 do ind = 1, constants % nbasis
-                    sum_dim3(:,ind,ksph) = sum_dim3(:,ind,ksph) + &
-                        & -(params % epsp/params % eps)* &
-                        & constants % coefvec(igrid, ind, ksph)*diff_ep_dim3(:,icav)
+                    sum_dim3(:,ind,ksph) = sum_dim3(:,ind,ksph) &
+                        & - (params % epsp/params % eps) &
+                        & *diff_ep_dim3(:,icav)*constants % ui(igrid, ksph) &
+                        & *constants % vwgrid(ind, igrid)
                 end do
             end if
         end do
@@ -1588,9 +1576,10 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
                 if(constants % ui(igrid, isph) .gt. zero) then
                   icav = icav + 1
                   do ind = 1, constants % nbasis
-                    sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) + &
-                                          & -(params % epsp/params % eps)* &
-                                          & constants % coefvec(igrid, ind, isph)*diff_ep_dim3(:,icav)
+                    sum_dim3(:,ind,isph) = sum_dim3(:,ind,isph) &
+                      & - (params % epsp/params % eps) &
+                      & *diff_ep_dim3(:,icav)*constants % ui(igrid, isph) &
+                      & *constants % vwgrid(ind, igrid)
                   end do
                 end if
               end do
