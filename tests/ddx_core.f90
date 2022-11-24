@@ -3199,104 +3199,106 @@ end subroutine check_tree_rib
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Baseline implementations of certain routines
 
-subroutine fmm_p2m_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
-    ! Inputs
-    integer, intent(in) :: p
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
-    ! Output
-    real(dp), intent(inout) :: dst_m((p+1)**2)
-    ! Local variables
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
-    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), t, rcoef
-    integer :: n, ind
-    ! Get radius and values of spherical harmonics
-    call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
-        & vcos, vsin)
-    ! Harmonics are available only if rho > 0
-    if (rho .ne. zero) then
-        rcoef = rho / dst_r
-        t = src_q / dst_r
-        ! Ignore input `m` in case of zero scaling factor
-        if (beta .eq. zero) then
-            do n = 0, p
-                ind = n*n + n + 1
-                dst_m(ind-n:ind+n) = t * vylm(ind-n:ind+n)
-                t = t * rcoef
-            end do
-        ! Update `m` otherwise
-        else
-            do n = 0, p
-                ind = n*n + n + 1
-                dst_m(ind-n:ind+n) = beta*dst_m(ind-n:ind+n) + &
-                    & t*vylm(ind-n:ind+n)
-                t = t * rcoef
-            end do
-        end if
-    ! Naive case of rho = 0
-    else
-        ! Ignore input `m` in case of zero scaling factor
-        if (beta .eq. zero) then
-            dst_m(1) = src_q / dst_r / sqrt4pi
-            dst_m(2:) = zero
-        ! Update `m` otherwise
-        else
-            dst_m(1) = beta*dst_m(1) + src_q/dst_r/sqrt4pi
-            dst_m(2:) = beta * dst_m(2:)
-        end if
-    end if
-end subroutine fmm_p2m_baseline
+! not used for now
+!subroutine fmm_p2m_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
+!    ! Inputs
+!    integer, intent(in) :: p
+!    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
+!    ! Output
+!    real(dp), intent(inout) :: dst_m((p+1)**2)
+!    ! Local variables
+!    real(dp) :: rho, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
+!    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), t, rcoef
+!    integer :: n, ind
+!    ! Get radius and values of spherical harmonics
+!    call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
+!        & vcos, vsin)
+!    ! Harmonics are available only if rho > 0
+!    if (rho .ne. zero) then
+!        rcoef = rho / dst_r
+!        t = src_q / dst_r
+!        ! Ignore input `m` in case of zero scaling factor
+!        if (beta .eq. zero) then
+!            do n = 0, p
+!                ind = n*n + n + 1
+!                dst_m(ind-n:ind+n) = t * vylm(ind-n:ind+n)
+!                t = t * rcoef
+!            end do
+!        ! Update `m` otherwise
+!        else
+!            do n = 0, p
+!                ind = n*n + n + 1
+!                dst_m(ind-n:ind+n) = beta*dst_m(ind-n:ind+n) + &
+!                    & t*vylm(ind-n:ind+n)
+!                t = t * rcoef
+!            end do
+!        end if
+!    ! Naive case of rho = 0
+!    else
+!        ! Ignore input `m` in case of zero scaling factor
+!        if (beta .eq. zero) then
+!            dst_m(1) = src_q / dst_r / sqrt4pi
+!            dst_m(2:) = zero
+!        ! Update `m` otherwise
+!        else
+!            dst_m(1) = beta*dst_m(1) + src_q/dst_r/sqrt4pi
+!            dst_m(2:) = beta * dst_m(2:)
+!        end if
+!    end if
+!end subroutine fmm_p2m_baseline
 
-subroutine fmm_p2m_bessel_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
-    ! Inputs
-    integer, intent(in) :: p
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
-    ! Output
-    real(dp), intent(inout) :: dst_m((p+1)**2)
-    ! Local variables
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1), t
-    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), si(p+1), dst_sk(p+1), work(p+1)
-    real(dp), parameter :: eight=8d0
-    complex(dp) :: work_complex(max(2, p+1))
-    integer :: n, ind
-    ! Get radius and values of spherical harmonics
-    call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
-        & vcos, vsin)
-    ! Get Bessel function for the sphere
-    call modified_spherical_bessel_first_kind(p, dst_r, dst_sk, work, &
-        & work_complex)
-    ! Harmonics are available only if rho > 0
-    if (rho .ne. zero) then
-        call modified_spherical_bessel_second_kind(p, rho, si, work, &
-            & work_complex)
-        ! Ignore input `m` in case of zero scaling factor
-        if (beta .eq. zero) then
-            do n = 0, p
-                ind = n*n + n + 1
-                t = eight * src_q * si(n+1) * dst_sk(n+1)
-                dst_m(ind-n:ind+n) = t * vylm(ind-n:ind+n)
-            end do
-        ! Update `m` otherwise
-        else
-            do n = 0, p
-                ind = n*n + n + 1
-                t = eight * src_q * si(n+1) * dst_sk(n+1)
-                dst_m(ind-n:ind+n) = beta*dst_m(ind-n:ind+n) + &
-                    & t*vylm(ind-n:ind+n)
-            end do
-        end if
-    ! Naive case of rho = 0
-    else
-        ! Ignore input `m` in case of zero scaling factor
-        if (beta .eq. zero) then
-            dst_m(1) = eight * src_q * dst_sk(1)
-            dst_m(2:) = zero
-        ! Update `m` otherwise
-        else
-            dst_m(1) = beta*dst_m(1) + eight*src_q*dst_sk(1)
-            dst_m(2:) = beta * dst_m(2:)
-        end if
-    end if
-end subroutine fmm_p2m_bessel_baseline
+! not used for now
+!subroutine fmm_p2m_bessel_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
+!    ! Inputs
+!    integer, intent(in) :: p
+!    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
+!    ! Output
+!    real(dp), intent(inout) :: dst_m((p+1)**2)
+!    ! Local variables
+!    real(dp) :: rho, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1), t
+!    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), si(p+1), dst_sk(p+1), work(p+1)
+!    real(dp), parameter :: eight=8d0
+!    complex(dp) :: work_complex(max(2, p+1))
+!    integer :: n, ind
+!    ! Get radius and values of spherical harmonics
+!    call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
+!        & vcos, vsin)
+!    ! Get Bessel function for the sphere
+!    call modified_spherical_bessel_first_kind(p, dst_r, dst_sk, work, &
+!        & work_complex)
+!    ! Harmonics are available only if rho > 0
+!    if (rho .ne. zero) then
+!        call modified_spherical_bessel_second_kind(p, rho, si, work, &
+!            & work_complex)
+!        ! Ignore input `m` in case of zero scaling factor
+!        if (beta .eq. zero) then
+!            do n = 0, p
+!                ind = n*n + n + 1
+!                t = eight * src_q * si(n+1) * dst_sk(n+1)
+!                dst_m(ind-n:ind+n) = t * vylm(ind-n:ind+n)
+!            end do
+!        ! Update `m` otherwise
+!        else
+!            do n = 0, p
+!                ind = n*n + n + 1
+!                t = eight * src_q * si(n+1) * dst_sk(n+1)
+!                dst_m(ind-n:ind+n) = beta*dst_m(ind-n:ind+n) + &
+!                    & t*vylm(ind-n:ind+n)
+!            end do
+!        end if
+!    ! Naive case of rho = 0
+!    else
+!        ! Ignore input `m` in case of zero scaling factor
+!        if (beta .eq. zero) then
+!            dst_m(1) = eight * src_q * dst_sk(1)
+!            dst_m(2:) = zero
+!        ! Update `m` otherwise
+!        else
+!            dst_m(1) = beta*dst_m(1) + eight*src_q*dst_sk(1)
+!            dst_m(2:) = beta * dst_m(2:)
+!        end if
+!    end if
+!end subroutine fmm_p2m_bessel_baseline
 
 subroutine fmm_m2p_baseline(c, src_r, p, vscales, alpha, src_m, beta, dst_v)
     ! Inputs
@@ -3426,48 +3428,49 @@ subroutine fmm_m2p_adj_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
     end do
 end subroutine fmm_m2p_adj_baseline
 
-subroutine fmm_p2l_baseline(c, src_q, dst_r, p, vscales, beta, dst_l)
-    ! Inputs
-    integer, intent(in) :: p
-    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
-    ! Output
-    real(dp), intent(inout) :: dst_l((p+1)**2)
-    ! Local variables
-    real(dp) :: rho, vcos(p+1), vsin(p+1)
-    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), t, rcoef
-    integer :: n, ind
-    ! Local expansion represents potential from the outside of the sphere of
-    ! the given radius `dst_r`. In case `rho=zero` source particle is inside of
-    ! the sphere no matter what radius `r` is, so we just ignore such a case.
-    rho = dnrm2(3, c, 1)
-    if (rho .eq. zero) then
-        if (beta .eq. zero) then
-            dst_l = zero
-        else
-            dst_l = beta * dst_l
-        end if
-        return
-    end if
-    ! Get radius and values of spherical harmonics
-    call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
-    rcoef = dst_r / rho
-    t = src_q / rho
-    ! Ignore input `m` in case of zero scaling factor
-    if (beta .eq. zero) then
-        do n = 0, p
-            ind = n*n + n + 1
-            dst_l(ind-n:ind+n) = t * vylm(ind-n:ind+n)
-            t = t * rcoef
-        end do
-    ! Update `m` otherwise
-    else
-        do n = 0, p
-            ind = n*n + n + 1
-            dst_l(ind-n:ind+n) = beta*dst_l(ind-n:ind+n) + t*vylm(ind-n:ind+n)
-            t = t * rcoef
-        end do
-    end if
-end subroutine fmm_p2l_baseline
+! not used for now
+!subroutine fmm_p2l_baseline(c, src_q, dst_r, p, vscales, beta, dst_l)
+!    ! Inputs
+!    integer, intent(in) :: p
+!    real(dp), intent(in) :: c(3), src_q, dst_r, vscales((p+1)**2), beta
+!    ! Output
+!    real(dp), intent(inout) :: dst_l((p+1)**2)
+!    ! Local variables
+!    real(dp) :: rho, vcos(p+1), vsin(p+1)
+!    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), t, rcoef
+!    integer :: n, ind
+!    ! Local expansion represents potential from the outside of the sphere of
+!    ! the given radius `dst_r`. In case `rho=zero` source particle is inside of
+!    ! the sphere no matter what radius `r` is, so we just ignore such a case.
+!    rho = dnrm2(3, c, 1)
+!    if (rho .eq. zero) then
+!        if (beta .eq. zero) then
+!            dst_l = zero
+!        else
+!            dst_l = beta * dst_l
+!        end if
+!        return
+!    end if
+!    ! Get radius and values of spherical harmonics
+!    call ylmbas_baseline(c, p, vscales, vylm, vplm, vcos, vsin)
+!    rcoef = dst_r / rho
+!    t = src_q / rho
+!    ! Ignore input `m` in case of zero scaling factor
+!    if (beta .eq. zero) then
+!        do n = 0, p
+!            ind = n*n + n + 1
+!            dst_l(ind-n:ind+n) = t * vylm(ind-n:ind+n)
+!            t = t * rcoef
+!        end do
+!    ! Update `m` otherwise
+!    else
+!        do n = 0, p
+!            ind = n*n + n + 1
+!            dst_l(ind-n:ind+n) = beta*dst_l(ind-n:ind+n) + t*vylm(ind-n:ind+n)
+!            t = t * rcoef
+!        end do
+!    end if
+!end subroutine fmm_p2l_baseline
 
 subroutine fmm_l2p_baseline(c, src_r, p, vscales, alpha, src_l, beta, dst_v)
     ! Inputs
@@ -3811,125 +3814,126 @@ end subroutine fmm_m2m_baseline
 
 ! M2M baseline translation (p^4 operations)
 ! Baseline in terms of operation count: p^4
-subroutine fmm_m2m_bessel_baseline(c, src_r, dst_r, p, vscales, src_m, dst_m)
-! Parameters:
-!   c: radius-vector from new to old centers of harmonics
-!   src_r: radius of old harmonics
-!   dst_r: radius of new harmonics
-!   p: maximum degree of spherical harmonics
-!   vscales: normalization constants for Y_lm
-!   src_m: expansion in old harmonics
-!   dst_m: expansion in new harmonics
-    use complex_bessel
-    integer, intent(in) :: p
-    real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1))
-    real(dp), intent(in) :: src_m((p+1)*(p+1))
-    real(dp), intent(inout) :: dst_m((p+1)*(p+1))
-    real(dp) :: r, r1, r2, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
-    real(dp) :: vplm((p+1)*(p+1)), fact(2*p+1), tmpk1, tmpk2, tmpk3, tmp1
-    real(dp) :: tmp2, pow_r1(p+1), pow_r2(p+1)
-    real(dp) :: r_si(p+1), src_sk(p+1), dst_sk(p+1), work(p+1)
-    complex(dp) :: work_complex(p+1)
-    integer :: j, k, n, m, indj, indm, indn, indjn
-    real(dp), external :: dnrm2
-    stheta = dnrm2(2, c, 1)
-    r = dnrm2(3, c, 1)
-    if (r .ne. 0) then
-        ctheta = c(3) / r
-        if (stheta .ne. 0) then
-            cphi = c(1) / stheta
-            sphi = c(2) / stheta
-            stheta = stheta / r
-            call trgev(cphi, sphi, p, vcos, vsin)
-        else
-            cphi = 1
-            sphi = 0
-            vcos = 1
-            vsin = 0
-        end if
-        call polleg_baseline(ctheta, stheta, p, vplm)
-        r1 = src_r / dst_r
-        r2 = r! / dst_r
-        pow_r1(1) = r1
-        pow_r2(1) = 1
-        do j = 2, p+1
-            pow_r1(j) = pow_r1(j-1) * r1
-            pow_r2(j) = pow_r2(j-1) * r2
-        end do
-        call modified_spherical_bessel_first_kind(p, r, r_si, work, &
-            & work_complex)
-        call modified_spherical_bessel_second_kind(p, src_r, src_sk, work, &
-            & work_complex)
-        call modified_spherical_bessel_second_kind(p, dst_r, dst_sk, work, &
-            & work_complex)
-        ! Fill square roots of factorials
-        fact(1) = 1
-        do j = 2, 2*p+1
-            fact(j) = sqrt(dble(j-1)) * fact(j-1)
-        end do
-        do j = 0, p
-            indj = j*j + j + 1
-            do k = 0, j
-                tmp1 = vscales(indj) * fact(j-k+1) * fact(j+k+1)
-                if (k .ne. 0) then
-                    tmp1 = tmp1 * sqrt2
-                end if
-                do n = 0, j
-                    indn = n*n + n + 1
-                    indjn = (j-n)**2 + (j-n) + 1
-                    !tmp2 = tmp1 * pow_r1(j-n+1) * pow_r2(n+1) / &
-                    !    & vscales(indjn) / vscales(indn)
-                    tmp2 = tmp1 * & !/ src_sk(j-n+1) * dst_sk(j+1) *
-                        & r_si(n+1) / &
-                        & vscales(indjn) / vscales(indn) !/ pow_r2(n+1)
-                    !tmp2 = tmp1 * r_si(n+1) / &
-                    !    & vscales(indjn) / vscales(indn)
-                    do m = max(k+n-j, -n), min(k+j-n, n)
-                        indm = indn + abs(m)
-                        cphi = vcos(1+abs(m))
-                        sphi = vsin(1+abs(m))
-                        tmpk1 = tmp2 / fact(n-m+1) / fact(n+m+1) / &
-                            & fact(j-n-k+m+1) / fact(j-n+k-m+1) * &
-                            & vplm(indm) * vscales(indm)
-                        if (mod(abs(k-abs(m)-abs(k-m)), 4) .eq. 2) then
-                            tmpk1 = -tmpk1
-                        end if
-                        tmpk2 = src_m(indjn+abs(k-m)) * cphi
-                        if ((m .ge. 0) .and. (m .le. k)) then
-                            sphi = -sphi
-                        end if
-                        tmpk3 = -src_m(indjn+abs(k-m)) * sphi
-                        if (m .ne. 0) then
-                            tmpk1 = tmpk1 / sqrt2
-                        end if
-                        if (m .ne. k) then
-                            tmpk1 = tmpk1 / sqrt2
-                            tmpk2 = tmpk2 + src_m(indjn-abs(k-m))*sphi
-                            tmpk3 = tmpk3 + src_m(indjn-abs(k-m))*cphi
-                        end if
-                        if (m .gt. k) then
-                            tmpk3 = -tmpk3
-                        end if
-                        dst_m(indj+k) = dst_m(indj+k) + tmpk1*tmpk2
-                        if (k .ne. 0) then
-                            dst_m(indj-k) = dst_m(indj-k) + tmpk1*tmpk3
-                        end if
-                    end do
-                end do
-            end do
-        end do
-    else
-        r1 = src_r / dst_r
-        tmpk1 = r1
-        do j = 0, p
-            indj = j*j + j + 1
-            do k = indj-j, indj+j
-                dst_m(k) = dst_m(k) + src_m(k)*tmpk1
-            end do
-            tmpk1 = tmpk1 * r1
-        end do
-    end if
-end subroutine fmm_m2m_bessel_baseline
+! not used for now
+!subroutine fmm_m2m_bessel_baseline(c, src_r, dst_r, p, vscales, src_m, dst_m)
+!! Parameters:
+!!   c: radius-vector from new to old centers of harmonics
+!!   src_r: radius of old harmonics
+!!   dst_r: radius of new harmonics
+!!   p: maximum degree of spherical harmonics
+!!   vscales: normalization constants for Y_lm
+!!   src_m: expansion in old harmonics
+!!   dst_m: expansion in new harmonics
+!    use complex_bessel
+!    integer, intent(in) :: p
+!    real(dp), intent(in) :: c(3), src_r, dst_r, vscales((p+1)*(p+1))
+!    real(dp), intent(in) :: src_m((p+1)*(p+1))
+!    real(dp), intent(inout) :: dst_m((p+1)*(p+1))
+!    real(dp) :: r, r1, r2, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
+!    real(dp) :: vplm((p+1)*(p+1)), fact(2*p+1), tmpk1, tmpk2, tmpk3, tmp1
+!    real(dp) :: tmp2, pow_r1(p+1), pow_r2(p+1)
+!    real(dp) :: r_si(p+1), src_sk(p+1), dst_sk(p+1), work(p+1)
+!    complex(dp) :: work_complex(p+1)
+!    integer :: j, k, n, m, indj, indm, indn, indjn
+!    real(dp), external :: dnrm2
+!    stheta = dnrm2(2, c, 1)
+!    r = dnrm2(3, c, 1)
+!    if (r .ne. 0) then
+!        ctheta = c(3) / r
+!        if (stheta .ne. 0) then
+!            cphi = c(1) / stheta
+!            sphi = c(2) / stheta
+!            stheta = stheta / r
+!            call trgev(cphi, sphi, p, vcos, vsin)
+!        else
+!            cphi = 1
+!            sphi = 0
+!            vcos = 1
+!            vsin = 0
+!        end if
+!        call polleg_baseline(ctheta, stheta, p, vplm)
+!        r1 = src_r / dst_r
+!        r2 = r! / dst_r
+!        pow_r1(1) = r1
+!        pow_r2(1) = 1
+!        do j = 2, p+1
+!            pow_r1(j) = pow_r1(j-1) * r1
+!            pow_r2(j) = pow_r2(j-1) * r2
+!        end do
+!        call modified_spherical_bessel_first_kind(p, r, r_si, work, &
+!            & work_complex)
+!        call modified_spherical_bessel_second_kind(p, src_r, src_sk, work, &
+!            & work_complex)
+!        call modified_spherical_bessel_second_kind(p, dst_r, dst_sk, work, &
+!            & work_complex)
+!        ! Fill square roots of factorials
+!        fact(1) = 1
+!        do j = 2, 2*p+1
+!            fact(j) = sqrt(dble(j-1)) * fact(j-1)
+!        end do
+!        do j = 0, p
+!            indj = j*j + j + 1
+!            do k = 0, j
+!                tmp1 = vscales(indj) * fact(j-k+1) * fact(j+k+1)
+!                if (k .ne. 0) then
+!                    tmp1 = tmp1 * sqrt2
+!                end if
+!                do n = 0, j
+!                    indn = n*n + n + 1
+!                    indjn = (j-n)**2 + (j-n) + 1
+!                    !tmp2 = tmp1 * pow_r1(j-n+1) * pow_r2(n+1) / &
+!                    !    & vscales(indjn) / vscales(indn)
+!                    tmp2 = tmp1 * & !/ src_sk(j-n+1) * dst_sk(j+1) *
+!                        & r_si(n+1) / &
+!                        & vscales(indjn) / vscales(indn) !/ pow_r2(n+1)
+!                    !tmp2 = tmp1 * r_si(n+1) / &
+!                    !    & vscales(indjn) / vscales(indn)
+!                    do m = max(k+n-j, -n), min(k+j-n, n)
+!                        indm = indn + abs(m)
+!                        cphi = vcos(1+abs(m))
+!                        sphi = vsin(1+abs(m))
+!                        tmpk1 = tmp2 / fact(n-m+1) / fact(n+m+1) / &
+!                            & fact(j-n-k+m+1) / fact(j-n+k-m+1) * &
+!                            & vplm(indm) * vscales(indm)
+!                        if (mod(abs(k-abs(m)-abs(k-m)), 4) .eq. 2) then
+!                            tmpk1 = -tmpk1
+!                        end if
+!                        tmpk2 = src_m(indjn+abs(k-m)) * cphi
+!                        if ((m .ge. 0) .and. (m .le. k)) then
+!                            sphi = -sphi
+!                        end if
+!                        tmpk3 = -src_m(indjn+abs(k-m)) * sphi
+!                        if (m .ne. 0) then
+!                            tmpk1 = tmpk1 / sqrt2
+!                        end if
+!                        if (m .ne. k) then
+!                            tmpk1 = tmpk1 / sqrt2
+!                            tmpk2 = tmpk2 + src_m(indjn-abs(k-m))*sphi
+!                            tmpk3 = tmpk3 + src_m(indjn-abs(k-m))*cphi
+!                        end if
+!                        if (m .gt. k) then
+!                            tmpk3 = -tmpk3
+!                        end if
+!                        dst_m(indj+k) = dst_m(indj+k) + tmpk1*tmpk2
+!                        if (k .ne. 0) then
+!                            dst_m(indj-k) = dst_m(indj-k) + tmpk1*tmpk3
+!                        end if
+!                    end do
+!                end do
+!            end do
+!        end do
+!    else
+!        r1 = src_r / dst_r
+!        tmpk1 = r1
+!        do j = 0, p
+!            indj = j*j + j + 1
+!            do k = indj-j, indj+j
+!                dst_m(k) = dst_m(k) + src_m(k)*tmpk1
+!            end do
+!            tmpk1 = tmpk1 * r1
+!        end do
+!    end if
+!end subroutine fmm_m2m_bessel_baseline
 
 ! Translate local expansion to another sphere
 ! Baseline in terms of operation count: p^4
