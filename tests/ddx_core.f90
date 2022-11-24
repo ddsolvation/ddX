@@ -1784,7 +1784,7 @@ subroutine check_m2m_bessel(p)
     ! Local variables
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
     real(dp) :: src_m((p+1)**2), dst_m((p+1)**2), vscales((p+1)**2), &
-        & vscales_rel((p+1)**2), v4pi2lp1(p+1), tmp(p+1), kappa
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), kappa
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
@@ -2045,7 +2045,7 @@ subroutine check_l2l_bessel(p)
     ! Local variables
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
     real(dp) :: src_l((p+1)**2), dst_l((p+1)**2), vscales((p+1)**2), &
-        & vscales_rel((p+1)**2), v4pi2lp1(p+1), tmp(p+1), kappa
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), kappa
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
@@ -2374,7 +2374,7 @@ subroutine check_m2l_bessel(p)
     ! Local variables
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2
     real(dp) :: src_m((p+1)**2), dst_l((p+1)**2), vscales((p+1)**2), &
-        & vscales_rel((p+1)**2), v4pi2lp1(p+1), tmp(p+1), kappa
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), kappa
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
