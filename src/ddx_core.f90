@@ -1463,12 +1463,13 @@ end function hnorm
 
 real(dp) function rmsnorm(lmax, nbasis, nsph, x)
     implicit none
-    ! lmax is not actually used, it is here to comply to the interface
     ! TODO: nbasis and lmax are redundant, remove one
     integer, intent(in) :: lmax, nbasis, nsph
     real(dp),  dimension(nbasis, nsph), intent(in) :: x
     integer :: n
     real(dp) :: vrms, vmax
+    ! lmax is not actually used, it is here to comply to the interface
+    if (lmax.eq.0) continue
     n = nbasis*nsph
     call rmsvec(n,x,vrms,vmax)
     rmsnorm = vrms

@@ -155,6 +155,9 @@ subroutine ldm1x(params, constants, workspace, x, y)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
     integer :: isph, l, ind
+    ! workspace is here to comply with the interface
+    ! this dummy statement disables the warnings
+    if (workspace % error_flag .eq. 0) continue
     !! Loop over harmonics
     !$omp parallel do default(none) shared(params,constants,x,y) &
     !$omp private(isph,l,ind) schedule(dynamic)
@@ -594,6 +597,9 @@ subroutine prec_repsx(params, constants, workspace, x, y)
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     integer :: isph
+    ! workspace is here to comply with the interface
+    ! this dummy statement disables the warnings
+    if (workspace % error_flag .eq. 0) continue
     ! simply do a matrix-vector product with the transposed preconditioner 
     !$omp parallel do default(shared) schedule(static,1) &
     !$omp private(isph)
@@ -617,6 +623,9 @@ subroutine prec_repsstarx(params, constants, workspace, x, y)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
     integer :: isph
+    ! workspace is here to comply with the interface
+    ! this dummy statement disables the warnings
+    if (workspace % error_flag .eq. 0) continue
     ! simply do a matrix-vector product with the transposed preconditioner 
     !$omp parallel do default(shared) schedule(static,1) &
     !$omp private(isph)
@@ -661,13 +670,12 @@ subroutine gradr_dense(params, constants, workspace, g, ygrid, fx)
     real(dp), intent(out) :: fx(3, params % nsph)
     ! Local variables
     integer :: isph
-    real(dp) :: vplm(constants % nbasis), vcos(params % lmax+1), &
-        & vsin(params % lmax+1), basloc(constants % nbasis), &
-        & dbsloc(3, constants % nbasis)
     ! Simply cycle over all spheres
     do isph = 1, params % nsph
-        call gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
-            & dbsloc, g, ygrid, fx(:, isph))
+        call gradr_sph(params, constants, isph, workspace % tmp_vplm, &
+            & workspace % tmp_vcos, workspace % tmp_vsin, &
+            & workspace % tmp_vylm, workspace % tmp_vdylm, &
+            & g, ygrid, fx(:, isph))
     end do
 end subroutine gradr_dense
 
@@ -1329,6 +1337,10 @@ subroutine bx_prec(params, constants, workspace, x, y)
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    ! params, costants and workspace are here to comply with the interface
+    ! this dummy statement disables the warnings
+    if ((params % error_flag .eq. 0) .or. (constants % error_flag .eq. 0) &
+        & .or. (workspace % error_flag .eq. 0)) continue
     y = x
 end subroutine bx_prec
 
