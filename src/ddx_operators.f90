@@ -1000,7 +1000,7 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
     integer :: indl, indl1, l, isph, igrid, ik, ksph, &
         & jsph, jsph_node
     integer :: inear, inode, jnode
-    real(dp) :: gg, c(3), vki(3), vvki, tki, gg3(3), tmp_gg
+    real(dp) :: gg, c(3), vki(3), vvki, tki, gg3(3), tmp_gg, tmp_c(3)
     real(dp) :: tlow, thigh
     real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
     real(dp), external :: ddot, dnrm2
@@ -1188,19 +1188,20 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
                         if (isph .eq. jsph) cycle
                         c = params % csph(:, isph) + &
                             & params % rsph(isph)*constants % cgrid(:, igrid)
-                        call fmm_m2p_work(c-params % csph(:, jsph), &
+                        tmp_c = c - params % csph(:, jsph)
+                        call fmm_m2p_work(tmp_c, &
                             & params % rsph(jsph), params % lmax+1, &
                             & constants % vscales_rel, one, &
                             & workspace % tmp_sph_grad(:, 1, jsph), zero, &
                             & tmp_gg, work)
                         gg3(1) = gg3(1) + tmp_gg
-                        call fmm_m2p_work(c-params % csph(:, jsph), &
+                        call fmm_m2p_work(tmp_c, &
                             & params % rsph(jsph), params % lmax+1, &
                             & constants % vscales_rel, one, &
                             & workspace % tmp_sph_grad(:, 2, jsph), zero, &
                             & tmp_gg, work)
                         gg3(2) = gg3(2) + tmp_gg
-                        call fmm_m2p_work(c-params % csph(:, jsph), &
+                        call fmm_m2p_work(tmp_c, &
                             & params % rsph(jsph), params % lmax+1, &
                             & constants % vscales_rel, one, &
                             & workspace % tmp_sph_grad(:, 3, jsph), zero, &

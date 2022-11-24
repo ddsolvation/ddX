@@ -2052,14 +2052,16 @@ subroutine tree_l2l_rotation_adj_work(params, constants, node_l, work)
         j = constants % children(1, i)
         c1 = constants % cnode(:, j)
         r1 = constants % rnode(j)
-        call fmm_l2l_rotation_adj_work(c1-c, r1, r, params % pl, &
+        c1 = c1 - c
+        call fmm_l2l_rotation_adj_work(c1, r1, r, params % pl, &
             & constants % vscales, constants % vfact, one, &
             & node_l(:, j), zero, node_l(:, i), work)
         ! All other children update the same output
         do j = constants % children(1, i)+1, constants % children(2, i)
             c1 = constants % cnode(:, j)
             r1 = constants % rnode(j)
-            call fmm_l2l_rotation_adj_work(c1-c, r1, r, params % pl, &
+            c1 = c1 - c
+            call fmm_l2l_rotation_adj_work(c1, r1, r, params % pl, &
                 & constants % vscales, constants % vfact, one, &
                 & node_l(:, j), one, node_l(:, i), work)
         end do
@@ -2287,14 +2289,16 @@ subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)
         k = constants % far(constants % sfar(i))
         c1 = constants % cnode(:, k)
         r1 = constants % rnode(k)
-        call fmm_m2l_rotation_adj(c-c1, r, r1, params % pl, params % pm, &
+        c1 = c - c1
+        call fmm_m2l_rotation_adj(c1, r, r1, params % pl, params % pm, &
             & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
             & node_l(:, i), one, node_m(:, k))
         do j = constants % sfar(i)+1, constants % sfar(i+1)-1
             k = constants % far(j)
             c1 = constants % cnode(:, k)
             r1 = constants % rnode(k)
-            call fmm_m2l_rotation_adj(c-c1, r, r1, params % pl, params % pm, &
+            c1 = c - c1
+            call fmm_m2l_rotation_adj(c1, r, r1, params % pl, params % pm, &
                 & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
                 & node_l(:, i), one, node_m(:, k))
         end do

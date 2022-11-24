@@ -1713,7 +1713,11 @@ subroutine tree_get_farnear_work(n, children, cnode, rnode, lwork, iwork, &
         r = rnode(j(1)) + rnode(j(2)) + max(rnode(j(1)), rnode(j(2)))
         !r = rnode(j(1)) + rnode(j(2))
         dmax = max(abs(c(1)), abs(c(2)), abs(c(3)))
-        dssq = (c(1)/dmax)**2 + (c(2)/dmax)**2 + (c(3)/dmax)**2
+        if (dmax .gt. 0) then
+            dssq = (c(1)/dmax)**2 + (c(2)/dmax)**2 + (c(3)/dmax)**2
+        else
+            dssq = zero
+        end if
         d = dmax * sqrt(dssq)
         !d = sqrt(c(1)**2 + c(2)**2 + c(3)**2)
         ! If node has no children then assume itself for purpose of finding
