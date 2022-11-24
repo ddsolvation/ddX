@@ -44,7 +44,7 @@ do i = 1, size(alpha)
     csph = alpha(i) * gcsph
     rsph = abs(alpha(i)) * grsph
     call ddinit(nsph, charge, csph(1, :), csph(2, :), csph(3, :), rsph, 2, &
-        lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
+        & lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & nproc, dummy_file_name, ddx_data)
     call check_mkrhs(ddx_data, 0, 0, 1d-1)
@@ -53,11 +53,10 @@ do i = 1, size(alpha)
     call check_mkrhs(ddx_data, 5, 5, 1d-4)
     call check_mkrhs(ddx_data, 20, 20, 1d-9)
     call check_mkrhs(ddx_data, 40, 40, 1d-15)
-    call check_dx(ddx_data, lmax, lmax, 1d-4)
-    call check_dx(ddx_data, 40, 40, 1d-15)
-    call check_gradr(ddx_data, lmax, lmax, 1d-4)
-    call check_gradr(ddx_data, lmax+1, lmax+1, 1d-4)
-    call check_gradr(ddx_data, 40, 40, 1d-15)
+    call check_dx(ddx_data, 40, 40, 1d-12)
+    call check_dx(ddx_data, lmax+1, lmax+1, 1d-4)
+    call check_gradr(ddx_data, 40, 40, 1d-12)
+    call check_gradr(ddx_data, lmax+2, lmax+2, 1d-3)
     call ddfree(ddx_data)
 end do
 
@@ -260,6 +259,7 @@ subroutine check_gradr(ddx_data, pm, pl, threshold)
     call gradr_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
         & ddx_data_fmm % workspace, g, ygrid, forces2)
     diff_norm = dnrm2(3*ddx_data % params % nsph, forces-forces2, 1)
+    write(*, *) 'diff norm', diff_norm
     write(*, *) "gradr dense vs fmm rel.error=", diff_norm / full_norm
     if (diff_norm .gt. threshold*full_norm) then
         call error(-1, "Forces are different")
