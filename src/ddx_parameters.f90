@@ -185,7 +185,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     type(ddx_params_type), intent(out) :: params
     !! Local variables
     integer :: igrid, i, info
-    character(len=255) :: string
     !! The code
     ! Clear error state
     params % error_flag = 0

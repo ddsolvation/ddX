@@ -20,7 +20,6 @@ implicit none
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
 character(len=255) :: dummy_file_name = ''
-integer :: info
 ! derivative_num_A  : Numerical derivatives for matrix A
 ! derivative_num_B  : Numerical derivatives for matrix B
 ! derivative_num_Ui : Numerical derivatives for U_i^e(x_in) (Char. function)
@@ -38,7 +37,7 @@ real(dp) :: step, relerr_A = zero, relerr_B = zero, relerr_Ui = zero,&
 ! isph   : Index for number of spheres
 ! i      : Index for derivative components (i = 1,2,3)
 ! ibasis : Index for number of basis
-integer :: isph, i, ibasis, iprint
+integer :: isph, i
 ! vsin, vcos, vplm : Values used in basloc
 ! basloc : Y_lm
 ! dbasloc : Derivatives of Y_lm
@@ -49,7 +48,7 @@ real(dp), allocatable :: vsin(:), vcos(:), vplm(:), basloc(:), dbsloc(:,:)
 ! vector_nbasis_nsph       : Vector of size nbasis \times nsph
 real(dp), allocatable:: random_vector_two_evaluated_at_grid(:,:),&
                         & vector_ngrid_nsph(:,:), &
-                        & random_vector_nbasis_nsph_one(:,:), lpb_vector(:,:), &
+                        & random_vector_nbasis_nsph_one(:,:), &
                         & random_vector_nbasis_nsph_two(:,:)
 ! derivative_A     : Analytic derivative of matrix A
 ! derivative_B     : Analytic derivative of matrix B
@@ -298,7 +297,7 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     ! isph   : Index for number of sphers
     ! igrid  : Index for grid points
     ! ibasis : Index for number of basis
-    integer :: i, isph, igrid, ibasis, jsph
+    integer :: i, isph, igrid, ibasis
 
     ! Initialise new ddx_data with new centers coordinates
     call ddinit(ddx_data % params % nsph, &

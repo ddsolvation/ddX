@@ -114,7 +114,7 @@ subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc
       integer :: ig, ji, jsph, l, ind, m, jk, ksph
       logical :: proc
       real(dp)  :: vvji, tji, xji, oji, t, fac, fl, f1, f2, beta, di, tlow, thigh
-      real(dp)  :: b, g1, g2, vvjk, tjk, f, xjk
+      real(dp)  :: b, g1, g2, vvjk, tjk, xjk
       real(dp)  :: vji(3), sji(3), alp(3), vb(3), vjk(3), sjk(3), vc(3)
       real(dp) :: rho, ctheta, stheta, cphi, sphi
       real(dp), external :: dnrm2
@@ -375,7 +375,7 @@ subroutine contract_gradi_Bik(params, constants, workspace, isph, Xe, Xadj_e, ba
     real(dp), dimension(3), intent(inout) :: force
 
     ! Local Variables
-    integer :: igrid, ineigh, jsph, l, ind, m
+    integer :: igrid, ineigh, jsph
     real(dp), dimension(0:params % lmax) :: SI_rijn
     real(dp), dimension(0:params % lmax) :: DI_rijn
     ! beta   : Eq.(53) Stamm.etal.18
@@ -470,7 +470,7 @@ subroutine contract_gradi_Bji(params, constants, workspace, isph, Xe, Xadj_e, ba
 
     ! Local Variables
     ! jk : Row pointer over kth row
-    integer :: igrid, jsph, ksph, ineigh, l, m, ind, jk
+    integer :: igrid, jsph, ksph, ineigh, jk
     real(dp), dimension(0:params % lmax) :: SI_rjin, SI_rjkn
     real(dp), dimension(0:params % lmax) :: DI_rjin, DI_rjkn
 
@@ -485,14 +485,14 @@ subroutine contract_gradi_Bji(params, constants, workspace, isph, Xe, Xadj_e, ba
     ! alpha : Eq.(56) Stamm.etal.18
     ! vb    : Eq.(60) Stamm.etal.18
     ! vc    : Eq.(59) Stamm.etal.18
-    real(dp)  :: vji(3), sji(3), vjk(3), sjk(3), alpha(3), vb(3), vc(3), &
+    real(dp)  :: vji(3), sji(3), vjk(3), alpha(3), vb(3), vc(3), &
         & vtji(3), vtjk(3)
     ! rho    : Argument for ylmbas
     ! ctheta : Argument for ylmbas
     ! stheta : Argument for ylmbas
     ! cphi   : Argument for ylmbas
     ! sphi   : Argument for ylmbas
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, ri, arg_bessel
+    real(dp) :: ri
 
     real(dp), external :: dnrm2
     real(dp) :: work(params % lmax+1)
@@ -607,7 +607,7 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_
     real(dp), dimension(3, params % nsph), intent(inout) :: force
     ! Local variable
     ! igrid0: Index for grid point n0
-    integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, igrid0, icav, &
+    integer :: isph, jsph, igrid, l0, m0, ind0, igrid0, icav, &
         & indl, inode, istat
     ! term  : SK_rijn/SK_rj
     ! termi : DI_ri/SI_ri
@@ -615,7 +615,7 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_
     ! sum_int : Intermediate sum
     ! sum_r   : Intermediate sum for Laplace
     ! sum_e   : Intermediate sum for HSP
-    real(dp) :: term, termi, termk, sum_int, sum_r, sum_e
+    real(dp) :: sum_int, sum_r, sum_e
     real(dp) :: rijn
     real(dp)  :: vij(3), sij(3), vtij(3)
 
@@ -893,10 +893,10 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, &
         & diff_re
     real(dp), external :: dnrm2
     ! Local variable
-    integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, icav, indl, inode, &
+    integer :: isph, jsph, igrid, l, m, ind, l0, ind0, icav, indl, inode, &
         & ksph, knode, jnode, knear, jsph_node, istat
     ! val_dim3 : Intermediate value array of dimension 3
-    real(dp), dimension(3) :: sij, vij, val_dim3, vtij
+    real(dp), dimension(3) :: vij, vtij
     ! val   : Intermediate variable to compute diff_ep
     real(dp) :: val
     ! large local are allocatable
@@ -907,15 +907,6 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, &
     !                        (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm')
     real(dp), allocatable :: diff_ep_dim3(:,:), phi_in(:,:), sum_dim3(:,:,:), &
         & diff0(:,:), diff1(:,:), diff1_grad(:,:,:), l2l_grad(:,:,:)
-    real(dp) :: termi, termk, rijn
-    ! basloc : Y_lm(s_n)
-    ! vplm   : Argument to call ylmbas
-    real(dp),  dimension(constants % nbasis):: basloc, vplm
-    ! dbasloc : Derivative of Y_lm(s_n)
-    real(dp),  dimension(3, constants % nbasis):: dbasloc
-    ! vcos   : Argument to call ylmbas
-    ! vsin   : Argument to call ylmbas
-    real(dp),  dimension(params % lmax+1):: vcos, vsin
     real(dp), dimension(0:params % lmax) :: SK_rijn, DK_rijn
     complex(dp) :: work_complex(constants % lmax0+2)
     real(dp) :: work(constants % lmax0+2)
@@ -1274,13 +1265,13 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
 
     ! local
     real(dp), external :: dnrm2
-    integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, icav, ksph, &
-        & knode, jnode, jsph_near, knear, jsph_node, indl, inode, istat
+    integer :: isph, jsph, igrid, ind, l0, ind0, icav, ksph, &
+        & knode, jnode, knear, jsph_node, indl, inode, istat
     ! val_dim3 : Intermediate value array of dimension 3
-    real(dp), dimension(3) :: sij, vij, val_dim3, vtij
+    real(dp), dimension(3) :: vij, vtij
     ! val     : Intermediate variable to compute diff_ep
     ! nderpsi : Derivative of psi on grid points
-    real(dp) :: val, nderpsi, sum_int
+    real(dp) :: nderpsi, sum_int
 
     ! local allocatable
     ! phi_in : sum_{j=1}^N diff0_j * coefY_j
@@ -1295,14 +1286,6 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
     real(dp), allocatable :: phi_in(:,:), diff_ep_dim3(:,:), &
         & sum_dim3(:,:,:), diff0(:,:), sum_sjin(:,:), &
         & c0_d(:,:), c0_d1(:,:), c0_d1_grad(:,:,:), l2l_grad(:,:,:)
-
-    real(dp) :: termi, termk, rijn
-    ! vplm   : Argument to call ylmbas
-    real(dp),  dimension(constants % nbasis):: basloc, vplm
-    real(dp),  dimension(3, constants % nbasis):: dbasloc
-    ! vcos   : Argument to call ylmbas
-    ! vsin   : Argument to call ylmbas
-    real(dp),  dimension(params % lmax+1):: vcos, vsin
     real(dp), dimension(0:params % lmax) :: SK_rijn, DK_rijn
     complex(dp) :: work_complex(constants % lmax0 + 2)
     real(dp) :: work(constants % lmax0 + 2)
@@ -1633,14 +1616,14 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
     real(dp), dimension(3, params % nsph), intent(inout) :: force
 
     ! local
-    integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, igrid0, icav, &
+    integer :: isph, jsph, igrid, l0, m0, ind0, igrid0, icav, &
         & indl, inode, istat
     ! term  : SK_rijn/SK_rj
     ! termi : DI_ri/SI_ri
     ! termk : DK_ri/SK_ri
     ! sum_int : Intermediate sum
     ! hessian_contribution :
-    real(dp) :: term, termi, termk, sum_int, hessian_contribution(3), nderpsi
+    real(dp) :: sum_int, nderpsi
     real(dp) :: rijn
     real(dp)  :: vij(3), sij(3), vtij(3)
 

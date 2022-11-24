@@ -363,11 +363,8 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     real(dp), allocatable :: ef(:,:), xadj_r_sgrid(:,:), xadj_e_sgrid(:,:), &
         & normal_hessian_cav(:,:), diff_re(:,:), scaled_xr(:,:)
     integer :: isph, icav, icav_gr, icav_ge, igrid, istat
-    integer :: i, inode, jnear, inear, jnode, jsph
+    integer :: i, inode, jnear, jnode, jsph
     real(dp), external :: ddot, dnrm2
-    real(dp) :: tcontract_gradi_Lik, tcontract_gradi_Lji, &
-        & tcontract_gradi_Bik, tcontract_gradi_Bji, tcontract_grad_U, &
-        & tcontract_grad_C_worker1, tcontract_grad_C_worker2
     real(dp) :: d(3), dnorm, tmp1, tmp2
 
     allocate(ef(3, params % nsph), &

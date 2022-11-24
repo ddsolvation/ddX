@@ -488,8 +488,8 @@ subroutine polleg_work(ctheta, stheta, p, vplm, work)
     ! Temporary workspace
     real(dp), intent(out) :: work(p+1)
     ! Local variables
-    integer :: m, l, indlm1, indlm2, indl
-    real(dp) :: tmp, tmp1, tmp2, tmp3, tmp4, tmp5, fl, pl2m, pl1m, plm, pmm
+    integer :: m, l
+    real(dp) :: tmp1, tmp2, tmp3, tmp4, pl2m, pl1m, plm, pmm
     ! Easy cases
     select case (p)
         case (0)
@@ -900,7 +900,7 @@ subroutine fmm_m2p_work(c, src_r, p, vscales_rel, alpha, src_m, &
     real(dp), intent(out), target :: work(p+1)
     ! Local variables
     real(dp) :: rho, ctheta, stheta, cphi, sphi, rcoef, t, tmp, tmp1, tmp2, &
-        & tmp3, fl, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
+        & tmp3, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
     integer :: l, m, indl
     ! Scale output
     if (beta .eq. zero) then
@@ -1143,7 +1143,7 @@ subroutine fmm_m2p_bessel_work(c, p, vscales, SK_ri, alpha, src_m, beta, &
     real(dp), intent(out) :: work(p+1)
     !! Local variables
     real(dp) :: rho, ctheta, stheta, cphi, sphi, tmp, tmp1, tmp2, &
-        & tmp3, fl, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm, t
+        & tmp3, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm, t
     real(dp) :: scaling_factor
     complex(dp) :: complex_argument
     integer :: l, m, indl, ierr, NZ
@@ -1411,7 +1411,7 @@ subroutine fmm_m2p_adj_work(c, src_q, dst_r, p, vscales_rel, beta, dst_m, work)
     real(dp), intent(out), target :: work(p+1)
     ! Local variables
     real(dp) :: rho, ctheta, stheta, cphi, sphi, rcoef, t, tmp, tmp1, tmp2, &
-        & tmp3, fl, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
+        & max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
     integer :: l, m, indl
     ! In case src_q is zero just scale output properly
     if (src_q .eq. zero) then
@@ -1758,8 +1758,8 @@ subroutine fmm_m2p_bessel_adj_work(c, src_q, dst_sk, p, vscales, beta, dst_m, &
     complex(dp), intent(out) :: work_complex(p+1)
     real(dp), intent(out) :: work(p+1)
     ! Local variables
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, rcoef, t, tmp, tmp1, tmp2, &
-        & tmp3, fl, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm, &
+    real(dp) :: rho, ctheta, stheta, cphi, sphi, t, tmp, tmp1, tmp2, &
+        & max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm, &
         & scaling_factor
     integer :: l, m, indl, NZ, ierr
     complex(dp) :: complex_argument
@@ -2078,7 +2078,7 @@ subroutine fmm_m2p_mat(c, r, p, vscales, mat)
     real(dp), intent(out) :: mat((p+1)**2)
     ! Local variables
     real(dp) :: rho, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
-    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), rcoef, t, tmp
+    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), rcoef, t
     integer :: n, ind
     ! Get radius and values of spherical harmonics
     call ylmbas(c, rho, ctheta, stheta, cphi, sphi, p, vscales, vylm, vplm, &
@@ -2174,7 +2174,7 @@ subroutine fmm_l2p_work(c, src_r, p, vscales_rel, alpha, src_l, beta, dst_v, &
     real(dp), intent(out), target :: work(p+1)
     ! Local variables
     real(dp) :: rho, ctheta, stheta, cphi, sphi, rcoef, t, tmp, tmp1, tmp2, &
-        & tmp3, fl, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
+        & tmp3, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
     integer :: l, m, indl
     ! Scale output
     if (beta .eq. zero) then
@@ -2411,8 +2411,8 @@ subroutine fmm_l2p_bessel_work(c, p, vscales, SI_ri, alpha, src_l, beta, &
     complex(dp), intent(out) :: work_complex(p+1)
     real(dp), intent(out) :: work(p+1)
     !! Local variables
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, rcoef, t, tmp, tmp1, tmp2, &
-        & tmp3, fl, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
+    real(dp) :: rho, ctheta, stheta, cphi, sphi, t, tmp, tmp1, tmp2, &
+        & tmp3, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
     real(dp) :: scaling_factor
     complex(dp) :: complex_argument
     integer :: l, m, indl, ierr, NZ
@@ -2679,7 +2679,7 @@ subroutine fmm_l2p_adj_work(c, src_q, dst_r, p, vscales_rel, beta, dst_l, work)
     real(dp), intent(out), target :: work(p+1)
     ! Local variables
     real(dp) :: rho, ctheta, stheta, cphi, sphi, rcoef, t, tmp, tmp1, tmp2, &
-        & tmp3, fl, max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
+        & max12, ssq12, pl2m, pl1m, plm, pmm, cmphi, smphi, ylm
     integer :: l, m, indl
     ! In case src_q is zero just scale output properly
     if (src_q .eq. zero) then
@@ -3950,7 +3950,7 @@ subroutine fmm_sph_rotate_oxz_work(p, ctheta, stheta, alpha, src, beta, dst, &
     ! Local variables
     real(dp) :: u, v, w, fl, fl2, tmp1, tmp2, vu(2), vv(2), vw(2), &
         ctheta2, stheta2, cstheta
-    integer :: l, m, n, ind, k
+    integer :: l, m, n, ind
     ! Pointers for a workspace
     real(dp), pointer :: r(:, :, :), r_prev(:, :, :), scal_uvw_m(:), &
         & scal_u_n(:), scal_v_n(:), scal_w_n(:), r_swap(:, :, :), vsqr(:)
@@ -4486,7 +4486,7 @@ subroutine fmm_m2m_bessel_ztranslate_work(z, src_sk, dst_sk, p, vscales, vcnk, &
     real(dp), intent(out), target :: work(2*p+1)
     complex(dp), intent(out) :: work_complex(2*p+1)
     ! Local variables
-    real(dp) :: r1, r2, tmp1, tmp2, tmp3, res1, res2, pow_r1
+    real(dp) :: r1, tmp1, tmp2, tmp3, res1, res2
     integer :: j, k, n, indj, indn, l, NZ, ierr
     ! Pointers for temporary values of powers
     real(dp) :: fact(2*p+1)
@@ -4726,7 +4726,7 @@ subroutine fmm_m2m_bessel_ztranslate_adj_work(z, src_sk, dst_sk, p, vscales, vcn
     real(dp), intent(out), target :: work(2*p+1)
     complex(dp), intent(out) :: work_complex(2*p+1)
     ! Local variables
-    real(dp) :: r1, r2, tmp1, tmp2, tmp3, res1, res2, pow_r1
+    real(dp) :: r1, tmp1, tmp2, tmp3, res1, res2
     integer :: j, k, n, indj, indn, l, NZ, ierr
     ! Pointers for temporary values of powers
     real(dp) :: fact(2*p+1)
@@ -4926,11 +4926,10 @@ subroutine fmm_m2m_bessel_derivative_ztranslate_work(src_sk, p, vscales, vcnk, &
     real(dp), intent(inout) :: dst_m((p+2)*(p+2))
     ! Temporary workspace
     ! Local variables
-    real(dp) :: r1, r2, tmp1, tmp2, tmp3, res1, res2, pow_r1
-    integer :: j, k, n, indj, indn, l, NZ, ierr
+    real(dp) :: tmp1, tmp2, tmp3, res1, res2
+    integer :: j, k, n, indj, indn, l
     ! Pointers for temporary values of powers
     real(dp) :: fact(2*p+1), fact2(p+2)
-    complex(dp) :: complex_argument
     ! In case alpha is zero just do a proper scaling of output
     if (alpha .eq. zero) then
         if (beta .eq. zero) then
@@ -6431,7 +6430,7 @@ subroutine fmm_l2l_bessel_ztranslate_work(z, src_si, dst_si, p, vscales, vcnk, &
     real(dp), intent(out), target :: work(2*p+1)
     complex(dp), intent(out) :: work_complex(2*p+1)
     ! Local variables
-    real(dp) :: r1, r2, tmp1, tmp2, tmp3, res1, res2, pow_r1
+    real(dp) :: r1, tmp1, tmp2, tmp3, res1, res2
     integer :: j, k, n, indj, indn, l, NZ, ierr
     ! Pointers for temporary values of powers
     real(dp) :: fact(2*p+1)
@@ -6671,7 +6670,7 @@ subroutine fmm_l2l_bessel_ztranslate_adj_work(z, src_si, dst_si, p, vscales, vcn
     real(dp), intent(out), target :: work(2*p+1)
     complex(dp), intent(out) :: work_complex(2*p+1)
     ! Local variables
-    real(dp) :: r1, r2, tmp1, tmp2, tmp3, res1, res2, pow_r1
+    real(dp) :: r1, tmp1, tmp2, tmp3, res1, res2
     integer :: j, k, n, indj, indn, l, NZ, ierr
     ! Pointers for temporary values of powers
     real(dp) :: fact(2*p+1)
@@ -6870,13 +6869,6 @@ subroutine fmm_l2l_bessel_derivative_ztranslate_work(src_si, p, vscales, vcnk, &
         & vcnk((2*p+1)*(p+1)), alpha, src_l((p+1)*(p+1)), beta
     ! Output
     real(dp), intent(inout) :: dst_l((p+2)*(p+2))
-    ! Temporary workspace
-    ! Local variables
-    real(dp) :: r1, r2, tmp1, tmp2, tmp3, res1, res2, pow_r1
-    integer :: j, k, n, indj, indn, l, NZ, ierr
-    ! Pointers for temporary values of powers
-    real(dp) :: fact(2*p+1), fact2(p+2)
-    complex(dp) :: complex_argument
     ! Derivative of the L2L is just a negative derivative of the M2M
     call fmm_m2m_bessel_derivative_ztranslate_work(src_si, p, vscales, vcnk, &
         & -alpha, src_l, beta, dst_l)
@@ -7727,8 +7719,8 @@ subroutine fmm_m2l_ztranslate_work(z, src_r, dst_r, pm, pl, vscales, &
     ! Temporary workspace
     real(dp), intent(out), target :: work((pm+2)*(pm+1))
     ! Local variables
-    real(dp) :: tmp1, tmp2, r1, r2, res1, res2, pow_r2
-    integer :: j, k, n, indj, indjn, indk1, indk2
+    real(dp) :: tmp1, r1, r2, res1, res2, pow_r2
+    integer :: j, k, n, indj, indk1, indk2
     ! Pointers for temporary values of powers
     real(dp), pointer :: src_m2(:), pow_r1(:)
     ! In case alpha is zero just do a proper scaling of output
@@ -7925,7 +7917,7 @@ subroutine fmm_m2l_ztranslate_adj_work(z, src_r, dst_r, pl, pm, vscales, &
     ! Temporary workspace
     real(dp), intent(out), target :: work((pl+2)*(pl+1))
     ! Local variables
-    real(dp) :: tmp1, tmp2, tmp3, r1, r2, pow_r1, res1, res2
+    real(dp) :: tmp1, r1, r2, pow_r1, res1, res2
     integer :: j, k, n, indj, indn, indk1, indk2
     ! Pointers for temporary values of powers
     real(dp), pointer :: pow_r2(:), src_l2(:)
@@ -8523,7 +8515,7 @@ subroutine fmm_m2l_bessel_ztranslate_work(z, src_sk, dst_si, p, vscales, vcnk, &
     real(dp), intent(out), target :: work(2*p+1)
     complex(dp), intent(out) :: work_complex(2*p+1)
     ! Local variables
-    real(dp) :: r1, r2, tmp1, tmp2, tmp3, res1, res2, pow_r1
+    real(dp) :: r1, tmp1, tmp2, tmp3, res1, res2
     integer :: j, k, n, indj, indn, l, NZ, ierr
     ! Pointers for temporary values of powers
     real(dp) :: fact(2*p+1)
@@ -8763,7 +8755,7 @@ subroutine fmm_m2l_bessel_ztranslate_adj_work(z, src_sk, dst_si, p, vscales, vcn
     real(dp), intent(out), target :: work(2*p+1)
     complex(dp), intent(out) :: work_complex(2*p+1)
     ! Local variables
-    real(dp) :: r1, r2, tmp1, tmp2, tmp3, res1, res2, pow_r1
+    real(dp) :: r1, tmp1, tmp2, tmp3, res1, res2
     integer :: j, k, n, indj, indn, l, NZ, ierr
     ! Pointers for temporary values of powers
     real(dp) :: fact(2*p+1)

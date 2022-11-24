@@ -25,7 +25,7 @@ character(len=255) :: fname
 type(ddx_type) :: ddx_data
 
 real(dp) :: esolv, default_value, tol
-integer :: i, istatus, iprint, default_lmax_val, n_iter
+integer :: i, istatus, default_lmax_val, n_iter
 real(dp), allocatable :: default_epsilon(:), default_eta(:), &
                        & default_kappa(:), default_lmax(:)
 integer, allocatable :: default_iter_epsilon(:), default_iter_eta(:), &

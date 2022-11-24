@@ -245,10 +245,10 @@ subroutine constants_init(params, constants)
     !! Outputs
     type(ddx_constants_type), intent(out) :: constants
     !! Local variables
-    integer :: i, alloc_size, l, indl, igrid, isph, ind, icav, l0, m0, ind0, &
-        & jsph, ibasis, ibasis0, NZ, ierr, info, tmp_pmax
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, termi, termk, term, rijn, &
-        & sijn(3), vij(3), val, s1, s2
+    integer :: i, alloc_size, l, indl, igrid, isph, l0, &
+        & NZ, ierr, info, tmp_pmax
+    real(dp) :: rho, ctheta, stheta, cphi, sphi, termi, termk, &
+        & s1, s2
     real(dp), allocatable :: vplm(:), vcos(:), vsin(:), vylm(:), SK_rijn(:), &
         & DK_rijn(:)
     complex(dp), allocatable :: bessel_work(:)

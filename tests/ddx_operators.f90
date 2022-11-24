@@ -144,13 +144,12 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
     real(dp), intent(in) :: threshold
     ! Local variables
     type(ddx_type) :: ddx_data_fmm
-    integer :: info, irand, iseed(4)=(/0, 0, 0, 1/), do_diag
+    integer :: irand, iseed(4)=(/0, 0, 0, 1/), do_diag
     integer, parameter :: nrand=10
     real(dp) :: x(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
         & y(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
         & z(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
-        & xx(nrand, nrand), yy(nrand, nrand), full_norm, diff_norm, &
-        & forces(3, ddx_data % params % nsph), forces2(3, ddx_data % params % nsph)
+        & xx(nrand, nrand), yy(nrand, nrand), full_norm, diff_norm
     real(dp), external :: dnrm2
     ! Init FMM-related ddx_data
     call ddinit(ddx_data % params % nsph, ddx_data % params % charge, ddx_data % params % csph(1, :), &
@@ -225,13 +224,10 @@ subroutine check_gradr(ddx_data, pm, pl, iprint, threshold)
     ! Local variables
     type(ddx_type) :: ddx_data_fmm
     real(dp), allocatable :: ygrid(:,:), g(:,:)
-    integer :: info, irand, iseed(4)=(/0, 0, 0, 1/), do_diag
+    integer :: iseed(4)=(/0, 0, 0, 1/)
     integer, parameter :: nrand=10
-    real(dp) :: x(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
-        & y(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
-        & z(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
-        & xx(nrand, nrand), yy(nrand, nrand), full_norm, diff_norm, &
-        & forces(3, ddx_data % params % nsph), forces2(3, ddx_data % params % nsph)
+    real(dp) :: full_norm, diff_norm, forces(3, ddx_data % params % nsph), &
+        & forces2(3, ddx_data % params % nsph)
     real(dp), external :: dnrm2
     ! Init FMM-related ddx_data
     call ddinit(ddx_data % params % nsph, ddx_data % params % charge, ddx_data % params % csph(1, :), &

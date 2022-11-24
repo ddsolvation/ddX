@@ -366,12 +366,12 @@ end subroutine
 subroutine check_ddinit_args()
     ! Example of correct args
     integer :: n=1, model=1, lmax=1, ngrid=1202, force=1, fmm=1, pm=0, pl=0, &
-        & fmm_precompute=0, iprint=0, matvecmem=0, maxiter=10, &
+        & matvecmem=0, maxiter=10, &
         & jacobi_ndiis=10, nproc=1
     real(dp) :: charge(10), x(10), y(10), z(10), rvdw(10), se=zero, eta=1d-1, &
         & eps=1.1d1, kappa=1d0
     type(ddx_type) :: ddx_data
-    integer :: info=0, i, j
+    integer :: i, j
     real(dp) :: tmp
     character(len=255) :: dummy_file_name = ''
     ! Generate coordinates and radii
@@ -871,7 +871,7 @@ subroutine check_polleg(p)
         & vplm2((p+1)**2), err
     real(dp), parameter :: threshold=2d-15
     logical :: ok
-    integer :: i, j
+    integer :: i
     real(dp), external :: dnrm2
     ! Print header
     print "(/,A)", repeat("=", 40)
@@ -906,7 +906,7 @@ subroutine check_ylmbas(p)
         & vscales((p+1)**2), v4pi2lp1(p+1), vscales_rel((p+1)**2), &
         & threshold
     logical :: ok
-    integer :: i, j
+    integer :: i
     real(dp), external :: dnrm2
     ! Set scaling factors
     call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
@@ -1310,12 +1310,12 @@ subroutine check_m2p_bessel_grad(p)
     ! Inputs
     integer, intent(in) :: p
     ! Local variables
-    real(dp) :: x(3), r, src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
-    real(dp) :: src_m((p+1)**2), dst_m((p+2)**2), vscales((p+2)**2), &
-        & vscales_rel((p+2)**2), v4pi2lp1(p+2), vcnk((2*p+3)*(p+2)), &
-        & tmp(p+2), work(p+2), src_sk(p+2), sk(p+1), dk(p+1), basloc((p+1)**2), &
+    real(dp) :: x(3), r, src_r
+    real(dp) :: src_m((p+1)**2), vscales((p+2)**2), &
+        & vscales_rel((p+2)**2), v4pi2lp1(p+2), &
+        & work(p+2), src_sk(p+2), sk(p+1), dk(p+1), basloc((p+1)**2), &
         & dbsloc(3, (p+1)**2), vplm((p+1)**2), vcos(p+1), vsin(p+1), &
-        & dst_g1(3), dst_g2(3), dst_m_grad((p+2)**2, 3)
+        & dst_g1(3), dst_g2(3)
     complex(dp) :: work_complex(p+2)
     real(dp), external :: dnrm2
     integer :: i, l, m, indm
@@ -1626,12 +1626,12 @@ subroutine check_l2p_bessel_grad(p)
     ! Inputs
     integer, intent(in) :: p
     ! Local variables
-    real(dp) :: x(3), r, src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
-    real(dp) :: src_l((p+1)**2), dst_l((p+2)**2), vscales((p+2)**2), &
-        & vscales_rel((p+2)**2), v4pi2lp1(p+2), vcnk((2*p+3)*(p+2)), &
-        & tmp(p+2), work(p+2), src_si(p+2), si(p+1), di(p+1), basloc((p+1)**2), &
+    real(dp) :: x(3), r, src_r
+    real(dp) :: src_l((p+1)**2), vscales((p+2)**2), &
+        & vscales_rel((p+2)**2), v4pi2lp1(p+2), &
+        & work(p+2), src_si(p+2), si(p+1), di(p+1), basloc((p+1)**2), &
         & dbsloc(3, (p+1)**2), vplm((p+1)**2), vcos(p+1), vsin(p+1), &
-        & dst_g1(3), dst_g2(3), dst_l_grad((p+2)**2, 3)
+        & dst_g1(3), dst_g2(3)
     complex(dp) :: work_complex(p+2)
     real(dp), external :: dnrm2
     integer :: i, l, m, indm
@@ -1785,8 +1785,7 @@ subroutine check_m2m_bessel(p)
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
     real(dp) :: src_m((p+1)**2), dst_m((p+1)**2), vscales((p+1)**2), &
         & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
-        tmp(p+1), work(p+1), kappa
-    complex(dp) :: work_complex(max(2, p+1))
+        & tmp(p+1), kappa
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
@@ -2048,8 +2047,7 @@ subroutine check_l2l_bessel(p)
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
     real(dp) :: src_l((p+1)**2), dst_l((p+1)**2), vscales((p+1)**2), &
         & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
-        tmp(p+1), work(p+1), kappa
-    complex(dp) :: work_complex(max(2, p+1))
+        & tmp(p+1), kappa
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
@@ -2383,8 +2381,7 @@ subroutine check_m2l_bessel(p)
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2
     real(dp) :: src_m((p+1)**2), dst_l((p+1)**2), vscales((p+1)**2), &
         & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
-        tmp(p+1), work(p+1), kappa
-    complex(dp) :: work_complex(max(2, p+1))
+        & tmp(p+1), kappa
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
@@ -3361,7 +3358,7 @@ subroutine fmm_m2p_bessel_baseline(c, src_r, p, vscales, alpha, &
     real(dp), intent(inout) :: dst_v
     ! Local variables
     real(dp) :: rho, vcos(p+1), vsin(p+1)
-    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), rcoef, t, tmp
+    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), tmp
     real(dp) :: sk(p+1), dk(p+1), src_sk(p+1)
     complex(dp) :: work(max(2, p+1))
     integer :: n, ind
@@ -3403,8 +3400,8 @@ subroutine fmm_m2p_adj_baseline(c, src_q, dst_r, p, vscales, beta, dst_m)
     ! Output
     real(dp), intent(inout) :: dst_m((p+1)**2)
     ! Local variables
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
-    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), rcoef, t, tmp
+    real(dp) :: rho, vcos(p+1), vsin(p+1)
+    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), rcoef, t
     integer :: n, ind
     ! Scale output
     if (beta .eq. zero) then
@@ -3487,10 +3484,10 @@ subroutine fmm_l2p_baseline(c, src_r, p, vscales, alpha, src_l, beta, dst_v)
     ! Output
     real(dp), intent(inout) :: dst_v
     ! Local variables
-    real(dp) :: tmp, tmp1, tmp2
-    real(dp) :: rho, t, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
+    real(dp) :: tmp
+    real(dp) :: rho, t, vcos(p+1), vsin(p+1)
     real(dp) :: vplm((p+1)**2), vylm((p+1)**2), rcoef
-    integer :: n, k, ind
+    integer :: n, ind
     ! Scale output
     if (beta .eq. zero) then
         dst_v = zero
@@ -3532,7 +3529,7 @@ subroutine fmm_l2p_bessel_baseline(c, src_r, p, vscales, alpha, src_l, &
     real(dp), intent(inout) :: dst_v
     ! Local variables
     real(dp) :: rho, vcos(p+1), vsin(p+1)
-    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), t, tmp
+    real(dp) :: vylm((p+1)**2), vplm((p+1)**2), tmp
     real(dp) :: si(p+1), di(p+1), src_si(p+1)
     complex(dp) :: work(max(2, p+1))
     integer :: n, ind
@@ -3569,10 +3566,9 @@ subroutine fmm_l2p_adj_baseline(c, src_q, dst_r, p, vscales, beta, dst_l)
     ! Output
     real(dp), intent(inout) :: dst_l((p+1)**2)
     ! Local variables
-    real(dp) :: tmp, tmp1, tmp2
-    real(dp) :: rho, t, ctheta, stheta, cphi, sphi, vcos(p+1), vsin(p+1)
+    real(dp) :: rho, t, vcos(p+1), vsin(p+1)
     real(dp) :: vplm((p+1)**2), vylm((p+1)**2), rcoef
-    integer :: n, k, ind
+    integer :: n, ind
     ! Scale output
     if (beta .eq. zero) then
         dst_l = zero
@@ -3615,7 +3611,7 @@ subroutine polleg_baseline(ctheta, stheta, p, vplm)
     ! Temporary workspace
     real(dp) :: work(p+1)
     ! Local variables
-    integer :: m, ind, l, ind2, vplm_ind
+    integer :: m, ind, l, ind2
     real(dp) :: fact, pmm, pmm1, pmmo, pll, fm, fl
     ! Init aux factors
     fact = one
