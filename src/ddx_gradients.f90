@@ -246,36 +246,23 @@ end subroutine contract_grad_U
 !!
 !! @param[in]  params     : Input parameter file
 !! @param[in]  constants  : Input constants file
-!! @param[in]  workspace  : Input workspace
 !! @param[in]  isph       : Index of sphere
 !! @param[in]  Xe         : Solution vector Xe
 !! @param[in]  Xadj_e     : Adjoint solution on evaluated on grid points Xadj_e_sgrid
-!! @param[in]  basloc     : Spherical harmonics Y_lm
-!! @param[in]  dbasloc    : Derivative of spherical harmonics \nabla^i(Y_lm)
-!! @param[in]  vplm       : Argument to call ylmbas
-!! @param[in]  vcos       : Argument to call ylmbas
-!! @param[in]  vsin       : Argument to call ylmbas
 !! @param[out] force      : Force of adjoint part
 
-subroutine contract_grad_B(params, constants, workspace, isph, Xe, Xadj_e, basloc, &
-    & dbasloc, vplm, vcos, vsin, force)
+subroutine contract_grad_B(params, constants, isph, Xe, Xadj_e, force)
     !! input/output
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
     integer, intent(in) :: isph
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xe
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: Xadj_e
-    real(dp), dimension(constants % nbasis), intent(inout) :: basloc, vplm
-    real(dp), dimension(3, constants % nbasis), intent(inout) :: dbasloc
-    real(dp), dimension(params % lmax+1), intent(inout) :: vcos, vsin
     real(dp), dimension(3), intent(inout) :: force
 
-    call contract_gradi_Bik(params, constants, workspace, isph, Xe(:,:), &
-            & Xadj_e(:, isph), basloc, dbasloc, vplm, vcos, vsin, &
-            & force)
-    call contract_gradi_Bji(params, constants, workspace, isph, Xe(:,:), Xadj_e, &
-            & basloc, dbasloc, vplm, vcos, vsin, force)
+    call contract_gradi_Bik(params, constants, isph, Xe(:,:), &
+        & Xadj_e(:, isph), force)
+    call contract_gradi_Bji(params, constants, isph, Xe(:,:), Xadj_e, force)
 
 end subroutine contract_grad_B
 
@@ -309,7 +296,7 @@ subroutine contract_grad_C(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
     call contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
         & Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re)
     if (workspace % error_flag .eq. 1) return
-    call contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
+    call contract_grad_C_worker1(params, constants, workspace, Xadj_r_sgrid, &
         & Xadj_e_sgrid, diff_re, force)
     if (workspace % error_flag .eq. 1) return
 
@@ -350,28 +337,17 @@ end subroutine contract_grad_f
 !!
 !! @param[in]  params    : Input parameter file
 !! @param[in]  constants : Input constants file
-!! @param[in]  workspace : Input workspace
 !! @param[in]  isph      : Index of sphere
 !! @param[in]  Xe        : Solution vector Xe
 !! @param[in]  Xadj_e    : Adjoint solution on evaluated on grid points Xadj_e_sgrid
-!! @param[in]  basloc    : Spherical harmonics Y_lm
-!! @param[in]  dbasloc   : Derivative of spherical harmonics \nabla^i(Y_lm)
-!! @param[in]  vplm      : Argument to call ylmbas
-!! @param[in]  vcos      : Argument to call ylmbas
-!! @param[in]  vsin      : Argument to call ylmbas
 !! @param[out] force     : Force
-subroutine contract_gradi_Bik(params, constants, workspace, isph, Xe, Xadj_e, basloc, &
-    & dbasloc, vplm, vcos, vsin, force)
+subroutine contract_gradi_Bik(params, constants, isph, Xe, Xadj_e, force)
     !! input/output
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
     integer, intent(in) :: isph
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xe
     real(dp), dimension(params % ngrid), intent(in) :: Xadj_e
-    real(dp), dimension(constants % nbasis), intent(inout) :: basloc, vplm
-    real(dp), dimension(3, constants % nbasis), intent(inout) :: dbasloc
-    real(dp), dimension(params % lmax+1), intent(inout) :: vcos, vsin
     real(dp), dimension(3), intent(inout) :: force
 
     ! Local Variables
@@ -448,24 +424,14 @@ end subroutine contract_gradi_Bik
 !! @param[in]  isph       : Index of sphere
 !! @param[in]  Xe         : Solution vector Xe
 !! @param[in]  Xadj_e     : Adjoint solution on evaluated on grid points Xadj_e_sgrid
-!! @param[in]  basloc     : Spherical harmonics Y_lm
-!! @param[in]  dbasloc    : Derivative of spherical harmonics \nabla^i(Y_lm)
-!! @param[in]  vplm       : Argument to call ylmbas
-!! @param[in]  vcos       : Argument to call ylmbas
-!! @param[in]  vsin       : Argument to call ylmbas
 !! @param[out] force      : Force of adjoint part
-subroutine contract_gradi_Bji(params, constants, workspace, isph, Xe, Xadj_e, basloc, dbasloc, &
-    & vplm, vcos, vsin, force)
+subroutine contract_gradi_Bji(params, constants, isph, Xe, Xadj_e, force)
     !! input/output
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
     integer, intent(in)    :: isph
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xe
     real(dp), dimension(params % ngrid, params % nsph),  intent(in) :: Xadj_e
-    real(dp), dimension(constants % nbasis), intent(inout) :: basloc,  vplm
-    real(dp), dimension(3, constants % nbasis), intent(inout) :: dbasloc
-    real(dp), dimension(params % lmax+1), intent(inout) :: vcos, vsin
     real(dp), dimension(3), intent(inout) :: force
 
     ! Local Variables
@@ -588,20 +554,18 @@ end subroutine contract_gradi_Bji
 !! @param[in]  params       : Input parameter file
 !! @param[in]  constants    : Input constants file
 !! @param[in]  workspace    : Input workspace
-!! @param[in]  Xr           : Solution of the Laplace problem
-!! @param[in]  Xe           : Solution of the HSP problem
 !! @param[in]  Xadj_r_sgrid : Adjoint Laplace solution evaluated at grid point
 !! @param[in]  Xadj_e_sgrid : Adjoint HSP solution evaluated at grid point
 !! @param[in]  diff_re      : l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
 !! @param[out] force        : Force
-subroutine contract_grad_C_worker1(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
+subroutine contract_grad_C_worker1(params, constants, workspace, Xadj_r_sgrid, &
     & Xadj_e_sgrid, diff_re, force)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
-    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xr, &
-        & Xe, diff_re
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: &
+        & diff_re
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: &
         & Xadj_r_sgrid, Xadj_e_sgrid
     real(dp), dimension(3, params % nsph), intent(inout) :: force
@@ -1801,7 +1765,7 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
                              & phi_n(igrid, isph)*normal_hessian_cav(:, icav_g)
           end if
         end do
-        call contract_grad_f_worker3(params, constants, workspace, isph, phi_n, force(:, isph))
+        call contract_grad_f_worker3(params, constants, isph, phi_n, force(:, isph))
     end do
 
     deallocate(phi_n, phi_n2, gradpsi_grid, stat=istat)
@@ -1825,16 +1789,14 @@ end subroutine contract_grad_f_worker2
 !! contract_grad_f_worker3 : Force derivative of potential at spheres
 !! @param[in]  params     : Input parameter file
 !! @param[in]  constants  : Input constants file
-!! @param[in]  workspace  : Input workspace
 !! @param[in]  phi_n      : phi_n^j
 !! @param[in]  ksph       : Derivative with respect to x_k
 !! @param[out] force      : Force
-subroutine contract_grad_f_worker3(params, constants, workspace, ksph, phi_n, force)
+subroutine contract_grad_f_worker3(params, constants, ksph, phi_n, force)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     !! Temporary buffers
-    type(ddx_workspace_type), intent(inout) :: workspace
   integer, intent(in) :: ksph
   real(dp),  dimension(params % ngrid, params % nsph), intent(in)    :: phi_n
   real(dp),  dimension(3), intent(inout) :: force

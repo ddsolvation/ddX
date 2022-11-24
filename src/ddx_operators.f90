@@ -1243,7 +1243,7 @@ subroutine bstarx(params, constants, workspace, x, y)
         !$omp private(isph,iproc) schedule(dynamic)
         do isph = 1, params % nsph
             iproc = omp_get_thread_num() + 1
-            call adjrhs_lpb(params, constants, workspace, isph, workspace % tmp_grid, &
+            call adjrhs_lpb(params, constants, isph, workspace % tmp_grid, &
                 & y(:, isph), workspace % tmp_vylm(:, iproc), workspace % tmp_vplm(:, iproc), &
                 & workspace % tmp_vcos(:, iproc), workspace % tmp_vsin(:, iproc), &
                 & workspace % tmp_bessel(:, iproc))
@@ -1282,9 +1282,7 @@ subroutine bx(params, constants, workspace, x, y)
         !$omp private(isph,iproc) schedule(dynamic)
         do isph = 1, params % nsph
           iproc = omp_get_thread_num() + 1
-          call calcv2_lpb(params, constants, isph, workspace % tmp_pot(:, iproc), x, &
-              & workspace % tmp_vylm, workspace % tmp_vplm, workspace % tmp_vcos, &
-              & workspace % tmp_vsin, workspace % tmp_bessel)
+          call calcv2_lpb(params, constants, isph, workspace % tmp_pot(:, iproc), x)
           call ddintegrate(1, constants % nbasis, params % ngrid, constants % vwgrid, &
               & constants % vgrid_nbasis, workspace % tmp_pot(:, iproc), y(:,isph))
           y(:,isph) = - y(:,isph) 

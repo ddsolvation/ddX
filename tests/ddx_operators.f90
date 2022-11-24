@@ -215,11 +215,10 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
     call ddfree(ddx_data_fmm)
 end subroutine check_dx
 
-subroutine check_gradr(ddx_data, pm, pl, iprint, threshold)
+subroutine check_gradr(ddx_data, pm, pl)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
-    integer, intent(in) :: pm, pl, iprint
-    real(dp), intent(in) :: threshold
+    integer, intent(in) :: pm, pl
     ! Local variables
     type(ddx_type) :: ddx_data_fmm
     real(dp), allocatable :: ygrid(:,:), g(:,:)

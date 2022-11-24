@@ -424,8 +424,8 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
             & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
         ! Compute B^k*Xadj_e
-        call contract_grad_B(params, constants, workspace, isph, x(:,:,2), &
-            & Xadj_e_sgrid, basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
+        call contract_grad_B(params, constants, isph, x(:,:,2), &
+            & Xadj_e_sgrid, force(:, isph))
         ! Computation of G0
         call contract_grad_U(params, constants, isph, Xadj_r_sgrid, phi_grid, &
             & force(:, isph))

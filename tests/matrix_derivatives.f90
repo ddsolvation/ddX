@@ -144,9 +144,8 @@ do isph = 1, ddx_data % params % nsph
              & basloc, dbsloc, vplm, vcos, vsin, derivative_A(:,isph))
   ! Computation of derivative for matrix B
   call contract_grad_B(ddx_data % params, ddx_data % constants, &
-                 & ddx_data % workspace, &
                  & isph, random_vector_nbasis_nsph_one, random_vector_two_evaluated_at_grid, &
-                 & basloc, dbsloc, vplm, vcos, vsin, derivative_B(:,isph))
+                 & derivative_B(:,isph))
   ! Computation for derivative of U_i^e(x_in)
   call contract_grad_U(ddx_data % params, ddx_data % constants, &
             & isph, vector_ngrid_nsph, vector_ngrid_nsph, &
