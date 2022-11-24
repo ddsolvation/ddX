@@ -1784,8 +1784,7 @@ subroutine check_m2m_bessel(p)
     ! Local variables
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
     real(dp) :: src_m((p+1)**2), dst_m((p+1)**2), vscales((p+1)**2), &
-        & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
-        & tmp(p+1), kappa
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), tmp(p+1), kappa
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
@@ -1803,11 +1802,11 @@ subroutine check_m2m_bessel(p)
     kappa = 1d-2
     call fmm_m2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_m, &
         & zero, dst_v)
-    call fmm_m2m_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, vcnk, one, &
+    call fmm_m2m_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, one, &
         & src_m, zero, dst_m)
     call fmm_m2p_bessel_baseline(kappa*x, kappa*dst_r, p, vscales, one, dst_m, zero, &
         & dst_v2)
-    call fmm_m2m_bessel_rotation(-src_c, dst_r, src_r, kappa, p, vscales, vcnk, one, &
+    call fmm_m2m_bessel_rotation(-src_c, dst_r, src_r, kappa, p, vscales, one, &
         & dst_m, zero, src_m)
     call fmm_m2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_m, &
         & zero, dst_v3)
@@ -1918,9 +1917,9 @@ subroutine check_m2m_bessel_adj(p, alpha)
         c = y(:, i)
         dst_r = r + dnrm2(3, y(:, i), 1)
         do j = 1, nrand
-            call fmm_m2m_bessel_rotation(c, r, dst_r, kappa, p, vscales, vcnk, one, &
+            call fmm_m2m_bessel_rotation(c, r, dst_r, kappa, p, vscales, one, &
                 & src_m(:, j), zero, dst_m(:, j))
-            call fmm_m2m_bessel_rotation_adj(-c, dst_r, r, kappa, p, vscales, vcnk, one, &
+            call fmm_m2m_bessel_rotation_adj(-c, dst_r, r, kappa, p, vscales, one, &
                 & dst_m(:, j), zero, src_m2(:, j))
         end do
         call dgemm('T', 'N', nrand, nrand, (p+1)**2, one, dst_m, (p+1)**2, &
@@ -2046,8 +2045,7 @@ subroutine check_l2l_bessel(p)
     ! Local variables
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2, dst_v3
     real(dp) :: src_l((p+1)**2), dst_l((p+1)**2), vscales((p+1)**2), &
-        & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
-        & tmp(p+1), kappa
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), tmp(p+1), kappa
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
@@ -2065,11 +2063,11 @@ subroutine check_l2l_bessel(p)
     kappa = 1d-1
     call fmm_l2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_l, &
         & zero, dst_v)
-    call fmm_l2l_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, vcnk, one, &
+    call fmm_l2l_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, one, &
         & src_l, zero, dst_l)
     call fmm_l2p_bessel_baseline(kappa*x, kappa*dst_r, p, vscales, one, dst_l, zero, &
         & dst_v2)
-    call fmm_l2l_bessel_rotation(-src_c, dst_r, src_r, kappa, p, vscales, vcnk, one, &
+    call fmm_l2l_bessel_rotation(-src_c, dst_r, src_r, kappa, p, vscales, one, &
         & dst_l, zero, src_l)
     call fmm_l2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_l, &
         & zero, dst_v3)
@@ -2143,7 +2141,7 @@ subroutine check_l2l_bessel_adj(p, alpha)
     ! Local variables
     integer, parameter :: nrand=10
     real(dp) :: y(3, nx), r, dst_r, c(3), vscales((p+1)**2), v4pi2lp1(p+1), &
-        & vscales_rel((p+1)**2), vfact(2*p+1), &
+        & vscales_rel((p+1)**2), &
         & src_l((p+1)**2, nrand), src_l2((p+1)**2, nrand), &
         & dst_l((p+1)**2, nrand), err, tmp(nrand, nrand), kappa
     logical :: ok
@@ -2154,10 +2152,6 @@ subroutine check_l2l_bessel_adj(p, alpha)
     r = abs(alpha)
     ! Compute special FMM constants
     call ylmscale(p, vscales, v4pi2lp1, vscales_rel)
-    vfact(1) = one
-    do i = 2, 2*p+1
-        vfact(i) = vfact(i-1) * sqrt(dble(i-1))
-    end do
     ! Init random seed
     iseed = (/0, 0, 0, 1/)
     kappa = 1d+1
@@ -2178,9 +2172,9 @@ subroutine check_l2l_bessel_adj(p, alpha)
         c = y(:, i)
         dst_r = r + dnrm2(3, y(:, i), 1)
         do j = 1, nrand
-            call fmm_l2l_bessel_rotation(c, r, dst_r, kappa, p, vscales, vfact, one, &
+            call fmm_l2l_bessel_rotation(c, r, dst_r, kappa, p, vscales, one, &
                 & src_l(:, j), zero, dst_l(:, j))
-            call fmm_l2l_bessel_rotation_adj(-c, dst_r, r, kappa, p, vscales, vfact, one, &
+            call fmm_l2l_bessel_rotation_adj(-c, dst_r, r, kappa, p, vscales, one, &
                 & dst_l(:, j), zero, src_l2(:, j))
         end do
         call dgemm('T', 'N', nrand, nrand, (p+1)**2, one, dst_l, (p+1)**2, &
@@ -2380,8 +2374,7 @@ subroutine check_m2l_bessel(p)
     ! Local variables
     real(dp) :: x(3), src_c(3), src_r, dst_r, dst_v, dst_v2
     real(dp) :: src_m((p+1)**2), dst_l((p+1)**2), vscales((p+1)**2), &
-        & vscales_rel((p+1)**2), v4pi2lp1(p+1), vcnk((2*p+1)*(p+1)), &
-        & tmp(p+1), kappa
+        & vscales_rel((p+1)**2), v4pi2lp1(p+1), tmp(p+1), kappa
     real(dp), external :: dnrm2
     integer :: i
     ! Compute special FMM constants
@@ -2400,7 +2393,7 @@ subroutine check_m2l_bessel(p)
     kappa = 1d0
     call fmm_m2p_bessel_baseline(kappa*(x-src_c), kappa*src_r, p, vscales, one, src_m, &
         & zero, dst_v)
-    call fmm_m2l_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, vcnk, one, &
+    call fmm_m2l_bessel_rotation(src_c, src_r, dst_r, kappa, p, vscales, one, &
         & src_m, zero, dst_l)
     call fmm_l2p_bessel_baseline(kappa*x, kappa*dst_r, p, vscales, one, dst_l, zero, &
         & dst_v2)
@@ -2454,9 +2447,9 @@ subroutine check_m2l_bessel_adj(p, alpha)
         dst_r = r
         do j = 1, nrand
             call fmm_m2l_bessel_rotation(c, r, dst_r, kappa, p, vscales, &
-                & m2l_ztranslate_coef, one, src_m(:, j), zero, dst_l(:, j))
+                & one, src_m(:, j), zero, dst_l(:, j))
             call fmm_m2l_bessel_rotation_adj(-c, dst_r, r, kappa, p, vscales, &
-                & m2l_ztranslate_adj_coef, one, dst_l(:, j), zero, &
+                & one, dst_l(:, j), zero, &
                 & src_m2(:, j))
         end do
         call dgemm('T', 'N', nrand, nrand, (p+1)**2, one, dst_l, (p+1)**2, &

@@ -956,8 +956,7 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, &
       end do
       ! Prepare diff1_grad
       call fmm_m2m_bessel_grad(constants % lmax0, constants % SK_ri(:, jsph), &
-          & constants % vscales, constants % vcnk, diff1(:, jsph), &
-          & diff1_grad(:, :, jsph))
+          & constants % vscales, diff1(:, jsph), diff1_grad(:, :, jsph))
     end do
 
     if (params % fmm .eq. 0) then
@@ -1035,7 +1034,7 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, &
             workspace % tmp_sph_l(:, isph) = workspace % tmp_node_l(:, inode)
             call fmm_l2l_bessel_grad(params % pl, &
                 & constants % SI_ri(:, isph), constants % vscales, &
-                & constants % vcnk, workspace % tmp_node_l(:, inode), &
+                & workspace % tmp_node_l(:, inode), &
                 & l2l_grad(:, :, isph))
         end do
         workspace % tmp_sph = Xadj_r + Xadj_e
@@ -1331,8 +1330,7 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
           end do
           ! Prepare c0_d1_grad
           call fmm_m2m_bessel_grad(constants % lmax0, constants % SK_ri(:, isph), &
-              & constants % vscales, constants % vcnk, c0_d1(:, isph), &
-              & c0_d1_grad(:, :, isph))
+              & constants % vscales, c0_d1(:, isph), c0_d1_grad(:, :, isph))
         end if
       end do
     end do
@@ -1401,7 +1399,7 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
             workspace % tmp_sph_l(:, isph) = workspace % tmp_node_l(:, inode)
             call fmm_l2l_bessel_grad(params % pl, &
                 & constants % SI_ri(:, isph), constants % vscales, &
-                & constants % vcnk, workspace % tmp_node_l(:, inode), &
+                & workspace % tmp_node_l(:, inode), &
                 & l2l_grad(:, :, isph))
         end do
         workspace % tmp_sph = sol_adj
