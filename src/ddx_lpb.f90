@@ -141,7 +141,9 @@ subroutine ddlpb_guess(params, constants, state)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(inout) :: state
-    ! TODO
+    ! TODO: this is a place holder for a proper implementation
+    if ((params % error_flag .eq. 0) .or. (constants % error_flag .eq. 0) &
+        .or. (state % error_flag .eq. 0)) continue
 end subroutine ddlpb_guess
 
 !!

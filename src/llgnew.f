@@ -4,7 +4,8 @@ c     with the closest number of points from ng
 c
       subroutine llgrid(ngrid,w,grid)
       implicit real*8 (a-h,o-z)
-      parameter(nllg=32,ngmax=5810)
+      integer ngmax,ngrid
+      parameter(ngmax=5810)
       integer n,i
       real*8 w(*),grid(3,*), four
       real*8 wtemp(ngmax),x(ngmax),y(ngmax),z(ngmax)
