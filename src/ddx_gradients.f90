@@ -1810,16 +1810,20 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
         end if
       end do ! End of loop igrid
     end do ! End of loop i
+
     do isph = 1, params % nsph
         call contract_grad_U(params, constants, isph, gradpsi_grid, phi_n, force(:, isph))
         ! Compute the Hessian contributions
         do igrid = 1, params % ngrid
           if(constants % ui(igrid, isph) .gt. zero) then
             icav_g = icav_g + 1
+            ! a contrib
             force(:, isph) = force(:, isph) + constants % wgrid(igrid)*constants % ui(igrid, isph)*&
                              & phi_n(igrid, isph)*normal_hessian_cav(:, icav_g)
           end if
         end do
+        ! TODO: this is quadratically scaling...
+        ! b contrib
         call contract_grad_f_worker3(params, constants, workspace, isph, phi_n, force(:, isph))
     end do
 

@@ -543,11 +543,8 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     icav_gr = zero
     icav_ge = zero
     ! Computation of F0
-    call contract_grad_f(params, constants, workspace, x_adj(:,:,1), &
-        & Xadj_r_sgrid, gradphi, normal_hessian_cav, icav_gr, force)
-    if (workspace % error_flag .eq. 1) return
-    call contract_grad_f(params, constants, workspace, x_adj(:,:,2), &
-        & Xadj_e_sgrid, gradphi, normal_hessian_cav, icav_ge, force)
+    call contract_grad_f(params, constants, workspace, x_adj(:,:,1) + x_adj(:,:,2), &
+        & Xadj_r_sgrid + xadj_e_sgrid, gradphi, normal_hessian_cav, icav_gr, force)
     if (workspace % error_flag .eq. 1) return
 
     force = - pt5*force
