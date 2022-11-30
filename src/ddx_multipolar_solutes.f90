@@ -239,8 +239,8 @@ subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
 
     ! allocate some space for the M2M gradients and precompute
     ! the quantities for the m2p
-    allocate(tmp_m_grad((mmax + 2)**2, 3, nm), vscales((mmax + 1)**2), &
-        & vscales_rel((mmax + 1)**2), v4pi2lp1(mmax + 1), stat=info)
+    allocate(tmp_m_grad((mmax + 2)**2, 3, nm), vscales((mmax + 2)**2), &
+        & vscales_rel((mmax + 2)**2), v4pi2lp1(mmax + 2), stat=info)
     if (info .ne. 0) then
         error_message = "Allocation failed in build_e_dense!"
         error_flag = 1
