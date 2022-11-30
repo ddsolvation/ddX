@@ -11,6 +11,7 @@
 module ddx_gradients
 ! Get the core-routines
 use ddx_core
+use ddx_multipolar_solutes
 !
 contains
 
@@ -1822,10 +1823,19 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
                              & phi_n(igrid, isph)*normal_hessian_cav(:, icav_g)
           end if
         end do
-        ! TODO: this is quadratically scaling...
-        ! b contrib
+    end do
+
+    force = zero
+    do isph = 1, params % nsph
         call contract_grad_f_worker3(params, constants, workspace, isph, phi_n, force(:, isph))
     end do
+    write(6,*) 'old forces'
+    write(6,'(3F20.10)') force
+    force = zero
+    call contract_grad_f_worker3_fmm(params, constants, workspace, phi_n, force)
+    write(6,*) 'new forces'
+    write(6,'(3F20.10)') force
+    stop
 
     deallocate(phi_n, phi_n2, gradpsi_grid, stat=istat)
     if (istat.ne.0) then
@@ -1842,6 +1852,75 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
         end if
     end if
 end subroutine contract_grad_f_worker2
+
+
+!> FMM accelerated version of contract_grad_f_worker3
+!!
+!! @param[in] params: ddx parameters
+!! @param[in] constant: ddx constants
+!! @param[in] workspace: ddx workspace
+!! @param[in] phi_n: adjoint solution contracted with other matrices,
+!!     size (ngrid, nsph)
+!! @param[inout] force: force array, size (3, nsph)
+!!
+subroutine contract_grad_f_worker3_fmm(params, constants, workspace, &
+        & phi_n, force)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: phi_n(params % ngrid, params % nsph)
+    real(dp), intent(inout) :: force(3, params % nsph)
+
+    real(dp), allocatable :: ddx_multipoles(:, :), phi_sph(:), e_sph(:, :)
+    integer :: isph, icav, igrid, info
+    real(dp) :: fac, fac1
+
+    allocate(ddx_multipoles(4, constants % ncav), phi_sph(params % nsph), &
+        & e_sph(3, params % nsph), stat=info)
+    if (info .ne. 0) then
+        workspace % error_flag = 1
+        workspace % error_message = 'Allocation failed in ' // &
+            'contract_grad_f_worker3_fmm'
+    end if
+
+    fac1 = - one/(sqrt(fourpi/three))
+
+    ! assemble the pseudo-dipoles
+    icav = 0
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .gt. zero) then
+                icav = icav + 1
+                fac = constants % ui(igrid, isph)*constants % wgrid(igrid) &
+                    & *phi_n(igrid, isph)*fac1
+                ddx_multipoles(1, icav) = zero
+                ddx_multipoles(2, icav) = fac*constants % cgrid(2, igrid)
+                ddx_multipoles(3, icav) = fac*constants % cgrid(3, igrid)
+                ddx_multipoles(4, icav) = fac*constants % cgrid(1, igrid)
+            end if
+        end do
+    end do
+
+    ! compute the field due to the pseudo-dipoles
+    call build_e_dense(ddx_multipoles, constants % ccav, 1, constants % ncav, &
+        & phi_sph, params % csph, params % nsph, e_sph, &
+        & workspace % error_flag, workspace % error_message)
+
+    ! compute the force term as an interaction between the charges and
+    ! the previously computed electric field
+    do isph = 1, params % nsph
+        force(:, isph) = force(:, isph) &
+            & + params % charge(isph) * e_sph(:, isph)
+    end do
+
+    deallocate(ddx_multipoles, phi_sph, e_sph, stat=info)
+    if (info .ne. 0) then
+        workspace % error_flag = 1
+        workspace % error_message = 'Deallocation failed in ' // &
+            'contract_grad_f_worker3_fmm'
+    end if
+end subroutine contract_grad_f_worker3_fmm
 
 !> Subroutine to compute derivative of potential at spheres
 !!
