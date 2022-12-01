@@ -1872,12 +1872,19 @@ subroutine contract_grad_f_worker3_fmm(params, constants, workspace, &
     real(dp), intent(in) :: phi_n(params % ngrid, params % nsph)
     real(dp), intent(inout) :: force(3, params % nsph)
 
-    real(dp), allocatable :: ddx_multipoles(:, :), phi_sph(:), e_sph(:, :)
-    integer :: isph, icav, igrid, info
-    real(dp) :: fac, fac1
+    real(dp), allocatable :: ddx_multipoles_cav(:, :), phi_sph(:), &
+        & e_sph(:, :), ddx_multipoles_grid(:, :, :), adj_phi(:, :), work(:), &
+        & m_grad(:, :, :), tmp_charge(:, :)
+    integer :: isph, icav, igrid, info, inode, jnode, jsph, jnear, &
+        & l, m, lm, ind
+    real(dp) :: fac, fac1, c(3)
 
-    allocate(ddx_multipoles(4, constants % ncav), phi_sph(params % nsph), &
-        & e_sph(3, params % nsph), stat=info)
+    allocate(ddx_multipoles_cav(4, constants % ncav), phi_sph(params % nsph), &
+        & ddx_multipoles_grid((params % pm + 1)**2, params % ngrid, &
+        & params % nsph), e_sph(3, params % nsph), &
+        & m_grad(4, 3, params % nsph), tmp_charge(1, params % nsph), &
+        & work(6*params % pm**2 + 19*params % pm + 8), &
+        & adj_phi((params % pm + 1)**2, params % nsph), stat=info)
     if (info .ne. 0) then
         workspace % error_flag = 1
         workspace % error_message = 'Allocation failed in ' // &
@@ -1887,6 +1894,7 @@ subroutine contract_grad_f_worker3_fmm(params, constants, workspace, &
     fac1 = - one/(sqrt(fourpi/three))
 
     ! assemble the pseudo-dipoles
+    ddx_multipoles_grid = zero
     icav = 0
     do isph = 1, params % nsph
         do igrid = 1, params % ngrid
@@ -1894,27 +1902,34 @@ subroutine contract_grad_f_worker3_fmm(params, constants, workspace, &
                 icav = icav + 1
                 fac = constants % ui(igrid, isph)*constants % wgrid(igrid) &
                     & *phi_n(igrid, isph)*fac1
-                ddx_multipoles(1, icav) = zero
-                ddx_multipoles(2, icav) = fac*constants % cgrid(2, igrid)
-                ddx_multipoles(3, icav) = fac*constants % cgrid(3, igrid)
-                ddx_multipoles(4, icav) = fac*constants % cgrid(1, igrid)
+                ddx_multipoles_cav(1, icav) = zero
+                ddx_multipoles_cav(2, icav) = fac*constants % cgrid(2, igrid)
+                ddx_multipoles_cav(3, icav) = fac*constants % cgrid(3, igrid)
+                ddx_multipoles_cav(4, icav) = fac*constants % cgrid(1, igrid)
+                if (params % fmm .ne. 0) &
+                    & ddx_multipoles_grid(1:4, igrid, isph) = &
+                    & ddx_multipoles_cav(:, icav)
             end if
         end do
     end do
 
     ! compute the field due to the pseudo-dipoles
-    call build_e_dense(ddx_multipoles, constants % ccav, 1, constants % ncav, &
-        & phi_sph, params % csph, params % nsph, e_sph, &
-        & workspace % error_flag, workspace % error_message)
+    if (.true.) then
+        call build_e_dense(ddx_multipoles_cav, constants % ccav, 1, &
+            & constants % ncav, phi_sph, params % csph, params % nsph, e_sph, &
+            & workspace % error_flag, workspace % error_message)
+        ! compute the force term as an interaction between the charges and
+        ! the previously computed electric field
+        do isph = 1, params % nsph
+            force(:, isph) = force(:, isph) &
+                & + params % charge(isph) * e_sph(:, isph)
+        end do
+    else
+        ! put here a N scaling code
+    end if
 
-    ! compute the force term as an interaction between the charges and
-    ! the previously computed electric field
-    do isph = 1, params % nsph
-        force(:, isph) = force(:, isph) &
-            & + params % charge(isph) * e_sph(:, isph)
-    end do
-
-    deallocate(ddx_multipoles, phi_sph, e_sph, stat=info)
+    deallocate(ddx_multipoles_cav, ddx_multipoles_grid, work, adj_phi, &
+        & phi_sph, e_sph, tmp_charge, stat=info)
     if (info .ne. 0) then
         workspace % error_flag = 1
         workspace % error_message = 'Deallocation failed in ' // &
