@@ -9,7 +9,6 @@ var namespaceddx__constants =
     [ "constants_geometry_init", "namespaceddx__constants.html#a80200d281b336be4a46d6a7a814ac68f", null ],
     [ "neighbor_list_init", "namespaceddx__constants.html#aa5e10536476b0d3169af304c60e915c5", null ],
     [ "neighbor_list_init_fmm", "namespaceddx__constants.html#a39690fd2a69ba9e97b60f95a80c039d1", null ],
-    [ "constants_geometry_update", "namespaceddx__constants.html#a99966e53ca6aff99228ca3a99fef13b6", null ],
     [ "fsw", "namespaceddx__constants.html#abb0c060445e3b2d40b770eda26d20fdb", null ],
     [ "dfsw", "namespaceddx__constants.html#a66fd73de84672f0f78f4c9c4e2c620b5", null ],
     [ "mkprec", "namespaceddx__constants.html#a5d1fc3f2c16984ceaa0e1ed9de8fb548", null ],

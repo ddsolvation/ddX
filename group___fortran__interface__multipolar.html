@@ -110,9 +110,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:ga6611268f56ee74f9f64df0915594f8c7"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga6611268f56ee74f9f64df0915594f8c7">ddx_multipolar_solutes::build_phi</a> (params, constants, workspace, multipoles, mmax, phi_cav)</td></tr>
 <tr class="memdesc:ga6611268f56ee74f9f64df0915594f8c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, compute the potential at the target points this is done with or without FMMs depending on the relevant flag The multipoles must be centered on the ddx spheres.  <a href="group___fortran__interface__multipolar.html#ga6611268f56ee74f9f64df0915594f8c7">More...</a><br /></td></tr>
 <tr class="separator:ga6611268f56ee74f9f64df0915594f8c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5c89baf7330431c44d60f075ab516c5f"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga5c89baf7330431c44d60f075ab516c5f">ddx_multipolar_solutes::build_psi</a> (params, constants, workspace, multipoles, mmax, psi)</td></tr>
-<tr class="memdesc:ga5c89baf7330431c44d60f075ab516c5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, assemble the RHS psi. The multipoles must be centered on the ddx spheres.  <a href="group___fortran__interface__multipolar.html#ga5c89baf7330431c44d60f075ab516c5f">More...</a><br /></td></tr>
-<tr class="separator:ga5c89baf7330431c44d60f075ab516c5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf468ceaaf47ba9d96486ab064e6e57d9"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#gaf468ceaaf47ba9d96486ab064e6e57d9">ddx_multipolar_solutes::build_psi</a> (params, multipoles, mmax, psi)</td></tr>
+<tr class="memdesc:gaf468ceaaf47ba9d96486ab064e6e57d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, assemble the RHS psi. The multipoles must be centered on the ddx spheres.  <a href="group___fortran__interface__multipolar.html#gaf468ceaaf47ba9d96486ab064e6e57d9">More...</a><br /></td></tr>
+<tr class="separator:gaf468ceaaf47ba9d96486ab064e6e57d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga29181299be03f0bb493cfd4cfb928a0b"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">ddx_multipolar_solutes::grad_phi</a> (params, constants, workspace, state, mmax, multipoles, forces, e_cav)</td></tr>
 <tr class="memdesc:ga29181299be03f0bb493cfd4cfb928a0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions.  <a href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">More...</a><br /></td></tr>
 <tr class="separator:ga29181299be03f0bb493cfd4cfb928a0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -342,8 +342,8 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
-<a id="ga5c89baf7330431c44d60f075ab516c5f" name="ga5c89baf7330431c44d60f075ab516c5f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga5c89baf7330431c44d60f075ab516c5f">&#9670;&nbsp;</a></span>build_psi()</h2>
+<a id="gaf468ceaaf47ba9d96486ab064e6e57d9" name="gaf468ceaaf47ba9d96486ab064e6e57d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf468ceaaf47ba9d96486ab064e6e57d9">&#9670;&nbsp;</a></span>build_psi()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -353,18 +353,6 @@ Functions/Subroutines</h2></td></tr>
           <td>(</td>
           <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
           <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -396,8 +384,6 @@ Functions/Subroutines</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>ddx constants </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspace </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">multipoles</td><td>multipoles as real spherical harmonics, size ((mmax+1)**2,nsph) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">mmax</td><td>maximum angular momentum of the multipoles </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">psi</td><td>RHS for adjoint linear systems, size ((lmax+1)**2,nsph), the internal lmax should be &gt;= mmax </td></tr>
@@ -405,7 +391,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00551">551</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00547">547</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -486,7 +472,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00792">792</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00785">785</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>

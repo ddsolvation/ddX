@@ -103,7 +103,7 @@ $(document).ready(function(){initNavTree('matrix__debug_8f90_source.html',''); i
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: matrix(n, n)</div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span>    <span class="keywordtype">external</span> :: matvec</div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">allocatable</span> :: scr1(:), scr2(:)</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>    <span class="keywordtype">integer</span> :: i, j, istat</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>    <span class="keywordtype">integer</span> :: i, istat</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>    <span class="keyword">allocate</span>(scr1(n), scr2(n), stat=istat)</div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    <span class="keywordflow">if</span> (istat.ne.0) stop 1</div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    <span class="keywordflow">do</span> i = 1, n</div>

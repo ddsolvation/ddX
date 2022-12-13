@@ -393,7 +393,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span><span class="comment">!     CALCULATE EXP(FNU*HPI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE</span></div>
 <div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span><span class="comment">!     WHEN FNU IS LARGE</span></div>
 <div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>      inu = fnu</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>      inu = int(fnu)</div>
 <div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>      inuh = inu / 2</div>
 <div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>      ir = inu - 2 * inuh</div>
 <div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>      arg = (fnu - (inu-ir)) * sgn</div>
@@ -657,7 +657,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l00562" name="l00562"></a><span class="lineno">  562</span><span class="comment">!     CALCULATE CSGN=EXP(FNU*PI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE</span></div>
 <div class="line"><a id="l00563" name="l00563"></a><span class="lineno">  563</span><span class="comment">!     WHEN FNU IS LARGE</span></div>
 <div class="line"><a id="l00564" name="l00564"></a><span class="lineno">  564</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l00565" name="l00565"></a><span class="lineno">  565</span>      inu = fnu</div>
+<div class="line"><a id="l00565" name="l00565"></a><span class="lineno">  565</span>      inu = int(fnu)</div>
 <div class="line"><a id="l00566" name="l00566"></a><span class="lineno">  566</span>      arg = (fnu - inu) * pi</div>
 <div class="line"><a id="l00567" name="l00567"></a><span class="lineno">  567</span>      <span class="keywordflow">IF</span> (yy &lt; 0.0_dp) arg = -arg</div>
 <div class="line"><a id="l00568" name="l00568"></a><span class="lineno">  568</span>      s1 = cos(arg)</div>
@@ -907,7 +907,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l00812" name="l00812"></a><span class="lineno">  812</span><span class="comment">!     CALCULATE CSGN=EXP(FNU*HPI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE</span></div>
 <div class="line"><a id="l00813" name="l00813"></a><span class="lineno">  813</span><span class="comment">!     WHEN FNU IS LARGE</span></div>
 <div class="line"><a id="l00814" name="l00814"></a><span class="lineno">  814</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l00815" name="l00815"></a><span class="lineno">  815</span>    inu = fnu</div>
+<div class="line"><a id="l00815" name="l00815"></a><span class="lineno">  815</span>    inu = int(fnu)</div>
 <div class="line"><a id="l00816" name="l00816"></a><span class="lineno">  816</span>    inuh = inu / 2</div>
 <div class="line"><a id="l00817" name="l00817"></a><span class="lineno">  817</span>    ir = inu - 2 * inuh</div>
 <div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span>    arg = (fnu - (inu-ir)) * hpi</div>
@@ -1411,7 +1411,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l01316" name="l01316"></a><span class="lineno"> 1316</span>  <span class="keyword">CALL </span>cbesk(zn, fnu, kode, n, cwrk, nz2, ierr)</div>
 <div class="line"><a id="l01317" name="l01317"></a><span class="lineno"> 1317</span>  <span class="keywordflow">IF</span> (ierr == 0 .OR. ierr == 3) <span class="keywordflow">THEN</span></div>
 <div class="line"><a id="l01318" name="l01318"></a><span class="lineno"> 1318</span>    nz = min(nz1, nz2)</div>
-<div class="line"><a id="l01319" name="l01319"></a><span class="lineno"> 1319</span>    ifnu = fnu</div>
+<div class="line"><a id="l01319" name="l01319"></a><span class="lineno"> 1319</span>    ifnu = int(fnu)</div>
 <div class="line"><a id="l01320" name="l01320"></a><span class="lineno"> 1320</span>    ffnu = fnu - ifnu</div>
 <div class="line"><a id="l01321" name="l01321"></a><span class="lineno"> 1321</span>    arg = hpi * ffnu</div>
 <div class="line"><a id="l01322" name="l01322"></a><span class="lineno"> 1322</span>    csgn = cmplx(cos(arg), sin(arg), kind=dp)</div>
@@ -2590,8 +2590,8 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l02495" name="l02495"></a><span class="lineno"> 2495</span>nz = 0</div>
 <div class="line"><a id="l02496" name="l02496"></a><span class="lineno"> 2496</span>az = abs(z)</div>
 <div class="line"><a id="l02497" name="l02497"></a><span class="lineno"> 2497</span>x = real(z, kind=dp)</div>
-<div class="line"><a id="l02498" name="l02498"></a><span class="lineno"> 2498</span>iaz = az</div>
-<div class="line"><a id="l02499" name="l02499"></a><span class="lineno"> 2499</span>ifnu = fnu</div>
+<div class="line"><a id="l02498" name="l02498"></a><span class="lineno"> 2498</span>iaz = int(az)</div>
+<div class="line"><a id="l02499" name="l02499"></a><span class="lineno"> 2499</span>ifnu = int(fnu)</div>
 <div class="line"><a id="l02500" name="l02500"></a><span class="lineno"> 2500</span>inu = ifnu + n - 1</div>
 <div class="line"><a id="l02501" name="l02501"></a><span class="lineno"> 2501</span>at = iaz + 1</div>
 <div class="line"><a id="l02502" name="l02502"></a><span class="lineno"> 2502</span>ck = cmplx(at, 0.0_dp, kind=dp) / z</div>
@@ -3461,7 +3461,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l03366" name="l03366"></a><span class="lineno"> 3366</span><span class="comment">!-----------------------------------------------------------------------</span></div>
 <div class="line"><a id="l03367" name="l03367"></a><span class="lineno"> 3367</span>  aez = 8.0_dp * az</div>
 <div class="line"><a id="l03368" name="l03368"></a><span class="lineno"> 3368</span>  s = tol / aez</div>
-<div class="line"><a id="l03369" name="l03369"></a><span class="lineno"> 3369</span>  jl = rl + rl + 2</div>
+<div class="line"><a id="l03369" name="l03369"></a><span class="lineno"> 3369</span>  jl = int(rl + rl + 2.0_dp)</div>
 <div class="line"><a id="l03370" name="l03370"></a><span class="lineno"> 3370</span>  yy = aimag(z)</div>
 <div class="line"><a id="l03371" name="l03371"></a><span class="lineno"> 3371</span>  p1 = czero</div>
 <div class="line"><a id="l03372" name="l03372"></a><span class="lineno"> 3372</span>  <span class="keywordflow">IF</span> (yy /= 0.0_dp) <span class="keywordflow">THEN</span></div>
@@ -3469,7 +3469,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l03374" name="l03374"></a><span class="lineno"> 3374</span><span class="comment">!     CALCULATE EXP(PI*(0.5+FNU+N-IL)*I) TO MINIMIZE LOSSES OF</span></div>
 <div class="line"><a id="l03375" name="l03375"></a><span class="lineno"> 3375</span><span class="comment">!     SIGNIFICANCE WHEN FNU OR N IS LARGE</span></div>
 <div class="line"><a id="l03376" name="l03376"></a><span class="lineno"> 3376</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l03377" name="l03377"></a><span class="lineno"> 3377</span>    inu = fnu</div>
+<div class="line"><a id="l03377" name="l03377"></a><span class="lineno"> 3377</span>    inu = int(fnu)</div>
 <div class="line"><a id="l03378" name="l03378"></a><span class="lineno"> 3378</span>    arg = (fnu - inu) * pi</div>
 <div class="line"><a id="l03379" name="l03379"></a><span class="lineno"> 3379</span>    inu = inu + n - il</div>
 <div class="line"><a id="l03380" name="l03380"></a><span class="lineno"> 3380</span>    ak = -sin(arg)</div>
@@ -3789,7 +3789,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l03694" name="l03694"></a><span class="lineno"> 3694</span><span class="comment">!     CSPN AND CSGN ARE COEFF OF K AND I FUNCIONS RESP.</span></div>
 <div class="line"><a id="l03695" name="l03695"></a><span class="lineno"> 3695</span><span class="comment">!-----------------------------------------------------------------------</span></div>
 <div class="line"><a id="l03696" name="l03696"></a><span class="lineno"> 3696</span>csgn = cmplx(0.0_dp, sgn, kind=dp)</div>
-<div class="line"><a id="l03697" name="l03697"></a><span class="lineno"> 3697</span>inu = fnu</div>
+<div class="line"><a id="l03697" name="l03697"></a><span class="lineno"> 3697</span>inu = int(fnu)</div>
 <div class="line"><a id="l03698" name="l03698"></a><span class="lineno"> 3698</span>fnf = fnu - inu</div>
 <div class="line"><a id="l03699" name="l03699"></a><span class="lineno"> 3699</span>ifn = inu + n - 1</div>
 <div class="line"><a id="l03700" name="l03700"></a><span class="lineno"> 3700</span>ang = fnf * sgn</div>
@@ -4011,7 +4011,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l03916" name="l03916"></a><span class="lineno"> 3916</span>yy = aimag(zr)</div>
 <div class="line"><a id="l03917" name="l03917"></a><span class="lineno"> 3917</span>zn = -zr * ci</div>
 <div class="line"><a id="l03918" name="l03918"></a><span class="lineno"> 3918</span>zb = zr</div>
-<div class="line"><a id="l03919" name="l03919"></a><span class="lineno"> 3919</span>inu = fnu</div>
+<div class="line"><a id="l03919" name="l03919"></a><span class="lineno"> 3919</span>inu = int(fnu)</div>
 <div class="line"><a id="l03920" name="l03920"></a><span class="lineno"> 3920</span>fnf = fnu - inu</div>
 <div class="line"><a id="l03921" name="l03921"></a><span class="lineno"> 3921</span>ang = -hpi * fnf</div>
 <div class="line"><a id="l03922" name="l03922"></a><span class="lineno"> 3922</span>car = cos(ang)</div>
@@ -4774,7 +4774,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l04679" name="l04679"></a><span class="lineno"> 4679</span>zn = -z * ci</div>
 <div class="line"><a id="l04680" name="l04680"></a><span class="lineno"> 4680</span>zb = z</div>
 <div class="line"><a id="l04681" name="l04681"></a><span class="lineno"> 4681</span>cid = -ci</div>
-<div class="line"><a id="l04682" name="l04682"></a><span class="lineno"> 4682</span>inu = fnu</div>
+<div class="line"><a id="l04682" name="l04682"></a><span class="lineno"> 4682</span>inu = int(fnu)</div>
 <div class="line"><a id="l04683" name="l04683"></a><span class="lineno"> 4683</span>ang = hpi * (fnu - inu)</div>
 <div class="line"><a id="l04684" name="l04684"></a><span class="lineno"> 4684</span>car = cos(ang)</div>
 <div class="line"><a id="l04685" name="l04685"></a><span class="lineno"> 4685</span>sar = sin(ang)</div>
@@ -5056,10 +5056,10 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l04961" name="l04961"></a><span class="lineno"> 4961</span>real(dp), <span class="keywordtype">PARAMETER</span>  :: czero = (0.0_dp,0.0_dp), cone = (1.0_dp,0.0_dp)</div>
 <div class="line"><a id="l04962" name="l04962"></a><span class="lineno"> 4962</span> </div>
 <div class="line"><a id="l04963" name="l04963"></a><span class="lineno"> 4963</span>az = abs(z)</div>
-<div class="line"><a id="l04964" name="l04964"></a><span class="lineno"> 4964</span>inu = fnu</div>
+<div class="line"><a id="l04964" name="l04964"></a><span class="lineno"> 4964</span>inu = int(fnu)</div>
 <div class="line"><a id="l04965" name="l04965"></a><span class="lineno"> 4965</span>idnu = inu + n - 1</div>
 <div class="line"><a id="l04966" name="l04966"></a><span class="lineno"> 4966</span>fdnu = idnu</div>
-<div class="line"><a id="l04967" name="l04967"></a><span class="lineno"> 4967</span>magz = az</div>
+<div class="line"><a id="l04967" name="l04967"></a><span class="lineno"> 4967</span>magz = int(az)</div>
 <div class="line"><a id="l04968" name="l04968"></a><span class="lineno"> 4968</span>amagz = magz + 1</div>
 <div class="line"><a id="l04969" name="l04969"></a><span class="lineno"> 4969</span>fnup = max(amagz, fdnu)</div>
 <div class="line"><a id="l04970" name="l04970"></a><span class="lineno"> 4970</span>id = idnu - magz - 1</div>
@@ -5198,7 +5198,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l05103" name="l05103"></a><span class="lineno"> 5103</span>iflag = 0</div>
 <div class="line"><a id="l05104" name="l05104"></a><span class="lineno"> 5104</span>koded = kode</div>
 <div class="line"><a id="l05105" name="l05105"></a><span class="lineno"> 5105</span>rz = ctwo / z</div>
-<div class="line"><a id="l05106" name="l05106"></a><span class="lineno"> 5106</span>inu = fnu + 0.5_dp</div>
+<div class="line"><a id="l05106" name="l05106"></a><span class="lineno"> 5106</span>inu = int(fnu + 0.5_dp)</div>
 <div class="line"><a id="l05107" name="l05107"></a><span class="lineno"> 5107</span>dnu = fnu - inu</div>
 <div class="line"><a id="l05108" name="l05108"></a><span class="lineno"> 5108</span><span class="keywordflow">IF</span> (abs(dnu) /= 0.5_dp) <span class="keywordflow">THEN</span></div>
 <div class="line"><a id="l05109" name="l05109"></a><span class="lineno"> 5109</span>  dnu2 = 0.0_dp</div>
@@ -5389,7 +5389,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l05294" name="l05294"></a><span class="lineno"> 5294</span>  fk = 0.12125_dp * ak * ak / caz + 1.5_dp</div>
 <div class="line"><a id="l05295" name="l05295"></a><span class="lineno"> 5295</span><span class="keywordflow">END IF</span></div>
 <div class="line"><a id="l05296" name="l05296"></a><span class="lineno"> 5296</span> </div>
-<div class="line"><a id="l05297" name="l05297"></a><span class="lineno"> 5297</span>80 k = fk</div>
+<div class="line"><a id="l05297" name="l05297"></a><span class="lineno"> 5297</span>80 k = int(fk)</div>
 <div class="line"><a id="l05298" name="l05298"></a><span class="lineno"> 5298</span><span class="comment">!-----------------------------------------------------------------------</span></div>
 <div class="line"><a id="l05299" name="l05299"></a><span class="lineno"> 5299</span><span class="comment">!     BACKWARD RECURRENCE LOOP FOR MILLER ALGORITHM</span></div>
 <div class="line"><a id="l05300" name="l05300"></a><span class="lineno"> 5300</span><span class="comment">!-----------------------------------------------------------------------</span></div>
@@ -5781,7 +5781,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l05686" name="l05686"></a><span class="lineno"> 5686</span><span class="comment">!     CALCULATE CSPN=EXP(FNU*PI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE</span></div>
 <div class="line"><a id="l05687" name="l05687"></a><span class="lineno"> 5687</span><span class="comment">!     WHEN FNU IS LARGE</span></div>
 <div class="line"><a id="l05688" name="l05688"></a><span class="lineno"> 5688</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l05689" name="l05689"></a><span class="lineno"> 5689</span>    inu = fnu</div>
+<div class="line"><a id="l05689" name="l05689"></a><span class="lineno"> 5689</span>    inu = int(fnu)</div>
 <div class="line"><a id="l05690" name="l05690"></a><span class="lineno"> 5690</span>    arg = (fnu - inu) * sgn</div>
 <div class="line"><a id="l05691" name="l05691"></a><span class="lineno"> 5691</span>    cpn = cos(arg)</div>
 <div class="line"><a id="l05692" name="l05692"></a><span class="lineno"> 5692</span>    spn = sin(arg)</div>
@@ -5984,7 +5984,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l05889" name="l05889"></a><span class="lineno"> 5889</span><span class="comment">!-----------------------------------------------------------------------</span></div>
 <div class="line"><a id="l05890" name="l05890"></a><span class="lineno"> 5890</span><span class="comment">!     INCREMENT FNU+NN-1 UP TO FNUL, COMPUTE AND RECUR BACKWARD</span></div>
 <div class="line"><a id="l05891" name="l05891"></a><span class="lineno"> 5891</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l05892" name="l05892"></a><span class="lineno"> 5892</span>70 nui = fnul - dfnu + 1</div>
+<div class="line"><a id="l05892" name="l05892"></a><span class="lineno"> 5892</span>70 nui = int(fnul - dfnu + 1.0_dp)</div>
 <div class="line"><a id="l05893" name="l05893"></a><span class="lineno"> 5893</span>nui = max(nui, 0)</div>
 <div class="line"><a id="l05894" name="l05894"></a><span class="lineno"> 5894</span><span class="keyword">CALL </span>cbuni(z, fnu, kode, nn, cy, nw, nui, nlast, fnul, tol, elim, alim)</div>
 <div class="line"><a id="l05895" name="l05895"></a><span class="lineno"> 5895</span><span class="keywordflow">IF</span> (nw &lt; 0) <span class="keywordflow">GO TO</span> 90</div>
@@ -6106,7 +6106,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l06011" name="l06011"></a><span class="lineno"> 6011</span><span class="comment">!***FIRST EXECUTABLE STATEMENT  GAMLN</span></div>
 <div class="line"><a id="l06012" name="l06012"></a><span class="lineno"> 6012</span><span class="keywordflow">IF</span> (z &gt; 0.0_dp) <span class="keywordflow">THEN</span></div>
 <div class="line"><a id="l06013" name="l06013"></a><span class="lineno"> 6013</span>  <span class="keywordflow">IF</span> (z &lt;= 101.0_dp) <span class="keywordflow">THEN</span></div>
-<div class="line"><a id="l06014" name="l06014"></a><span class="lineno"> 6014</span>    nz = z</div>
+<div class="line"><a id="l06014" name="l06014"></a><span class="lineno"> 6014</span>    nz = int(z)</div>
 <div class="line"><a id="l06015" name="l06015"></a><span class="lineno"> 6015</span>    fz = z - nz</div>
 <div class="line"><a id="l06016" name="l06016"></a><span class="lineno"> 6016</span>    <span class="keywordflow">IF</span> (fz &lt;= 0.0_dp) <span class="keywordflow">THEN</span></div>
 <div class="line"><a id="l06017" name="l06017"></a><span class="lineno"> 6017</span>      <span class="keywordflow">IF</span> (nz &lt;= 100) <span class="keywordflow">THEN</span></div>
@@ -6123,7 +6123,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l06028" name="l06028"></a><span class="lineno"> 6028</span>  fln = max(fln,3.0_dp)</div>
 <div class="line"><a id="l06029" name="l06029"></a><span class="lineno"> 6029</span>  fln = fln - 3.0_dp</div>
 <div class="line"><a id="l06030" name="l06030"></a><span class="lineno"> 6030</span>  zm = 1.8000_dp + 0.3875_dp * fln</div>
-<div class="line"><a id="l06031" name="l06031"></a><span class="lineno"> 6031</span>  mz = zm + 1</div>
+<div class="line"><a id="l06031" name="l06031"></a><span class="lineno"> 6031</span>  mz = int(zm + 1.0_dp)</div>
 <div class="line"><a id="l06032" name="l06032"></a><span class="lineno"> 6032</span>  zmin = mz</div>
 <div class="line"><a id="l06033" name="l06033"></a><span class="lineno"> 6033</span>  zdmy = z</div>
 <div class="line"><a id="l06034" name="l06034"></a><span class="lineno"> 6034</span>  zinc = 0.0_dp</div>
@@ -6151,7 +6151,7 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l06056" name="l06056"></a><span class="lineno"> 6056</span>    <span class="keywordflow">RETURN</span></div>
 <div class="line"><a id="l06057" name="l06057"></a><span class="lineno"> 6057</span><span class="keywordflow">  END IF</span></div>
 <div class="line"><a id="l06058" name="l06058"></a><span class="lineno"> 6058</span>  zp = 1.0_dp</div>
-<div class="line"><a id="l06059" name="l06059"></a><span class="lineno"> 6059</span>  nz = zinc</div>
+<div class="line"><a id="l06059" name="l06059"></a><span class="lineno"> 6059</span>  nz = int(zinc)</div>
 <div class="line"><a id="l06060" name="l06060"></a><span class="lineno"> 6060</span>  <span class="keywordflow">DO</span>  i = 1, nz</div>
 <div class="line"><a id="l06061" name="l06061"></a><span class="lineno"> 6061</span>    zp = zp * (z + (i-1))</div>
 <div class="line"><a id="l06062" name="l06062"></a><span class="lineno"> 6062</span><span class="keywordflow">  END DO</span></div>
@@ -6161,151 +6161,152 @@ $(document).ready(function(){initNavTree('cbessel_8f90_source.html',''); initRes
 <div class="line"><a id="l06066" name="l06066"></a><span class="lineno"> 6066</span><span class="keywordflow">END IF</span></div>
 <div class="line"><a id="l06067" name="l06067"></a><span class="lineno"> 6067</span> </div>
 <div class="line"><a id="l06068" name="l06068"></a><span class="lineno"> 6068</span><span class="keyword">WRITE</span>(*, *) <span class="stringliteral">&#39;** ERROR: Zero or -ve argument for function GAMLN **&#39;</span></div>
-<div class="line"><a id="l06069" name="l06069"></a><span class="lineno"> 6069</span><span class="keywordflow">RETURN</span></div>
-<div class="line"><a id="l06070" name="l06070"></a><span class="lineno"> 6070</span><span class="keyword">END FUNCTION </span>gamln</div>
-<div class="line"><a id="l06071" name="l06071"></a><span class="lineno"> 6071</span> </div>
+<div class="line"><a id="l06069" name="l06069"></a><span class="lineno"> 6069</span>fn_val = 0.0</div>
+<div class="line"><a id="l06070" name="l06070"></a><span class="lineno"> 6070</span><span class="keywordflow">RETURN</span></div>
+<div class="line"><a id="l06071" name="l06071"></a><span class="lineno"> 6071</span><span class="keyword">END FUNCTION </span>gamln</div>
 <div class="line"><a id="l06072" name="l06072"></a><span class="lineno"> 6072</span> </div>
 <div class="line"><a id="l06073" name="l06073"></a><span class="lineno"> 6073</span> </div>
-<div class="line"><a id="l06074" name="l06074"></a><span class="lineno"> 6074</span><span class="keyword">SUBROUTINE </span>cuchk(y, nz, ascle, tol)</div>
-<div class="line"><a id="l06075" name="l06075"></a><span class="lineno"> 6075</span><span class="comment">!***BEGIN PROLOGUE  CUCHK</span></div>
-<div class="line"><a id="l06076" name="l06076"></a><span class="lineno"> 6076</span><span class="comment">!***REFER TO CSERI,CUOIK,CUNK1,CUNK2,CUNI1,CUNI2,CKSCL</span></div>
-<div class="line"><a id="l06077" name="l06077"></a><span class="lineno"> 6077</span> </div>
-<div class="line"><a id="l06078" name="l06078"></a><span class="lineno"> 6078</span><span class="comment">!   Y ENTERS AS A SCALED QUANTITY WHOSE MAGNITUDE IS GREATER THAN</span></div>
-<div class="line"><a id="l06079" name="l06079"></a><span class="lineno"> 6079</span><span class="comment">!   EXP(-ALIM) = ASCLE = 1.0E+3*TINY(0.0_dp)/TOL.  THE TEST IS MADE TO SEE</span></div>
-<div class="line"><a id="l06080" name="l06080"></a><span class="lineno"> 6080</span><span class="comment">!   IF THE MAGNITUDE OF THE REAL OR IMAGINARY PART WOULD UNDERFLOW WHEN Y IS</span></div>
-<div class="line"><a id="l06081" name="l06081"></a><span class="lineno"> 6081</span><span class="comment">!   SCALED (BY TOL) TO ITS PROPER VALUE.  Y IS ACCEPTED IF THE UNDERFLOW IS AT</span></div>
-<div class="line"><a id="l06082" name="l06082"></a><span class="lineno"> 6082</span><span class="comment">!   LEAST ONE PRECISION BELOW THE MAGNITUDE OF THE LARGEST COMPONENT; OTHERWISE</span></div>
-<div class="line"><a id="l06083" name="l06083"></a><span class="lineno"> 6083</span><span class="comment">!   THE PHASE ANGLE DOES NOT HAVE ABSOLUTE ACCURACY AND AN UNDERFLOW IS ASSUMED.</span></div>
-<div class="line"><a id="l06084" name="l06084"></a><span class="lineno"> 6084</span> </div>
-<div class="line"><a id="l06085" name="l06085"></a><span class="lineno"> 6085</span><span class="comment">!***ROUTINES CALLED  (NONE)</span></div>
-<div class="line"><a id="l06086" name="l06086"></a><span class="lineno"> 6086</span><span class="comment">!***END PROLOGUE  CUCHK</span></div>
-<div class="line"><a id="l06087" name="l06087"></a><span class="lineno"> 6087</span> </div>
-<div class="line"><a id="l06088" name="l06088"></a><span class="lineno"> 6088</span><span class="keywordtype">COMPLEX (dp)</span>, <span class="keywordtype">INTENT(IN)</span>  :: y</div>
-<div class="line"><a id="l06089" name="l06089"></a><span class="lineno"> 6089</span><span class="keywordtype">INTEGER</span>, <span class="keywordtype">INTENT(OUT)</span>      :: nz</div>
-<div class="line"><a id="l06090" name="l06090"></a><span class="lineno"> 6090</span>real(dp), <span class="keywordtype">INTENT(IN)</span>     :: ascle</div>
-<div class="line"><a id="l06091" name="l06091"></a><span class="lineno"> 6091</span>real(dp), <span class="keywordtype">INTENT(IN)</span>     :: tol</div>
-<div class="line"><a id="l06092" name="l06092"></a><span class="lineno"> 6092</span> </div>
-<div class="line"><a id="l06093" name="l06093"></a><span class="lineno"> 6093</span>real(dp)  :: ss, st, yr, yi</div>
-<div class="line"><a id="l06094" name="l06094"></a><span class="lineno"> 6094</span> </div>
-<div class="line"><a id="l06095" name="l06095"></a><span class="lineno"> 6095</span>nz = 0</div>
-<div class="line"><a id="l06096" name="l06096"></a><span class="lineno"> 6096</span>yr = real(y, kind=dp)</div>
-<div class="line"><a id="l06097" name="l06097"></a><span class="lineno"> 6097</span>yi = aimag(y)</div>
-<div class="line"><a id="l06098" name="l06098"></a><span class="lineno"> 6098</span>yr = abs(yr)</div>
-<div class="line"><a id="l06099" name="l06099"></a><span class="lineno"> 6099</span>yi = abs(yi)</div>
-<div class="line"><a id="l06100" name="l06100"></a><span class="lineno"> 6100</span>st = min(yr, yi)</div>
-<div class="line"><a id="l06101" name="l06101"></a><span class="lineno"> 6101</span><span class="keywordflow">IF</span> (st &gt; ascle) <span class="keywordflow">RETURN</span></div>
-<div class="line"><a id="l06102" name="l06102"></a><span class="lineno"> 6102</span>ss = max(yr, yi)</div>
-<div class="line"><a id="l06103" name="l06103"></a><span class="lineno"> 6103</span>st = st / tol</div>
-<div class="line"><a id="l06104" name="l06104"></a><span class="lineno"> 6104</span><span class="keywordflow">IF</span> (ss &lt; st) nz = 1</div>
-<div class="line"><a id="l06105" name="l06105"></a><span class="lineno"> 6105</span><span class="keywordflow">RETURN</span></div>
-<div class="line"><a id="l06106" name="l06106"></a><span class="lineno"> 6106</span><span class="keyword">END SUBROUTINE </span>cuchk</div>
-<div class="line"><a id="l06107" name="l06107"></a><span class="lineno"> 6107</span> </div>
+<div class="line"><a id="l06074" name="l06074"></a><span class="lineno"> 6074</span> </div>
+<div class="line"><a id="l06075" name="l06075"></a><span class="lineno"> 6075</span><span class="keyword">SUBROUTINE </span>cuchk(y, nz, ascle, tol)</div>
+<div class="line"><a id="l06076" name="l06076"></a><span class="lineno"> 6076</span><span class="comment">!***BEGIN PROLOGUE  CUCHK</span></div>
+<div class="line"><a id="l06077" name="l06077"></a><span class="lineno"> 6077</span><span class="comment">!***REFER TO CSERI,CUOIK,CUNK1,CUNK2,CUNI1,CUNI2,CKSCL</span></div>
+<div class="line"><a id="l06078" name="l06078"></a><span class="lineno"> 6078</span> </div>
+<div class="line"><a id="l06079" name="l06079"></a><span class="lineno"> 6079</span><span class="comment">!   Y ENTERS AS A SCALED QUANTITY WHOSE MAGNITUDE IS GREATER THAN</span></div>
+<div class="line"><a id="l06080" name="l06080"></a><span class="lineno"> 6080</span><span class="comment">!   EXP(-ALIM) = ASCLE = 1.0E+3*TINY(0.0_dp)/TOL.  THE TEST IS MADE TO SEE</span></div>
+<div class="line"><a id="l06081" name="l06081"></a><span class="lineno"> 6081</span><span class="comment">!   IF THE MAGNITUDE OF THE REAL OR IMAGINARY PART WOULD UNDERFLOW WHEN Y IS</span></div>
+<div class="line"><a id="l06082" name="l06082"></a><span class="lineno"> 6082</span><span class="comment">!   SCALED (BY TOL) TO ITS PROPER VALUE.  Y IS ACCEPTED IF THE UNDERFLOW IS AT</span></div>
+<div class="line"><a id="l06083" name="l06083"></a><span class="lineno"> 6083</span><span class="comment">!   LEAST ONE PRECISION BELOW THE MAGNITUDE OF THE LARGEST COMPONENT; OTHERWISE</span></div>
+<div class="line"><a id="l06084" name="l06084"></a><span class="lineno"> 6084</span><span class="comment">!   THE PHASE ANGLE DOES NOT HAVE ABSOLUTE ACCURACY AND AN UNDERFLOW IS ASSUMED.</span></div>
+<div class="line"><a id="l06085" name="l06085"></a><span class="lineno"> 6085</span> </div>
+<div class="line"><a id="l06086" name="l06086"></a><span class="lineno"> 6086</span><span class="comment">!***ROUTINES CALLED  (NONE)</span></div>
+<div class="line"><a id="l06087" name="l06087"></a><span class="lineno"> 6087</span><span class="comment">!***END PROLOGUE  CUCHK</span></div>
+<div class="line"><a id="l06088" name="l06088"></a><span class="lineno"> 6088</span> </div>
+<div class="line"><a id="l06089" name="l06089"></a><span class="lineno"> 6089</span><span class="keywordtype">COMPLEX (dp)</span>, <span class="keywordtype">INTENT(IN)</span>  :: y</div>
+<div class="line"><a id="l06090" name="l06090"></a><span class="lineno"> 6090</span><span class="keywordtype">INTEGER</span>, <span class="keywordtype">INTENT(OUT)</span>      :: nz</div>
+<div class="line"><a id="l06091" name="l06091"></a><span class="lineno"> 6091</span>real(dp), <span class="keywordtype">INTENT(IN)</span>     :: ascle</div>
+<div class="line"><a id="l06092" name="l06092"></a><span class="lineno"> 6092</span>real(dp), <span class="keywordtype">INTENT(IN)</span>     :: tol</div>
+<div class="line"><a id="l06093" name="l06093"></a><span class="lineno"> 6093</span> </div>
+<div class="line"><a id="l06094" name="l06094"></a><span class="lineno"> 6094</span>real(dp)  :: ss, st, yr, yi</div>
+<div class="line"><a id="l06095" name="l06095"></a><span class="lineno"> 6095</span> </div>
+<div class="line"><a id="l06096" name="l06096"></a><span class="lineno"> 6096</span>nz = 0</div>
+<div class="line"><a id="l06097" name="l06097"></a><span class="lineno"> 6097</span>yr = real(y, kind=dp)</div>
+<div class="line"><a id="l06098" name="l06098"></a><span class="lineno"> 6098</span>yi = aimag(y)</div>
+<div class="line"><a id="l06099" name="l06099"></a><span class="lineno"> 6099</span>yr = abs(yr)</div>
+<div class="line"><a id="l06100" name="l06100"></a><span class="lineno"> 6100</span>yi = abs(yi)</div>
+<div class="line"><a id="l06101" name="l06101"></a><span class="lineno"> 6101</span>st = min(yr, yi)</div>
+<div class="line"><a id="l06102" name="l06102"></a><span class="lineno"> 6102</span><span class="keywordflow">IF</span> (st &gt; ascle) <span class="keywordflow">RETURN</span></div>
+<div class="line"><a id="l06103" name="l06103"></a><span class="lineno"> 6103</span>ss = max(yr, yi)</div>
+<div class="line"><a id="l06104" name="l06104"></a><span class="lineno"> 6104</span>st = st / tol</div>
+<div class="line"><a id="l06105" name="l06105"></a><span class="lineno"> 6105</span><span class="keywordflow">IF</span> (ss &lt; st) nz = 1</div>
+<div class="line"><a id="l06106" name="l06106"></a><span class="lineno"> 6106</span><span class="keywordflow">RETURN</span></div>
+<div class="line"><a id="l06107" name="l06107"></a><span class="lineno"> 6107</span><span class="keyword">END SUBROUTINE </span>cuchk</div>
 <div class="line"><a id="l06108" name="l06108"></a><span class="lineno"> 6108</span> </div>
 <div class="line"><a id="l06109" name="l06109"></a><span class="lineno"> 6109</span> </div>
-<div class="line"><a id="l06110" name="l06110"></a><span class="lineno"> 6110</span><span class="keyword">SUBROUTINE </span>cacai(z, fnu, kode, mr, n, y, nz, rl, tol, elim, alim)</div>
-<div class="line"><a id="l06111" name="l06111"></a><span class="lineno"> 6111</span><span class="comment">!***BEGIN PROLOGUE  CACAI</span></div>
-<div class="line"><a id="l06112" name="l06112"></a><span class="lineno"> 6112</span><span class="comment">!***REFER TO  CAIRY</span></div>
-<div class="line"><a id="l06113" name="l06113"></a><span class="lineno"> 6113</span> </div>
-<div class="line"><a id="l06114" name="l06114"></a><span class="lineno"> 6114</span><span class="comment">!  CACAI APPLIES THE ANALYTIC CONTINUATION FORMULA</span></div>
-<div class="line"><a id="l06115" name="l06115"></a><span class="lineno"> 6115</span> </div>
-<div class="line"><a id="l06116" name="l06116"></a><span class="lineno"> 6116</span><span class="comment">!      K(FNU,ZN*EXP(MP)) = K(FNU,ZN)*EXP(-MP*FNU) - MP*I(FNU,ZN)</span></div>
-<div class="line"><a id="l06117" name="l06117"></a><span class="lineno"> 6117</span><span class="comment">!              MP = PI*MR*CMPLX(0.0,1.0)</span></div>
-<div class="line"><a id="l06118" name="l06118"></a><span class="lineno"> 6118</span> </div>
-<div class="line"><a id="l06119" name="l06119"></a><span class="lineno"> 6119</span><span class="comment">!  TO CONTINUE THE K FUNCTION FROM THE RIGHT HALF TO THE LEFT HALF Z PLANE</span></div>
-<div class="line"><a id="l06120" name="l06120"></a><span class="lineno"> 6120</span><span class="comment">!  FOR USE WITH CAIRY WHERE FNU=1/3 OR 2/3 AND N=1.</span></div>
-<div class="line"><a id="l06121" name="l06121"></a><span class="lineno"> 6121</span><span class="comment">!  CACAI IS THE SAME AS CACON WITH THE PARTS FOR LARGER ORDERS AND</span></div>
-<div class="line"><a id="l06122" name="l06122"></a><span class="lineno"> 6122</span><span class="comment">!  RECURRENCE REMOVED.  A RECURSIVE CALL TO CACON CAN RESULT IF CACON</span></div>
-<div class="line"><a id="l06123" name="l06123"></a><span class="lineno"> 6123</span><span class="comment">!  IS CALLED FROM CAIRY.</span></div>
-<div class="line"><a id="l06124" name="l06124"></a><span class="lineno"> 6124</span> </div>
-<div class="line"><a id="l06125" name="l06125"></a><span class="lineno"> 6125</span><span class="comment">!***ROUTINES CALLED  CASYI,CBKNU,CMLRI,CSERI,CS1S2,R1MACH</span></div>
-<div class="line"><a id="l06126" name="l06126"></a><span class="lineno"> 6126</span><span class="comment">!***END PROLOGUE  CACAI</span></div>
-<div class="line"><a id="l06127" name="l06127"></a><span class="lineno"> 6127</span> </div>
-<div class="line"><a id="l06128" name="l06128"></a><span class="lineno"> 6128</span><span class="keywordtype">COMPLEX (dp)</span>, <span class="keywordtype">INTENT(IN)</span>   :: z</div>
-<div class="line"><a id="l06129" name="l06129"></a><span class="lineno"> 6129</span>real(dp), <span class="keywordtype">INTENT(IN)</span>      :: fnu</div>
-<div class="line"><a id="l06130" name="l06130"></a><span class="lineno"> 6130</span><span class="keywordtype">INTEGER</span>, <span class="keywordtype">INTENT(IN)</span>        :: kode</div>
-<div class="line"><a id="l06131" name="l06131"></a><span class="lineno"> 6131</span><span class="keywordtype">INTEGER</span>, <span class="keywordtype">INTENT(IN OUT)</span>    :: mr</div>
-<div class="line"><a id="l06132" name="l06132"></a><span class="lineno"> 6132</span><span class="keywordtype">INTEGER</span>, <span class="keywordtype">INTENT(IN)</span>        :: n</div>
-<div class="line"><a id="l06133" name="l06133"></a><span class="lineno"> 6133</span><span class="keywordtype">COMPLEX (dp)</span>, <span class="keywordtype">INTENT(OUT)</span>  :: y(n)</div>
-<div class="line"><a id="l06134" name="l06134"></a><span class="lineno"> 6134</span><span class="keywordtype">INTEGER</span>, <span class="keywordtype">INTENT(OUT)</span>       :: nz</div>
-<div class="line"><a id="l06135" name="l06135"></a><span class="lineno"> 6135</span>real(dp), <span class="keywordtype">INTENT(IN)</span>      :: rl</div>
-<div class="line"><a id="l06136" name="l06136"></a><span class="lineno"> 6136</span>real(dp), <span class="keywordtype">INTENT(IN)</span>      :: tol</div>
-<div class="line"><a id="l06137" name="l06137"></a><span class="lineno"> 6137</span>real(dp), <span class="keywordtype">INTENT(IN)</span>      :: elim</div>
-<div class="line"><a id="l06138" name="l06138"></a><span class="lineno"> 6138</span>real(dp), <span class="keywordtype">INTENT(IN)</span>      :: alim</div>
-<div class="line"><a id="l06139" name="l06139"></a><span class="lineno"> 6139</span> </div>
-<div class="line"><a id="l06140" name="l06140"></a><span class="lineno"> 6140</span><span class="keywordtype">COMPLEX (dp)</span>  :: csgn, cspn, c1, c2, zn, cy(2)</div>
-<div class="line"><a id="l06141" name="l06141"></a><span class="lineno"> 6141</span>real(dp)     :: arg, ascle, az, cpn, dfnu, fmr, sgn, spn, yy</div>
-<div class="line"><a id="l06142" name="l06142"></a><span class="lineno"> 6142</span><span class="keywordtype">INTEGER</span>       :: inu, iuf, nn, nw</div>
-<div class="line"><a id="l06143" name="l06143"></a><span class="lineno"> 6143</span>real(dp), <span class="keywordtype">PARAMETER</span>  :: pi = 3.14159265358979324_dp</div>
-<div class="line"><a id="l06144" name="l06144"></a><span class="lineno"> 6144</span> </div>
-<div class="line"><a id="l06145" name="l06145"></a><span class="lineno"> 6145</span>nz = 0</div>
-<div class="line"><a id="l06146" name="l06146"></a><span class="lineno"> 6146</span>zn = -z</div>
-<div class="line"><a id="l06147" name="l06147"></a><span class="lineno"> 6147</span>az = abs(z)</div>
-<div class="line"><a id="l06148" name="l06148"></a><span class="lineno"> 6148</span>nn = n</div>
-<div class="line"><a id="l06149" name="l06149"></a><span class="lineno"> 6149</span>dfnu = fnu + (n-1)</div>
-<div class="line"><a id="l06150" name="l06150"></a><span class="lineno"> 6150</span><span class="keywordflow">IF</span> (az &gt; 2.0_dp) <span class="keywordflow">THEN</span></div>
-<div class="line"><a id="l06151" name="l06151"></a><span class="lineno"> 6151</span>  <span class="keywordflow">IF</span> (az*az*0.25_dp &gt; dfnu+1.0_dp) <span class="keywordflow">GO TO</span> 10</div>
-<div class="line"><a id="l06152" name="l06152"></a><span class="lineno"> 6152</span><span class="keywordflow">END IF</span></div>
-<div class="line"><a id="l06153" name="l06153"></a><span class="lineno"> 6153</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l06154" name="l06154"></a><span class="lineno"> 6154</span><span class="comment">!     POWER SERIES FOR THE I FUNCTION</span></div>
-<div class="line"><a id="l06155" name="l06155"></a><span class="lineno"> 6155</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l06156" name="l06156"></a><span class="lineno"> 6156</span><span class="keyword">CALL </span>cseri(zn, fnu, kode, nn, y, nw, tol, elim, alim)</div>
-<div class="line"><a id="l06157" name="l06157"></a><span class="lineno"> 6157</span><span class="keywordflow">GO TO</span> 20</div>
-<div class="line"><a id="l06158" name="l06158"></a><span class="lineno"> 6158</span> </div>
-<div class="line"><a id="l06159" name="l06159"></a><span class="lineno"> 6159</span>10 <span class="keywordflow">IF</span> (az &gt;= rl) <span class="keywordflow">THEN</span></div>
-<div class="line"><a id="l06160" name="l06160"></a><span class="lineno"> 6160</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l06161" name="l06161"></a><span class="lineno"> 6161</span><span class="comment">!     ASYMPTOTIC EXPANSION FOR LARGE Z FOR THE I FUNCTION</span></div>
-<div class="line"><a id="l06162" name="l06162"></a><span class="lineno"> 6162</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l06163" name="l06163"></a><span class="lineno"> 6163</span>  <span class="keyword">CALL </span>casyi(zn, fnu, kode, nn, y, nw, rl, tol, elim, alim)</div>
-<div class="line"><a id="l06164" name="l06164"></a><span class="lineno"> 6164</span>  <span class="keywordflow">IF</span> (nw &lt; 0) <span class="keywordflow">GO TO</span> 30</div>
-<div class="line"><a id="l06165" name="l06165"></a><span class="lineno"> 6165</span><span class="keywordflow">ELSE</span></div>
-<div class="line"><a id="l06166" name="l06166"></a><span class="lineno"> 6166</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l06167" name="l06167"></a><span class="lineno"> 6167</span><span class="comment">!     MILLER ALGORITHM NORMALIZED BY THE SERIES FOR THE I FUNCTION</span></div>
-<div class="line"><a id="l06168" name="l06168"></a><span class="lineno"> 6168</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l06169" name="l06169"></a><span class="lineno"> 6169</span>  <span class="keyword">CALL </span>cmlri(zn, fnu, kode, nn, y, nw, tol)</div>
-<div class="line"><a id="l06170" name="l06170"></a><span class="lineno"> 6170</span>  <span class="keywordflow">IF</span> (nw &lt; 0) <span class="keywordflow">GO TO</span> 30</div>
-<div class="line"><a id="l06171" name="l06171"></a><span class="lineno"> 6171</span><span class="keywordflow">END IF</span></div>
-<div class="line"><a id="l06172" name="l06172"></a><span class="lineno"> 6172</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l06173" name="l06173"></a><span class="lineno"> 6173</span><span class="comment">!     ANALYTIC CONTINUATION TO THE LEFT HALF PLANE FOR THE K FUNCTION</span></div>
-<div class="line"><a id="l06174" name="l06174"></a><span class="lineno"> 6174</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l06175" name="l06175"></a><span class="lineno"> 6175</span>20 <span class="keyword">CALL </span>cbknu(zn, fnu, kode, 1, cy, nw, tol, elim, alim)</div>
-<div class="line"><a id="l06176" name="l06176"></a><span class="lineno"> 6176</span><span class="keywordflow">IF</span> (nw == 0) <span class="keywordflow">THEN</span></div>
-<div class="line"><a id="l06177" name="l06177"></a><span class="lineno"> 6177</span>  fmr = mr</div>
-<div class="line"><a id="l06178" name="l06178"></a><span class="lineno"> 6178</span>  sgn = -sign(pi, fmr)</div>
-<div class="line"><a id="l06179" name="l06179"></a><span class="lineno"> 6179</span>  csgn = cmplx(0.0_dp, sgn, kind=dp)</div>
-<div class="line"><a id="l06180" name="l06180"></a><span class="lineno"> 6180</span>  <span class="keywordflow">IF</span> (kode /= 1) <span class="keywordflow">THEN</span></div>
-<div class="line"><a id="l06181" name="l06181"></a><span class="lineno"> 6181</span>    yy = -aimag(zn)</div>
-<div class="line"><a id="l06182" name="l06182"></a><span class="lineno"> 6182</span>    cpn = cos(yy)</div>
-<div class="line"><a id="l06183" name="l06183"></a><span class="lineno"> 6183</span>    spn = sin(yy)</div>
-<div class="line"><a id="l06184" name="l06184"></a><span class="lineno"> 6184</span>    csgn = csgn * cmplx(cpn, spn, kind=dp)</div>
-<div class="line"><a id="l06185" name="l06185"></a><span class="lineno"> 6185</span><span class="keywordflow">  END IF</span></div>
-<div class="line"><a id="l06186" name="l06186"></a><span class="lineno"> 6186</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l06187" name="l06187"></a><span class="lineno"> 6187</span><span class="comment">!     CALCULATE CSPN=EXP(FNU*PI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE</span></div>
-<div class="line"><a id="l06188" name="l06188"></a><span class="lineno"> 6188</span><span class="comment">!     WHEN FNU IS LARGE</span></div>
-<div class="line"><a id="l06189" name="l06189"></a><span class="lineno"> 6189</span><span class="comment">!-----------------------------------------------------------------------</span></div>
-<div class="line"><a id="l06190" name="l06190"></a><span class="lineno"> 6190</span>  inu = fnu</div>
-<div class="line"><a id="l06191" name="l06191"></a><span class="lineno"> 6191</span>  arg = (fnu - inu) * sgn</div>
-<div class="line"><a id="l06192" name="l06192"></a><span class="lineno"> 6192</span>  cpn = cos(arg)</div>
-<div class="line"><a id="l06193" name="l06193"></a><span class="lineno"> 6193</span>  spn = sin(arg)</div>
-<div class="line"><a id="l06194" name="l06194"></a><span class="lineno"> 6194</span>  cspn = cmplx(cpn, spn, kind=dp)</div>
-<div class="line"><a id="l06195" name="l06195"></a><span class="lineno"> 6195</span>  <span class="keywordflow">IF</span> (mod(inu,2) == 1) cspn = -cspn</div>
-<div class="line"><a id="l06196" name="l06196"></a><span class="lineno"> 6196</span>  c1 = cy(1)</div>
-<div class="line"><a id="l06197" name="l06197"></a><span class="lineno"> 6197</span>  c2 = y(1)</div>
-<div class="line"><a id="l06198" name="l06198"></a><span class="lineno"> 6198</span>  <span class="keywordflow">IF</span> (kode /= 1) <span class="keywordflow">THEN</span></div>
-<div class="line"><a id="l06199" name="l06199"></a><span class="lineno"> 6199</span>    iuf = 0</div>
-<div class="line"><a id="l06200" name="l06200"></a><span class="lineno"> 6200</span>    ascle = 1.0e+3 * tiny(0.0_dp) / tol</div>
-<div class="line"><a id="l06201" name="l06201"></a><span class="lineno"> 6201</span>    <span class="keyword">CALL </span>cs1s2(zn, c1, c2, nw, ascle, alim, iuf)</div>
-<div class="line"><a id="l06202" name="l06202"></a><span class="lineno"> 6202</span>    nz = nz + nw</div>
-<div class="line"><a id="l06203" name="l06203"></a><span class="lineno"> 6203</span><span class="keywordflow">  END IF</span></div>
-<div class="line"><a id="l06204" name="l06204"></a><span class="lineno"> 6204</span>  y(1) = cspn * c1 + csgn * c2</div>
-<div class="line"><a id="l06205" name="l06205"></a><span class="lineno"> 6205</span>  <span class="keywordflow">RETURN</span></div>
-<div class="line"><a id="l06206" name="l06206"></a><span class="lineno"> 6206</span><span class="keywordflow">END IF</span></div>
-<div class="line"><a id="l06207" name="l06207"></a><span class="lineno"> 6207</span> </div>
-<div class="line"><a id="l06208" name="l06208"></a><span class="lineno"> 6208</span>30 nz = -1</div>
-<div class="line"><a id="l06209" name="l06209"></a><span class="lineno"> 6209</span><span class="keywordflow">IF</span> (nw == -2) nz = -2</div>
-<div class="line"><a id="l06210" name="l06210"></a><span class="lineno"> 6210</span><span class="keywordflow">RETURN</span></div>
-<div class="line"><a id="l06211" name="l06211"></a><span class="lineno"> 6211</span><span class="keyword">END SUBROUTINE </span>cacai</div>
-<div class="line"><a id="l06212" name="l06212"></a><span class="lineno"> 6212</span> </div>
-<div class="line"><a id="l06213" name="l06213"></a><span class="lineno"> 6213</span><span class="keyword">END Module </span>complex_bessel</div>
+<div class="line"><a id="l06110" name="l06110"></a><span class="lineno"> 6110</span> </div>
+<div class="line"><a id="l06111" name="l06111"></a><span class="lineno"> 6111</span><span class="keyword">SUBROUTINE </span>cacai(z, fnu, kode, mr, n, y, nz, rl, tol, elim, alim)</div>
+<div class="line"><a id="l06112" name="l06112"></a><span class="lineno"> 6112</span><span class="comment">!***BEGIN PROLOGUE  CACAI</span></div>
+<div class="line"><a id="l06113" name="l06113"></a><span class="lineno"> 6113</span><span class="comment">!***REFER TO  CAIRY</span></div>
+<div class="line"><a id="l06114" name="l06114"></a><span class="lineno"> 6114</span> </div>
+<div class="line"><a id="l06115" name="l06115"></a><span class="lineno"> 6115</span><span class="comment">!  CACAI APPLIES THE ANALYTIC CONTINUATION FORMULA</span></div>
+<div class="line"><a id="l06116" name="l06116"></a><span class="lineno"> 6116</span> </div>
+<div class="line"><a id="l06117" name="l06117"></a><span class="lineno"> 6117</span><span class="comment">!      K(FNU,ZN*EXP(MP)) = K(FNU,ZN)*EXP(-MP*FNU) - MP*I(FNU,ZN)</span></div>
+<div class="line"><a id="l06118" name="l06118"></a><span class="lineno"> 6118</span><span class="comment">!              MP = PI*MR*CMPLX(0.0,1.0)</span></div>
+<div class="line"><a id="l06119" name="l06119"></a><span class="lineno"> 6119</span> </div>
+<div class="line"><a id="l06120" name="l06120"></a><span class="lineno"> 6120</span><span class="comment">!  TO CONTINUE THE K FUNCTION FROM THE RIGHT HALF TO THE LEFT HALF Z PLANE</span></div>
+<div class="line"><a id="l06121" name="l06121"></a><span class="lineno"> 6121</span><span class="comment">!  FOR USE WITH CAIRY WHERE FNU=1/3 OR 2/3 AND N=1.</span></div>
+<div class="line"><a id="l06122" name="l06122"></a><span class="lineno"> 6122</span><span class="comment">!  CACAI IS THE SAME AS CACON WITH THE PARTS FOR LARGER ORDERS AND</span></div>
+<div class="line"><a id="l06123" name="l06123"></a><span class="lineno"> 6123</span><span class="comment">!  RECURRENCE REMOVED.  A RECURSIVE CALL TO CACON CAN RESULT IF CACON</span></div>
+<div class="line"><a id="l06124" name="l06124"></a><span class="lineno"> 6124</span><span class="comment">!  IS CALLED FROM CAIRY.</span></div>
+<div class="line"><a id="l06125" name="l06125"></a><span class="lineno"> 6125</span> </div>
+<div class="line"><a id="l06126" name="l06126"></a><span class="lineno"> 6126</span><span class="comment">!***ROUTINES CALLED  CASYI,CBKNU,CMLRI,CSERI,CS1S2,R1MACH</span></div>
+<div class="line"><a id="l06127" name="l06127"></a><span class="lineno"> 6127</span><span class="comment">!***END PROLOGUE  CACAI</span></div>
+<div class="line"><a id="l06128" name="l06128"></a><span class="lineno"> 6128</span> </div>
+<div class="line"><a id="l06129" name="l06129"></a><span class="lineno"> 6129</span><span class="keywordtype">COMPLEX (dp)</span>, <span class="keywordtype">INTENT(IN)</span>   :: z</div>
+<div class="line"><a id="l06130" name="l06130"></a><span class="lineno"> 6130</span>real(dp), <span class="keywordtype">INTENT(IN)</span>      :: fnu</div>
+<div class="line"><a id="l06131" name="l06131"></a><span class="lineno"> 6131</span><span class="keywordtype">INTEGER</span>, <span class="keywordtype">INTENT(IN)</span>        :: kode</div>
+<div class="line"><a id="l06132" name="l06132"></a><span class="lineno"> 6132</span><span class="keywordtype">INTEGER</span>, <span class="keywordtype">INTENT(IN OUT)</span>    :: mr</div>
+<div class="line"><a id="l06133" name="l06133"></a><span class="lineno"> 6133</span><span class="keywordtype">INTEGER</span>, <span class="keywordtype">INTENT(IN)</span>        :: n</div>
+<div class="line"><a id="l06134" name="l06134"></a><span class="lineno"> 6134</span><span class="keywordtype">COMPLEX (dp)</span>, <span class="keywordtype">INTENT(OUT)</span>  :: y(n)</div>
+<div class="line"><a id="l06135" name="l06135"></a><span class="lineno"> 6135</span><span class="keywordtype">INTEGER</span>, <span class="keywordtype">INTENT(OUT)</span>       :: nz</div>
+<div class="line"><a id="l06136" name="l06136"></a><span class="lineno"> 6136</span>real(dp), <span class="keywordtype">INTENT(IN)</span>      :: rl</div>
+<div class="line"><a id="l06137" name="l06137"></a><span class="lineno"> 6137</span>real(dp), <span class="keywordtype">INTENT(IN)</span>      :: tol</div>
+<div class="line"><a id="l06138" name="l06138"></a><span class="lineno"> 6138</span>real(dp), <span class="keywordtype">INTENT(IN)</span>      :: elim</div>
+<div class="line"><a id="l06139" name="l06139"></a><span class="lineno"> 6139</span>real(dp), <span class="keywordtype">INTENT(IN)</span>      :: alim</div>
+<div class="line"><a id="l06140" name="l06140"></a><span class="lineno"> 6140</span> </div>
+<div class="line"><a id="l06141" name="l06141"></a><span class="lineno"> 6141</span><span class="keywordtype">COMPLEX (dp)</span>  :: csgn, cspn, c1, c2, zn, cy(2)</div>
+<div class="line"><a id="l06142" name="l06142"></a><span class="lineno"> 6142</span>real(dp)     :: arg, ascle, az, cpn, dfnu, fmr, sgn, spn, yy</div>
+<div class="line"><a id="l06143" name="l06143"></a><span class="lineno"> 6143</span><span class="keywordtype">INTEGER</span>       :: inu, iuf, nn, nw</div>
+<div class="line"><a id="l06144" name="l06144"></a><span class="lineno"> 6144</span>real(dp), <span class="keywordtype">PARAMETER</span>  :: pi = 3.14159265358979324_dp</div>
+<div class="line"><a id="l06145" name="l06145"></a><span class="lineno"> 6145</span> </div>
+<div class="line"><a id="l06146" name="l06146"></a><span class="lineno"> 6146</span>nz = 0</div>
+<div class="line"><a id="l06147" name="l06147"></a><span class="lineno"> 6147</span>zn = -z</div>
+<div class="line"><a id="l06148" name="l06148"></a><span class="lineno"> 6148</span>az = abs(z)</div>
+<div class="line"><a id="l06149" name="l06149"></a><span class="lineno"> 6149</span>nn = n</div>
+<div class="line"><a id="l06150" name="l06150"></a><span class="lineno"> 6150</span>dfnu = fnu + (n-1)</div>
+<div class="line"><a id="l06151" name="l06151"></a><span class="lineno"> 6151</span><span class="keywordflow">IF</span> (az &gt; 2.0_dp) <span class="keywordflow">THEN</span></div>
+<div class="line"><a id="l06152" name="l06152"></a><span class="lineno"> 6152</span>  <span class="keywordflow">IF</span> (az*az*0.25_dp &gt; dfnu+1.0_dp) <span class="keywordflow">GO TO</span> 10</div>
+<div class="line"><a id="l06153" name="l06153"></a><span class="lineno"> 6153</span><span class="keywordflow">END IF</span></div>
+<div class="line"><a id="l06154" name="l06154"></a><span class="lineno"> 6154</span><span class="comment">!-----------------------------------------------------------------------</span></div>
+<div class="line"><a id="l06155" name="l06155"></a><span class="lineno"> 6155</span><span class="comment">!     POWER SERIES FOR THE I FUNCTION</span></div>
+<div class="line"><a id="l06156" name="l06156"></a><span class="lineno"> 6156</span><span class="comment">!-----------------------------------------------------------------------</span></div>
+<div class="line"><a id="l06157" name="l06157"></a><span class="lineno"> 6157</span><span class="keyword">CALL </span>cseri(zn, fnu, kode, nn, y, nw, tol, elim, alim)</div>
+<div class="line"><a id="l06158" name="l06158"></a><span class="lineno"> 6158</span><span class="keywordflow">GO TO</span> 20</div>
+<div class="line"><a id="l06159" name="l06159"></a><span class="lineno"> 6159</span> </div>
+<div class="line"><a id="l06160" name="l06160"></a><span class="lineno"> 6160</span>10 <span class="keywordflow">IF</span> (az &gt;= rl) <span class="keywordflow">THEN</span></div>
+<div class="line"><a id="l06161" name="l06161"></a><span class="lineno"> 6161</span><span class="comment">!-----------------------------------------------------------------------</span></div>
+<div class="line"><a id="l06162" name="l06162"></a><span class="lineno"> 6162</span><span class="comment">!     ASYMPTOTIC EXPANSION FOR LARGE Z FOR THE I FUNCTION</span></div>
+<div class="line"><a id="l06163" name="l06163"></a><span class="lineno"> 6163</span><span class="comment">!-----------------------------------------------------------------------</span></div>
+<div class="line"><a id="l06164" name="l06164"></a><span class="lineno"> 6164</span>  <span class="keyword">CALL </span>casyi(zn, fnu, kode, nn, y, nw, rl, tol, elim, alim)</div>
+<div class="line"><a id="l06165" name="l06165"></a><span class="lineno"> 6165</span>  <span class="keywordflow">IF</span> (nw &lt; 0) <span class="keywordflow">GO TO</span> 30</div>
+<div class="line"><a id="l06166" name="l06166"></a><span class="lineno"> 6166</span><span class="keywordflow">ELSE</span></div>
+<div class="line"><a id="l06167" name="l06167"></a><span class="lineno"> 6167</span><span class="comment">!-----------------------------------------------------------------------</span></div>
+<div class="line"><a id="l06168" name="l06168"></a><span class="lineno"> 6168</span><span class="comment">!     MILLER ALGORITHM NORMALIZED BY THE SERIES FOR THE I FUNCTION</span></div>
+<div class="line"><a id="l06169" name="l06169"></a><span class="lineno"> 6169</span><span class="comment">!-----------------------------------------------------------------------</span></div>
+<div class="line"><a id="l06170" name="l06170"></a><span class="lineno"> 6170</span>  <span class="keyword">CALL </span>cmlri(zn, fnu, kode, nn, y, nw, tol)</div>
+<div class="line"><a id="l06171" name="l06171"></a><span class="lineno"> 6171</span>  <span class="keywordflow">IF</span> (nw &lt; 0) <span class="keywordflow">GO TO</span> 30</div>
+<div class="line"><a id="l06172" name="l06172"></a><span class="lineno"> 6172</span><span class="keywordflow">END IF</span></div>
+<div class="line"><a id="l06173" name="l06173"></a><span class="lineno"> 6173</span><span class="comment">!-----------------------------------------------------------------------</span></div>
+<div class="line"><a id="l06174" name="l06174"></a><span class="lineno"> 6174</span><span class="comment">!     ANALYTIC CONTINUATION TO THE LEFT HALF PLANE FOR THE K FUNCTION</span></div>
+<div class="line"><a id="l06175" name="l06175"></a><span class="lineno"> 6175</span><span class="comment">!-----------------------------------------------------------------------</span></div>
+<div class="line"><a id="l06176" name="l06176"></a><span class="lineno"> 6176</span>20 <span class="keyword">CALL </span>cbknu(zn, fnu, kode, 1, cy, nw, tol, elim, alim)</div>
+<div class="line"><a id="l06177" name="l06177"></a><span class="lineno"> 6177</span><span class="keywordflow">IF</span> (nw == 0) <span class="keywordflow">THEN</span></div>
+<div class="line"><a id="l06178" name="l06178"></a><span class="lineno"> 6178</span>  fmr = mr</div>
+<div class="line"><a id="l06179" name="l06179"></a><span class="lineno"> 6179</span>  sgn = -sign(pi, fmr)</div>
+<div class="line"><a id="l06180" name="l06180"></a><span class="lineno"> 6180</span>  csgn = cmplx(0.0_dp, sgn, kind=dp)</div>
+<div class="line"><a id="l06181" name="l06181"></a><span class="lineno"> 6181</span>  <span class="keywordflow">IF</span> (kode /= 1) <span class="keywordflow">THEN</span></div>
+<div class="line"><a id="l06182" name="l06182"></a><span class="lineno"> 6182</span>    yy = -aimag(zn)</div>
+<div class="line"><a id="l06183" name="l06183"></a><span class="lineno"> 6183</span>    cpn = cos(yy)</div>
+<div class="line"><a id="l06184" name="l06184"></a><span class="lineno"> 6184</span>    spn = sin(yy)</div>
+<div class="line"><a id="l06185" name="l06185"></a><span class="lineno"> 6185</span>    csgn = csgn * cmplx(cpn, spn, kind=dp)</div>
+<div class="line"><a id="l06186" name="l06186"></a><span class="lineno"> 6186</span><span class="keywordflow">  END IF</span></div>
+<div class="line"><a id="l06187" name="l06187"></a><span class="lineno"> 6187</span><span class="comment">!-----------------------------------------------------------------------</span></div>
+<div class="line"><a id="l06188" name="l06188"></a><span class="lineno"> 6188</span><span class="comment">!     CALCULATE CSPN=EXP(FNU*PI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE</span></div>
+<div class="line"><a id="l06189" name="l06189"></a><span class="lineno"> 6189</span><span class="comment">!     WHEN FNU IS LARGE</span></div>
+<div class="line"><a id="l06190" name="l06190"></a><span class="lineno"> 6190</span><span class="comment">!-----------------------------------------------------------------------</span></div>
+<div class="line"><a id="l06191" name="l06191"></a><span class="lineno"> 6191</span>  inu = int(fnu)</div>
+<div class="line"><a id="l06192" name="l06192"></a><span class="lineno"> 6192</span>  arg = (fnu - inu) * sgn</div>
+<div class="line"><a id="l06193" name="l06193"></a><span class="lineno"> 6193</span>  cpn = cos(arg)</div>
+<div class="line"><a id="l06194" name="l06194"></a><span class="lineno"> 6194</span>  spn = sin(arg)</div>
+<div class="line"><a id="l06195" name="l06195"></a><span class="lineno"> 6195</span>  cspn = cmplx(cpn, spn, kind=dp)</div>
+<div class="line"><a id="l06196" name="l06196"></a><span class="lineno"> 6196</span>  <span class="keywordflow">IF</span> (mod(inu,2) == 1) cspn = -cspn</div>
+<div class="line"><a id="l06197" name="l06197"></a><span class="lineno"> 6197</span>  c1 = cy(1)</div>
+<div class="line"><a id="l06198" name="l06198"></a><span class="lineno"> 6198</span>  c2 = y(1)</div>
+<div class="line"><a id="l06199" name="l06199"></a><span class="lineno"> 6199</span>  <span class="keywordflow">IF</span> (kode /= 1) <span class="keywordflow">THEN</span></div>
+<div class="line"><a id="l06200" name="l06200"></a><span class="lineno"> 6200</span>    iuf = 0</div>
+<div class="line"><a id="l06201" name="l06201"></a><span class="lineno"> 6201</span>    ascle = 1.0e+3 * tiny(0.0_dp) / tol</div>
+<div class="line"><a id="l06202" name="l06202"></a><span class="lineno"> 6202</span>    <span class="keyword">CALL </span>cs1s2(zn, c1, c2, nw, ascle, alim, iuf)</div>
+<div class="line"><a id="l06203" name="l06203"></a><span class="lineno"> 6203</span>    nz = nz + nw</div>
+<div class="line"><a id="l06204" name="l06204"></a><span class="lineno"> 6204</span><span class="keywordflow">  END IF</span></div>
+<div class="line"><a id="l06205" name="l06205"></a><span class="lineno"> 6205</span>  y(1) = cspn * c1 + csgn * c2</div>
+<div class="line"><a id="l06206" name="l06206"></a><span class="lineno"> 6206</span>  <span class="keywordflow">RETURN</span></div>
+<div class="line"><a id="l06207" name="l06207"></a><span class="lineno"> 6207</span><span class="keywordflow">END IF</span></div>
+<div class="line"><a id="l06208" name="l06208"></a><span class="lineno"> 6208</span> </div>
+<div class="line"><a id="l06209" name="l06209"></a><span class="lineno"> 6209</span>30 nz = -1</div>
+<div class="line"><a id="l06210" name="l06210"></a><span class="lineno"> 6210</span><span class="keywordflow">IF</span> (nw == -2) nz = -2</div>
+<div class="line"><a id="l06211" name="l06211"></a><span class="lineno"> 6211</span><span class="keywordflow">RETURN</span></div>
+<div class="line"><a id="l06212" name="l06212"></a><span class="lineno"> 6212</span><span class="keyword">END SUBROUTINE </span>cacai</div>
+<div class="line"><a id="l06213" name="l06213"></a><span class="lineno"> 6213</span> </div>
+<div class="line"><a id="l06214" name="l06214"></a><span class="lineno"> 6214</span><span class="keyword">END Module </span>complex_bessel</div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

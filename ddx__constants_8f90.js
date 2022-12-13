@@ -9,7 +9,6 @@ var ddx__constants_8f90 =
     [ "constants_geometry_init", "ddx__constants_8f90.html#a80200d281b336be4a46d6a7a814ac68f", null ],
     [ "neighbor_list_init", "ddx__constants_8f90.html#aa5e10536476b0d3169af304c60e915c5", null ],
     [ "neighbor_list_init_fmm", "ddx__constants_8f90.html#a39690fd2a69ba9e97b60f95a80c039d1", null ],
-    [ "constants_geometry_update", "ddx__constants_8f90.html#a99966e53ca6aff99228ca3a99fef13b6", null ],
     [ "fsw", "ddx__constants_8f90.html#abb0c060445e3b2d40b770eda26d20fdb", null ],
     [ "dfsw", "ddx__constants_8f90.html#a66fd73de84672f0f78f4c9c4e2c620b5", null ],
     [ "mkprec", "ddx__constants_8f90.html#a5d1fc3f2c16984ceaa0e1ed9de8fb548", null ],

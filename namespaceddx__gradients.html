@@ -113,24 +113,24 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:aefec7f2fa9ee7ac358d0eb9476fcef2d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#aefec7f2fa9ee7ac358d0eb9476fcef2d">contract_grad_u</a> (params, constants, isph, xi, phi, fx)</td></tr>
 <tr class="memdesc:aefec7f2fa9ee7ac358d0eb9476fcef2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gradient of the characteristic function U.  <a href="namespaceddx__gradients.html#aefec7f2fa9ee7ac358d0eb9476fcef2d">More...</a><br /></td></tr>
 <tr class="separator:aefec7f2fa9ee7ac358d0eb9476fcef2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1b063543b53d8ba088f081b913bd426b"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a1b063543b53d8ba088f081b913bd426b">contract_grad_b</a> (params, constants, workspace, isph, Xe, Xadj_e, basloc, dbasloc, vplm, vcos, vsin, force)</td></tr>
-<tr class="memdesc:a1b063543b53d8ba088f081b913bd426b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute contraction of B matrix.  <a href="namespaceddx__gradients.html#a1b063543b53d8ba088f081b913bd426b">More...</a><br /></td></tr>
-<tr class="separator:a1b063543b53d8ba088f081b913bd426b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a260eabcd4aae98089d7ef6d1857615e6"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a260eabcd4aae98089d7ef6d1857615e6">contract_grad_b</a> (params, constants, isph, Xe, Xadj_e, force)</td></tr>
+<tr class="memdesc:a260eabcd4aae98089d7ef6d1857615e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute contraction of B matrix.  <a href="namespaceddx__gradients.html#a260eabcd4aae98089d7ef6d1857615e6">More...</a><br /></td></tr>
+<tr class="separator:a260eabcd4aae98089d7ef6d1857615e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a515e26a6bcd464a24d86bda4ceedba18"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a515e26a6bcd464a24d86bda4ceedba18">contract_grad_c</a> (params, constants, workspace, Xr, Xe, Xadj_r_sgrid, Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re)</td></tr>
 <tr class="memdesc:a515e26a6bcd464a24d86bda4ceedba18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute contraction of C matrix.  <a href="namespaceddx__gradients.html#a515e26a6bcd464a24d86bda4ceedba18">More...</a><br /></td></tr>
 <tr class="separator:a515e26a6bcd464a24d86bda4ceedba18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad4ebe541e1bca0cac433506b1cd7bcf"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#aad4ebe541e1bca0cac433506b1cd7bcf">contract_grad_f</a> (params, constants, workspace, sol_adj, sol_sgrid, gradpsi, normal_hessian_cav, icav_g, force)</td></tr>
 <tr class="memdesc:aad4ebe541e1bca0cac433506b1cd7bcf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute contraction of F0.  <a href="namespaceddx__gradients.html#aad4ebe541e1bca0cac433506b1cd7bcf">More...</a><br /></td></tr>
 <tr class="separator:aad4ebe541e1bca0cac433506b1cd7bcf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:affdb3a7493b628d5507c13a3b7d6d91d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#affdb3a7493b628d5507c13a3b7d6d91d">contract_gradi_bik</a> (params, constants, workspace, isph, Xe, Xadj_e, basloc, dbasloc, vplm, vcos, vsin, force)</td></tr>
-<tr class="memdesc:affdb3a7493b628d5507c13a3b7d6d91d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute K^A counterpart for the HSP equation. Similar to contract_gradi_Lik.  <a href="namespaceddx__gradients.html#affdb3a7493b628d5507c13a3b7d6d91d">More...</a><br /></td></tr>
-<tr class="separator:affdb3a7493b628d5507c13a3b7d6d91d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9b0427e251a4cde52d6fd44fcf41448"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#ab9b0427e251a4cde52d6fd44fcf41448">contract_gradi_bji</a> (params, constants, workspace, isph, Xe, Xadj_e, basloc, dbasloc, vplm, vcos, vsin, force)</td></tr>
-<tr class="memdesc:ab9b0427e251a4cde52d6fd44fcf41448"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute K^A+K^C counterpart for the HSP equation. Similar to contract_gradi_Lji.  <a href="namespaceddx__gradients.html#ab9b0427e251a4cde52d6fd44fcf41448">More...</a><br /></td></tr>
-<tr class="separator:ab9b0427e251a4cde52d6fd44fcf41448"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac49c7c19c2c37a741ffbbd35bc98d0a8"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#ac49c7c19c2c37a741ffbbd35bc98d0a8">contract_grad_c_worker1</a> (params, constants, workspace, Xr, Xe, Xadj_r_sgrid, Xadj_e_sgrid, diff_re, force)</td></tr>
-<tr class="memdesc:ac49c7c19c2c37a741ffbbd35bc98d0a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to calculate the third derivative term in C1_C2 matrix, namely the derivative of PU_i.  <a href="namespaceddx__gradients.html#ac49c7c19c2c37a741ffbbd35bc98d0a8">More...</a><br /></td></tr>
-<tr class="separator:ac49c7c19c2c37a741ffbbd35bc98d0a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad379dee7e9faa47f7a2647fc2009e736"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#ad379dee7e9faa47f7a2647fc2009e736">contract_gradi_bik</a> (params, constants, isph, Xe, Xadj_e, force)</td></tr>
+<tr class="memdesc:ad379dee7e9faa47f7a2647fc2009e736"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute K^A counterpart for the HSP equation. Similar to contract_gradi_Lik.  <a href="namespaceddx__gradients.html#ad379dee7e9faa47f7a2647fc2009e736">More...</a><br /></td></tr>
+<tr class="separator:ad379dee7e9faa47f7a2647fc2009e736"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a83971467e6e5e1667a85376a59ec9bd9"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a83971467e6e5e1667a85376a59ec9bd9">contract_gradi_bji</a> (params, constants, isph, Xe, Xadj_e, force)</td></tr>
+<tr class="memdesc:a83971467e6e5e1667a85376a59ec9bd9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute K^A+K^C counterpart for the HSP equation. Similar to contract_gradi_Lji.  <a href="namespaceddx__gradients.html#a83971467e6e5e1667a85376a59ec9bd9">More...</a><br /></td></tr>
+<tr class="separator:a83971467e6e5e1667a85376a59ec9bd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98e0df5fe06047b93ea5112864e24fc1"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a98e0df5fe06047b93ea5112864e24fc1">contract_grad_c_worker1</a> (params, constants, workspace, Xadj_r_sgrid, Xadj_e_sgrid, diff_re, force)</td></tr>
+<tr class="memdesc:a98e0df5fe06047b93ea5112864e24fc1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to calculate the third derivative term in C1_C2 matrix, namely the derivative of PU_i.  <a href="namespaceddx__gradients.html#a98e0df5fe06047b93ea5112864e24fc1">More...</a><br /></td></tr>
+<tr class="separator:a98e0df5fe06047b93ea5112864e24fc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab8d5b2b919b878bd8237c34988c821eb"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#ab8d5b2b919b878bd8237c34988c821eb">contract_grad_c_worker2</a> (params, constants, workspace, Xr, Xe, Xadj_r_sgrid, Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re)</td></tr>
 <tr class="memdesc:ab8d5b2b919b878bd8237c34988c821eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute the derivative of U_i(x_in) and \bf{k}^j_l0(x_in)Y^j_l0m0(x_in)  <a href="namespaceddx__gradients.html#ab8d5b2b919b878bd8237c34988c821eb">More...</a><br /></td></tr>
 <tr class="separator:ab8d5b2b919b878bd8237c34988c821eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -140,9 +140,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:a5c1341f69bbd723942f522045b749e21"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a5c1341f69bbd723942f522045b749e21">contract_grad_f_worker2</a> (params, constants, workspace, sol_sgrid, gradpsi, normal_hessian_cav, icav_g, force)</td></tr>
 <tr class="memdesc:a5c1341f69bbd723942f522045b749e21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to calculate the derivative of C_{0l0m0}^j.  <a href="namespaceddx__gradients.html#a5c1341f69bbd723942f522045b749e21">More...</a><br /></td></tr>
 <tr class="separator:a5c1341f69bbd723942f522045b749e21"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a59ddff41fe3794cd357f1deb4f8f983a"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a59ddff41fe3794cd357f1deb4f8f983a">contract_grad_f_worker3</a> (params, constants, workspace, ksph, phi_n, force)</td></tr>
-<tr class="memdesc:a59ddff41fe3794cd357f1deb4f8f983a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute derivative of potential at spheres.  <a href="namespaceddx__gradients.html#a59ddff41fe3794cd357f1deb4f8f983a">More...</a><br /></td></tr>
-<tr class="separator:a59ddff41fe3794cd357f1deb4f8f983a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55b8d0d9d34f2d388368541ce20de879"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a55b8d0d9d34f2d388368541ce20de879">contract_grad_f_worker3</a> (params, constants, ksph, phi_n, force)</td></tr>
+<tr class="memdesc:a55b8d0d9d34f2d388368541ce20de879"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute derivative of potential at spheres.  <a href="namespaceddx__gradients.html#a55b8d0d9d34f2d388368541ce20de879">More...</a><br /></td></tr>
+<tr class="separator:a55b8d0d9d34f2d388368541ce20de879"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Core routines and parameters specific to gradients. </p>
@@ -466,8 +466,8 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
-<a id="a1b063543b53d8ba088f081b913bd426b" name="a1b063543b53d8ba088f081b913bd426b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1b063543b53d8ba088f081b913bd426b">&#9670;&nbsp;</a></span>contract_grad_b()</h2>
+<a id="a260eabcd4aae98089d7ef6d1857615e6" name="a260eabcd4aae98089d7ef6d1857615e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a260eabcd4aae98089d7ef6d1857615e6">&#9670;&nbsp;</a></span>contract_grad_b()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -483,12 +483,6 @@ Functions/Subroutines</h2></td></tr>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
           <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -511,36 +505,6 @@ Functions/Subroutines</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
-          <td class="paramname"><em>basloc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, constants % nbasis), intent(inout)&#160;</td>
-          <td class="paramname"><em>dbasloc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
-          <td class="paramname"><em>vplm</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
-          <td class="paramname"><em>vcos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
-          <td class="paramname"><em>vsin</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">real(dp), dimension(3), intent(inout)&#160;</td>
           <td class="paramname"><em>force</em>&#160;</td>
         </tr>
@@ -557,21 +521,15 @@ Functions/Subroutines</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">isph</td><td>: Index of sphere </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Xe</td><td>: Solution vector Xe </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_e</td><td>: Adjoint solution on evaluated on grid points Xadj_e_sgrid </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">basloc</td><td>: Spherical harmonics Y_lm </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">dbasloc</td><td>: Derivative of spherical harmonics \nabla^i(Y_lm) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">vplm</td><td>: Argument to call ylmbas </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">vcos</td><td>: Argument to call ylmbas </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">vsin</td><td>: Argument to call ylmbas </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force of adjoint part </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00260">260</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00254">254</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -676,7 +634,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00297">297</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00284">284</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -763,12 +721,12 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00328">328</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00315">315</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
-<a id="affdb3a7493b628d5507c13a3b7d6d91d" name="affdb3a7493b628d5507c13a3b7d6d91d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#affdb3a7493b628d5507c13a3b7d6d91d">&#9670;&nbsp;</a></span>contract_gradi_bik()</h2>
+<a id="ad379dee7e9faa47f7a2647fc2009e736" name="ad379dee7e9faa47f7a2647fc2009e736"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad379dee7e9faa47f7a2647fc2009e736">&#9670;&nbsp;</a></span>contract_gradi_bik()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -784,12 +742,6 @@ Functions/Subroutines</h2></td></tr>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
           <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -812,36 +764,6 @@ Functions/Subroutines</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
-          <td class="paramname"><em>basloc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, constants % nbasis), intent(inout)&#160;</td>
-          <td class="paramname"><em>dbasloc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
-          <td class="paramname"><em>vplm</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
-          <td class="paramname"><em>vcos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
-          <td class="paramname"><em>vsin</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">real(dp), dimension(3), intent(inout)&#160;</td>
           <td class="paramname"><em>force</em>&#160;</td>
         </tr>
@@ -858,26 +780,20 @@ Functions/Subroutines</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">isph</td><td>: Index of sphere </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Xe</td><td>: Solution vector Xe </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_e</td><td>: Adjoint solution on evaluated on grid points Xadj_e_sgrid </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">basloc</td><td>: Spherical harmonics Y_lm </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">dbasloc</td><td>: Derivative of spherical harmonics \nabla^i(Y_lm) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">vplm</td><td>: Argument to call ylmbas </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">vcos</td><td>: Argument to call ylmbas </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">vsin</td><td>: Argument to call ylmbas </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00363">363</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00344">344</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
-<a id="ab9b0427e251a4cde52d6fd44fcf41448" name="ab9b0427e251a4cde52d6fd44fcf41448"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab9b0427e251a4cde52d6fd44fcf41448">&#9670;&nbsp;</a></span>contract_gradi_bji()</h2>
+<a id="a83971467e6e5e1667a85376a59ec9bd9" name="a83971467e6e5e1667a85376a59ec9bd9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a83971467e6e5e1667a85376a59ec9bd9">&#9670;&nbsp;</a></span>contract_gradi_bji()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -897,12 +813,6 @@ Functions/Subroutines</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">integer, intent(in)&#160;</td>
           <td class="paramname"><em>isph</em>, </td>
         </tr>
@@ -917,36 +827,6 @@ Functions/Subroutines</h2></td></tr>
           <td></td>
           <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
           <td class="paramname"><em>Xadj_e</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
-          <td class="paramname"><em>basloc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, constants % nbasis), intent(inout)&#160;</td>
-          <td class="paramname"><em>dbasloc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis), intent(inout)&#160;</td>
-          <td class="paramname"><em>vplm</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
-          <td class="paramname"><em>vcos</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(params % lmax+1), intent(inout)&#160;</td>
-          <td class="paramname"><em>vsin</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -971,22 +851,17 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">isph</td><td>: Index of sphere </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Xe</td><td>: Solution vector Xe </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_e</td><td>: Adjoint solution on evaluated on grid points Xadj_e_sgrid </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">basloc</td><td>: Spherical harmonics Y_lm </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">dbasloc</td><td>: Derivative of spherical harmonics \nabla^i(Y_lm) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">vplm</td><td>: Argument to call ylmbas </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">vcos</td><td>: Argument to call ylmbas </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">vsin</td><td>: Argument to call ylmbas </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force of adjoint part </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00457">457</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00428">428</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
-<a id="ac49c7c19c2c37a741ffbbd35bc98d0a8" name="ac49c7c19c2c37a741ffbbd35bc98d0a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac49c7c19c2c37a741ffbbd35bc98d0a8">&#9670;&nbsp;</a></span>contract_grad_c_worker1()</h2>
+<a id="a98e0df5fe06047b93ea5112864e24fc1" name="a98e0df5fe06047b93ea5112864e24fc1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98e0df5fe06047b93ea5112864e24fc1">&#9670;&nbsp;</a></span>contract_grad_c_worker1()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1008,18 +883,6 @@ Functions/Subroutines</h2></td></tr>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
           <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>Xr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>Xe</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1059,8 +922,6 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">Xr</td><td>: Solution of the Laplace problem </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">Xe</td><td>: Solution of the HSP problem </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_r_sgrid</td><td>: Adjoint Laplace solution evaluated at grid point </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Xadj_e_sgrid</td><td>: Adjoint HSP solution evaluated at grid point </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">diff_re</td><td>: l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm' </td></tr>
@@ -1069,7 +930,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00597">597</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00561">561</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -1175,7 +1036,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00880">880</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00844">844</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -1250,7 +1111,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01263">1263</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01217">1217</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -1332,12 +1193,12 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01623">1623</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01568">1568</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
-<a id="a59ddff41fe3794cd357f1deb4f8f983a" name="a59ddff41fe3794cd357f1deb4f8f983a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a59ddff41fe3794cd357f1deb4f8f983a">&#9670;&nbsp;</a></span>contract_grad_f_worker3()</h2>
+<a id="a55b8d0d9d34f2d388368541ce20de879" name="a55b8d0d9d34f2d388368541ce20de879"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a55b8d0d9d34f2d388368541ce20de879">&#9670;&nbsp;</a></span>contract_grad_f_worker3()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1353,12 +1214,6 @@ Functions/Subroutines</h2></td></tr>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
           <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1391,7 +1246,6 @@ Functions/Subroutines</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">phi_n</td><td>: phi_n^j </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ksph</td><td>: Derivative with respect to x_k </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force </td></tr>
@@ -1399,7 +1253,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01851">1851</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01795">1795</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
