@@ -80,8 +80,8 @@ subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     character(len=255), intent(inout) :: error_message
     real(dp), allocatable  :: tmp_m_grad(:, :, :), vscales(:), &
         & vscales_rel(:), v4pi2lp1(:), tmp_m_hess(:, :, :, :), tmp(:, :)
-    integer icav, im, l, m, i, info, indi, indj
-    real(dp) :: v, ex, ey, ez, c(3), tmp1, tmp2, gxx, gxy, gxz, gyy, gyz, gzz
+    integer icav, im, info
+    real(dp) :: v, ex, ey, ez, c(3), gxx, gxy, gxz, gyy, gyz, gzz
 
     ! allocate some space for the M2M gradients and precompute
     ! the quantities for the m2p
@@ -234,8 +234,8 @@ subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     ! local variables
     real(dp), allocatable  :: tmp_m_grad(:, :, :), vscales(:), &
         & vscales_rel(:), v4pi2lp1(:)
-    integer icav, im, l, m, i, info, indi, indj
-    real(dp) :: v, ex, ey, ez, c(3), tmp1, tmp2
+    integer icav, im, info
+    real(dp) :: v, ex, ey, ez, c(3)
 
     ! allocate some space for the M2M gradients and precompute
     ! the quantities for the m2p
@@ -338,8 +338,8 @@ subroutine build_phi_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     integer, intent(inout) :: error_flag
     character(len=255), intent(inout) :: error_message
     ! local variables
-    integer icav, im, l, m, i, info
-    real(dp) :: r, v, c(3)
+    integer icav, im, info
+    real(dp) :: v, c(3)
     real(dp), allocatable :: vscales(:), vscales_rel(:), v4pi2lp1(:)
 
     ! precompute the quantities for the m2p
@@ -396,9 +396,7 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
     ! local variables
     integer :: info, isph, igrid, inode, jnode, jsph, jnear, icav
     real(dp) :: ex, ey, ez, c(3)
-    real(dp), allocatable :: tmp_m_grad(:, :, :), tmp(:, :), &
-        & grid_grad(:, :, :)
-    real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
+    real(dp), allocatable :: tmp_m_grad(:, :, :), grid_grad(:, :, :)
 
     allocate(tmp_m_grad((mmax + 2)**2, 3, params % nsph), &
         & grid_grad(params % ngrid, 3, params % nsph), stat=info)
@@ -540,19 +538,15 @@ end subroutine build_phi_fmm
 !> Given a multipolar distribution, assemble the RHS psi.
 !> The multipoles must be centered on the ddx spheres.
 !! @param[in] params: ddx parameters
-!! @param[in] constants: ddx constants
-!! @param[inout] workspace: ddx workspace
 !! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2,nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
 !! @param[out] psi: RHS for adjoint linear systems,
 !!     size ((lmax+1)**2,nsph), the internal lmax should be >= mmax
 !!
-subroutine build_psi(params, constants, workspace, multipoles, mmax, psi)
+subroutine build_psi(params, multipoles, mmax, psi)
     implicit none
     type(ddx_params_type), intent(in) :: params
-    type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax+1)**2, params % nsph)
     real(dp), intent(out) :: psi((params % lmax+1)**2, params % nsph)
@@ -727,9 +721,8 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
     real(dp), intent(inout) :: forces(3, params % nsph)
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     ! local variables
-    integer :: isph, igrid, icav, info, im, lm
+    integer :: isph, igrid, icav, info
     real(dp), allocatable :: field(:, :)
-    real(dp) :: ex, ey, ez, c(3), r2, r, r3
 
     ! get some space for the adjoint potential, note that we need it
     ! up to mmax + 1 as we are doing derivatives
@@ -881,7 +874,6 @@ subroutine build_adj_phi(params, constants, workspace, charges, mmax, adj_phi)
     integer, intent(in) :: mmax
     real(dp), intent(in) :: charges(constants % ncav)
     real(dp), intent(out) :: adj_phi((mmax + 1)**2, params % nsph)
-    integer :: isph, lm
     if (params % fmm .eq. 0) then
         call build_adj_phi_dense(charges, constants % ccav, constants % ncav, &
             & params % csph, mmax, params % nsph, adj_phi, &
@@ -968,7 +960,7 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
     real(dp), intent(out) :: adj_phi((mmax + 1)**2, params % nsph)
     ! local variables
     real(dp), allocatable :: tmp_grid(:, :), sph_m(:, :), work(:)
-    integer :: info, icav, isph, igrid, inode, indl, l, indl1, jnear, &
+    integer :: info, icav, isph, igrid, inode, indl, l, jnear, &
         & jnode, jsph, m, ind
     real(dp) :: c(3), fac
 

@@ -245,10 +245,10 @@ subroutine constants_init(params, constants)
     !! Outputs
     type(ddx_constants_type), intent(out) :: constants
     !! Local variables
-    integer :: i, alloc_size, l, indl, igrid, isph, ind, icav, l0, m0, ind0, &
-        & jsph, ibasis, ibasis0, NZ, ierr, info, tmp_pmax
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, termi, termk, term, rijn, &
-        & sijn(3), vij(3), val, s1, s2
+    integer :: i, alloc_size, l, indl, igrid, isph, l0, &
+        & NZ, ierr, info, tmp_pmax
+    real(dp) :: rho, ctheta, stheta, cphi, sphi, termi, termk, &
+        & s1, s2
     real(dp), allocatable :: vplm(:), vcos(:), vsin(:), vylm(:), SK_rijn(:), &
         & DK_rijn(:)
     complex(dp), allocatable :: bessel_work(:)
@@ -757,10 +757,10 @@ subroutine constants_geometry_init(params, constants)
     !! Outputs
     type(ddx_constants_type), intent(inout) :: constants
     !! Local variables
-    real(dp) :: swthr, v(3), maxv, ssqv, vv, r, t
+    real(dp) :: swthr, v(3), maxv, ssqv, vv, t
     integer :: i, isph, jsph, inear, igrid, iwork, jwork, lwork, &
         & old_lwork, icav, info
-    integer, allocatable :: tmp_nl(:), work(:, :), tmp_work(:, :)
+    integer, allocatable :: work(:, :), tmp_work(:, :)
     real(dp) :: start_time
     !! The code
     ! Prepare FMM structures if needed
@@ -1245,29 +1245,6 @@ subroutine neighbor_list_init_fmm(params, constants)
     constants % nngmax = nngmax
 end subroutine neighbor_list_init_fmm
 
-!> Update geometry-related constants like list of neighbouring spheres
-!!
-!! This procedure simply deletes current geometry constants and initializes new
-!! ones.
-!!
-!! @param[in] params: Object containing all inputs.
-!! @param[inout] constants: Object containing all constants.
-!! @param[out] info: flag of succesfull exit
-!!      = 0: Succesfull exit
-!!      = -1: params is in error state
-!!      = 1: Allocation of memory failed.
-subroutine constants_geometry_update(params, constants)
-    !! Inputs
-    type(ddx_params_type), intent(in) :: params
-    !! Outputs
-    type(ddx_constants_type), intent(out) :: constants
-    !! Local variables
-    !! The code
-    ! Enforce error for now (not yet implemented)
-    constants % error_message = 'constants geometry update is not yet implemented'
-    constants % error_flag = 1
-end subroutine constants_geometry_update
-
 !> Switching function
 !!
 !! This is an implementation of \f$ \chi(t) \f$ with a shift \f$ se \f$:
@@ -1388,7 +1365,7 @@ subroutine mkprec(lmax, nbasis, nsph, ngrid, eps, ui, wgrid, vgrid, &
     integer, intent(out) :: info
     character(len=255), intent(out) :: error_message
     !! Local variables
-    integer :: isph, lm, ind, l1, m1, ind1, igrid
+    integer :: isph, lm, l1, m1, ind1, igrid
     real(dp)  :: f, f1
     integer, allocatable :: ipiv(:)
     real(dp),  allocatable :: work(:)
@@ -1486,7 +1463,7 @@ subroutine tree_rib_build(nsph, csph, rsph, order, cluster, children, parent, &
     character(len=255), intent(out) :: error_message
     ! Local variables
     integer :: nclusters, i, j, n, s, e, div
-    real(dp) :: r, r1, r2, c(3), c1(3), c2(3), d, maxc, ssqc
+    real(dp) :: r, r1, r2, c(3), c1(3), c2(3), d, maxc
     !! At first construct the tree
     nclusters = 2*nsph - 1
     ! Init the root node
@@ -1736,7 +1713,11 @@ subroutine tree_get_farnear_work(n, children, cnode, rnode, lwork, iwork, &
         r = rnode(j(1)) + rnode(j(2)) + max(rnode(j(1)), rnode(j(2)))
         !r = rnode(j(1)) + rnode(j(2))
         dmax = max(abs(c(1)), abs(c(2)), abs(c(3)))
-        dssq = (c(1)/dmax)**2 + (c(2)/dmax)**2 + (c(3)/dmax)**2
+        if (dmax .gt. 0) then
+            dssq = (c(1)/dmax)**2 + (c(2)/dmax)**2 + (c(3)/dmax)**2
+        else
+            dssq = zero
+        end if
         d = dmax * sqrt(dssq)
         !d = sqrt(c(1)**2 + c(2)**2 + c(3)**2)
         ! If node has no children then assume itself for purpose of finding

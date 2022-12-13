@@ -8,7 +8,7 @@ subroutine build_matrix(params, constants, workspace, n, matrix, matvec)
     real(dp), intent(out) :: matrix(n, n)
     external :: matvec
     real(dp), allocatable :: scr1(:), scr2(:)
-    integer :: i, j, istat
+    integer :: i, istat
     allocate(scr1(n), scr2(n), stat=istat)
     if (istat.ne.0) stop 1
     do i = 1, n

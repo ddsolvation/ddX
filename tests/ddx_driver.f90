@@ -19,11 +19,10 @@ implicit none
 character(len=255) :: finname, foutname, tmpstr
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
-integer :: iprint
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
     & hessianphi_cav(:, :, :), psi(:, :), force(:, :)
 real(dp) :: tol, threshold, esolv, esolv2, fnorm, fdiff, ftmp(3)
-integer :: i, j, isph, istatus
+integer :: i, isph, istatus
 real(dp), external :: dnrm2
 
 ! Read input file name

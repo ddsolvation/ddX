@@ -26,7 +26,7 @@ integer :: phi_flag=1, grad_flag=1, hessian_flag=1
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
     & hessianphi_cav(:, :, :), psi(:, :), force(:, :)
 real(dp) :: tol, esolv, start_time, finish_time
-integer :: i, j, isph
+integer :: i, isph
 
 ! Read input file name
 call getarg(1, fname)

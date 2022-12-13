@@ -116,22 +116,18 @@ end subroutine ddlpb_adjoint
 !! @param[in] constants      : Precomputed constants
 !! @param[inout] workspace   : Preallocated workspaces
 !! @param[inout] state       : Solutions and relevant quantities
-!! @param[in] phi_cav        : Electric potential at the grid points
 !! @param[in] gradphi_cav    : Electric field at the grid points
 !! @param[in] hessianphi_cav : Electric field gradient at the grid points
-!! @param[in] psi            : Representation of the solute's density
 !! @param[out] force         : Geometrical contribution to the forces
 !!
-subroutine ddlpb_force(params, constants, workspace, state, phi_cav, &
-        & gradphi_cav, hessianphi_cav, psi, force)
+subroutine ddlpb_force(params, constants, workspace, state, &
+        & gradphi_cav, hessianphi_cav, force)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
-    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     real(dp), intent(in) :: hessianphi_cav(3, 3, constants % ncav)
     real(dp), intent(out) :: force(3, params % nsph)
 
@@ -145,7 +141,9 @@ subroutine ddlpb_guess(params, constants, state)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(inout) :: state
-    ! TODO
+    ! TODO: this is a place holder for a proper implementation
+    if ((params % error_flag .eq. 0) .or. (constants % error_flag .eq. 0) &
+        .or. (state % error_flag .eq. 0)) continue
 end subroutine ddlpb_guess
 
 !!
@@ -186,8 +184,8 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     if(params % force .eq. 1) then
         call ddlpb_adjoint(params, constants, workspace, state, psi, tol)
         if (workspace % error_flag .eq. 1) return
-        call ddlpb_force(params, constants, workspace, state, phi_cav, &
-            & gradphi_cav, hessianphi_cav, psi, force)
+        call ddlpb_force(params, constants, workspace, state, &
+            & gradphi_cav, hessianphi_cav, force)
         if (workspace % error_flag .eq. 1) return
     endif
 
@@ -363,11 +361,8 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     real(dp), allocatable :: ef(:,:), xadj_r_sgrid(:,:), xadj_e_sgrid(:,:), &
         & normal_hessian_cav(:,:), diff_re(:,:), scaled_xr(:,:)
     integer :: isph, icav, icav_gr, icav_ge, igrid, istat
-    integer :: i, inode, jnear, inear, jnode, jsph
+    integer :: i, inode, jnear, jnode, jsph
     real(dp), external :: ddot, dnrm2
-    real(dp) :: tcontract_gradi_Lik, tcontract_gradi_Lji, &
-        & tcontract_gradi_Bik, tcontract_gradi_Bji, tcontract_grad_U, &
-        & tcontract_grad_C_worker1, tcontract_grad_C_worker2
     real(dp) :: d(3), dnorm, tmp1, tmp2
 
     allocate(ef(3, params % nsph), &
@@ -427,8 +422,8 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
             & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
         ! Compute B^k*Xadj_e
-        call contract_grad_B(params, constants, workspace, isph, x(:,:,2), &
-            & Xadj_e_sgrid, basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
+        call contract_grad_B(params, constants, isph, x(:,:,2), &
+            & Xadj_e_sgrid, force(:, isph))
         ! Computation of G0
         call contract_grad_U(params, constants, isph, Xadj_r_sgrid, phi_grid, &
             & force(:, isph))
