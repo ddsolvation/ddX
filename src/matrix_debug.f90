@@ -14,6 +14,7 @@ subroutine build_matrix(params, constants, workspace, n, matrix, matvec)
     do i = 1, n
         scr1 = zero
         scr1(i) = one
+        scr2 = zero
         call matvec(params, constants, workspace, scr1, scr2)
         matrix(i,:) = scr2
     end do

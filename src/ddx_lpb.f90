@@ -217,12 +217,17 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
 
     real(dp), allocatable :: rhs(:,:,:)
 
+    real(dp) :: matrix(constants % nbasis*params % nsph, &
+        & constants % nbasis*params % nsph)
+
     allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
     if (istat.ne.0) then
         workspace % error_message = 'Allocation failed in ddlpb_solve_worker'
         workspace % error_flag = 1
         return
     end if
+
+    call test_new_rhs(params, constants, workspace, phi_cav, gradphi_cav)
 
     ! set the initial convergence for the microiterations, it will be
     ! adjusted depending on the external one
@@ -258,8 +263,30 @@ subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
     call ddintegrate(params % nsph, constants % nbasis, &
         & params % ngrid, constants % vwgrid, &
         & constants % vgrid_nbasis, f_lpb, rhs(:,:,2))
-    rhs(:,:,1) = rhs(:,:,1) + rhs(:,:,2)
 
+    write(6,*) 'old'
+    write(6,*) rhs(:,:,2)
+
+    constants % dodiag = .true.
+    call build_matrix(params, constants, workspace, &
+        & constants % nbasis*params % nsph, matrix, dkappax)
+    call print_matrix('dkappax', constants % nbasis*params % nsph, &
+        & constants % nbasis*params % nsph, matrix)
+    constants % dodiag = .false.
+
+    rhs(:,:,2) = zero
+    constants % dodiag = .true.
+    rhs(:,:,1) = one
+    call dkappax(params, constants, workspace, rhs(:,:,1), rhs(:,:,2))
+    constants % dodiag = .false.
+
+    rhs(:,:,2) = (rhs(:,:,1)*twopi - rhs(:,:,2))*params % epsp/params % eps
+
+    write(6,*) 'new'
+    write(6,*) rhs(:,:,2)
+    stop
+
+    rhs(:,:,1) = rhs(:,:,1) + rhs(:,:,2)
     ! guess
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
@@ -560,5 +587,68 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     force_time = finish_time - start_time
 
 end subroutine ddlpb_force_worker
+
+subroutine compute_normal_field(constants, cav_field, cav_normal_field)
+    implicit none
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(in) :: cav_field(3, constants % ncav)
+    real(dp), intent(out) :: cav_normal_field(constants % ncav)
+
+    integer :: icav
+
+    do icav = 1, constants % ncav
+        cav_normal_field(icav) = &
+            & cav_field(1, icav)*constants % cgrid(1, icav) &
+            & + cav_field(2, icav)*constants % cgrid(2, icav) &
+            & + cav_field(3, icav)*constants % cgrid(3, icav)
+    end do
+
+end subroutine compute_normal_field
+
+subroutine test_new_rhs(params, constants, workspace, cav_pot, cav_field)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: cav_pot(constants % ncav)
+    real(dp), intent(in) :: cav_field(3, constants % ncav)
+
+    real(dp), allocatable :: phi(:, :), f(:, :), dn_phi(:, :), &
+        & normal_field(:)
+
+    allocate(phi(constants % nbasis, params % nsph), &
+        & f(constants % nbasis, params % nsph), &
+        & dn_phi(constants % nbasis, params % nsph), &
+        & normal_field(constants % ncav))
+
+    constants % dodiag = .true.
+
+    call cav_to_spherical(params, constants, workspace, cav_pot, &
+        & phi)
+
+    call compute_normal_field(constants, cav_field, normal_field)
+    call cav_to_spherical(params, constants, workspace, normal_field, &
+        & dn_phi)
+
+    write(6,*) "Intermediate nd_phi"
+    write(6,*) dn_phi
+
+    call skappax(params, constants, workspace, dn_phi, f)
+    f = - f*params % epsp/params % eps/fourpi
+
+    write(6,*) "S_\kappa \partial_n Phi"
+    write(6,*) f
+
+    f = zero
+    call dkappax(params, constants, workspace, phi, f)
+    f = (twopi*phi - f)*params % epsp/params % eps/(two*fourpi)
+
+    write(6,*) "(2\pi - D_\kappa) Phi"
+    write(6,*) f
+
+    constants % dodiag = .false.
+
+    deallocate(phi, f, dn_phi, normal_field)
+end subroutine test_new_rhs
 
 end module ddx_lpb

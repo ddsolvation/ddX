@@ -71,6 +71,9 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
         end do
     end do
 
+    write(6,*) "Intermediate nd_phi"
+    write(6,*) c0
+
     ! Computation of F0 using above terms
     ! icav: External grid poitns
     if (params % fmm .eq. 0) then

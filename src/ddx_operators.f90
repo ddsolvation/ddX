@@ -1671,5 +1671,97 @@ subroutine cx(params, constants, workspace, x, y)
 
 end subroutine cx
 
-end module ddx_operators
+subroutine dkappax(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
+    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
 
+    integer :: isph, jsph, its, l, m, ind
+    real(dp) :: a, b, termi, termk
+
+    do isph = 1, params % nsph
+        do jsph = 1, params % nsph
+            if (jsph.ne.isph) then
+                stop "Off diagonal not implemented"
+            else if (constants % dodiag) then
+                do its = 1, params % ngrid
+
+                    a = zero
+                    do l = 0, params % lmax
+                        ind = l*l + l + 1
+                        termi = constants % di_ri(l, isph) &
+                            & /constants % si_ri(l, isph)
+                        termk = constants % dk_ri(l, isph) &
+                            & /constants % sk_ri(l, isph)
+                        b = (termi + termk)/(termi - termk)
+                        do m = -l, l
+                            a = a + b*constants % vgrid(ind+m, its) &
+                                & *x(ind+m, isph)
+                        end do
+                    end do
+                    a = a*twopi*constants % ui(its, isph) &
+                        & *constants % wgrid(its)
+
+                    do l = 0, params % lmax
+                        ind = l*l + l + 1
+                        do m = -l, l
+                            y(ind+m, isph) = y(ind+m, isph) &
+                                & + a*constants % vgrid(ind+m, its)
+                        end do
+                    end do
+                end do
+            end if
+        end do
+    end do
+end subroutine dkappax
+
+subroutine skappax(params, constants, workspace, x, y)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    real(dp), intent(in) :: x(constants % nbasis, params % nsph)
+    real(dp), intent(out) :: y(constants % nbasis, params % nsph)
+
+    integer :: isph, jsph, its, l, m, ind
+    real(dp) :: a, b, termi, termk
+
+    do isph = 1, params % nsph
+        do jsph = 1, params % nsph
+            if (jsph.ne.isph) then
+                stop "Off diagonal not implemented"
+            else if (constants % dodiag) then
+                do its = 1, params % ngrid
+
+                    a = zero
+                    do l = 0, params % lmax
+                        ind = l*l + l + 1
+                        termi = constants % di_ri(l, isph)/constants % si_ri(l, isph)
+                        termk = constants % dk_ri(l, isph)/constants % sk_ri(l, isph)
+                        b = constants % c_ik(l, isph)
+                        b = one/(termi - termk)/params % kappa
+                        do m = -l, l
+                            a = a + b*constants % vgrid(ind+m, its) &
+                                & *x(ind+m, isph)
+                        end do
+                    end do
+                    a = a*fourpi*constants % ui(its, isph) &
+                        & *constants % wgrid(its)
+
+                    do l = 0, params % lmax
+                        ind = l*l + l + 1
+                        do m = -l, l
+                            y(ind+m, isph) = y(ind+m, isph) &
+                                & + a*constants % vgrid(ind+m, its)
+                        end do
+                    end do
+                end do
+            end if
+        end do
+    end do
+end subroutine skappax
+
+end module ddx_operators
