@@ -303,15 +303,6 @@ subroutine ddlpb_force(params, constants, workspace, state, phi_cav, &
         & state % force_time)
 end subroutine ddlpb_force
 
-subroutine ddlpb_guess(params, constants, state)
-    implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    type(ddx_state_type), intent(inout) :: state
-    ! TODO
-end subroutine ddlpb_guess
-
-
 subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         & phi_grid, gradphi, x, x_adj, zeta, force, force_time)
     type(ddx_params_type), intent(in) :: params
