@@ -138,6 +138,9 @@ type ddx_state_type
     !!
     !! ddLPB quantities
     !!
+    !> ddLPB RHS. Dimension (nbasis, nsph, 2).
+    !! Allocated and used only by the LPB (model=3) model.
+    real(dp), allocatable :: rhs_lpb(:,:,:)
     !> Solution to the ddLPB linear system. Dimension (nbasis, nsph, 2).
     !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: x_lpb(:,:,:)
@@ -552,6 +555,15 @@ subroutine ddx_init_state(params, constants, state)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "ddinit: `x_lpb_rel_diff` " // &
+                & "allocation failed"
+            return
+        end if
+        allocate(state % rhs_lpb(constants % nbasis, &
+            & params % nsph, 2), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "ddinit: `rhs_lpb` " // &
                 & "allocation failed"
             return
         end if
@@ -1033,6 +1045,13 @@ subroutine ddx_free_state(state)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "`f_lpb` deallocation failed!"
+        endif
+    end if
+    if (allocated(state % rhs_lpb)) then
+        deallocate(state % rhs_lpb, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`rhs_lpb` deallocation failed!"
         endif
     end if
 end subroutine ddx_free_state

@@ -71,6 +71,8 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     real(dp), intent(out) :: esolv, force(3, params % nsph)
     real(dp), external :: ddot
 
+    call ddlpb_setup(params, constants, workspace, state, phi_cav, &
+        & gradphi_cav, psi)
     call ddlpb_solve(params, constants, workspace, state, phi_cav, &
         & gradphi_cav, tol)
     if (workspace % error_flag .eq. 1) return
@@ -90,6 +92,65 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     endif
 
 end subroutine ddlpb
+
+!> Given the potential and the electric field at the cavity points,
+!> assemble the RHS for ddLPB
+!!
+!> @ingroup Fortran_interface_ddlpb
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[inout] state: ddx state
+!! @param[in] phi_cav: electrostatic potential at the cavity points
+!! @param[in] gradphi_cav: electrostatic field at the cavity points
+!! @param[in] psi: representation of the solute density
+!!
+subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
+        & gradphi_cav, psi)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav)
+    real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+
+    state % psi = psi
+
+    !! Setting initial values to zero
+    state % g_lpb = zero
+    state % f_lpb = zero
+    state % phi_grid = zero
+
+    ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
+    ! and multiply it by characteristic function at cavity points ui
+    call ddcav_to_grid_work(params % ngrid, params % nsph, &
+        & constants % ncav, constants % icav_ia, &
+        & constants % icav_ja, phi_cav, state % phi_grid)
+    workspace % tmp_cav = phi_cav * constants % ui_cav
+    call ddcav_to_grid_work(params % ngrid, params % nsph, &
+        & constants % ncav, constants % icav_ia, &
+        & constants % icav_ja, workspace % tmp_cav, &
+        & workspace % tmp_grid)
+    state % g_lpb = - workspace % tmp_grid
+
+    ! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
+    call wghpot_f(params, constants, workspace, gradphi_cav, state % f_lpb)
+
+    ! Setting of the local variables
+    state % rhs_lpb = zero
+
+    ! integrate RHS
+    call ddintegrate(params % nsph, constants % nbasis, &
+        & params % ngrid, constants % vwgrid, &
+        & constants % vgrid_nbasis, state % g_lpb, state % rhs_lpb(:,:,1))
+    call ddintegrate(params % nsph, constants % nbasis, &
+        & params % ngrid, constants % vwgrid, &
+        & constants % vgrid_nbasis, state % f_lpb, state % rhs_lpb(:,:,2))
+    state % rhs_lpb(:,:,1) = state % rhs_lpb(:,:,1) + state % rhs_lpb(:,:,2)
+
+end subroutine ddlpb_setup
 
 !> ddLPB solver
 !!
@@ -115,23 +176,7 @@ subroutine ddlpb_solve(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
     real(dp), intent(in) :: tol
-
-    !call ddlpb_solve_worker(params, constants, workspace, &
-    !    & phi_cav, gradphi_cav, state % g_lpb, state % f_lpb, &
-    !    & state % phi_grid, state % x_lpb, state % x_lpb_niter, &
-    !    & state % x_lpb_time, state % x_lpb_rel_diff, tol)
-
-    integer :: istat
     real(dp) :: start_time
-
-    real(dp), allocatable :: rhs(:,:,:)
-
-    allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
-    if (istat.ne.0) then
-        workspace % error_message = 'Allocation failed in ddlpb_solve'
-        workspace % error_flag = 1
-        return
-    end if
 
     ! set the initial convergence for the microiterations, it will be
     ! adjusted depending on the external one
@@ -139,60 +184,22 @@ subroutine ddlpb_solve(params, constants, workspace, state, phi_cav, &
 
     state % x_lpb_niter = params % maxiter
 
-    !! Setting initial values to zero
-    state % g_lpb = zero
-    state % f_lpb = zero
-    state % phi_grid = zero
-
-    ! Unwrap sparsely stored potential at cavity points phi_cav into phi_grid
-    ! and multiply it by characteristic function at cavity points ui
-    call ddcav_to_grid_work(params % ngrid, params % nsph, &
-        & constants % ncav, constants % icav_ia, &
-        & constants % icav_ja, phi_cav, state % phi_grid)
-    workspace % tmp_cav = phi_cav * constants % ui_cav
-    call ddcav_to_grid_work(params % ngrid, params % nsph, &
-        & constants % ncav, constants % icav_ia, &
-        & constants % icav_ja, workspace % tmp_cav, &
-        & workspace % tmp_grid)
-    state % g_lpb = - workspace % tmp_grid
-
-    ! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
-    call wghpot_f(params, constants, workspace, gradphi_cav, state % f_lpb)
-
-    ! Setting of the local variables
-    rhs = zero
-
-    ! integrate RHS
-    call ddintegrate(params % nsph, constants % nbasis, &
-        & params % ngrid, constants % vwgrid, &
-        & constants % vgrid_nbasis, state % g_lpb, rhs(:,:,1))
-    call ddintegrate(params % nsph, constants % nbasis, &
-        & params % ngrid, constants % vwgrid, &
-        & constants % vgrid_nbasis, state % f_lpb, rhs(:,:,2))
-    rhs(:,:,1) = rhs(:,:,1) + rhs(:,:,2)
-
     ! guess
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
-    call prec_tx(params, constants, workspace, rhs, state % x_lpb)
+    call prec_tx(params, constants, workspace, state % rhs_lpb, state % x_lpb)
 
     ! solve LS using Jacobi/DIIS
     start_time = omp_get_wtime()
     call jacobi_diis_external(params, constants, workspace, &
-        & 2*constants % n, tol, rhs, state % x_lpb, state % x_lpb_niter, &
-        & state % x_lpb_rel_diff, cx, prec_tx, rmsnorm)
+        & 2*constants % n, tol, state % rhs_lpb, state % x_lpb, &
+        & state % x_lpb_niter, state % x_lpb_rel_diff, cx, prec_tx, rmsnorm)
     if (workspace % error_flag .ne. 0) then
         workspace % error_message = 'Jacobi solver failed to converge in ddlpb_solve'
         return
     end if
     state % x_lpb_time = omp_get_wtime() - start_time
 
-    deallocate(rhs, stat=istat)
-    if (istat .ne. 0) then
-        workspace % error_message = 'Deallocation failed in ddlpb_solve_worker'
-        workspace % error_flag = 1
-        return
-    end if
 end subroutine ddlpb_solve
 
 
