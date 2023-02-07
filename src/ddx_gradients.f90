@@ -1825,17 +1825,7 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
         end do
     end do
 
-    force = zero
-    do isph = 1, params % nsph
-        call contract_grad_f_worker3(params, constants, workspace, isph, phi_n, force(:, isph))
-    end do
-    write(6,*) 'old forces'
-    write(6,'(3F20.10)') force
-    force = zero
     call contract_grad_f_worker3_fmm(params, constants, workspace, phi_n, force)
-    write(6,*) 'new forces'
-    write(6,'(3F20.10)') force
-    stop
 
     deallocate(phi_n, phi_n2, gradpsi_grid, stat=istat)
     if (istat.ne.0) then

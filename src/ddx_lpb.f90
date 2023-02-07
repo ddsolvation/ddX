@@ -48,6 +48,50 @@ implicit none
 
 contains
 
+!!
+!! A standalone ddLPB calculation happens here
+!! @param[in] ddx_data : dd Data
+!! @param[in] phi      : Boundary conditions
+!! @param[in] psi      : Electrostatic potential vector.
+!! @param[in] gradphi  : Gradient of phi
+!! @param[in] hessianphi  : Hessian of phi
+!! @param[out] esolv   : Electrostatic solvation energy
+!!
+subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
+        & hessianphi_cav, psi, tol, esolv, force)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_cav(constants % ncav), &
+        & gradphi_cav(3, constants % ncav), &
+        & hessianphi_cav(3, 3, constants % ncav), &
+        & psi( constants % nbasis,  params % nsph), tol
+    real(dp), intent(out) :: esolv, force(3, params % nsph)
+    real(dp), external :: ddot
+
+    call ddlpb_solve(params, constants, workspace, state, phi_cav, &
+        & gradphi_cav, tol)
+    if (workspace % error_flag .eq. 1) return
+
+    ! Compute the solvation energy
+    ! note that psi is divided by fourpi
+    esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, psi, 1) &
+        & /fourpi
+
+    ! Get forces if needed
+    if(params % force .eq. 1) then
+        call ddlpb_adjoint(params, constants, workspace, state, psi, tol)
+        if (workspace % error_flag .eq. 1) return
+        call ddlpb_force(params, constants, workspace, state, phi_cav, &
+            & gradphi_cav, hessianphi_cav, psi, force)
+        if (workspace % error_flag .eq. 1) return
+    endif
+
+end subroutine ddlpb
+
+
 !> ddLPB solver
 !!
 !! Wrapper routine for the solution of the direct ddLPB linear
@@ -148,51 +192,6 @@ subroutine ddlpb_guess(params, constants, state)
     type(ddx_state_type), intent(inout) :: state
     ! TODO
 end subroutine ddlpb_guess
-
-!!
-!! A standalone ddLPB calculation happens here
-!! @param[in] ddx_data : dd Data
-!! @param[in] phi      : Boundary conditions
-!! @param[in] psi      : Electrostatic potential vector.
-!! @param[in] gradphi  : Gradient of phi
-!! @param[in] hessianphi  : Hessian of phi
-!! @param[out] esolv   : Electrostatic solvation energy
-!!
-subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
-        & hessianphi_cav, psi, tol, esolv, force)
-    implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(inout) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: phi_cav(constants % ncav), &
-        & gradphi_cav(3, constants % ncav), &
-        & hessianphi_cav(3, 3, constants % ncav), &
-        & psi( constants % nbasis,  params % nsph), tol
-    real(dp), intent(out) :: esolv, force(3, params % nsph)
-    real(dp), external :: ddot
-
-    ! TODO: find a consistent way to do the guess
-
-    call ddlpb_solve(params, constants, workspace, state, phi_cav, &
-        & gradphi_cav, tol)
-    if (workspace % error_flag .eq. 1) return
-
-    ! Compute the solvation energy
-    ! note that psi is divided by fourpi
-    esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, psi, 1) &
-        & /fourpi
-
-    ! Get forces if needed
-    if(params % force .eq. 1) then
-        call ddlpb_adjoint(params, constants, workspace, state, psi, tol)
-        if (workspace % error_flag .eq. 1) return
-        call ddlpb_force(params, constants, workspace, state, phi_cav, &
-            & gradphi_cav, hessianphi_cav, psi, force)
-        if (workspace % error_flag .eq. 1) return
-    endif
-
-end subroutine ddlpb
 
 subroutine ddlpb_solve_worker(params, constants, workspace, phi_cav, &
         & gradphi_cav, g_lpb, f_lpb, phi_grid, x_lpb, x_lpb_niter, &
