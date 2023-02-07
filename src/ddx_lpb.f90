@@ -73,8 +73,7 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
 
     call ddlpb_setup(params, constants, workspace, state, phi_cav, &
         & gradphi_cav, psi)
-    call ddlpb_solve(params, constants, workspace, state, phi_cav, &
-        & gradphi_cav, tol)
+    call ddlpb_solve(params, constants, workspace, state, tol)
     if (workspace % error_flag .eq. 1) return
 
     ! Compute the solvation energy
@@ -166,15 +165,12 @@ end subroutine ddlpb_setup
 !! @param[in] gradphi_cav  : Electric field at the grid points
 !! @param[in] tol          : Tolerance for the iterative solvers
 !!
-subroutine ddlpb_solve(params, constants, workspace, state, phi_cav, &
-        & gradphi_cav, tol)
+subroutine ddlpb_solve(params, constants, workspace, state, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: phi_cav(constants % ncav)
-    real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
     real(dp), intent(in) :: tol
     real(dp) :: start_time
 
