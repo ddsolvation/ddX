@@ -84,13 +84,12 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     if(params % force .eq. 1) then
         call ddlpb_adjoint(params, constants, workspace, state, psi, tol)
         if (workspace % error_flag .eq. 1) return
-        call ddlpb_force(params, constants, workspace, state, phi_cav, &
-            & gradphi_cav, hessianphi_cav, psi, force)
+        call ddlpb_solvation_force_terms(params, constants, workspace, &
+            & state, phi_cav, gradphi_cav, hessianphi_cav, psi, force)
         if (workspace % error_flag .eq. 1) return
     endif
 
 end subroutine ddlpb
-
 
 !> ddLPB solver
 !!
@@ -284,8 +283,8 @@ end subroutine ddlpb_adjoint
 !! @param[in] psi            : Representation of the solute's density
 !! @param[out] force         : Geometrical contribution to the forces
 !!
-subroutine ddlpb_force(params, constants, workspace, state, phi_cav, &
-        & gradphi_cav, hessianphi_cav, psi, force)
+subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
+        & state, phi_cav, gradphi_cav, hessianphi_cav, psi, force)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -297,25 +296,11 @@ subroutine ddlpb_force(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: hessianphi_cav(3, 3, constants % ncav)
     real(dp), intent(out) :: force(3, params % nsph)
 
-    call ddlpb_force_worker(params, constants, workspace, &
-        & hessianphi_cav, state % phi_grid, gradphi_cav, &
-        & state % x_lpb, state % x_adj_lpb, state % zeta, force, &
-        & state % force_time)
-end subroutine ddlpb_force
+    !call ddlpb_force_worker(params, constants, workspace, &
+    !    & hessianphi_cav, state % phi_grid, gradphi_cav, &
+    !    & state % x_lpb, state % x_adj_lpb, state % zeta, force, &
+    !    & state % force_time)
 
-subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
-        & phi_grid, gradphi, x, x_adj, zeta, force, force_time)
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
-
-    real(dp), dimension(3, 3, constants % ncav), intent(in) :: hessian
-    real(dp), dimension(params % ngrid, params % nsph), intent(in) :: phi_grid
-    real(dp), dimension(3, constants % ncav), intent(in) :: gradphi
-    real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x, x_adj
-    real(dp), dimension(3, params % nsph), intent(out) :: force
-    real(dp), intent(out) :: zeta(constants % ncav)
-    real(dp), intent(out) :: force_time
     ! local
     real(dp), dimension(constants % nbasis) :: basloc, vplm
     real(dp), dimension(3, constants % nbasis) :: dbasloc
@@ -364,7 +349,7 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
                 icav = icav + 1
                 do i = 1, 3
                     normal_hessian_cav(:, icav) = normal_hessian_cav(:,icav) +&
-                        & hessian(:,i,icav)*constants % cgrid(i,igrid)
+                        & hessianphi_cav(:,i,icav)*constants % cgrid(i,igrid)
                 end do
             end if
         end do
@@ -372,18 +357,20 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
 
     ! Call dgemm to integrate the adjoint solution on the grid points
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, x_adj(:,:,1), &
-        & constants % nbasis, zero, Xadj_r_sgrid, params % ngrid)
+        & one, constants % vgrid, constants % vgrid_nbasis, &
+        & state % x_adj_lpb(:, :, 1), constants % nbasis, zero, &
+        & Xadj_r_sgrid, params % ngrid)
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, x_adj(:,:,2), &
-        & constants % nbasis, zero, Xadj_e_sgrid, params % ngrid)
+        & one, constants % vgrid, constants % vgrid_nbasis, &
+        & state % x_adj_lpb(:,:,2), constants % nbasis, zero, &
+        & Xadj_e_sgrid, params % ngrid)
 
     ! Scale by the factor of 1/(4Pi/(2l+1))
-    scaled_Xr = x(:,:,1)
+    scaled_Xr = state % x_lpb(:,:,1)
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
     !$omp parallel do default(none) shared(params,constants,workspace, &
-    !$omp scaled_xr,xadj_r_sgrid,x,force,xadj_e_sgrid,phi_grid) &
+    !$omp scaled_xr,xadj_r_sgrid,state,force,xadj_e_sgrid) &
     !$omp private(isph,basloc,dbasloc,vplm,vcos,vsin) &
     !$omp schedule(static,1)
     do isph = 1, params % nsph
@@ -391,16 +378,18 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
             & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
         ! Compute B^k*Xadj_e
-        call contract_grad_B(params, constants, workspace, isph, x(:,:,2), &
-            & Xadj_e_sgrid, basloc, dbasloc, vplm, vcos, vsin, force(:, isph))
+        call contract_grad_B(params, constants, workspace, isph, &
+            & state % x_lpb(:,:,2), Xadj_e_sgrid, basloc, dbasloc, vplm, &
+            & vcos, vsin, force(:, isph))
         ! Computation of G0
-        call contract_grad_U(params, constants, isph, Xadj_r_sgrid, phi_grid, &
-            & force(:, isph))
+        call contract_grad_U(params, constants, isph, Xadj_r_sgrid, &
+            & state % phi_grid, force(:, isph))
     end do
     ! Compute C1 and C2 contributions
     diff_re = zero
-    call contract_grad_C(params, constants, workspace, x(:,:,1), x(:,:,2), &
-        & Xadj_r_sgrid, Xadj_e_sgrid, x_adj(:,:,1), x_adj(:,:,2), force, &
+    call contract_grad_C(params, constants, workspace, state % x_lpb(:,:,1), &
+        & state % x_lpb(:,:,2), Xadj_r_sgrid, Xadj_e_sgrid, &
+        & state % x_adj_lpb(:,:,1), state % x_adj_lpb(:,:,2), force, &
         & diff_re)
     ! Computation of G0 continued
     ! NOTE: contract_grad_U returns a positive summation
@@ -411,12 +400,12 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         do igrid = 1, params % ngrid
             if(constants % ui(igrid, isph) .ne. zero) then
                 icav = icav + 1
-                zeta(icav) = -constants % wgrid(igrid) * &
+                state % zeta(icav) = -constants % wgrid(igrid) * &
                     & constants % ui(igrid, isph) * ddot(constants % nbasis, &
                     & constants % vgrid(1, igrid), 1, &
-                    & x_adj(1, isph, 1), 1)
+                    & state % x_adj_lpb(1, isph, 1), 1)
                 force(:, isph) = force(:, isph) + &
-                    & zeta(icav)*gradphi(:, icav)
+                    & state % zeta(icav)*gradphi_cav(:, icav)
             end if
         end do
     end do
@@ -434,7 +423,7 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
             do igrid = 1, params % ngrid
                 if(constants % ui(igrid, isph) .eq. zero) cycle
                 icav = icav + 1
-                call fmm_p2m(constants % cgrid(:, igrid), zeta(icav), &
+                call fmm_p2m(constants % cgrid(:, igrid), state % zeta(icav), &
                     & one, params % pm, constants % vscales, one, &
                     & workspace % tmp_node_m(:, inode))
             end do
@@ -468,7 +457,7 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
                         & params % csph(:, jsph)
                     dnorm = dnrm2(3, d, 1)
                     workspace % tmp_efld(:, jsph) = workspace % tmp_efld(:, jsph) + &
-                        & zeta(icav)*d/(dnorm**3)
+                        & state % zeta(icav)*d/(dnorm**3)
                 end do
             end do
         end do
@@ -493,8 +482,8 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     ! Naive quadratically scaling implementation
     else
         ! This routines actually computes -grad, not grad
-        call efld(constants % ncav, zeta, constants % ccav, params % nsph, &
-            & params % csph, workspace % tmp_efld)
+        call efld(constants % ncav, state % zeta, constants % ccav, &
+            & params % nsph, params % csph, workspace % tmp_efld)
         do isph = 1, params % nsph
             force(:, isph) = force(:, isph) - &
                 & workspace % tmp_efld(:, isph)*params % charge(isph)
@@ -504,8 +493,10 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
     icav_gr = zero
     icav_ge = zero
     ! Computation of F0
-    call contract_grad_f(params, constants, workspace, x_adj(:,:,1) + x_adj(:,:,2), &
-        & Xadj_r_sgrid + xadj_e_sgrid, gradphi, normal_hessian_cav, icav_gr, force)
+    call contract_grad_f(params, constants, workspace, &
+        & state % x_adj_lpb(:,:,1) + state % x_adj_lpb(:,:,2), &
+        & Xadj_r_sgrid + xadj_e_sgrid, gradphi_cav, normal_hessian_cav, &
+        & icav_gr, force)
     if (workspace % error_flag .eq. 1) return
 
     force = - pt5*force
@@ -518,8 +509,8 @@ subroutine ddlpb_force_worker(params, constants, workspace, hessian, &
         return
     end if
     finish_time = omp_get_wtime()
-    force_time = finish_time - start_time
+    state % force_time = finish_time - start_time
 
-end subroutine ddlpb_force_worker
+end subroutine ddlpb_solvation_force_terms
 
 end module ddx_lpb
