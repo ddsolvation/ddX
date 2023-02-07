@@ -14,48 +14,26 @@ module ddx_lpb
 ! Get ddx-operators
 use ddx_operators
 implicit none
-!!
-!! Logical variables for iterations
-!!
-!! Local variables and their definitions that will be used throughout this file
-!! isph    : Index for the sphere i
-!! jsph    : Index for the sphere j
-!! ksph    : Index for the sphere k
-!! igrid   : Index for the grid points
-!! icav    : Index for the external grid points
-!! ibasis  : Index for the basis
-!! ibasis0 : Index for the fixed basis (nbasis0)
-!! l       : Index for lmax
-!! m       : Index for m:-l,...,l
-!! ind     : l^2 + l + m + 1
-!! l0      : Index for lmax0
-!! m0      : Index for m0:-l0,...,l0
-!! ind0    : l0^2 + l0 + m0 + 1
-!! ineigh  : Index over Row space of neighbors
-!! rijn    : r_j*r_1^j(x_i^n) = |x_i^n-x_j|
-!! tij     : r_1^j(x_i^n)
-!! xij     : chi_j(x_i^n)
-!! oij     : omega^\eta_ijn
-!! vij     : x_i^n-x_j
-!! sij     : e^j(x_i^n)
-!! SI_rijn : Besssel function of first kind for rijn
-!! DI_rijn : Derivative of Bessel function of first kind for rijn
-!! tlow    : Lower bound for switch region
-!! thigh   : Upper bound for switch region
-!! basloc  : Y_lm(s_n)
-!! dbasloc : Derivative of Y_lm(s_n)
-!! i       : Index for dimension x,y,z
+
+!> @defgroup Fortran_interface_ddlpb Fortran interface: ddlpb
 
 contains
 
+!> ddLPB solver
 !!
-!! A standalone ddLPB calculation happens here
-!! @param[in] ddx_data : dd Data
-!! @param[in] phi      : Boundary conditions
-!! @param[in] psi      : Electrostatic potential vector.
-!! @param[in] gradphi  : Gradient of phi
-!! @param[in] hessianphi  : Hessian of phi
-!! @param[out] esolv   : Electrostatic solvation energy
+!! Solves the LPB problem using a domain decomposition approach.
+!!
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[in] phi_cav: Potential at cavity points, size (ncav)
+!! @params[in] gradphi_cav: Electric field at cavity points, size (3, ncav)
+!! @param[in] psi: Representation of the solute potential in spherical
+!!     harmonics, size (nbasis, nsph)
+!! @param[in] tol: Tolerance for the linear system solver
+!! @param[out] esolv: Solvation energy
+!! @param[out] force: Solvation contribution to the forces
 !!
 subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
         & hessianphi_cav, psi, tol, esolv, force)
@@ -72,12 +50,12 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     real(dp), external :: ddot
 
     call ddlpb_setup(params, constants, workspace, state, phi_cav, &
-        & gradphi_cav, psi)
+        & gradphi_cav, psi, tol)
+    call ddlpb_guess(params, constants, workspace, state)
     call ddlpb_solve(params, constants, workspace, state, tol)
     if (workspace % error_flag .eq. 1) return
 
-    ! Compute the solvation energy
-    ! note that psi is divided by fourpi
+    ! Compute the solvation energy, note that psi is divided by fourpi
     esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, psi, 1) &
         & /fourpi
 
@@ -103,17 +81,19 @@ end subroutine ddlpb
 !! @param[in] phi_cav: electrostatic potential at the cavity points
 !! @param[in] gradphi_cav: electrostatic field at the cavity points
 !! @param[in] psi: representation of the solute density
+!! @param[in] tol: tolerance
 !!
 subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
-        & gradphi_cav, psi)
+        & gradphi_cav, psi, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    real(dp), intent(in) :: tol
 
     state % psi = psi
 
@@ -149,7 +129,33 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
         & constants % vgrid_nbasis, state % f_lpb, state % rhs_lpb(:,:,2))
     state % rhs_lpb(:,:,1) = state % rhs_lpb(:,:,1) + state % rhs_lpb(:,:,2)
 
+    ! set the initial convergence for the microiterations, it will be
+    ! adjusted depending on the external one
+    constants % inner_tol =  sqrt(tol)
+
 end subroutine ddlpb_setup
+
+!> Do a guess for the primal ddLPB linear system
+!!
+!> @ingroup Fortran_interface_ddlpb
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!!
+subroutine ddlpb_guess(params, constants, workspace, state)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+
+    ! guess
+    workspace % ddcosmo_guess = zero
+    workspace % hsp_guess = zero
+    call prec_tx(params, constants, workspace, state % rhs_lpb, state % x_lpb)
+
+end subroutine ddlpb_guess
 
 !> ddLPB solver
 !!
@@ -174,16 +180,8 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol)
     real(dp), intent(in) :: tol
     real(dp) :: start_time
 
-    ! set the initial convergence for the microiterations, it will be
-    ! adjusted depending on the external one
-    constants % inner_tol =  sqrt(tol)
-
     state % x_lpb_niter = params % maxiter
 
-    ! guess
-    workspace % ddcosmo_guess = zero
-    workspace % hsp_guess = zero
-    call prec_tx(params, constants, workspace, state % rhs_lpb, state % x_lpb)
 
     ! solve LS using Jacobi/DIIS
     start_time = omp_get_wtime()
@@ -191,7 +189,8 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol)
         & 2*constants % n, tol, state % rhs_lpb, state % x_lpb, &
         & state % x_lpb_niter, state % x_lpb_rel_diff, cx, prec_tx, rmsnorm)
     if (workspace % error_flag .ne. 0) then
-        workspace % error_message = 'Jacobi solver failed to converge in ddlpb_solve'
+        workspace % error_message = 'Jacobi solver failed to converge " // &
+            & "in ddlpb_solve'
         return
     end if
     state % x_lpb_time = omp_get_wtime() - start_time
