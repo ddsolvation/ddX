@@ -51,7 +51,9 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
 
     call ddlpb_setup(params, constants, workspace, state, phi_cav, &
         & gradphi_cav, psi, tol)
+    if (workspace % error_flag .eq. 1) return
     call ddlpb_guess(params, constants, workspace, state)
+    if (workspace % error_flag .eq. 1) return
     call ddlpb_solve(params, constants, workspace, state, tol)
     if (workspace % error_flag .eq. 1) return
 
@@ -61,7 +63,9 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
 
     ! Get forces if needed
     if(params % force .eq. 1) then
-        call ddlpb_adjoint(params, constants, workspace, state, psi, tol)
+        call ddlpb_guess_adjoint(params, constants, workspace, state)
+        if (workspace % error_flag .eq. 1) return
+        call ddlpb_adjoint(params, constants, workspace, state, tol)
         if (workspace % error_flag .eq. 1) return
         call ddlpb_solvation_force_terms(params, constants, workspace, &
             & state, phi_cav, gradphi_cav, hessianphi_cav, psi, force)
@@ -96,6 +100,8 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: tol
 
     state % psi = psi
+    state % rhs_adj_lpb(:, :, 1) = psi/fourpi
+    state % rhs_adj_lpb(:, :, 2) = 0.0d0
 
     !! Setting initial values to zero
     state % g_lpb = zero
@@ -157,18 +163,35 @@ subroutine ddlpb_guess(params, constants, workspace, state)
 
 end subroutine ddlpb_guess
 
-!> ddLPB solver
+!> Do a guess for the adjoint ddLPB linear system
 !!
-!! Wrapper routine for the solution of the direct ddLPB linear
-!! system. It makes the interface easier to implement. If a fine
-!! control is needed, the worker routine should be directly called.
+!> @ingroup Fortran_interface_ddlpb
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: ddx state (contains solutions and RHSs)
 !!
+subroutine ddlpb_guess_adjoint(params, constants, workspace, state)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+
+    workspace % ddcosmo_guess = zero
+    workspace % hsp_guess = zero
+    call prec_tstarx(params, constants, workspace, state % rhs_adj_lpb, &
+        & state % x_adj_lpb)
+
+end subroutine ddlpb_guess_adjoint
+
+!> Solve the ddLPB primal linear system
+!!
+!> @ingroup Fortran_interface_ddlpb
 !! @param[in] params       : General options
 !! @param[in] constants    : Precomputed constants
 !! @param[inout] workspace : Preallocated workspaces
 !! @param[inout] state     : Solutions, guesses and relevant quantities
-!! @param[in] phi_cav      : Electric potential at the grid points
-!! @param[in] gradphi_cav  : Electric field at the grid points
 !! @param[in] tol          : Tolerance for the iterative solvers
 !!
 subroutine ddlpb_solve(params, constants, workspace, state, tol)
@@ -181,7 +204,6 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol)
     real(dp) :: start_time
 
     state % x_lpb_niter = params % maxiter
-
 
     ! solve LS using Jacobi/DIIS
     start_time = omp_get_wtime()
@@ -198,63 +220,31 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol)
 end subroutine ddlpb_solve
 
 
+!> Solve the adjoint ddLPB linear system
 !!
-!! Wrapper routine for the solution of the adjoint ddPCM linear
-!! system. It makes the interface easier to implement. If a fine
-!! control is needed, the worker routine should be directly called.
-!!
+!> @ingroup Fortran_interface_ddlpb
 !! @param[in] params       : General options
 !! @param[in] constants    : Precomputed constants
 !! @param[inout] workspace : Preallocated workspaces
 !! @param[inout] state     : Solutions, guesses and relevant quantities
-!! @param[in] psi          : Representation of the solute's density
 !! @param[in] tol          : Tolerance for the iterative solvers
 !!
-subroutine ddlpb_adjoint(params, constants, workspace, state, psi, tol)
+subroutine ddlpb_adjoint(params, constants, workspace, state, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     real(dp), intent(in) :: tol
 
-    !call ddlpb_adjoint_worker(params, constants, &
-    !  & workspace, psi, tol, state % x_adj_lpb, state % x_adj_lpb_niter, &
-    !  & state % x_adj_lpb_time, state % x_adj_lpb_rel_diff)
-
-    real(dp), allocatable :: rhs(:,:,:)
     real(dp) :: start_time
-    integer :: istat
-
-    allocate(rhs(constants % nbasis, params % nsph, 2), stat=istat)
-    if (istat.ne.0) then
-        workspace % error_message = 'Allocation failed in ddlpb_adjoint_worker'
-        workspace % error_flag = 1
-        return
-    end if
-
-    !! Use a tighter tolerance for the microiterations to ensure convergence
-    constants % inner_tol =  sqrt(tol)
 
     state % x_adj_lpb_niter = params % maxiter
-
-    ! Psi shall be divided by a factor 4pi for the LPB case
-    ! It is intended to take into account this constant in the LPB
-
-    ! set up the RHS
-    rhs(:,:,1) = psi/fourpi
-    rhs(:,:,2) = zero
-
-    ! guess
-    workspace % ddcosmo_guess = zero
-    workspace % hsp_guess = zero
-    call prec_tstarx(params, constants, workspace, rhs, state % x_adj_lpb)
 
     ! solve adjoint LS using Jacobi/DIIS
     start_time = omp_get_wtime()
     call jacobi_diis_external(params, constants, workspace, &
-        & 2*constants % n, tol, rhs, state % x_adj_lpb, &
+        & 2*constants % n, tol, state % rhs_adj_lpb, state % x_adj_lpb, &
         & state % x_adj_lpb_niter, state % x_adj_lpb_rel_diff, &
         & cstarx, prec_tstarx, rmsnorm)
     if (workspace % error_flag .ne. 0) then
@@ -262,12 +252,7 @@ subroutine ddlpb_adjoint(params, constants, workspace, state, psi, tol)
         return
     end if
     state % x_adj_lpb_time = omp_get_wtime() - start_time
-    deallocate(rhs, stat=istat)
-    if (istat.ne.0) then
-        workspace % error_message = 'Deallocation failed in ddlpb_adjoint'
-        workspace % error_flag = 1
-        return
-    end if
+
 end subroutine ddlpb_adjoint
 
 !!
