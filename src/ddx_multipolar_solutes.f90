@@ -1056,4 +1056,51 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
 
 end subroutine build_adj_phi_fmm
 
+!> Given a charge distribution centered on the spheres, compute the
+!> contributions to the forces stemming from its electrostatic interactions.
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[inout] state: ddx state
+!! @param[in] charges: charges, size (nsph)
+!! @param[inout] forces: forces array, size (3, nsph)
+!!
+subroutine grad_e_for_charges(params, constants, workspace, state, &
+        & charges, force)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(in) :: state
+    real(dp), intent(in) :: charges(params % nsph)
+    real(dp), intent(inout) :: force(3, params % nsph)
+
+    real(dp), allocatable :: e_sph(:, :), ddx_multipoles_cav(:, :), phi_sph(:)
+    integer :: info, icav, isph
+
+    allocate(e_sph(3, params % nsph), phi_sph(params % nsph), &
+        & ddx_multipoles_cav(4, constants % ncav), stat=info)
+
+    do icav = 1, constants % ncav
+        ddx_multipoles_cav(1, icav) = zero
+        ddx_multipoles_cav(2, icav) = state % zeta_dip(1, icav)
+        ddx_multipoles_cav(3, icav) = state % zeta_dip(2, icav)
+        ddx_multipoles_cav(4, icav) = state % zeta_dip(3, icav)
+    end do
+
+    call build_e_dense(ddx_multipoles_cav, constants % ccav, 1, &
+        & constants % ncav, phi_sph, params % csph, params % nsph, e_sph, &
+        & workspace % error_flag, workspace % error_message)
+
+    ! compute the force term as an interaction between the charges and
+    ! the previously computed electric field
+    do isph = 1, params % nsph
+        force(:, isph) = force(:, isph) &
+            & - pt5*charges(isph)*e_sph(:, isph)
+    end do
+
+    deallocate(e_sph, ddx_multipoles_cav, phi_sph, stat=info)
+
+end subroutine grad_e_for_charges
+
 end module ddx_multipolar_solutes

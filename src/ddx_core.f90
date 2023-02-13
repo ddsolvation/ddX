@@ -177,6 +177,9 @@ type ddx_state_type
     !! ddLPB linear system, dimension (maxiter).
     !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: x_adj_lpb_rel_diff(:)
+    !> Zeta dipoles intermediate for the forces. Dimension (3, ncav).
+    !! Allocated and used only by the LPB (model=3) model.
+    real(dp), allocatable :: zeta_dip(:, :)
 
 end type ddx_state_type
 
@@ -617,6 +620,13 @@ subroutine ddx_init_state(params, constants, state)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "ddinit: `f_lpb` " // &
+                & "allocation failed"
+            return
+        end if
+        allocate(state % zeta_dip(3, constants % ncav), stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "ddinit: `zeta_dip` " // &
                 & "allocation failed"
             return
         end if
@@ -1071,6 +1081,13 @@ subroutine ddx_free_state(state)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "`rhs_adj_lpb` deallocation failed!"
+        endif
+    end if
+    if (allocated(state % zeta_dip)) then
+        deallocate(state % zeta_dip, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`zeta_dip` deallocation failed!"
         endif
     end if
 end subroutine ddx_free_state

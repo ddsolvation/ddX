@@ -327,10 +327,11 @@ end subroutine contract_grad_C
 !! @param[in]  icav_g             : Index of outside cavity point
 !! @param[out] force              : Force
 subroutine contract_grad_f(params, constants, workspace, sol_adj, sol_sgrid, &
-    & gradpsi, normal_hessian_cav, icav_g, force)
+    & gradpsi, normal_hessian_cav, icav_g, force, state)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: sol_adj
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: sol_sgrid
     real(dp), dimension(3, constants % ncav), intent(in) :: gradpsi
@@ -342,7 +343,7 @@ subroutine contract_grad_f(params, constants, workspace, sol_adj, sol_sgrid, &
         & gradpsi, force)
     if (workspace % error_flag .eq. 1) return
     call contract_grad_f_worker2(params, constants, workspace, sol_sgrid, gradpsi, &
-        & normal_hessian_cav, icav_g, force)
+        & normal_hessian_cav, icav_g, force, state)
     if (workspace % error_flag .eq. 1) return
 
 end subroutine contract_grad_f
@@ -1622,7 +1623,7 @@ end subroutine contract_grad_f_worker1
 !! @param[in]  icav_g             : Index of outside cavity point
 !! @param[out] force              : Force corresponding to HSP problem
 subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, gradpsi, &
-    & normal_hessian_cav, icav_g, force)
+    & normal_hessian_cav, icav_g, force, state)
     ! input/output
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1632,6 +1633,7 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
     real(dp), dimension(3, constants % ncav), intent(in) :: normal_hessian_cav
     integer, intent(inout) :: icav_g
     real(dp), dimension(3, params % nsph), intent(inout) :: force
+    type(ddx_state_type), intent(inout) :: state
 
     ! local
     integer :: isph, jsph, igrid, l, m, ind, l0, m0, ind0, igrid0, icav, &
@@ -1825,7 +1827,7 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
         end do
     end do
 
-    call contract_grad_f_worker3_fmm(params, constants, workspace, phi_n, force)
+    call contract_grad_f_worker3_fmm(params, constants, workspace, phi_n, state)
 
     deallocate(phi_n, phi_n2, gradpsi_grid, stat=istat)
     if (istat.ne.0) then
@@ -1844,7 +1846,12 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
 end subroutine contract_grad_f_worker2
 
 
-!> FMM accelerated version of contract_grad_f_worker3
+!> This routines precomputes an intermediate for its later usage in the
+!! computation of the forces. The intermediate is the equivalent of
+!! zeta for the F RHS of ddLPB. In this case the intermediate has the
+!! shape of dipoles at the cavity points, in contrast to zeta, which
+!! has the shape of charges at the cavity points. This intermediate
+!! must be used later on to compute its interaction with the solute.
 !!
 !! @param[in] params: ddx parameters
 !! @param[in] constant: ddx constants
@@ -1854,37 +1861,20 @@ end subroutine contract_grad_f_worker2
 !! @param[inout] force: force array, size (3, nsph)
 !!
 subroutine contract_grad_f_worker3_fmm(params, constants, workspace, &
-        & phi_n, force)
+        & phi_n, state)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_n(params % ngrid, params % nsph)
-    real(dp), intent(inout) :: force(3, params % nsph)
 
-    real(dp), allocatable :: ddx_multipoles_cav(:, :), phi_sph(:), &
-        & e_sph(:, :), ddx_multipoles_grid(:, :, :), adj_phi(:, :), work(:), &
-        & m_grad(:, :, :), tmp_charge(:, :)
-    integer :: isph, icav, igrid, info, inode, jnode, jsph, jnear, &
-        & l, m, lm, ind
-    real(dp) :: fac, fac1, c(3)
-
-    allocate(ddx_multipoles_cav(4, constants % ncav), phi_sph(params % nsph), &
-        & ddx_multipoles_grid((params % pm + 1)**2, params % ngrid, &
-        & params % nsph), e_sph(3, params % nsph), &
-        & m_grad(4, 3, params % nsph), tmp_charge(1, params % nsph), &
-        & work(6*params % pm**2 + 19*params % pm + 8), &
-        & adj_phi((params % pm + 1)**2, params % nsph), stat=info)
-    if (info .ne. 0) then
-        workspace % error_flag = 1
-        workspace % error_message = 'Allocation failed in ' // &
-            'contract_grad_f_worker3_fmm'
-    end if
+    integer :: isph, icav, igrid
+    real(dp) :: fac, fac1
 
     fac1 = - one/(sqrt(fourpi/three))
 
     ! assemble the pseudo-dipoles
-    ddx_multipoles_grid = zero
     icav = 0
     do isph = 1, params % nsph
         do igrid = 1, params % ngrid
@@ -1892,39 +1882,13 @@ subroutine contract_grad_f_worker3_fmm(params, constants, workspace, &
                 icav = icav + 1
                 fac = constants % ui(igrid, isph)*constants % wgrid(igrid) &
                     & *phi_n(igrid, isph)*fac1
-                ddx_multipoles_cav(1, icav) = zero
-                ddx_multipoles_cav(2, icav) = fac*constants % cgrid(2, igrid)
-                ddx_multipoles_cav(3, icav) = fac*constants % cgrid(3, igrid)
-                ddx_multipoles_cav(4, icav) = fac*constants % cgrid(1, igrid)
-                if (params % fmm .ne. 0) &
-                    & ddx_multipoles_grid(1:4, igrid, isph) = &
-                    & ddx_multipoles_cav(:, icav)
+                state % zeta_dip(1, icav) = fac*constants % cgrid(2, igrid)
+                state % zeta_dip(2, icav) = fac*constants % cgrid(3, igrid)
+                state % zeta_dip(3, icav) = fac*constants % cgrid(1, igrid)
             end if
         end do
     end do
 
-    ! compute the field due to the pseudo-dipoles
-    if (.true.) then
-        call build_e_dense(ddx_multipoles_cav, constants % ccav, 1, &
-            & constants % ncav, phi_sph, params % csph, params % nsph, e_sph, &
-            & workspace % error_flag, workspace % error_message)
-        ! compute the force term as an interaction between the charges and
-        ! the previously computed electric field
-        do isph = 1, params % nsph
-            force(:, isph) = force(:, isph) &
-                & + params % charge(isph) * e_sph(:, isph)
-        end do
-    else
-        ! put here a N scaling code
-    end if
-
-    deallocate(ddx_multipoles_cav, ddx_multipoles_grid, work, adj_phi, &
-        & phi_sph, e_sph, tmp_charge, stat=info)
-    if (info .ne. 0) then
-        workspace % error_flag = 1
-        workspace % error_message = 'Deallocation failed in ' // &
-            'contract_grad_f_worker3_fmm'
-    end if
 end subroutine contract_grad_f_worker3_fmm
 
 end module ddx_gradients

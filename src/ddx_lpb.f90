@@ -399,7 +399,7 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     call contract_grad_f(params, constants, workspace, &
         & state % x_adj_lpb(:,:,1) + state % x_adj_lpb(:,:,2), &
         & Xadj_r_sgrid + xadj_e_sgrid, gradphi_cav, normal_hessian_cav, &
-        & icav_gr, force)
+        & icav_gr, force, state)
     if (workspace % error_flag .eq. 1) return
 
     force = - pt5*force
