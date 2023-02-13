@@ -90,9 +90,7 @@ write(*, "(A,ES11.4E2,A)") " ddx_driver time:", finish_time - start_time, &
 write(*, "(A,ES11.4E2,A)") " solvation force terms time:", &
     & state % force_time, " seconds"
 
-! ddLPB still uses the old way of computing the forces
-! TODO: to be removed
-if (ddx_data % params % model.ne.3) then
+if (ddx_data % params % force .eq. 1) then
     start_time = omp_get_wtime()
     call grad_phi_for_charges(ddx_data % params, &
         & ddx_data % constants, ddx_data % workspace, state, &
