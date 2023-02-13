@@ -21,7 +21,7 @@ type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
 integer :: iprint
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
-    & hessianphi_cav(:, :, :), psi(:, :), force(:, :)
+    & hessianphi_cav(:, :, :), psi(:, :), force(:, :), charges(:)
 real(dp) :: tol, threshold, esolv, esolv2, fnorm, fdiff, ftmp(3)
 integer :: i, j, isph, istatus
 real(dp), external :: dnrm2
@@ -34,7 +34,7 @@ call getarg(2, foutname)
 call getarg(3, tmpstr)
 read(tmpstr, *) threshold
 ! Init input from a file
-call ddfromfile(finname, ddx_data, tol)
+call ddfromfile(finname, ddx_data, tol, charges)
 if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 if(state % error_flag .ne. 0) stop "Initialization failed"
@@ -47,13 +47,12 @@ allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constan
 if(istatus .ne. 0) call error(-1, "Allocation failed")
 ! Prepare host-code-related entities
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
-    & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
+    & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
 ! Use the solver
 call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)
 ! compute the second contribution to the forces
 call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, ddx_data % params % charge, &
-    & force, -gradphi_cav)
+    & ddx_data % workspace, state, charges, force, -gradphi_cav)
 ! Open output file for reading
 open(unit=100, file=foutname, form='formatted', access='sequential')
 ! Skip 
@@ -82,7 +81,7 @@ if (ddx_data % params % force .eq. 1) then
 end if
 ! Close output file and deallocate resources
 close(100)
-deallocate(phi_cav, gradphi_cav, psi, force, stat=istatus)
+deallocate(phi_cav, gradphi_cav, psi, force, charges, stat=istatus)
 if(istatus .ne. 0) call error(-1, "Deallocation failed")
 call ddx_free_state(state)
 call ddfree(ddx_data)

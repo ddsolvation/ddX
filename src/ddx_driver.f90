@@ -24,7 +24,7 @@ type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
 integer :: phi_flag=1, grad_flag=1, hessian_flag=1
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
-    & hessianphi_cav(:, :, :), psi(:, :), force(:, :)
+    & hessianphi_cav(:, :, :), psi(:, :), force(:, :), charges(:)
 real(dp) :: tol, esolv, start_time, finish_time
 integer :: i, j, isph
 
@@ -32,7 +32,7 @@ integer :: i, j, isph
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 start_time = omp_get_wtime()
-call ddfromfile(fname, ddx_data, tol)
+call ddfromfile(fname, ddx_data, tol, charges)
 finish_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") " Initialization time:", finish_time - start_time, &
     & " seconds"
@@ -76,7 +76,7 @@ allocate(phi_cav(ddx_data % constants % ncav), &
 start_time = omp_get_wtime()
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
     & phi_flag, phi_cav, grad_flag, gradphi_cav, hessian_flag, &
-    & hessianphi_cav, psi)
+    & hessianphi_cav, psi, charges)
 finish_time = omp_get_wtime()
 write(*, "(A,ES11.4E2,A)") " mkrhs time:", finish_time-start_time, " seconds"
 
@@ -94,12 +94,12 @@ if (ddx_data % params % force .eq. 1) then
     start_time = omp_get_wtime()
     call grad_phi_for_charges(ddx_data % params, &
         & ddx_data % constants, ddx_data % workspace, state, &
-        & ddx_data % params % charge, force, -gradphi_cav)
+        & charges, force, -gradphi_cav)
     if (ddx_data % params % model .eq. 3) then
         ! ddLPB has another term in the multipolar forces stemming
         ! from the electric field in the RHS
         call grad_e_for_charges(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, ddx_data % params % charge, force)
+            & ddx_data % workspace, state, charges, force)
     end if
     finish_time = omp_get_wtime()
     write(*, "(A,ES11.4E2,A)") " multipolar force terms time:", &

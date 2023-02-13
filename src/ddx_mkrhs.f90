@@ -15,7 +15,7 @@
 !! @param[out] hessianphi_cav: Potential at cavity points. Referenced only if
 !!      hessian_flag=1
 subroutine mkrhs(params, constants, workspace, phi_flag, phi_cav, grad_flag, &
-        & gradphi_cav, hessian_flag, hessianphi_cav, psi)
+        & gradphi_cav, hessian_flag, hessianphi_cav, psi, charges)
     use ddx_core
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -27,6 +27,7 @@ subroutine mkrhs(params, constants, workspace, phi_flag, phi_cav, grad_flag, &
     real(dp), intent(out) :: hessianphi_cav(3, 3, constants % ncav)
     real(dp), intent(out) :: psi(constants % nbasis, &
         & params % nsph)
+    real(dp), intent(in) :: charges(params % nsph)
     ! Local variables
     integer :: isph, igrid, icav, inode, inear, jnear, jnode, jsph, i
     real(dp) :: d(3), v, tmpv, r, gradv(3), hessianv(3, 3), tmpd(3), epsp=one
@@ -53,7 +54,7 @@ subroutine mkrhs(params, constants, workspace, phi_flag, phi_cav, grad_flag, &
                     & params % csph(:, isph)
                 r = dnrm2(3, d, 1)
                 d = d / r
-                tmpv = params % charge(isph) / r
+                tmpv = charges(isph) / r
                 v = v + tmpv
                 tmpv = tmpv / r
                 tmpd = tmpv * d
@@ -83,7 +84,7 @@ subroutine mkrhs(params, constants, workspace, phi_flag, phi_cav, grad_flag, &
         do isph = 1, params % nsph
             inode = constants % snode(isph)
             workspace % tmp_sph(1, isph) = &
-                & params % charge(isph) &
+                & charges(isph) &
                 & / params % rsph(isph) / sqrt4pi
             workspace % tmp_sph(2:, isph) = zero
             workspace % tmp_node_m(1, inode) = &
@@ -135,7 +136,7 @@ subroutine mkrhs(params, constants, workspace, phi_flag, phi_cav, grad_flag, &
             if (grad_flag.eq.1) grid_grad(:, :, :) = zero
             if (hessian_flag.eq.1) grid_hessian(:, :, :, :) = zero
             !$omp parallel do default(none) shared(params,constants,workspace, &
-            !$omp grid_grad,grid_hessian,grad_flag,hessian_flag) &
+            !$omp grid_grad,grid_hessian,grad_flag,hessian_flag,charges) &
             !$omp private(isph,igrid,inode,jnear,jnode,jsph,d,r,tmpd,tmpv) &
             !$omp schedule(dynamic)
             do isph = 1, params % nsph
@@ -159,7 +160,7 @@ subroutine mkrhs(params, constants, workspace, phi_flag, phi_cav, grad_flag, &
 !                       r = dnrm2(3, d, 1)
                         r = sqrt(d(1)*d(1) + d(2)*d(2) + d(3)*d(3))
                         d = d / r / r
-                        tmpv = params % charge(jsph) / r
+                        tmpv = charges(jsph) / r
                         if (grad_flag.eq.1) grid_grad(igrid, :, isph) = &
                             & grid_grad(igrid, :, isph) - tmpv * d
                         tmpd = three * tmpv * d
@@ -249,7 +250,7 @@ subroutine mkrhs(params, constants, workspace, phi_flag, phi_cav, grad_flag, &
     ! Vector psi
     psi(2:, :) = zero
     do isph = 1, params % nsph
-        psi(1, isph) = sqrt4pi * params % charge(isph)
+        psi(1, isph) = sqrt4pi * charges(isph)
     end do
 
     ! deallocate temporary

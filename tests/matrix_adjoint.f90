@@ -73,11 +73,12 @@ real(dp), allocatable :: random_vector_n_one(:), &
                        & vector_C_star_one(:,:,:), &
                        & vector_C_star_two(:,:,:)
 real(dp) :: lmax0, nbasis0
+real(dp), allocatable :: charges(:)
 
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file 12"
-call ddfromfile(fname, ddx_data, tol)
+call ddfromfile(fname, ddx_data, tol, charges)
 if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 
 ! lmax0 set to minimum of 6 or given lmax.
@@ -399,7 +400,8 @@ deallocate(random_vector_nbasis_nsph_two, &
            & vector_C2_star_two, &
            & vector_C_star_one, &
            & vector_C_star_two, &
-           & zero_vector)
+           & zero_vector, &
+           & charges)
 call ddfree(ddx_data)
 
 write(*, *) "y4(A)x1  :", check_A_one, ", x1(A*)y4  :", check_A_star_one
