@@ -95,11 +95,14 @@ if (ddx_data % params % force .eq. 1) then
     call grad_phi_for_charges(ddx_data % params, &
         & ddx_data % constants, ddx_data % workspace, state, &
         & ddx_data % params % charge, force, -gradphi_cav)
+    if (ddx_data % params % model .eq. 3) then
+        ! ddLPB has another term in the multipolar forces stemming
+        ! from the electric field in the RHS
+    end if
     finish_time = omp_get_wtime()
     write(*, "(A,ES11.4E2,A)") " multipolar force terms time:", &
         & finish_time - start_time, " seconds"
 end if
-
 
 ! Print info on the primal ddPCM system
 if (ddx_data % params % model .eq. 2) then
