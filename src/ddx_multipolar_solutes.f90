@@ -868,10 +868,10 @@ end subroutine grad_phi
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics,
-!!     size ((mmax+1)**2, nsph)
-!! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[in] charges: charges (zeta) at cavity points, size(ncav)
+!! @param[in] mmax: maximum angular momentum of the target multipoles
+!! @param[out] adj_phi: electrostatic properties up to order mmax at
+!!     the target multipoles, size ((mmax+1)**2, nsph)
 !!
 subroutine build_adj_phi(params, constants, workspace, charges, mmax, adj_phi)
     implicit none
@@ -950,12 +950,12 @@ end subroutine build_adj_phi_dense
 !> the spheres. This is done with FMMs and required in the computation of
 !> the forces.
 !! @param[in] params: ddx parameters
-!! @param[in]  constants: ddx constants
+!! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics,
-!!     size ((mmax+1)**2, nsph)
-!! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[in] charges: charges (zeta) at cavity points, size(ncav)
+!! @param[in] mmax: maximum angular momentum of the target multipoles
+!! @param[out] adj_phi: electrostatic properties up to order mmax at
+!!     the target multipoles, size ((mmax+1)**2, nsph)
 !!
 subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
         & adj_phi)
@@ -1058,6 +1058,7 @@ end subroutine build_adj_phi_fmm
 
 !> Given a charge distribution centered on the spheres, compute the
 !> contributions to the forces stemming from its electrostatic interactions.
+!!
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
@@ -1102,5 +1103,162 @@ subroutine grad_e_for_charges(params, constants, workspace, state, &
     deallocate(e_sph, ddx_multipoles_cav, phi_sph, stat=info)
 
 end subroutine grad_e_for_charges
+
+!> @ingroup Fortran_interface_multipolar
+!> Given a multipolar distribution in real spherical harmonics and
+!> centered on the spheres, compute the contributions to the forces
+!> stemming from its electrostatic interactions in case of ddLPB F RHS.
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[inout] state: ddx state
+!! @param[in] mmax: maximum angular momentum of the multipolar distribution
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2, nsph)
+!! @param[inout] forces: forces array, size (3, nsph)
+!! @param[in] e_cav: electric field, size (3, ncav)
+!!
+subroutine grad_e(params, constants, workspace, state, mmax, &
+        & multipoles, forces, e_cav)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(inout) :: state
+    integer, intent(in) :: mmax
+    real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(inout) :: forces(3, params % nsph)
+    real(dp), intent(in) :: e_cav(3, constants % ncav)
+    ! local variables
+    integer :: isph, igrid, icav, info, im, lm, ind, l, m
+    real(dp), allocatable :: adj_phi(:, :), m_grad(:, :, :)
+    real(dp) :: fac
+
+    ! get some space for the adjoint potential, note that we need it
+    ! up to mmax + 1 as we are doing derivatives
+    allocate(adj_phi((mmax + 2)**2, params % nsph), &
+        & m_grad((mmax + 2)**2, 3, params % nsph), stat=info)
+    if (info .ne. 0) then
+        workspace % error_message = "Allocation failed in grad_phi!"
+        workspace % error_flag = 1
+        return
+    end if
+
+    ! build the adjoint potential
+    call build_adj_phi_from_dipoles(params, constants, workspace, &
+        & state % zeta_dip, mmax + 1, adj_phi)
+
+    ! build the gradient of the M2M transformation
+    call grad_m2m(multipoles, mmax, params % nsph, m_grad, &
+        & workspace % error_flag, workspace % error_message)
+
+    ! contract the two ingredients to build the second contribution
+    do im = 1, params % nsph
+        do l = 1, mmax + 1
+            ind = l*l + l + 1
+            fac = (-one)**(l+1)
+            do m = -l, l
+                lm = ind + m
+                forces(1, im) = forces(1, im) &
+                    & + fac*pt5*m_grad(lm, 1, im)*adj_phi(lm, im)
+                forces(2, im) = forces(2, im) &
+                    & + fac*pt5*m_grad(lm, 2, im)*adj_phi(lm, im)
+                forces(3, im) = forces(3, im) &
+                    & + fac*pt5*m_grad(lm, 3, im)*adj_phi(lm, im)
+            end do
+        end do
+    end do
+
+    deallocate(adj_phi, m_grad, stat=info)
+    if (info .ne. 0) then
+        workspace % error_message = "Deallocation failed in grad_phi!"
+        workspace % error_flag = 1
+        return
+    end if
+
+end subroutine grad_e
+
+!> Given a distribution of point dipoles at the cavity points, compute the
+!> potential and its higher order derivatives up to pmax at the center of
+!> the spheres. This is done with or without the FMMs depending on the
+!> given flag. This is used in the computation of the ddLPB forces.
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[in] dipoles: dipoles (zeta_dip) at cavity points, size(3, ncav)
+!! @param[in] mmax: maximum angular momentum of the target multipoles
+!! @param[out] adj_phi: electrostatic properties up to order mmax at
+!!     the target multipoles, size ((mmax+1)**2, nsph)
+!!
+subroutine build_adj_phi_from_dipoles(params, constants, workspace, dipoles, &
+        & mmax, adj_phi)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: mmax
+    real(dp), intent(in) :: dipoles(3, constants % ncav)
+    real(dp), intent(out) :: adj_phi((mmax + 1)**2, params % nsph)
+    integer :: isph, lm
+    call build_adj_phi_dense_from_dipoles(dipoles, constants % ccav, &
+        & constants % ncav, params % csph, mmax, params % nsph, adj_phi, &
+        & workspace % error_flag, workspace % error_message)
+    ! TODO: implement the FMM case
+end subroutine build_adj_phi_from_dipoles
+
+!> Given a distribution of point dipoles at the cavity points, compute the
+!> potential and its higher order derivatives up to pmax at the center of
+!> the spheres. This is done using two loops and required in the computation
+!> of the forces.
+!! @param[in] qcav: charges, size(ncav)
+!! @param[in] ccav: coordinates of the charges, size(3,ncav)
+!! @param[in] ncav: number of charges
+!! @param[in] cm: coordinates of the multipoles, size(3,nm)
+!! @param[in] mmax: maximum angular momentum of the multipoles
+!! @param[in] nm: number of multipoles
+!! @param[out] adj_phi: adjoint potential, size((mmax+1)**2,nm)
+!!
+subroutine build_adj_phi_dense_from_dipoles(dipcav, ccav, ncav, cm, mmax, &
+        & nm, adj_phi, error_flag, error_message)
+    implicit none
+    integer, intent (in) :: ncav, mmax, nm
+    real(dp), intent(in) :: dipcav(3, ncav), ccav(3, ncav), cm(3, nm)
+    real(dp), intent(out) :: adj_phi((mmax + 1)**2, nm)
+    integer, intent(inout) :: error_flag
+    character(len=255), intent(inout) :: error_message
+    ! local variables
+    integer :: icav, im, info
+    real(dp) :: c(3)
+    real(dp), allocatable :: vscales(:), vscales_rel(:), v4pi2lp1(:), &
+        & work(:)
+
+    allocate(vscales((mmax + 1)**2), vscales_rel((mmax + 1)**2), &
+        & v4pi2lp1(mmax + 1), work((mmax + 1)**2 + 3*mmax), stat=info)
+    if (info .ne. 0) then
+        error_message = 'Allocation failed in ' // &
+            & 'build_adj_phi_dense_from_dipoles!'
+        error_flag = 1
+        return
+    end if
+    call ylmscale(mmax, vscales, v4pi2lp1, vscales_rel)
+
+    do im = 1, nm
+        adj_phi(:, im) = zero
+        do icav = 1, ncav
+            c(:) = cm(:, im) - ccav(:, icav)
+            !call fmm_m2m_adj_work(c, dipcav(:,icav), one, mmax, vscales_rel, &
+            !    & one, adj_phi(:, im), work)
+        end do
+    end do
+
+    deallocate(vscales, vscales_rel, v4pi2lp1, work, stat=info)
+    if (info .ne. 0) then
+        error_message = 'Deallocation failed in ' // &
+            & 'build_adj_phi_dense_from_dipoles!'
+        error_flag = 1
+        return
+    end if
+
+end subroutine build_adj_phi_dense_from_dipoles
 
 end module ddx_multipolar_solutes
