@@ -65,7 +65,7 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     if(params % force .eq. 1) then
         call ddlpb_guess_adjoint(params, constants, workspace, state)
         if (workspace % error_flag .eq. 1) return
-        call ddlpb_adjoint(params, constants, workspace, state, tol)
+        call ddlpb_solve_adjoint(params, constants, workspace, state, tol)
         if (workspace % error_flag .eq. 1) return
         call ddlpb_solvation_force_terms(params, constants, workspace, &
             & state, phi_cav, gradphi_cav, hessianphi_cav, psi, force)
@@ -231,7 +231,7 @@ end subroutine ddlpb_solve
 !! @param[inout] state     : Solutions, guesses and relevant quantities
 !! @param[in] tol          : Tolerance for the iterative solvers
 !!
-subroutine ddlpb_adjoint(params, constants, workspace, state, tol)
+subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -250,12 +250,13 @@ subroutine ddlpb_adjoint(params, constants, workspace, state, tol)
         & state % x_adj_lpb_niter, state % x_adj_lpb_rel_diff, &
         & cstarx, prec_tstarx, rmsnorm)
     if (workspace % error_flag .ne. 0) then
-        workspace % error_message = 'Jacobi solver failed to converge in ddlpb_adjoint'
+        workspace % error_message = 'Jacobi solver failed to ' // &
+            & 'converge in ddlpb_solve_adjoint'
         return
     end if
     state % x_adj_lpb_time = omp_get_wtime() - start_time
 
-end subroutine ddlpb_adjoint
+end subroutine ddlpb_solve_adjoint
 
 !!
 !! Wrapper routine for the computation of ddPCM forces. It makes the
