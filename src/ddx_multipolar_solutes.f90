@@ -1099,11 +1099,12 @@ subroutine grad_e_for_charges(params, constants, workspace, state, &
         & m_grad_component((mmax+2)**2, params % nsph), &
         & stat=info)
 
+    fac = one/(sqrt(fourpi/three))
     do icav = 1, constants % ncav
         ddx_multipoles_cav(1, icav) = zero
-        ddx_multipoles_cav(2, icav) = state % zeta_dip(2, icav)
-        ddx_multipoles_cav(3, icav) = state % zeta_dip(3, icav)
-        ddx_multipoles_cav(4, icav) = state % zeta_dip(1, icav)
+        ddx_multipoles_cav(2, icav) = fac*state % zeta_dip(2, icav)
+        ddx_multipoles_cav(3, icav) = fac*state % zeta_dip(3, icav)
+        ddx_multipoles_cav(4, icav) = fac*state % zeta_dip(1, icav)
     end do
 
     call build_e_dense(ddx_multipoles_cav, constants % ccav, 1, &
@@ -1112,17 +1113,16 @@ subroutine grad_e_for_charges(params, constants, workspace, state, &
 
     ! compute the force term as an interaction between the charges and
     ! the previously computed electric field
-    force = zero
     do isph = 1, params % nsph
         force(:, isph) = force(:, isph) &
-            & - pt5*charges(isph)*e_sph(:, isph)
+            & + pt5*charges(isph)*e_sph(:, isph)
     end do
+    return
 
     write(6,*) 'reference'
     do isph = 1, params % nsph
         write(6,*) force(:, isph)
     end do
-
 
     ! compute the gradient of the target charges
     call grad_m2m(charges, mmax, params % nsph, m_grad, &

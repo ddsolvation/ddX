@@ -1870,9 +1870,7 @@ subroutine build_zeta_dip_intermediate(params, constants, workspace, &
     real(dp), intent(in) :: phi_n(params % ngrid, params % nsph)
 
     integer :: isph, icav, igrid
-    real(dp) :: fac, fac1
-
-    fac1 = - one/(sqrt(fourpi/three))
+    real(dp) :: fac
 
     ! assemble the pseudo-dipoles
     icav = 0
@@ -1881,10 +1879,10 @@ subroutine build_zeta_dip_intermediate(params, constants, workspace, &
             if (constants % ui(igrid, isph) .gt. zero) then
                 icav = icav + 1
                 fac = constants % ui(igrid, isph)*constants % wgrid(igrid) &
-                    & *phi_n(igrid, isph)*fac1
-                state % zeta_dip(1, icav) = fac*constants % cgrid(2, igrid)
-                state % zeta_dip(2, icav) = fac*constants % cgrid(3, igrid)
-                state % zeta_dip(3, icav) = fac*constants % cgrid(1, igrid)
+                    & *phi_n(igrid, isph)
+                state % zeta_dip(1, icav) = fac*constants % cgrid(1, igrid)
+                state % zeta_dip(2, icav) = fac*constants % cgrid(2, igrid)
+                state % zeta_dip(3, icav) = fac*constants % cgrid(3, igrid)
             end if
         end do
     end do
