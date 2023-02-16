@@ -1072,21 +1072,38 @@ subroutine grad_e_for_charges(params, constants, workspace, state, &
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
-    type(ddx_state_type), intent(in) :: state
+    type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: charges(params % nsph)
     real(dp), intent(inout) :: force(3, params % nsph)
 
-    real(dp), allocatable :: e_sph(:, :), ddx_multipoles_cav(:, :), phi_sph(:)
-    integer :: info, icav, isph
+    real(dp), allocatable :: e_sph(:, :), ddx_multipoles_cav(:, :), &
+        & phi_sph(:), zeta_comp(:),  m_grad(:, :, :), &
+        & m_hess_x(:, :, :), m_hess_y(:, :, :), m_hess_z(:, :, :), &
+        & m_grad_component(:, :), adj_phi_x(:, :), adj_phi_y(:, :), &
+        & adj_phi_z(:, :)
+    integer :: info, icav, isph, mmax, ind, l, m, lm
+    real(dp) :: fac
+
+    mmax = 0
 
     allocate(e_sph(3, params % nsph), phi_sph(params % nsph), &
-        & ddx_multipoles_cav(4, constants % ncav), stat=info)
+        & ddx_multipoles_cav(4, constants % ncav), &
+        & zeta_comp(constants % ncav), &
+        & adj_phi_x((mmax+3)**2, params % nsph), &
+        & adj_phi_y((mmax+3)**2, params % nsph), &
+        & adj_phi_z((mmax+3)**2, params % nsph), &
+        & m_hess_x((mmax+3)**2, 3, params % nsph), &
+        & m_hess_y((mmax+3)**2, 3, params % nsph), &
+        & m_hess_z((mmax+3)**2, 3, params % nsph), &
+        & m_grad((mmax+2)**2, 3, params % nsph), &
+        & m_grad_component((mmax+2)**2, params % nsph), &
+        & stat=info)
 
     do icav = 1, constants % ncav
         ddx_multipoles_cav(1, icav) = zero
-        ddx_multipoles_cav(2, icav) = state % zeta_dip(1, icav)
-        ddx_multipoles_cav(3, icav) = state % zeta_dip(2, icav)
-        ddx_multipoles_cav(4, icav) = state % zeta_dip(3, icav)
+        ddx_multipoles_cav(2, icav) = state % zeta_dip(2, icav)
+        ddx_multipoles_cav(3, icav) = state % zeta_dip(3, icav)
+        ddx_multipoles_cav(4, icav) = state % zeta_dip(1, icav)
     end do
 
     call build_e_dense(ddx_multipoles_cav, constants % ccav, 1, &
@@ -1095,10 +1112,74 @@ subroutine grad_e_for_charges(params, constants, workspace, state, &
 
     ! compute the force term as an interaction between the charges and
     ! the previously computed electric field
+    force = zero
     do isph = 1, params % nsph
         force(:, isph) = force(:, isph) &
             & - pt5*charges(isph)*e_sph(:, isph)
     end do
+
+    write(6,*) 'reference'
+    do isph = 1, params % nsph
+        write(6,*) force(:, isph)
+    end do
+
+
+    ! compute the gradient of the target charges
+    call grad_m2m(charges, mmax, params % nsph, m_grad, &
+        & workspace % error_flag, workspace % error_message)
+
+    ! starting from the previously computed gradient, compute the
+    ! hessian of the target charges
+    m_grad_component = m_grad(:, 1, :)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_x, &
+        & workspace % error_flag, workspace % error_message)
+    m_grad_component = m_grad(:, 2, :)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_y, &
+        & workspace % error_flag, workspace % error_message)
+    m_grad_component = m_grad(:, 3, :)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_z, &
+        & workspace % error_flag, workspace % error_message)
+
+    zeta_comp = state % zeta_dip(1, :)
+    call build_adj_phi(params, constants, workspace, zeta_comp, &
+        & mmax + 2, adj_phi_x)
+    zeta_comp = state % zeta_dip(2, :)
+    call build_adj_phi(params, constants, workspace, zeta_comp, &
+        & mmax + 2, adj_phi_y)
+    zeta_comp = state % zeta_dip(3, :)
+    call build_adj_phi(params, constants, workspace, zeta_comp, &
+        & mmax + 2, adj_phi_z)
+
+    ! contract the two ingredients to build the second contribution
+    force = zero
+    do isph = 1, params % nsph
+        do l = 2, mmax + 2
+            ind = l*l + l + 1
+            fac = (-one)**(l+1)/sqrt4pi*1.023326707946488d0
+            do m = -l, l
+                lm = ind + m
+                force(1, isph) = force(1, isph) &
+                    & + fac*m_hess_x(lm, 1, isph)*adj_phi_x(lm, isph) &
+                    & + fac*m_hess_y(lm, 1, isph)*adj_phi_y(lm, isph) &
+                    & + fac*m_hess_z(lm, 1, isph)*adj_phi_z(lm, isph)
+                force(2, isph) = force(2, isph) &
+                    & + fac*m_hess_x(lm, 2, isph)*adj_phi_x(lm, isph) &
+                    & + fac*m_hess_y(lm, 2, isph)*adj_phi_y(lm, isph) &
+                    & + fac*m_hess_z(lm, 2, isph)*adj_phi_z(lm, isph)
+                force(3, isph) = force(3, isph) &
+                    & + fac*m_hess_x(lm, 3, isph)*adj_phi_x(lm, isph) &
+                    & + fac*m_hess_y(lm, 3, isph)*adj_phi_y(lm, isph) &
+                    & + fac*m_hess_z(lm, 3, isph)*adj_phi_z(lm, isph)
+            end do
+        end do
+    end do
+
+    write(6,*) 'fmmized'
+    do isph = 1, params % nsph
+        write(6,*) force(:, isph)
+    end do
+
+    stop
 
     deallocate(e_sph, ddx_multipoles_cav, phi_sph, stat=info)
 
