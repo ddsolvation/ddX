@@ -384,7 +384,7 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
         do igrid = 1, params % ngrid
             if(constants % ui(igrid, isph) .ne. zero) then
                 icav = icav + 1
-                state % zeta(icav) = -constants % wgrid(igrid) * &
+                state % zeta(icav) = constants % wgrid(igrid) * &
                     & constants % ui(igrid, isph) * ddot(constants % nbasis, &
                     & constants % vgrid(1, igrid), 1, &
                     & state % x_adj_lpb(1, isph, 1), 1)
@@ -401,7 +401,7 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
         & icav_gr, force, state)
     if (workspace % error_flag .eq. 1) return
 
-    force = - pt5*force
+    force = pt5*force
 
     deallocate(ef, xadj_r_sgrid, xadj_e_sgrid, normal_hessian_cav, &
         & diff_re, scaled_xr, stat=istat)

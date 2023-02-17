@@ -755,8 +755,6 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
     call efld(constants % ncav, state % zeta, constants % ccav, &
         & params % nsph, params % csph, field)
 
-    ! sqrt4pi is required to go from multipoles in real spherical
-    ! harmonics to regular charges
     do isph = 1, params % nsph
         forces(1, isph) = forces(1, isph) &
             & + pt5*charges(isph)*field(1, isph)

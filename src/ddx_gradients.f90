@@ -1878,7 +1878,7 @@ subroutine build_zeta_dip_intermediate(params, constants, workspace, &
         do igrid = 1, params % ngrid
             if (constants % ui(igrid, isph) .gt. zero) then
                 icav = icav + 1
-                fac = constants % ui(igrid, isph)*constants % wgrid(igrid) &
+                fac = - constants % ui(igrid, isph)*constants % wgrid(igrid) &
                     & *phi_n(igrid, isph)
                 state % zeta_dip(1, icav) = fac*constants % cgrid(1, igrid)
                 state % zeta_dip(2, icav) = fac*constants % cgrid(2, igrid)
