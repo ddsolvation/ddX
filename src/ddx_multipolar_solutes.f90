@@ -1073,8 +1073,15 @@ subroutine grad_e_for_charges(params, constants, workspace, state, &
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: charges(params % nsph)
     real(dp), intent(inout) :: force(3, params % nsph)
+    real(dp), allocatable :: multipoles(:, :)
+    integer :: info
 
-    call grad_e(params, constants, workspace, state, 0, charges, force)
+    allocate(multipoles(1, params % nsph), stat=info)
+    ! convert the charges to multipoles
+    multipoles(1, :) = charges/sqrt4pi
+    call grad_e(params, constants, workspace, state, 0, multipoles, force)
+    deallocate(multipoles, stat=info)
+
 end subroutine grad_e_for_charges
 
 !> @ingroup Fortran_interface_multipolar
@@ -1157,7 +1164,7 @@ subroutine grad_e(params, constants, workspace, state, mmax, &
     do isph = 1, params % nsph
         do l = 2, mmax + 2
             ind = l*l + l + 1
-            fac = -(-one)**(l+1)/sqrt4pi/2.0d0
+            fac = -(-one)**(l+1)/2.0d0
             do m = -l, l
                 lm = ind + m
                 force(1, isph) = force(1, isph) &
