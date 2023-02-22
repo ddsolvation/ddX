@@ -141,35 +141,13 @@ void export_pyddx_data(py::module& m) {
   data.attr("radius_bondi") = radius_bondi;  // Recommended radii are scale * bondi
   data.attr("radius_bondi_scaling") = 1.2;
 
-  // Tabulated dielectric constants of solvents.
+  // The full list of supported radii sets
+  data.attr("radii_sets") = std::vector<std::string>{"uff", "bondi"};
+
+  // Tabulated static dielectric constants of solvents.
   // Taken from https://gaussian.com/scrf/. More can also be found at
   // https://comp.chem.umn.edu/solvation. Keys are normalised to lower case.
   data.attr("solvent_epsilon") = std::map<std::string, double>{
-        {"water", 78.3553},
-        {"acetonitrile", 35.688},
-        {"methanol", 32.613},
-        {"ethanol", 24.852},
-        {"isoquinoline", 11.00},
-        {"quinoline", 9.16},
-        {"chloroform", 4.7113},
-        {"diethylether", 4.2400},
-        {"dichloromethane", 8.93},
-        {"dichloroethane", 10.125},
-        {"carbontetrachloride", 2.2280},
-        {"benzene", 2.2706},
-        {"toluene", 2.3741},
-        {"chlorobenzene", 5.6968},
-        {"nitromethane", 36.562},
-        {"heptane", 1.9113},
-        {"cyclohexane", 2.0165},
-        {"aniline", 6.8882},
-        {"acetone", 20.493},
-        {"tetrahydrofuran", 7.4257},
-        {"dimethylsulfoxide", 46.826},
-        {"argon", 1.430},
-        {"krypton", 1.519},
-        {"xenon", 1.706},
-        {"n-octanol", 9.8629},
         {"1,1,1-trichloroethane", 7.0826},
         {"1,1,2-trichloroethane", 7.1937},
         {"1,2,4-trimethylbenzene", 2.3653},
@@ -226,10 +204,15 @@ void export_pyddx_data(py::module& m) {
         {"4-methylpyridine", 11.957},
         {"5-nonanone", 10.6},
         {"aceticacid", 6.2528},
+        {"acetone", 20.493},
+        {"acetonitrile", 35.688},
         {"acetophenone", 17.44},
         {"a-chlorotoluene", 6.7175},
+        {"aniline", 6.8882},
         {"anisole", 4.2247},
+        {"argon", 1.430},
         {"benzaldehyde", 18.220},
+        {"benzene", 2.2706},
         {"benzonitrile", 25.592},
         {"benzylalcohol", 12.457},
         {"bromobenzene", 5.3954},
@@ -242,8 +225,12 @@ void export_pyddx_data(py::module& m) {
         {"butylamine", 4.6178},
         {"butylethanoate", 4.9941},
         {"carbondisulfide", 2.6105},
+        {"carbontetrachloride", 2.2280},
+        {"chlorobenzene", 5.6968},
+        {"chloroform", 4.7113},
         {"cis-1,2-dimethylcyclohexane", 2.06},
         {"cis-decalin", 2.2139},
+        {"cyclohexane", 2.0165},
         {"cyclohexanone", 15.619},
         {"cyclopentane", 1.9608},
         {"cyclopentanol", 16.989},
@@ -251,16 +238,21 @@ void export_pyddx_data(py::module& m) {
         {"decalin-mixture", 2.196},
         {"dibromomethane", 7.2273},
         {"dibutylether", 3.0473},
+        {"dichloroethane", 10.125},
+        {"dichloromethane", 8.93},
         {"diethylamine", 3.5766},
+        {"diethylether", 4.2400},
         {"diethylsulfide", 5.723},
         {"diiodomethane", 5.32},
         {"diisopropylether", 3.38},
         {"dimethyldisulfide", 9.6},
+        {"dimethylsulfoxide", 46.826},
         {"diphenylether", 3.73},
         {"dipropylamine", 2.9112},
         {"e-1,2-dichloroethene", 2.14},
         {"e-2-pentene", 2.051},
         {"ethanethiol", 6.667},
+        {"ethanol", 24.852},
         {"ethylbenzene", 2.4339},
         {"ethylethanoate", 5.9867},
         {"ethylmethanoate", 8.3310},
@@ -268,13 +260,17 @@ void export_pyddx_data(py::module& m) {
         {"fluorobenzene", 5.42},
         {"formamide", 108.94},
         {"formicacid", 51.1},
+        {"heptane", 1.9113},
         {"hexanoicacid", 2.6},
         {"iodobenzene", 4.5470},
         {"iodoethane", 7.6177},
         {"iodomethane", 6.8650},
         {"isopropylbenzene", 2.3712},
+        {"isoquinoline", 11.00},
+        {"krypton", 1.519},
         {"m-cresol", 12.44},
         {"mesitylene", 2.2650},
+        {"methanol", 32.613},
         {"methylbenzoate", 6.7367},
         {"methylbutanoate", 5.5607},
         {"methylcyclohexane", 2.024},
@@ -289,12 +285,14 @@ void export_pyddx_data(py::module& m) {
         {"n-hexane", 1.8819},
         {"nitrobenzene", 34.809},
         {"nitroethane", 28.29},
+        {"nitromethane", 36.562},
         {"n-methylaniline", 5.9600},
         {"n-methylformamide-mixture", 181.56},
         {"n,n-dimethylacetamide", 37.781},
         {"n,n-dimethylformamide", 37.219},
         {"n-nonane", 1.9605},
         {"n-octane", 1.9406},
+        {"n-octanol", 9.8629},
         {"n-pentadecane", 2.0333},
         {"n-pentane", 1.8371},
         {"n-undecane", 1.9910},
@@ -316,18 +314,46 @@ void export_pyddx_data(py::module& m) {
         {"propylethanoate", 5.5205},
         {"p-xylene", 2.2705},
         {"pyridine", 12.978},
+        {"quinoline", 9.16},
         {"sec-butylbenzene", 2.3446},
         {"tert-butylbenzene", 2.3447},
         {"tetrachloroethene", 2.268},
+        {"tetrahydrofuran", 7.4257},
         {"tetrahydrothiophene-s,s-dioxide", 43.962},
         {"tetralin", 2.771},
         {"thiophene", 2.7270},
         {"thiophenol", 4.2728},
+        {"toluene", 2.3741},
         {"trans-decalin", 2.1781},
         {"tributylphosphate", 8.1781},
         {"trichloroethene", 3.422},
         {"triethylamine", 2.3832},
+        {"water", 78.3553},
+        {"xenon", 1.706},
         {"xylene-mixture", 2.3879},
         {"z-1,2-dichloroethene", 9.2},
+  };
+
+  // Tabulated dynamic dielectric constants of solvents. Taken from
+  // https://github.com/PCMSolver/pcmsolver/blob/bbd992d54ebeace528cf236dede1f0c56641defb/src/utils/Solvent.cpp
+  data.attr("solvent_epsilon_dynamic") = std::map<std::string, double>{
+        {"1,4-dioxane", 2.023},          //
+        {"acetone", 1.841},              //
+        {"acetonitrile", 1.806},         //
+        {"aniline", 2.506},              //
+        {"benzene", 2.244},              //
+        {"carbontetrachloride", 2.129},  //
+        {"chlorobenzene", 2.320},        //
+        {"chloroform", 2.085},           //
+        {"cyclohexane", 2.028},          //
+        {"dichloroethane", 2.085},       //
+        {"dimethylsulfoxide", 2.179},    //
+        {"ethanol", 1.847},              //
+        {"heptane", 1.918},              //
+        {"methanol", 1.758},             //
+        {"nitromethane", 1.904},         //
+        {"tetrahydrofuran", 1.971},      //
+        {"toluene", 2.232},              //
+        {"water", 1.776},                //
   };
 }

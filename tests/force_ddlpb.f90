@@ -26,7 +26,7 @@ real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
                        & force(:, :), force_num(:, :), charges(:)
 real(dp) :: esolv, esolv_plus_h, esolv_minus_h, &
           & step = 2.d-5, relerr, tol
-integer :: isph, i, iprint
+integer :: isph, i
 real(dp), external :: dnrm2
 character(len=255) :: dummy_file_name = ''
 

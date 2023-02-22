@@ -19,11 +19,10 @@ implicit none
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
-integer :: iprint, pmax=30
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
     & hessianphi_cav(:, :, :), psi(:, :), &
     & force(:, :), force_num(:, :), charges(:)
-real(dp) :: tol, esolv1, esolv2, start_time, finish_time, step=0.0001, relerr
+real(dp) :: tol, esolv1, esolv2, step=0.0001, relerr
 integer :: isph, i
 real(dp), external :: dnrm2
 character(len=255) :: dummy_file_name = ''

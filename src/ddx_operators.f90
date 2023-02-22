@@ -155,6 +155,9 @@ subroutine ldm1x(params, constants, workspace, x, y)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
     integer :: isph, l, ind
+    ! workspace is here to comply with the interface
+    ! this dummy statement disables the warnings
+    if (workspace % error_flag .eq. 0) continue
     !! Loop over harmonics
     !$omp parallel do default(none) shared(params,constants,x,y) &
     !$omp private(isph,l,ind) schedule(dynamic)
@@ -203,8 +206,8 @@ subroutine dx_dense(params, constants, workspace, do_diag, x, y)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
     real(dp) :: c(3), vij(3), sij(3)
-    real(dp) :: vvij, tij, tt, f, f1, rho, ctheta, stheta, cphi, sphi
-    integer :: its, isph, jsph, l, m, ind, lm, istatus
+    real(dp) :: vvij, tij, tt, f, rho, ctheta, stheta, cphi, sphi
+    integer :: its, isph, jsph, l, m, ind
     real(dp), external :: dnrm2
     y = zero
     do isph = 1, params % nsph
@@ -279,8 +282,7 @@ subroutine dx_fmm(params, constants, workspace, do_diag, x, y)
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
-    integer :: isph, inode, l, indl, indl1, m
-    real(dp) :: finish_time, start_time
+    integer :: isph, inode, l, indl, indl1
     !! Scale input harmonics at first
     workspace % tmp_sph(1, :) = zero
     indl = 2
@@ -366,9 +368,9 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
-    real(dp) :: c(3), vji(3), sji(3)
-    real(dp) :: vvji, tji, fourpi, tt, f, f1, rho, ctheta, stheta, cphi, sphi
-    integer :: its, isph, jsph, l, m, ind, lm, istatus
+    real(dp) :: vji(3), sji(3)
+    real(dp) :: vvji, tji, tt, f, rho, ctheta, stheta, cphi, sphi
+    integer :: its, isph, jsph, l, m, ind
     real(dp), external :: dnrm2
     y = zero
     ! this loop is easily parallelizable
@@ -433,8 +435,7 @@ subroutine dstarx_fmm(params, constants, workspace, do_diag, x, y)
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
-    integer :: isph, inode, l, indl, indl1, m
-    real(dp) :: finish_time, start_time
+    integer :: isph, inode, l, indl, indl1
     ! Adjoint integration
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
         & one, constants % vwgrid, constants % vgrid_nbasis, x, &
@@ -550,8 +551,6 @@ subroutine rinfx(params, constants, workspace, x, y)
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Local variables
-    real(dp) :: fac
     !! note do_diag hardcoded to 1.
     !! Select implementation
     if (params % fmm .eq. 0) then
@@ -580,8 +579,6 @@ subroutine rstarinfx(params, constants, workspace, x, y)
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    ! Local variables
-    real(dp) :: fac
     ! Output `y` is cleaned here
     call dstarx(params, constants, workspace, x, y)
     ! Apply diagonal
@@ -600,6 +597,9 @@ subroutine prec_repsx(params, constants, workspace, x, y)
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     integer :: isph
+    ! workspace is here to comply with the interface
+    ! this dummy statement disables the warnings
+    if (workspace % error_flag .eq. 0) continue
     ! simply do a matrix-vector product with the transposed preconditioner 
     !$omp parallel do default(shared) schedule(static,1) &
     !$omp private(isph)
@@ -623,6 +623,9 @@ subroutine prec_repsstarx(params, constants, workspace, x, y)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
     integer :: isph
+    ! workspace is here to comply with the interface
+    ! this dummy statement disables the warnings
+    if (workspace % error_flag .eq. 0) continue
     ! simply do a matrix-vector product with the transposed preconditioner 
     !$omp parallel do default(shared) schedule(static,1) &
     !$omp private(isph)
@@ -667,13 +670,12 @@ subroutine gradr_dense(params, constants, workspace, g, ygrid, fx)
     real(dp), intent(out) :: fx(3, params % nsph)
     ! Local variables
     integer :: isph
-    real(dp) :: vplm(constants % nbasis), vcos(params % lmax+1), &
-        & vsin(params % lmax+1), basloc(constants % nbasis), &
-        & dbsloc(3, constants % nbasis)
     ! Simply cycle over all spheres
     do isph = 1, params % nsph
-        call gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
-            & dbsloc, g, ygrid, fx(:, isph))
+        call gradr_sph(params, constants, isph, workspace % tmp_vplm, &
+            & workspace % tmp_vcos, workspace % tmp_vsin, &
+            & workspace % tmp_vylm, workspace % tmp_vdylm, &
+            & g, ygrid, fx(:, isph))
     end do
 end subroutine gradr_dense
 
@@ -692,14 +694,14 @@ subroutine gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
         & dbsloc(3, constants % nbasis), fx(3)
     ! various scratch arrays
     real(dp) vik(3), sik(3), vki(3), ski(3), vkj(3), skj(3), vji(3), &
-        & sji(3), va(3), vb(3), a(3), d(3)
+        & sji(3), va(3), vb(3), a(3)
     ! jacobian matrix
     real(dp) sjac(3,3)
     ! indexes
     integer its, ik, ksph, l, m, ind, jsph, icomp, jcomp
     ! various scalar quantities
     real(dp) cx, cy, cz, vvki, tki, gg, fl, fac, vvkj, tkj
-    real(dp) tt, fcl, dij, fjj, gi, fii, vvji, tji, qji
+    real(dp) tt, fcl, fjj, gi, fii, vvji, tji, qji
     real(dp) b, vvik, tik, qik, tlow, thigh, duj
     real(dp) :: rho, ctheta, stheta, cphi, sphi
     real(dp), external :: dnrm2
@@ -995,11 +997,10 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
     ! Output
     real(dp), intent(out) :: fx(3, params % nsph)
     ! Local variables
-    integer :: i, j, indi, indj, indl, indl1, l, m, isph, igrid, ik, ksph, &
+    integer :: indl, indl1, l, isph, igrid, ik, ksph, &
         & jsph, jsph_node
-    real(dp) :: start, finish, time
     integer :: inear, inode, jnode
-    real(dp) :: fac, fl, gg, c(3), vki(3), vvki, tki, gg3(3), tmp1, tmp2, tmp_gg
+    real(dp) :: gg, c(3), vki(3), vvki, tki, gg3(3), tmp_gg, tmp_c(3)
     real(dp) :: tlow, thigh
     real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
     real(dp), external :: ddot, dnrm2
@@ -1187,19 +1188,20 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
                         if (isph .eq. jsph) cycle
                         c = params % csph(:, isph) + &
                             & params % rsph(isph)*constants % cgrid(:, igrid)
-                        call fmm_m2p_work(c-params % csph(:, jsph), &
+                        tmp_c = c - params % csph(:, jsph)
+                        call fmm_m2p_work(tmp_c, &
                             & params % rsph(jsph), params % lmax+1, &
                             & constants % vscales_rel, one, &
                             & workspace % tmp_sph_grad(:, 1, jsph), zero, &
                             & tmp_gg, work)
                         gg3(1) = gg3(1) + tmp_gg
-                        call fmm_m2p_work(c-params % csph(:, jsph), &
+                        call fmm_m2p_work(tmp_c, &
                             & params % rsph(jsph), params % lmax+1, &
                             & constants % vscales_rel, one, &
                             & workspace % tmp_sph_grad(:, 2, jsph), zero, &
                             & tmp_gg, work)
                         gg3(2) = gg3(2) + tmp_gg
-                        call fmm_m2p_work(c-params % csph(:, jsph), &
+                        call fmm_m2p_work(tmp_c, &
                             & params % rsph(jsph), params % lmax+1, &
                             & constants % vscales_rel, one, &
                             & workspace % tmp_sph_grad(:, 3, jsph), zero, &
@@ -1224,9 +1226,9 @@ subroutine bstarx(params, constants, workspace, x, y)
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
-    integer :: isph, jsph, ij, indmat, igrid, iproc
+    integer :: isph, jsph, ij, indmat, iproc
     y = zero
-    if (params % matvecmem .eq. 1) then 
+    if (params % matvecmem .eq. 1) then
         !$omp parallel do default(none) shared(params,constants,x,y) &
         !$omp private(isph,ij,jsph,indmat) schedule(dynamic)
         do isph = 1, params % nsph
@@ -1250,7 +1252,7 @@ subroutine bstarx(params, constants, workspace, x, y)
         !$omp private(isph,iproc) schedule(dynamic)
         do isph = 1, params % nsph
             iproc = omp_get_thread_num() + 1
-            call adjrhs_lpb(params, constants, workspace, isph, workspace % tmp_grid, &
+            call adjrhs_lpb(params, constants, isph, workspace % tmp_grid, &
                 & y(:, isph), workspace % tmp_vylm(:, iproc), workspace % tmp_vplm(:, iproc), &
                 & workspace % tmp_vcos(:, iproc), workspace % tmp_vsin(:, iproc), &
                 & workspace % tmp_bessel(:, iproc))
@@ -1289,9 +1291,7 @@ subroutine bx(params, constants, workspace, x, y)
         !$omp private(isph,iproc) schedule(dynamic)
         do isph = 1, params % nsph
           iproc = omp_get_thread_num() + 1
-          call calcv2_lpb(params, constants, isph, workspace % tmp_pot(:, iproc), x, &
-              & workspace % tmp_vylm, workspace % tmp_vplm, workspace % tmp_vcos, &
-              & workspace % tmp_vsin, workspace % tmp_bessel)
+          call calcv2_lpb(params, constants, isph, workspace % tmp_pot(:, iproc), x)
           call ddintegrate(1, constants % nbasis, params % ngrid, constants % vwgrid, &
               & constants % vgrid_nbasis, workspace % tmp_pot(:, iproc), y(:,isph))
           y(:,isph) = - y(:,isph) 
@@ -1338,6 +1338,10 @@ subroutine bx_prec(params, constants, workspace, x, y)
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
+    ! params, costants and workspace are here to comply with the interface
+    ! this dummy statement disables the warnings
+    if ((params % error_flag .eq. 0) .or. (constants % error_flag .eq. 0) &
+        & .or. (workspace % error_flag .eq. 0)) continue
     y = x
 end subroutine bx_prec
 
@@ -1350,7 +1354,6 @@ subroutine prec_tstarx(params, constants, workspace, x, y)
     real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
     real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
     integer :: n_iter
-    real(dp) :: r_norm
     real(dp), dimension(params % maxiter) :: x_rel_diff
 
     y(:,:,1) = x(:,:,1)
@@ -1389,7 +1392,6 @@ subroutine prec_tx(params, constants, workspace, x, y)
     real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
     real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
     integer :: n_iter
-    real(dp) :: r_norm
     real(dp), dimension(params % maxiter) :: x_rel_diff
 
     ! perform A^-1 * Yr
@@ -1427,13 +1429,9 @@ subroutine cstarx(params, constants, workspace, x, y)
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
     ! local
-    real(dp), dimension(0:constants % lmax0) :: SK_rijn, DK_rijn
-    real(dp), dimension(constants % nbasis) :: basloc, vplm
-    real(dp), dimension(params % lmax + 1) :: vcos, vsin
-    complex(dp) :: bessel_work(max(2, params % lmax+1))
     complex(dp) :: work_complex(constants % lmax0+1)
     real(dp) :: work(constants % lmax0+1)
-    integer :: isph, igrid, jsph, ind, l0, m0, ind0, indl, inode, l, m
+    integer :: isph, igrid, jsph, ind, l0, ind0, indl, inode, l, m
     real(dp), dimension(3) :: vij, vtij
     real(dp) :: val, epsilon_ratio
     real(dp), allocatable :: scratch(:,:), scratch0(:,:)

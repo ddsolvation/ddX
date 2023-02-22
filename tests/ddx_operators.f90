@@ -13,7 +13,7 @@ program test_ddx_operators
 use ddx_operators
 implicit none
 
-integer :: i, iprint=1, info, ngrid=590, nproc=1
+integer :: i, ngrid=590, nproc=1, info
 ! Some implementation do not work for alpha=1d-307, so range of test values is
 ! reduced. This can be fixed by enforcing proper order of multiplications like
 ! a*b*c into a*(b*c).
@@ -48,17 +48,16 @@ do i = 1, size(alpha)
         & matvecmem, maxiter, jacobi_ndiis, &
         & nproc, dummy_file_name, ddx_data)
     if(info .ne. 0) stop 1
-    call check_mkrhs(ddx_data, 0, 0, iprint, 1d-1, charge)
-    call check_mkrhs(ddx_data, 1, 1, iprint, 1d-2, charge)
-    call check_mkrhs(ddx_data, 3, 3, iprint, 1d-3, charge)
-    call check_mkrhs(ddx_data, 5, 5, iprint, 1d-4, charge)
-    call check_mkrhs(ddx_data, 20, 20, iprint, 1d-9, charge)
-    call check_mkrhs(ddx_data, 40, 40, iprint, 1d-15, charge)
-    call check_dx(ddx_data, lmax, lmax, iprint, 1d-4)
-    call check_dx(ddx_data, 40, 40, iprint, 1d-15)
-    call check_gradr(ddx_data, lmax, lmax, iprint, 1d-4)
-    call check_gradr(ddx_data, lmax+1, lmax+1, iprint, 1d-4)
-    call check_gradr(ddx_data, 40, 40, iprint, 1d-15)
+    call check_mkrhs(ddx_data, 0, 0, 1d-1, charge)
+    call check_mkrhs(ddx_data, 1, 1, 1d-2, charge)
+    call check_mkrhs(ddx_data, 3, 3, 1d-3, charge)
+    call check_mkrhs(ddx_data, 5, 5, 1d-4, charge)
+    call check_mkrhs(ddx_data, 20, 20, 1d-9, charge)
+    call check_mkrhs(ddx_data, 40, 40, 1d-15, charge)
+    call check_dx(ddx_data, lmax, lmax, 1d-4)
+    call check_dx(ddx_data, 40, 40, 1d-15)
+    call check_gradr(ddx_data, 40, 40, 1d-12)
+    call check_gradr(ddx_data, lmax+2, lmax+2, 1d-3)
     call ddfree(ddx_data)
 end do
 
@@ -72,10 +71,10 @@ subroutine error(code, message)
     stop -1
 end subroutine
 
-subroutine check_mkrhs(ddx_data, pm, pl, iprint, threshold, charges)
+subroutine check_mkrhs(ddx_data, pm, pl, threshold, charges)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
-    integer, intent(in) :: pm, pl, iprint
+    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: threshold
     real(dp), intent(in) :: charges(ddx_data % params % nsph)
     ! Local variables
@@ -139,20 +138,19 @@ subroutine check_mkrhs(ddx_data, pm, pl, iprint, threshold, charges)
     end if
 end subroutine check_mkrhs
 
-subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
+subroutine check_dx(ddx_data, pm, pl, threshold)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
-    integer, intent(in) :: pm, pl, iprint
+    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: threshold
     ! Local variables
     type(ddx_type) :: ddx_data_fmm
-    integer :: info, irand, iseed(4)=(/0, 0, 0, 1/), do_diag
+    integer :: irand, iseed(4)=(/0, 0, 0, 1/), do_diag
     integer, parameter :: nrand=10
     real(dp) :: x(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
         & y(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
         & z(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
-        & xx(nrand, nrand), yy(nrand, nrand), full_norm, diff_norm, &
-        & forces(3, ddx_data % params % nsph), forces2(3, ddx_data % params % nsph)
+        & xx(nrand, nrand), yy(nrand, nrand), full_norm, diff_norm
     real(dp), external :: dnrm2
     ! Init FMM-related ddx_data
     call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
@@ -182,6 +180,9 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
         end do
         diff_norm = dnrm2(ddx_data % constants % n * nrand, y-z, 1)
         write(*, *) "dx_dense vs dx_fmm rel.error=", diff_norm/full_norm
+        if (diff_norm .gt. threshold*full_norm) then
+            call error(-1, "FMM dstarx and dense dstarx are different")
+        end if
         ! Check dense adjoint operator dstarx
         do irand = 1, nrand
             call dstarx_dense(ddx_data % params, ddx_data % constants, &
@@ -198,6 +199,9 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
             & x, ddx_data % constants % n, zero, yy, nrand)
         diff_norm = dnrm2(nrand**2, xx-yy, 1)
         write(*, *) "dstarx_dense vs dx_dense rel.error=", diff_norm/full_norm
+        if (diff_norm .gt. threshold*full_norm) then
+            call error(-1, "FMM dstarx and dense dstarx are different")
+        end if
         ! Check FMM adjoint operator dstarx (without precomputed FMM matrices)
         do irand = 1, nrand
             call dstarx_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
@@ -214,26 +218,26 @@ subroutine check_dx(ddx_data, pm, pl, iprint, threshold)
             & x, ddx_data % constants % n, zero, yy, nrand)
         diff_norm = dnrm2(nrand**2, xx-yy, 1)
         write(*, *) "dstarx_fmm vs dx_fmm rel.error=", diff_norm/full_norm
+        if (diff_norm .gt. threshold*full_norm) then
+            call error(-1, "FMM dstarx and dense dstarx are different")
+        end if
     end do
     ! Free temporary objects
     call ddfree(ddx_data_fmm)
 end subroutine check_dx
 
-subroutine check_gradr(ddx_data, pm, pl, iprint, threshold)
+subroutine check_gradr(ddx_data, pm, pl, threshold)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
-    integer, intent(in) :: pm, pl, iprint
+    integer, intent(in) :: pm, pl
     real(dp), intent(in) :: threshold
     ! Local variables
     type(ddx_type) :: ddx_data_fmm
     real(dp), allocatable :: ygrid(:,:), g(:,:)
-    integer :: info, irand, iseed(4)=(/0, 0, 0, 1/), do_diag
+    integer :: iseed(4)=(/0, 0, 0, 1/)
     integer, parameter :: nrand=10
-    real(dp) :: x(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
-        & y(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
-        & z(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
-        & xx(nrand, nrand), yy(nrand, nrand), full_norm, diff_norm, &
-        & forces(3, ddx_data % params % nsph), forces2(3, ddx_data % params % nsph)
+    real(dp) :: full_norm, diff_norm, forces(3, ddx_data % params % nsph), &
+        & forces2(3, ddx_data % params % nsph)
     real(dp), external :: dnrm2
     ! Init FMM-related ddx_data
     call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
@@ -258,7 +262,11 @@ subroutine check_gradr(ddx_data, pm, pl, iprint, threshold)
     call gradr_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
         & ddx_data_fmm % workspace, g, ygrid, forces2)
     diff_norm = dnrm2(3*ddx_data % params % nsph, forces-forces2, 1)
+    write(*, *) 'diff norm', diff_norm
     write(*, *) "gradr dense vs fmm rel.error=", diff_norm / full_norm
+    if (diff_norm .gt. threshold*full_norm) then
+        call error(-1, "Forces are different")
+    end if
     deallocate(ygrid, g)
     call ddfree(ddx_data_fmm)
 end subroutine check_gradr

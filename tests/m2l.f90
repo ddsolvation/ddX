@@ -14,10 +14,8 @@ use ddx_core
 implicit none
 
 integer, parameter :: ntests=100000, pmax=19, pmax2=20**2
-real(dp) :: vscales((2*pmax+1)**2), v4pi2lp1(2*pmax+1), &
-    & vscales_rel((2*pmax+1)**2), vcnk((4*pmax+1)*(2*pmax+1)), &
+real(dp) :: vscales((2*pmax+1)**2), &
     & m2l_ztranslate_coef(pmax+1, pmax+1, pmax+1), &
-    & m2l_ztranslate_adj_coef(pmax+1, pmax+1, pmax+1), &
     & src_c(3, ntests), dst_c(3, ntests), src_r(ntests), dst_r(ntests), &
     & start_time, finish_time
 real(dp), allocatable :: src_m(:, :), dst_l(:, :), work(:)

@@ -16,11 +16,10 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
-integer :: info
 ! isph   : Index for number of spheres
 ! i      : Index for derivative components (i = 1,2,3)
 ! ibasis : Index for number of basis
-integer :: isph, i, ibasis, iprint
+integer :: isph, i, ibasis
 
 
 real(dp) :: check_A_one, check_A_two, check_A_three, check_A_four, tol

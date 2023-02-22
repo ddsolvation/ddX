@@ -33,19 +33,23 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f)
     !! Outputs
     real(dp), intent(out) :: f(params % ngrid, params % nsph)
     !! Local variables
-    integer :: isph, ig, ic, ind, ind0, jg, l, m, jsph
-    real(dp) :: nderphi, sumSijn, rijn, coef_Ylm, sumSijn_pre, termi, &
-        & termk, term, tmp1, tmp2
-    real(dp), dimension(3) :: sijn, vij, vtij
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, start_time, finish_time
+    integer :: isph, ig, ic, ind, ind0, jsph
+    real(dp) :: nderphi, sumSijn, sumSijn_pre
+    real(dp), dimension(3) :: vij, vtij
     real(dp), allocatable :: SK_rijn(:), DK_rijn(:), c0(:,:), c1(:,:)
-    integer :: l0, m0, icav, istatus, indl, inode
+    integer :: l0, icav, istatus, indl, inode
     complex(dp) :: work_complex(constants % lmax0 + 1)
     real(dp) :: work(constants % lmax0 + 1)
 
 
     allocate(SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0), &
-        & c0(constants % nbasis0, params % nsph), c1(constants % nbasis0, params % nsph))
+        & c0(constants % nbasis0, params % nsph), &
+        & c1(constants % nbasis0, params % nsph), stat=istatus)
+    if (istatus.ne.0) then
+        workspace % error_flag = 1
+        workspace % error_message = 'Allocation in wghpot_f failed'
+        return
+    end if
 
     ic = 0
     f = zero
@@ -143,29 +147,17 @@ end subroutine wghpot_f
 !! @param[in]      isph   : Number of the sphere
 !! @param[in, out] pot    : Array of size ngrid
 !! @param[in]      x      : Input vector (Usually X_e)
-!! @param[in, out] basloc : Used to compute spherical harmonic
-!! @param[in, out] vplm   : Used to compute spherical harmonic
-!! @param[in, out] vcos   : Used to compute spherical harmonic
-!! @param[in, out] vsin   : Used to compute spherical harmonic
 !!
-subroutine calcv2_lpb (params, constants, isph, pot, x, basloc, vplm, vcos, &
-          & vsin, bessel_work)
+subroutine calcv2_lpb (params, constants, isph, pot, x)
     type(ddx_params_type), intent(in)  :: params
     type(ddx_constants_type), intent(in)  :: constants
     integer, intent(in) :: isph
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
     real(dp), dimension(params % ngrid), intent(inout) :: pot
-    real(dp), dimension(constants % nbasis), intent(inout) :: basloc
-    real(dp), dimension(constants % nbasis), intent(inout) :: vplm
-    real(dp), dimension(params % lmax+1), intent(inout) :: vcos
-    real(dp), dimension(params % lmax+1), intent(inout) :: vsin
-    complex(dp), intent(out) :: bessel_work(max(2, params % lmax+1))
     complex(dp) :: work_complex(params % lmax+1)
     real(dp) :: work(params % lmax+1)
-    real(dp), dimension(constants % nbasis) :: fac_cosmo, fac_hsp
     real(dp), dimension(params % ngrid) :: pot2
     integer :: its, ij, jsph
-    real(dp) :: rho, ctheta, stheta, cphi, sphi
     real(dp) :: vij(3), sij(3), vtij(3)
     real(dp) :: vvij, tij, xij, oij
 
@@ -242,26 +234,23 @@ end subroutine convert_ddcosmo
 !! @param[out] fac_hsp    : Return bessel function ratio multiplied by
 !!                       the spherical harmonic Y_l'm'. Array of size nylm
 !!
-subroutine inthsp(params, constants, rijn, ri, isph, basloc, fac_hsp, work)
+subroutine inthsp(params, constants, rijn, isph, basloc, fac_hsp, work)
     implicit none
     type(ddx_params_type), intent(in)  :: params
     type(ddx_constants_type), intent(in)  :: constants
     integer, intent(in) :: isph
-    real(dp), intent(in) :: rijn, ri
+    real(dp), intent(in) :: rijn
     real(dp), dimension(constants % nbasis), intent(in) :: basloc
     real(dp), dimension(constants % nbasis), intent(inout) :: fac_hsp
     complex(dp), intent(out) :: work(max(2, params % lmax+1))
     real(dp), dimension(0:params % lmax) :: SI_rijn, DI_rijn
     integer :: l, m, ind
-  
     SI_rijn = 0
     DI_rijn = 0
     fac_hsp = 0
-  
     ! Computation of modified spherical Bessel function values
     call modified_spherical_bessel_first_kind(params % lmax, &
         & rijn*params % kappa, SI_rijn, DI_rijn, work)
-  
     do l = 0, params % lmax
         do  m = -l, l
             ind = l*l + l + 1 + m
@@ -276,14 +265,13 @@ endsubroutine inthsp
 !! Taken from ddx_core routine adjrhs
 !! @param[in]  params     : Input parameter file
 !! @param[in]  constants  : Input constants file
-!! @param[in]  workspace  : Input workspace
 !! @param[in]      isph   : Number of the sphere
 !! @param[in, out] basloc : Used to compute spherical harmonic
 !! @param[in, out] vplm   : Used to compute spherical harmonic
 !! @param[in, out] vcos   : Used to compute spherical harmonic
 !! @param[in, out] vsin   : Used to compute spherical harmonic
 !!
-subroutine adjrhs_lpb(params, constants, workspace, isph, xi, vlm, basloc, &
+subroutine adjrhs_lpb(params, constants, isph, xi, vlm, basloc, &
     & vplm, vcos, vsin, tmp_bessel)
     implicit none
     !! input/output
@@ -294,7 +282,6 @@ subroutine adjrhs_lpb(params, constants, workspace, isph, xi, vlm, basloc, &
     real(dp), dimension((params % lmax+1)**2), intent(out) :: basloc, vplm
     real(dp), dimension(params % lmax+1), intent(out) :: vcos, vsin
     complex(dp), dimension(max(2, params % lmax+1)), intent(out) :: tmp_bessel
-    type(ddx_workspace_type), intent(inout) :: workspace
     integer, intent(in) :: isph
     !! local
     integer :: ij, jsph, ig, l, ind, m
@@ -321,8 +308,8 @@ subroutine adjrhs_lpb(params, constants, workspace, isph, xi, vlm, basloc, &
                         & sphi, params % lmax, &
                         & constants % vscales, basloc, &
                         & vplm, vcos, vsin)
-          call inthsp_adj(params, constants, vvji, params % rsph(isph), isph, &
-              & basloc, fac_hsp, tmp_bessel)
+          call inthsp_adj(params, constants, vvji, isph, basloc, fac_hsp, &
+              & tmp_bessel)
           !compute \chi( t_n^ji )
           xji = fsw( tji, params % se, params % eta )
           !compute W_n^ji
@@ -352,19 +339,18 @@ end subroutine adjrhs_lpb
 !! @param[in]  params     : Input parameter file
 !! @param[in]  constants  : Input constants file
 !! @param[in]  rjin       : Radius of sphers x_jin
-!! @param[in]  rj         : Radius of sphers x_j
 !! @param[in]  jsph       : Index of sphere
 !! @param[in]  basloc     : Spherical Harmonic
 !! @param[out] fac_hsp    : Return bessel function ratio multiplied by
 !!                       the spherical harmonic Y_l'm'. Array of size nylm
-subroutine inthsp_adj(params, constants, rjin, rj, jsph, basloc, &
+subroutine inthsp_adj(params, constants, rjin, jsph, basloc, &
           & fac_hsp, work)
     implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: jsph
-    real(dp), intent(in) :: rjin, rj
+    real(dp), intent(in) :: rjin
     real(dp), dimension(constants % nbasis), intent(in) :: basloc
     real(dp), dimension(constants % nbasis), intent(inout) :: fac_hsp
     complex(dp), intent(out) :: work(max(2, params % lmax+1))

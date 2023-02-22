@@ -298,7 +298,7 @@ IF (az <= aa) THEN
 !     CALCULATE EXP(FNU*HPI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE
 !     WHEN FNU IS LARGE
 !-----------------------------------------------------------------------
-      inu = fnu
+      inu = INT(fnu)
       inuh = inu / 2
       ir = inu - 2 * inuh
       arg = (fnu - (inu-ir)) * sgn
@@ -562,7 +562,7 @@ IF (az <= aa) THEN
 !     CALCULATE CSGN=EXP(FNU*PI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE
 !     WHEN FNU IS LARGE
 !-----------------------------------------------------------------------
-      inu = fnu
+      inu = INT(fnu)
       arg = (fnu - inu) * pi
       IF (yy < 0.0_dp) arg = -arg
       s1 = COS(arg)
@@ -812,7 +812,7 @@ IF (az <= aa) THEN
 !     CALCULATE CSGN=EXP(FNU*HPI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE
 !     WHEN FNU IS LARGE
 !-----------------------------------------------------------------------
-    inu = fnu
+    inu = INT(fnu)
     inuh = inu / 2
     ir = inu - 2 * inuh
     arg = (fnu - (inu-ir)) * hpi
@@ -1316,7 +1316,7 @@ IF (ierr == 0 .OR. ierr == 3) THEN
   CALL cbesk(zn, fnu, kode, n, cwrk, nz2, ierr)
   IF (ierr == 0 .OR. ierr == 3) THEN
     nz = MIN(nz1, nz2)
-    ifnu = fnu
+    ifnu = INT(fnu)
     ffnu = fnu - ifnu
     arg = hpi * ffnu
     csgn = CMPLX(COS(arg), SIN(arg), KIND=dp)
@@ -2495,8 +2495,8 @@ scle = 1.0E+3 * TINY(0.0_dp) / tol
 nz = 0
 az = ABS(z)
 x = REAL(z, KIND=dp)
-iaz = az
-ifnu = fnu
+iaz = INT(az)
+ifnu = INT(fnu)
 inu = ifnu + n - 1
 at = iaz + 1
 ck = CMPLX(at, 0.0_dp, KIND=dp) / z
@@ -3366,7 +3366,7 @@ IF (ABS(acz) <= elim) THEN
 !-----------------------------------------------------------------------
   aez = 8.0_dp * az
   s = tol / aez
-  jl = rl + rl + 2
+  jl = INT(rl + rl + 2.0_dp)
   yy = AIMAG(z)
   p1 = czero
   IF (yy /= 0.0_dp) THEN
@@ -3374,7 +3374,7 @@ IF (ABS(acz) <= elim) THEN
 !     CALCULATE EXP(PI*(0.5+FNU+N-IL)*I) TO MINIMIZE LOSSES OF
 !     SIGNIFICANCE WHEN FNU OR N IS LARGE
 !-----------------------------------------------------------------------
-    inu = fnu
+    inu = INT(fnu)
     arg = (fnu - inu) * pi
     inu = inu + n - il
     ak = -SIN(arg)
@@ -3694,7 +3694,7 @@ sgn = -SIGN(pi, fmr)
 !     CSPN AND CSGN ARE COEFF OF K AND I FUNCIONS RESP.
 !-----------------------------------------------------------------------
 csgn = CMPLX(0.0_dp, sgn, KIND=dp)
-inu = fnu
+inu = INT(fnu)
 fnf = fnu - inu
 ifn = inu + n - 1
 ang = fnf * sgn
@@ -3916,7 +3916,7 @@ IF (x < 0.0_dp) zr = -z
 yy = AIMAG(zr)
 zn = -zr * ci
 zb = zr
-inu = fnu
+inu = INT(fnu)
 fnf = fnu - inu
 ang = -hpi * fnf
 car = COS(ang)
@@ -4679,7 +4679,7 @@ yy = AIMAG(z)
 zn = -z * ci
 zb = z
 cid = -ci
-inu = fnu
+inu = INT(fnu)
 ang = hpi * (fnu - inu)
 car = COS(ang)
 sar = SIN(ang)
@@ -4961,10 +4961,10 @@ INTEGER       :: i, id, idnu, inu, itime, k, kk, magz
 REAL (dp), PARAMETER  :: czero = (0.0_dp,0.0_dp), cone = (1.0_dp,0.0_dp)
 
 az = ABS(z)
-inu = fnu
+inu = INT(fnu)
 idnu = inu + n - 1
 fdnu = idnu
-magz = az
+magz = INT(az)
 amagz = magz + 1
 fnup = MAX(amagz, fdnu)
 id = idnu - magz - 1
@@ -5103,7 +5103,7 @@ nz = 0
 iflag = 0
 koded = kode
 rz = ctwo / z
-inu = fnu + 0.5_dp
+inu = INT(fnu + 0.5_dp)
 dnu = fnu - inu
 IF (ABS(dnu) /= 0.5_dp) THEN
   dnu2 = 0.0_dp
@@ -5294,7 +5294,7 @@ ELSE
   fk = 0.12125_dp * ak * ak / caz + 1.5_dp
 END IF
 
-80 k = fk
+80 k = INT(fk)
 !-----------------------------------------------------------------------
 !     BACKWARD RECURRENCE LOOP FOR MILLER ALGORITHM
 !-----------------------------------------------------------------------
@@ -5686,7 +5686,7 @@ IF (nw >= 0) THEN
 !     CALCULATE CSPN=EXP(FNU*PI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE
 !     WHEN FNU IS LARGE
 !-----------------------------------------------------------------------
-    inu = fnu
+    inu = INT(fnu)
     arg = (fnu - inu) * sgn
     cpn = COS(arg)
     spn = SIN(arg)
@@ -5889,7 +5889,7 @@ GO TO 80
 !-----------------------------------------------------------------------
 !     INCREMENT FNU+NN-1 UP TO FNUL, COMPUTE AND RECUR BACKWARD
 !-----------------------------------------------------------------------
-70 nui = fnul - dfnu + 1
+70 nui = INT(fnul - dfnu + 1.0_dp)
 nui = MAX(nui, 0)
 CALL cbuni(z, fnu, kode, nn, cy, nw, nui, nlast, fnul, tol, elim, alim)
 IF (nw < 0) GO TO 90
@@ -6011,7 +6011,7 @@ REAL (dp), PARAMETER  :: con = 1.83787706640934548_dp
 !***FIRST EXECUTABLE STATEMENT  GAMLN
 IF (z > 0.0_dp) THEN
   IF (z <= 101.0_dp) THEN
-    nz = z
+    nz = INT(z)
     fz = z - nz
     IF (fz <= 0.0_dp) THEN
       IF (nz <= 100) THEN
@@ -6028,7 +6028,7 @@ IF (z > 0.0_dp) THEN
   fln = MAX(fln,3.0_dp)
   fln = fln - 3.0_dp
   zm = 1.8000_dp + 0.3875_dp * fln
-  mz = zm + 1
+  mz = INT(zm + 1.0_dp)
   zmin = mz
   zdmy = z
   zinc = 0.0_dp
@@ -6056,7 +6056,7 @@ IF (z > 0.0_dp) THEN
     RETURN
   END IF
   zp = 1.0_dp
-  nz = zinc
+  nz = INT(zinc)
   DO  i = 1, nz
     zp = zp * (z + (i-1))
   END DO
@@ -6066,6 +6066,7 @@ IF (z > 0.0_dp) THEN
 END IF
 
 WRITE(*, *) '** ERROR: Zero or -ve argument for function GAMLN **'
+fn_val = 0.0
 RETURN
 END FUNCTION gamln
 
@@ -6187,7 +6188,7 @@ IF (nw == 0) THEN
 !     CALCULATE CSPN=EXP(FNU*PI*I) TO MINIMIZE LOSSES OF SIGNIFICANCE
 !     WHEN FNU IS LARGE
 !-----------------------------------------------------------------------
-  inu = fnu
+  inu = INT(fnu)
   arg = (fnu - inu) * sgn
   cpn = COS(arg)
   spn = SIN(arg)

@@ -532,9 +532,8 @@ void export_pyddx_classes(py::module& m) {
         "jacobi_n_diis:    Number of iterates stored in the DIIS space for acceleration\n"
         "enable_fmm:       Use fast-multipole method (true) or not (false)\n"
         "fmm_multipole_lmax:  Maximal degree of multipole spherical harmonics, "
-        "ignored "
-        "in case `!enable_fmm`. Value `-1` means no far-field FFM interactions "
-        "are computed.\n"
+        "ignored in case `!enable_fmm`. Value `-1` means no far-field FFM interactions "
+        "are computed. Using the same value as lmax is recommended. \n"
         "fmm_local_lmax:   Maximal degree of local spherical harmonics, ignored in "
         "case `use_fmm=false`. Value `-1` means no local FFM interactions are "
         "computed.\n"
@@ -548,9 +547,9 @@ void export_pyddx_classes(py::module& m) {
                       std::string>(),
              init_docstring, "model"_a, "sphere_charges"_a, "sphere_centres"_a,
              "sphere_radii"_a, "solvent_epsilon"_a, "solvent_kappa"_a = 0.0,
-             "eta"_a = 0.1, "shift"_a = -100, "lmax"_a = 7, "n_lebedev"_a = 302,
+             "eta"_a = 0.1, "shift"_a = -100, "lmax"_a = 9, "n_lebedev"_a = 302,
              "incore"_a = false, "maxiter"_a = 100, "jacobi_n_diis"_a = 20,
-             "enable_fmm"_a = true, "fmm_multipole_lmax"_a = 7, "fmm_local_lmax"_a = 6,
+             "enable_fmm"_a = true, "fmm_multipole_lmax"_a = 9, "fmm_local_lmax"_a = 6,
              "n_proc"_a = 1, "logfile"_a = "")
         //
         .def_property_readonly("has_fmm_enabled", &Model::has_fmm_enabled)

@@ -123,7 +123,7 @@ end if
 if (ddx_data % params % model .eq. 3) then
     ! Print each iteration if needed
     do i = 1, state % x_lpb_niter
-        print " (A,I4,A,ES20.14)", " iter=", i, &
+        print " (A,I4,A,ES20.14)", "iter=", i, &
             & " relative difference: ", state % x_lpb_rel_diff(i)
     end do
     ! Print number of iterations and time

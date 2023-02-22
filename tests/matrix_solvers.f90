@@ -26,10 +26,8 @@ type(ddx_state_type) :: state
 character(len=255) :: dummy_file_name = ''
 
 real(dp) :: esolv_one, esolv_two, tol
-integer :: i, istatus, iprint, default_value
+integer :: default_value
 
-real(dp), allocatable :: computed_epsilon(:), computed_eta(:), &
-                       & computed_kappa(:), computed_lmax(:)
 real(dp), external :: dnrm2
 real(dp), allocatable :: charges(:)
 

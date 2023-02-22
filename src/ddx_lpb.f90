@@ -293,11 +293,8 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     real(dp), allocatable :: ef(:,:), xadj_r_sgrid(:,:), xadj_e_sgrid(:,:), &
         & normal_hessian_cav(:,:), diff_re(:,:), scaled_xr(:,:)
     integer :: isph, icav, icav_gr, icav_ge, igrid, istat
-    integer :: i, inode, jnear, inear, jnode, jsph
+    integer :: i, inode, jnear, jnode, jsph
     real(dp), external :: ddot, dnrm2
-    real(dp) :: tcontract_gradi_Lik, tcontract_gradi_Lji, &
-        & tcontract_gradi_Bik, tcontract_gradi_Bji, tcontract_grad_U, &
-        & tcontract_grad_C_worker1, tcontract_grad_C_worker2
     real(dp) :: d(3), dnorm, tmp1, tmp2
     real(dp) :: start_time, finish_time
 
@@ -361,9 +358,8 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
         call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
             & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
         ! Compute B^k*Xadj_e
-        call contract_grad_B(params, constants, workspace, isph, &
-            & state % x_lpb(:,:,2), Xadj_e_sgrid, basloc, dbasloc, vplm, &
-            & vcos, vsin, force(:, isph))
+        call contract_grad_B(params, constants, isph, &
+            & state % x_lpb(:,:,2), Xadj_e_sgrid, force(:, isph))
         ! Computation of G0
         call contract_grad_U(params, constants, isph, Xadj_r_sgrid, &
             & state % phi_grid, force(:, isph))
