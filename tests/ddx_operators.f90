@@ -13,7 +13,7 @@ program test_ddx_operators
 use ddx_operators
 implicit none
 
-integer :: i, ngrid=590, nproc=1, info
+integer :: i, ngrid=590, nproc=1
 ! Some implementation do not work for alpha=1d-307, so range of test values is
 ! reduced. This can be fixed by enforcing proper order of multiplications like
 ! a*b*c into a*(b*c).
@@ -47,7 +47,6 @@ do i = 1, size(alpha)
         lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & nproc, dummy_file_name, ddx_data)
-    if(info .ne. 0) stop 1
     call check_mkrhs(ddx_data, 0, 0, 1d-1, charge)
     call check_mkrhs(ddx_data, 1, 1, 1d-2, charge)
     call check_mkrhs(ddx_data, 3, 3, 1d-3, charge)

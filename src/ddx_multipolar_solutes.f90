@@ -1104,7 +1104,7 @@ subroutine grad_e(params, constants, workspace, state, mmax, &
         & m_hess_x(:, :, :), m_hess_y(:, :, :), m_hess_z(:, :, :), &
         & m_grad_component(:, :), adj_phi_x(:, :), adj_phi_y(:, :), &
         & adj_phi_z(:, :)
-    integer :: info, icav, isph, ind, l, m, lm
+    integer :: info, isph, ind, l, m, lm
     real(dp) :: fac
 
     allocate(zeta_comp(constants % ncav), &

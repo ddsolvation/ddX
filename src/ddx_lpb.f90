@@ -68,7 +68,7 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
         call ddlpb_solve_adjoint(params, constants, workspace, state, tol)
         if (workspace % error_flag .eq. 1) return
         call ddlpb_solvation_force_terms(params, constants, workspace, &
-            & state, phi_cav, gradphi_cav, hessianphi_cav, force)
+            & state, gradphi_cav, hessianphi_cav, force)
         if (workspace % error_flag .eq. 1) return
     endif
 
@@ -267,19 +267,17 @@ end subroutine ddlpb_solve_adjoint
 !! @param[in] constants      : Precomputed constants
 !! @param[inout] workspace   : Preallocated workspaces
 !! @param[inout] state       : Solutions and relevant quantities
-!! @param[in] phi_cav        : Electric potential at the grid points
 !! @param[in] gradphi_cav    : Electric field at the grid points
 !! @param[in] hessianphi_cav : Electric field gradient at the grid points
 !! @param[out] force         : Geometrical contribution to the forces
 !!
 subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
-        & state, phi_cav, gradphi_cav, hessianphi_cav, force)
+        & state, gradphi_cav, hessianphi_cav, force)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
     real(dp), intent(in) :: hessianphi_cav(3, 3, constants % ncav)
     real(dp), intent(out) :: force(3, params % nsph)
@@ -293,9 +291,8 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     real(dp), allocatable :: ef(:,:), xadj_r_sgrid(:,:), xadj_e_sgrid(:,:), &
         & normal_hessian_cav(:,:), diff_re(:,:), scaled_xr(:,:)
     integer :: isph, icav, icav_gr, icav_ge, igrid, istat
-    integer :: i, inode, jnear, jnode, jsph
+    integer :: i
     real(dp), external :: ddot, dnrm2
-    real(dp) :: d(3), dnorm, tmp1, tmp2
     real(dp) :: start_time, finish_time
 
     start_time = omp_get_wtime()

@@ -1772,7 +1772,7 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
         end do
     end do
 
-    call build_zeta_dip_intermediate(params, constants, workspace, phi_n, state)
+    call build_zeta_dip_intermediate(params, constants, phi_n, state)
 
     deallocate(phi_n, phi_n2, gradpsi_grid, stat=istat)
     if (istat.ne.0) then
@@ -1800,17 +1800,14 @@ end subroutine contract_grad_f_worker2
 !!
 !! @param[in] params: ddx parameters
 !! @param[in] constant: ddx constants
-!! @param[in] workspace: ddx workspace
 !! @param[in] phi_n: adjoint solution contracted with other matrices,
 !!     size (ngrid, nsph)
 !! @param[inout] force: force array, size (3, nsph)
 !!
-subroutine build_zeta_dip_intermediate(params, constants, workspace, &
-        & phi_n, state)
+subroutine build_zeta_dip_intermediate(params, constants, phi_n, state)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_n(params % ngrid, params % nsph)
 
