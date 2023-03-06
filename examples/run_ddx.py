@@ -27,7 +27,7 @@ centres = tobohr * np.array([
 
 print(pyddx.banner())
 
-model = pyddx.Model("pcm", charges, centres, rvdw, solvent_epsilon=78.3553)
+model = pyddx.Model("pcm", centres, rvdw, solvent_epsilon=78.3553)
 
 # Compute solute contributions (here just charges)
 solute_multipoles = charges.reshape(1, -1) / np.sqrt(4 * np.pi)

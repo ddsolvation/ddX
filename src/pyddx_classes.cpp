@@ -529,7 +529,7 @@ void export_pyddx_classes(py::module& m) {
 
   py::class_<Model, std::shared_ptr<Model>>(m, "Model",
                                             "Solvation model using ddX library.")
-        .def(py::init<std::string, array_f_t, array_f_t, array_f_t, double, double,
+        .def(py::init<std::string, array_f_t, array_f_t, double, double,
                       double, double, int, int, int, int, int, bool, int, int, int,
                       std::string>(),
              init_docstring, "model"_a, "sphere_centres"_a,
