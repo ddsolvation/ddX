@@ -89,8 +89,7 @@ end
 !
 function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
         & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, fmm_multipole_lmax, fmm_local_lmax, &
-        & n_proc, n_spheres, sphere_centres, &
-        & sphere_radii, length_logfile, c_logfile) result(c_ddx) bind(C)
+        & n_proc, n_spheres, sphere_centres, sphere_radii, length_logfile, c_logfile) result(c_ddx) bind(C)
     integer(c_int), intent(in), value :: model, enable_force, lmax, n_lebedev, maxiter, &
         & incore, jacobi_n_diis, enable_fmm, fmm_multipole_lmax, fmm_local_lmax, n_proc, &
         & n_spheres, length_logfile
