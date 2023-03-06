@@ -69,7 +69,7 @@ int main() {
   void* model = ddx_allocate_model(pcm, enable_forces, epsilon, kappa, eta, shift, lmax,
                                    n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm,
                                    fmm_multipole_lmax, fmm_local_lmax, n_proc, n_spheres,
-                                   charges, centres, radii, length_logfile, logfile);
+                                   centres, radii, length_logfile, logfile);
   if (ddx_get_error_flag(model) != 0) {
     print_model_error(model);
     return 1;

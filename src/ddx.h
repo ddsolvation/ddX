@@ -81,9 +81,9 @@ void* ddx_allocate_model(int model, int enable_force, double solvent_epsilon,
                          double solvent_kappa, double eta, double shift, int lmax,
                          int n_lebedev, int incore, int maxiter, int jacobi_n_diis,
                          int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax,
-                         int n_proc, int n_spheres, const double* sphere_charges,
-                         const double* sphere_centres, const double* sphere_radii,
-                         int length_logfile, const char* logfile);
+                         int n_proc, int n_spheres, const double* sphere_centres,
+                         const double* sphere_radii, int length_logfile,
+                         const char* logfile);
 
 /** Deallocate the model object */
 void ddx_deallocate_model(void* ddx);
