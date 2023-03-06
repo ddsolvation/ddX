@@ -111,7 +111,7 @@ int main() {
   // Solve the PCM problem
   //
   void* state = ddx_allocate_state(model);
-  if (ddx_get_state_error_flag(model) != 0) {
+  if (ddx_get_state_error_flag(state) != 0) {
     print_state_error(state);
     return 1;
   }
