@@ -456,7 +456,11 @@ subroutine ddx_get_x(c_state, nbasis, nsph, x) bind(C)
     real(c_double), intent(out)  :: x(nbasis, nsph)
     call c_f_pointer(c_state, state)
     x(:, :) = state%xs(:, :)
+    ! TODO: handle the ddLPB case by taking just the first of the
+    ! two solutions
 end subroutine
+
+! TODO: (not particularly important) implement ddx_get_xlpb
 
 function ddx_get_x_niter(c_state) bind(C) result(c_niter)
     type(c_ptr), intent(in), value :: c_state

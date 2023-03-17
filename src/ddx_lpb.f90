@@ -49,24 +49,31 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     real(dp), intent(out) :: esolv, force(3, params % nsph)
     real(dp), external :: ddot
 
+    ! TODO: remove tol from here
     call ddlpb_setup(params, constants, workspace, state, phi_cav, &
         & gradphi_cav, psi, tol)
     if (workspace % error_flag .eq. 1) return
+    ! TODO: add tol here, the internal_tol is computed internally
     call ddlpb_guess(params, constants, workspace, state)
     if (workspace % error_flag .eq. 1) return
     call ddlpb_solve(params, constants, workspace, state, tol)
     if (workspace % error_flag .eq. 1) return
 
     ! Compute the solvation energy, note that psi is divided by fourpi
+    ! TODO: create a ddlpb_energy subroutine and do the same for ddcosmo
+    ! and ddPCM
     esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, psi, 1) &
         & /fourpi
 
     ! Get forces if needed
     if(params % force .eq. 1) then
+        ! TODO: add tol
         call ddlpb_guess_adjoint(params, constants, workspace, state)
         if (workspace % error_flag .eq. 1) return
         call ddlpb_solve_adjoint(params, constants, workspace, state, tol)
         if (workspace % error_flag .eq. 1) return
+        ! TODO: (if easy) remove hessianphi_cav, and remove gradphi_cav
+        ! this second one is easy.
         call ddlpb_solvation_force_terms(params, constants, workspace, &
             & state, gradphi_cav, hessianphi_cav, force)
         if (workspace % error_flag .eq. 1) return
