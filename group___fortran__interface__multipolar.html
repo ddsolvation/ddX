@@ -116,6 +116,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:ga29181299be03f0bb493cfd4cfb928a0b"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">ddx_multipolar_solutes::grad_phi</a> (params, constants, workspace, state, mmax, multipoles, forces, e_cav)</td></tr>
 <tr class="memdesc:ga29181299be03f0bb493cfd4cfb928a0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions.  <a href="group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b">More...</a><br /></td></tr>
 <tr class="separator:ga29181299be03f0bb493cfd4cfb928a0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3b76ee08ab49e4404732d80a35cafa25"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga3b76ee08ab49e4404732d80a35cafa25">ddx_multipolar_solutes::grad_e</a> (params, constants, workspace, state, mmax, multipoles, force)</td></tr>
+<tr class="memdesc:ga3b76ee08ab49e4404732d80a35cafa25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions in case of ddLPB F RHS.  <a href="group___fortran__interface__multipolar.html#ga3b76ee08ab49e4404732d80a35cafa25">More...</a><br /></td></tr>
+<tr class="separator:ga3b76ee08ab49e4404732d80a35cafa25"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p >Exposed multipolar modules in the Fortran API. </p>
@@ -472,7 +475,81 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00785">785</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00783">783</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+
+</div>
+</div>
+<a id="ga3b76ee08ab49e4404732d80a35cafa25" name="ga3b76ee08ab49e4404732d80a35cafa25"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3b76ee08ab49e4404732d80a35cafa25">&#9670;&nbsp;</a></span>grad_e()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_multipolar_solutes::grad_e </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>mmax</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension((mmax+1)**2, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>multipoles</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions in case of ddLPB F RHS. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>ddx constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspace </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">mmax</td><td>maximum angular momentum of the multipolar distribution </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">multipoles</td><td>multipoles as real spherical harmonics, size ((mmax+1)**2, nsph) </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">forces</td><td>forces array, size (3, nsph) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l01092">1092</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>

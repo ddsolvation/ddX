@@ -6,6 +6,7 @@ var structddx__core_1_1ddx__state__type =
     [ "zeta", "structddx__core_1_1ddx__state__type.html#a6d25ed184b0365b44a597556edec3b49", null ],
     [ "error_flag", "structddx__core_1_1ddx__state__type.html#a0b1492447f2bef9ff3b132f68f8d67cc", null ],
     [ "error_message", "structddx__core_1_1ddx__state__type.html#a56c8add2d008d542df338eb2e7c5c890", null ],
+    [ "force_time", "structddx__core_1_1ddx__state__type.html#a4eb70dbd69e4220b2f37dd38a5a0ef54", null ],
     [ "phi", "structddx__core_1_1ddx__state__type.html#aee7846568db8bab39129c9cb946ddd2e", null ],
     [ "xs", "structddx__core_1_1ddx__state__type.html#a08d23dc0eceb14dcb6f623871c208529", null ],
     [ "xs_niter", "structddx__core_1_1ddx__state__type.html#a8180c3d20b4cb8effeb4f8b65f170445", null ],
@@ -29,6 +30,8 @@ var structddx__core_1_1ddx__state__type =
     [ "ygrid", "structddx__core_1_1ddx__state__type.html#ac7c4e2212dc6d7d677d3612cad389c8f", null ],
     [ "q", "structddx__core_1_1ddx__state__type.html#ad1757dc3ef7f36af7e1767c2ae827bfd", null ],
     [ "qgrid", "structddx__core_1_1ddx__state__type.html#a66ba3c75158728fff99a9ea26b0e0d7b", null ],
+    [ "rhs_lpb", "structddx__core_1_1ddx__state__type.html#a8686c13a696a1de68a9e75a573297010", null ],
+    [ "rhs_adj_lpb", "structddx__core_1_1ddx__state__type.html#a67ab0b07fc83e6ee1165ccd16ce1f7ab", null ],
     [ "x_lpb", "structddx__core_1_1ddx__state__type.html#aa87796b2be1f31aa84b0c4a9e914c7c5", null ],
     [ "x_adj_lpb", "structddx__core_1_1ddx__state__type.html#a20bca950fa436fd0eecc5064250572ea", null ],
     [ "g_lpb", "structddx__core_1_1ddx__state__type.html#aae8bae38bfaba096f11adebb60e4ee14", null ],
@@ -38,5 +41,6 @@ var structddx__core_1_1ddx__state__type =
     [ "x_lpb_time", "structddx__core_1_1ddx__state__type.html#af2ea4dfbd78d6a36d59ee5170363c529", null ],
     [ "x_adj_lpb_time", "structddx__core_1_1ddx__state__type.html#a8a69492e0195fe9f56d681f8b72b2056", null ],
     [ "x_lpb_rel_diff", "structddx__core_1_1ddx__state__type.html#aaa3c249bd7e7820e3f3b9bbf36333ed6", null ],
-    [ "x_adj_lpb_rel_diff", "structddx__core_1_1ddx__state__type.html#af51f9714898918d4824a8158e4c4b67b", null ]
+    [ "x_adj_lpb_rel_diff", "structddx__core_1_1ddx__state__type.html#af51f9714898918d4824a8158e4c4b67b", null ],
+    [ "zeta_dip", "structddx__core_1_1ddx__state__type.html#a7906f2fd69fb861e5e561addb1e56ec5", null ]
 ];

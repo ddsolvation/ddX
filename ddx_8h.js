@@ -3,7 +3,7 @@ var ddx_8h =
     [ "ddx_get_banner", "group__cinterface.html#ga697f2fdded6719bc1c6a4c7d7171defa", null ],
     [ "ddx_supported_lebedev_grids", "group__cinterface.html#gac60294c82e7b204e791884905fe6b897", null ],
     [ "ddx_scaled_ylm", "group__cinterface.html#gaa2d4bd125f3063859e91aadfa906ae54", null ],
-    [ "ddx_allocate_model", "group__cinterface.html#ga450e6475b93b45c48b0a04442105789d", null ],
+    [ "ddx_allocate_model", "group__cinterface.html#gafbb2313350962849c41cb145e4bc8791", null ],
     [ "ddx_deallocate_model", "group__cinterface.html#ga70257d8416730dc0ed5c77d004cf01a0", null ],
     [ "ddx_get_error_flag", "group__cinterface.html#ga29f72e0201515831c3ea02e6b10ab08e", null ],
     [ "ddx_get_error_message", "group__cinterface.html#ga989dc37c68e6f28eb86af500c41b18fb", null ],

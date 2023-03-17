@@ -2,7 +2,7 @@ var searchData=
 [
   ['params_5fdeinit_0',['params_deinit',['../namespaceddx__parameters.html#a0b9356d3d56bcd87e2f1b6fccc42009c',1,'ddx_parameters']]],
   ['params_5ffree_1',['params_free',['../group___fortran__interface__core.html#ga60eaa292dd41f5023c7ac941011635a3',1,'ddx_parameters']]],
-  ['params_5finit_2',['params_init',['../group___fortran__interface__core.html#gafc162de2f4b5352119d0c14a96dda845',1,'ddx_parameters']]],
+  ['params_5finit_2',['params_init',['../group___fortran__interface__core.html#gaf244ad82196335db8fe052608020cdfd',1,'ddx_parameters']]],
   ['parent_3',['parent',['../structddx__constants_1_1ddx__constants__type.html#a3134e17f8c0cbbaea8f85923b1680e76',1,'ddx_constants::ddx_constants_type']]],
   ['pchi_4',['pchi',['../structddx__constants_1_1ddx__constants__type.html#a06258b9104516a49cf531b12c9b3c014',1,'ddx_constants::ddx_constants_type']]],
   ['phi_5',['phi',['../structddx__core_1_1ddx__state__type.html#aee7846568db8bab39129c9cb946ddd2e',1,'ddx_core::ddx_state_type']]],

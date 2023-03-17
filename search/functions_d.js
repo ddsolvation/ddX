@@ -2,7 +2,7 @@ var searchData=
 [
   ['params_5fdeinit_0',['params_deinit',['../namespaceddx__parameters.html#a0b9356d3d56bcd87e2f1b6fccc42009c',1,'ddx_parameters']]],
   ['params_5ffree_1',['params_free',['../group___fortran__interface__core.html#ga60eaa292dd41f5023c7ac941011635a3',1,'ddx_parameters']]],
-  ['params_5finit_2',['params_init',['../group___fortran__interface__core.html#gafc162de2f4b5352119d0c14a96dda845',1,'ddx_parameters']]],
+  ['params_5finit_2',['params_init',['../group___fortran__interface__core.html#gaf244ad82196335db8fe052608020cdfd',1,'ddx_parameters']]],
   ['polleg_3',['polleg',['../namespaceddx__harmonics.html#a7fcf9715c6a0d3dd5c291cafffaa5d1f',1,'ddx_harmonics']]],
   ['polleg_5fwork_4',['polleg_work',['../namespaceddx__harmonics.html#a43b882cf0333a0ee0bf062501a03ff01',1,'ddx_harmonics']]],
   ['prec_5frepsstarx_5',['prec_repsstarx',['../namespaceddx__operators.html#a682ecf4161b6846177c71db55924c586',1,'ddx_operators']]],

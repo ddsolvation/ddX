@@ -103,8 +103,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="separator:gaa2d4bd125f3063859e91aadfa906ae54"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Allocate and manage the ddx model object</h2></td></tr>
-<tr class="memitem:ga450e6475b93b45c48b0a04442105789d"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga450e6475b93b45c48b0a04442105789d">ddx_allocate_model</a> (int model, int enable_force, double solvent_epsilon, double solvent_kappa, double eta, double shift, int lmax, int n_lebedev, int incore, int maxiter, int jacobi_n_diis, int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax, int n_proc, int n_spheres, const double *sphere_charges, const double *sphere_centres, const double *sphere_radii, int length_logfile, const char *logfile)</td></tr>
-<tr class="separator:ga450e6475b93b45c48b0a04442105789d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafbb2313350962849c41cb145e4bc8791"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gafbb2313350962849c41cb145e4bc8791">ddx_allocate_model</a> (int model, int enable_force, double solvent_epsilon, double solvent_kappa, double eta, double shift, int lmax, int n_lebedev, int incore, int maxiter, int jacobi_n_diis, int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax, int n_proc, int n_spheres, const double *sphere_centres, const double *sphere_radii, int length_logfile, const char *logfile)</td></tr>
+<tr class="separator:gafbb2313350962849c41cb145e4bc8791"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga70257d8416730dc0ed5c77d004cf01a0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga70257d8416730dc0ed5c77d004cf01a0">ddx_deallocate_model</a> (void *ddx)</td></tr>
 <tr class="separator:ga70257d8416730dc0ed5c77d004cf01a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga29f72e0201515831c3ea02e6b10ab08e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga29f72e0201515831c3ea02e6b10ab08e">ddx_get_error_flag</a> (const void *ddx)</td></tr>
@@ -329,8 +329,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="ga450e6475b93b45c48b0a04442105789d" name="ga450e6475b93b45c48b0a04442105789d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga450e6475b93b45c48b0a04442105789d">&#9670;&nbsp;</a></span>ddx_allocate_model()</h2>
+<a id="gafbb2313350962849c41cb145e4bc8791" name="gafbb2313350962849c41cb145e4bc8791"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gafbb2313350962849c41cb145e4bc8791">&#9670;&nbsp;</a></span>ddx_allocate_model()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -435,12 +435,6 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>sphere_charges</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const double *&#160;</td>
           <td class="paramname"><em>sphere_centres</em>, </td>
         </tr>
         <tr>
@@ -487,7 +481,6 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">fmm_local_lmax</td><td>Maximal degree of local spherical harmonics, ignored in case <code>use_fmm=false</code>. Value <code>-1</code> means no local FFM interactions are computed. </td></tr>
     <tr><td class="paramname">n_proc</td><td>Number of processors to use </td></tr>
     <tr><td class="paramname">n_spheres</td><td>Number of cavity spheres </td></tr>
-    <tr><td class="paramname">sphere_charges</td><td>The charges of the cavity spheres </td></tr>
     <tr><td class="paramname">sphere_centres</td><td>The centres of the cavity spheres as a <em>column-major</em> (3, n_spheres) array. </td></tr>
     <tr><td class="paramname">sphere_radii</td><td>The radii of the spheres. </td></tr>
     <tr><td class="paramname">length_logfile</td><td>Length of the logfile name (0 if no log). Note that logs can be quite verbose for larger runs and should only be used for debugging. </td></tr>

@@ -265,53 +265,57 @@ $(document).ready(function(){initNavTree('ddx__pcm_8f90_source.html',''); initRe
 <div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
 <div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: force(3, params % nsph)</div>
 <div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    <span class="comment">! local</span></div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">external</span> :: ddot</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    <span class="keywordtype">integer</span> :: icav, isph, igrid</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span> </div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>    <span class="keyword">call </span>ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &amp;</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>        &amp; constants % icav_ia, constants % icav_ja, state % phi_cav, &amp;</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>        &amp; state % phi_grid)</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    <span class="comment">! Get grid values of S and Y</span></div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>    <span class="keyword">call </span>dgemm(<span class="stringliteral">&#39;T&#39;</span>, <span class="stringliteral">&#39;N&#39;</span>, params % ngrid, params % nsph, &amp;</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>        &amp; constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &amp;</div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>        &amp; state % s, constants % nbasis, zero, state % sgrid, params % ngrid)</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    <span class="keyword">call </span>dgemm(<span class="stringliteral">&#39;T&#39;</span>, <span class="stringliteral">&#39;N&#39;</span>, params % ngrid, params % nsph, &amp;</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>        &amp; constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &amp;</div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>        &amp; state % y, constants % nbasis, zero, state % ygrid, params % ngrid)</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span> </div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>    state % g = - (state % phieps - state % phi)</div>
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>    state % q = state % s - fourpi/(params % eps - one)*state % y</div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>    state % qgrid = state % sgrid - fourpi/(params % eps - one)*state % ygrid</div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span> </div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__operators.html#a8720945fa2c227689250a0e3e3353e3d">gradr</a>(params, constants, workspace, state % g, state % ygrid, force)</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span><span class="keywordtype">    real</span>(dp) :: start_time, finish_time</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">external</span> :: ddot</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    <span class="keywordtype">integer</span> :: icav, isph, igrid</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span> </div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>    start_time = omp_get_wtime()</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    <span class="keyword">call </span>ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &amp;</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>        &amp; constants % icav_ia, constants % icav_ja, state % phi_cav, &amp;</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>        &amp; state % phi_grid)</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>    <span class="comment">! Get grid values of S and Y</span></div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    <span class="keyword">call </span>dgemm(<span class="stringliteral">&#39;T&#39;</span>, <span class="stringliteral">&#39;N&#39;</span>, params % ngrid, params % nsph, &amp;</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>        &amp; constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &amp;</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>        &amp; state % s, constants % nbasis, zero, state % sgrid, params % ngrid)</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    <span class="keyword">call </span>dgemm(<span class="stringliteral">&#39;T&#39;</span>, <span class="stringliteral">&#39;N&#39;</span>, params % ngrid, params % nsph, &amp;</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>        &amp; constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &amp;</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>        &amp; state % y, constants % nbasis, zero, state % ygrid, params % ngrid)</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span> </div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>    state % g = - (state % phieps - state % phi)</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>    state % q = state % s - fourpi/(params % eps - one)*state % y</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>    state % qgrid = state % sgrid - fourpi/(params % eps - one)*state % ygrid</div>
 <div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span> </div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>        <span class="keyword">call </span>contract_grad_l(params, constants, isph, state % xs, &amp;</div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>            &amp; state % sgrid, workspace % tmp_vylm(:, 1), &amp;</div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>            &amp; workspace % tmp_vdylm(:, :, 1), workspace % tmp_vplm(:, 1), &amp;</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>            &amp; workspace % tmp_vcos(:, 1), workspace % tmp_vsin(:, 1), &amp;</div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>            &amp; force(:, isph))</div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>        <span class="keyword">call </span>contract_grad_u(params, constants, isph, state % qgrid, &amp;</div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>            &amp; state % phi_grid, force(:, isph))</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>    force = - pt5 * force</div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span> </div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>    icav = 0</div>
-<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>            <span class="keywordflow">if</span>(constants % ui(igrid, isph) .ne. zero) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>                icav = icav + 1</div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>                state % zeta(icav) = constants % wgrid(igrid) * &amp;</div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>                    &amp; constants % ui(igrid, isph) * ddot(constants % nbasis, &amp;</div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>                    &amp; constants % vgrid(1, igrid), 1, &amp;</div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>                    &amp; state % q(1, isph), 1)</div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span><span class="keywordflow">            end if</span></div>
-<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span> </div>
-<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gae5bf3638d2a8c2ffd89f551fffe38814">ddpcm_solvation_force_terms</a></div>
-<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span> </div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx__pcm.html">ddx_pcm</a></div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__operators.html#a8720945fa2c227689250a0e3e3353e3d">gradr</a>(params, constants, workspace, state % g, state % ygrid, force)</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span> </div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>        <span class="keyword">call </span>contract_grad_l(params, constants, isph, state % xs, &amp;</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>            &amp; state % sgrid, workspace % tmp_vylm(:, 1), &amp;</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>            &amp; workspace % tmp_vdylm(:, :, 1), workspace % tmp_vplm(:, 1), &amp;</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>            &amp; workspace % tmp_vcos(:, 1), workspace % tmp_vsin(:, 1), &amp;</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>            &amp; force(:, isph))</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>        <span class="keyword">call </span>contract_grad_u(params, constants, isph, state % qgrid, &amp;</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>            &amp; state % phi_grid, force(:, isph))</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>    force = - pt5 * force</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span> </div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>    icav = 0</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>            <span class="keywordflow">if</span>(constants % ui(igrid, isph) .ne. zero) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>                icav = icav + 1</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>                state % zeta(icav) = constants % wgrid(igrid) * &amp;</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>                    &amp; constants % ui(igrid, isph) * ddot(constants % nbasis, &amp;</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>                    &amp; constants % vgrid(1, igrid), 1, &amp;</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>                    &amp; state % q(1, isph), 1)</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span><span class="keywordflow">            end if</span></div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>    finish_time = omp_get_wtime()</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>    state % force_time = finish_time - start_time</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span> </div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gae5bf3638d2a8c2ffd89f551fffe38814">ddpcm_solvation_force_terms</a></div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span> </div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx__pcm.html">ddx_pcm</a></div>
 <div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga19181358de0ded287e1e5426f11da2e5"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga19181358de0ded287e1e5426f11da2e5">ddx_pcm::ddpcm_guess_adjoint</a></div><div class="ttdeci">subroutine ddpcm_guess_adjoint(params, constants, workspace, state)</div><div class="ttdoc">Do a guess for the adjoint ddPCM linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00126">ddx_pcm.f90:127</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga372f8ee7283b914b8e18cdb3fe191961"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga372f8ee7283b914b8e18cdb3fe191961">ddx_pcm::ddpcm_setup</a></div><div class="ttdeci">subroutine ddpcm_setup(params, constants, workspace, state, phi_cav, psi)</div><div class="ttdoc">Given the potential at the cavity points, assemble the RHS for ddCOSMO or for ddPCM.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00083">ddx_pcm.f90:84</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga39d2a1ee8cb28f8a12bbbb023a66ccf2"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga39d2a1ee8cb28f8a12bbbb023a66ccf2">ddx_pcm::ddpcm_solve_adjoint</a></div><div class="ttdeci">subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol)</div><div class="ttdoc">Solve the ddPCM adjpint linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00197">ddx_pcm.f90:198</a></div></div>

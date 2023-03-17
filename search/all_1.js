@@ -18,6 +18,7 @@ var searchData=
   ['build_5fphi_5fdense_15',['build_phi_dense',['../namespaceddx__multipolar__solutes.html#a1e4885f6f41acb3dfc988dcbc71dceeb',1,'ddx_multipolar_solutes']]],
   ['build_5fphi_5ffmm_16',['build_phi_fmm',['../namespaceddx__multipolar__solutes.html#a1b49c60c09fb229e96a9ce69d0808c8d',1,'ddx_multipolar_solutes']]],
   ['build_5fpsi_17',['build_psi',['../group___fortran__interface__multipolar.html#gaf468ceaaf47ba9d96486ab064e6e57d9',1,'ddx_multipolar_solutes']]],
-  ['bx_18',['bx',['../namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a',1,'ddx_operators']]],
-  ['bx_5fprec_19',['bx_prec',['../namespaceddx__operators.html#aa910ba16eb7aa581ab1f314124e6e0fd',1,'ddx_operators']]]
+  ['build_5fzeta_5fdip_5fintermediate_18',['build_zeta_dip_intermediate',['../namespaceddx__gradients.html#a0d7515aa9b306a309c825d0623388637',1,'ddx_gradients']]],
+  ['bx_19',['bx',['../namespaceddx__operators.html#a68303147fb9fe072ab34096910280f1a',1,'ddx_operators']]],
+  ['bx_5fprec_20',['bx_prec',['../namespaceddx__operators.html#aa910ba16eb7aa581ab1f314124e6e0fd',1,'ddx_operators']]]
 ];

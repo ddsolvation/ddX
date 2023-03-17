@@ -2,9 +2,9 @@ var ddx__core_8f90 =
 [
     [ "ddx_core::ddx_state_type", "structddx__core_1_1ddx__state__type.html", "structddx__core_1_1ddx__state__type" ],
     [ "ddx_core::ddx_type", "structddx__core_1_1ddx__type.html", "structddx__core_1_1ddx__type" ],
-    [ "ddinit", "ddx__core_8f90.html#a926d27f6449f58274291844daf24a332", null ],
+    [ "ddinit", "ddx__core_8f90.html#ad61ab429c20650b346640e460ed8049d", null ],
     [ "ddx_init_state", "ddx__core_8f90.html#gab34ec195fbaa7838303efa0b7e0f0453", null ],
-    [ "ddfromfile", "ddx__core_8f90.html#a7aec58ff2505372daa3da8bbe3a0eb04", null ],
+    [ "ddfromfile", "ddx__core_8f90.html#a2aee75a4b91a88dc68c3f3e02c8ae158", null ],
     [ "ddfree", "ddx__core_8f90.html#a3258ae6ef23a4f07ea8a14ccf612acaa", null ],
     [ "ddx_free_state", "ddx__core_8f90.html#ga5614410792c4a18a359eae6fd226cc8e", null ],
     [ "print_spherical", "ddx__core_8f90.html#af4eafcca2db08df6f222c4a9874f1350", null ],

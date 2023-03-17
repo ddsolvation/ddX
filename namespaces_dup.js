@@ -27,14 +27,14 @@ var namespaces_dup =
       [ "contract_grad_u", "namespaceddx__gradients.html#aefec7f2fa9ee7ac358d0eb9476fcef2d", null ],
       [ "contract_grad_b", "namespaceddx__gradients.html#a260eabcd4aae98089d7ef6d1857615e6", null ],
       [ "contract_grad_c", "namespaceddx__gradients.html#a515e26a6bcd464a24d86bda4ceedba18", null ],
-      [ "contract_grad_f", "namespaceddx__gradients.html#aad4ebe541e1bca0cac433506b1cd7bcf", null ],
+      [ "contract_grad_f", "namespaceddx__gradients.html#a9a11deceaa4ff8f14953c4f8624799af", null ],
       [ "contract_gradi_bik", "namespaceddx__gradients.html#ad379dee7e9faa47f7a2647fc2009e736", null ],
       [ "contract_gradi_bji", "namespaceddx__gradients.html#a83971467e6e5e1667a85376a59ec9bd9", null ],
       [ "contract_grad_c_worker1", "namespaceddx__gradients.html#a98e0df5fe06047b93ea5112864e24fc1", null ],
       [ "contract_grad_c_worker2", "namespaceddx__gradients.html#ab8d5b2b919b878bd8237c34988c821eb", null ],
       [ "contract_grad_f_worker1", "namespaceddx__gradients.html#aeb8b562f5e786d6cacf617fdbf238dc5", null ],
-      [ "contract_grad_f_worker2", "namespaceddx__gradients.html#a5c1341f69bbd723942f522045b749e21", null ],
-      [ "contract_grad_f_worker3", "namespaceddx__gradients.html#a55b8d0d9d34f2d388368541ce20de879", null ]
+      [ "contract_grad_f_worker2", "namespaceddx__gradients.html#ae63d87d4f2f1ea0d50ca443fc34f3e5a", null ],
+      [ "build_zeta_dip_intermediate", "namespaceddx__gradients.html#a0d7515aa9b306a309c825d0623388637", null ]
     ] ],
     [ "ddx_harmonics", "namespaceddx__harmonics.html", [
       [ "ylmscale", "namespaceddx__harmonics.html#a00c5ff3e46e5eb64eba38eee2b5f0751", null ],
@@ -125,7 +125,12 @@ var namespaces_dup =
       [ "fmm_m2l_rotation_adj_work", "namespaceddx__harmonics.html#abbb798594959e90b6d60588e88a7a12e", null ]
     ] ],
     [ "ddx_lpb", "namespaceddx__lpb.html", [
-      [ "ddlpb_solve", "namespaceddx__lpb.html#a13892ac674290cc45ad9b10de75cd3b4", null ]
+      [ "ddlpb", "namespaceddx__lpb.html#a58213eb3a37181abd15767a5fe576b71", null ],
+      [ "ddlpb_setup", "group___fortran__interface__ddlpb.html#gaf7b00d407ce325b1852463925f879fbf", null ],
+      [ "ddlpb_guess", "group___fortran__interface__ddlpb.html#gace66726e022ffa868428af189840a4c1", null ],
+      [ "ddlpb_guess_adjoint", "group___fortran__interface__ddlpb.html#ga7d3d06070f1ddb0d734313ee84e90434", null ],
+      [ "ddlpb_solve", "group___fortran__interface__ddlpb.html#gab9ab6f364ac3f17a7738936a54f89dad", null ],
+      [ "ddlpb_solve_adjoint", "group___fortran__interface__ddlpb.html#gaa23bd2b57bd92b0a641e0cde2b4d2e43", null ]
     ] ],
     [ "ddx_lpb_core", "namespaceddx__lpb__core.html", [
       [ "wghpot_f", "namespaceddx__lpb__core.html#a651dd3cdefb7b8f3c10d6914f61e35dc", null ],
@@ -152,7 +157,9 @@ var namespaces_dup =
       [ "grad_phi", "group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b", null ],
       [ "build_adj_phi", "namespaceddx__multipolar__solutes.html#a9a9fa5a29ff449db9444710b285bcd80", null ],
       [ "build_adj_phi_dense", "namespaceddx__multipolar__solutes.html#ae295de35e13855ebec3d0cb151b001b4", null ],
-      [ "build_adj_phi_fmm", "namespaceddx__multipolar__solutes.html#a3a1c0765efbf39c7ef1a0cc2b6c1b826", null ]
+      [ "build_adj_phi_fmm", "namespaceddx__multipolar__solutes.html#a3a1c0765efbf39c7ef1a0cc2b6c1b826", null ],
+      [ "grad_e_for_charges", "namespaceddx__multipolar__solutes.html#a35be57b51a377a653c47a00331800598", null ],
+      [ "grad_e", "group___fortran__interface__multipolar.html#ga3b76ee08ab49e4404732d80a35cafa25", null ]
     ] ],
     [ "ddx_operators", "namespaceddx__operators.html", [
       [ "lx", "namespaceddx__operators.html#ac2a84b8394941ee2bf6d8f3e44127be3", null ],

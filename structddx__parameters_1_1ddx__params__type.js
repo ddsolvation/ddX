@@ -15,7 +15,6 @@ var structddx__parameters_1_1ddx__params__type =
     [ "pl", "structddx__parameters_1_1ddx__params__type.html#a397e9091585fe27187a2cbc72a63e737", null ],
     [ "nproc", "structddx__parameters_1_1ddx__params__type.html#a43c24fc6c797bdb7c3bffbf3df3ba4e2", null ],
     [ "nsph", "structddx__parameters_1_1ddx__params__type.html#a1e00f52a76433b2c0962cec9a1be9e3c", null ],
-    [ "charge", "structddx__parameters_1_1ddx__params__type.html#a1a68508c403efd05374f725709d73caa", null ],
     [ "csph", "structddx__parameters_1_1ddx__params__type.html#ae8f332ff28e787d8bc0b30cd5f36bbb4", null ],
     [ "rsph", "structddx__parameters_1_1ddx__params__type.html#abe71e052d5d12291443925042789b288", null ],
     [ "epsp", "structddx__parameters_1_1ddx__params__type.html#a9372351d69cecd8013f7bf9f93590fef", null ],
