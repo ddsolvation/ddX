@@ -97,7 +97,8 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
 
     state % psi = psi
-    state % rhs_adj_lpb(:, :, 1) = psi/fourpi
+    state % rhs_adj_lpb(:, :, 1) = psi
+    ! state % rhs_adj_lpb(:, :, 1) = psi/fourpi
     state % rhs_adj_lpb(:, :, 2) = 0.0d0
 
     !! Setting initial values to zero
@@ -151,8 +152,7 @@ subroutine ddlpb_energy(constants, state, esolv)
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
     ! TODO: sort once and for all the fourpi issue
-    esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, state % psi, 1) &
-        & /fourpi
+    esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, state % psi, 1)
 end subroutine ddlpb_energy
 
 !> Do a guess for the primal ddLPB linear system
@@ -241,7 +241,9 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol)
         return
     end if
     state % x_lpb_time = omp_get_wtime() - start_time
-
+    ! the integral operators of ddLPB are defined according to a
+    ! different convention, so we need to scale the density by 1/fourpi
+    state % x_lpb = state % x_lpb / fourpi
 end subroutine ddlpb_solve
 
 
@@ -279,7 +281,10 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
         return
     end if
     state % x_adj_lpb_time = omp_get_wtime() - start_time
-
+    ! the integral operators of ddLPB are defined according to a
+    ! different convention, so we need to scale the adjoint density
+    ! by 1/fourpi
+    state % x_adj_lpb = state % x_adj_lpb / fourpi
 end subroutine ddlpb_solve_adjoint
 
 !!
@@ -329,6 +334,8 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
         workspace % error_flag = 1
         return
     end if
+
+    state % x_lpb = state % x_lpb * fourpi
 
     diff_re = zero
     vsin = zero
@@ -427,6 +434,9 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     end if
     finish_time = omp_get_wtime()
     state % force_time = finish_time - start_time
+
+    ! restore x_lpb
+    state % x_lpb = state % x_lpb / fourpi
 
 end subroutine ddlpb_solvation_force_terms
 
