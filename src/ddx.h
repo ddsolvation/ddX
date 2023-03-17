@@ -250,11 +250,11 @@ void ddx_get_xi(const void* state, const void* ddx, int ncav, double* xi);
  *  \param ncav    Number of cavity points
  *  \param nbasis  Number of basis functions used by DDX
  *  \param nsph    Number of cavity spheres
- *  \param phi_cav Phi array (ncav, )-shaped array
  *  \param psi     Psi array (nbasis, nsph)-shaped array (in column-major ordering)
+ *  \param phi_cav Phi array (ncav, )-shaped array
  */
 void ddx_cosmo_setup(const void* ddx, void* state, int ncav, int nbasis, int nsph,
-                     const double* phi_cav, const double* psi);
+                     const double* psi, const double* phi_cav);
 
 /** In-place adjust the guess inside the state, getting ready to solve a COSMO problem.
  *  Avoid calling this step if you want to use the currently stored solution as an
@@ -293,11 +293,11 @@ void ddx_cosmo_solvation_force_terms(const void* ddx, void* state, int nsph,
  *  \param ncav    Number of cavity points
  *  \param nbasis  Number of basis functions used by DDX
  *  \param nsph    Number of cavity spheres
- *  \param phi_cav Phi array (ncav, )-shaped array
  *  \param psi     Psi array (nbasis, nsph)-shaped array (in column-major ordering)
+ *  \param phi_cav Phi array (ncav, )-shaped array
  */
 void ddx_pcm_setup(const void* ddx, void* state, int ncav, int nbasis, int nsph,
-                   const double* phi_cav, const double* psi);
+                   const double* psi, const double* phi_cav);
 
 /** In-place adjust the guess inside the state, getting ready to solve a PCM problem.
  *  Avoid calling this step if you want to use the currently stored solution as an

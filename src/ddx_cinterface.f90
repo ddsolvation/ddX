@@ -503,7 +503,7 @@ end subroutine
 ! Cosmo
 !
 ! Setup the problem in the state
-subroutine ddx_cosmo_setup(c_ddx, c_state, ncav, nbasis, nsph, phi_cav, psi) bind(C)
+subroutine ddx_cosmo_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     integer(c_int), intent(in), value :: ncav, nbasis, nsph
     real(c_double), intent(in) :: phi_cav(ncav), psi(nbasis, nsph)
@@ -571,7 +571,7 @@ end
 !
 ! PCM
 !
-subroutine ddx_pcm_setup(c_ddx, c_state, ncav, nbasis, nsph, phi_cav, psi) bind(C)
+subroutine ddx_pcm_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     integer(c_int), intent(in), value :: ncav, nbasis, nsph
     real(c_double), intent(in) :: phi_cav(ncav), psi(nbasis, nsph)
