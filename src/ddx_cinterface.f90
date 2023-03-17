@@ -455,12 +455,16 @@ subroutine ddx_get_x(c_state, nbasis, nsph, x) bind(C)
     integer(c_int), intent(in), value :: nsph, nbasis
     real(c_double), intent(out)  :: x(nbasis, nsph)
     call c_f_pointer(c_state, state)
-    x(:, :) = state%xs(:, :)
-    ! TODO: handle the ddLPB case by taking just the first of the
-    ! two solutions
+
+    if (allocated(state%x_lpb)) then
+        ! Case for LPB: Use only the first of the two solutions
+        x(:, :) = state%x_lpb(:, :, 1)
+    else
+        x(:, :) = state%xs(:, :)
+    endif
 end subroutine
 
-! TODO: (not particularly important) implement ddx_get_xlpb
+! TODO: Implement ddx_get_x_lpb or something similar
 
 function ddx_get_x_niter(c_state) bind(C) result(c_niter)
     type(c_ptr), intent(in), value :: c_state
@@ -556,6 +560,17 @@ subroutine ddx_cosmo_solve_adjoint(c_ddx, c_state, tol) bind(C)
     call ddcosmo_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol)
 end
 
+! Compute the ddCOSMO energy
+function ddx_cosmo_energy(c_ddx, c_state) result(c_energy) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state
+    type(ddx_setup), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    real(c_double) :: c_energy
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call ddcosmo_energy(ddx%constants, state, c_energy)
+end function
+
 ! Compute the forces
 subroutine ddx_cosmo_solvation_force_terms(c_ddx, c_state, nsph, forces) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
@@ -620,6 +635,16 @@ subroutine ddx_pcm_solve_adjoint(c_ddx, c_state, tol) bind(C)
     call ddpcm_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol)
 end
 
+function ddx_pcm_energy(c_ddx, c_state) result(c_energy) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state
+    type(ddx_setup), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    real(c_double) :: c_energy
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call ddpcm_energy(ddx%constants, state, c_energy)
+end function
+
 subroutine ddx_pcm_solvation_force_terms(c_ddx, c_state, nsph, forces) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     type(ddx_setup), pointer :: ddx
@@ -630,6 +655,73 @@ subroutine ddx_pcm_solvation_force_terms(c_ddx, c_state, nsph, forces) bind(C)
     call c_f_pointer(c_state, state)
     call ddpcm_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, forces)
 end
+
+!
+! LPB
+!
+subroutine ddx_lpb_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav, e_cav) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state
+    integer(c_int), intent(in), value :: ncav, nbasis, nsph
+    real(c_double), intent(in) :: phi_cav(ncav), psi(nbasis, nsph), e_cav(3, ncav)
+    type(ddx_setup), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call ddlpb_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, e_cav, psi)
+end subroutine
+
+subroutine ddx_lpb_guess(c_ddx, c_state, tol) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state
+    type(c_double), intent(in), value :: tol
+    type(ddx_setup), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call ddlpb_guess(ddx%params, ddx%constants, ddx%workspace, state, tol)
+end
+
+subroutine ddx_lpb_solve(c_ddx, c_state, tol) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state
+    type(ddx_setup), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    real(c_double), intent(in), value :: tol
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call ddlpb_solve(ddx%params, ddx%constants, ddx%workspace, state, tol)
+end subroutine
+
+subroutine ddx_lpb_guess_adjoint(c_ddx, c_state, tol) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state
+    type(c_double), intent(in), value :: tol
+    type(ddx_setup), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call ddlpb_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol)
+end
+
+subroutine ddx_lpb_solve_adjoint(c_ddx, c_state, tol) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state
+    type(ddx_setup), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    real(c_double), intent(in), value :: tol
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call ddlpb_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol)
+end
+
+function ddx_lpb_energy(c_ddx, c_state) result(c_energy) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state
+    type(ddx_setup), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    real(c_double) :: c_energy
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call ddlpb_energy(ddx%constants, state, c_energy)
+end function
+
+! TODO LPB force terms not yet supported in C and python interface
+
 
 !
 ! multipolar solutes
