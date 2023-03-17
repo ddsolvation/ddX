@@ -230,7 +230,7 @@ class State {
   State(std::shared_ptr<Model> model, array_f_t psi, array_f_t phi,
         py::object py_elec_potential)
         : State(model) {
-    update_problem(phi, psi, py_elec_potential);
+    update_problem(psi, phi, py_elec_potential);
     fill_guess(100.0);          // To ensure the state is consistent
     fill_guess_adjoint(100.0);  // To ensure the state is consistent
   }
