@@ -46,14 +46,12 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: phi_cav(constants % ncav), &
         & psi(constants % nbasis, params % nsph), tol
     real(dp), intent(out) :: esolv, force(3, params % nsph)
-    real(dp), external :: ddot
 
     call ddpcm_setup(params, constants, workspace, state, phi_cav, psi)
     call ddpcm_guess(params, constants, workspace, state)
     call ddpcm_solve(params, constants, workspace, state, tol)
 
-    ! Compute the solvation energy
-    esolv = pt5*ddot(constants % n, state % xs, 1, psi, 1)
+    call ddpcm_energy(constants, state, esolv)
 
     ! Get forces if needed
     if (params % force .eq. 1) then
@@ -68,6 +66,22 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
     end if
 
 end subroutine ddpcm
+
+!> Compute the ddPCM energy
+!!
+!> @ingroup Fortran_interface_ddpcm
+!! @param[in] constants: Precomputed constants
+!! @param[in] state: ddx state (contains solutions and RHSs)
+!! @param[out] esolv: resulting energy
+!!
+subroutine ddpcm_energy(constants, state, esolv)
+    implicit none
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(in) :: state
+    real(dp), intent(out) :: esolv
+    real(dp), external :: ddot
+    esolv = pt5*ddot(constants % n, state % xs, 1, state % psi, 1)
+end subroutine ddpcm_energy
 
 !> Given the potential at the cavity points, assemble the RHS for ddCOSMO
 !> or for ddPCM.

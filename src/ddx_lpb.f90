@@ -47,28 +47,23 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
         & hessianphi_cav(3, 3, constants % ncav), &
         & psi( constants % nbasis,  params % nsph), tol
     real(dp), intent(out) :: esolv, force(3, params % nsph)
-    real(dp), external :: ddot
 
-    ! TODO: remove tol from here
     call ddlpb_setup(params, constants, workspace, state, phi_cav, &
-        & gradphi_cav, psi, tol)
+        & gradphi_cav, psi)
     if (workspace % error_flag .eq. 1) return
-    ! TODO: add tol here, the internal_tol is computed internally
-    call ddlpb_guess(params, constants, workspace, state)
+    call ddlpb_guess(params, constants, workspace, state, tol)
     if (workspace % error_flag .eq. 1) return
     call ddlpb_solve(params, constants, workspace, state, tol)
     if (workspace % error_flag .eq. 1) return
+    write(6,*) 'tol', tol
 
-    ! Compute the solvation energy, note that psi is divided by fourpi
-    ! TODO: create a ddlpb_energy subroutine and do the same for ddcosmo
-    ! and ddPCM
-    esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, psi, 1) &
-        & /fourpi
+    ! Compute the solvation energy
+    call ddlpb_energy(constants, state, esolv)
+    write(6,*) 'tol', tol
 
     ! Get forces if needed
     if(params % force .eq. 1) then
-        ! TODO: add tol
-        call ddlpb_guess_adjoint(params, constants, workspace, state)
+        call ddlpb_guess_adjoint(params, constants, workspace, state, tol)
         if (workspace % error_flag .eq. 1) return
         call ddlpb_solve_adjoint(params, constants, workspace, state, tol)
         if (workspace % error_flag .eq. 1) return
@@ -92,10 +87,9 @@ end subroutine ddlpb
 !! @param[in] phi_cav: electrostatic potential at the cavity points
 !! @param[in] gradphi_cav: electrostatic field at the cavity points
 !! @param[in] psi: representation of the solute density
-!! @param[in] tol: tolerance
 !!
 subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
-        & gradphi_cav, psi, tol)
+        & gradphi_cav, psi)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -104,7 +98,6 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
-    real(dp), intent(in) :: tol
 
     state % psi = psi
     state % rhs_adj_lpb(:, :, 1) = psi/fourpi
@@ -142,28 +135,45 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
         & constants % vgrid_nbasis, state % f_lpb, state % rhs_lpb(:,:,2))
     state % rhs_lpb(:,:,1) = state % rhs_lpb(:,:,1) + state % rhs_lpb(:,:,2)
 
-    ! set the initial convergence for the microiterations, it will be
-    ! adjusted depending on the external one
-    ! it is important to do it now, as the inner tol is required by
-    ! the guess routines
-    constants % inner_tol =  sqrt(tol)
-
 end subroutine ddlpb_setup
+
+!> Compute the ddLPB energy
+!!
+!> @ingroup Fortran_interface_ddlpb
+!! @param[in] constants: Precomputed constants
+!! @param[in] state: ddx state (contains solutions and RHSs)
+!! @param[out] esolv: resulting energy
+!!
+subroutine ddlpb_energy(constants, state, esolv)
+    implicit none
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(in) :: state
+    real(dp), intent(out) :: esolv
+    real(dp), external :: ddot
+    ! TODO: sort once and for all the fourpi issue
+    esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, state % psi, 1) &
+        & /fourpi
+end subroutine ddlpb_energy
 
 !> Do a guess for the primal ddLPB linear system
 !!
 !> @ingroup Fortran_interface_ddlpb
 !! @param[in] params: User specified parameters
-!! @param[in] constants: Precomputed constants
+!! @param[inout] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[in] tol: tolerance
 !!
-subroutine ddlpb_guess(params, constants, workspace, state)
+subroutine ddlpb_guess(params, constants, workspace, state, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: tol
+
+    ! set the inner tolerance
+    constants % inner_tol =  sqrt(tol)
 
     ! guess
     workspace % ddcosmo_guess = zero
@@ -179,14 +189,20 @@ end subroutine ddlpb_guess
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[in] tol: tolerance
 !!
-subroutine ddlpb_guess_adjoint(params, constants, workspace, state)
+subroutine ddlpb_guess_adjoint(params, constants, workspace, state, tol)
     implicit none
     type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: tol
 
+    ! set the inner tolerance
+    constants % inner_tol =  sqrt(tol)
+
+    ! guess
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
     call prec_tstarx(params, constants, workspace, state % rhs_adj_lpb, &
@@ -249,6 +265,7 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
     real(dp) :: start_time
 
     state % x_adj_lpb_niter = params % maxiter
+    constants % inner_tol = sqrt(tol)
 
     ! solve adjoint LS using Jacobi/DIIS
     start_time = omp_get_wtime()
