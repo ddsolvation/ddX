@@ -11,6 +11,7 @@
 module ddx_gradients
 ! Get the core-routines
 use ddx_core
+use ddx_multipolar_solutes
 !
 contains
 
@@ -313,10 +314,11 @@ end subroutine contract_grad_C
 !! @param[in]  icav_g             : Index of outside cavity point
 !! @param[out] force              : Force
 subroutine contract_grad_f(params, constants, workspace, sol_adj, sol_sgrid, &
-    & gradpsi, normal_hessian_cav, icav_g, force)
+    & gradpsi, normal_hessian_cav, icav_g, force, state)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: sol_adj
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: sol_sgrid
     real(dp), dimension(3, constants % ncav), intent(in) :: gradpsi
@@ -328,7 +330,7 @@ subroutine contract_grad_f(params, constants, workspace, sol_adj, sol_sgrid, &
         & gradpsi, force)
     if (workspace % error_flag .eq. 1) return
     call contract_grad_f_worker2(params, constants, workspace, sol_sgrid, gradpsi, &
-        & normal_hessian_cav, icav_g, force)
+        & normal_hessian_cav, icav_g, force, state)
     if (workspace % error_flag .eq. 1) return
 
 end subroutine contract_grad_f
@@ -1566,7 +1568,7 @@ end subroutine contract_grad_f_worker1
 !! @param[in]  icav_g             : Index of outside cavity point
 !! @param[out] force              : Force corresponding to HSP problem
 subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, gradpsi, &
-    & normal_hessian_cav, icav_g, force)
+    & normal_hessian_cav, icav_g, force, state)
     ! input/output
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1576,6 +1578,7 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
     real(dp), dimension(3, constants % ncav), intent(in) :: normal_hessian_cav
     integer, intent(inout) :: icav_g
     real(dp), dimension(3, params % nsph), intent(inout) :: force
+    type(ddx_state_type), intent(inout) :: state
 
     ! local
     integer :: isph, jsph, igrid, l0, m0, ind0, igrid0, icav, &
@@ -1755,18 +1758,21 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
         end if
       end do ! End of loop igrid
     end do ! End of loop i
+
     do isph = 1, params % nsph
         call contract_grad_U(params, constants, isph, gradpsi_grid, phi_n, force(:, isph))
         ! Compute the Hessian contributions
         do igrid = 1, params % ngrid
           if(constants % ui(igrid, isph) .gt. zero) then
             icav_g = icav_g + 1
+            ! a contrib
             force(:, isph) = force(:, isph) + constants % wgrid(igrid)*constants % ui(igrid, isph)*&
                              & phi_n(igrid, isph)*normal_hessian_cav(:, icav_g)
           end if
         end do
-        call contract_grad_f_worker3(params, constants, isph, phi_n, force(:, isph))
     end do
+
+    call build_zeta_dip_intermediate(params, constants, phi_n, state)
 
     deallocate(phi_n, phi_n2, gradpsi_grid, stat=istat)
     if (istat.ne.0) then
@@ -1784,74 +1790,45 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
     end if
 end subroutine contract_grad_f_worker2
 
-!> Subroutine to compute derivative of potential at spheres
+
+!> This routines precomputes an intermediate for its later usage in the
+!! computation of the forces. The intermediate is the equivalent of
+!! zeta for the F RHS of ddLPB. In this case the intermediate has the
+!! shape of dipoles at the cavity points, in contrast to zeta, which
+!! has the shape of charges at the cavity points. This intermediate
+!! must be used later on to compute its interaction with the solute.
 !!
-!! contract_grad_f_worker3 : Force derivative of potential at spheres
-!! @param[in]  params     : Input parameter file
-!! @param[in]  constants  : Input constants file
-!! @param[in]  phi_n      : phi_n^j
-!! @param[in]  ksph       : Derivative with respect to x_k
-!! @param[out] force      : Force
-subroutine contract_grad_f_worker3(params, constants, ksph, phi_n, force)
-    !! Inputs
+!! @param[in] params: ddx parameters
+!! @param[in] constant: ddx constants
+!! @param[in] phi_n: adjoint solution contracted with other matrices,
+!!     size (ngrid, nsph)
+!! @param[inout] force: force array, size (3, nsph)
+!!
+subroutine build_zeta_dip_intermediate(params, constants, phi_n, state)
+    implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    !! Temporary buffers
-  integer, intent(in) :: ksph
-  real(dp),  dimension(params % ngrid, params % nsph), intent(in)    :: phi_n
-  real(dp),  dimension(3), intent(inout) :: force
-  !
-  ! Local variables
-  integer :: jsph, i,j, igrid
-  ! sum_int            : Intermediate sum
-  ! normal_hessian_cav : Normal derivative of Hessian of psi
-  ! vij_vijT           : vij*vij^T
-  real(dp)  :: sum_int(3), vij(3), rijn, normal_hessian_cav(3), vij_vijT(3,3)
-  ! identity_matrix : Identity matrix of size 3x3
-  ! hessianv        : Hessian of psi evaluated by centers
-  real(dp) :: identity_matrix(3,3), hessianv(3,3)
-  real(dp), external :: dnrm2
-  ! Create Identity matrix
-  identity_matrix = zero
-  do i = 1, 3
-    identity_matrix(i,i) = one
-  end do
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: phi_n(params % ngrid, params % nsph)
 
-  sum_int = zero
-  ! Loop over spheres
-  do jsph = 1, params % nsph
-    ! Loop over grid points
-    do igrid = 1, params % ngrid
-      if(constants % ui(igrid, jsph) .ne. zero) then
-        vij_vijT = zero
-        hessianv = zero
-        normal_hessian_cav = zero
-        vij = zero
-        vij = params % csph(:, jsph) + &
-           & params % rsph(jsph)*constants % cgrid(:, igrid) - &
-           & params % csph(:, ksph)
-        do i = 1,3
-          do j = 1,3
-            vij_vijT(i,j) = vij(i)*vij(j)
-          end do
+    integer :: isph, icav, igrid
+    real(dp) :: fac
+
+    ! assemble the pseudo-dipoles
+    icav = 0
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .gt. zero) then
+                icav = icav + 1
+                fac = - constants % ui(igrid, isph)*constants % wgrid(igrid) &
+                    & *phi_n(igrid, isph)
+                state % zeta_dip(1, icav) = fac*constants % cgrid(1, igrid)
+                state % zeta_dip(2, icav) = fac*constants % cgrid(2, igrid)
+                state % zeta_dip(3, icav) = fac*constants % cgrid(3, igrid)
+            end if
         end do
-        rijn = dnrm2(3, vij, 1)
-        hessianv = 3*vij_vijT/(rijn**5)- &
-                 & identity_matrix/(rijn**3)
-        do i = 1, 3
-          normal_hessian_cav = normal_hessian_cav + &
-                             & hessianv(:,i)*constants % cgrid(i,igrid)
-        end do
-        sum_int = sum_int + &
-                 & constants % ui(igrid, jsph)* &
-                 & constants % wgrid(igrid)* &
-                 & phi_n(igrid, jsph)* &
-                 & normal_hessian_cav
-      end if
     end do
-  end do
-  force = force - params % charge(ksph)*sum_int
-end subroutine contract_grad_f_worker3
 
+end subroutine build_zeta_dip_intermediate
 
 end module ddx_gradients

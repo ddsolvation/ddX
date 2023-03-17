@@ -68,7 +68,6 @@ void ddx_scaled_ylm(const void* ddx, int lmax, const double* x, int sphere, doub
  *                         are computed.
  * \param n_proc           Number of processors to use
  * \param n_spheres        Number of cavity spheres
- * \param sphere_charges   The charges of the cavity spheres
  * \param sphere_centres   The centres of the cavity spheres as a *column-major*
  *                         (3, n_spheres) array.
  * \param sphere_radii     The radii of the spheres.
@@ -81,9 +80,9 @@ void* ddx_allocate_model(int model, int enable_force, double solvent_epsilon,
                          double solvent_kappa, double eta, double shift, int lmax,
                          int n_lebedev, int incore, int maxiter, int jacobi_n_diis,
                          int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax,
-                         int n_proc, int n_spheres, const double* sphere_charges,
-                         const double* sphere_centres, const double* sphere_radii,
-                         int length_logfile, const char* logfile);
+                         int n_proc, int n_spheres, const double* sphere_centres,
+                         const double* sphere_radii, int length_logfile,
+                         const char* logfile);
 
 /** Deallocate the model object */
 void ddx_deallocate_model(void* ddx);

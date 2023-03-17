@@ -59,6 +59,7 @@ real(dp), allocatable:: derivative_A(:,:), derivative_B(:,:), &
                        & derivative_Ui(:,:), &
                        & derivative_C1_C2(:,:), &
                        & diff_re(:,:)
+real(dp), allocatable :: charges(:)
 ! sum_A_plus_h  : Computation of matrix A evaluated at x+h
 ! sum_A_minus_h : Computation of matrix A evaluated at x-h
 ! sum_B_plus_h    : Computation of matrix B evaluated at x+h
@@ -76,7 +77,7 @@ real(dp), external :: dnrm2, ddot
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file 12"
-call ddfromfile(fname, ddx_data, tol)
+call ddfromfile(fname, ddx_data, tol, charges)
 if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 
 ! lmax0 set to minimum of 6 or given lmax.
@@ -244,7 +245,7 @@ deallocate(derivative_num_A, derivative_num_B, derivative_num_Ui, &
            & random_vector_nbasis_nsph_one, &
            & random_vector_two_evaluated_at_grid, &
            & derivative_C1_C2, &
-           & derivative_A, derivative_B, diff_re, derivative_num_C)
+           & derivative_A, derivative_B, diff_re, derivative_num_C, charges)
 call ddfree(ddx_data)
 
 write(*, *) "Rel.error of A     :", relerr_A
@@ -300,7 +301,6 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
 
     ! Initialise new ddx_data with new centers coordinates
     call ddinit(ddx_data % params % nsph, &
-        & ddx_data % params % charge, &
         & ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), &
         & ddx_data % params % csph(3, :), &

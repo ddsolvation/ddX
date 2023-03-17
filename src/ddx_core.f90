@@ -51,6 +51,8 @@ type ddx_state_type
     integer :: error_flag
     !> Last error message.
     character(len=255) :: error_message
+    !> Time to compute the solvation force terms
+    real(dp) :: force_time
 
     !!
     !! ddCOSMO quantities (used also by ddPCM).
@@ -136,6 +138,12 @@ type ddx_state_type
     !!
     !! ddLPB quantities
     !!
+    !> ddLPB RHS. Dimension (nbasis, nsph, 2).
+    !! Allocated and used only by the LPB (model=3) model.
+    real(dp), allocatable :: rhs_lpb(:,:,:)
+    !> ddLPB adjoint RHS. Dimension (nbasis, nsph, 2).
+    !! Allocated and used only by the LPB (model=3) model.
+    real(dp), allocatable :: rhs_adj_lpb(:,:,:)
     !> Solution to the ddLPB linear system. Dimension (nbasis, nsph, 2).
     !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: x_lpb(:,:,:)
@@ -169,6 +177,9 @@ type ddx_state_type
     !! ddLPB linear system, dimension (maxiter).
     !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: x_adj_lpb_rel_diff(:)
+    !> Zeta dipoles intermediate for the forces. Dimension (3, ncav).
+    !! Allocated and used only by the LPB (model=3) model.
+    real(dp), allocatable :: zeta_dip(:, :)
 
 end type ddx_state_type
 
@@ -191,7 +202,6 @@ contains
 !> Initialize ddX input with a full set of parameters
 !!
 !! @param[in] nsph: Number of atoms. n > 0.
-!! @param[in] charge: Charges of atoms. Dimension is `(n)`
 !! @param[in] x: \f$ x \f$ coordinates of atoms. Dimension is `(n)`
 !! @param[in] y: \f$ y \f$ coordinates of atoms. Dimension is `(n)`
 !! @param[in] z: \f$ z \f$ coordinates of atoms. Dimension is `(n)`
@@ -226,7 +236,7 @@ contains
 !!      to the same output nproc=1 since the library is not parallel.
 !! @param[out] ddx_data: Object containing all inputs
 !------------------------------------------------------------------------------
-subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
+subroutine ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, &
         & fmm, pm, pl, se, eta, eps, kappa, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & nproc, output_filename, ddx_data)
@@ -235,7 +245,7 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & ngrid
-    real(dp), intent(in):: charge(nsph), x(nsph), y(nsph), z(nsph), &
+    real(dp), intent(in):: x(nsph), y(nsph), z(nsph), &
         & rvdw(nsph), se, eta, eps, kappa
     character(len=255), intent(in) :: output_filename
     ! Output
@@ -260,7 +270,7 @@ subroutine ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, &
     csph(3, :) = z
     call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & matvecmem, maxiter, jacobi_ndiis, &
-        & fmm, pm, pl, nproc, nsph, charge, &
+        & fmm, pm, pl, nproc, nsph, &
         & csph, rvdw, &
         & output_filename, ddx_data % params)
     if (ddx_data % params % error_flag .ne. 0) then
@@ -555,6 +565,24 @@ subroutine ddx_init_state(params, constants, state)
                 & "allocation failed"
             return
         end if
+        allocate(state % rhs_lpb(constants % nbasis, &
+            & params % nsph, 2), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "ddinit: `rhs_lpb` " // &
+                & "allocation failed"
+            return
+        end if
+        allocate(state % rhs_adj_lpb(constants % nbasis, &
+            & params % nsph, 2), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "ddinit: `rhs_adj_lpb` " // &
+                & "allocation failed"
+            return
+        end if
         allocate(state % x_lpb(constants % nbasis, &
             & params % nsph, 2), &
             & stat=istatus)
@@ -596,6 +624,13 @@ subroutine ddx_init_state(params, constants, state)
                 & "allocation failed"
             return
         end if
+        allocate(state % zeta_dip(3, constants % ncav), stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "ddinit: `zeta_dip` " // &
+                & "allocation failed"
+            return
+        end if
     end if
 end subroutine ddx_init_state
 
@@ -609,19 +644,20 @@ end subroutine ddx_init_state
 !!      < 0: If info=-i then i-th argument had an illegal value
 !!      > 0: Allocation of a buffer for the output ddx_data failed
 !------------------------------------------------------------------------------
-subroutine ddfromfile(fname, ddx_data, tol)
+subroutine ddfromfile(fname, ddx_data, tol, charges)
     implicit none
     ! Input
     character(len=*), intent(in) :: fname
     ! Outputs
     type(ddx_type), intent(out) :: ddx_data
     real(dp), intent(out) :: tol
+    real(dp), allocatable, intent(out) :: charges(:)
     ! Local variables
     integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
         & nsph, i, matvecmem, maxiter, jacobi_ndiis, &
         & istatus
     real(dp) :: eps, se, eta, kappa
-    real(dp), allocatable :: charge(:), x(:), y(:), z(:), rvdw(:)
+    real(dp), allocatable :: x(:), y(:), z(:), rvdw(:)
     character(len=255) :: output_filename
     !! Read all the parameters from the file
     ! Open a configuration file
@@ -782,7 +818,7 @@ subroutine ddfromfile(fname, ddx_data, tol)
         return
     end if
     ! Coordinates, radii and charges
-    allocate(charge(nsph), x(nsph), y(nsph), z(nsph), rvdw(nsph), stat=istatus)
+    allocate(charges(nsph), x(nsph), y(nsph), z(nsph), rvdw(nsph), stat=istatus)
     if(istatus .ne. 0) then
         write(ddx_data % error_message, "(2A)") &
             & "Could not allocate space for coordinates, radii ", &
@@ -791,7 +827,7 @@ subroutine ddfromfile(fname, ddx_data, tol)
         return
     end if
     do i = 1, nsph
-        read(100, *) charge(i), x(i), y(i), z(i), rvdw(i)
+        read(100, *) charges(i), x(i), y(i), z(i), rvdw(i)
     end do
     ! Finish reading
     close(100)
@@ -805,11 +841,11 @@ subroutine ddfromfile(fname, ddx_data, tol)
     call closest_supported_lebedev_grid(ngrid)
 
     !! Initialize ddx_data object
-    call ddinit(nsph, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
+    call ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
         & pm, pl, se, eta, eps, kappa, matvecmem, &
         & maxiter, jacobi_ndiis, nproc, output_filename, ddx_data)
     !! Clean local temporary data
-    deallocate(charge, x, y, z, rvdw, stat=istatus)
+    deallocate(x, y, z, rvdw, stat=istatus)
     if(istatus .ne. 0) then
         write(ddx_data % error_message, "(2A)") &
             & "Could not deallocate space for coordinates, ", &
@@ -1035,6 +1071,27 @@ subroutine ddx_free_state(state)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "`f_lpb` deallocation failed!"
+        endif
+    end if
+    if (allocated(state % rhs_lpb)) then
+        deallocate(state % rhs_lpb, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`rhs_lpb` deallocation failed!"
+        endif
+    end if
+    if (allocated(state % rhs_adj_lpb)) then
+        deallocate(state % rhs_adj_lpb, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`rhs_adj_lpb` deallocation failed!"
+        endif
+    end if
+    if (allocated(state % zeta_dip)) then
+        deallocate(state % zeta_dip, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`zeta_dip` deallocation failed!"
         endif
     end if
 end subroutine ddx_free_state

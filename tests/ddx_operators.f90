@@ -43,16 +43,16 @@ do i = 1, size(alpha)
     charge = abs(alpha(i)) * gcharge
     csph = alpha(i) * gcsph
     rsph = abs(alpha(i)) * grsph
-    call ddinit(nsph, charge, csph(1, :), csph(2, :), csph(3, :), rsph, 2, &
-        & lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
+    call ddinit(nsph, csph(1, :), csph(2, :), csph(3, :), rsph, 2, &
+        lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & nproc, dummy_file_name, ddx_data)
-    call check_mkrhs(ddx_data, 0, 0, 1d-1)
-    call check_mkrhs(ddx_data, 1, 1, 1d-2)
-    call check_mkrhs(ddx_data, 3, 3, 1d-3)
-    call check_mkrhs(ddx_data, 5, 5, 1d-4)
-    call check_mkrhs(ddx_data, 20, 20, 1d-9)
-    call check_mkrhs(ddx_data, 40, 40, 1d-15)
+    call check_mkrhs(ddx_data, 0, 0, 1d-1, charge)
+    call check_mkrhs(ddx_data, 1, 1, 1d-2, charge)
+    call check_mkrhs(ddx_data, 3, 3, 1d-3, charge)
+    call check_mkrhs(ddx_data, 5, 5, 1d-4, charge)
+    call check_mkrhs(ddx_data, 20, 20, 1d-9, charge)
+    call check_mkrhs(ddx_data, 40, 40, 1d-15, charge)
     call check_dx(ddx_data, 40, 40, 1d-12)
     call check_dx(ddx_data, lmax+1, lmax+1, 1d-4)
     call check_gradr(ddx_data, 40, 40, 1d-12)
@@ -70,11 +70,12 @@ subroutine error(code, message)
     stop -1
 end subroutine
 
-subroutine check_mkrhs(ddx_data, pm, pl, threshold)
+subroutine check_mkrhs(ddx_data, pm, pl, threshold, charges)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
     integer, intent(in) :: pm, pl
     real(dp), intent(in) :: threshold
+    real(dp), intent(in) :: charges(ddx_data % params % nsph)
     ! Local variables
     type(ddx_type) :: ddx_data_fmm
     integer :: info
@@ -84,9 +85,10 @@ subroutine check_mkrhs(ddx_data, pm, pl, threshold)
     real(dp) :: fnorm, fdiff
     real(dp), external :: dnrm2
     ! Init FMM-related ddx_data
-    call ddinit(ddx_data % params % nsph, ddx_data % params % charge, ddx_data % params % csph(1, :), &
-        & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
-        & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
+    call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
+        & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), &
+        & ddx_data % params % rsph, ddx_data % params % model, &
+        & ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % matvecmem, &
         & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
@@ -107,10 +109,10 @@ subroutine check_mkrhs(ddx_data, pm, pl, threshold)
     ! Dense operator mkrhs is trusted to have no errors, this must be somehow
     ! checked in the future.
     call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
-        & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
+        & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
     call mkrhs(ddx_data_fmm % params, ddx_data_fmm % constants, &
         & ddx_data_fmm % workspace, 1, phi2_cav, 1, gradphi2_cav, 1, &
-        & hessianphi2_cav, psi2)
+        & hessianphi2_cav, psi2, charges)
     ! Compare potentials
     phi2_cav = phi2_cav - phi_cav
     gradphi2_cav = gradphi2_cav - gradphi_cav
@@ -150,7 +152,7 @@ subroutine check_dx(ddx_data, pm, pl, threshold)
         & xx(nrand, nrand), yy(nrand, nrand), full_norm, diff_norm
     real(dp), external :: dnrm2
     ! Init FMM-related ddx_data
-    call ddinit(ddx_data % params % nsph, ddx_data % params % charge, ddx_data % params % csph(1, :), &
+    call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
@@ -237,7 +239,7 @@ subroutine check_gradr(ddx_data, pm, pl, threshold)
         & forces2(3, ddx_data % params % nsph)
     real(dp), external :: dnrm2
     ! Init FMM-related ddx_data
-    call ddinit(ddx_data % params % nsph, ddx_data % params % charge, ddx_data % params % csph(1, :), &
+    call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &

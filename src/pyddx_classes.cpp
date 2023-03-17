@@ -13,12 +13,21 @@ using array_f_t = py::array_t<double, py::array::f_style | py::array::forcecast>
 
 class Model {
  public:
+  Model(std::string model, array_f_t sphere_centres,
+        array_f_t sphere_radii, double solvent_epsilon, double solvent_kappa, double eta,
+        double shift, int lmax, int n_lebedev, bool incore, int maxiter,
+        int jacobi_n_diis, bool enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax,
+        int n_proc, std::string logfile)
+        : Model(model, array_f_t(), sphere_centres, sphere_radii, solvent_epsilon, solvent_kappa,
+        eta, shift, lmax, n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, 
+        fmm_multipole_lmax, fmm_local_lmax, n_proc, logfile) {
+    }
   Model(std::string model, array_f_t sphere_charges, array_f_t sphere_centres,
         array_f_t sphere_radii, double solvent_epsilon, double solvent_kappa, double eta,
         double shift, int lmax, int n_lebedev, bool incore, int maxiter,
         int jacobi_n_diis, bool enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax,
         int n_proc, std::string logfile)
-        : m_holder(nullptr), m_model(model) {
+        : m_holder(nullptr), m_model(model), m_charges(sphere_charges) {
     int model_id = 0;
     if (model == "cosmo") {
       model_id = 1;
@@ -32,15 +41,9 @@ class Model {
     }
 
     // Check size of vdW and atomic data
-    const size_t n_spheres = sphere_charges.size();
-    if (sphere_charges.ndim() != 1) {
-      throw py::value_error("Parameter sphere_charges is not a 1D array.");
-    }
+    const size_t n_spheres = sphere_radii.size();
     if (sphere_radii.ndim() != 1) {
       throw py::value_error("Parameter sphere_radii is not a 1D array.");
-    }
-    if (n_spheres != sphere_radii.size()) {
-      throw py::value_error("Length of 'sphere_charges' and 'sphere_radii' don't agree.");
     }
     if (sphere_centres.ndim() != 2) {
       throw py::value_error("sphere_centres is not a 2D array.");
@@ -118,7 +121,7 @@ class Model {
     m_holder = ddx_allocate_model(
           model_id, enable_force, solvent_epsilon, solvent_kappa, eta, shift, lmax,
           n_lebedev, intincore, maxiter, jacobi_n_diis, intfmm, fmm_multipole_lmax,
-          fmm_local_lmax, n_proc, n_spheres, sphere_charges.data(), sphere_centres.data(),
+          fmm_local_lmax, n_proc, n_spheres, sphere_centres.data(),
           sphere_radii.data(), logfile.size(), logfile.c_str());
     throw_if_error();
   }
@@ -170,9 +173,7 @@ class Model {
   double solvent_kappa() const { return ddx_get_solvent_kappa(m_holder); }
 
   array_f_t sphere_charges() const {
-    array_f_t result({n_spheres()});
-    ddx_get_sphere_charges(m_holder, n_spheres(), result.mutable_data());
-    return result;
+    return m_charges;
   }
   array_f_t sphere_centres() const {
     array_f_t result({3, n_spheres()});
@@ -188,7 +189,6 @@ class Model {
   // Get all input parameters as a dict
   py::dict input_parameters() const {
     return py::dict(
-          "model"_a = model(), "sphere_charges"_a = sphere_charges(),
           "sphere_centres"_a = sphere_centres(), "sphere_radii"_a = sphere_radii(),
           "solvent_epsilon"_a = solvent_epsilon(), "solvent_kappa"_a = solvent_kappa(),
           "eta"_a = eta(), "shift"_a = shift(), "lmax"_a = lmax(),
@@ -212,6 +212,7 @@ class Model {
  private:
   void* m_holder;
   std::string m_model;
+  array_f_t m_charges;
 };
 
 class State {
@@ -516,7 +517,7 @@ void export_pyddx_classes(py::module& m) {
   const char* init_docstring =
         "Setup solvation model in ddX.\n\n"
         "model:            'cosmo', 'pcm' or 'lpb'\n"
-        "sphere_charges:   (n_spheres) array\n"
+        "sphere_charges:   (n_spheres) array, optional array for compatibility, not used internally.\n"
         "atomic_centers:   (n_spheres, 3) array\n"
         "sphere_radii:     (n_spheres) array\n"
         "solvent_epsilon:  Relative dielectric permittivity\n"
@@ -546,6 +547,15 @@ void export_pyddx_classes(py::module& m) {
                       double, double, int, int, int, int, int, bool, int, int, int,
                       std::string>(),
              init_docstring, "model"_a, "sphere_charges"_a, "sphere_centres"_a,
+             "sphere_radii"_a, "solvent_epsilon"_a, "solvent_kappa"_a = 0.0,
+             "eta"_a = 0.1, "shift"_a = -100, "lmax"_a = 9, "n_lebedev"_a = 302,
+             "incore"_a = false, "maxiter"_a = 100, "jacobi_n_diis"_a = 20,
+             "enable_fmm"_a = true, "fmm_multipole_lmax"_a = 9, "fmm_local_lmax"_a = 6,
+             "n_proc"_a = 1, "logfile"_a = "")
+        .def(py::init<std::string, array_f_t, array_f_t, double, double,
+                      double, double, int, int, int, int, int, bool, int, int, int,
+                      std::string>(),
+             init_docstring, "model"_a, "sphere_centres"_a,
              "sphere_radii"_a, "solvent_epsilon"_a, "solvent_kappa"_a = 0.0,
              "eta"_a = 0.1, "shift"_a = -100, "lmax"_a = 9, "n_lebedev"_a = 302,
              "incore"_a = false, "maxiter"_a = 100, "jacobi_n_diis"_a = 20,

@@ -29,11 +29,12 @@ real(dp) :: esolv_one, esolv_two, tol
 integer :: default_value
 
 real(dp), external :: dnrm2
+real(dp), allocatable :: charges(:)
 
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol)
+call ddfromfile(fname, ddx_data, tol, charges)
 if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 if(state % error_flag .ne. 0) stop "Initialization failed"
@@ -46,10 +47,10 @@ esolv_two = zero
 ! Computation for different storage
 write(*,*) 'Different storage of matrix'
 default_value = 1
-call solve(ddx_data, state, default_value, esolv_one)
+call solve(ddx_data, state, default_value, esolv_one, charges)
 write(*,*) 'Esolv : ', esolv_one
 default_value = 0
-call solve(ddx_data, state, default_value, esolv_two)
+call solve(ddx_data, state, default_value, esolv_two, charges)
 write(*,*) 'Esolv : ', esolv_two
 
 if(abs(esolv_one - esolv_two) .gt. 1e-8) then
@@ -59,14 +60,16 @@ endif
 
 call ddx_free_state(state)
 call ddfree(ddx_data)
+deallocate(charges)
 
 contains
 
-subroutine solve(ddx_data, state, matvecmem, esolv)
+subroutine solve(ddx_data, state, matvecmem, esolv, charges)
     type(ddx_type), intent(inout) :: ddx_data
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(inout) :: esolv
     integer, intent(in) :: matvecmem
+    real(dp), intent(in) :: charges(ddx_data % params % nsph)
 
     type(ddx_type) :: ddx_data2
     real(dp), allocatable :: phi_cav2(:)
@@ -75,7 +78,7 @@ subroutine solve(ddx_data, state, matvecmem, esolv)
     real(dp), allocatable :: psi2(:,:)
     real(dp), allocatable :: force2(:,:)
 
-    call ddinit(ddx_data % params % nsph, ddx_data % params % charge, &
+    call ddinit(ddx_data % params % nsph, &
         & ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, 0, &
@@ -99,7 +102,7 @@ subroutine solve(ddx_data, state, matvecmem, esolv)
     hessianphi_cav2 = zero; psi2 = zero; force2 = zero
 
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
-            &  1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
+            &  1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2, charges)
 
     call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
         & psi2, tol, esolv, force2)

@@ -44,7 +44,7 @@ def test_reference_pcm():
          [-2.0205380608822733E-21, -1.4299794681478375E-21, -1.4376717119412485E-05],
     ]).T
 
-    model = pyddx.Model("pcm", centres, rvdw, solvent_epsilon=78.3553, lmax=10)
+    model = pyddx.Model("pcm", charges, centres, rvdw, solvent_epsilon=78.3553, lmax=10)
     solute_multipoles = charges.reshape(1, -1) / np.sqrt(4 * np.pi)
     solute_field = model.multipole_electrostatics(solute_multipoles)
     solute_psi = model.multipole_psi(solute_multipoles)
@@ -59,3 +59,4 @@ def test_reference_pcm():
     force = state.solvation_force_terms()
     assert abs(energy - ref) < 5e-9
     assert np.max(np.abs(force - ref_force)) < 1e-5
+    assert np.all(model.sphere_charges == charges)

@@ -58,8 +58,6 @@ type ddx_params_type
     integer :: nproc
     !> Number of atoms in the molecule.
     integer :: nsph
-    !> Charges of atoms of a dimension (nsph).
-    real(dp), allocatable :: charge(:)
     !> Centers of atoms of a dimension (3, nsph).
     real(dp), allocatable :: csph(:, :)
     !> Array of radii of atoms of a dimension (nsph).
@@ -120,7 +118,6 @@ contains
 !!      disabled, only possible input values are 0 or 1 and both inputs lead
 !!      to the same output nproc=1 since the library is not parallel.
 !! @param[in] nsph: Number of atoms. nsph > 0.
-!! @param[in] charge: Charges of atoms. Dimension is `(nsph)`.
 !! @param[in] csph: Coordinates of atoms. Dimension is `(3, nsph)`.
 !! @param[in] rsph: Van-der-Waals radii of atoms. Dimension is `(nsph)`.
 !! @param[in] output_filename: file name of log file.
@@ -131,7 +128,7 @@ contains
 !!      = 1: Allocation of memory to copy geometry data failed.
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & matvecmem, maxiter, jacobi_ndiis, &
-        & fmm, pm, pl, nproc, nsph, charge, &
+        & fmm, pm, pl, nproc, nsph, &
         & csph, rsph, output_filename, params)
     !! Inputs
     ! Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
@@ -173,8 +170,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     integer, intent(in) :: nproc
     ! Number of atoms in the molecule.
     integer, intent(in) :: nsph
-    ! Charges of atoms of a dimension (nsph).
-    real(dp), intent(in) :: charge(nsph)
     ! Centers of atoms of a dimension (3, nsph).
     real(dp), intent(in) :: csph(3, nsph)
     ! Array of radii of atoms of a dimension (nsph).
@@ -334,16 +329,13 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         return
     end if
     params % nsph = nsph
-    ! Allocation of charge, csph and rsph
-    allocate(params % charge(nsph), params % csph(3, nsph), &
-        & params % rsph(nsph), stat=info)
+    allocate(params % csph(3, nsph), params % rsph(nsph), stat=info)
     if (info .ne. 0) then
         params % error_flag = 1
-        params % error_message = "params_init: `charge`, `csph` and `rsph` " &
+        params % error_message = "params_init: `csph` and `rsph` " &
             & // "allocations failed"
         return
     end if
-    params % charge = charge
     params % csph = csph
     params % rsph = rsph
     if (matvecmem.eq.0 .or. matvecmem.eq.1) then
@@ -369,12 +361,6 @@ subroutine params_deinit(params)
     integer :: info
     !! Code
     ! Deallocate memory to avoid leaks
-    deallocate(params % charge, stat=info)
-    if (info .ne. 0) then
-        params % error_flag = 1
-        params % error_message = "params_deinit: `charge` deallocation failed"
-        info = 1
-    end if
     deallocate(params % csph, stat=info)
     if (info .ne. 0) then
         params % error_flag = 1
@@ -428,14 +414,6 @@ subroutine params_free(params)
     call finalize_printing(params)
     if (params % error_flag .ne. 0) return
 
-    if (allocated(params % charge)) then
-        deallocate(params % charge, stat=istat)
-        if (istat .ne. 0) then
-            params % error_message = "`charge` deallocation failed!"
-            params % error_flag = 1
-            return
-        end if
-    end if
     if (allocated(params % csph)) then
         deallocate(params % csph, stat=istat)
         if (istat .ne. 0) then

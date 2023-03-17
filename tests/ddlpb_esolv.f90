@@ -30,6 +30,7 @@ real(dp), allocatable :: default_epsilon(:), default_eta(:), &
                        & default_kappa(:), default_lmax(:)
 integer, allocatable :: default_iter_epsilon(:), default_iter_eta(:), &
                        & default_iter_kappa(:), default_iter_lmax(:)
+real(dp), allocatable :: charges(:)
 
 real(dp), external :: dnrm2
 character(len=255) :: dummy_file_name = ''
@@ -37,7 +38,7 @@ character(len=255) :: dummy_file_name = ''
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol)
+call ddfromfile(fname, ddx_data, tol, charges)
 if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 
 ! Allocation for variable vectors
@@ -107,7 +108,7 @@ do i = 1, 4
   esolv = zero
   call solve(ddx_data, esolv, n_iter, default_value, &
            & ddx_data % params % eta, ddx_data % params % kappa, &
-           & ddx_data % params % lmax, tol)
+           & ddx_data % params % lmax, tol, charges)
   call check_values(default_epsilon(i), esolv)
   call check_iter_values(default_iter_epsilon(i), n_iter)
 end do
@@ -120,7 +121,8 @@ do i = 1, 4
   write(*,*) 'eta : ', default_value
   esolv = zero
   call solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
-           & default_value, ddx_data % params % kappa, ddx_data % params % lmax, tol)
+           & default_value, ddx_data % params % kappa, &
+           & ddx_data % params % lmax, tol, charges)
   call check_values(default_eta(i), esolv)
   call check_iter_values(default_iter_eta(i), n_iter)
 end do
@@ -132,7 +134,8 @@ do i = 1, 4
   write(*,*) 'kappa : ', default_value
   esolv = zero
   call solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
-           & ddx_data % params % eta, default_value, ddx_data % params % lmax, tol)
+           & ddx_data % params % eta, default_value, &
+           & ddx_data % params % lmax, tol, charges)
   call check_values(default_kappa(i), esolv)
   call check_iter_values(default_iter_kappa(i), n_iter)
 end do
@@ -144,7 +147,8 @@ do i = 1, 4
   write(*,*) 'lmax : ', default_lmax_val
   esolv = zero
   call solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
-           & ddx_data % params % eta, ddx_data % params % kappa, default_lmax_val, tol)
+           & ddx_data % params % eta, &
+           & ddx_data % params % kappa, default_lmax_val, tol, charges)
   call check_values(default_lmax(i), esolv)
   call check_iter_values(default_iter_lmax(i), n_iter)
 end do
@@ -152,7 +156,7 @@ end do
 deallocate(default_epsilon, default_eta, &
        & default_kappa, default_lmax, &
        & default_iter_epsilon, default_iter_eta, &
-       & default_iter_kappa, default_iter_lmax, stat = istatus)
+       & default_iter_kappa, default_iter_lmax, charges, stat = istatus)
 
 if (istatus.ne.0) write(6,*) 'Deallocation failed'
 
@@ -160,9 +164,10 @@ call ddfree(ddx_data)
 
 contains
 
-subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol)
+subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol, charges)
     implicit none
     type(ddx_type), intent(inout) :: ddx_data
+    real(dp), intent(in) :: charges(ddx_data % params % nsph)
     real(dp), intent(inout) :: esolv_in
     integer, intent(inout)  :: n_iter
     real(dp), intent(in) :: epsilon_solv
@@ -179,7 +184,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
     real(dp), allocatable :: psi2(:,:)
     real(dp), allocatable :: force2(:,:)
 
-    call ddinit(ddx_data % params % nsph, ddx_data % params % charge, &
+    call ddinit(ddx_data % params % nsph, &
         & ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, lmax, ddx_data % params % ngrid, 0, &
@@ -202,7 +207,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
     hessianphi_cav2 = zero; psi2 = zero; force2 = zero
 
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
-        &  1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
+        &  1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2, charges)
 
     call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
         & psi2, tol, esolv_in, force2)

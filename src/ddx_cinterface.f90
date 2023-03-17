@@ -89,13 +89,11 @@ end
 !
 function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
         & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, fmm_multipole_lmax, fmm_local_lmax, &
-        & n_proc, n_spheres, sphere_charges, sphere_centres, &
-        & sphere_radii, length_logfile, c_logfile) result(c_ddx) bind(C)
+        & n_proc, n_spheres, sphere_centres, sphere_radii, length_logfile, c_logfile) result(c_ddx) bind(C)
     integer(c_int), intent(in), value :: model, enable_force, lmax, n_lebedev, maxiter, &
         & incore, jacobi_n_diis, enable_fmm, fmm_multipole_lmax, fmm_local_lmax, n_proc, &
         & n_spheres, length_logfile
-    real(c_double), intent(in) :: sphere_charges(n_spheres), sphere_centres(3, n_spheres), &
-        & sphere_radii(n_spheres)
+    real(c_double), intent(in) :: sphere_centres(3, n_spheres), sphere_radii(n_spheres)
     real(c_double), intent(in), value :: eta, se, solvent_epsilon, solvent_kappa
     !type(c_funptr), value :: printfctn
     type(c_ptr) :: c_ddx
@@ -119,7 +117,7 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
 
     call params_init(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
         & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, &
-        & fmm_multipole_lmax, fmm_local_lmax, passproc, n_spheres, sphere_charges, &
+        & fmm_multipole_lmax, fmm_local_lmax, passproc, n_spheres, &
         & sphere_centres, sphere_radii, logfile, ddx%params)
     if (ddx%params%error_flag .ne. 0) then
         return
@@ -345,15 +343,6 @@ function ddx_get_shift(c_ddx) result(c_se) bind(C)
     call c_f_pointer(c_ddx, ddx)
     c_se = ddx % params % se
 end function
-
-subroutine ddx_get_sphere_charges(c_ddx, nsph, c_charge) bind(C)
-    type(c_ptr), intent(in), value :: c_ddx
-    integer(c_int), intent(in), value :: nsph
-    real(c_double), intent(out) :: c_charge(nsph)
-    type(ddx_setup), pointer :: ddx
-    call c_f_pointer(c_ddx, ddx)
-    c_charge(:) = ddx % params % charge(:)
-end subroutine
 
 subroutine ddx_get_sphere_centres(c_ddx, nsph, c_csph) bind(C)
     type(c_ptr), intent(in), value :: c_ddx

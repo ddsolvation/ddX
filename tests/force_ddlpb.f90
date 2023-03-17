@@ -23,7 +23,7 @@ type(ddx_state_type) :: state
 
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
                        & hessianphi_cav(:,:,:), psi(:, :), &
-                       & force(:, :), force_num(:, :)
+                       & force(:, :), force_num(:, :), charges(:)
 real(dp) :: esolv, esolv_plus_h, esolv_minus_h, &
           & step = 2.d-5, relerr, tol
 integer :: isph, i
@@ -33,7 +33,7 @@ character(len=255) :: dummy_file_name = ''
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol)
+call ddfromfile(fname, ddx_data, tol, charges)
 if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 
@@ -57,17 +57,24 @@ esolv_minus_h = zero
 
 
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
-    & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
+    & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
 
 call ddlpb(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
     & state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)
+
+! add the solute specific contributions to the forces
+call grad_phi_for_charges(ddx_data % params, &
+    & ddx_data % constants, ddx_data % workspace, state, &
+    & charges, force, -gradphi_cav)
+call grad_e_for_charges(ddx_data % params, ddx_data % constants, &
+    & ddx_data % workspace, state, charges, force)
 
 do isph = 1, ddx_data % params % nsph
   do i = 1, 3
     esolv_plus_h = zero
     esolv_minus_h = zero
     ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) + step
-    call solve(ddx_data, esolv_plus_h, tol)
+    call solve(ddx_data, esolv_plus_h, tol, charges)
     ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) - step
     !call solve(ddx_data, esolv_minus_h)
     !write(*,*) 'esolv  :', esolv, 'esolv+h  : ', esolv_plus_h, ' , esolv : ', esolv_minus_h, ' , step :', step
@@ -77,7 +84,6 @@ do isph = 1, ddx_data % params % nsph
   end do
 end do
 ! force is minus the gradient
-force_num = - force_num
 relerr = dnrm2(3*ddx_data % params % nsph, force_num-force, 1) / &
     & dnrm2(3*ddx_data % params % nsph, force, 1)
 
@@ -87,7 +93,7 @@ do i = 1, ddx_data % params % nsph
       & force_num(2,i), force_num(3,i)
 end do
 
-deallocate(phi_cav, gradphi_cav, hessianphi_cav, psi, force, force_num)
+deallocate(phi_cav, gradphi_cav, hessianphi_cav, psi, force, force_num, charges)
 
 call ddx_free_state(state)
 call ddfree(ddx_data)
@@ -96,11 +102,12 @@ write(*, *) "Rel.error of forces:", relerr
 if (relerr .gt. 1.d-5) stop 1
 contains
 
-subroutine solve(ddx_data, esolv_in, tol)
+subroutine solve(ddx_data, esolv_in, tol, charges)
     implicit none
     type(ddx_type), intent(inout) :: ddx_data
     real(dp), intent(inout) :: esolv_in
     real(dp), intent(in) ::tol
+    real(dp), intent(in) :: charges(ddx_data % params % nsph)
 
     type(ddx_type) :: ddx_data2
     type(ddx_state_type) :: state
@@ -110,7 +117,7 @@ subroutine solve(ddx_data, esolv_in, tol)
     real(dp), allocatable :: psi2(:,:)
     real(dp), allocatable :: force2(:,:)
 
-    call ddinit(ddx_data % params % nsph, ddx_data % params % charge, ddx_data % params % csph(1, :), &
+    call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, 0, &
         & ddx_data % params % fmm, ddx_data % params % pm, ddx_data % params % pl, &
@@ -131,7 +138,7 @@ subroutine solve(ddx_data, esolv_in, tol)
     hessianphi_cav2 = zero; psi2 = zero; force2 = zero
 
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
-        & 1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2)
+        & 1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2, charges)
     call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
         & psi2, tol, esolv_in, force2)
 

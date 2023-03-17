@@ -239,8 +239,8 @@ subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
 
     ! allocate some space for the M2M gradients and precompute
     ! the quantities for the m2p
-    allocate(tmp_m_grad((mmax + 2)**2, 3, nm), vscales((mmax + 1)**2), &
-        & vscales_rel((mmax + 1)**2), v4pi2lp1(mmax + 1), stat=info)
+    allocate(tmp_m_grad((mmax + 2)**2, 3, nm), vscales((mmax + 2)**2), &
+        & vscales_rel((mmax + 2)**2), v4pi2lp1(mmax + 2), stat=info)
     if (info .ne. 0) then
         error_message = "Allocation failed in build_e_dense!"
         error_flag = 1
@@ -748,8 +748,6 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
     call efld(constants % ncav, state % zeta, constants % ccav, &
         & params % nsph, params % csph, field)
 
-    ! sqrt4pi is required to go from multipoles in real spherical
-    ! harmonics to regular charges
     do isph = 1, params % nsph
         forces(1, isph) = forces(1, isph) &
             & + pt5*charges(isph)*field(1, isph)
@@ -861,10 +859,10 @@ end subroutine grad_phi
 !! @param[in] params: ddx parameters
 !! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics,
-!!     size ((mmax+1)**2, nsph)
-!! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[in] charges: charges (zeta) at cavity points, size(ncav)
+!! @param[in] mmax: maximum angular momentum of the target multipoles
+!! @param[out] adj_phi: electrostatic properties up to order mmax at
+!!     the target multipoles, size ((mmax+1)**2, nsph)
 !!
 subroutine build_adj_phi(params, constants, workspace, charges, mmax, adj_phi)
     implicit none
@@ -942,12 +940,12 @@ end subroutine build_adj_phi_dense
 !> the spheres. This is done with FMMs and required in the computation of
 !> the forces.
 !! @param[in] params: ddx parameters
-!! @param[in]  constants: ddx constants
+!! @param[in] constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics,
-!!     size ((mmax+1)**2, nsph)
-!! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[in] charges: charges (zeta) at cavity points, size(ncav)
+!! @param[in] mmax: maximum angular momentum of the target multipoles
+!! @param[out] adj_phi: electrostatic properties up to order mmax at
+!!     the target multipoles, size ((mmax+1)**2, nsph)
 !!
 subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
         & adj_phi)
@@ -1047,5 +1045,144 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
     end if
 
 end subroutine build_adj_phi_fmm
+
+!> Given a charge distribution centered on the spheres, compute the
+!> contributions to the forces stemming from its electrostatic interactions.
+!!
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[inout] state: ddx state
+!! @param[in] charges: charges, size (nsph)
+!! @param[inout] forces: forces array, size (3, nsph)
+!!
+subroutine grad_e_for_charges(params, constants, workspace, state, &
+        & charges, force)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: charges(params % nsph)
+    real(dp), intent(inout) :: force(3, params % nsph)
+    real(dp), allocatable :: multipoles(:, :)
+    integer :: info
+
+    allocate(multipoles(1, params % nsph), stat=info)
+    ! convert the charges to multipoles
+    multipoles(1, :) = charges/sqrt4pi
+    call grad_e(params, constants, workspace, state, 0, multipoles, force)
+    deallocate(multipoles, stat=info)
+
+end subroutine grad_e_for_charges
+
+!> @ingroup Fortran_interface_multipolar
+!> Given a multipolar distribution in real spherical harmonics and
+!> centered on the spheres, compute the contributions to the forces
+!> stemming from its electrostatic interactions in case of ddLPB F RHS.
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[inout] state: ddx state
+!! @param[in] mmax: maximum angular momentum of the multipolar distribution
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2, nsph)
+!! @param[inout] forces: forces array, size (3, nsph)
+!!
+subroutine grad_e(params, constants, workspace, state, mmax, &
+        & multipoles, force)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(inout) :: state
+    integer, intent(in) :: mmax
+    real(dp), intent(in) :: multipoles((mmax+1)**2, params % nsph)
+    real(dp), intent(inout) :: force(3, params % nsph)
+
+    real(dp), allocatable :: zeta_comp(:),  m_grad(:, :, :), &
+        & m_hess_x(:, :, :), m_hess_y(:, :, :), m_hess_z(:, :, :), &
+        & m_grad_component(:, :), adj_phi_x(:, :), adj_phi_y(:, :), &
+        & adj_phi_z(:, :)
+    integer :: info, isph, ind, l, m, lm
+    real(dp) :: fac
+
+    allocate(zeta_comp(constants % ncav), &
+        & adj_phi_x((mmax+3)**2, params % nsph), &
+        & adj_phi_y((mmax+3)**2, params % nsph), &
+        & adj_phi_z((mmax+3)**2, params % nsph), &
+        & m_hess_x((mmax+3)**2, 3, params % nsph), &
+        & m_hess_y((mmax+3)**2, 3, params % nsph), &
+        & m_hess_z((mmax+3)**2, 3, params % nsph), &
+        & m_grad((mmax+2)**2, 3, params % nsph), &
+        & m_grad_component((mmax+2)**2, params % nsph), &
+        & stat=info)
+    if (info.ne.0) then
+        workspace % error_flag = 1
+        workspace % error_message = "Allocation failed in grad_e"
+        return
+    end if
+
+    ! compute the gradient of the target charges
+    call grad_m2m(multipoles, mmax, params % nsph, m_grad, &
+        & workspace % error_flag, workspace % error_message)
+
+    ! starting from the previously computed gradient, compute the
+    ! hessian of the target multipoles
+    m_grad_component = m_grad(:, 1, :)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_x, &
+        & workspace % error_flag, workspace % error_message)
+    m_grad_component = m_grad(:, 2, :)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_y, &
+        & workspace % error_flag, workspace % error_message)
+    m_grad_component = m_grad(:, 3, :)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_z, &
+        & workspace % error_flag, workspace % error_message)
+
+    ! now we compute the adjoint potential of the x, y and z components
+    ! of the input dipoles separately
+    zeta_comp = state % zeta_dip(1, :)
+    call build_adj_phi(params, constants, workspace, zeta_comp, &
+        & mmax + 2, adj_phi_x)
+    zeta_comp = state % zeta_dip(2, :)
+    call build_adj_phi(params, constants, workspace, zeta_comp, &
+        & mmax + 2, adj_phi_y)
+    zeta_comp = state % zeta_dip(3, :)
+    call build_adj_phi(params, constants, workspace, zeta_comp, &
+        & mmax + 2, adj_phi_z)
+
+    ! contract the hessian of the multipoles with the three adjoint
+    ! potentials to get the forces contributions
+    do isph = 1, params % nsph
+        do l = 2, mmax + 2
+            ind = l*l + l + 1
+            fac = -(-one)**(l+1)/2.0d0
+            do m = -l, l
+                lm = ind + m
+                force(1, isph) = force(1, isph) &
+                    & + fac*m_hess_x(lm, 1, isph)*adj_phi_x(lm, isph) &
+                    & + fac*m_hess_y(lm, 1, isph)*adj_phi_y(lm, isph) &
+                    & + fac*m_hess_z(lm, 1, isph)*adj_phi_z(lm, isph)
+                force(2, isph) = force(2, isph) &
+                    & + fac*m_hess_x(lm, 2, isph)*adj_phi_x(lm, isph) &
+                    & + fac*m_hess_y(lm, 2, isph)*adj_phi_y(lm, isph) &
+                    & + fac*m_hess_z(lm, 2, isph)*adj_phi_z(lm, isph)
+                force(3, isph) = force(3, isph) &
+                    & + fac*m_hess_x(lm, 3, isph)*adj_phi_x(lm, isph) &
+                    & + fac*m_hess_y(lm, 3, isph)*adj_phi_y(lm, isph) &
+                    & + fac*m_hess_z(lm, 3, isph)*adj_phi_z(lm, isph)
+            end do
+        end do
+    end do
+
+    deallocate(zeta_comp, adj_phi_x, adj_phi_y, adj_phi_z, m_hess_x, &
+        & m_hess_y, m_hess_z, m_grad, m_grad_component, stat=info)
+    if (info.ne.0) then
+        workspace % error_flag = 1
+        workspace % error_message = "Allocation failed in grad_e"
+        return
+    end if
+
+end subroutine grad_e
 
 end module ddx_multipolar_solutes

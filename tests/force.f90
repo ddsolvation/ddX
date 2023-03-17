@@ -21,7 +21,7 @@ type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
     & hessianphi_cav(:, :, :), psi(:, :), &
-    & force(:, :), force_num(:, :)
+    & force(:, :), force_num(:, :), charges(:)
 real(dp) :: tol, esolv1, esolv2, step=0.0001, relerr
 integer :: isph, i
 real(dp), external :: dnrm2
@@ -30,7 +30,7 @@ character(len=255) :: dummy_file_name = ''
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol)
+call ddfromfile(fname, ddx_data, tol, charges)
 if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 if(state % error_flag .ne. 0) stop "Initialization failed"
@@ -41,22 +41,21 @@ allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constan
     & force(3, ddx_data % params % nsph), &
     & force_num(3, ddx_data % params % nsph))
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
-    & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
+    & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
 call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, &
     & tol, esolv1, force)
 call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, ddx_data % params % charge, &
-    & force, -gradphi_cav)
+    & ddx_data % workspace, state, charges, force, -gradphi_cav)
 
 ddx_data % params % force = 0
 do isph = 1, ddx_data % params % nsph
     do i = 1, 3
         ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) + step
         call solve(ddx_data, state, tol, esolv1, phi_cav, gradphi_cav, &
-            & hessianphi_cav, psi, force)
+            & hessianphi_cav, psi, force, charges)
         ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) - two*step
         call solve(ddx_data, state, tol, esolv2, phi_cav, gradphi_cav, &
-            & hessianphi_cav, psi, force)
+            & hessianphi_cav, psi, force, charges)
         ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) + step
         force_num(i, isph) = (esolv1-esolv2) / two / step
     end do
@@ -70,7 +69,7 @@ do i = 1, ddx_data % params % nsph
       & force_num(2,i), force_num(3,i)
 end do
 
-deallocate(phi_cav, gradphi_cav, psi, force, force_num)
+deallocate(phi_cav, gradphi_cav, psi, force, force_num, charges)
 call ddx_free_state(state)
 call ddfree(ddx_data)
 
@@ -79,9 +78,10 @@ if (relerr .gt. 1d-5) stop 1
 contains 
 
 subroutine solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &
-        & hessianphi_cav, psi, force)
+        & hessianphi_cav, psi, force, charges)
     type(ddx_type), intent(inout) :: ddx_data
     type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: charges(ddx_data % params % nsph)
     real(dp), intent(in) :: tol
     real(dp), intent(out) :: esolv, phi_cav(ddx_data % constants % ncav), &
         & gradphi_cav(3, ddx_data % constants % ncav), &
@@ -89,7 +89,7 @@ subroutine solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &
         & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), &
         & force(3, ddx_data % params % nsph)
     type(ddx_type) :: ddx_data2
-    call ddinit(ddx_data % params % nsph, ddx_data % params % charge, ddx_data % params % csph(1, :), &
+    call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, 0, &
         & ddx_data % params % fmm, ddx_data % params % pm, ddx_data % params % pl, &
@@ -99,7 +99,7 @@ subroutine solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &
         & ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, dummy_file_name, ddx_data2)
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
-        & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi)
+        & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
     call ddsolve(ddx_data2, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, &
         & force)
     call ddfree(ddx_data2)
