@@ -18,7 +18,16 @@ class Model {
         double shift, int lmax, int n_lebedev, bool incore, int maxiter,
         int jacobi_n_diis, bool enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax,
         int n_proc, std::string logfile)
-        : m_holder(nullptr), m_model(model) {
+        : Model(model, array_f_t(), sphere_centres, sphere_radii, solvent_epsilon, solvent_kappa,
+        eta, shift, lmax, n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, 
+        fmm_multipole_lmax, fmm_local_lmax, n_proc, logfile) {
+    }
+  Model(std::string model, array_f_t sphere_charges, array_f_t sphere_centres,
+        array_f_t sphere_radii, double solvent_epsilon, double solvent_kappa, double eta,
+        double shift, int lmax, int n_lebedev, bool incore, int maxiter,
+        int jacobi_n_diis, bool enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax,
+        int n_proc, std::string logfile)
+        : m_holder(nullptr), m_model(model), m_charges(sphere_charges) {
     int model_id = 0;
     if (model == "cosmo") {
       model_id = 1;
@@ -163,6 +172,9 @@ class Model {
   double shift() const { return ddx_get_shift(m_holder); }
   double solvent_kappa() const { return ddx_get_solvent_kappa(m_holder); }
 
+  array_f_t sphere_charges() const {
+    return m_charges;
+  }
   array_f_t sphere_centres() const {
     array_f_t result({3, n_spheres()});
     ddx_get_sphere_centres(m_holder, n_spheres(), result.mutable_data());
@@ -200,6 +212,7 @@ class Model {
  private:
   void* m_holder;
   std::string m_model;
+  array_f_t m_charges;
 };
 
 class State {
@@ -504,6 +517,7 @@ void export_pyddx_classes(py::module& m) {
   const char* init_docstring =
         "Setup solvation model in ddX.\n\n"
         "model:            'cosmo', 'pcm' or 'lpb'\n"
+        "sphere_charges:   (n_spheres) array, optional array for compatibility, not used internally.\n"
         "atomic_centers:   (n_spheres, 3) array\n"
         "sphere_radii:     (n_spheres) array\n"
         "solvent_epsilon:  Relative dielectric permittivity\n"
@@ -529,6 +543,15 @@ void export_pyddx_classes(py::module& m) {
 
   py::class_<Model, std::shared_ptr<Model>>(m, "Model",
                                             "Solvation model using ddX library.")
+        .def(py::init<std::string, array_f_t, array_f_t, array_f_t, double, double,
+                      double, double, int, int, int, int, int, bool, int, int, int,
+                      std::string>(),
+             init_docstring, "model"_a, "sphere_charges"_a, "sphere_centres"_a,
+             "sphere_radii"_a, "solvent_epsilon"_a, "solvent_kappa"_a = 0.0,
+             "eta"_a = 0.1, "shift"_a = -100, "lmax"_a = 9, "n_lebedev"_a = 302,
+             "incore"_a = false, "maxiter"_a = 100, "jacobi_n_diis"_a = 20,
+             "enable_fmm"_a = true, "fmm_multipole_lmax"_a = 9, "fmm_local_lmax"_a = 6,
+             "n_proc"_a = 1, "logfile"_a = "")
         .def(py::init<std::string, array_f_t, array_f_t, double, double,
                       double, double, int, int, int, int, int, bool, int, int, int,
                       std::string>(),
@@ -556,6 +579,7 @@ void export_pyddx_classes(py::module& m) {
         .def_property_readonly("eta", &Model::eta)
         .def_property_readonly("shift", &Model::shift)
         .def_property_readonly("solvent_kappa", &Model::solvent_kappa)
+        .def_property_readonly("sphere_charges", &Model::sphere_charges)
         .def_property_readonly("sphere_centres", &Model::sphere_centres)
         .def_property_readonly("sphere_radii", &Model::sphere_radii)
         .def_property_readonly("input_parameters", &Model::input_parameters)
