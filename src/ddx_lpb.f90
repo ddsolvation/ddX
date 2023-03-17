@@ -55,11 +55,9 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     if (workspace % error_flag .eq. 1) return
     call ddlpb_solve(params, constants, workspace, state, tol)
     if (workspace % error_flag .eq. 1) return
-    write(6,*) 'tol', tol
 
     ! Compute the solvation energy
     call ddlpb_energy(constants, state, esolv)
-    write(6,*) 'tol', tol
 
     ! Get forces if needed
     if(params % force .eq. 1) then
@@ -67,10 +65,9 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
         if (workspace % error_flag .eq. 1) return
         call ddlpb_solve_adjoint(params, constants, workspace, state, tol)
         if (workspace % error_flag .eq. 1) return
-        ! TODO: (if easy) remove hessianphi_cav, and remove gradphi_cav
-        ! this second one is easy.
+        ! TODO: (if easy) remove hessianphi_cav
         call ddlpb_solvation_force_terms(params, constants, workspace, &
-            & state, gradphi_cav, hessianphi_cav, force)
+            & state, hessianphi_cav, force)
         if (workspace % error_flag .eq. 1) return
     endif
 
@@ -119,6 +116,9 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
         & constants % icav_ja, workspace % tmp_cav, &
         & workspace % tmp_grid)
     state % g_lpb = - workspace % tmp_grid
+
+    ! store gradphi_cav for later use in the forces
+    state % gradphi_cav = gradphi_cav
 
     ! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
     call wghpot_f(params, constants, workspace, gradphi_cav, state % f_lpb)
@@ -291,18 +291,16 @@ end subroutine ddlpb_solve_adjoint
 !! @param[in] constants      : Precomputed constants
 !! @param[inout] workspace   : Preallocated workspaces
 !! @param[inout] state       : Solutions and relevant quantities
-!! @param[in] gradphi_cav    : Electric field at the grid points
 !! @param[in] hessianphi_cav : Electric field gradient at the grid points
 !! @param[out] force         : Geometrical contribution to the forces
 !!
 subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
-        & state, gradphi_cav, hessianphi_cav, force)
+        & state, hessianphi_cav, force)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
     real(dp), intent(in) :: hessianphi_cav(3, 3, constants % ncav)
     real(dp), intent(out) :: force(3, params % nsph)
 
@@ -414,8 +412,8 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     ! Computation of F0
     call contract_grad_f(params, constants, workspace, &
         & state % x_adj_lpb(:,:,1) + state % x_adj_lpb(:,:,2), &
-        & Xadj_r_sgrid + xadj_e_sgrid, gradphi_cav, normal_hessian_cav, &
-        & icav_gr, force, state)
+        & Xadj_r_sgrid + xadj_e_sgrid, state % gradphi_cav, &
+        & normal_hessian_cav, icav_gr, force, state)
     if (workspace % error_flag .eq. 1) return
 
     force = pt5*force

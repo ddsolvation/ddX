@@ -43,6 +43,9 @@ type ddx_state_type
     !> Electric potential at the cavity points. It is used to construct
     !! the RHS for the primal linear system. Dimension (ncav).
     real(dp), allocatable :: phi_cav(:)
+    !> Electric field at the cavity points. It is used in the ddLPB
+    !! forces.
+    real(dp), allocatable :: gradphi_cav(:, :)
     !> Potential at all the grid points. Dimension (ngrid, nsph).
     real(dp), allocatable :: phi_grid(:, :)
     !> Zeta intermediate for the forces. Dimension (ncav).
@@ -326,6 +329,12 @@ subroutine ddx_init_state(params, constants, state)
     if (istatus .ne. 0) then
         state % error_flag = 1
         state % error_message = "ddinit: `phi_cav` allocation failed"
+        return
+    end if
+    allocate(state % gradphi_cav(3, constants % ncav), stat=istatus)
+    if (istatus .ne. 0) then
+        state % error_flag = 1
+        state % error_message = "ddinit: `gradphi_cav` allocation failed"
         return
     end if
 
@@ -900,6 +909,14 @@ subroutine ddx_free_state(state)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "`phi_cav` deallocation failed!"
+            return
+        endif
+    end if
+    if (allocated(state % gradphi_cav)) then
+        deallocate(state % gradphi_cav, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`gradphi_cav` deallocation failed!"
             return
         endif
     end if
