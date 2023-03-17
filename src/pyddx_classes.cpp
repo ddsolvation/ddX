@@ -23,6 +23,8 @@ class Model {
       model_id = 1;
     } else if (model == "pcm") {
       model_id = 2;
+    } else if (model == "lpb") {
+      model_id = 3;
     } else {
       throw py::value_error("Invalid model string: " + model);
     }
@@ -225,11 +227,14 @@ class State {
           m_model(model),
           m_solved(false),
           m_solved_adjoint(false) {}
-  State(std::shared_ptr<Model> model, array_f_t psi, array_f_t phi) : State(model) {
-    update_problem(phi, psi);
-    fill_guess();
-    fill_guess_adjoint();
+  State(std::shared_ptr<Model> model, array_f_t psi, array_f_t phi,
+        py::object py_elec_potential)
+        : State(model) {
+    update_problem(phi, psi, py_elec_potential);
+    fill_guess(100.0);          // To ensure the state is consistent
+    fill_guess_adjoint(100.0);  // To ensure the state is consistent
   }
+
   ~State() {
     if (m_holder) ddx_deallocate_state(m_holder);
     m_holder = nullptr;
@@ -286,9 +291,9 @@ class State {
   }
 
   //
-  // Solving COSMO / PCM
+  // Solving COSMO / PCM / LPB
   //
-  void update_problem(array_f_t psi, array_f_t phi) {
+  void update_problem(array_f_t psi, array_f_t phi, py::object py_elec_potential) {
     if (psi.ndim() != 2 || psi.shape(0) != model()->n_basis() ||
         psi.shape(1) != model()->n_spheres()) {
       throw py::value_error("psi not of shape (n_basis, n_spheres) == (" +
@@ -306,6 +311,18 @@ class State {
     } else if (model()->model() == "pcm") {
       ddx_pcm_setup(model()->holder(), holder(), model()->n_cav(), model()->n_basis(),
                     model()->n_spheres(), psi.data(), phi.data());
+    } else if (model()->model() == "lpb") {
+      if (py_elec_potential.is_none()) {
+        throw py::value_error("For LPB elec_potential needs to be provided.");
+      }
+      array_f_t elec_potential = py_elec_potential.cast<array_f_t>();
+      if (elec_potential.ndim() != 2 || elec_potential.shape(0) != 3 ||
+          elec_potential.shape(1) != model()->n_cav()) {
+        throw py::value_error("elec_potential not of shape (3, n_cav) == (3, " +
+                              std::to_string(model()->n_cav()) + ").");
+      }
+      ddx_lpb_setup(model()->holder(), holder(), model()->n_cav(), model()->n_basis(),
+                    model()->n_spheres(), psi.data(), phi.data(), elec_potential.data());
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -314,11 +331,13 @@ class State {
     m_solved_adjoint = false;
   }
 
-  void fill_guess() {
+  void fill_guess(double tol) {
     if (model()->model() == "cosmo") {
       ddx_cosmo_guess(model()->holder(), holder());
     } else if (model()->model() == "pcm") {
       ddx_pcm_guess(model()->holder(), holder());
+    } else if (model()->model() == "lpb") {
+      ddx_lpb_guess(model()->holder(), holder(), tol);
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -326,11 +345,13 @@ class State {
     m_solved = false;
   }
 
-  void fill_guess_adjoint() {
+  void fill_guess_adjoint(double tol) {
     if (model()->model() == "cosmo") {
       ddx_cosmo_guess_adjoint(model()->holder(), holder());
     } else if (model()->model() == "pcm") {
       ddx_pcm_guess_adjoint(model()->holder(), holder());
+    } else if (model()->model() == "lpb") {
+      ddx_lpb_guess_adjoint(model()->holder(), holder(), tol);
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -338,12 +359,14 @@ class State {
     m_solved_adjoint = false;
   }
 
-  // Solve the forward COSMO / PCM System. The state is modified in-place.
+  // Solve the forward COSMO / PCM / LPB System. The state is modified in-place.
   void solve(double tol) {
     if (model()->model() == "cosmo") {
       ddx_cosmo_solve(model()->holder(), holder(), tol);
     } else if (model()->model() == "pcm") {
       ddx_pcm_solve(model()->holder(), holder(), tol);
+    } else if (model()->model() == "lpb") {
+      ddx_lpb_solve(model()->holder(), holder(), tol);
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -351,12 +374,14 @@ class State {
     m_solved = true;
   }
 
-  // Solve the adjoint COSMO / PCM System. The state is modified in-place.
+  // Solve the adjoint COSMO / PCM / LPB System. The state is modified in-place.
   void solve_adjoint(double tol) {
     if (model()->model() == "cosmo") {
       ddx_cosmo_solve_adjoint(model()->holder(), holder(), tol);
     } else if (model()->model() == "pcm") {
       ddx_pcm_solve_adjoint(model()->holder(), holder(), tol);
+    } else if (model()->model() == "lpb") {
+      ddx_lpb_solve_adjoint(model()->holder(), holder(), tol);
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -364,7 +389,24 @@ class State {
     m_solved_adjoint = true;
   }
 
-  // Obtain the COSMO / PCM forces. The state is modified in-place
+  // Obtain the COSMO / PCM / LPB energy
+  double energy() {
+    check_solved();
+    double ret = 0.0;
+    if (model()->model() == "cosmo") {
+      ret = ddx_cosmo_energy(model()->holder(), holder());
+    } else if (model()->model() == "pcm") {
+      ret = ddx_pcm_energy(model()->holder(), holder());
+    } else if (model()->model() == "lpb") {
+      ret = ddx_lpb_energy(model()->holder(), holder());
+    } else {
+      throw py::value_error("Model " + model()->model() + " not yet implemented.");
+    }
+    throw_if_error();
+    return ret;
+  }
+
+  // Obtain the COSMO / PCM / LPB forces. The state is modified in-place
   array_f_t solvation_force_terms() {
     check_solved_adjoint();
     array_f_t forces({3, model()->n_spheres()});
@@ -374,6 +416,9 @@ class State {
     } else if (model()->model() == "pcm") {
       ddx_pcm_solvation_force_terms(model()->holder(), holder(), model()->n_spheres(),
                                     forces.mutable_data());
+    } else if (model()->model() == "lpb") {
+      throw py::value_error(
+            "Forces not yet fully implemented for ddLPB on the python side.");
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -634,9 +679,10 @@ void export_pyddx_classes(py::module& m) {
 
   py::class_<State, std::shared_ptr<State>>(
         m, "State", "Computational state and results of ddX models")
-        .def(py::init<std::shared_ptr<Model>, array_f_t, array_f_t>(),
-             "Construct a state from the model and a phi and psi to set up the problem.",
-             "model"_a, "psi"_a, "phi"_a)
+        .def(py::init<std::shared_ptr<Model>, array_f_t, array_f_t, py::object>(),
+             "Construct a state from the model and a psi, psi and elec_potential to set "
+             "up the problem.",
+             "model"_a, "psi"_a, "phi"_a, "elec_potential"_a = py::none())
         .def_property_readonly("model", &State::model, "Model definition")
         .def_property_readonly("x", &State::x, "Solution of the forward problem.")
         .def_property_readonly(
@@ -654,19 +700,25 @@ void export_pyddx_classes(py::module& m) {
         //
         .def("update_problem", &State::update_problem,
              "Update the definition of of the forward and adjoint problem", "psi"_a,
-             "phi"_a)
+             "phi"_a, "elec_potential"_a = py::none())
         .def("fill_guess", &State::fill_guess,
              "In-place construct an initial guess for the adjoint solver. Don't call "
              "this if you want to use the previous solution stored in this state as a "
-             "guess")
+             "guess. tol is only used for LPB to setup the initial RHS.",
+             "tol"_a = 1e-8)
         .def("fill_guess_adjoint", &State::fill_guess_adjoint,
              "In-place construct an initial guess for the forward solver. Don't call "
              "this if you want to use the previous solution stored in this state as a "
-             "guess")
+             "guess. tol is only used for LPB to setup the initial RHS.",
+             "tol"_a = 1e-8)
         .def("solve", &State::solve, "Solve the forward problem contained in the state.",
              "tol"_a = 1e-8)
         .def("solve_adjoint", &State::solve_adjoint,
              "Solve the adjoint problem contained in the state.", "tol"_a = 1e-8)
+        .def("energy", &State::energy,
+             "Compute the solvation energy of the solution contained in the state. No "
+             "eventual scaling by a term (epsilon - 1) / epsilon is applied (e.g. for "
+             "COSMO).")
         .def("solvation_force_terms", &State::solvation_force_terms,
              "Compute and return the force terms of the solvation part of the solvation "
              "model.")

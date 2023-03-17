@@ -1,5 +1,6 @@
-import pyddx
 import numpy as np
+
+import pyddx
 
 
 def test_reference_pcm():
@@ -55,7 +56,6 @@ def test_reference_pcm():
     state.solve()
     state.solve_adjoint()
 
-    energy = 0.5 * np.sum(state.x * solute_psi)
     force = state.solvation_force_terms()
-    assert abs(energy - ref) < 5e-9
+    assert abs(state.energy() - ref) < 5e-9
     assert np.max(np.abs(force - ref_force)) < 1e-5
