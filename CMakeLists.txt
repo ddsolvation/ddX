@@ -19,8 +19,14 @@ endif()
 
 # Add flag in case of Intel compiler to avoid fast inaccurate math
 if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-    add_compile_options(-fp-model=precise)
-    message(STATUS "Extending Intel compiler flags by \"-fp-model=precise\"")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fp-model=precise")
+endif()
+
+option(WARNING_FLAGS "Enable a larger set of warning flags" ON)
+if (WARNING_FLAGS)
+    set(CMAKE_CXX_FLAGS     "${CMAKE_CXX_FLAGS}     -Wall -Wextra")
+    set(CMAKE_C_FLAGS       "${CMAKE_C_FLAGS}       -Wall -Wextra")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -Wall -Wextra -Wno-compare-reals")
 endif()
 
 # Requirements: Blas and Lapack
