@@ -7,6 +7,8 @@
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
+const double DEFAULT_TOLERANCE = 1e-8;
+
 namespace py = pybind11;
 using namespace pybind11::literals;
 using array_f_t = py::array_t<double, py::array::f_style | py::array::forcecast>;
@@ -28,8 +30,10 @@ class Model {
     } else {
       throw py::value_error("Invalid model string: " + model);
     }
-    if (model != "lpb" and solvent_kappa > 0.0) {
-      throw py::value_error("Non-zero solvent_kappa only allowed for LPB");
+    if (model == "lpb" and enable_fmm) {
+      // TODO Fix this and remove this check
+      throw py::value_error(
+            "FMM currently broken with LPB. Please disable (enable_fmm == false)");
     }
 
     // Check size of vdW and atomic data
@@ -91,6 +95,12 @@ class Model {
     if (solvent_epsilon <= 0) {
       throw py::value_error(
             "Dielectric permittivity 'solvent_epsilon' needs to be positive.");
+    }
+    if (model != "lpb" and solvent_kappa > 0.0) {
+      throw py::value_error("Non-zero solvent_kappa only allowed for LPB");
+    }
+    if (model == "lpb" and solvent_kappa <= 0.0) {
+      throw py::value_error("For LPB solvent_kappa needs to be positive.");
     }
     if (lmax < 0) {
       throw py::value_error("Maximal spherical harmonics degree 'lmax' needs to be >= 0");
@@ -226,13 +236,20 @@ class State {
         : m_holder(ddx_allocate_state(model->holder())),
           m_model(model),
           m_solved(false),
-          m_solved_adjoint(false) {}
+          m_solved_adjoint(false) {
+    throw_if_error();
+  }
   State(std::shared_ptr<Model> model, array_f_t psi, array_f_t phi,
         py::object py_elec_potential)
         : State(model) {
     update_problem(psi, phi, py_elec_potential);
-    fill_guess(100.0);          // To ensure the state is consistent
-    fill_guess_adjoint(100.0);  // To ensure the state is consistent
+    if (model->model() == "cosmo" || model->model() == "pcm") {
+      // For these methods setting up the guess costs basically nothing
+      // and we need no user information (in form of a tolerance), so
+      // we just do it here by default.
+      fill_guess(DEFAULT_TOLERANCE);          // Note: tolerance is dummy here
+      fill_guess_adjoint(DEFAULT_TOLERANCE);  // Note: tolerance is dummy here
+    }
   }
 
   ~State() {
@@ -602,14 +619,6 @@ void export_pyddx_classes(py::module& m) {
              "maxiter"_a = 100, "jacobi_n_diis"_a = 20, "enable_fmm"_a = true,
              "fmm_multipole_lmax"_a = 9, "fmm_local_lmax"_a = 6, "n_proc"_a = 1,
              "logfile"_a = "")
-        .def(py::init<std::string, array_f_t, array_f_t, double, double, double, double,
-                      int, int, int, int, int, bool, int, int, int, std::string>(),
-             init_docstring, "model"_a, "sphere_centres"_a, "sphere_radii"_a,
-             "solvent_epsilon"_a, "solvent_kappa"_a = 0.0, "eta"_a = 0.1,
-             "shift"_a = -100, "lmax"_a = 9, "n_lebedev"_a = 302, "incore"_a = false,
-             "maxiter"_a = 100, "jacobi_n_diis"_a = 20, "enable_fmm"_a = true,
-             "fmm_multipole_lmax"_a = 9, "fmm_local_lmax"_a = 6, "n_proc"_a = 1,
-             "logfile"_a = "")
         //
         .def_property_readonly("has_fmm_enabled", &Model::has_fmm_enabled)
         .def_property_readonly("has_force_enabled", &Model::has_force_enabled)
@@ -705,16 +714,17 @@ void export_pyddx_classes(py::module& m) {
              "In-place construct an initial guess for the adjoint solver. Don't call "
              "this if you want to use the previous solution stored in this state as a "
              "guess. tol is only used for LPB to setup the initial RHS.",
-             "tol"_a = 1e-8)
+             "tol"_a = DEFAULT_TOLERANCE)
         .def("fill_guess_adjoint", &State::fill_guess_adjoint,
              "In-place construct an initial guess for the forward solver. Don't call "
              "this if you want to use the previous solution stored in this state as a "
              "guess. tol is only used for LPB to setup the initial RHS.",
-             "tol"_a = 1e-8)
+             "tol"_a = DEFAULT_TOLERANCE)
         .def("solve", &State::solve, "Solve the forward problem contained in the state.",
-             "tol"_a = 1e-8)
+             "tol"_a = DEFAULT_TOLERANCE)
         .def("solve_adjoint", &State::solve_adjoint,
-             "Solve the adjoint problem contained in the state.", "tol"_a = 1e-8)
+             "Solve the adjoint problem contained in the state.",
+             "tol"_a = DEFAULT_TOLERANCE)
         .def("energy", &State::energy,
              "Compute the solvation energy of the solution contained in the state. No "
              "eventual scaling by a term (epsilon - 1) / epsilon is applied (e.g. for "
