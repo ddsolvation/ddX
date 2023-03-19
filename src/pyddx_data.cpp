@@ -334,9 +334,9 @@ void export_pyddx_data(py::module& m) {
         {"z-1,2-dichloroethene", 9.2},
   };
 
-  // Tabulated dynamic dielectric constants of solvents. Taken from
+  // Tabulated optical dielectric constants of solvents. Taken from
   // https://github.com/PCMSolver/pcmsolver/blob/bbd992d54ebeace528cf236dede1f0c56641defb/src/utils/Solvent.cpp
-  data.attr("solvent_epsilon_dynamic") = std::map<std::string, double>{
+  data.attr("solvent_epsilon_optical") = std::map<std::string, double>{
         {"1,4-dioxane", 2.023},          //
         {"acetone", 1.841},              //
         {"acetonitrile", 1.806},         //
