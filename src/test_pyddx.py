@@ -79,8 +79,7 @@ def test_reference_lpb():
     def assert_lpb(ref, solvent_epsilon=78.3553, solvent_kappa=0.104):
         model = pyddx.Model("lpb", centres, rvdw, solvent_epsilon=solvent_epsilon,
                             solvent_kappa=solvent_kappa, lmax=7, n_lebedev=590,
-                            fmm_multipole_lmax=20, fmm_local_lmax=20,
-                            enable_fmm=False)
+                            fmm_multipole_lmax=20, fmm_local_lmax=20)
 
         solute_multipoles = charges.reshape(1, -1) / np.sqrt(4 * np.pi)
         solute_field = model.multipole_electrostatics(solute_multipoles)

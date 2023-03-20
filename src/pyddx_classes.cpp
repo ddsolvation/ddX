@@ -30,10 +30,8 @@ class Model {
     } else {
       throw py::value_error("Invalid model string: " + model);
     }
-    if (model == "lpb" and enable_fmm) {
-      // TODO Fix this and remove this check
-      throw py::value_error(
-            "FMM currently broken with LPB. Please disable (enable_fmm == false)");
+    if (model == "lpb") {
+      enable_fmm = false;  // TODO Fix bug and remove this line.
     }
 
     // Check size of vdW and atomic data
