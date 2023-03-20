@@ -1,5 +1,6 @@
-import pyddx
 import numpy as np
+
+import pyddx
 
 tobohr = 1 / 0.52917721092
 
@@ -26,17 +27,28 @@ def rundd(model, solvent_epsilon=78.3553, solvent_kappa=0.104):
     tol = 1e-12
     state = pyddx.State(model, solute_psi, solute_field["phi"], solute_field["e"])
     state.fill_guess(tol)
+    state.fill_guess_adjoint(tol)
     state.solve(tol)
-    return state.energy()
+    state.solve_adjoint(tol)
+    return state
 
 
 def test_lpb_limits():
     # TODO Also test solution vectors ?
+    #      ... and adjoint solution vectors
+    #      ... and xi
 
-    e_pcm = rundd("pcm")
-    e_lpb0 = rundd("lpb", solvent_kappa=1e-6)
-    e_lpbinf = rundd("lpb", solvent_kappa=18)
-    e_cosmo = rundd("cosmo")
+    s_pcm = rundd("pcm")
+    s_lpb0 = rundd("lpb", solvent_kappa=1e-6)
+    s_lpbinf = rundd("lpb", solvent_kappa=18)
+    s_cosmo = rundd("cosmo")
 
-    assert abs(e_pcm - e_lpb0) < 1e-5
-    assert abs(e_cosmo - e_lpbinf) < 1e-5
+    assert abs(s_lpb0.energy() - s_pcm.energy()) < 1e-5
+    assert np.max(np.abs(s_lpb0.x - s_pcm.x)) < 5e-3
+    assert np.max(np.abs(s_lpb0.s - s_pcm.s)) < 5e-3
+    assert np.max(np.abs(s_lpb0.xi - s_pcm.xi)) < 5e-5
+
+    assert abs(s_lpbinf.energy() - s_cosmo.energy()) < 1e-5
+    assert np.max(np.abs(s_lpbinf.x - s_cosmo.x)) < 5e-3
+    assert np.max(np.abs(s_lpbinf.s - s_cosmo.s)) < 5e-3
+    # assert np.max(np.abs(s_lpbinf.xi - s_cosmo.xi)) < 5e-5  #XXX size error
