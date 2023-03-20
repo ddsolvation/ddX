@@ -86,9 +86,7 @@ def test_reference_lpb():
         solute_psi = model.multipole_psi(solute_multipoles)
 
         tol = 1e-8
-        # TODO Why is there a -1 between mkrhs and build_e ???
-        state = pyddx.State(model, solute_psi, solute_field["phi"],
-                            -solute_field["e"])
+        state = pyddx.State(model, solute_psi, solute_field["phi"], solute_field["e"])
         state.fill_guess(tol)
         state.solve(tol)
 

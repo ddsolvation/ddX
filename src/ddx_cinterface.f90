@@ -674,15 +674,15 @@ end
 !
 ! LPB
 !
-subroutine ddx_lpb_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav, e_cav) bind(C)
+subroutine ddx_lpb_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav, gradphi_cav) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state
     integer(c_int), intent(in), value :: ncav, nbasis, nsph
-    real(c_double), intent(in) :: phi_cav(ncav), psi(nbasis, nsph), e_cav(3, ncav)
+    real(c_double), intent(in) :: phi_cav(ncav), psi(nbasis, nsph), gradphi_cav(3, ncav)
     type(ddx_setup), pointer :: ddx
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddlpb_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, e_cav, psi)
+    call ddlpb_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, gradphi_cav, psi)
 end subroutine
 
 subroutine ddx_lpb_guess(c_ddx, c_state, tol) bind(C)

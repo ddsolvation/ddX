@@ -31,7 +31,7 @@ class Model {
       throw py::value_error("Invalid model string: " + model);
     }
     if (model == "lpb") {
-      enable_fmm = false;  // TODO Fix bug and remove this line.
+      enable_fmm = false;  // TODO Fix bug and disable
     }
 
     // Check size of vdW and atomic data
@@ -238,9 +238,9 @@ class State {
     throw_if_error();
   }
   State(std::shared_ptr<Model> model, array_f_t psi, array_f_t phi,
-        py::object py_elec_potential)
+        py::object py_elec_field)
         : State(model) {
-    update_problem(psi, phi, py_elec_potential);
+    update_problem(psi, phi, py_elec_field);
     if (model->model() == "cosmo" || model->model() == "pcm") {
       // For these methods setting up the guess costs basically nothing
       // and we need no user information (in form of a tolerance), so
@@ -308,7 +308,7 @@ class State {
   //
   // Solving COSMO / PCM / LPB
   //
-  void update_problem(array_f_t psi, array_f_t phi, py::object py_elec_potential) {
+  void update_problem(array_f_t psi, array_f_t phi, py::object py_elec_field) {
     if (psi.ndim() != 2 || psi.shape(0) != model()->n_basis() ||
         psi.shape(1) != model()->n_spheres()) {
       throw py::value_error("psi not of shape (n_basis, n_spheres) == (" +
@@ -327,17 +327,24 @@ class State {
       ddx_pcm_setup(model()->holder(), holder(), model()->n_cav(), model()->n_basis(),
                     model()->n_spheres(), psi.data(), phi.data());
     } else if (model()->model() == "lpb") {
-      if (py_elec_potential.is_none()) {
-        throw py::value_error("For LPB elec_potential needs to be provided.");
+      if (py_elec_field.is_none()) {
+        throw py::value_error("For LPB elec_field needs to be provided.");
       }
-      array_f_t elec_potential = py_elec_potential.cast<array_f_t>();
-      if (elec_potential.ndim() != 2 || elec_potential.shape(0) != 3 ||
-          elec_potential.shape(1) != model()->n_cav()) {
-        throw py::value_error("elec_potential not of shape (3, n_cav) == (3, " +
+      array_f_t elec_field = py_elec_field.cast<array_f_t>();
+      if (elec_field.ndim() != 2 || elec_field.shape(0) != 3 ||
+          elec_field.shape(1) != model()->n_cav()) {
+        throw py::value_error("elec_field not of shape (3, n_cav) == (3, " +
                               std::to_string(model()->n_cav()) + ").");
       }
+
+      // ddx_lpb_setup needs gradphi = -e_cav
+      array_f_t gradphi(std::vector<ssize_t>{{elec_field.shape(0), elec_field.shape(1)}});
+      for (ssize_t i = 0; i < elec_field.size(); ++i) {
+        gradphi.mutable_data()[i] = -elec_field.data()[i];
+      }
+
       ddx_lpb_setup(model()->holder(), holder(), model()->n_cav(), model()->n_basis(),
-                    model()->n_spheres(), psi.data(), phi.data(), elec_potential.data());
+                    model()->n_spheres(), psi.data(), phi.data(), gradphi.data());
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -687,9 +694,9 @@ void export_pyddx_classes(py::module& m) {
   py::class_<State, std::shared_ptr<State>>(
         m, "State", "Computational state and results of ddX models")
         .def(py::init<std::shared_ptr<Model>, array_f_t, array_f_t, py::object>(),
-             "Construct a state from the model and a psi, psi and elec_potential to set "
-             "up the problem.",
-             "model"_a, "psi"_a, "phi"_a, "elec_potential"_a = py::none())
+             "Construct a state from the model and a psi, psi and elec_field "
+             "(= negative gradient of phi) to set up the problem.",
+             "model"_a, "psi"_a, "phi"_a, "elec_field"_a = py::none())
         .def_property_readonly("model", &State::model, "Model definition")
         .def_property_readonly("x", &State::x, "Solution of the forward problem.")
         .def_property_readonly(
@@ -707,7 +714,7 @@ void export_pyddx_classes(py::module& m) {
         //
         .def("update_problem", &State::update_problem,
              "Update the definition of of the forward and adjoint problem", "psi"_a,
-             "phi"_a, "elec_potential"_a = py::none())
+             "phi"_a, "elec_field"_a = py::none())
         .def("fill_guess", &State::fill_guess,
              "In-place construct an initial guess for the adjoint solver. Don't call "
              "this if you want to use the previous solution stored in this state as a "
