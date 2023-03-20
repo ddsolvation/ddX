@@ -179,6 +179,7 @@ subroutine ddlpb_guess(params, constants, workspace, state, tol)
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
     call prec_tx(params, constants, workspace, state % rhs_lpb, state % x_lpb)
+    state % x_lpb = state % x_lpb / fourpi
 
 end subroutine ddlpb_guess
 
@@ -208,6 +209,7 @@ subroutine ddlpb_guess_adjoint(params, constants, workspace, state, tol)
     call prec_tstarx(params, constants, workspace, state % rhs_adj_lpb, &
         & state % x_adj_lpb)
 
+    state % x_adj_lpb = state % x_adj_lpb / fourpi
 end subroutine ddlpb_guess_adjoint
 
 !> Solve the ddLPB primal linear system
@@ -229,6 +231,7 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol)
     real(dp) :: start_time
 
     state % x_lpb_niter = params % maxiter
+    state % x_lpb = state % x_lpb * fourpi
 
     ! solve LS using Jacobi/DIIS
     start_time = omp_get_wtime()
@@ -268,6 +271,8 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
 
     state % x_adj_lpb_niter = params % maxiter
     constants % inner_tol = sqrt(tol)
+
+    state % x_adj_lpb = state % x_adj_lpb * fourpi
 
     ! solve adjoint LS using Jacobi/DIIS
     start_time = omp_get_wtime()
