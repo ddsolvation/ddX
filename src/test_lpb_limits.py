@@ -18,7 +18,7 @@ def rundd(model, solvent_epsilon=78.3553, solvent_kappa=0.104):
     if model != "lpb":
         solvent_kappa = 0.0
     model = pyddx.Model(model, centres, rvdw, solvent_epsilon=solvent_epsilon,
-                        solvent_kappa=solvent_kappa, lmax=10, n_lebedev=590)
+                        solvent_kappa=solvent_kappa, lmax=10, n_lebedev=590, shift=0.0)
 
     solute_multipoles = charges.reshape(1, -1) / np.sqrt(4 * np.pi)
     solute_field = model.multipole_electrostatics(solute_multipoles)
@@ -34,13 +34,10 @@ def rundd(model, solvent_epsilon=78.3553, solvent_kappa=0.104):
 
 
 def test_lpb_limits():
-    # TODO Also test solution vectors ?
-    #      ... and adjoint solution vectors
-    #      ... and xi
-
     s_pcm = rundd("pcm")
     s_lpb0 = rundd("lpb", solvent_kappa=1e-6)
     s_lpbinf = rundd("lpb", solvent_kappa=18)
+    s_lpb_einf = rundd("lpb", solvent_epsilon=1e8)
     s_cosmo = rundd("cosmo")
 
     assert abs(s_lpb0.energy() - s_pcm.energy()) < 1e-5
@@ -51,4 +48,9 @@ def test_lpb_limits():
     assert abs(s_lpbinf.energy() - s_cosmo.energy()) < 1e-5
     assert np.max(np.abs(s_lpbinf.x - s_cosmo.x)) < 5e-3
     assert np.max(np.abs(s_lpbinf.s - s_cosmo.s)) < 5e-3
-    # assert np.max(np.abs(s_lpbinf.xi - s_cosmo.xi)) < 5e-5  #XXX size error
+    assert np.max(np.abs(s_lpbinf.xi - s_cosmo.xi)) < 5e-5
+
+    assert abs(s_lpb_einf.energy() - s_cosmo.energy()) < 1e-5
+    assert np.max(np.abs(s_lpb_einf.x - s_cosmo.x)) < 5e-3
+    assert np.max(np.abs(s_lpb_einf.s - s_cosmo.s)) < 5e-3
+    assert np.max(np.abs(s_lpb_einf.xi - s_cosmo.xi)) < 5e-5

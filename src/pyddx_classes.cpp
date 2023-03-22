@@ -589,12 +589,13 @@ array_f_t multipole_psi(std::shared_ptr<Model> model, array_f_t multipoles) {
 
 void export_pyddx_classes(py::module& m) {
   const char* init_docstring =
-        "Setup solvation model in ddX.\n\n"
+        "Setup solvation model in ddX. Atomic units are used throughout.\n\n"
         "model:            'cosmo', 'pcm' or 'lpb'\n"
-        "atomic_centers:   (n_spheres, 3) array\n"
-        "sphere_radii:     (n_spheres) array\n"
+        "atomic_centers:   (n_spheres, 3) array (in Bohr)\n"
+        "sphere_radii:     (n_spheres) array (in Bohr)\n"
         "solvent_epsilon:  Relative dielectric permittivity\n"
-        "solvent_kappa:    Debye-Hückel parameter (inverse screening length)\n"
+        "solvent_kappa:    Debye-Hückel parameter (inverse screening length, in inverse "
+        "Bohr)\n"
         "eta:              Regularization parameter for the regularised characteristic "
         "function chi_eta. Range [0,1]\n"
         "shift:            Shift for the regularized characteristic function chi_eta, "
