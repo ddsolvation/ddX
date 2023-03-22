@@ -95,6 +95,11 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    integer :: i
+
+    do i = 1,10
+        write (*,*) gradphi_cav(:, i)
+    enddo
 
     state % psi = psi
     state % rhs_adj_lpb(:, :, 1) = psi
