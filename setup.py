@@ -119,7 +119,7 @@ setup(
     zip_safe=False,
     platforms=["Linux", "Mac OS-X"],
     python_requires=">=3.8",
-    install_requires=["numpy >= 1.14"],
-    tests_require=["pytest", "numpy"],
+    install_requires=["numpy >= 1.14", "scipy >= 1.8"],
+    tests_require=["pytest", "numpy", "scipy"],
     cmdclass={"build_ext": CMakeBuild, "pytest": PyTest, },
 )

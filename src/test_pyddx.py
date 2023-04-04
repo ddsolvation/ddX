@@ -96,3 +96,16 @@ def test_reference_lpb():
     assert_lpb(-1.0243211234919017E-003, solvent_epsilon=200.0)
     assert_lpb(-1.0233753433615445E-003, solvent_kappa=1 / 2)
     assert_lpb(-1.0162805489436332E-003, solvent_kappa=1 / 8)
+
+
+def test_kappa():
+    sodium_chloride = [(-1, 0.1), (+1, 0.1)]
+    res = pyddx.solvent_kappa(sodium_chloride, solvent_epsilon=78.54, temperature=298.15)
+    ref = 0.05499498832040873
+    assert abs(res - ref) < 1e-8
+
+    # CuSO4 0.3 mol/L
+    copper_sulfate = [(-2, 0.3), (+2, 0.3)]
+    res = pyddx.solvent_kappa(copper_sulfate, solvent_epsilon=78.54, temperature=298.15)
+    ref = 0.1905082278652098
+    assert abs(res - ref) < 1e-8
