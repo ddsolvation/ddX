@@ -845,6 +845,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     y = y * tobohr
     z = z * tobohr
     rvdw = rvdw * tobohr
+    kappa = kappa / tobohr
 
     ! adjust ngrid
     call closest_supported_lebedev_grid(ngrid)
