@@ -93,3 +93,4 @@ ddx_add_test("matrix_derivatives.f90" "${CMAKE_CURRENT_SOURCE_DIR}/data/ddlpb_fo
 ddx_add_test("matrix_adjoint.f90" "${CMAKE_CURRENT_SOURCE_DIR}/data/ddlpb_force.txt")
 ddx_add_test("matrix_solvers.f90" "${CMAKE_CURRENT_SOURCE_DIR}/data/ddlpb_force.txt")
 ddx_add_test("m2l.f90")
+ddx_add_test("multipolar_solutes.f90")
