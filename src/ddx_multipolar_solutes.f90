@@ -45,10 +45,8 @@ subroutine build_g(params, constants, workspace, multipoles, &
             & phi_cav, constants % ccav, constants % ncav, e_cav, g_cav, &
             & workspace % error_flag, workspace % error_message)
     else if (params % fmm .eq. 1) then
-        ! TODO: implement this with FMMs
-        call build_g_dense(multipoles, params % csph, mmax, params % nsph, &
-            & phi_cav, constants % ccav, constants % ncav, e_cav, g_cav, &
-            & workspace % error_flag, workspace % error_message)
+        call build_g_fmm(params, constants, workspace, multipoles, &
+            & mmax, phi_cav, e_cav, g_cav)
     end if
 end subroutine build_g
 
@@ -474,7 +472,7 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
         end do
     end do
 
-    deallocate(grid_grad, stat=info)
+    deallocate(tmp_m_grad, grid_grad, stat=info)
     if (info .ne. 0) then
         workspace % error_message = "Deallocation failed in build_e_fmm!"
         workspace % error_flag = 1
@@ -482,6 +480,246 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
     end if
 
 end subroutine build_e_fmm
+
+!> Given a multipolar distribution, compute the potential, the field
+!> and the field gradient at the target points using FMMs.
+!! @param[in] params: ddx parameters
+!! @param[in]  constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2,nsph)
+!! @param[in] mmax: maximum angular momentum of the multipoles
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[out] e_cav: electric field at the target points,
+!!     size(3, ncav)
+!! @param[out] g_cav: electric field gradient at the target points,
+!!     size(3, 3, ncav)
+!!
+subroutine build_g_fmm(params, constants, workspace, multipoles, &
+        & mmax, phi_cav, e_cav, g_cav)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: mmax
+    real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(out) :: phi_cav(constants % ncav), &
+        & e_cav(3, constants % ncav), g_cav(3, 3, constants % ncav)
+    ! local variables
+    integer :: info, isph, igrid, inode, jnode, jsph, jnear, icav
+    real(dp) :: ex, ey, ez, c(3), gxx, gxy, gxz, gyy, gyz, gzz
+    real(dp), allocatable :: m_grad(:, :, :), grid_grad(:, :, :), &
+        & m_hess_x(:, :, :), m_hess_y(:, :, :), m_hess_z(:, :, :), &
+        & m_grad_component(:, :), grid_hess_x(:, :, :), &
+        & grid_hess_y(:, :, :), grid_hess_z(:, :, :), grid_hessian2(:, :, :)
+
+    allocate(m_hess_x((mmax+3)**2, 3, params % nsph), &
+        & m_hess_y((mmax+3)**2, 3, params % nsph), &
+        & m_hess_z((mmax+3)**2, 3, params % nsph), &
+        & m_grad_component((mmax+2)**2, params % nsph), &
+        & m_grad((mmax + 2)**2, 3, params % nsph), &
+        & grid_grad(params % ngrid, 3, params % nsph), &
+        & grid_hess_x(params % ngrid, 3, params % nsph), &
+        & grid_hess_y(params % ngrid, 3, params % nsph), &
+        & grid_hess_z(params % ngrid, 3, params % nsph), &
+        & grid_hessian2(params % ngrid, 3, params % nsph), &
+        & stat=info)
+    if (info .ne. 0) then
+        workspace % error_message = "Allocation failed in build_g_fmm!"
+        workspace % error_flag = 1
+        return
+    end if
+
+    ! compute the gradient of the m2m trasformation
+    call grad_m2m(multipoles, mmax, params % nsph, m_grad, &
+        & workspace % error_flag, workspace % error_message)
+
+    ! starting from the previously computed gradient, compute the
+    ! hessian of the target multipoles
+    m_grad_component = m_grad(:, 1, :)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_x, &
+        & workspace % error_flag, workspace % error_message)
+    m_grad_component = m_grad(:, 2, :)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_y, &
+        & workspace % error_flag, workspace % error_message)
+    m_grad_component = m_grad(:, 3, :)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_z, &
+        & workspace % error_flag, workspace % error_message)
+
+    ! copy the multipoles to the right places
+    call load_m(params, constants, workspace, multipoles, mmax)
+
+    ! perform the m2m, m2l and l2l steps
+    call do_fmm(params, constants, workspace)
+
+    ! near field potential (m2p)
+    call tree_m2p(params, constants, params % lmax, one, &
+        & workspace % tmp_sph, one, workspace % tmp_grid)
+
+    ! far field potential, each sphere at its own points (l2p)
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+        & constants % nbasis, one, constants % vgrid2, &
+        & constants % vgrid_nbasis, workspace % tmp_sph, &
+        & constants % nbasis, one, workspace % tmp_grid, &
+        & params % ngrid)
+
+    ! near field gradients
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if(constants % ui(igrid, isph) .eq. zero) cycle
+            inode = constants % snode(isph)
+            ex = zero
+            ey = zero
+            ez = zero
+            do jnear = constants % snear(inode), constants % snear(inode+1) - 1
+                jnode = constants % near(jnear)
+                jsph = constants % order(constants % cluster(1, jnode))
+                c = params % csph(:, isph) + constants % cgrid(:, igrid) &
+                    & *params % rsph(isph) - params % csph(:, jsph)
+                call fmm_m2p(c, one, mmax + 1, constants % vscales_rel, &
+                    & one, m_grad(:, 1, jsph), one, ex)
+                call fmm_m2p(c, one, mmax + 1, constants % vscales_rel, &
+                    & one, m_grad(:, 2, jsph), one, ey)
+                call fmm_m2p(c, one, mmax + 1, constants % vscales_rel, &
+                    & one, m_grad(:, 3, jsph), one, ez)
+            end do
+            grid_grad(igrid, 1, isph) = ex
+            grid_grad(igrid, 2, isph) = ey
+            grid_grad(igrid, 3, isph) = ez
+        end do
+    end do
+
+    ! near field hessians
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if(constants % ui(igrid, isph) .eq. zero) cycle
+            inode = constants % snode(isph)
+            gxx = zero
+            gxy = zero
+            gxz = zero
+            gyy = zero
+            gyz = zero
+            gzz = zero
+            do jnear = constants % snear(inode), constants % snear(inode+1) - 1
+                jnode = constants % near(jnear)
+                jsph = constants % order(constants % cluster(1, jnode))
+                c = params % csph(:, isph) + constants % cgrid(:, igrid) &
+                    & *params % rsph(isph) - params % csph(:, jsph)
+                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+                    & one, m_hess_x(:, 1, jsph), one, gxx)
+                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+                    & one, m_hess_x(:, 2, jsph), one, gxy)
+                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+                    & one, m_hess_x(:, 3, jsph), one, gxz)
+                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+                    & one, m_hess_y(:, 2, jsph), one, gyy)
+                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+                    & one, m_hess_y(:, 3, jsph), one, gyz)
+                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+                    & one, m_hess_z(:, 3, jsph), one, gzz)
+            end do
+            grid_hess_x(igrid, 1, isph) = gxx
+            grid_hess_x(igrid, 2, isph) = gxy
+            grid_hess_x(igrid, 3, isph) = gxz
+            grid_hess_y(igrid, 1, isph) = gxy
+            grid_hess_y(igrid, 2, isph) = gyy
+            grid_hess_y(igrid, 3, isph) = gyz
+            grid_hess_z(igrid, 1, isph) = gxz
+            grid_hess_z(igrid, 2, isph) = gyz
+            grid_hess_z(igrid, 3, isph) = gzz
+        end do
+    end do
+
+    ! far-field FMM gradients (only if pl > 0)
+    if (params % pl .gt. 0) then
+        call tree_grad_l2l(params, constants, workspace % tmp_node_l, &
+            & workspace % tmp_sph_l_grad, workspace % tmp_sph_l)
+        call dgemm('T', 'N', params % ngrid, 3*params % nsph, &
+            & (params % pl)**2, one, constants % vgrid2, &
+            & constants % vgrid_nbasis, workspace % tmp_sph_l_grad, &
+            & (params % pl+1)**2, one, grid_grad, params % ngrid)
+        call tree_grad_l2l(params, constants, workspace % tmp_node_l, &
+            & workspace % tmp_sph_l_grad, workspace % tmp_sph_l)
+    end if
+
+    ! Far field FMM hessians
+    if (params % pl .gt. 1) then
+        ! Load previously computed gradient into leaves, since
+        ! tree_grad_l2l currently takes local expansions of entire
+        ! tree. In future it might be changed.
+        do isph = 1, params % nsph
+            inode = constants % snode(isph)
+            workspace % tmp_node_l(:, inode) = &
+                & workspace % tmp_sph_l_grad(:, 1, isph)
+        end do
+        ! Get gradient of a gradient of L2L. Currently this uses input
+        ! pl maximal degree of local harmonics but in reality we need
+        ! only pl-1 maximal degree since coefficients of harmonics of a
+        ! degree pl are zeros.
+        call tree_grad_l2l(params, constants, workspace % tmp_node_l, &
+            & workspace % tmp_sph_l_grad2, workspace % tmp_sph_l)
+        ! Apply L2P for every axis
+        call dgemm('T', 'N', params % ngrid, 3*params % nsph, &
+            & (params % pl-1)**2, one, constants % vgrid2, &
+            & constants % vgrid_nbasis, workspace % tmp_sph_l_grad2, &
+            & (params % pl+1)**2, zero, grid_hessian2, params % ngrid)
+        ! Properly copy hessian
+        grid_hess_x = grid_hess_x + grid_hessian2
+
+        ! same for y
+        do isph = 1, params % nsph
+            inode = constants % snode(isph)
+            workspace % tmp_node_l(:, inode) = &
+                & workspace % tmp_sph_l_grad(:, 2, isph)
+        end do
+        call tree_grad_l2l(params, constants, workspace % tmp_node_l, &
+            & workspace % tmp_sph_l_grad2, workspace % tmp_sph_l)
+        call dgemm('T', 'N', params % ngrid, 3*params % nsph, &
+            & (params % pl-1)**2, one, constants % vgrid2, &
+            & constants % vgrid_nbasis, workspace % tmp_sph_l_grad2, &
+            & (params % pl+1)**2, zero, grid_hessian2, params % ngrid)
+        grid_hess_y = grid_hess_y + grid_hessian2
+
+        ! same for z
+        do isph = 1, params % nsph
+            inode = constants % snode(isph)
+            workspace % tmp_node_l(:, inode) = &
+                & workspace % tmp_sph_l_grad(:, 3, isph)
+        end do
+        call tree_grad_l2l(params, constants, workspace % tmp_node_l, &
+            & workspace % tmp_sph_l_grad2, workspace % tmp_sph_l)
+        call dgemm('T', 'N', params % ngrid, 3*params % nsph, &
+            & (params % pl-1)**2, one, constants % vgrid2, &
+            & constants % vgrid_nbasis, workspace % tmp_sph_l_grad2, &
+            & (params % pl+1)**2, zero, grid_hessian2, params % ngrid)
+        grid_hess_z = grid_hess_z + grid_hessian2
+
+    end if
+
+    ! discard the internal points
+    icav = 0
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if(constants % ui(igrid, isph) .eq. zero) cycle
+            icav = icav + 1
+            phi_cav(icav) = workspace % tmp_grid(igrid, isph)
+            e_cav(:, icav) = grid_grad(igrid, :, isph)
+            g_cav(1, :, icav) = grid_hess_x(igrid, :, isph)
+            g_cav(2, :, icav) = grid_hess_y(igrid, :, isph)
+            g_cav(3, :, icav) = grid_hess_z(igrid, :, isph)
+        end do
+    end do
+
+    deallocate(m_hess_x, m_hess_y, m_hess_z, m_grad_component, m_grad, &
+        & grid_grad, grid_hess_x, grid_hess_y, grid_hess_z, grid_hessian2, &
+        & stat=info)
+    if (info .ne. 0) then
+        workspace % error_message = "Deallocation failed in build_g_fmm!"
+        workspace % error_flag = 1
+        return
+    end if
+
+end subroutine build_g_fmm
 
 !> Given a multipolar distribution, compute the potential at the target points
 !> using FMMs.
