@@ -35,7 +35,7 @@ solute_field = model.multipole_electrostatics(solute_multipoles)
 solute_psi = model.multipole_psi(solute_multipoles)
 
 # Solve the problem
-state = pyddx.State(model, solute_field["phi"], solute_psi)
+state = pyddx.State(model, solute_psi, solute_field["phi"])
 state.fill_guess()
 state.solve()
 state.fill_guess_adjoint()

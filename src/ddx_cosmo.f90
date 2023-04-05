@@ -39,6 +39,7 @@ contains
 !!
 subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
         & psi, tol, esolv, force)
+    implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -46,14 +47,12 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: phi_cav(constants % ncav), &
         & psi(constants % nbasis, params % nsph), tol
     real(dp), intent(out) :: esolv, force(3, params % nsph)
-    real(dp), external :: ddot
 
     call ddcosmo_setup(params, constants, workspace, state, phi_cav, psi)
     call ddcosmo_guess(params, constants, workspace, state)
     call ddcosmo_solve(params, constants, workspace, state, tol)
 
-    ! Solvation energy is computed
-    esolv = pt5*ddot(constants % n, state % xs, 1, psi, 1)
+    call ddcosmo_energy(constants, state, esolv)
 
     ! Get forces if needed
     if (params % force .eq. 1) then
@@ -67,6 +66,22 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
             & state, force)
     end if
 end subroutine ddcosmo
+
+!> Compute the ddCOSMO energy
+!!
+!> @ingroup Fortran_interface_ddcosmo
+!! @param[in] constants: Precomputed constants
+!! @param[in] state: ddx state (contains solutions and RHSs)
+!! @param[out] esolv: resulting energy
+!!
+subroutine ddcosmo_energy(constants, state, esolv)
+    implicit none
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(in) :: state
+    real(dp), intent(out) :: esolv
+    real(dp), external :: ddot
+    esolv = pt5*ddot(constants % n, state % xs, 1, state % psi, 1)
+end subroutine ddcosmo_energy
 
 !> Given the potential at the cavity points, assemble the RHS for ddCOSMO
 !> or for ddPCM.

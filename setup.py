@@ -104,7 +104,7 @@ setup(
     description="ddx continuum solvation library",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
-    version="0.2.0",
+    version="0.3.0",
     #
     author="ddx developers",
     author_email="best@ians.uni-stuttgart.de",
@@ -119,7 +119,7 @@ setup(
     zip_safe=False,
     platforms=["Linux", "Mac OS-X"],
     python_requires=">=3.8",
-    install_requires=["numpy >= 1.14"],
-    tests_require=["pytest", "numpy"],
+    install_requires=["numpy >= 1.14", "scipy >= 1.8"],
+    tests_require=["pytest", "numpy", "scipy"],
     cmdclass={"build_ext": CMakeBuild, "pytest": PyTest, },
 )

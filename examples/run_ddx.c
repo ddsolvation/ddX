@@ -59,7 +59,6 @@ int main() {
   int fmm_multipole_lmax = 7;
   int fmm_local_lmax     = 6;
   int n_proc             = 1;
-  int info               = 0;
   int length_logfile     = 0;
   char logfile[1]        = {'\0'};
 
@@ -117,7 +116,7 @@ int main() {
   }
 
   double tol = 1e-9;
-  ddx_pcm_setup(model, state, ncav, nbasis, nsph, phi_cav, psi);
+  ddx_pcm_setup(model, state, ncav, nbasis, nsph, psi, phi_cav);
   ddx_pcm_guess(model, state);
   ddx_pcm_solve(model, state, tol);
   if (ddx_get_error_flag(model) != 0) {
@@ -137,12 +136,7 @@ int main() {
   //
   // Compute energy and forces
   //
-  double* solution_x = (double*)malloc(sizeof(double) * nsph * nbasis);
-  ddx_get_x(state, nbasis, nsph, solution_x);
-  double energy = 0.0;
-  for (int i = 0; i < nsph * nbasis; ++i) {
-    energy += 0.5 * solution_x[i] * psi[i];
-  }
+  double energy = ddx_pcm_energy(model, state);
 
   double* forces = (double*)malloc(sizeof(double) * 3 * nsph);
   ddx_pcm_solvation_force_terms(model, state, nsph, forces);
@@ -163,7 +157,6 @@ int main() {
 
   // Finish up
   free(forces);
-  free(solution_x);
   ddx_deallocate_state(state);
   free(psi);
   free(solute_multipoles);
