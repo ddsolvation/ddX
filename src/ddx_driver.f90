@@ -187,8 +187,32 @@ if (ddx_data % params % force .eq. 1) then
     end if
 end if
 start_time = omp_get_wtime()
-call ddsolve(ddx_data, state, phi_cav, -e_cav, g_cav, psi, &
-    & tol, esolv, force)
+if (ddx_data % params % model .eq. 1) then
+    if (ddx_data % params % force .eq. 1) then
+        call ddcosmo(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, state, phi_cav, psi, tol, esolv, force)
+    else
+        call ddcosmo(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, state, phi_cav, psi, tol, esolv)
+    end if
+else if (ddx_data % params % model .eq. 2) then
+    if (ddx_data % params % force .eq. 1) then
+        call ddpcm(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, state, phi_cav, psi, tol, esolv, force)
+    else
+        call ddpcm(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, state, phi_cav, psi, tol, esolv)
+    end if
+else if (ddx_data % params % model .eq. 3) then
+    if (ddx_data % params % force .eq. 1) then
+        call ddlpb(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, state, phi_cav, -e_cav, psi, &
+            & tol, esolv, g_cav, force)
+    else
+        call ddlpb(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, state, phi_cav, -e_cav, psi, tol, esolv)
+    end if
+end if
 finish_time = omp_get_wtime()
 write(*, 100) "ddx_driver time:", finish_time - start_time, &
     & " seconds"

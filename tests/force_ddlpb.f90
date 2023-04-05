@@ -60,7 +60,7 @@ call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
     & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
 
 call ddlpb(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
-    & state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)
+    & state, phi_cav, gradphi_cav, psi, tol, esolv, hessianphi_cav, force)
 
 ! add the solute specific contributions to the forces
 call grad_phi_for_charges(ddx_data % params, &
