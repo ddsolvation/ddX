@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.2.0</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.3.0</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -108,6 +108,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a160af68bec958a00f1c20bf28fbacb7e"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a160af68bec958a00f1c20bf28fbacb7e">phi_cav</a></td></tr>
 <tr class="memdesc:a160af68bec958a00f1c20bf28fbacb7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Electric potential at the cavity points. It is used to construct the RHS for the primal linear system. Dimension (ncav).  <a href="structddx__core_1_1ddx__state__type.html#a160af68bec958a00f1c20bf28fbacb7e">More...</a><br /></td></tr>
 <tr class="separator:a160af68bec958a00f1c20bf28fbacb7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9dd8508c33c2249e719c18024c84d5ac"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a9dd8508c33c2249e719c18024c84d5ac">gradphi_cav</a></td></tr>
+<tr class="memdesc:a9dd8508c33c2249e719c18024c84d5ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Electric field at the cavity points. It is used in the ddLPB forces.  <a href="structddx__core_1_1ddx__state__type.html#a9dd8508c33c2249e719c18024c84d5ac">More...</a><br /></td></tr>
+<tr class="separator:a9dd8508c33c2249e719c18024c84d5ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a903ec491e30ffa2a5a4012bac9641900"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a903ec491e30ffa2a5a4012bac9641900">phi_grid</a></td></tr>
 <tr class="memdesc:a903ec491e30ffa2a5a4012bac9641900"><td class="mdescLeft">&#160;</td><td class="mdescRight">Potential at all the grid points. Dimension (ngrid, nsph).  <a href="structddx__core_1_1ddx__state__type.html#a903ec491e30ffa2a5a4012bac9641900">More...</a><br /></td></tr>
 <tr class="separator:a903ec491e30ffa2a5a4012bac9641900"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -273,6 +276,24 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a9dd8508c33c2249e719c18024c84d5ac" name="a9dd8508c33c2249e719c18024c84d5ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9dd8508c33c2249e719c18024c84d5ac">&#9670;&nbsp;</a></span>gradphi_cav</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::gradphi_cav</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Electric field at the cavity points. It is used in the ddLPB forces. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00048">48</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
 <a id="a903ec491e30ffa2a5a4012bac9641900" name="a903ec491e30ffa2a5a4012bac9641900"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a903ec491e30ffa2a5a4012bac9641900">&#9670;&nbsp;</a></span>phi_grid</h2>
 
@@ -287,7 +308,7 @@ Public Attributes</h2></td></tr>
 
 <p>Potential at all the grid points. Dimension (ngrid, nsph). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00047">47</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00050">50</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -305,7 +326,7 @@ Public Attributes</h2></td></tr>
 
 <p>Zeta intermediate for the forces. Dimension (ncav). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00049">49</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00052">52</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -323,7 +344,7 @@ Public Attributes</h2></td></tr>
 
 <p>Error flag, nonzero in case of an error. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00051">51</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00054">54</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -341,7 +362,7 @@ Public Attributes</h2></td></tr>
 
 <p>Last error message. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00053">53</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00056">56</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -359,7 +380,7 @@ Public Attributes</h2></td></tr>
 
 <p>Time to compute the solvation force terms. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00055">55</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00058">58</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -377,7 +398,7 @@ Public Attributes</h2></td></tr>
 
 <p>Variable \( \Phi \) of a dimension (nbasis, nsph). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00062">62</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00065">65</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -395,7 +416,7 @@ Public Attributes</h2></td></tr>
 
 <p>Solution of the ddCOSMO system of a dimension (nbasis, nsph). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00065">65</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00068">68</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -413,7 +434,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of iterations to solve the primal ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00068">68</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00071">71</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -431,7 +452,7 @@ Public Attributes</h2></td></tr>
 
 <p>Relative error of the iterative solver at each iteration of the primal ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00072">72</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00075">75</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -449,7 +470,7 @@ Public Attributes</h2></td></tr>
 
 <p>Time to solve the primal ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00075">75</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00078">78</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -467,7 +488,7 @@ Public Attributes</h2></td></tr>
 
 <p>Values of s at grid points. Dimension is (ngrid, nsph). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00078">78</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00081">81</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -485,7 +506,7 @@ Public Attributes</h2></td></tr>
 
 <p>Solution of the adjoint ddCOSMO linear system, dimension (nbasis, nsph). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00081">81</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00084">84</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -503,7 +524,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of iterations required to solve the adjoint ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00084">84</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00087">87</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -521,7 +542,7 @@ Public Attributes</h2></td></tr>
 
 <p>Relative error of the iterative solver at each iteration of the adjoint ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00088">88</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00091">91</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -539,7 +560,7 @@ Public Attributes</h2></td></tr>
 
 <p>Time to solve the adjoint ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00091">91</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00094">94</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -557,7 +578,7 @@ Public Attributes</h2></td></tr>
 
 <p>Variable \( \Phi_\infty \) of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00098">98</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00101">101</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -575,7 +596,7 @@ Public Attributes</h2></td></tr>
 
 <p>Variable \( \Phi_\varepsilon \) of a dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00101">101</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00104">104</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -593,7 +614,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of iterations to solve the primal ddPCM linear system system. Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00104">104</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00107">107</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -611,7 +632,7 @@ Public Attributes</h2></td></tr>
 
 <p>Relative error of the iterative solver at each iteration of the primal ddPCM linear system, dimension (maxiter). Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00108">108</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00111">111</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -629,7 +650,7 @@ Public Attributes</h2></td></tr>
 
 <p>Time to solve the primal ddPCM linear system. Used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00111">111</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00114">114</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -647,7 +668,7 @@ Public Attributes</h2></td></tr>
 
 <p>Shortcut of \( \Phi_\varepsilon - \Phi \) for the computation of the ddPCM forces. Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00115">115</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00118">118</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -665,7 +686,7 @@ Public Attributes</h2></td></tr>
 
 <p>Solution of the adjoint ddPCM linear system, dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00118">118</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00121">121</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -683,7 +704,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of iteration to solve the adjoint ddPCM linear system. Used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00121">121</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00124">124</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -701,7 +722,7 @@ Public Attributes</h2></td></tr>
 
 <p>Relative error of the iterative solver at each iteration of the adjoint ddPCM linear system. Allocated and used only by the PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00124">124</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00127">127</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -719,7 +740,7 @@ Public Attributes</h2></td></tr>
 
 <p>Time to solve adjoint ddPCM system. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00126">126</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00129">129</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -737,7 +758,7 @@ Public Attributes</h2></td></tr>
 
 <p>Solution of the adjoint ddPCM linear system, dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00129">129</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00132">132</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -755,7 +776,7 @@ Public Attributes</h2></td></tr>
 
 <p>Effective total adjoint solution of the ddPCM model, defined as \( Q := S - \frac{4\pi}{\varepsilon-1}Y \). Dimension (nbasis, nsph). Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00133">133</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00136">136</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -773,7 +794,7 @@ Public Attributes</h2></td></tr>
 
 <p>Values of Q at grid points. Dimension (ngrid, nsph). Allocated and used only by PCM (model=2) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00136">136</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00139">139</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -791,7 +812,7 @@ Public Attributes</h2></td></tr>
 
 <p>ddLPB RHS. Dimension (nbasis, nsph, 2). Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00143">143</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00146">146</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -809,7 +830,7 @@ Public Attributes</h2></td></tr>
 
 <p>ddLPB adjoint RHS. Dimension (nbasis, nsph, 2). Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00146">146</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00149">149</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -827,7 +848,7 @@ Public Attributes</h2></td></tr>
 
 <p>Solution to the ddLPB linear system. Dimension (nbasis, nsph, 2). Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00149">149</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00152">152</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -845,7 +866,7 @@ Public Attributes</h2></td></tr>
 
 <p>Solution to the ddLPB adjoint linear system. Dimension (nbasis, nsph, 2). Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00153">153</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00156">156</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -863,7 +884,7 @@ Public Attributes</h2></td></tr>
 
 <p>g RHS for ddLPB. Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00156">156</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00159">159</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -881,7 +902,7 @@ Public Attributes</h2></td></tr>
 
 <p>f RHS for ddLPB. Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00159">159</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00162">162</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -899,7 +920,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of iterations required to solve the primal ddLPB linear system. Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00162">162</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00165">165</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -917,7 +938,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of iterations required to solve the adjoint ddLPB linear ststem. Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00165">165</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00168">168</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -935,7 +956,7 @@ Public Attributes</h2></td></tr>
 
 <p>Time required to solve the primal ddLPB linear system. Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00168">168</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00171">171</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -953,7 +974,7 @@ Public Attributes</h2></td></tr>
 
 <p>Time required to solve the adjoint ddLPB linear system. Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00171">171</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00174">174</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -971,7 +992,7 @@ Public Attributes</h2></td></tr>
 
 <p>Relative error of the iterative solver at each iteration of the primal ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00175">175</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00178">178</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -989,7 +1010,7 @@ Public Attributes</h2></td></tr>
 
 <p>Relative error of the iterative solver at each iteration of the adjoint ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00179">179</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00182">182</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1007,7 +1028,7 @@ Public Attributes</h2></td></tr>
 
 <p>Zeta dipoles intermediate for the forces. Dimension (3, ncav). Allocated and used only by the LPB (model=3) model. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00182">182</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00185">185</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>

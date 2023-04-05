@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.2.0</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.3.0</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -104,6 +104,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:gaac7e2eb04f8acc0b10a8aa7096d735e0"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#gaac7e2eb04f8acc0b10a8aa7096d735e0">ddx_pcm::ddpcm</a> (params, constants, workspace, state, phi_cav, psi, tol, esolv, force)</td></tr>
 <tr class="memdesc:gaac7e2eb04f8acc0b10a8aa7096d735e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddPCM solver  <a href="group___fortran__interface__ddpcm.html#gaac7e2eb04f8acc0b10a8aa7096d735e0">More...</a><br /></td></tr>
 <tr class="separator:gaac7e2eb04f8acc0b10a8aa7096d735e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa230a041e3ec99afe8e77a034aa1e209"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#gaa230a041e3ec99afe8e77a034aa1e209">ddx_pcm::ddpcm_energy</a> (constants, state, esolv)</td></tr>
+<tr class="memdesc:gaa230a041e3ec99afe8e77a034aa1e209"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the ddPCM energy.  <a href="group___fortran__interface__ddpcm.html#gaa230a041e3ec99afe8e77a034aa1e209">More...</a><br /></td></tr>
+<tr class="separator:gaa230a041e3ec99afe8e77a034aa1e209"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga372f8ee7283b914b8e18cdb3fe191961"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga372f8ee7283b914b8e18cdb3fe191961">ddx_pcm::ddpcm_setup</a> (params, constants, workspace, state, phi_cav, psi)</td></tr>
 <tr class="memdesc:ga372f8ee7283b914b8e18cdb3fe191961"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given the potential at the cavity points, assemble the RHS for ddCOSMO or for ddPCM.  <a href="group___fortran__interface__ddpcm.html#ga372f8ee7283b914b8e18cdb3fe191961">More...</a><br /></td></tr>
 <tr class="separator:ga372f8ee7283b914b8e18cdb3fe191961"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -215,6 +218,52 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
+<a id="gaa230a041e3ec99afe8e77a034aa1e209" name="gaa230a041e3ec99afe8e77a034aa1e209"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa230a041e3ec99afe8e77a034aa1e209">&#9670;&nbsp;</a></span>ddpcm_energy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_pcm::ddpcm_energy </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(out)&#160;</td>
+          <td class="paramname"><em>esolv</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the ddPCM energy. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">esolv</td><td>resulting energy </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00077">77</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+
+</div>
+</div>
 <a id="ga372f8ee7283b914b8e18cdb3fe191961" name="ga372f8ee7283b914b8e18cdb3fe191961"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga372f8ee7283b914b8e18cdb3fe191961">&#9670;&nbsp;</a></span>ddpcm_setup()</h2>
 
@@ -278,7 +327,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00083">83</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00097">97</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
@@ -331,7 +380,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00106">106</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00120">120</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
@@ -384,7 +433,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00126">126</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00140">140</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
@@ -444,7 +493,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00147">147</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00161">161</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
@@ -504,7 +553,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00197">197</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00211">211</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
@@ -564,7 +613,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00246">246</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00260">260</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>

@@ -1,6 +1,7 @@
 var ddx__cosmo_8f90 =
 [
     [ "ddcosmo", "ddx__cosmo_8f90.html#ga7c83eee1200de86e45846ae434a5236a", null ],
+    [ "ddcosmo_energy", "ddx__cosmo_8f90.html#ga00df0d8f18848c101a4b321a0d4dc1ac", null ],
     [ "ddcosmo_setup", "ddx__cosmo_8f90.html#ga501c58483a775fe4829bb94d7155f4f1", null ],
     [ "ddcosmo_guess", "ddx__cosmo_8f90.html#ga19e04e21fa4063a92520a59cc2f316b9", null ],
     [ "ddcosmo_guess_adjoint", "ddx__cosmo_8f90.html#ga7c10125a1107726da4c18e90d20dff1e", null ],

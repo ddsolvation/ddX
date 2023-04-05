@@ -99,10 +99,10 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"group___fortran__interface__ddcosmo.html#ga7c83eee1200de86e45846ae434a5236a",
-"namespaceddx__harmonics.html#a6376d4d78d6bcbf83b5747c03f13065c",
-"structddx__constants_1_1ddx__constants__type.html#a8c1f869c414c1f883795c59b5d7966a6",
-"structddx__workspace_1_1ddx__workspace__type.html#ad4499dd67712501a7516547d6ccddb23"
+"group___fortran__interface__ddcosmo.html#ga7c10125a1107726da4c18e90d20dff1e",
+"namespaceddx__harmonics.html#a3e3bd6455b55865ee1829cd8addaad3c",
+"structddx__constants_1_1ddx__constants__type.html#a7d0520826e9c6979b3650ec1ecde2215",
+"structddx__workspace_1_1ddx__workspace__type.html#ab91e641fb9aa8760cc452c6f8dee2839"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

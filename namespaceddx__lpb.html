@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.2.0</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.3.0</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -104,23 +104,26 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:a58213eb3a37181abd15767a5fe576b71"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#a58213eb3a37181abd15767a5fe576b71">ddlpb</a> (params, constants, workspace, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)</td></tr>
 <tr class="memdesc:a58213eb3a37181abd15767a5fe576b71"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddLPB solver  <a href="namespaceddx__lpb.html#a58213eb3a37181abd15767a5fe576b71">More...</a><br /></td></tr>
 <tr class="separator:a58213eb3a37181abd15767a5fe576b71"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf7b00d407ce325b1852463925f879fbf"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#gaf7b00d407ce325b1852463925f879fbf">ddlpb_setup</a> (params, constants, workspace, state, phi_cav, gradphi_cav, psi, tol)</td></tr>
-<tr class="memdesc:gaf7b00d407ce325b1852463925f879fbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given the potential and the electric field at the cavity points, assemble the RHS for ddLPB.  <a href="group___fortran__interface__ddlpb.html#gaf7b00d407ce325b1852463925f879fbf">More...</a><br /></td></tr>
-<tr class="separator:gaf7b00d407ce325b1852463925f879fbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gace66726e022ffa868428af189840a4c1"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#gace66726e022ffa868428af189840a4c1">ddlpb_guess</a> (params, constants, workspace, state)</td></tr>
-<tr class="memdesc:gace66726e022ffa868428af189840a4c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the primal ddLPB linear system.  <a href="group___fortran__interface__ddlpb.html#gace66726e022ffa868428af189840a4c1">More...</a><br /></td></tr>
-<tr class="separator:gace66726e022ffa868428af189840a4c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga7d3d06070f1ddb0d734313ee84e90434"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#ga7d3d06070f1ddb0d734313ee84e90434">ddlpb_guess_adjoint</a> (params, constants, workspace, state)</td></tr>
-<tr class="memdesc:ga7d3d06070f1ddb0d734313ee84e90434"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the adjoint ddLPB linear system.  <a href="group___fortran__interface__ddlpb.html#ga7d3d06070f1ddb0d734313ee84e90434">More...</a><br /></td></tr>
-<tr class="separator:ga7d3d06070f1ddb0d734313ee84e90434"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga05cc79e6f40f450b6ce4bc398b5fc9ad"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">ddlpb_setup</a> (params, constants, workspace, state, phi_cav, gradphi_cav, psi)</td></tr>
+<tr class="memdesc:ga05cc79e6f40f450b6ce4bc398b5fc9ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given the potential and the electric field at the cavity points, assemble the RHS for ddLPB.  <a href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">More...</a><br /></td></tr>
+<tr class="separator:ga05cc79e6f40f450b6ce4bc398b5fc9ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae6a311c69796cc676c576d376c0ee67f"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#gae6a311c69796cc676c576d376c0ee67f">ddlpb_energy</a> (constants, state, esolv)</td></tr>
+<tr class="memdesc:gae6a311c69796cc676c576d376c0ee67f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the ddLPB energy.  <a href="group___fortran__interface__ddlpb.html#gae6a311c69796cc676c576d376c0ee67f">More...</a><br /></td></tr>
+<tr class="separator:gae6a311c69796cc676c576d376c0ee67f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga67c5dfac741012e2843b013bfb473124"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#ga67c5dfac741012e2843b013bfb473124">ddlpb_guess</a> (params, constants, workspace, state, tol)</td></tr>
+<tr class="memdesc:ga67c5dfac741012e2843b013bfb473124"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the primal ddLPB linear system.  <a href="group___fortran__interface__ddlpb.html#ga67c5dfac741012e2843b013bfb473124">More...</a><br /></td></tr>
+<tr class="separator:ga67c5dfac741012e2843b013bfb473124"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab02c9e07f910f841cbd2ed63d2d2aedf"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#gab02c9e07f910f841cbd2ed63d2d2aedf">ddlpb_guess_adjoint</a> (params, constants, workspace, state, tol)</td></tr>
+<tr class="memdesc:gab02c9e07f910f841cbd2ed63d2d2aedf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the adjoint ddLPB linear system.  <a href="group___fortran__interface__ddlpb.html#gab02c9e07f910f841cbd2ed63d2d2aedf">More...</a><br /></td></tr>
+<tr class="separator:gab02c9e07f910f841cbd2ed63d2d2aedf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab9ab6f364ac3f17a7738936a54f89dad"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#gab9ab6f364ac3f17a7738936a54f89dad">ddlpb_solve</a> (params, constants, workspace, state, tol)</td></tr>
 <tr class="memdesc:gab9ab6f364ac3f17a7738936a54f89dad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the ddLPB primal linear system.  <a href="group___fortran__interface__ddlpb.html#gab9ab6f364ac3f17a7738936a54f89dad">More...</a><br /></td></tr>
 <tr class="separator:gab9ab6f364ac3f17a7738936a54f89dad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa23bd2b57bd92b0a641e0cde2b4d2e43"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#gaa23bd2b57bd92b0a641e0cde2b4d2e43">ddlpb_solve_adjoint</a> (params, constants, workspace, state, tol)</td></tr>
 <tr class="memdesc:gaa23bd2b57bd92b0a641e0cde2b4d2e43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the adjoint ddLPB linear system.  <a href="group___fortran__interface__ddlpb.html#gaa23bd2b57bd92b0a641e0cde2b4d2e43">More...</a><br /></td></tr>
 <tr class="separator:gaa23bd2b57bd92b0a641e0cde2b4d2e43"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4da3c1f591a833449285cd8a433d2fc7"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#a4da3c1f591a833449285cd8a433d2fc7">ddlpb_solvation_force_terms</a> (params, constants, workspace, state, gradphi_cav, hessianphi_cav, force)</td></tr>
-<tr class="separator:a4da3c1f591a833449285cd8a433d2fc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc4b0f021fd04b68148e20c4a380b419"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#afc4b0f021fd04b68148e20c4a380b419">ddlpb_solvation_force_terms</a> (params, constants, workspace, state, hessianphi_cav, force)</td></tr>
+<tr class="separator:afc4b0f021fd04b68148e20c4a380b419"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >High-level subroutines for ddlpb. </p>
@@ -226,8 +229,8 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
-<a id="a4da3c1f591a833449285cd8a433d2fc7" name="a4da3c1f591a833449285cd8a433d2fc7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4da3c1f591a833449285cd8a433d2fc7">&#9670;&nbsp;</a></span>ddlpb_solvation_force_terms()</h2>
+<a id="afc4b0f021fd04b68148e20c4a380b419" name="afc4b0f021fd04b68148e20c4a380b419"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc4b0f021fd04b68148e20c4a380b419">&#9670;&nbsp;</a></span>ddlpb_solvation_force_terms()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -259,12 +262,6 @@ Functions/Subroutines</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>gradphi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">real(dp), dimension(3, 3, constants % ncav), intent(in)&#160;</td>
           <td class="paramname"><em>hessianphi_cav</em>, </td>
         </tr>
@@ -282,7 +279,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00274">274</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00307">307</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
 
 </div>
 </div>

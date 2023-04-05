@@ -10,8 +10,9 @@ var searchData=
   ['grad_5fnbasis_7',['grad_nbasis',['../structddx__constants_1_1ddx__constants__type.html#abb5604ad358c7fa12ecb58a01df52bcc',1,'ddx_constants::ddx_constants_type']]],
   ['grad_5fphi_8',['grad_phi',['../group___fortran__interface__multipolar.html#ga29181299be03f0bb493cfd4cfb928a0b',1,'ddx_multipolar_solutes']]],
   ['grad_5fphi_5ffor_5fcharges_9',['grad_phi_for_charges',['../namespaceddx__multipolar__solutes.html#a3ba186ec158060205f5363c2ac45cffa',1,'ddx_multipolar_solutes']]],
-  ['gradr_10',['gradr',['../namespaceddx__operators.html#a8720945fa2c227689250a0e3e3353e3d',1,'ddx_operators']]],
-  ['gradr_5fdense_11',['gradr_dense',['../namespaceddx__operators.html#a985ff275f194faa2b8d5fbd3ce36dab0',1,'ddx_operators']]],
-  ['gradr_5ffmm_12',['gradr_fmm',['../namespaceddx__operators.html#a56e5aed806e650ee042f7a09b81b672f',1,'ddx_operators']]],
-  ['gradr_5fsph_13',['gradr_sph',['../namespaceddx__operators.html#aea20868b7a77f9914089bdd99e1aaefb',1,'ddx_operators']]]
+  ['gradphi_5fcav_10',['gradphi_cav',['../structddx__core_1_1ddx__state__type.html#a9dd8508c33c2249e719c18024c84d5ac',1,'ddx_core::ddx_state_type']]],
+  ['gradr_11',['gradr',['../namespaceddx__operators.html#a8720945fa2c227689250a0e3e3353e3d',1,'ddx_operators']]],
+  ['gradr_5fdense_12',['gradr_dense',['../namespaceddx__operators.html#a985ff275f194faa2b8d5fbd3ce36dab0',1,'ddx_operators']]],
+  ['gradr_5ffmm_13',['gradr_fmm',['../namespaceddx__operators.html#a56e5aed806e650ee042f7a09b81b672f',1,'ddx_operators']]],
+  ['gradr_5fsph_14',['gradr_sph',['../namespaceddx__operators.html#aea20868b7a77f9914089bdd99e1aaefb',1,'ddx_operators']]]
 ];

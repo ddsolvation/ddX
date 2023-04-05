@@ -1,6 +1,7 @@
 var group___fortran__interface__ddpcm =
 [
     [ "ddx_pcm::ddpcm", "group___fortran__interface__ddpcm.html#gaac7e2eb04f8acc0b10a8aa7096d735e0", null ],
+    [ "ddx_pcm::ddpcm_energy", "group___fortran__interface__ddpcm.html#gaa230a041e3ec99afe8e77a034aa1e209", null ],
     [ "ddx_pcm::ddpcm_setup", "group___fortran__interface__ddpcm.html#ga372f8ee7283b914b8e18cdb3fe191961", null ],
     [ "ddx_pcm::ddpcm_guess", "group___fortran__interface__ddpcm.html#gafcf10e5bf414f7bbb08631623e021ee8", null ],
     [ "ddx_pcm::ddpcm_guess_adjoint", "group___fortran__interface__ddpcm.html#ga19181358de0ded287e1e5426f11da2e5", null ],

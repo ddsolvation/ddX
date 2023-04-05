@@ -2,6 +2,7 @@ var structddx__core_1_1ddx__state__type =
 [
     [ "psi", "structddx__core_1_1ddx__state__type.html#a6708562e4f7a959cf4272bef83771a8d", null ],
     [ "phi_cav", "structddx__core_1_1ddx__state__type.html#a160af68bec958a00f1c20bf28fbacb7e", null ],
+    [ "gradphi_cav", "structddx__core_1_1ddx__state__type.html#a9dd8508c33c2249e719c18024c84d5ac", null ],
     [ "phi_grid", "structddx__core_1_1ddx__state__type.html#a903ec491e30ffa2a5a4012bac9641900", null ],
     [ "zeta", "structddx__core_1_1ddx__state__type.html#a6d25ed184b0365b44a597556edec3b49", null ],
     [ "error_flag", "structddx__core_1_1ddx__state__type.html#a0b1492447f2bef9ff3b132f68f8d67cc", null ],

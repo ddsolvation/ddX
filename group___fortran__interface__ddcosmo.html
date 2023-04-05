@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.2.0</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.3.0</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -104,6 +104,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:ga7c83eee1200de86e45846ae434a5236a"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga7c83eee1200de86e45846ae434a5236a">ddx_cosmo::ddcosmo</a> (params, constants, workspace, state, phi_cav, psi, tol, esolv, force)</td></tr>
 <tr class="memdesc:ga7c83eee1200de86e45846ae434a5236a"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddCOSMO solver  <a href="group___fortran__interface__ddcosmo.html#ga7c83eee1200de86e45846ae434a5236a">More...</a><br /></td></tr>
 <tr class="separator:ga7c83eee1200de86e45846ae434a5236a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga00df0d8f18848c101a4b321a0d4dc1ac"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga00df0d8f18848c101a4b321a0d4dc1ac">ddx_cosmo::ddcosmo_energy</a> (constants, state, esolv)</td></tr>
+<tr class="memdesc:ga00df0d8f18848c101a4b321a0d4dc1ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the ddCOSMO energy.  <a href="group___fortran__interface__ddcosmo.html#ga00df0d8f18848c101a4b321a0d4dc1ac">More...</a><br /></td></tr>
+<tr class="separator:ga00df0d8f18848c101a4b321a0d4dc1ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga501c58483a775fe4829bb94d7155f4f1"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga501c58483a775fe4829bb94d7155f4f1">ddx_cosmo::ddcosmo_setup</a> (params, constants, workspace, state, phi_cav, psi)</td></tr>
 <tr class="memdesc:ga501c58483a775fe4829bb94d7155f4f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given the potential at the cavity points, assemble the RHS for ddCOSMO or for ddPCM.  <a href="group___fortran__interface__ddcosmo.html#ga501c58483a775fe4829bb94d7155f4f1">More...</a><br /></td></tr>
 <tr class="separator:ga501c58483a775fe4829bb94d7155f4f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -215,6 +218,52 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
+<a id="ga00df0d8f18848c101a4b321a0d4dc1ac" name="ga00df0d8f18848c101a4b321a0d4dc1ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga00df0d8f18848c101a4b321a0d4dc1ac">&#9670;&nbsp;</a></span>ddcosmo_energy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_cosmo::ddcosmo_energy </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(out)&#160;</td>
+          <td class="paramname"><em>esolv</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the ddCOSMO energy. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">esolv</td><td>resulting energy </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00077">77</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+
+</div>
+</div>
 <a id="ga501c58483a775fe4829bb94d7155f4f1" name="ga501c58483a775fe4829bb94d7155f4f1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga501c58483a775fe4829bb94d7155f4f1">&#9670;&nbsp;</a></span>ddcosmo_setup()</h2>
 
@@ -278,7 +327,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00082">82</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00097">97</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
 
 </div>
 </div>
@@ -331,7 +380,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00105">105</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00120">120</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
 
 </div>
 </div>
@@ -384,7 +433,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00125">125</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00140">140</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
 
 </div>
 </div>
@@ -444,7 +493,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00146">146</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00161">161</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
 
 </div>
 </div>
@@ -504,7 +553,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00175">175</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00190">190</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
 
 </div>
 </div>
@@ -564,7 +613,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00204">204</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00219">219</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
 
 </div>
 </div>

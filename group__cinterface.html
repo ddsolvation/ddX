@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.2.0</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.3.0</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -181,8 +181,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="separator:ga8ec332a45c75ba671624069486fc0885"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Problem setup and solution routines</h2></td></tr>
-<tr class="memitem:ga78c1319a2aa78b563baf192e561511a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga78c1319a2aa78b563baf192e561511a8">ddx_cosmo_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *phi_cav, const double *psi)</td></tr>
-<tr class="separator:ga78c1319a2aa78b563baf192e561511a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40">ddx_cosmo_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav)</td></tr>
+<tr class="separator:ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga146da88294e79a57ac8bba351cf78af0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga146da88294e79a57ac8bba351cf78af0">ddx_cosmo_guess</a> (const void *ddx, void *state)</td></tr>
 <tr class="separator:ga146da88294e79a57ac8bba351cf78af0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf27762210854d5783cd591910e19d955"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaf27762210854d5783cd591910e19d955">ddx_cosmo_guess_adjoint</a> (const void *ddx, void *state)</td></tr>
@@ -191,10 +191,12 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="separator:gab7bf7b9132439ac409b7ec56fa5433eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaeafd8e48dfaa94533265ab4761238a17"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaeafd8e48dfaa94533265ab4761238a17">ddx_cosmo_solve_adjoint</a> (const void *ddx, void *state, double tol)</td></tr>
 <tr class="separator:gaeafd8e48dfaa94533265ab4761238a17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa945cc471891bf5804808829d2248bb6"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaa945cc471891bf5804808829d2248bb6">ddx_cosmo_energy</a> (const void *ddx, void *state)</td></tr>
+<tr class="separator:gaa945cc471891bf5804808829d2248bb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab4e1dea7b295c1aa15c36904a2834b59"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gab4e1dea7b295c1aa15c36904a2834b59">ddx_cosmo_solvation_force_terms</a> (const void *ddx, void *state, int nsph, double *forces)</td></tr>
 <tr class="separator:gab4e1dea7b295c1aa15c36904a2834b59"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga479f265db93b9b8939bf37f7092823ab"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga479f265db93b9b8939bf37f7092823ab">ddx_pcm_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *phi_cav, const double *psi)</td></tr>
-<tr class="separator:ga479f265db93b9b8939bf37f7092823ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga676762bb48bfa4c144dba5bd7e21377f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga676762bb48bfa4c144dba5bd7e21377f">ddx_pcm_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav)</td></tr>
+<tr class="separator:ga676762bb48bfa4c144dba5bd7e21377f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac1ee2465f0f9e0b2f8ab716ce3dc17ac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gac1ee2465f0f9e0b2f8ab716ce3dc17ac">ddx_pcm_guess</a> (const void *ddx, void *state)</td></tr>
 <tr class="separator:gac1ee2465f0f9e0b2f8ab716ce3dc17ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacd62d6ee046927a5f9e6f0d7ca9f1287"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gacd62d6ee046927a5f9e6f0d7ca9f1287">ddx_pcm_guess_adjoint</a> (const void *ddx, void *state)</td></tr>
@@ -203,8 +205,22 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="separator:ga4b3012869b881d0075b28e463d8d643a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa37a2a6143eee997d918a41c8769322d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaa37a2a6143eee997d918a41c8769322d">ddx_pcm_solve_adjoint</a> (const void *ddx, void *state, double tol)</td></tr>
 <tr class="separator:gaa37a2a6143eee997d918a41c8769322d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaee4a247d4b5cd4d2d3367aded28ca4c1"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaee4a247d4b5cd4d2d3367aded28ca4c1">ddx_pcm_energy</a> (const void *ddx, void *state)</td></tr>
+<tr class="separator:gaee4a247d4b5cd4d2d3367aded28ca4c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7fac3c26650775e78bf08ba6f684db0d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga7fac3c26650775e78bf08ba6f684db0d">ddx_pcm_solvation_force_terms</a> (const void *ddx, void *state, int nsph, double *forces)</td></tr>
 <tr class="separator:ga7fac3c26650775e78bf08ba6f684db0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacd3ec994a0f1c532c399ffbb0a746e19"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gacd3ec994a0f1c532c399ffbb0a746e19">ddx_lpb_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav, const double *e_cav)</td></tr>
+<tr class="separator:gacd3ec994a0f1c532c399ffbb0a746e19"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabb5c1bebe25da8846fcf758f1c88322d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gabb5c1bebe25da8846fcf758f1c88322d">ddx_lpb_guess</a> (const void *ddx, void *state, double tol)</td></tr>
+<tr class="separator:gabb5c1bebe25da8846fcf758f1c88322d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae617727c5eda76251665306218505502"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gae617727c5eda76251665306218505502">ddx_lpb_guess_adjoint</a> (const void *ddx, void *state, double tol)</td></tr>
+<tr class="separator:gae617727c5eda76251665306218505502"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga44c856c790e22768b4d17bdc145f93fd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga44c856c790e22768b4d17bdc145f93fd">ddx_lpb_solve</a> (const void *ddx, void *state, double tol)</td></tr>
+<tr class="separator:ga44c856c790e22768b4d17bdc145f93fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5e86d14a8645cf075c4e730e54c688e1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga5e86d14a8645cf075c4e730e54c688e1">ddx_lpb_solve_adjoint</a> (const void *ddx, void *state, double tol)</td></tr>
+<tr class="separator:ga5e86d14a8645cf075c4e730e54c688e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaeba66de5f525276d9c6c66639bb5a618"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaeba66de5f525276d9c6c66639bb5a618">ddx_lpb_energy</a> (const void *ddx, void *state)</td></tr>
+<tr class="separator:gaeba66de5f525276d9c6c66639bb5a618"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Multipolar solutes</h2></td></tr>
 <tr class="memitem:ga3bb8c58ebd1dc9785773f023dd15e0c6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga3bb8c58ebd1dc9785773f023dd15e0c6">ddx_multipole_electrostatics_0</a> (const void *ddx, int nsph, int ncav, int nmultipoles, const double *multipoles, double *phi_cav)</td></tr>
@@ -1360,8 +1376,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="ga78c1319a2aa78b563baf192e561511a8" name="ga78c1319a2aa78b563baf192e561511a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga78c1319a2aa78b563baf192e561511a8">&#9670;&nbsp;</a></span>ddx_cosmo_setup()</h2>
+<a id="ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40" name="ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40">&#9670;&nbsp;</a></span>ddx_cosmo_setup()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1400,13 +1416,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>phi_cav</em>, </td>
+          <td class="paramname"><em>psi</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>psi</em>&#160;</td>
+          <td class="paramname"><em>phi_cav</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1422,8 +1438,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">ncav</td><td>Number of cavity points </td></tr>
     <tr><td class="paramname">nbasis</td><td>Number of basis functions used by DDX </td></tr>
     <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
-    <tr><td class="paramname">phi_cav</td><td>Phi array (ncav, )-shaped array </td></tr>
     <tr><td class="paramname">psi</td><td>Psi array (nbasis, nsph)-shaped array (in column-major ordering) </td></tr>
+    <tr><td class="paramname">phi_cav</td><td>Phi array (ncav, )-shaped array </td></tr>
   </table>
   </dd>
 </dl>
@@ -1572,6 +1588,41 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
+<a id="gaa945cc471891bf5804808829d2248bb6" name="gaa945cc471891bf5804808829d2248bb6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa945cc471891bf5804808829d2248bb6">&#9670;&nbsp;</a></span>ddx_cosmo_energy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ddx_cosmo_energy </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Compute COSMO energy (without any scaling by (epsilon - 1) / epsilon or similar). </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="gab4e1dea7b295c1aa15c36904a2834b59" name="gab4e1dea7b295c1aa15c36904a2834b59"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gab4e1dea7b295c1aa15c36904a2834b59">&#9670;&nbsp;</a></span>ddx_cosmo_solvation_force_terms()</h2>
 
@@ -1621,8 +1672,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="ga479f265db93b9b8939bf37f7092823ab" name="ga479f265db93b9b8939bf37f7092823ab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga479f265db93b9b8939bf37f7092823ab">&#9670;&nbsp;</a></span>ddx_pcm_setup()</h2>
+<a id="ga676762bb48bfa4c144dba5bd7e21377f" name="ga676762bb48bfa4c144dba5bd7e21377f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga676762bb48bfa4c144dba5bd7e21377f">&#9670;&nbsp;</a></span>ddx_pcm_setup()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1661,13 +1712,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>phi_cav</em>, </td>
+          <td class="paramname"><em>psi</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>psi</em>&#160;</td>
+          <td class="paramname"><em>phi_cav</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1683,8 +1734,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">ncav</td><td>Number of cavity points </td></tr>
     <tr><td class="paramname">nbasis</td><td>Number of basis functions used by DDX </td></tr>
     <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
-    <tr><td class="paramname">phi_cav</td><td>Phi array (ncav, )-shaped array </td></tr>
     <tr><td class="paramname">psi</td><td>Psi array (nbasis, nsph)-shaped array (in column-major ordering) </td></tr>
+    <tr><td class="paramname">phi_cav</td><td>Phi array (ncav, )-shaped array </td></tr>
   </table>
   </dd>
 </dl>
@@ -1833,6 +1884,41 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
+<a id="gaee4a247d4b5cd4d2d3367aded28ca4c1" name="gaee4a247d4b5cd4d2d3367aded28ca4c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaee4a247d4b5cd4d2d3367aded28ca4c1">&#9670;&nbsp;</a></span>ddx_pcm_energy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ddx_pcm_energy </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Compute PCM energy </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="ga7fac3c26650775e78bf08ba6f684db0d" name="ga7fac3c26650775e78bf08ba6f684db0d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga7fac3c26650775e78bf08ba6f684db0d">&#9670;&nbsp;</a></span>ddx_pcm_solvation_force_terms()</h2>
 
@@ -1876,6 +1962,272 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">state</td><td>DDX state </td></tr>
     <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
     <tr><td class="paramname">forces</td><td>Output force array (3, nsph) in column-major order </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gacd3ec994a0f1c532c399ffbb0a746e19" name="gacd3ec994a0f1c532c399ffbb0a746e19"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacd3ec994a0f1c532c399ffbb0a746e19">&#9670;&nbsp;</a></span>ddx_lpb_setup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_lpb_setup </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ncav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nbasis</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nsph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>psi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>phi_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>e_cav</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Setup a LPB problem in the passed state. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">ncav</td><td>Number of cavity points </td></tr>
+    <tr><td class="paramname">nbasis</td><td>Number of basis functions used by DDX </td></tr>
+    <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
+    <tr><td class="paramname">psi</td><td>Psi array (nbasis, nsph)-shaped array (in column-major ordering) </td></tr>
+    <tr><td class="paramname">phi_cav</td><td>Phi array (ncav, )-shaped array </td></tr>
+    <tr><td class="paramname">e_cav</td><td>Electric field generated by multipoles: (3, ncav)-shaped array (column major) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gabb5c1bebe25da8846fcf758f1c88322d" name="gabb5c1bebe25da8846fcf758f1c88322d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gabb5c1bebe25da8846fcf758f1c88322d">&#9670;&nbsp;</a></span>ddx_lpb_guess()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_lpb_guess </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>tol</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >In-place adjust the guess inside the state, getting ready to solve a LPB problem. Avoid calling this step if you want to use the currently stored solution as an initial guess. tol is the tolerance for solving a simplified initial-guess problem. The same tolerance as for the ddx_lpb_solve call should be chosen. </p>
+
+</div>
+</div>
+<a id="gae617727c5eda76251665306218505502" name="gae617727c5eda76251665306218505502"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae617727c5eda76251665306218505502">&#9670;&nbsp;</a></span>ddx_lpb_guess_adjoint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_lpb_guess_adjoint </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>tol</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >In-place adjust the guess inside the state, getting ready to solve an adjoint LPB problem. Avoid calling this step if you want to use the currently stored solution as an initial guess. tol is the tolerance for solving a simplified initial-guess problem. The same tolerance as for the ddx_lpb_solve call should be chosen. </p>
+
+</div>
+</div>
+<a id="ga44c856c790e22768b4d17bdc145f93fd" name="ga44c856c790e22768b4d17bdc145f93fd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga44c856c790e22768b4d17bdc145f93fd">&#9670;&nbsp;</a></span>ddx_lpb_solve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_lpb_solve </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>tol</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Solve the forward LPB problem. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">tol</td><td>Tolerance up to which the problem is solved </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga5e86d14a8645cf075c4e730e54c688e1" name="ga5e86d14a8645cf075c4e730e54c688e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5e86d14a8645cf075c4e730e54c688e1">&#9670;&nbsp;</a></span>ddx_lpb_solve_adjoint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_lpb_solve_adjoint </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>tol</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Solve the adjoint LPB problem. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">tol</td><td>Tolerance up to which the problem is solved </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gaeba66de5f525276d9c6c66639bb5a618" name="gaeba66de5f525276d9c6c66639bb5a618"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaeba66de5f525276d9c6c66639bb5a618">&#9670;&nbsp;</a></span>ddx_lpb_energy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ddx_lpb_energy </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Compute LPB energy </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
   </table>
   </dd>
 </dl>
