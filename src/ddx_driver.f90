@@ -175,52 +175,89 @@ call build_psi(ddx_data % params, multipoles, 0, psi)
 finish_time = omp_get_wtime()
 write(*, 100) "Psi time:", finish_time-start_time, " seconds"
 
-! STEP 4: call the main solver routine. This solves the primal linear
-! system and computes the energy. If the forces are needed, it also
-! solves the adjoint linear system and computes the solute aspecific
-! contributions to the forces.
+! STEP 4: solve the primal linear system.
+if (ddx_data % params % model .eq. 1) then
+    call ddcosmo_setup(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, phi_cav, psi)
+    call ddcosmo_guess(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state)
+    call ddcosmo_solve(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, tol)
+else if (ddx_data % params % model .eq. 2) then
+    call ddpcm_setup(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, phi_cav, psi)
+    call ddpcm_guess(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state)
+    call ddpcm_solve(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, tol)
+else if (ddx_data % params % model .eq. 3) then
+    call ddlpb_setup(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, phi_cav, -e_cav, psi)
+    call ddlpb_guess(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, tol)
+    call ddlpb_solve(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, tol)
+end if
+
+! STEP 5: compute the solvation energy
+if (ddx_data % params % model .eq. 1) then
+    call ddcosmo_energy(ddx_data % constants, state, esolv)
+else if (ddx_data % params % model .eq. 2) then
+    call ddpcm_energy(ddx_data % constants, state, esolv)
+else if (ddx_data % params % model .eq. 3) then
+    call ddlpb_energy(ddx_data % constants, state, esolv)
+end if
+
+! STEP 6: if required solve the adjoint linear system. The adjoint
+! linear system is required whenever analytical derivatives are needed.
+! In this case the only analytical derivative that we compute are the
+! forces.
+if (ddx_data % params % force .eq. 1) then
+    if (ddx_data % params % model .eq. 1) then
+        call ddcosmo_guess_adjoint(ddx_data % params, &
+            & ddx_data % constants, ddx_data % workspace, state)
+        call ddcosmo_solve_adjoint(ddx_data % params, &
+            & ddx_data % constants, ddx_data % workspace, state, tol)
+    else if (ddx_data % params % model .eq. 2) then
+        call ddpcm_guess_adjoint(ddx_data % params, &
+            & ddx_data % constants, ddx_data % workspace, state)
+        call ddpcm_solve_adjoint(ddx_data % params, &
+            & ddx_data % constants, ddx_data % workspace, state, tol)
+    else if (ddx_data % params % model .eq. 3) then
+        call ddlpb_guess_adjoint(ddx_data % params, &
+            & ddx_data % constants, ddx_data % workspace, state, tol)
+        call ddlpb_solve_adjoint(ddx_data % params, &
+            & ddx_data % constants, ddx_data % workspace, state, tol)
+    end if
+end if
+
+! STEP 7: if required compute the solute aspecific contributions to the
+! forces.
 if (ddx_data % params % force .eq. 1) then
     allocate(force(3, ddx_data % params % nsph), stat=info)
     if (info .ne. 0) then
         write(6, *) "Allocation failed in ddx_driver"
         stop 1
     end if
-end if
-start_time = omp_get_wtime()
-if (ddx_data % params % model .eq. 1) then
-    if (ddx_data % params % force .eq. 1) then
-        call ddcosmo(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, phi_cav, psi, tol, esolv, force)
-    else
-        call ddcosmo(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, phi_cav, psi, tol, esolv)
-    end if
-else if (ddx_data % params % model .eq. 2) then
-    if (ddx_data % params % force .eq. 1) then
-        call ddpcm(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, phi_cav, psi, tol, esolv, force)
-    else
-        call ddpcm(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, phi_cav, psi, tol, esolv)
-    end if
-else if (ddx_data % params % model .eq. 3) then
-    if (ddx_data % params % force .eq. 1) then
-        call ddlpb(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, phi_cav, -e_cav, psi, &
-            & tol, esolv, g_cav, force)
-    else
-        call ddlpb(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, phi_cav, -e_cav, psi, tol, esolv)
+    force = zero
+
+    if (ddx_data % params % model .eq. 1) then
+        call ddcosmo_solvation_force_terms(ddx_data % params, &
+            & ddx_data % constants, ddx_data % workspace, state, force)
+    else if (ddx_data % params % model .eq. 2) then
+        call ddpcm_solvation_force_terms(ddx_data % params, &
+            & ddx_data % constants, ddx_data % workspace, state, force)
+    else if (ddx_data % params % model .eq. 3) then
+        call ddlpb_solvation_force_terms(ddx_data % params, &
+            & ddx_data % constants, ddx_data % workspace, state, g_cav, force)
     end if
 end if
-finish_time = omp_get_wtime()
-write(*, 100) "ddx_driver time:", finish_time - start_time, &
-    & " seconds"
 
 if (ddx_data % params % force .eq. 1) write(*, 100) &
     & "solvation force terms time:", state % force_time, " seconds"
 
-! STEP 5: compute the solute specific contributions to the forces.
+! STEP 8: if required compute the solute specific contributions to the
+! forces.
 if (ddx_data % params % force .eq. 1) then
     start_time = omp_get_wtime()
     call grad_phi_for_charges(ddx_data % params, &

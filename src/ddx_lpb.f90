@@ -99,7 +99,6 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
 
     state % psi = psi
     state % rhs_adj_lpb(:, :, 1) = psi
-    ! state % rhs_adj_lpb(:, :, 1) = psi/fourpi
     state % rhs_adj_lpb(:, :, 2) = 0.0d0
 
     !! Setting initial values to zero
