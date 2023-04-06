@@ -1,0 +1,129 @@
+ Using provided file pcm_incore.txt as a config file
+ Initialization time: 2.6242E-02 seconds
+   +----------------------------------------------------------------+
+  |                                                                |
+  |                        888      888 Y8b    d8Y                 |
+  |                        888      888  Y8b  d8Y                  |
+  |                        888      888   Y8888Y                   |
+  |                    .d88888  .d88888    Y88Y                    |
+  |                   d88  888 d88  888    d88b                    |
+  |                   888  888 888  888   d8888b                   |
+  |                   Y88b 888 Y88b 888  d8Y  Y8b                  |
+  |                     Y88888   Y88888 d8Y    Y8b                 |
+  |                                                                |
+  |                 https://ddsolvation.github.io/ddX/             |
+  |                         Version: 0.3.0                         |
+  |                                                                |
+  +----------------------------------------------------------------+
+ Electrostatic properties time: 2.1300E-03 seconds
+ Psi time: 3.3460E-06 seconds
+ solvation force terms time: 5.3736E-02 seconds
+ multipolar force terms time: 1.4173E-04 seconds
+ iter=   1 relative difference: 8.87636442101036E-01
+ iter=   2 relative difference: 7.94235904397643E-02
+ iter=   3 relative difference: 1.30877115362183E-02
+ iter=   4 relative difference: 5.54261337136590E-03
+ iter=   5 relative difference: 1.22931945956562E-03
+ iter=   6 relative difference: 4.44442149204248E-04
+ iter=   7 relative difference: 7.01437357272423E-05
+ iter=   8 relative difference: 2.11130188494556E-05
+ iter=   9 relative difference: 3.68185203437131E-06
+ iter=  10 relative difference: 6.01921586066646E-07
+ iter=  11 relative difference: 1.39700056605945E-07
+ iter=  12 relative difference: 3.54657120012432E-08
+ iter=  13 relative difference: 6.88276488880819E-09
+ ddpcm step time:  9.1543E-02 seconds
+ ddpcm step iterations:   13
+ iter=   1 relative difference: 1.00000000000000E+00
+ iter=   2 relative difference: 4.00284818324041E-01
+ iter=   3 relative difference: 2.75090909060881E-01
+ iter=   4 relative difference: 1.94407436468836E-01
+ iter=   5 relative difference: 1.26300230686000E-01
+ iter=   6 relative difference: 7.98551621066295E-02
+ iter=   7 relative difference: 4.86432656238610E-02
+ iter=   8 relative difference: 1.44725400805340E-02
+ iter=   9 relative difference: 5.17962728594102E-03
+ iter=  10 relative difference: 2.09095225291350E-03
+ iter=  11 relative difference: 9.81793421594406E-04
+ iter=  12 relative difference: 3.70076979694793E-04
+ iter=  13 relative difference: 1.40151844306279E-04
+ iter=  14 relative difference: 7.24327644781936E-05
+ iter=  15 relative difference: 3.32446131586658E-05
+ iter=  16 relative difference: 1.15236082906134E-05
+ iter=  17 relative difference: 5.21600879389440E-06
+ iter=  18 relative difference: 2.55659208224461E-06
+ iter=  19 relative difference: 1.07952234911685E-06
+ iter=  20 relative difference: 3.44796508044066E-07
+ iter=  21 relative difference: 1.32781340919599E-07
+ iter=  22 relative difference: 5.36122802687284E-08
+ iter=  23 relative difference: 1.60976839452386E-08
+ iter=  24 relative difference: 5.11541294488497E-09
+ ddcosmo step time:  2.6267E-03 seconds
+ ddcosmo step iterations:   24
+ iter=   1 relative difference: 3.34411485905343E-01
+ iter=   2 relative difference: 8.53568940182793E-02
+ iter=   3 relative difference: 5.87110390485091E-02
+ iter=   4 relative difference: 2.52797820260179E-02
+ iter=   5 relative difference: 9.36883717789115E-03
+ iter=   6 relative difference: 6.23543761619411E-03
+ iter=   7 relative difference: 4.67680087625722E-03
+ iter=   8 relative difference: 2.50050835172784E-03
+ iter=   9 relative difference: 8.70448522960085E-04
+ iter=  10 relative difference: 2.70424371602653E-04
+ iter=  11 relative difference: 1.12877141266450E-04
+ iter=  12 relative difference: 4.77892406185282E-05
+ iter=  13 relative difference: 2.24071910921405E-05
+ iter=  14 relative difference: 1.14265889102125E-05
+ iter=  15 relative difference: 4.46326488987915E-06
+ iter=  16 relative difference: 1.49944057616985E-06
+ iter=  17 relative difference: 6.28173580596586E-07
+ iter=  18 relative difference: 3.34528885200005E-07
+ iter=  19 relative difference: 1.14701443757318E-07
+ iter=  20 relative difference: 3.51998388401456E-08
+ iter=  21 relative difference: 1.57072340831607E-08
+ iter=  22 relative difference: 4.95747037739533E-09
+ adjoint ddcosmo step time:  1.9628E-03 seconds
+ adjoint ddcosmo step iterations:   22
+ iter=   1 relative difference: 1.00000000000000E+00
+ iter=   2 relative difference: 1.47235992806098E-01
+ iter=   3 relative difference: 3.58888229732050E-02
+ iter=   4 relative difference: 1.04509812324429E-02
+ iter=   5 relative difference: 4.36753438088886E-03
+ iter=   6 relative difference: 9.58095228801645E-04
+ iter=   7 relative difference: 1.47740547564670E-04
+ iter=   8 relative difference: 3.69584063472314E-05
+ iter=   9 relative difference: 9.06540449459892E-06
+ iter=  10 relative difference: 1.98121351021673E-06
+ iter=  11 relative difference: 4.12709003971173E-07
+ iter=  12 relative difference: 1.26417527049659E-07
+ iter=  13 relative difference: 2.94836024306069E-08
+ iter=  14 relative difference: 6.27048476199416E-09
+ adjoint ddpcm step time:  9.6595E-02 seconds
+ adjoint ddpcm step iterations:   14
+ Solvation energy (Hartree): -1.8490194554249767E-003
+ Solvation energy (kcal/mol): -1.1602772166443962E+000
+ Full forces (kcal/mol/A)
+     1 -1.6725185161309018E-002  2.1708030608066951E-002  1.2345093302092812E-005
+     2 -1.3185436177253424E-002  7.2245436186966642E-003  4.7791858185473582E-005
+     3  5.2129831693711520E-002 -8.8117708132163380E-002 -5.4219719756698080E-005
+     4 -1.9086363500009404E-001  2.1364271421579022E-002  7.8402781757807522E-005
+     5  1.4844366163099171E-001 -6.4526986719166827E-003 -3.3957257477824726E-005
+     6  1.4430214590993792E-002  4.2418948656395353E-002  3.6550704202763227E-006
+     7  2.9791719542139147E-002  1.0624444585832564E-001  6.1636864971941603E-007
+     8 -4.0420550219931010E-002 -1.1777932778642503E-001  1.1166424788207742E-004
+     9  1.2792283985469510E-001 -2.5171079860016186E-002 -5.3947443025612090E-005
+    10  4.0932937956273154E-002 -3.0006202865567591E-003 -6.6986955285250642E-005
+    11 -8.7557290742801816E-002 -3.7859283880982224E-003  5.5025862452757610E-005
+    12  9.9029634893457050E-002  2.0375510836822298E-003 -1.3139145514175778E-005
+    13 -2.4969481619131848E-002 -9.7316079514276385E-002 -2.5210106992918608E-005
+    14 -4.8259701649170060E-002  8.3901785845659077E-002 -3.4424127865545600E-005
+    15 -2.4760110840494832E-002 -2.6806652280220583E-003  1.8108077578149515E-005
+    16 -1.0363201329819405E-001  2.0311292964487210E-002 -3.8618640077706188E-003
+    17 -1.0368503450630534E-001  2.0388237332719387E-002  3.8530941268351726E-003
+    18 -3.4195030868690399E-002 -4.4396062577533816E-003  1.0645703581678074E-005
+    19  3.0548200212518879E-002  5.5322276203271327E-002  1.9306978572018853E-003
+    20  3.0540527347299427E-002  5.5406071714125933E-002 -1.9150225955708786E-003
+    21 -3.2022600531681746E-002  1.3657638702277794E-001  2.0116663640639613E-005
+    22  7.0188009943497939E-003 -9.3721209781067835E-002 -1.0879978874116800E-003
+    23  7.0426116652421529E-003 -9.3750358068543288E-002  1.0714051339709200E-003
+    24  1.3244509023338558E-001 -3.6688560354947324E-002 -6.6799598786606258E-005
