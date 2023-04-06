@@ -1,9 +1,26 @@
 #!/usr/bin/python3
 import sys
 import os
-import numpy as np
 
 threshold = 1e-4
+
+def list_diff(list1, list2):
+    diff = []
+    for i in range(len(list1)):
+        tmp = []
+        for j in range(len(list1[0])):
+            tmp.append(list1[i][j] - list2[i][j])
+        diff.append(tmp)
+    return diff
+
+def inf_norm(input_list):
+    max_val = 0.0
+    for i in range(len(input_list)):
+        for j in range(len(input_list[0])):
+            val = abs(input_list[i][j])
+            if val > max_val:
+                max_val = val
+    return max_val
 
 def read_log(path):
     energy = 0.0
@@ -20,7 +37,7 @@ def read_log(path):
                                float(tokens[3])])
             if 'Full forces (kcal/mol/A)' in line:
                 section = 'forces'
-    return energy, np.array(forces)
+    return energy, forces
 
 basename = sys.argv[1]
 input_file = basename + ".txt"
@@ -36,9 +53,8 @@ print(f"Energy:         {energy:20.10f}")
 print(f"Ref. energy:    {ref_energy:20.10f}")
 assert (energy - ref_energy)/ref_energy < threshold
 
-force_max_diff = np.max(np.abs(forces - ref_forces))
-force_max_ref = np.max(np.abs(ref_forces))
+force_diff = list_diff(forces, ref_forces)
+force_max_diff = inf_norm(force_diff)
+force_max_ref = inf_norm(ref_forces)
 print(f"Force max diff: {force_max_diff:20.10f}")
 assert force_max_diff/force_max_ref < threshold
-
-
