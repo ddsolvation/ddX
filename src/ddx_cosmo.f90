@@ -46,7 +46,8 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_cav(constants % ncav), &
         & psi(constants % nbasis, params % nsph), tol
-    real(dp), intent(out) :: esolv, force(3, params % nsph)
+    real(dp), intent(out) :: esolv
+    real(dp), intent(out), optional :: force(3, params % nsph)
 
     call ddcosmo_setup(params, constants, workspace, state, phi_cav, psi)
     call ddcosmo_guess(params, constants, workspace, state)

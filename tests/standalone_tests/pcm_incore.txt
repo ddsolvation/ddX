@@ -1,0 +1,42 @@
+''          ! Name of log-file for additional information
+2           ! Number of OpenMP cores to be used
+2           ! Model. 1 for COSMO, 2 for PCM and 3 for LPB
+6           ! Maximal degree of modeling spherical harmonics
+110         ! Approximate number of Lebedev grid points
+80.0        ! Dielectric permittivity constant
+0.0         ! Shift of the regularized characteristic function
+0.1         ! Regularization parameter
+0.0         ! Debye H\"{u}ckel parameter
+1           ! Whether to compute and store sparse matrices (1) or not (0)
+1d-8        ! Relative threshold for the iterative solver
+200         ! Maximum number of iterations
+25          ! Number of DIIS extrapolation points
+1           ! Whether to compute (1) or not (0) forces
+0           ! Whether to use (1) or not (0) the FMM
+20          ! Max degree of multipole spherical harmonics for the FMM
+20          ! Max degree of local spherical harmonics for the FMM
+24                           # nsph
+ 0.09581   1.64052   0.26811   0.00079   4.00253
+ 0.17352   0.53040  -2.07460  -0.00051   4.00253
+-0.25694  -1.93056  -2.33500  -0.00018   3.80402
+ 0.33039  -3.37146  -0.33148   0.00013   4.00253
+-0.27154  -5.88699  -0.46410  -0.00009   3.63772
+-0.25299  -2.46950   2.04845   0.00073   3.80402
+ 0.21982   0.08761   2.49865  -0.00032   4.00253
+-0.28184   1.30432   4.81168  -0.00073   3.63772
+-0.22781   4.22705  -0.09253   0.00089   3.80402
+-0.20253   2.46931  -3.89829   0.00003   3.80402
+ 0.12910   4.70148  -2.75142  -0.00017   4.00253
+-0.09227   6.17186   1.91355  -0.00056   4.00253
+-0.08846  -3.06677  -4.83502  -0.00048   4.00253
+-0.08265  -3.86502   4.25693  -0.00006   4.00253
+ 0.04393   6.41587  -3.85765  -0.00002   2.99956
+ 0.09224   5.95218   3.08325   1.68217   2.99956
+ 0.09228   5.95188   3.08333  -1.68106   2.99956
+ 0.05299   8.04286   1.05689  -0.00040   2.99956
+ 0.07429  -2.46586  -5.86225   1.68268   2.99956
+ 0.07434  -2.46688  -5.86083  -1.68167   2.99956
+ 0.10225  -5.11800  -4.65665  -0.00014   2.99956
+ 0.08476  -5.05274   4.31652   1.68185   2.99956
+ 0.08479  -5.05304   4.31660  -1.68138   2.99956
+ 0.10651  -2.59079   5.87351   0.00130   2.99956

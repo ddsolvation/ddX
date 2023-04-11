@@ -36,7 +36,7 @@ contains
 !! @param[out] force: Solvation contribution to the forces
 !!
 subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
-        & hessianphi_cav, psi, tol, esolv, force)
+        & psi, tol, esolv, hessianphi_cav, force)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -44,9 +44,10 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_cav(constants % ncav), &
         & gradphi_cav(3, constants % ncav), &
-        & hessianphi_cav(3, 3, constants % ncav), &
         & psi( constants % nbasis,  params % nsph), tol
-    real(dp), intent(out) :: esolv, force(3, params % nsph)
+    real(dp), intent(out) :: esolv
+    real(dp), intent(out), optional :: force(3, params % nsph)
+    real(dp), intent(in), optional :: hessianphi_cav(3, 3, constants % ncav)
 
     call ddlpb_setup(params, constants, workspace, state, phi_cav, &
         & gradphi_cav, psi)
@@ -98,7 +99,6 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
 
     state % psi = psi
     state % rhs_adj_lpb(:, :, 1) = psi
-    ! state % rhs_adj_lpb(:, :, 1) = psi/fourpi
     state % rhs_adj_lpb(:, :, 2) = 0.0d0
 
     !! Setting initial values to zero

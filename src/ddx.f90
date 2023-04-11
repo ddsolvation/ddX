@@ -61,7 +61,7 @@ subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, &
         case (3)
             call ddlpb(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, phi_cav, gradphi_cav, &
-                & hessianphi_cav, psi, tol, esolv, force)
+                & psi, tol, esolv, hessianphi_cav, force)
         ! Error case
         case default
             ddx_data % params % error_flag = 1
