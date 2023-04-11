@@ -101,9 +101,9 @@ $(document).ready(function(){initNavTree('namespaceddx__lpb.html',''); initResiz
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:a58213eb3a37181abd15767a5fe576b71"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#a58213eb3a37181abd15767a5fe576b71">ddlpb</a> (params, constants, workspace, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)</td></tr>
-<tr class="memdesc:a58213eb3a37181abd15767a5fe576b71"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddLPB solver  <a href="namespaceddx__lpb.html#a58213eb3a37181abd15767a5fe576b71">More...</a><br /></td></tr>
-<tr class="separator:a58213eb3a37181abd15767a5fe576b71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4861f0063a9d2a5a34047791eed02c47"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#a4861f0063a9d2a5a34047791eed02c47">ddlpb</a> (params, constants, workspace, state, phi_cav, gradphi_cav, psi, tol, esolv, hessianphi_cav, force)</td></tr>
+<tr class="memdesc:a4861f0063a9d2a5a34047791eed02c47"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddLPB solver  <a href="namespaceddx__lpb.html#a4861f0063a9d2a5a34047791eed02c47">More...</a><br /></td></tr>
+<tr class="separator:a4861f0063a9d2a5a34047791eed02c47"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga05cc79e6f40f450b6ce4bc398b5fc9ad"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">ddlpb_setup</a> (params, constants, workspace, state, phi_cav, gradphi_cav, psi)</td></tr>
 <tr class="memdesc:ga05cc79e6f40f450b6ce4bc398b5fc9ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given the potential and the electric field at the cavity points, assemble the RHS for ddLPB.  <a href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">More...</a><br /></td></tr>
 <tr class="separator:ga05cc79e6f40f450b6ce4bc398b5fc9ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -128,8 +128,8 @@ Functions/Subroutines</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >High-level subroutines for ddlpb. </p>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="a58213eb3a37181abd15767a5fe576b71" name="a58213eb3a37181abd15767a5fe576b71"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a58213eb3a37181abd15767a5fe576b71">&#9670;&nbsp;</a></span>ddlpb()</h2>
+<a id="a4861f0063a9d2a5a34047791eed02c47" name="a4861f0063a9d2a5a34047791eed02c47"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4861f0063a9d2a5a34047791eed02c47">&#9670;&nbsp;</a></span>ddlpb()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -173,12 +173,6 @@ Functions/Subroutines</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real(dp), dimension(3, 3, constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>hessianphi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">real(dp), dimension( constants % nbasis,  params % nsph), intent(in)&#160;</td>
           <td class="paramname"><em>psi</em>, </td>
         </tr>
@@ -197,7 +191,13 @@ Functions/Subroutines</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(out)&#160;</td>
+          <td class="paramtype">real(dp), dimension(3, 3, constants % ncav), intent(in), optional&#160;</td>
+          <td class="paramname"><em>hessianphi_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(out), optional&#160;</td>
           <td class="paramname"><em>force</em>&#160;</td>
         </tr>
         <tr>

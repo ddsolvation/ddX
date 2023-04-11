@@ -126,7 +126,7 @@ var namespaces_dup =
       [ "fmm_m2l_rotation_adj_work", "namespaceddx__harmonics.html#abbb798594959e90b6d60588e88a7a12e", null ]
     ] ],
     [ "ddx_lpb", "namespaceddx__lpb.html", [
-      [ "ddlpb", "namespaceddx__lpb.html#a58213eb3a37181abd15767a5fe576b71", null ],
+      [ "ddlpb", "namespaceddx__lpb.html#a4861f0063a9d2a5a34047791eed02c47", null ],
       [ "ddlpb_setup", "group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad", null ],
       [ "ddlpb_energy", "group___fortran__interface__ddlpb.html#gae6a311c69796cc676c576d376c0ee67f", null ],
       [ "ddlpb_guess", "group___fortran__interface__ddlpb.html#ga67c5dfac741012e2843b013bfb473124", null ],
@@ -150,6 +150,7 @@ var namespaces_dup =
       [ "build_phi", "group___fortran__interface__multipolar.html#ga6611268f56ee74f9f64df0915594f8c7", null ],
       [ "build_phi_dense", "namespaceddx__multipolar__solutes.html#a1e4885f6f41acb3dfc988dcbc71dceeb", null ],
       [ "build_e_fmm", "namespaceddx__multipolar__solutes.html#adb70b786db1e8751f7c5b7faed714f41", null ],
+      [ "build_g_fmm", "namespaceddx__multipolar__solutes.html#a8de93acbf7ce94fbf51c6f1c9890b983", null ],
       [ "build_phi_fmm", "namespaceddx__multipolar__solutes.html#a1b49c60c09fb229e96a9ce69d0808c8d", null ],
       [ "build_psi", "group___fortran__interface__multipolar.html#gaf468ceaaf47ba9d96486ab064e6e57d9", null ],
       [ "load_m", "namespaceddx__multipolar__solutes.html#a61c22d6edf664b23153d1d41a1036db8", null ],

@@ -122,6 +122,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:adb70b786db1e8751f7c5b7faed714f41"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__multipolar__solutes.html#adb70b786db1e8751f7c5b7faed714f41">build_e_fmm</a> (params, constants, workspace, multipoles, mmax, phi_cav, e_cav)</td></tr>
 <tr class="memdesc:adb70b786db1e8751f7c5b7faed714f41"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, compute the potential and its gradient at the target points using FMMs.  <a href="namespaceddx__multipolar__solutes.html#adb70b786db1e8751f7c5b7faed714f41">More...</a><br /></td></tr>
 <tr class="separator:adb70b786db1e8751f7c5b7faed714f41"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8de93acbf7ce94fbf51c6f1c9890b983"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__multipolar__solutes.html#a8de93acbf7ce94fbf51c6f1c9890b983">build_g_fmm</a> (params, constants, workspace, multipoles, mmax, phi_cav, e_cav, g_cav)</td></tr>
+<tr class="memdesc:a8de93acbf7ce94fbf51c6f1c9890b983"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, compute the potential, the field and the field gradient at the target points using FMMs.  <a href="namespaceddx__multipolar__solutes.html#a8de93acbf7ce94fbf51c6f1c9890b983">More...</a><br /></td></tr>
+<tr class="separator:a8de93acbf7ce94fbf51c6f1c9890b983"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1b49c60c09fb229e96a9ce69d0808c8d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__multipolar__solutes.html#a1b49c60c09fb229e96a9ce69d0808c8d">build_phi_fmm</a> (params, constants, workspace, multipoles, mmax, phi_cav)</td></tr>
 <tr class="memdesc:a1b49c60c09fb229e96a9ce69d0808c8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, compute the potential at the target points using FMMs.  <a href="namespaceddx__multipolar__solutes.html#a1b49c60c09fb229e96a9ce69d0808c8d">More...</a><br /></td></tr>
 <tr class="separator:a1b49c60c09fb229e96a9ce69d0808c8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -260,7 +263,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00072">72</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00070">70</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -353,7 +356,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00225">225</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00223">223</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -439,7 +442,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00331">331</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00329">329</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -513,7 +516,88 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00386">386</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00384">384</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+
+</div>
+</div>
+<a id="a8de93acbf7ce94fbf51c6f1c9890b983" name="a8de93acbf7ce94fbf51c6f1c9890b983"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8de93acbf7ce94fbf51c6f1c9890b983">&#9670;&nbsp;</a></span>build_g_fmm()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_multipolar_solutes::build_g_fmm </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension((mmax + 1)**2, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>multipoles</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>mmax</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % ncav), intent(out)&#160;</td>
+          <td class="paramname"><em>phi_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(out)&#160;</td>
+          <td class="paramname"><em>e_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, 3, constants % ncav), intent(out)&#160;</td>
+          <td class="paramname"><em>g_cav</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Given a multipolar distribution, compute the potential, the field and the field gradient at the target points using FMMs. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>ddx constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspace </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">multipoles</td><td>multipoles as real spherical harmonics, size ((mmax+1)**2,nsph) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">mmax</td><td>maximum angular momentum of the multipoles </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">phi_cav</td><td>electric potential at the target points, size (ncav) </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">e_cav</td><td>electric field at the target points, size(3, ncav) </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">g_cav</td><td>electric field gradient at the target points, size(3, 3, ncav) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00498">498</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -580,7 +664,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00496">496</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00734">734</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -640,7 +724,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00577">577</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00815">815</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -686,7 +770,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00613">613</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00851">851</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -751,7 +835,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00635">635</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00873">873</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -823,7 +907,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00713">713</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00951">951</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -890,7 +974,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00867">867</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l01105">1105</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -976,7 +1060,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00897">897</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l01135">1135</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -1043,7 +1127,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00950">950</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l01188">1188</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
@@ -1110,7 +1194,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l01059">1059</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l01297">1297</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>

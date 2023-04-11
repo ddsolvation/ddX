@@ -19,7 +19,7 @@ var searchData=
   ['ddintegrate_16',['ddintegrate',['../namespaceddx__core.html#a7c6ed3167dcc5edcd4efa59719858b72',1,'ddx_core']]],
   ['ddintegrate_5fsph_17',['ddintegrate_sph',['../namespaceddx__core.html#a5efc63bf55f6ee9b3f57e05129d06f3c',1,'ddx_core']]],
   ['ddintegrate_5fsph_5fwork_18',['ddintegrate_sph_work',['../namespaceddx__core.html#a61156a8a0aec479ea2071dd6d6922fb1',1,'ddx_core']]],
-  ['ddlpb_19',['ddlpb',['../namespaceddx__lpb.html#a58213eb3a37181abd15767a5fe576b71',1,'ddx_lpb']]],
+  ['ddlpb_19',['ddlpb',['../namespaceddx__lpb.html#a4861f0063a9d2a5a34047791eed02c47',1,'ddx_lpb']]],
   ['ddlpb_5fenergy_20',['ddlpb_energy',['../group___fortran__interface__ddlpb.html#gae6a311c69796cc676c576d376c0ee67f',1,'ddx_lpb']]],
   ['ddlpb_5fguess_21',['ddlpb_guess',['../group___fortran__interface__ddlpb.html#ga67c5dfac741012e2843b013bfb473124',1,'ddx_lpb']]],
   ['ddlpb_5fguess_5fadjoint_22',['ddlpb_guess_adjoint',['../group___fortran__interface__ddlpb.html#gab02c9e07f910f841cbd2ed63d2d2aedf',1,'ddx_lpb']]],

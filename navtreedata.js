@@ -101,8 +101,8 @@ var NAVTREEINDEX =
 "annotated.html",
 "group___fortran__interface__ddcosmo.html#ga7c10125a1107726da4c18e90d20dff1e",
 "namespaceddx__harmonics.html#a3e3bd6455b55865ee1829cd8addaad3c",
-"structddx__constants_1_1ddx__constants__type.html#a7d0520826e9c6979b3650ec1ecde2215",
-"structddx__workspace_1_1ddx__workspace__type.html#ab91e641fb9aa8760cc452c6f8dee2839"
+"structddx__constants_1_1ddx__constants__type.html#a7ca9ea1ae583782f9fd45d1d3c312edc",
+"structddx__workspace_1_1ddx__workspace__type.html#ab23c76a007bf0b80ff21dc2d465a3ab0"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

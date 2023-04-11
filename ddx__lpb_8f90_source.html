@@ -103,8 +103,8 @@ $(document).ready(function(){initNavTree('ddx__lpb_8f90_source.html',''); initRe
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="keyword">contains</span></div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="namespaceddx__lpb.html#a58213eb3a37181abd15767a5fe576b71">   38</a></span><span class="keyword">subroutine </span>ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &amp;</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        &amp; hessianphi_cav, psi, tol, esolv, force)</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="namespaceddx__lpb.html#a4861f0063a9d2a5a34047791eed02c47">   38</a></span><span class="keyword">subroutine </span>ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &amp;</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        &amp; psi, tol, esolv, hessianphi_cav, force)</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keywordtype">implicit none</span></div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(inout)</span> :: constants</div>
@@ -112,49 +112,49 @@ $(document).ready(function(){initNavTree('ddx__lpb_8f90_source.html',''); initRe
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: phi_cav(constants % ncav), &amp;</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>        &amp; gradphi_cav(3, constants % ncav), &amp;</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>        &amp; hessianphi_cav(3, 3, constants % ncav), &amp;</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        &amp; psi( constants % nbasis,  params % nsph), tol</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keywordtype">real(dp)</span>, <span class="keywordtype">intent(out)</span> :: esolv, force(3, params % nsph)</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">ddlpb_setup</a>(params, constants, workspace, state, phi_cav, &amp;</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        &amp; gradphi_cav, psi)</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keywordflow">if</span> (workspace % error_flag .eq. 1) <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#ga67c5dfac741012e2843b013bfb473124">ddlpb_guess</a>(params, constants, workspace, state, tol)</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keywordflow">if</span> (workspace % error_flag .eq. 1) <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#gab9ab6f364ac3f17a7738936a54f89dad">ddlpb_solve</a>(params, constants, workspace, state, tol)</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="keywordflow">if</span> (workspace % error_flag .eq. 1) <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="comment">! Compute the solvation energy</span></div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#gae6a311c69796cc676c576d376c0ee67f">ddlpb_energy</a>(constants, state, esolv)</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="comment">! Get forces if needed</span></div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="keywordflow">if</span>(params % force .eq. 1) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>        <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#gab02c9e07f910f841cbd2ed63d2d2aedf">ddlpb_guess_adjoint</a>(params, constants, workspace, state, tol)</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        <span class="keywordflow">if</span> (workspace % error_flag .eq. 1) <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#gaa23bd2b57bd92b0a641e0cde2b4d2e43">ddlpb_solve_adjoint</a>(params, constants, workspace, state, tol)</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        <span class="keywordflow">if</span> (workspace % error_flag .eq. 1) <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        <span class="comment">! TODO: (if easy) remove hessianphi_cav</span></div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        <span class="keyword">call </span>ddlpb_solvation_force_terms(params, constants, workspace, &amp;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>            &amp; state, hessianphi_cav, force)</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        <span class="keywordflow">if</span> (workspace % error_flag .eq. 1) <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="keywordflow">    endif</span></div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="keyword">end subroutine </span>ddlpb</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">   88</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">ddlpb_setup</a>(params, constants, workspace, state, phi_cav, &amp;</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        &amp; gradphi_cav, psi)</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(inout)</span> :: constants</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: phi_cav(constants % ncav)</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: gradphi_cav(3, constants % ncav)</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: psi(constants % nbasis, params % nsph)</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    state % psi = psi</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    state % rhs_adj_lpb(:, :, 1) = psi</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    <span class="comment">! state % rhs_adj_lpb(:, :, 1) = psi/fourpi</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>        &amp; psi( constants % nbasis,  params % nsph), tol</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keywordtype">real(dp)</span>, <span class="keywordtype">intent(out)</span> :: esolv</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span>, <span class="keywordtype">optional</span> :: force(3, params % nsph)</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span>, <span class="keywordtype">optional</span> :: hessianphi_cav(3, 3, constants % ncav)</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">ddlpb_setup</a>(params, constants, workspace, state, phi_cav, &amp;</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        &amp; gradphi_cav, psi)</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keywordflow">if</span> (workspace % error_flag .eq. 1) <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#ga67c5dfac741012e2843b013bfb473124">ddlpb_guess</a>(params, constants, workspace, state, tol)</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keywordflow">if</span> (workspace % error_flag .eq. 1) <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#gab9ab6f364ac3f17a7738936a54f89dad">ddlpb_solve</a>(params, constants, workspace, state, tol)</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <span class="keywordflow">if</span> (workspace % error_flag .eq. 1) <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="comment">! Compute the solvation energy</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#gae6a311c69796cc676c576d376c0ee67f">ddlpb_energy</a>(constants, state, esolv)</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span> </div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="comment">! Get forces if needed</span></div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <span class="keywordflow">if</span>(params % force .eq. 1) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#gab02c9e07f910f841cbd2ed63d2d2aedf">ddlpb_guess_adjoint</a>(params, constants, workspace, state, tol)</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        <span class="keywordflow">if</span> (workspace % error_flag .eq. 1) <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#gaa23bd2b57bd92b0a641e0cde2b4d2e43">ddlpb_solve_adjoint</a>(params, constants, workspace, state, tol)</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        <span class="keywordflow">if</span> (workspace % error_flag .eq. 1) <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        <span class="comment">! TODO: (if easy) remove hessianphi_cav</span></div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        <span class="keyword">call </span>ddlpb_solvation_force_terms(params, constants, workspace, &amp;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>            &amp; state, hessianphi_cav, force)</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        <span class="keywordflow">if</span> (workspace % error_flag .eq. 1) <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="keywordflow">    endif</span></div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="keyword">end subroutine </span>ddlpb</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">   89</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">ddlpb_setup</a>(params, constants, workspace, state, phi_cav, &amp;</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>        &amp; gradphi_cav, psi)</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(inout)</span> :: constants</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: phi_cav(constants % ncav)</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: gradphi_cav(3, constants % ncav)</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: psi(constants % nbasis, params % nsph)</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    state % psi = psi</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    state % rhs_adj_lpb(:, :, 1) = psi</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    state % rhs_adj_lpb(:, :, 2) = 0.0d0</div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span> </div>
 <div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    <span class="comment">!! Setting initial values to zero</span></div>
@@ -459,7 +459,7 @@ $(document).ready(function(){initNavTree('ddx__lpb_8f90_source.html',''); initRe
 <div class="line"><a id="l00446" name="l00446"></a><span class="lineno">  446</span><span class="keyword">end subroutine </span>ddlpb_solvation_force_terms</div>
 <div class="line"><a id="l00447" name="l00447"></a><span class="lineno">  447</span> </div>
 <div class="line"><a id="l00448" name="l00448"></a><span class="lineno">  448</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx__lpb.html">ddx_lpb</a></div>
-<div class="ttc" id="agroup___fortran__interface__ddlpb_html_ga05cc79e6f40f450b6ce4bc398b5fc9ad"><div class="ttname"><a href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">ddx_lpb::ddlpb_setup</a></div><div class="ttdeci">subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, gradphi_cav, psi)</div><div class="ttdoc">Given the potential and the electric field at the cavity points, assemble the RHS for ddLPB.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__lpb_8f90_source.html#l00088">ddx_lpb.f90:90</a></div></div>
+<div class="ttc" id="agroup___fortran__interface__ddlpb_html_ga05cc79e6f40f450b6ce4bc398b5fc9ad"><div class="ttname"><a href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">ddx_lpb::ddlpb_setup</a></div><div class="ttdeci">subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, gradphi_cav, psi)</div><div class="ttdoc">Given the potential and the electric field at the cavity points, assemble the RHS for ddLPB.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__lpb_8f90_source.html#l00089">ddx_lpb.f90:91</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__ddlpb_html_ga67c5dfac741012e2843b013bfb473124"><div class="ttname"><a href="group___fortran__interface__ddlpb.html#ga67c5dfac741012e2843b013bfb473124">ddx_lpb::ddlpb_guess</a></div><div class="ttdeci">subroutine ddlpb_guess(params, constants, workspace, state, tol)</div><div class="ttdoc">Do a guess for the primal ddLPB linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__lpb_8f90_source.html#l00167">ddx_lpb.f90:168</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__ddlpb_html_gaa23bd2b57bd92b0a641e0cde2b4d2e43"><div class="ttname"><a href="group___fortran__interface__ddlpb.html#gaa23bd2b57bd92b0a641e0cde2b4d2e43">ddx_lpb::ddlpb_solve_adjoint</a></div><div class="ttdeci">subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)</div><div class="ttdoc">Solve the adjoint ddLPB linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__lpb_8f90_source.html#l00262">ddx_lpb.f90:263</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__ddlpb_html_gab02c9e07f910f841cbd2ed63d2d2aedf"><div class="ttname"><a href="group___fortran__interface__ddlpb.html#gab02c9e07f910f841cbd2ed63d2d2aedf">ddx_lpb::ddlpb_guess_adjoint</a></div><div class="ttdeci">subroutine ddlpb_guess_adjoint(params, constants, workspace, state, tol)</div><div class="ttdoc">Do a guess for the adjoint ddLPB linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__lpb_8f90_source.html#l00195">ddx_lpb.f90:196</a></div></div>
