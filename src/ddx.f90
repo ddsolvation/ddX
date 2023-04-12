@@ -27,20 +27,20 @@ contains
 !!
 !! @param[in] ddx_data: ddX object with all input information
 !! @param[in] phi_cav: Potential at cavity points
-!! @param[in] gradphi_cav: Gradient of the eletric potential at cavity points
+!! @param[in] e_cav: Gradient of the eletric potential at cavity points
 !! @param[in] hessianphi_cav: Hessian of the eletric potential at cavity points
 !! @param[inout] state: ddx state (contains RHSs and solutions)
 !! @param[in] psi: RHS of the adjoint problem
 !! @param[in] tol
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
-subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, &
+subroutine ddsolve(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
         & psi, tol, esolv, force)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
-        & gradphi_cav(3, ddx_data % constants % ncav), &
+        & e_cav(3, ddx_data % constants % ncav), &
         & hessianphi_cav(3, ddx_data % constants % ncav), &
         & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
     ! Outputs
@@ -60,7 +60,7 @@ subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, &
         ! LPB model
         case (3)
             call ddlpb(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, state, phi_cav, gradphi_cav, &
+                & ddx_data % workspace, state, phi_cav, e_cav, &
                 & psi, tol, esolv, hessianphi_cav, force)
         ! Error case
         case default

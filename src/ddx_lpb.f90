@@ -28,14 +28,14 @@ contains
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] phi_cav: Potential at cavity points, size (ncav)
-!! @params[in] gradphi_cav: Electric field at cavity points, size (3, ncav)
+!! @params[in] e_cav: Electric field at cavity points, size (3, ncav)
 !! @param[in] psi: Representation of the solute potential in spherical
 !!     harmonics, size (nbasis, nsph)
 !! @param[in] tol: Tolerance for the linear system solver
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Solvation contribution to the forces
 !!
-subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
+subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
         & psi, tol, esolv, hessianphi_cav, force)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -43,14 +43,14 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, gradphi_cav, &
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_cav(constants % ncav), &
-        & gradphi_cav(3, constants % ncav), &
+        & e_cav(3, constants % ncav), &
         & psi( constants % nbasis,  params % nsph), tol
     real(dp), intent(out) :: esolv
     real(dp), intent(out), optional :: force(3, params % nsph)
     real(dp), intent(in), optional :: hessianphi_cav(3, 3, constants % ncav)
 
     call ddlpb_setup(params, constants, workspace, state, phi_cav, &
-        & gradphi_cav, psi)
+        & e_cav, psi)
     if (workspace % error_flag .eq. 1) return
     call ddlpb_guess(params, constants, workspace, state, tol)
     if (workspace % error_flag .eq. 1) return
@@ -83,18 +83,18 @@ end subroutine ddlpb
 !! @param[inout] workspace: ddx workspace
 !! @param[inout] state: ddx state
 !! @param[in] phi_cav: electrostatic potential at the cavity points
-!! @param[in] gradphi_cav: electrostatic field at the cavity points
+!! @param[in] e_cav: electrostatic field at the cavity points
 !! @param[in] psi: representation of the solute density
 !!
 subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
-        & gradphi_cav, psi)
+        & e_cav, psi)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: phi_cav(constants % ncav)
-    real(dp), intent(in) :: gradphi_cav(3, constants % ncav)
+    real(dp), intent(in) :: e_cav(3, constants % ncav)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
 
     state % psi = psi
@@ -118,11 +118,11 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
         & workspace % tmp_grid)
     state % g_lpb = - workspace % tmp_grid
 
-    ! store gradphi_cav for later use in the forces
-    state % gradphi_cav = gradphi_cav
+    ! store the gradient of the potential (- electric field)
+    state % gradphi_cav = - e_cav
 
     ! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
-    call wghpot_f(params, constants, workspace, gradphi_cav, state % f_lpb)
+    call wghpot_f(params, constants, workspace, state % gradphi_cav, state % f_lpb)
 
     ! Setting of the local variables
     state % rhs_lpb = zero

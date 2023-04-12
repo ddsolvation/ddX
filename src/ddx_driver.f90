@@ -192,7 +192,7 @@ else if (ddx_data % params % model .eq. 2) then
         & ddx_data % workspace, state, tol)
 else if (ddx_data % params % model .eq. 3) then
     call ddlpb_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, -e_cav, psi)
+        & ddx_data % workspace, state, phi_cav, e_cav, psi)
     call ddlpb_guess(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, tol)
     call ddlpb_solve(ddx_data % params, ddx_data % constants, &
