@@ -99,6 +99,12 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
 
     state % psi = psi
     state % rhs_adj_lpb(:, :, 1) = psi
+    ! in ddLPB the polarization density X is expanded according to a
+    ! slightly different definition which lacks the 4pi/(2l + 1) factors
+    ! which are present in ddCOSMO and ddPCM. This affect the adjoint
+    ! density as well. To have a consistent adjoint density with ddCOSMO
+    ! and ddPCM, we have to scale the RHS.
+    call convert_ddcosmo(params, constants, -1, state % rhs_adj_lpb(:,:,1))
     state % rhs_adj_lpb(:, :, 2) = 0.0d0
 
     !! Setting initial values to zero
@@ -151,7 +157,6 @@ subroutine ddlpb_energy(constants, state, esolv)
     type(ddx_state_type), intent(in) :: state
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
-    ! TODO: sort once and for all the fourpi issue
     esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, state % psi, 1)
 end subroutine ddlpb_energy
 
@@ -179,7 +184,6 @@ subroutine ddlpb_guess(params, constants, workspace, state, tol)
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
     call prec_tx(params, constants, workspace, state % rhs_lpb, state % x_lpb)
-    state % x_lpb = state % x_lpb / fourpi
 
 end subroutine ddlpb_guess
 
@@ -209,7 +213,6 @@ subroutine ddlpb_guess_adjoint(params, constants, workspace, state, tol)
     call prec_tstarx(params, constants, workspace, state % rhs_adj_lpb, &
         & state % x_adj_lpb)
 
-    state % x_adj_lpb = state % x_adj_lpb / fourpi
 end subroutine ddlpb_guess_adjoint
 
 !> Solve the ddLPB primal linear system
@@ -231,7 +234,6 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol)
     real(dp) :: start_time
 
     state % x_lpb_niter = params % maxiter
-    state % x_lpb = state % x_lpb * fourpi
 
     ! solve LS using Jacobi/DIIS
     start_time = omp_get_wtime()
@@ -244,9 +246,12 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol)
         return
     end if
     state % x_lpb_time = omp_get_wtime() - start_time
-    ! the integral operators of ddLPB are defined according to a
-    ! different convention, so we need to scale the density by 1/fourpi
-    state % x_lpb = state % x_lpb / fourpi
+    ! in ddLPB the polarization density X is expanded according to a
+    ! slightly different definition which lacks the 4pi/(2l + 1) factors
+    ! which are present in ddCOSMO and ddPCM. Before exiting, we scale
+    ! the density so that it is consistent with the ddCOSMO and ddPCM
+    ! ones.
+    call convert_ddcosmo(params, constants, -1, state % x_lpb(:,:,1))
 end subroutine ddlpb_solve
 
 
@@ -272,8 +277,6 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
     state % x_adj_lpb_niter = params % maxiter
     constants % inner_tol = sqrt(tol)
 
-    state % x_adj_lpb = state % x_adj_lpb * fourpi
-
     ! solve adjoint LS using Jacobi/DIIS
     start_time = omp_get_wtime()
     call jacobi_diis_external(params, constants, workspace, &
@@ -286,10 +289,7 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
         return
     end if
     state % x_adj_lpb_time = omp_get_wtime() - start_time
-    ! the integral operators of ddLPB are defined according to a
-    ! different convention, so we need to scale the adjoint density
-    ! by 1/fourpi
-    state % x_adj_lpb = state % x_adj_lpb / fourpi
+
 end subroutine ddlpb_solve_adjoint
 
 !!
@@ -340,7 +340,8 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
         return
     end if
 
-    state % x_lpb = state % x_lpb * fourpi
+    ! we have to insert again the factor that we removed in ddlpb_solve
+    call convert_ddcosmo(params, constants, 1, state % x_lpb(:, :, 1))
 
     diff_re = zero
     vsin = zero
@@ -440,8 +441,9 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     finish_time = omp_get_wtime()
     state % force_time = finish_time - start_time
 
-    ! restore x_lpb
-    state % x_lpb = state % x_lpb / fourpi
+    ! and now we remove again the factor, so that the density is
+    ! restored.
+    call convert_ddcosmo(params, constants, -1, state % x_lpb(:, :, 1))
 
 end subroutine ddlpb_solvation_force_terms
 
