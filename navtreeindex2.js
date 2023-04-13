@@ -66,7 +66,7 @@ var NAVTREEINDEX2 =
 "namespaceddx__harmonics.html#afcb1b1e24d6d54835de05360bedad809":[10,0,6,19],
 "namespaceddx__harmonics.html#afd618bb64bfc86a7e3d6e30b846e8827":[10,0,6,49],
 "namespaceddx__lpb.html":[10,0,7],
-"namespaceddx__lpb.html#a4861f0063a9d2a5a34047791eed02c47":[10,0,7,0],
+"namespaceddx__lpb.html#aac167c6639e7b2f26cdb3533a6f03285":[10,0,7,0],
 "namespaceddx__lpb__core.html":[10,0,8],
 "namespaceddx__lpb__core.html#a0891fee1cda023a5caa40c8cf56a3a5e":[10,0,8,5],
 "namespaceddx__lpb__core.html#a151ae692cadf8e005a780c7fe2b32244":[10,0,8,1],

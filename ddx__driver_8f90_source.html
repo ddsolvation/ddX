@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.3.0</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.0</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -275,7 +275,7 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>        &amp; ddx_data % workspace, state, tol)</div>
 <div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span><span class="keywordflow">else</span> <span class="keywordflow">if</span> (ddx_data % params % model .eq. 3) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    <span class="keyword">call </span>ddlpb_setup(ddx_data % params, ddx_data % constants, &amp;</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>        &amp; ddx_data % workspace, state, phi_cav, -e_cav, psi)</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>        &amp; ddx_data % workspace, state, phi_cav, e_cav, psi)</div>
 <div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    <span class="keyword">call </span>ddlpb_guess(ddx_data % params, ddx_data % constants, &amp;</div>
 <div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>        &amp; ddx_data % workspace, state, tol)</div>
 <div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    <span class="keyword">call </span>ddlpb_solve(ddx_data % params, ddx_data % constants, &amp;</div>

@@ -1,7 +1,7 @@
 var namespaces_dup =
 [
     [ "ddx", "namespaceddx.html", [
-      [ "ddsolve", "namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c", null ]
+      [ "ddsolve", "namespaceddx.html#a2d0e047acc68a39b19f23a2930f181a5", null ]
     ] ],
     [ "ddx_constants", "namespaceddx__constants.html", "namespaceddx__constants" ],
     [ "ddx_core", "namespaceddx__core.html", "namespaceddx__core" ],
@@ -126,8 +126,8 @@ var namespaces_dup =
       [ "fmm_m2l_rotation_adj_work", "namespaceddx__harmonics.html#abbb798594959e90b6d60588e88a7a12e", null ]
     ] ],
     [ "ddx_lpb", "namespaceddx__lpb.html", [
-      [ "ddlpb", "namespaceddx__lpb.html#a4861f0063a9d2a5a34047791eed02c47", null ],
-      [ "ddlpb_setup", "group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad", null ],
+      [ "ddlpb", "namespaceddx__lpb.html#aac167c6639e7b2f26cdb3533a6f03285", null ],
+      [ "ddlpb_setup", "group___fortran__interface__ddlpb.html#gaa884b2e786a1b548e86a596c687ba936", null ],
       [ "ddlpb_energy", "group___fortran__interface__ddlpb.html#gae6a311c69796cc676c576d376c0ee67f", null ],
       [ "ddlpb_guess", "group___fortran__interface__ddlpb.html#ga67c5dfac741012e2843b013bfb473124", null ],
       [ "ddlpb_guess_adjoint", "group___fortran__interface__ddlpb.html#gab02c9e07f910f841cbd2ed63d2d2aedf", null ],

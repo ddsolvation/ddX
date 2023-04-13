@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.3.0</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.0</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -98,9 +98,9 @@ $(document).ready(function(){initNavTree('group___fortran__interface__ddlpb.html
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:ga05cc79e6f40f450b6ce4bc398b5fc9ad"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">ddx_lpb::ddlpb_setup</a> (params, constants, workspace, state, phi_cav, gradphi_cav, psi)</td></tr>
-<tr class="memdesc:ga05cc79e6f40f450b6ce4bc398b5fc9ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given the potential and the electric field at the cavity points, assemble the RHS for ddLPB.  <a href="group___fortran__interface__ddlpb.html#ga05cc79e6f40f450b6ce4bc398b5fc9ad">More...</a><br /></td></tr>
-<tr class="separator:ga05cc79e6f40f450b6ce4bc398b5fc9ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa884b2e786a1b548e86a596c687ba936"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#gaa884b2e786a1b548e86a596c687ba936">ddx_lpb::ddlpb_setup</a> (params, constants, workspace, state, phi_cav, e_cav, psi)</td></tr>
+<tr class="memdesc:gaa884b2e786a1b548e86a596c687ba936"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given the potential and the electric field at the cavity points, assemble the RHS for ddLPB.  <a href="group___fortran__interface__ddlpb.html#gaa884b2e786a1b548e86a596c687ba936">More...</a><br /></td></tr>
+<tr class="separator:gaa884b2e786a1b548e86a596c687ba936"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae6a311c69796cc676c576d376c0ee67f"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#gae6a311c69796cc676c576d376c0ee67f">ddx_lpb::ddlpb_energy</a> (constants, state, esolv)</td></tr>
 <tr class="memdesc:gae6a311c69796cc676c576d376c0ee67f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the ddLPB energy.  <a href="group___fortran__interface__ddlpb.html#gae6a311c69796cc676c576d376c0ee67f">More...</a><br /></td></tr>
 <tr class="separator:gae6a311c69796cc676c576d376c0ee67f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -119,8 +119,8 @@ Functions/Subroutines</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="ga05cc79e6f40f450b6ce4bc398b5fc9ad" name="ga05cc79e6f40f450b6ce4bc398b5fc9ad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga05cc79e6f40f450b6ce4bc398b5fc9ad">&#9670;&nbsp;</a></span>ddlpb_setup()</h2>
+<a id="gaa884b2e786a1b548e86a596c687ba936" name="gaa884b2e786a1b548e86a596c687ba936"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa884b2e786a1b548e86a596c687ba936">&#9670;&nbsp;</a></span>ddlpb_setup()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -159,7 +159,7 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>gradphi_cav</em>, </td>
+          <td class="paramname"><em>e_cav</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -183,7 +183,7 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspace </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">phi_cav</td><td>electrostatic potential at the cavity points </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">gradphi_cav</td><td>electrostatic field at the cavity points </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">e_cav</td><td>electrostatic field at the cavity points </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">psi</td><td>representation of the solute density </td></tr>
   </table>
   </dd>

@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.3.0</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.0</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -106,13 +106,13 @@ $(document).ready(function(){initNavTree('ddx_8f90_source.html',''); initResizab
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">contains</span></div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c">   37</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c">ddsolve</a>(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, &amp;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="namespaceddx.html#a2d0e047acc68a39b19f23a2930f181a5">   37</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx.html#a2d0e047acc68a39b19f23a2930f181a5">ddsolve</a>(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &amp;</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>        &amp; psi, tol, esolv, force)</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="comment">! Inputs</span></div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keywordtype">type</span>(ddx_type), <span class="keywordtype">intent(inout)</span> :: ddx_data</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: phi_cav(ddx_data % constants % ncav), &amp;</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>        &amp; gradphi_cav(3, ddx_data % constants % ncav), &amp;</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>        &amp; e_cav(3, ddx_data % constants % ncav), &amp;</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>        &amp; hessianphi_cav(3, ddx_data % constants % ncav), &amp;</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>        &amp; psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="comment">! Outputs</span></div>
@@ -132,7 +132,7 @@ $(document).ready(function(){initNavTree('ddx_8f90_source.html',''); initResizab
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        <span class="comment">! LPB model</span></div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        <span class="keywordflow">case</span> (3)</div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>            <span class="keyword">call </span>ddlpb(ddx_data % params, ddx_data % constants, &amp;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>                &amp; ddx_data % workspace, state, phi_cav, gradphi_cav, &amp;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>                &amp; ddx_data % workspace, state, phi_cav, e_cav, &amp;</div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>                &amp; psi, tol, esolv, hessianphi_cav, force)</div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        <span class="comment">! Error case</span></div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="keywordflow">        case default</span></div>
@@ -141,7 +141,7 @@ $(document).ready(function(){initNavTree('ddx_8f90_source.html',''); initResizab
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>                &amp; <span class="stringliteral">&quot; model in the dd solver.&quot;</span></div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>            <span class="keywordflow">return</span></div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="keywordflow">    end select</span></div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c">ddsolve</a></div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx.html#a2d0e047acc68a39b19f23a2930f181a5">ddsolve</a></div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx.html">ddx</a></div>
 <div class="ttc" id="agroup___fortran__interface__ddcosmo_html_ga7c83eee1200de86e45846ae434a5236a"><div class="ttname"><a href="group___fortran__interface__ddcosmo.html#ga7c83eee1200de86e45846ae434a5236a">ddx_cosmo::ddcosmo</a></div><div class="ttdeci">subroutine ddcosmo(params, constants, workspace, state, phi_cav, psi, tol, esolv, force)</div><div class="ttdoc">ddCOSMO solver</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00040">ddx_cosmo.f90:42</a></div></div>
@@ -150,7 +150,7 @@ $(document).ready(function(){initNavTree('ddx_8f90_source.html',''); initResizab
 <div class="ttc" id="anamespaceddx__lpb_html"><div class="ttname"><a href="namespaceddx__lpb.html">ddx_lpb</a></div><div class="ttdoc">High-level subroutines for ddlpb.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__lpb_8f90_source.html#l00013">ddx_lpb.f90:13</a></div></div>
 <div class="ttc" id="anamespaceddx__pcm_html"><div class="ttname"><a href="namespaceddx__pcm.html">ddx_pcm</a></div><div class="ttdoc">High-level subroutines for ddpcm.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00013">ddx_pcm.f90:13</a></div></div>
 <div class="ttc" id="anamespaceddx_html"><div class="ttname"><a href="namespaceddx.html">ddx</a></div><div class="ttdoc">High-level module of the ddX software.</div><div class="ttdef"><b>Definition:</b> <a href="ddx_8f90_source.html#l00013">ddx.f90:13</a></div></div>
-<div class="ttc" id="anamespaceddx_html_a0c17f050d226f836e5128a5b9a0e297c"><div class="ttname"><a href="namespaceddx.html#a0c17f050d226f836e5128a5b9a0e297c">ddx::ddsolve</a></div><div class="ttdeci">subroutine ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, force)</div><div class="ttdoc">Main solver routine.</div><div class="ttdef"><b>Definition:</b> <a href="ddx_8f90_source.html#l00037">ddx.f90:39</a></div></div>
+<div class="ttc" id="anamespaceddx_html_a2d0e047acc68a39b19f23a2930f181a5"><div class="ttname"><a href="namespaceddx.html#a2d0e047acc68a39b19f23a2930f181a5">ddx::ddsolve</a></div><div class="ttdeci">subroutine ddsolve(ddx_data, state, phi_cav, e_cav, hessianphi_cav, psi, tol, esolv, force)</div><div class="ttdoc">Main solver routine.</div><div class="ttdef"><b>Definition:</b> <a href="ddx_8f90_source.html#l00037">ddx.f90:39</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
