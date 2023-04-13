@@ -337,14 +337,8 @@ class State {
                               std::to_string(model()->n_cav()) + ").");
       }
 
-      // ddx_lpb_setup needs gradphi = -e_cav
-      array_f_t gradphi(std::vector<ssize_t>{{elec_field.shape(0), elec_field.shape(1)}});
-      for (ssize_t i = 0; i < elec_field.size(); ++i) {
-        gradphi.mutable_data()[i] = -elec_field.data()[i];
-      }
-
       ddx_lpb_setup(model()->holder(), holder(), model()->n_cav(), model()->n_basis(),
-                    model()->n_spheres(), psi.data(), phi.data(), gradphi.data());
+                    model()->n_spheres(), psi.data(), phi.data(), elec_field.data());
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
