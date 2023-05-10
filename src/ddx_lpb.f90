@@ -290,6 +290,8 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
     end if
     state % x_adj_lpb_time = omp_get_wtime() - start_time
 
+    state % q = state % x_adj_lpb(:, :, 1)
+
 end subroutine ddlpb_solve_adjoint
 
 !!

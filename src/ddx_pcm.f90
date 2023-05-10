@@ -247,6 +247,9 @@ subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol)
         return
     end if
 
+    ! compute the real adjoint solution and store it in Q
+    state % q = state % s - fourpi/(params % eps - one)*state % y
+
 end subroutine ddpcm_solve_adjoint
 
 !> Compute the solvation contribution to the ddPCM forces
@@ -284,7 +287,6 @@ subroutine ddpcm_solvation_force_terms(params, constants, workspace, &
         & state % y, constants % nbasis, zero, state % ygrid, params % ngrid)
 
     state % g = - (state % phieps - state % phi)
-    state % q = state % s - fourpi/(params % eps - one)*state % y
     state % qgrid = state % sgrid - fourpi/(params % eps - one)*state % ygrid
 
     call gradr(params, constants, workspace, state % g, state % ygrid, force)

@@ -337,6 +337,14 @@ subroutine ddx_init_state(params, constants, state)
         state % error_message = "ddinit: `gradphi_cav` allocation failed"
         return
     end if
+    allocate(state % q(constants % nbasis, &
+        & params % nsph), stat=istatus)
+    if (istatus .ne. 0) then
+        state % error_flag = 1
+        state % error_message = "ddinit: `q` " // &
+            & "allocation failed"
+        return
+    end if
 
     ! COSMO model
     if (params % model .eq. 1) then
@@ -514,14 +522,6 @@ subroutine ddx_init_state(params, constants, state)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "ddinit: `g` " // &
-                & "allocation failed"
-            return
-        end if
-        allocate(state % q(constants % nbasis, &
-            & params % nsph), stat=istatus)
-        if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "ddinit: `q` " // &
                 & "allocation failed"
             return
         end if

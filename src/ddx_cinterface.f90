@@ -509,12 +509,7 @@ subroutine ddx_get_xi(c_state, c_ddx, ncav, xi) bind(C)
     real(c_double), intent(out)  :: xi(ncav)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    if (allocated(state%x_adj_lpb)) then  ! Case for ddLPB
-        ! Use only the first of the two solutions
-        call ddproject_cav(ddx%params, ddx%constants, state%x_adj_lpb(:, :, 1), xi)
-    else
-        call ddproject_cav(ddx%params, ddx%constants, state%s, xi)
-    endif
+    call ddproject_cav(ddx%params, ddx%constants, state%q, xi)
 end subroutine
 
 

@@ -205,6 +205,8 @@ subroutine ddcosmo_solve_adjoint(params, constants, workspace, state, tol)
     finish_time = omp_get_wtime()
     state % s_time = finish_time - start_time
 
+    state % q = state % s
+
 end subroutine ddcosmo_solve_adjoint
 
 !> Compute the solvation term of the forces (solute aspecific). This must
