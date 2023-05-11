@@ -1619,6 +1619,7 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
         return
     end if
 
+
     ! Intial allocation of vectors
     sum_int = zero
     phi_n = zero
@@ -1631,123 +1632,123 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
     SK_rijn = zero
     DK_rijn = zero
 
-    if (params % fmm .eq. 0) then
-        allocate(coefY_d(constants % ncav, params % ngrid, params % nsph), &
-            & stat=istat)
-        if (istat.ne.0) then
-            workspace % error_flag = 1
-            workspace % error_message = "allocation error in fmm ddx_grad_f_worker2"
-            return
-        end if
-        coefY_d = zero
-        ! Compute  summation over l0, m0
-        ! Loop over the sphers j
-        do jsph = 1, params % nsph
-          ! Loop over the grid points n0
-          do igrid0 = 1, params % ngrid
-            icav = zero
-            ! Loop over spheres i
-            do isph = 1, params % nsph
-              ! Loop over grid points n
-              do igrid = 1, params % ngrid
-                ! Check for U_i^{eta}(x_in)
-                if(constants % ui(igrid, isph) .gt. zero) then
-                  icav = icav + 1
-                  vij  = params % csph(:,isph) + &
-                         & params % rsph(isph)*constants % cgrid(:,igrid) - &
-                         & params % csph(:,jsph)
-                  rijn = sqrt(dot_product(vij,vij))
-                  sij = vij/rijn
-                  ! Loop over l0
-                  do l0 = 0, constants % lmax0
-      !              term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
-                    ! Loop over m0
-                    do m0 = -l0,l0
-                      ind0 = l0**2 + l0 + m0 + 1
-                      coef(ind0) = constants % vgrid(ind0, igrid0) * &
-                          & constants % C_ik(l0, jsph)
-                    end do ! End of loop m0
-                  end do! End of loop l0
-                  vtij = vij*params % kappa
-                  call fmm_m2p_bessel_work(vtij, constants % lmax0, &
-                      & constants % vscales, constants % SK_ri(:, jsph), one, &
-                      & coef, zero, coefY_d(icav, igrid0, jsph), work_complex, work)
-                end if
-              end do ! End of loop igrid
-            end do! End of loop isph
-          end do ! End of loop igrid0
-        end do ! End of loop jsph
-        ! Compute phi_in
-        ! Loop over spheres j
-        do jsph = 1, params % nsph
-          ! Loop over grid points n0
-          do igrid0 = 1, params % ngrid
-            icav = zero
-            sum_int = zero
-            ! Loop over sphers i
-            do isph = 1, params % nsph
-              ! Loop over grid points n
-              do igrid = 1, params % ngrid
-                if(constants % ui(igrid, isph) .gt. zero) then
-                  icav = icav + 1
-                  sum_int = sum_int + coefY_d(icav, igrid0, jsph)*sol_sgrid(igrid, isph) &
-                          & * constants % wgrid(igrid)*constants % ui(igrid, isph)
-                end if
-              end do
-            end do
-            phi_n(igrid0, jsph) = -(params % epsp/params % eps)*sum_int
-          end do! End of loop j
-        end do ! End of loop igrid
-    else
-        ! Adjoint integration from spherical harmonics to grid points is not needed
-        ! here as ygrid already contains grid values, we just need to scale it by
-        ! weights of grid points
-        do isph = 1, params % nsph
-            workspace % tmp_grid(:, isph) = sol_sgrid(:, isph) * &
-                & constants % wgrid(:) * constants % ui(:, isph)
-        end do
-        ! Adjoint FMM
-        call tree_m2p_bessel_adj(params, constants, constants % lmax0, one, &
-            & workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
-        call tree_l2p_bessel_adj(params, constants, one, workspace % tmp_grid, &
-            & zero, workspace % tmp_node_l)
-        call tree_l2l_bessel_rotation_adj(params, constants, &
-            & workspace % tmp_node_l)
-        call tree_m2l_bessel_rotation_adj(params, constants, &
-            & workspace % tmp_node_l, workspace % tmp_node_m)
-        call tree_m2m_bessel_rotation_adj(params, constants, &
-            & workspace % tmp_node_m)
-        ! Properly load adjoint multipole harmonics into tmp_sph
-        if(constants % lmax0 .lt. params % pm) then
-            do isph = 1, params % nsph
-                inode = constants % snode(isph)
-                workspace % tmp_sph(1:constants % nbasis0, isph) = &
-                    & workspace % tmp_sph(1:constants % nbasis0, isph) + &
-                    & workspace % tmp_node_m(1:constants % nbasis0, inode)
-            end do
-        else
-            indl = (params % pm+1)**2
-            do isph = 1, params % nsph
-                inode = constants % snode(isph)
-                workspace % tmp_sph(1:indl, isph) = &
-                    & workspace % tmp_sph(1:indl, isph) + &
-                    & workspace % tmp_node_m(:, inode)
-            end do
-        end if
-        ! Scale by C_ik
-        do isph = 1, params % nsph
-            do l0 = 0, constants % lmax0
-                ind0 = l0*l0 + l0 + 1
-                workspace % tmp_sph(ind0-l0:ind0+l0, isph) = &
-                    & workspace % tmp_sph(ind0-l0:ind0+l0, isph) * &
-                    & constants % C_ik(l0, isph)
-            end do
-        end do
-        ! Multiply by vgrid
-        call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis0, &
-            & -params % epsp/params % eps, constants % vgrid, constants % vgrid_nbasis, &
-            & workspace % tmp_sph, constants % nbasis, zero, phi_n, params % ngrid)
-    end if
+    !if (params % fmm .eq. 0) then
+    !    allocate(coefY_d(constants % ncav, params % ngrid, params % nsph), &
+    !        & stat=istat)
+    !    if (istat.ne.0) then
+    !        workspace % error_flag = 1
+    !        workspace % error_message = "allocation error in fmm ddx_grad_f_worker2"
+    !        return
+    !    end if
+    !    coefY_d = zero
+    !    ! Compute  summation over l0, m0
+    !    ! Loop over the sphers j
+    !    do jsph = 1, params % nsph
+    !      ! Loop over the grid points n0
+    !      do igrid0 = 1, params % ngrid
+    !        icav = zero
+    !        ! Loop over spheres i
+    !        do isph = 1, params % nsph
+    !          ! Loop over grid points n
+    !          do igrid = 1, params % ngrid
+    !            ! Check for U_i^{eta}(x_in)
+    !            if(constants % ui(igrid, isph) .gt. zero) then
+    !              icav = icav + 1
+    !              vij  = params % csph(:,isph) + &
+    !                     & params % rsph(isph)*constants % cgrid(:,igrid) - &
+    !                     & params % csph(:,jsph)
+    !              rijn = sqrt(dot_product(vij,vij))
+    !              sij = vij/rijn
+    !              ! Loop over l0
+    !              do l0 = 0, constants % lmax0
+    !  !              term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
+    !                ! Loop over m0
+    !                do m0 = -l0,l0
+    !                  ind0 = l0**2 + l0 + m0 + 1
+    !                  coef(ind0) = constants % vgrid(ind0, igrid0) * &
+    !                      & constants % C_ik(l0, jsph)
+    !                end do ! End of loop m0
+    !              end do! End of loop l0
+    !              vtij = vij*params % kappa
+    !              call fmm_m2p_bessel_work(vtij, constants % lmax0, &
+    !                  & constants % vscales, constants % SK_ri(:, jsph), one, &
+    !                  & coef, zero, coefY_d(icav, igrid0, jsph), work_complex, work)
+    !            end if
+    !          end do ! End of loop igrid
+    !        end do! End of loop isph
+    !      end do ! End of loop igrid0
+    !    end do ! End of loop jsph
+    !    ! Compute phi_in
+    !    ! Loop over spheres j
+    !    do jsph = 1, params % nsph
+    !      ! Loop over grid points n0
+    !      do igrid0 = 1, params % ngrid
+    !        icav = zero
+    !        sum_int = zero
+    !        ! Loop over sphers i
+    !        do isph = 1, params % nsph
+    !          ! Loop over grid points n
+    !          do igrid = 1, params % ngrid
+    !            if(constants % ui(igrid, isph) .gt. zero) then
+    !              icav = icav + 1
+    !              sum_int = sum_int + coefY_d(icav, igrid0, jsph)*sol_sgrid(igrid, isph) &
+    !                      & * constants % wgrid(igrid)*constants % ui(igrid, isph)
+    !            end if
+    !          end do
+    !        end do
+    !        phi_n(igrid0, jsph) = -(params % epsp/params % eps)*sum_int
+    !      end do! End of loop j
+    !    end do ! End of loop igrid
+    !else
+    !    ! Adjoint integration from spherical harmonics to grid points is not needed
+    !    ! here as ygrid already contains grid values, we just need to scale it by
+    !    ! weights of grid points
+    !    do isph = 1, params % nsph
+    !        workspace % tmp_grid(:, isph) = sol_sgrid(:, isph) * &
+    !            & constants % wgrid(:) * constants % ui(:, isph)
+    !    end do
+    !    ! Adjoint FMM
+    !    call tree_m2p_bessel_adj(params, constants, constants % lmax0, one, &
+    !        & workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
+    !    call tree_l2p_bessel_adj(params, constants, one, workspace % tmp_grid, &
+    !        & zero, workspace % tmp_node_l)
+    !    call tree_l2l_bessel_rotation_adj(params, constants, &
+    !        & workspace % tmp_node_l)
+    !    call tree_m2l_bessel_rotation_adj(params, constants, &
+    !        & workspace % tmp_node_l, workspace % tmp_node_m)
+    !    call tree_m2m_bessel_rotation_adj(params, constants, &
+    !        & workspace % tmp_node_m)
+    !    ! Properly load adjoint multipole harmonics into tmp_sph
+    !    if(constants % lmax0 .lt. params % pm) then
+    !        do isph = 1, params % nsph
+    !            inode = constants % snode(isph)
+    !            workspace % tmp_sph(1:constants % nbasis0, isph) = &
+    !                & workspace % tmp_sph(1:constants % nbasis0, isph) + &
+    !                & workspace % tmp_node_m(1:constants % nbasis0, inode)
+    !        end do
+    !    else
+    !        indl = (params % pm+1)**2
+    !        do isph = 1, params % nsph
+    !            inode = constants % snode(isph)
+    !            workspace % tmp_sph(1:indl, isph) = &
+    !                & workspace % tmp_sph(1:indl, isph) + &
+    !                & workspace % tmp_node_m(:, inode)
+    !        end do
+    !    end if
+    !    ! Scale by C_ik
+    !    do isph = 1, params % nsph
+    !        do l0 = 0, constants % lmax0
+    !            ind0 = l0*l0 + l0 + 1
+    !            workspace % tmp_sph(ind0-l0:ind0+l0, isph) = &
+    !                & workspace % tmp_sph(ind0-l0:ind0+l0, isph) * &
+    !                & constants % C_ik(l0, isph)
+    !        end do
+    !    end do
+    !    ! Multiply by vgrid
+    !    call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis0, &
+    !        & -params % epsp/params % eps, constants % vgrid, constants % vgrid_nbasis, &
+    !        & workspace % tmp_sph, constants % nbasis, zero, phi_n, params % ngrid)
+    !end if
     icav = zero
     do isph = 1, params % nsph
       do igrid = 1, params % ngrid
@@ -1760,19 +1761,19 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, grad
     end do ! End of loop i
 
     do isph = 1, params % nsph
-        call contract_grad_U(params, constants, isph, gradpsi_grid, phi_n, force(:, isph))
+        call contract_grad_U(params, constants, isph, gradpsi_grid, state % phi_n, force(:, isph))
         ! Compute the Hessian contributions
         do igrid = 1, params % ngrid
           if(constants % ui(igrid, isph) .gt. zero) then
             icav_g = icav_g + 1
             ! a contrib
             force(:, isph) = force(:, isph) + constants % wgrid(igrid)*constants % ui(igrid, isph)*&
-                             & phi_n(igrid, isph)*normal_hessian_cav(:, icav_g)
+                             & state % phi_n(igrid, isph)*normal_hessian_cav(:, icav_g)
           end if
         end do
     end do
 
-    call build_zeta_dip_intermediate(params, constants, phi_n, state)
+    !call build_zeta_dip_intermediate(params, constants, phi_n, state)
 
     deallocate(phi_n, phi_n2, gradpsi_grid, stat=istat)
     if (istat.ne.0) then
@@ -1830,5 +1831,185 @@ subroutine build_zeta_dip_intermediate(params, constants, phi_n, state)
     end do
 
 end subroutine build_zeta_dip_intermediate
+
+!> This routines precomputes two intermediates for its later usage in
+!! the computation of analytical derivatives (forces or other).
+!! The intermediate is the equivalent of
+!! zeta for the F RHS of ddLPB. In this case the intermediate has the
+!! shape of dipoles at the cavity points, in contrast to zeta, which
+!! has the shape of charges at the cavity points. This intermediate
+!! must be used later on to compute its interaction with the solute.
+!!
+!! @param[in] params: ddx parameters
+!! @param[in] constant: ddx constants
+!! @param[inout] workspace: ddx workspaces
+!! @param[inout] state: ddx state
+!!
+subroutine ddlpb_derivative_intermediates(params, constants, workspace, state)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+
+    real(dp), allocatable :: coefy_d(:, :, :)
+    integer :: istat, jsph, igrid0, icav, isph, igrid, l0, m0, ind0, &
+        & inode, indl
+    real(dp) :: rijn, sum_int, fac
+    real(dp) :: work(constants % lmax0 + 1), coef(constants % nbasis0), &
+        & vij(3), vtij(3), sij(3)
+    complex(dp) :: work_complex(constants % lmax0 + 1)
+
+    ! expand the adjoint solutions at the Lebedev points and compute
+    ! their sum
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+        & constants % nbasis, one, constants % vgrid, &
+        & constants % vgrid_nbasis, state % x_adj_lpb(:, :, 1), &
+        & constants % nbasis, zero, state % x_adj_r_grid, params % ngrid)
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+        & constants % nbasis, one, constants % vgrid, &
+        & constants % vgrid_nbasis, state % x_adj_lpb(:, :, 2), &
+        & constants % nbasis, zero, state % x_adj_e_grid, params % ngrid)
+    state % x_adj_re_grid = state % x_adj_r_grid + state % x_adj_e_grid
+
+    if (params % fmm .eq. 0) then
+        allocate(coefy_d(constants % ncav, params % ngrid, params % nsph), &
+            & stat=istat)
+        if (istat.ne.0) then
+            workspace % error_flag = 1
+            workspace % error_message = &
+                & "allocation error in ddlpb_derivative_intermediates"
+            return
+        end if
+        coefy_d = zero
+        do jsph = 1, params % nsph
+            do igrid0 = 1, params % ngrid
+                icav = zero
+                do isph = 1, params % nsph
+                    do igrid = 1, params % ngrid
+                        if(constants % ui(igrid, isph) .gt. zero) then
+                            icav = icav + 1
+                            vij = params % csph(:,isph) + params % rsph(isph) &
+                                & *constants % cgrid(:,igrid) &
+                                & - params % csph(:,jsph)
+                            rijn = sqrt(dot_product(vij,vij))
+                            sij = vij/rijn
+                            do l0 = 0, constants % lmax0
+                                do m0 = -l0, l0
+                                    ind0 = l0**2 + l0 + m0 + 1
+                                    coef(ind0) = &
+                                        & constants % vgrid(ind0, igrid0) * &
+                                        & constants % C_ik(l0, jsph)
+                                end do
+                            end do
+                            vtij = vij*params % kappa
+                            call fmm_m2p_bessel_work(vtij, constants % lmax0, &
+                                & constants % vscales, &
+                                & constants % sk_ri(:, jsph), one, &
+                                & coef, zero, coefy_d(icav, igrid0, jsph), &
+                                & work_complex, work)
+                        end if
+                    end do
+                end do
+            end do
+        end do
+        do jsph = 1, params % nsph
+            do igrid0 = 1, params % ngrid
+                icav = zero
+                sum_int = zero
+                do isph = 1, params % nsph
+                    do igrid = 1, params % ngrid
+                        if(constants % ui(igrid, isph) .gt. zero) then
+                            icav = icav + 1
+                            sum_int = sum_int + coefy_d(icav, igrid0, jsph) &
+                                & *state % x_adj_re_grid(igrid, isph) &
+                                & *constants % wgrid(igrid) &
+                                & *constants % ui(igrid, isph)
+                        end if
+                    end do
+                end do
+                state % phi_n(igrid0, jsph) = &
+                    & - (params % epsp/params % eps)*sum_int
+            end do
+        end do
+    else
+        ! Adjoint integration from spherical harmonics to grid points is not needed
+        ! here as ygrid already contains grid values, we just need to scale it by
+        ! weights of grid points
+        do isph = 1, params % nsph
+            workspace % tmp_grid(:, isph) = state % x_adj_re_grid(:, isph) * &
+                & constants % wgrid(:) * constants % ui(:, isph)
+        end do
+        ! Adjoint FMM
+        call tree_m2p_bessel_adj(params, constants, constants % lmax0, one, &
+            & workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
+        call tree_l2p_bessel_adj(params, constants, one, &
+            & workspace % tmp_grid, zero, workspace % tmp_node_l)
+        call tree_l2l_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_l)
+        call tree_m2l_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_l, workspace % tmp_node_m)
+        call tree_m2m_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_m)
+        ! Properly load adjoint multipole harmonics into tmp_sph
+        if(constants % lmax0 .lt. params % pm) then
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                workspace % tmp_sph(1:constants % nbasis0, isph) = &
+                    & workspace % tmp_sph(1:constants % nbasis0, isph) + &
+                    & workspace % tmp_node_m(1:constants % nbasis0, inode)
+            end do
+        else
+            indl = (params % pm+1)**2
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                workspace % tmp_sph(1:indl, isph) = &
+                    & workspace % tmp_sph(1:indl, isph) + &
+                    & workspace % tmp_node_m(:, inode)
+            end do
+        end if
+        ! Scale by C_ik
+        do isph = 1, params % nsph
+            do l0 = 0, constants % lmax0
+                ind0 = l0*l0 + l0 + 1
+                workspace % tmp_sph(ind0-l0:ind0+l0, isph) = &
+                    & workspace % tmp_sph(ind0-l0:ind0+l0, isph) * &
+                    & constants % C_ik(l0, isph)
+            end do
+        end do
+        ! Multiply by vgrid
+        call dgemm('T', 'N', params % ngrid, params % nsph, &
+            & constants % nbasis0, -params % epsp/params % eps, &
+            & constants % vgrid, constants % vgrid_nbasis, &
+            & workspace % tmp_sph, constants % nbasis, zero, &
+            & state % phi_n, params % ngrid)
+    end if
+
+    ! assemble the pseudo-dipoles
+    icav = 0
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .gt. zero) then
+                icav = icav + 1
+                fac = - constants % ui(igrid, isph)*constants % wgrid(igrid) &
+                    & *state % phi_n(igrid, isph)
+                state % zeta_dip(1, icav) = fac*constants % cgrid(1, igrid)
+                state % zeta_dip(2, icav) = fac*constants % cgrid(2, igrid)
+                state % zeta_dip(3, icav) = fac*constants % cgrid(3, igrid)
+            end if
+        end do
+    end do
+
+    if (allocated(coefy_d)) then
+        deallocate(coefy_d, stat=istat)
+        if (istat.ne.0) then
+            workspace % error_flag = 1
+            workspace % error_message = &
+                & "deallocation error in ddlpb_derivative_intermediates"
+            return
+        end if
+    end if
+
+end subroutine ddlpb_derivative_intermediates
 
 end module ddx_gradients

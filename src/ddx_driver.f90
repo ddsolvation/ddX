@@ -248,6 +248,8 @@ if (ddx_data % params % force .eq. 1) then
         call ddpcm_solvation_force_terms(ddx_data % params, &
             & ddx_data % constants, ddx_data % workspace, state, force)
     else if (ddx_data % params % model .eq. 3) then
+        call ddlpb_derivative_intermediates(ddx_data % params, &
+            & ddx_data % constants, ddx_data % workspace, state)
         call ddlpb_solvation_force_terms(ddx_data % params, &
             & ddx_data % constants, ddx_data % workspace, state, g_cav, force)
     end if

@@ -66,6 +66,8 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
         if (workspace % error_flag .eq. 1) return
         call ddlpb_solve_adjoint(params, constants, workspace, state, tol)
         if (workspace % error_flag .eq. 1) return
+        call ddlpb_derivative_intermediates(params, constants, &
+            & workspace, state)
         ! TODO: (if easy) remove hessianphi_cav
         call ddlpb_solvation_force_terms(params, constants, workspace, &
             & state, hessianphi_cav, force)
@@ -322,8 +324,8 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     real(dp), dimension(params % lmax + 1) :: vsin, vcos
 
     ! large local are allocatable
-    real(dp), allocatable :: ef(:,:), xadj_r_sgrid(:,:), xadj_e_sgrid(:,:), &
-        & normal_hessian_cav(:,:), diff_re(:,:), scaled_xr(:,:)
+    real(dp), allocatable :: ef(:,:), normal_hessian_cav(:,:), &
+        & diff_re(:,:), scaled_xr(:,:)
     integer :: isph, icav, icav_gr, icav_ge, igrid, istat
     integer :: i
     real(dp), external :: ddot, dnrm2
@@ -331,8 +333,6 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
 
     start_time = omp_get_wtime()
     allocate(ef(3, params % nsph), &
-        & xadj_r_sgrid(params % ngrid, params % nsph), &
-        & xadj_e_sgrid(params % ngrid, params % nsph), &
         & normal_hessian_cav(3, constants % ncav), &
         & diff_re(constants % nbasis, params % nsph), &
         & scaled_xr(constants % nbasis, params % nsph), stat=istat)
@@ -369,39 +369,29 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
         end do
     end do
 
-    ! Call dgemm to integrate the adjoint solution on the grid points
-    call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, &
-        & state % x_adj_lpb(:, :, 1), constants % nbasis, zero, &
-        & Xadj_r_sgrid, params % ngrid)
-    call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, &
-        & state % x_adj_lpb(:,:,2), constants % nbasis, zero, &
-        & Xadj_e_sgrid, params % ngrid)
-
     ! Scale by the factor of 1/(4Pi/(2l+1))
     scaled_Xr = state % x_lpb(:,:,1)
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
     !$omp parallel do default(none) shared(params,constants,workspace, &
-    !$omp scaled_xr,xadj_r_sgrid,state,force,xadj_e_sgrid) &
-    !$omp private(isph,basloc,dbasloc,vplm,vcos,vsin) &
+    !$omp scaled_xr,state,force) private(isph,basloc,dbasloc,vplm,vcos,vsin) &
     !$omp schedule(static,1)
     do isph = 1, params % nsph
         ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
-        call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
-            & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
+        call contract_grad_L(params, constants, isph, scaled_Xr, &
+            & state % x_adj_r_grid, basloc, dbasloc, vplm, vcos, vsin, &
+            & force(:,isph))
         ! Compute B^k*Xadj_e
-        call contract_grad_B(params, constants, isph, &
-            & state % x_lpb(:,:,2), Xadj_e_sgrid, force(:, isph))
+        call contract_grad_B(params, constants, isph, state % x_lpb(:,:,2), &
+            & state % x_adj_e_grid, force(:, isph))
         ! Computation of G0
-        call contract_grad_U(params, constants, isph, Xadj_r_sgrid, &
+        call contract_grad_U(params, constants, isph, state % x_adj_r_grid, &
             & state % phi_grid, force(:, isph))
     end do
     ! Compute C1 and C2 contributions
     diff_re = zero
     call contract_grad_C(params, constants, workspace, state % x_lpb(:,:,1), &
-        & state % x_lpb(:,:,2), Xadj_r_sgrid, Xadj_e_sgrid, &
+        & state % x_lpb(:,:,2), state % x_adj_r_grid, state % x_adj_e_grid, &
         & state % x_adj_lpb(:,:,1), state % x_adj_lpb(:,:,2), force, &
         & diff_re)
     ! Computation of G0 continued
@@ -427,14 +417,13 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     ! Computation of F0
     call contract_grad_f(params, constants, workspace, &
         & state % x_adj_lpb(:,:,1) + state % x_adj_lpb(:,:,2), &
-        & Xadj_r_sgrid + xadj_e_sgrid, state % gradphi_cav, &
+        & state % x_adj_re_grid, state % gradphi_cav, &
         & normal_hessian_cav, icav_gr, force, state)
     if (workspace % error_flag .eq. 1) return
 
     force = pt5*force
 
-    deallocate(ef, xadj_r_sgrid, xadj_e_sgrid, normal_hessian_cav, &
-        & diff_re, scaled_xr, stat=istat)
+    deallocate(ef, normal_hessian_cav, diff_re, scaled_xr, stat=istat)
     if (istat.ne.0) then
         workspace % error_message = 'Deallocation failed in ddlpb_force_worker'
         workspace % error_flag = 1
