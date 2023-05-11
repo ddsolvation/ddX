@@ -329,7 +329,7 @@ subroutine contract_grad_f(params, constants, workspace, sol_adj, sol_sgrid, &
     call contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sgrid, &
         & gradpsi, force)
     if (workspace % error_flag .eq. 1) return
-    call contract_grad_f_worker2(params, constants, workspace, sol_sgrid, gradpsi, &
+    call contract_grad_f_worker2(params, constants, workspace, gradpsi, &
         & normal_hessian_cav, icav_g, force, state)
     if (workspace % error_flag .eq. 1) return
 
@@ -1555,13 +1555,12 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
 
 end subroutine contract_grad_f_worker1
 
-subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, &
+subroutine contract_grad_f_worker2(params, constants, workspace, &
         & gradpsi, normal_hessian_cav, icav_g, force, state)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
-    real(dp), intent(in) :: sol_sgrid(params % ngrid, params % nsph), &
-        & gradpsi(3, constants % ncav), &
+    real(dp), intent(in) :: gradpsi(3, constants % ncav), &
         & normal_hessian_cav(3, constants % ncav)
     real(dp), intent(inout) :: force(3, params % nsph)
     integer, intent(inout) :: icav_g
@@ -1612,53 +1611,8 @@ subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, &
 
 end subroutine contract_grad_f_worker2
 
-!> This routines precomputes an intermediate for its later usage in the
-!! computation of the forces. The intermediate is the equivalent of
-!! zeta for the F RHS of ddLPB. In this case the intermediate has the
-!! shape of dipoles at the cavity points, in contrast to zeta, which
-!! has the shape of charges at the cavity points. This intermediate
-!! must be used later on to compute its interaction with the solute.
-!!
-!! @param[in] params: ddx parameters
-!! @param[in] constant: ddx constants
-!! @param[in] phi_n: adjoint solution contracted with other matrices,
-!!     size (ngrid, nsph)
-!! @param[inout] force: force array, size (3, nsph)
-!!
-subroutine build_zeta_dip_intermediate(params, constants, phi_n, state)
-    implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: phi_n(params % ngrid, params % nsph)
-
-    integer :: isph, icav, igrid
-    real(dp) :: fac
-
-    ! assemble the pseudo-dipoles
-    icav = 0
-    do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-            if (constants % ui(igrid, isph) .gt. zero) then
-                icav = icav + 1
-                fac = - constants % ui(igrid, isph)*constants % wgrid(igrid) &
-                    & *phi_n(igrid, isph)
-                state % zeta_dip(1, icav) = fac*constants % cgrid(1, igrid)
-                state % zeta_dip(2, icav) = fac*constants % cgrid(2, igrid)
-                state % zeta_dip(3, icav) = fac*constants % cgrid(3, igrid)
-            end if
-        end do
-    end do
-
-end subroutine build_zeta_dip_intermediate
-
 !> This routines precomputes two intermediates for its later usage in
 !! the computation of analytical derivatives (forces or other).
-!! The intermediate is the equivalent of
-!! zeta for the F RHS of ddLPB. In this case the intermediate has the
-!! shape of dipoles at the cavity points, in contrast to zeta, which
-!! has the shape of charges at the cavity points. This intermediate
-!! must be used later on to compute its interaction with the solute.
 !!
 !! @param[in] params: ddx parameters
 !! @param[in] constant: ddx constants
