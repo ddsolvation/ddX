@@ -1840,8 +1840,8 @@ subroutine ddproject_cav(params, constants, s, xi)
         do its = 1, params%ngrid
             if (constants%ui(its, isph) .gt. zero) then
                 ii     = ii + 1
-                xi(ii) = constants%ui(its, isph) &
-                    &* dot_product(constants%vwgrid(:, its), s(:, isph))
+                xi(ii) = constants%ui(its, isph)*dot_product( &
+                    & constants%vwgrid(:constants % nbasis, its), s(:, isph))
             end if
         end do
     end do
