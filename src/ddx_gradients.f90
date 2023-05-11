@@ -314,7 +314,7 @@ end subroutine contract_grad_C
 !! @param[in]  icav_g             : Index of outside cavity point
 !! @param[out] force              : Force
 subroutine contract_grad_f(params, constants, workspace, sol_adj, sol_sgrid, &
-    & gradpsi, normal_hessian_cav, icav_g, force, state)
+    & gradpsi, normal_hessian_cav, force, state)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -323,14 +323,13 @@ subroutine contract_grad_f(params, constants, workspace, sol_adj, sol_sgrid, &
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: sol_sgrid
     real(dp), dimension(3, constants % ncav), intent(in) :: gradpsi
     real(dp), dimension(3, constants % ncav), intent(in) :: normal_hessian_cav
-    integer, intent(inout) :: icav_g
     real(dp), dimension(3, params % nsph), intent(inout) :: force
 
     call contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sgrid, &
         & gradpsi, force)
     if (workspace % error_flag .eq. 1) return
     call contract_grad_f_worker2(params, constants, workspace, gradpsi, &
-        & normal_hessian_cav, icav_g, force, state)
+        & normal_hessian_cav, force, state)
     if (workspace % error_flag .eq. 1) return
 
 end subroutine contract_grad_f
@@ -1556,14 +1555,13 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
 end subroutine contract_grad_f_worker1
 
 subroutine contract_grad_f_worker2(params, constants, workspace, &
-        & gradpsi, normal_hessian_cav, icav_g, force, state)
+        & gradpsi, normal_hessian_cav, force, state)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), intent(in) :: gradpsi(3, constants % ncav), &
         & normal_hessian_cav(3, constants % ncav)
     real(dp), intent(inout) :: force(3, params % nsph)
-    integer, intent(inout) :: icav_g
     type(ddx_state_type), intent(inout) :: state
 
     integer :: icav, isph, igrid, istat
@@ -1577,27 +1575,28 @@ subroutine contract_grad_f_worker2(params, constants, workspace, &
         return
     end if
 
-    icav = zero
+    icav = 0
     do isph = 1, params % nsph
         do igrid = 1, params % ngrid
             if(constants % ui(igrid, isph) .gt. zero) then
                 icav = icav + 1
-                nderpsi = dot_product(gradpsi(:,icav), &
-                    & constants % cgrid(:,igrid))
+                nderpsi = dot_product(gradpsi(:, icav), &
+                    & constants % cgrid(:, igrid))
                 gradpsi_grid(igrid, isph) = nderpsi
             end if
         end do
     end do
 
+    icav = 0
     do isph = 1, params % nsph
         call contract_grad_U(params, constants, isph, gradpsi_grid, &
             & state % phi_n, force(:, isph))
         do igrid = 1, params % ngrid
           if(constants % ui(igrid, isph) .gt. zero) then
-            icav_g = icav_g + 1
+            icav = icav + 1
             force(:, isph) = force(:, isph) &
                 & + constants % wgrid(igrid)*constants % ui(igrid, isph) &
-                & *state % phi_n(igrid, isph)*normal_hessian_cav(:, icav_g)
+                & *state % phi_n(igrid, isph)*normal_hessian_cav(:, icav)
           end if
         end do
     end do

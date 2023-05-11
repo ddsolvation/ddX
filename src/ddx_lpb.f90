@@ -68,7 +68,6 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
         if (workspace % error_flag .eq. 1) return
         call ddlpb_derivative_intermediates(params, constants, &
             & workspace, state)
-        ! TODO: (if easy) remove hessianphi_cav
         call ddlpb_solvation_force_terms(params, constants, workspace, &
             & state, hessianphi_cav, force)
         if (workspace % error_flag .eq. 1) return
@@ -326,7 +325,7 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     ! large local are allocatable
     real(dp), allocatable :: ef(:,:), normal_hessian_cav(:,:), &
         & diff_re(:,:), scaled_xr(:,:)
-    integer :: isph, icav, icav_gr, icav_ge, igrid, istat
+    integer :: isph, icav, igrid, istat
     integer :: i
     real(dp), external :: ddot, dnrm2
     real(dp) :: start_time, finish_time
@@ -412,13 +411,11 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
         end do
     end do
 
-    icav_gr = zero
-    icav_ge = zero
     ! Computation of F0
     call contract_grad_f(params, constants, workspace, &
         & state % x_adj_lpb(:,:,1) + state % x_adj_lpb(:,:,2), &
         & state % x_adj_re_grid, state % gradphi_cav, &
-        & normal_hessian_cav, icav_gr, force, state)
+        & normal_hessian_cav, force, state)
     if (workspace % error_flag .eq. 1) return
 
     force = pt5*force
