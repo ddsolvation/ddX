@@ -1555,242 +1555,62 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
 
 end subroutine contract_grad_f_worker1
 
-
-!> Subroutine to calculate the derivative of C_{0l0m0}^j
-!!
-!! @param[in]  params             : Input parameter file
-!! @param[in]  constants          : Input constants file
-!! @param[in]  workspace          : Input workspace
-!! @param[in]  ksph               : Derivative with respect to x_k
-!! @param[in]  sol_sgrid          : Solution of the Adjoint problem evaluated at the grid
-!! @param[in]  gradpsi            : Gradient of Psi_0
-!! @param[in]  normal_hessian_cav : Normal of the Hessian evaluated at cavity points
-!! @param[in]  icav_g             : Index of outside cavity point
-!! @param[out] force              : Force corresponding to HSP problem
-subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, gradpsi, &
-    & normal_hessian_cav, icav_g, force, state)
-    ! input/output
+subroutine contract_grad_f_worker2(params, constants, workspace, sol_sgrid, &
+        & gradpsi, normal_hessian_cav, icav_g, force, state)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
-    real(dp), dimension(params % ngrid, params % nsph), intent(in) :: sol_sgrid
-    real(dp), dimension(3, constants % ncav), intent(in) :: gradpsi
-    real(dp), dimension(3, constants % ncav), intent(in) :: normal_hessian_cav
+    real(dp), intent(in) :: sol_sgrid(params % ngrid, params % nsph), &
+        & gradpsi(3, constants % ncav), &
+        & normal_hessian_cav(3, constants % ncav)
+    real(dp), intent(inout) :: force(3, params % nsph)
     integer, intent(inout) :: icav_g
-    real(dp), dimension(3, params % nsph), intent(inout) :: force
     type(ddx_state_type), intent(inout) :: state
 
-    ! local
-    integer :: isph, jsph, igrid, l0, m0, ind0, igrid0, icav, &
-        & indl, inode, istat
-    ! term  : SK_rijn/SK_rj
-    ! termi : DI_ri/SI_ri
-    ! termk : DK_ri/SK_ri
-    ! sum_int : Intermediate sum
-    ! hessian_contribution :
-    real(dp) :: sum_int, nderpsi
-    real(dp) :: rijn
-    real(dp)  :: vij(3), sij(3), vtij(3)
+    integer :: icav, isph, igrid, istat
+    real(dp) :: nderpsi
+    real(dp), allocatable :: gradpsi_grid(:, :)
 
-    ! local allocatable
-    ! phi_n : Phi corresponding to Laplace problem
-    ! coefY_d : sum_{l0m0} C_ik*term*Y_l0m0^j(x_in)*Y_l0m0(s_n)
-    ! gradpsi_grid : gradpsi evaluated at grid point
-    real(dp), allocatable :: phi_n(:,:), phi_n2(:,:), coefY_d(:,:,:), &
-        & gradpsi_grid(:,:)
-
-    ! vplm   : Argument to call ylmbas
-    real(dp),  dimension(constants % nbasis):: basloc, vplm
-    real(dp),  dimension(3, constants % nbasis):: dbasloc
-    ! vcos   : Argument to call ylmbas
-    ! vsin   : Argument to call ylmbas
-    real(dp),  dimension(params % lmax+1):: vcos, vsin
-    real(dp), dimension(0:params % lmax) :: SK_rijn, DK_rijn
-    real(dp) :: coef(constants % nbasis0), work(constants % lmax0+1)
-    complex(dp) :: work_complex(constants % lmax0+1)
-    real(dp), external :: dnrm2
-
-    allocate(phi_n(params % ngrid, params % nsph), &
-        & phi_n2(params % ngrid, params % nsph), &
-        & gradpsi_grid(params % ngrid, params % nsph), stat=istat)
+    allocate(gradpsi_grid(params % ngrid, params % nsph), stat=istat)
     if (istat.ne.0) then
         workspace % error_flag = 1
         workspace % error_message = "allocation error in ddx_grad_f_worker2"
         return
     end if
 
-
-    ! Intial allocation of vectors
-    sum_int = zero
-    phi_n = zero
-    gradpsi_grid = zero
-    basloc = zero
-    vplm = zero
-    dbasloc = zero
-    vcos = zero
-    vsin = zero
-    SK_rijn = zero
-    DK_rijn = zero
-
-    !if (params % fmm .eq. 0) then
-    !    allocate(coefY_d(constants % ncav, params % ngrid, params % nsph), &
-    !        & stat=istat)
-    !    if (istat.ne.0) then
-    !        workspace % error_flag = 1
-    !        workspace % error_message = "allocation error in fmm ddx_grad_f_worker2"
-    !        return
-    !    end if
-    !    coefY_d = zero
-    !    ! Compute  summation over l0, m0
-    !    ! Loop over the sphers j
-    !    do jsph = 1, params % nsph
-    !      ! Loop over the grid points n0
-    !      do igrid0 = 1, params % ngrid
-    !        icav = zero
-    !        ! Loop over spheres i
-    !        do isph = 1, params % nsph
-    !          ! Loop over grid points n
-    !          do igrid = 1, params % ngrid
-    !            ! Check for U_i^{eta}(x_in)
-    !            if(constants % ui(igrid, isph) .gt. zero) then
-    !              icav = icav + 1
-    !              vij  = params % csph(:,isph) + &
-    !                     & params % rsph(isph)*constants % cgrid(:,igrid) - &
-    !                     & params % csph(:,jsph)
-    !              rijn = sqrt(dot_product(vij,vij))
-    !              sij = vij/rijn
-    !              ! Loop over l0
-    !              do l0 = 0, constants % lmax0
-    !  !              term = SK_rijn(l0)/constants % SK_ri(l0,jsph)
-    !                ! Loop over m0
-    !                do m0 = -l0,l0
-    !                  ind0 = l0**2 + l0 + m0 + 1
-    !                  coef(ind0) = constants % vgrid(ind0, igrid0) * &
-    !                      & constants % C_ik(l0, jsph)
-    !                end do ! End of loop m0
-    !              end do! End of loop l0
-    !              vtij = vij*params % kappa
-    !              call fmm_m2p_bessel_work(vtij, constants % lmax0, &
-    !                  & constants % vscales, constants % SK_ri(:, jsph), one, &
-    !                  & coef, zero, coefY_d(icav, igrid0, jsph), work_complex, work)
-    !            end if
-    !          end do ! End of loop igrid
-    !        end do! End of loop isph
-    !      end do ! End of loop igrid0
-    !    end do ! End of loop jsph
-    !    ! Compute phi_in
-    !    ! Loop over spheres j
-    !    do jsph = 1, params % nsph
-    !      ! Loop over grid points n0
-    !      do igrid0 = 1, params % ngrid
-    !        icav = zero
-    !        sum_int = zero
-    !        ! Loop over sphers i
-    !        do isph = 1, params % nsph
-    !          ! Loop over grid points n
-    !          do igrid = 1, params % ngrid
-    !            if(constants % ui(igrid, isph) .gt. zero) then
-    !              icav = icav + 1
-    !              sum_int = sum_int + coefY_d(icav, igrid0, jsph)*sol_sgrid(igrid, isph) &
-    !                      & * constants % wgrid(igrid)*constants % ui(igrid, isph)
-    !            end if
-    !          end do
-    !        end do
-    !        phi_n(igrid0, jsph) = -(params % epsp/params % eps)*sum_int
-    !      end do! End of loop j
-    !    end do ! End of loop igrid
-    !else
-    !    ! Adjoint integration from spherical harmonics to grid points is not needed
-    !    ! here as ygrid already contains grid values, we just need to scale it by
-    !    ! weights of grid points
-    !    do isph = 1, params % nsph
-    !        workspace % tmp_grid(:, isph) = sol_sgrid(:, isph) * &
-    !            & constants % wgrid(:) * constants % ui(:, isph)
-    !    end do
-    !    ! Adjoint FMM
-    !    call tree_m2p_bessel_adj(params, constants, constants % lmax0, one, &
-    !        & workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
-    !    call tree_l2p_bessel_adj(params, constants, one, workspace % tmp_grid, &
-    !        & zero, workspace % tmp_node_l)
-    !    call tree_l2l_bessel_rotation_adj(params, constants, &
-    !        & workspace % tmp_node_l)
-    !    call tree_m2l_bessel_rotation_adj(params, constants, &
-    !        & workspace % tmp_node_l, workspace % tmp_node_m)
-    !    call tree_m2m_bessel_rotation_adj(params, constants, &
-    !        & workspace % tmp_node_m)
-    !    ! Properly load adjoint multipole harmonics into tmp_sph
-    !    if(constants % lmax0 .lt. params % pm) then
-    !        do isph = 1, params % nsph
-    !            inode = constants % snode(isph)
-    !            workspace % tmp_sph(1:constants % nbasis0, isph) = &
-    !                & workspace % tmp_sph(1:constants % nbasis0, isph) + &
-    !                & workspace % tmp_node_m(1:constants % nbasis0, inode)
-    !        end do
-    !    else
-    !        indl = (params % pm+1)**2
-    !        do isph = 1, params % nsph
-    !            inode = constants % snode(isph)
-    !            workspace % tmp_sph(1:indl, isph) = &
-    !                & workspace % tmp_sph(1:indl, isph) + &
-    !                & workspace % tmp_node_m(:, inode)
-    !        end do
-    !    end if
-    !    ! Scale by C_ik
-    !    do isph = 1, params % nsph
-    !        do l0 = 0, constants % lmax0
-    !            ind0 = l0*l0 + l0 + 1
-    !            workspace % tmp_sph(ind0-l0:ind0+l0, isph) = &
-    !                & workspace % tmp_sph(ind0-l0:ind0+l0, isph) * &
-    !                & constants % C_ik(l0, isph)
-    !        end do
-    !    end do
-    !    ! Multiply by vgrid
-    !    call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis0, &
-    !        & -params % epsp/params % eps, constants % vgrid, constants % vgrid_nbasis, &
-    !        & workspace % tmp_sph, constants % nbasis, zero, phi_n, params % ngrid)
-    !end if
     icav = zero
     do isph = 1, params % nsph
-      do igrid = 1, params % ngrid
-        if(constants % ui(igrid, isph) .gt. zero) then
-          icav = icav + 1
-          nderpsi = dot_product( gradpsi(:,icav),constants % cgrid(:,igrid) )
-          gradpsi_grid(igrid, isph) = nderpsi
-        end if
-      end do ! End of loop igrid
-    end do ! End of loop i
+        do igrid = 1, params % ngrid
+            if(constants % ui(igrid, isph) .gt. zero) then
+                icav = icav + 1
+                nderpsi = dot_product(gradpsi(:,icav), &
+                    & constants % cgrid(:,igrid))
+                gradpsi_grid(igrid, isph) = nderpsi
+            end if
+        end do
+    end do
 
     do isph = 1, params % nsph
-        call contract_grad_U(params, constants, isph, gradpsi_grid, state % phi_n, force(:, isph))
-        ! Compute the Hessian contributions
+        call contract_grad_U(params, constants, isph, gradpsi_grid, &
+            & state % phi_n, force(:, isph))
         do igrid = 1, params % ngrid
           if(constants % ui(igrid, isph) .gt. zero) then
             icav_g = icav_g + 1
-            ! a contrib
-            force(:, isph) = force(:, isph) + constants % wgrid(igrid)*constants % ui(igrid, isph)*&
-                             & state % phi_n(igrid, isph)*normal_hessian_cav(:, icav_g)
+            force(:, isph) = force(:, isph) &
+                & + constants % wgrid(igrid)*constants % ui(igrid, isph) &
+                & *state % phi_n(igrid, isph)*normal_hessian_cav(:, icav_g)
           end if
         end do
     end do
 
-    !call build_zeta_dip_intermediate(params, constants, phi_n, state)
-
-    deallocate(phi_n, phi_n2, gradpsi_grid, stat=istat)
+    deallocate(gradpsi_grid, stat=istat)
     if (istat.ne.0) then
         workspace % error_flag = 1
         workspace % error_message = "deallocation error in ddx_grad_f_worker2"
         return
     end if
-    if (allocated(coefY_d)) then
-        deallocate(coefY_d, stat=istat)
-        if (istat.ne.0) then
-            workspace % error_flag = 1
-            workspace % error_message = "deallocation error in ddx_grad_f_worker2"
-            return
-        end if
-    end if
-end subroutine contract_grad_f_worker2
 
+end subroutine contract_grad_f_worker2
 
 !> This routines precomputes an intermediate for its later usage in the
 !! computation of the forces. The intermediate is the equivalent of
