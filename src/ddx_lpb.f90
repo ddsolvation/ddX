@@ -66,7 +66,6 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
         if (workspace % error_flag .eq. 1) return
         call ddlpb_solve_adjoint(params, constants, workspace, state, tol)
         if (workspace % error_flag .eq. 1) return
-        ! TODO: (if easy) remove hessianphi_cav
         call ddlpb_solvation_force_terms(params, constants, workspace, &
             & state, hessianphi_cav, force)
         if (workspace % error_flag .eq. 1) return
@@ -290,13 +289,16 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
     end if
     state % x_adj_lpb_time = omp_get_wtime() - start_time
 
+    state % q = state % x_adj_lpb(:, :, 1)
+
+    call ddlpb_derivative_setup(params, constants, workspace, state)
+
 end subroutine ddlpb_solve_adjoint
 
+!> Compute the solvation terms of the forces (solute aspecific). This
+!! must be summed to the solute specific term to get the full forces.
 !!
-!! Wrapper routine for the computation of ddPCM forces. It makes the
-!! interface easier to implement. If a fine control is needed, the
-!! worker routine should be directly called.
-!!
+!> @ingroup Fortran_interface_ddlpb
 !! @param[in] params         : General options
 !! @param[in] constants      : Precomputed constants
 !! @param[inout] workspace   : Preallocated workspaces
@@ -320,17 +322,15 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     real(dp), dimension(params % lmax + 1) :: vsin, vcos
 
     ! large local are allocatable
-    real(dp), allocatable :: ef(:,:), xadj_r_sgrid(:,:), xadj_e_sgrid(:,:), &
-        & normal_hessian_cav(:,:), diff_re(:,:), scaled_xr(:,:)
-    integer :: isph, icav, icav_gr, icav_ge, igrid, istat
+    real(dp), allocatable :: ef(:,:), normal_hessian_cav(:,:), &
+        & diff_re(:,:), scaled_xr(:,:)
+    integer :: isph, icav, igrid, istat
     integer :: i
     real(dp), external :: ddot, dnrm2
     real(dp) :: start_time, finish_time
 
     start_time = omp_get_wtime()
     allocate(ef(3, params % nsph), &
-        & xadj_r_sgrid(params % ngrid, params % nsph), &
-        & xadj_e_sgrid(params % ngrid, params % nsph), &
         & normal_hessian_cav(3, constants % ncav), &
         & diff_re(constants % nbasis, params % nsph), &
         & scaled_xr(constants % nbasis, params % nsph), stat=istat)
@@ -367,39 +367,29 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
         end do
     end do
 
-    ! Call dgemm to integrate the adjoint solution on the grid points
-    call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, &
-        & state % x_adj_lpb(:, :, 1), constants % nbasis, zero, &
-        & Xadj_r_sgrid, params % ngrid)
-    call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
-        & one, constants % vgrid, constants % vgrid_nbasis, &
-        & state % x_adj_lpb(:,:,2), constants % nbasis, zero, &
-        & Xadj_e_sgrid, params % ngrid)
-
     ! Scale by the factor of 1/(4Pi/(2l+1))
     scaled_Xr = state % x_lpb(:,:,1)
     call convert_ddcosmo(params, constants, -1, scaled_Xr)
 
     !$omp parallel do default(none) shared(params,constants,workspace, &
-    !$omp scaled_xr,xadj_r_sgrid,state,force,xadj_e_sgrid) &
-    !$omp private(isph,basloc,dbasloc,vplm,vcos,vsin) &
+    !$omp scaled_xr,state,force) private(isph,basloc,dbasloc,vplm,vcos,vsin) &
     !$omp schedule(static,1)
     do isph = 1, params % nsph
         ! Compute A^k*Xadj_r, using Subroutine from ddCOSMO
-        call contract_grad_L(params, constants, isph, scaled_Xr, Xadj_r_sgrid, &
-            & basloc, dbasloc, vplm, vcos, vsin, force(:,isph))
+        call contract_grad_L(params, constants, isph, scaled_Xr, &
+            & state % x_adj_r_grid, basloc, dbasloc, vplm, vcos, vsin, &
+            & force(:,isph))
         ! Compute B^k*Xadj_e
-        call contract_grad_B(params, constants, isph, &
-            & state % x_lpb(:,:,2), Xadj_e_sgrid, force(:, isph))
+        call contract_grad_B(params, constants, isph, state % x_lpb(:,:,2), &
+            & state % x_adj_e_grid, force(:, isph))
         ! Computation of G0
-        call contract_grad_U(params, constants, isph, Xadj_r_sgrid, &
+        call contract_grad_U(params, constants, isph, state % x_adj_r_grid, &
             & state % phi_grid, force(:, isph))
     end do
     ! Compute C1 and C2 contributions
     diff_re = zero
     call contract_grad_C(params, constants, workspace, state % x_lpb(:,:,1), &
-        & state % x_lpb(:,:,2), Xadj_r_sgrid, Xadj_e_sgrid, &
+        & state % x_lpb(:,:,2), state % x_adj_r_grid, state % x_adj_e_grid, &
         & state % x_adj_lpb(:,:,1), state % x_adj_lpb(:,:,2), force, &
         & diff_re)
     ! Computation of G0 continued
@@ -420,19 +410,16 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
         end do
     end do
 
-    icav_gr = zero
-    icav_ge = zero
     ! Computation of F0
     call contract_grad_f(params, constants, workspace, &
         & state % x_adj_lpb(:,:,1) + state % x_adj_lpb(:,:,2), &
-        & Xadj_r_sgrid + xadj_e_sgrid, state % gradphi_cav, &
-        & normal_hessian_cav, icav_gr, force, state)
+        & state % x_adj_re_grid, state % gradphi_cav, &
+        & normal_hessian_cav, force, state)
     if (workspace % error_flag .eq. 1) return
 
     force = pt5*force
 
-    deallocate(ef, xadj_r_sgrid, xadj_e_sgrid, normal_hessian_cav, &
-        & diff_re, scaled_xr, stat=istat)
+    deallocate(ef, normal_hessian_cav, diff_re, scaled_xr, stat=istat)
     if (istat.ne.0) then
         workspace % error_message = 'Deallocation failed in ddlpb_force_worker'
         workspace % error_flag = 1
@@ -446,5 +433,180 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     call convert_ddcosmo(params, constants, -1, state % x_lpb(:, :, 1))
 
 end subroutine ddlpb_solvation_force_terms
+
+!> This routines precomputes two intermediates for its later usage in
+!! the computation of analytical derivatives (forces or other).
+!!
+!! @param[in] params: ddx parameters
+!! @param[in] constant: ddx constants
+!! @param[inout] workspace: ddx workspaces
+!! @param[inout] state: ddx state
+!!
+subroutine ddlpb_derivative_setup(params, constants, workspace, state)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+
+    real(dp), allocatable :: coefy_d(:, :, :)
+    integer :: istat, jsph, igrid0, icav, isph, igrid, l0, m0, ind0, &
+        & inode, indl
+    real(dp) :: rijn, sum_int, fac
+    real(dp) :: work(constants % lmax0 + 1), coef(constants % nbasis0), &
+        & vij(3), vtij(3), sij(3)
+    complex(dp) :: work_complex(constants % lmax0 + 1)
+
+    ! expand the adjoint solutions at the Lebedev points and compute
+    ! their sum
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+        & constants % nbasis, one, constants % vgrid, &
+        & constants % vgrid_nbasis, state % x_adj_lpb(:, :, 1), &
+        & constants % nbasis, zero, state % x_adj_r_grid, params % ngrid)
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+        & constants % nbasis, one, constants % vgrid, &
+        & constants % vgrid_nbasis, state % x_adj_lpb(:, :, 2), &
+        & constants % nbasis, zero, state % x_adj_e_grid, params % ngrid)
+    state % x_adj_re_grid = state % x_adj_r_grid + state % x_adj_e_grid
+
+    if (params % fmm .eq. 0) then
+        allocate(coefy_d(constants % ncav, params % ngrid, params % nsph), &
+            & stat=istat)
+        if (istat.ne.0) then
+            workspace % error_flag = 1
+            workspace % error_message = &
+                & "allocation error in ddlpb_derivative_intermediates"
+            return
+        end if
+        coefy_d = zero
+        do jsph = 1, params % nsph
+            do igrid0 = 1, params % ngrid
+                icav = zero
+                do isph = 1, params % nsph
+                    do igrid = 1, params % ngrid
+                        if(constants % ui(igrid, isph) .gt. zero) then
+                            icav = icav + 1
+                            vij = params % csph(:,isph) + params % rsph(isph) &
+                                & *constants % cgrid(:,igrid) &
+                                & - params % csph(:,jsph)
+                            rijn = sqrt(dot_product(vij,vij))
+                            sij = vij/rijn
+                            do l0 = 0, constants % lmax0
+                                do m0 = -l0, l0
+                                    ind0 = l0**2 + l0 + m0 + 1
+                                    coef(ind0) = &
+                                        & constants % vgrid(ind0, igrid0) * &
+                                        & constants % C_ik(l0, jsph)
+                                end do
+                            end do
+                            vtij = vij*params % kappa
+                            call fmm_m2p_bessel_work(vtij, constants % lmax0, &
+                                & constants % vscales, &
+                                & constants % sk_ri(:, jsph), one, &
+                                & coef, zero, coefy_d(icav, igrid0, jsph), &
+                                & work_complex, work)
+                        end if
+                    end do
+                end do
+            end do
+        end do
+        do jsph = 1, params % nsph
+            do igrid0 = 1, params % ngrid
+                icav = zero
+                sum_int = zero
+                do isph = 1, params % nsph
+                    do igrid = 1, params % ngrid
+                        if(constants % ui(igrid, isph) .gt. zero) then
+                            icav = icav + 1
+                            sum_int = sum_int + coefy_d(icav, igrid0, jsph) &
+                                & *state % x_adj_re_grid(igrid, isph) &
+                                & *constants % wgrid(igrid) &
+                                & *constants % ui(igrid, isph)
+                        end if
+                    end do
+                end do
+                state % phi_n(igrid0, jsph) = &
+                    & - (params % epsp/params % eps)*sum_int
+            end do
+        end do
+    else
+        ! Adjoint integration from spherical harmonics to grid points is not needed
+        ! here as ygrid already contains grid values, we just need to scale it by
+        ! weights of grid points
+        do isph = 1, params % nsph
+            workspace % tmp_grid(:, isph) = state % x_adj_re_grid(:, isph) * &
+                & constants % wgrid(:) * constants % ui(:, isph)
+        end do
+        ! Adjoint FMM
+        call tree_m2p_bessel_adj(params, constants, constants % lmax0, one, &
+            & workspace % tmp_grid, zero, params % lmax, workspace % tmp_sph)
+        call tree_l2p_bessel_adj(params, constants, one, &
+            & workspace % tmp_grid, zero, workspace % tmp_node_l)
+        call tree_l2l_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_l)
+        call tree_m2l_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_l, workspace % tmp_node_m)
+        call tree_m2m_bessel_rotation_adj(params, constants, &
+            & workspace % tmp_node_m)
+        ! Properly load adjoint multipole harmonics into tmp_sph
+        if(constants % lmax0 .lt. params % pm) then
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                workspace % tmp_sph(1:constants % nbasis0, isph) = &
+                    & workspace % tmp_sph(1:constants % nbasis0, isph) + &
+                    & workspace % tmp_node_m(1:constants % nbasis0, inode)
+            end do
+        else
+            indl = (params % pm+1)**2
+            do isph = 1, params % nsph
+                inode = constants % snode(isph)
+                workspace % tmp_sph(1:indl, isph) = &
+                    & workspace % tmp_sph(1:indl, isph) + &
+                    & workspace % tmp_node_m(:, inode)
+            end do
+        end if
+        ! Scale by C_ik
+        do isph = 1, params % nsph
+            do l0 = 0, constants % lmax0
+                ind0 = l0*l0 + l0 + 1
+                workspace % tmp_sph(ind0-l0:ind0+l0, isph) = &
+                    & workspace % tmp_sph(ind0-l0:ind0+l0, isph) * &
+                    & constants % C_ik(l0, isph)
+            end do
+        end do
+        ! Multiply by vgrid
+        call dgemm('T', 'N', params % ngrid, params % nsph, &
+            & constants % nbasis0, -params % epsp/params % eps, &
+            & constants % vgrid, constants % vgrid_nbasis, &
+            & workspace % tmp_sph, constants % nbasis, zero, &
+            & state % phi_n, params % ngrid)
+    end if
+
+    ! assemble the pseudo-dipoles
+    icav = 0
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .gt. zero) then
+                icav = icav + 1
+                fac = - constants % ui(igrid, isph)*constants % wgrid(igrid) &
+                    & *state % phi_n(igrid, isph)
+                state % zeta_dip(1, icav) = fac*constants % cgrid(1, igrid)
+                state % zeta_dip(2, icav) = fac*constants % cgrid(2, igrid)
+                state % zeta_dip(3, icav) = fac*constants % cgrid(3, igrid)
+            end if
+        end do
+    end do
+
+    if (allocated(coefy_d)) then
+        deallocate(coefy_d, stat=istat)
+        if (istat.ne.0) then
+            workspace % error_flag = 1
+            workspace % error_message = &
+                & "deallocation error in ddlpb_derivative_intermediates"
+            return
+        end if
+    end if
+
+end subroutine ddlpb_derivative_setup
 
 end module ddx_lpb

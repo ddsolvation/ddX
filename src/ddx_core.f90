@@ -183,6 +183,10 @@ type ddx_state_type
     !> Zeta dipoles intermediate for the forces. Dimension (3, ncav).
     !! Allocated and used only by the LPB (model=3) model.
     real(dp), allocatable :: zeta_dip(:, :)
+    real(dp), allocatable :: x_adj_re_grid(:, :)
+    real(dp), allocatable :: x_adj_r_grid(:, :)
+    real(dp), allocatable :: x_adj_e_grid(:, :)
+    real(dp), allocatable :: phi_n(:, :)
 
 end type ddx_state_type
 
@@ -335,6 +339,14 @@ subroutine ddx_init_state(params, constants, state)
     if (istatus .ne. 0) then
         state % error_flag = 1
         state % error_message = "ddinit: `gradphi_cav` allocation failed"
+        return
+    end if
+    allocate(state % q(constants % nbasis, &
+        & params % nsph), stat=istatus)
+    if (istatus .ne. 0) then
+        state % error_flag = 1
+        state % error_message = "ddinit: `q` " // &
+            & "allocation failed"
         return
     end if
 
@@ -517,14 +529,6 @@ subroutine ddx_init_state(params, constants, state)
                 & "allocation failed"
             return
         end if
-        allocate(state % q(constants % nbasis, &
-            & params % nsph), stat=istatus)
-        if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "ddinit: `q` " // &
-                & "allocation failed"
-            return
-        end if
         allocate(state % qgrid(params % ngrid, &
             & params % nsph), stat=istatus)
         if (istatus .ne. 0) then
@@ -637,6 +641,38 @@ subroutine ddx_init_state(params, constants, state)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "ddinit: `zeta_dip` " // &
+                & "allocation failed"
+            return
+        end if
+        allocate(state % x_adj_re_grid(params % ngrid, params % nsph), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "ddinit: `x_adj_re_grid` " // &
+                & "allocation failed"
+            return
+        end if
+        allocate(state % x_adj_r_grid(params % ngrid, params % nsph), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "ddinit: `x_adj_r_grid` " // &
+                & "allocation failed"
+            return
+        end if
+        allocate(state % x_adj_e_grid(params % ngrid, params % nsph), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "ddinit: `x_adj_e_grid` " // &
+                & "allocation failed"
+            return
+        end if
+        allocate(state % phi_n(params % ngrid, params % nsph), &
+            & stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "ddinit: `phi_n` " // &
                 & "allocation failed"
             return
         end if
@@ -1110,6 +1146,34 @@ subroutine ddx_free_state(state)
         if (istatus .ne. 0) then
             state % error_flag = 1
             state % error_message = "`zeta_dip` deallocation failed!"
+        endif
+    end if
+    if (allocated(state % x_adj_re_grid)) then
+        deallocate(state % x_adj_re_grid, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`x_adj_re_grid` deallocation failed!"
+        endif
+    end if
+    if (allocated(state % x_adj_r_grid)) then
+        deallocate(state % x_adj_r_grid, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`x_adj_r_grid` deallocation failed!"
+        endif
+    end if
+    if (allocated(state % x_adj_e_grid)) then
+        deallocate(state % x_adj_e_grid, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`x_adj_e_grid` deallocation failed!"
+        endif
+    end if
+    if (allocated(state % phi_n)) then
+        deallocate(state % phi_n, stat=istatus)
+        if (istatus .ne. 0) then
+            state % error_flag = 1
+            state % error_message = "`phi_n` deallocation failed!"
         endif
     end if
 end subroutine ddx_free_state
@@ -1776,8 +1840,8 @@ subroutine ddproject_cav(params, constants, s, xi)
         do its = 1, params%ngrid
             if (constants%ui(its, isph) .gt. zero) then
                 ii     = ii + 1
-                xi(ii) = constants%ui(its, isph) &
-                    &* dot_product(constants%vwgrid(:, its), s(:, isph))
+                xi(ii) = constants%ui(its, isph)*dot_product( &
+                    & constants%vwgrid(:constants % nbasis, its), s(:, isph))
             end if
         end do
     end do
@@ -2961,7 +3025,7 @@ subroutine get_banner(string)
     implicit none
     character (len=2047), intent(out) :: string
     character (len=10) :: vstr
-    write(vstr, *) "0.4.1"
+    write(vstr, *) "0.4.2"
     write(string, *) &
         & " +----------------------------------------------------------------+", &
         & NEW_LINE('a'), &

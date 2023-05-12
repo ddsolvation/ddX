@@ -509,11 +509,21 @@ subroutine ddx_get_xi(c_state, c_ddx, ncav, xi) bind(C)
     real(c_double), intent(out)  :: xi(ncav)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    if (allocated(state%x_adj_lpb)) then  ! Case for ddLPB
-        ! Use only the first of the two solutions
-        call ddproject_cav(ddx%params, ddx%constants, state%x_adj_lpb(:, :, 1), xi)
+    call ddproject_cav(ddx%params, ddx%constants, state%q, xi)
+end subroutine
+
+subroutine ddx_get_zeta_dip(c_state, c_ddx, ncav, zeta_dip) bind(C)
+    type(c_ptr), intent(in), value :: c_state, c_ddx
+    type(ddx_state_type), pointer :: state
+    type(ddx_setup), pointer :: ddx
+    integer(c_int), intent(in), value :: ncav
+    real(c_double), intent(out)  :: zeta_dip(3, ncav)
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    if (allocated(state%zeta_dip)) then
+        zeta_dip(:, :) = state%zeta_dip(:, :)
     else
-        call ddproject_cav(ddx%params, ddx%constants, state%s, xi)
+        zeta_dip(:, :) = 0d0
     endif
 end subroutine
 
