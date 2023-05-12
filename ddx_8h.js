@@ -39,6 +39,7 @@ var ddx_8h =
     [ "ddx_get_s", "group__cinterface.html#ga180f7e07a6dfe8d8b326e878969e939e", null ],
     [ "ddx_get_s_niter", "group__cinterface.html#ga635415fc43a6c88bb0cdc0cc4c751458", null ],
     [ "ddx_get_xi", "group__cinterface.html#ga8ec332a45c75ba671624069486fc0885", null ],
+    [ "ddx_get_zeta_dip", "group__cinterface.html#ga580d8754e3a50e3c244292f79b80b742", null ],
     [ "ddx_cosmo_setup", "group__cinterface.html#ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40", null ],
     [ "ddx_cosmo_guess", "group__cinterface.html#ga146da88294e79a57ac8bba351cf78af0", null ],
     [ "ddx_cosmo_guess_adjoint", "group__cinterface.html#gaf27762210854d5783cd591910e19d955", null ],

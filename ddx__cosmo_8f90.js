@@ -7,5 +7,6 @@ var ddx__cosmo_8f90 =
     [ "ddcosmo_guess_adjoint", "ddx__cosmo_8f90.html#ga7c10125a1107726da4c18e90d20dff1e", null ],
     [ "ddcosmo_solve", "ddx__cosmo_8f90.html#ga8437b9aa1205fce64eb67c376293a673", null ],
     [ "ddcosmo_solve_adjoint", "ddx__cosmo_8f90.html#ga997081b4362a37c671d1b0668acda3e3", null ],
-    [ "ddcosmo_solvation_force_terms", "ddx__cosmo_8f90.html#ga82f05cf5eee50c7bb50b3f542c3222fe", null ]
+    [ "ddcosmo_solvation_force_terms", "ddx__cosmo_8f90.html#ga82f05cf5eee50c7bb50b3f542c3222fe", null ],
+    [ "ddcosmo_derivative_setup", "ddx__cosmo_8f90.html#a98f054f224e5a703e765830c76fbb713", null ]
 ];

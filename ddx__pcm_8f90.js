@@ -7,5 +7,6 @@ var ddx__pcm_8f90 =
     [ "ddpcm_guess_adjoint", "ddx__pcm_8f90.html#ga19181358de0ded287e1e5426f11da2e5", null ],
     [ "ddpcm_solve", "ddx__pcm_8f90.html#gaad1df8961dc4af2e658ebab9510c2807", null ],
     [ "ddpcm_solve_adjoint", "ddx__pcm_8f90.html#ga39d2a1ee8cb28f8a12bbbb023a66ccf2", null ],
-    [ "ddpcm_solvation_force_terms", "ddx__pcm_8f90.html#gae5bf3638d2a8c2ffd89f551fffe38814", null ]
+    [ "ddpcm_solvation_force_terms", "ddx__pcm_8f90.html#gae5bf3638d2a8c2ffd89f551fffe38814", null ],
+    [ "ddpcm_derivative_setup", "ddx__pcm_8f90.html#ac26eb8d7859f50cdf2885ba6a516110b", null ]
 ];

@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.1</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.2</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -119,9 +119,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:a515e26a6bcd464a24d86bda4ceedba18"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a515e26a6bcd464a24d86bda4ceedba18">contract_grad_c</a> (params, constants, workspace, Xr, Xe, Xadj_r_sgrid, Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re)</td></tr>
 <tr class="memdesc:a515e26a6bcd464a24d86bda4ceedba18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute contraction of C matrix.  <a href="namespaceddx__gradients.html#a515e26a6bcd464a24d86bda4ceedba18">More...</a><br /></td></tr>
 <tr class="separator:a515e26a6bcd464a24d86bda4ceedba18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a11deceaa4ff8f14953c4f8624799af"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a9a11deceaa4ff8f14953c4f8624799af">contract_grad_f</a> (params, constants, workspace, sol_adj, sol_sgrid, gradpsi, normal_hessian_cav, icav_g, force, state)</td></tr>
-<tr class="memdesc:a9a11deceaa4ff8f14953c4f8624799af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute contraction of F0.  <a href="namespaceddx__gradients.html#a9a11deceaa4ff8f14953c4f8624799af">More...</a><br /></td></tr>
-<tr class="separator:a9a11deceaa4ff8f14953c4f8624799af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b7ffc985bccf4ae59cfd4da2e727ad3"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a5b7ffc985bccf4ae59cfd4da2e727ad3">contract_grad_f</a> (params, constants, workspace, sol_adj, sol_sgrid, gradpsi, normal_hessian_cav, force, state)</td></tr>
+<tr class="memdesc:a5b7ffc985bccf4ae59cfd4da2e727ad3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute contraction of F0.  <a href="namespaceddx__gradients.html#a5b7ffc985bccf4ae59cfd4da2e727ad3">More...</a><br /></td></tr>
+<tr class="separator:a5b7ffc985bccf4ae59cfd4da2e727ad3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad379dee7e9faa47f7a2647fc2009e736"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#ad379dee7e9faa47f7a2647fc2009e736">contract_gradi_bik</a> (params, constants, isph, Xe, Xadj_e, force)</td></tr>
 <tr class="memdesc:ad379dee7e9faa47f7a2647fc2009e736"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute K^A counterpart for the HSP equation. Similar to contract_gradi_Lik.  <a href="namespaceddx__gradients.html#ad379dee7e9faa47f7a2647fc2009e736">More...</a><br /></td></tr>
 <tr class="separator:ad379dee7e9faa47f7a2647fc2009e736"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -137,12 +137,8 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:aeb8b562f5e786d6cacf617fdbf238dc5"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#aeb8b562f5e786d6cacf617fdbf238dc5">contract_grad_f_worker1</a> (params, constants, workspace, sol_adj, sol_sgrid, gradpsi, force)</td></tr>
 <tr class="memdesc:aeb8b562f5e786d6cacf617fdbf238dc5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to compute the derivative of U_i(x_in) and \bf{k}^j_l0(x_in)Y^j_l0m0(x_in) in F0.  <a href="namespaceddx__gradients.html#aeb8b562f5e786d6cacf617fdbf238dc5">More...</a><br /></td></tr>
 <tr class="separator:aeb8b562f5e786d6cacf617fdbf238dc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae63d87d4f2f1ea0d50ca443fc34f3e5a"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#ae63d87d4f2f1ea0d50ca443fc34f3e5a">contract_grad_f_worker2</a> (params, constants, workspace, sol_sgrid, gradpsi, normal_hessian_cav, icav_g, force, state)</td></tr>
-<tr class="memdesc:ae63d87d4f2f1ea0d50ca443fc34f3e5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subroutine to calculate the derivative of C_{0l0m0}^j.  <a href="namespaceddx__gradients.html#ae63d87d4f2f1ea0d50ca443fc34f3e5a">More...</a><br /></td></tr>
-<tr class="separator:ae63d87d4f2f1ea0d50ca443fc34f3e5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0d7515aa9b306a309c825d0623388637"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a0d7515aa9b306a309c825d0623388637">build_zeta_dip_intermediate</a> (params, constants, phi_n, state)</td></tr>
-<tr class="memdesc:a0d7515aa9b306a309c825d0623388637"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routines precomputes an intermediate for its later usage in the computation of the forces. The intermediate is the equivalent of zeta for the F RHS of ddLPB. In this case the intermediate has the shape of dipoles at the cavity points, in contrast to zeta, which has the shape of charges at the cavity points. This intermediate must be used later on to compute its interaction with the solute.  <a href="namespaceddx__gradients.html#a0d7515aa9b306a309c825d0623388637">More...</a><br /></td></tr>
-<tr class="separator:a0d7515aa9b306a309c825d0623388637"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a372ba9396493eb18c7532035c07980d0"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a372ba9396493eb18c7532035c07980d0">contract_grad_f_worker2</a> (params, constants, workspace, gradpsi, normal_hessian_cav, force, state)</td></tr>
+<tr class="separator:a372ba9396493eb18c7532035c07980d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Core routines and parameters specific to gradients. </p>
@@ -638,8 +634,8 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
-<a id="a9a11deceaa4ff8f14953c4f8624799af" name="a9a11deceaa4ff8f14953c4f8624799af"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9a11deceaa4ff8f14953c4f8624799af">&#9670;&nbsp;</a></span>contract_grad_f()</h2>
+<a id="a5b7ffc985bccf4ae59cfd4da2e727ad3" name="a5b7ffc985bccf4ae59cfd4da2e727ad3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b7ffc985bccf4ae59cfd4da2e727ad3">&#9670;&nbsp;</a></span>contract_grad_f()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -685,12 +681,6 @@ Functions/Subroutines</h2></td></tr>
           <td></td>
           <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
           <td class="paramname"><em>normal_hessian_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(inout)&#160;</td>
-          <td class="paramname"><em>icav_g</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -794,7 +784,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00346">346</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00345">345</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -862,7 +852,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00430">430</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00429">429</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -936,7 +926,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00563">563</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00562">562</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -1042,7 +1032,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00846">846</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00845">845</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -1117,12 +1107,12 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01219">1219</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01218">1218</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
-<a id="ae63d87d4f2f1ea0d50ca443fc34f3e5a" name="ae63d87d4f2f1ea0d50ca443fc34f3e5a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae63d87d4f2f1ea0d50ca443fc34f3e5a">&#9670;&nbsp;</a></span>contract_grad_f_worker2()</h2>
+<a id="a372ba9396493eb18c7532035c07980d0" name="a372ba9396493eb18c7532035c07980d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a372ba9396493eb18c7532035c07980d0">&#9670;&nbsp;</a></span>contract_grad_f_worker2()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1148,12 +1138,6 @@ Functions/Subroutines</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>sol_sgrid</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
           <td class="paramname"><em>gradpsi</em>, </td>
         </tr>
@@ -1162,12 +1146,6 @@ Functions/Subroutines</h2></td></tr>
           <td></td>
           <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
           <td class="paramname"><em>normal_hessian_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(inout)&#160;</td>
-          <td class="paramname"><em>icav_g</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1189,76 +1167,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Subroutine to calculate the derivative of C_{0l0m0}^j. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: Input parameter file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Input constants file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">ksph</td><td>: Derivative with respect to x_k </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">sol_sgrid</td><td>: Solution of the Adjoint problem evaluated at the grid </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">gradpsi</td><td>: Gradient of Psi_0 </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">normal_hessian_cav</td><td>: Normal of the Hessian evaluated at cavity points </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">icav_g</td><td>: Index of outside cavity point </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Force corresponding to HSP problem </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01570">1570</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
-
-</div>
-</div>
-<a id="a0d7515aa9b306a309c825d0623388637" name="a0d7515aa9b306a309c825d0623388637"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d7515aa9b306a309c825d0623388637">&#9670;&nbsp;</a></span>build_zeta_dip_intermediate()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_gradients::build_zeta_dip_intermediate </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(params % ngrid, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>phi_n</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>This routines precomputes an intermediate for its later usage in the computation of the forces. The intermediate is the equivalent of zeta for the F RHS of ddLPB. In this case the intermediate has the shape of dipoles at the cavity points, in contrast to zeta, which has the shape of charges at the cavity points. This intermediate must be used later on to compute its interaction with the solute. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constant</td><td>ddx constants </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">phi_n</td><td>adjoint solution contracted with other matrices, size (ngrid, nsph) </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">force</td><td>force array, size (3, nsph) </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01807">1807</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01557">1557</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>

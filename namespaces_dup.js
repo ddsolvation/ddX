@@ -13,7 +13,8 @@ var namespaces_dup =
       [ "ddcosmo_guess_adjoint", "group___fortran__interface__ddcosmo.html#ga7c10125a1107726da4c18e90d20dff1e", null ],
       [ "ddcosmo_solve", "group___fortran__interface__ddcosmo.html#ga8437b9aa1205fce64eb67c376293a673", null ],
       [ "ddcosmo_solve_adjoint", "group___fortran__interface__ddcosmo.html#ga997081b4362a37c671d1b0668acda3e3", null ],
-      [ "ddcosmo_solvation_force_terms", "group___fortran__interface__ddcosmo.html#ga82f05cf5eee50c7bb50b3f542c3222fe", null ]
+      [ "ddcosmo_solvation_force_terms", "group___fortran__interface__ddcosmo.html#ga82f05cf5eee50c7bb50b3f542c3222fe", null ],
+      [ "ddcosmo_derivative_setup", "namespaceddx__cosmo.html#a98f054f224e5a703e765830c76fbb713", null ]
     ] ],
     [ "ddx_definitions", "namespaceddx__definitions.html", [
       [ "dp", "namespaceddx__definitions.html#a6e62179e6ac303908858a873e4db49c2", null ],
@@ -28,14 +29,12 @@ var namespaces_dup =
       [ "contract_grad_u", "namespaceddx__gradients.html#aefec7f2fa9ee7ac358d0eb9476fcef2d", null ],
       [ "contract_grad_b", "namespaceddx__gradients.html#a260eabcd4aae98089d7ef6d1857615e6", null ],
       [ "contract_grad_c", "namespaceddx__gradients.html#a515e26a6bcd464a24d86bda4ceedba18", null ],
-      [ "contract_grad_f", "namespaceddx__gradients.html#a9a11deceaa4ff8f14953c4f8624799af", null ],
+      [ "contract_grad_f", "namespaceddx__gradients.html#a5b7ffc985bccf4ae59cfd4da2e727ad3", null ],
       [ "contract_gradi_bik", "namespaceddx__gradients.html#ad379dee7e9faa47f7a2647fc2009e736", null ],
       [ "contract_gradi_bji", "namespaceddx__gradients.html#a83971467e6e5e1667a85376a59ec9bd9", null ],
       [ "contract_grad_c_worker1", "namespaceddx__gradients.html#a98e0df5fe06047b93ea5112864e24fc1", null ],
       [ "contract_grad_c_worker2", "namespaceddx__gradients.html#ab8d5b2b919b878bd8237c34988c821eb", null ],
-      [ "contract_grad_f_worker1", "namespaceddx__gradients.html#aeb8b562f5e786d6cacf617fdbf238dc5", null ],
-      [ "contract_grad_f_worker2", "namespaceddx__gradients.html#ae63d87d4f2f1ea0d50ca443fc34f3e5a", null ],
-      [ "build_zeta_dip_intermediate", "namespaceddx__gradients.html#a0d7515aa9b306a309c825d0623388637", null ]
+      [ "contract_grad_f_worker1", "namespaceddx__gradients.html#aeb8b562f5e786d6cacf617fdbf238dc5", null ]
     ] ],
     [ "ddx_harmonics", "namespaceddx__harmonics.html", [
       [ "ylmscale", "namespaceddx__harmonics.html#a00c5ff3e46e5eb64eba38eee2b5f0751", null ],
@@ -132,7 +131,9 @@ var namespaces_dup =
       [ "ddlpb_guess", "group___fortran__interface__ddlpb.html#ga67c5dfac741012e2843b013bfb473124", null ],
       [ "ddlpb_guess_adjoint", "group___fortran__interface__ddlpb.html#gab02c9e07f910f841cbd2ed63d2d2aedf", null ],
       [ "ddlpb_solve", "group___fortran__interface__ddlpb.html#gab9ab6f364ac3f17a7738936a54f89dad", null ],
-      [ "ddlpb_solve_adjoint", "group___fortran__interface__ddlpb.html#gaa23bd2b57bd92b0a641e0cde2b4d2e43", null ]
+      [ "ddlpb_solve_adjoint", "group___fortran__interface__ddlpb.html#gaa23bd2b57bd92b0a641e0cde2b4d2e43", null ],
+      [ "ddlpb_solvation_force_terms", "group___fortran__interface__ddlpb.html#gafc4b0f021fd04b68148e20c4a380b419", null ],
+      [ "ddlpb_derivative_setup", "namespaceddx__lpb.html#aef81dbda735e9f40120587c1f66cfa0c", null ]
     ] ],
     [ "ddx_lpb_core", "namespaceddx__lpb__core.html", [
       [ "wghpot_f", "namespaceddx__lpb__core.html#a651dd3cdefb7b8f3c10d6914f61e35dc", null ],
@@ -202,7 +203,8 @@ var namespaces_dup =
       [ "ddpcm_guess_adjoint", "group___fortran__interface__ddpcm.html#ga19181358de0ded287e1e5426f11da2e5", null ],
       [ "ddpcm_solve", "group___fortran__interface__ddpcm.html#gaad1df8961dc4af2e658ebab9510c2807", null ],
       [ "ddpcm_solve_adjoint", "group___fortran__interface__ddpcm.html#ga39d2a1ee8cb28f8a12bbbb023a66ccf2", null ],
-      [ "ddpcm_solvation_force_terms", "group___fortran__interface__ddpcm.html#gae5bf3638d2a8c2ffd89f551fffe38814", null ]
+      [ "ddpcm_solvation_force_terms", "group___fortran__interface__ddpcm.html#gae5bf3638d2a8c2ffd89f551fffe38814", null ],
+      [ "ddpcm_derivative_setup", "namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b", null ]
     ] ],
     [ "ddx_solvers", "namespaceddx__solvers.html", "namespaceddx__solvers" ],
     [ "ddx_workspace", "namespaceddx__workspace.html", "namespaceddx__workspace" ]

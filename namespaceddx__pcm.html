@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.1</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.2</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -125,10 +125,67 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:gae5bf3638d2a8c2ffd89f551fffe38814"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#gae5bf3638d2a8c2ffd89f551fffe38814">ddpcm_solvation_force_terms</a> (params, constants, workspace, state, force)</td></tr>
 <tr class="memdesc:gae5bf3638d2a8c2ffd89f551fffe38814"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the solvation contribution to the ddPCM forces.  <a href="group___fortran__interface__ddpcm.html#gae5bf3638d2a8c2ffd89f551fffe38814">More...</a><br /></td></tr>
 <tr class="separator:gae5bf3638d2a8c2ffd89f551fffe38814"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac26eb8d7859f50cdf2885ba6a516110b"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b">ddpcm_derivative_setup</a> (params, constants, workspace, state)</td></tr>
+<tr class="memdesc:ac26eb8d7859f50cdf2885ba6a516110b"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routines precomputes the intermediates to be used in the evaluation of ddCOSMO analytical derivatives.  <a href="namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b">More...</a><br /></td></tr>
+<tr class="separator:ac26eb8d7859f50cdf2885ba6a516110b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >High-level subroutines for ddpcm. </p>
-</div></div><!-- contents -->
+</div><h2 class="groupheader">Function/Subroutine Documentation</h2>
+<a id="ac26eb8d7859f50cdf2885ba6a516110b" name="ac26eb8d7859f50cdf2885ba6a516110b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac26eb8d7859f50cdf2885ba6a516110b">&#9670;&nbsp;</a></span>ddpcm_derivative_setup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_pcm::ddpcm_derivative_setup </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This routines precomputes the intermediates to be used in the evaluation of ddCOSMO analytical derivatives. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constant</td><td>ddx constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00306">306</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+
+</div>
+</div>
+</div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

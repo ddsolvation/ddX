@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.1</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.2</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -220,73 +220,89 @@ $(document).ready(function(){initNavTree('ddx__cosmo_8f90_source.html',''); init
 <div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    finish_time = omp_get_wtime()</div>
 <div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    state % s_time = finish_time - start_time</div>
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span> </div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddcosmo.html#ga997081b4362a37c671d1b0668acda3e3">ddcosmo_solve_adjoint</a></div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    state % q = state % s</div>
 <div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span> </div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddcosmo.html#ga82f05cf5eee50c7bb50b3f542c3222fe">  220</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddcosmo.html#ga82f05cf5eee50c7bb50b3f542c3222fe">ddcosmo_solvation_force_terms</a>(params, constants, workspace, &amp;</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>        &amp; state, force)</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(inout)</span> :: force(3, params % nsph)</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>    <span class="comment">! local variables</span></div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">external</span> :: ddot</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span><span class="keywordtype">    real</span>(dp) :: start_time, finish_time</div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>    <span class="keywordtype">integer</span> :: icav, isph, igrid</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span> </div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    start_time = omp_get_wtime()</div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>    <span class="comment">! Get values of S on the grid</span></div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>    <span class="keyword">call </span>ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &amp;</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        &amp; constants % vgrid, constants % vgrid_nbasis, one, state % s, zero, &amp;</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>        &amp; state % sgrid)</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>    <span class="comment">! Get the values of phi on the grid</span></div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    <span class="keyword">call </span>ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &amp;</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>        &amp; constants % icav_ia, constants % icav_ja, state % phi_cav, &amp;</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>        &amp; state % phi_grid)</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span> </div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>    force = zero</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>        <span class="keyword">call </span>contract_grad_l(params, constants, isph, state % xs, &amp;</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>            &amp; state % sgrid, workspace % tmp_vylm(:, 1), &amp;</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>            &amp; workspace % tmp_vdylm(:, :, 1), workspace % tmp_vplm(:, 1), &amp;</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>            &amp; workspace % tmp_vcos(:, 1), workspace % tmp_vsin(:, 1), &amp;</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>            &amp; force(:, isph))</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>        <span class="keyword">call </span>contract_grad_u(params, constants, isph, state % sgrid, &amp;</div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>            &amp; state % phi_grid, force(:, isph))</div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    force = - pt5 * force</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__cosmo.html#a98f054f224e5a703e765830c76fbb713">ddcosmo_derivative_setup</a>(params, constants, workspace, state)</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span> </div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddcosmo.html#ga997081b4362a37c671d1b0668acda3e3">ddcosmo_solve_adjoint</a></div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span> </div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddcosmo.html#ga82f05cf5eee50c7bb50b3f542c3222fe">  224</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddcosmo.html#ga82f05cf5eee50c7bb50b3f542c3222fe">ddcosmo_solvation_force_terms</a>(params, constants, workspace, &amp;</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>        &amp; state, force)</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(inout)</span> :: force(3, params % nsph)</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>    <span class="comment">! local variables</span></div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span><span class="keywordtype">    real</span>(dp) :: start_time, finish_time</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>    <span class="keywordtype">integer</span> :: isph</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span> </div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>    start_time = omp_get_wtime()</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span> </div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>    force = zero</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>        <span class="keyword">call </span>contract_grad_l(params, constants, isph, state % xs, &amp;</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>            &amp; state % sgrid, workspace % tmp_vylm(:, 1), &amp;</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>            &amp; workspace % tmp_vdylm(:, :, 1), workspace % tmp_vplm(:, 1), &amp;</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>            &amp; workspace % tmp_vcos(:, 1), workspace % tmp_vsin(:, 1), &amp;</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>            &amp; force(:, isph))</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>        <span class="keyword">call </span>contract_grad_u(params, constants, isph, state % sgrid, &amp;</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>            &amp; state % phi_grid, force(:, isph))</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>    force = - pt5 * force</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span> </div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    finish_time = omp_get_wtime()</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    state % force_time = finish_time - start_time</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span> </div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddcosmo.html#ga82f05cf5eee50c7bb50b3f542c3222fe">ddcosmo_solvation_force_terms</a></div>
 <div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span> </div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    <span class="comment">! assemble the intermediate zeta: S weighted by U evaluated on the</span></div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    <span class="comment">! exposed grid points. This is not required here, but it is used</span></div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    <span class="comment">! in later steps.</span></div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>    icav = 0</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>            <span class="keywordflow">if</span> (constants % ui(igrid, isph) .ne. zero) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>                icav = icav + 1</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>                state % zeta(icav) = constants % wgrid(igrid) * &amp;</div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>                    &amp; constants % ui(igrid, isph) * ddot(constants % nbasis, &amp;</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>                    &amp; constants % vgrid(1, igrid), 1, state % s(1, isph), 1)</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span><span class="keywordflow">            end if</span></div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>    finish_time = omp_get_wtime()</div>
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>    state % force_time = finish_time - start_time</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno"><a class="line" href="namespaceddx__cosmo.html#a98f054f224e5a703e765830c76fbb713">  263</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx__cosmo.html#a98f054f224e5a703e765830c76fbb713">ddcosmo_derivative_setup</a>(params, constants, workspace, state)</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span> </div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">external</span> :: ddot</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>    <span class="keywordtype">integer</span> :: icav, isph, igrid</div>
 <div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span> </div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddcosmo.html#ga82f05cf5eee50c7bb50b3f542c3222fe">ddcosmo_solvation_force_terms</a></div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span> </div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx__cosmo.html">ddx_cosmo</a></div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span> </div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>    <span class="comment">! Get values of S on the grid</span></div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>    <span class="keyword">call </span>ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &amp;</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>        &amp; constants % vgrid, constants % vgrid_nbasis, one, state % s, zero, &amp;</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>        &amp; state % sgrid)</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>    <span class="comment">! Get the values of phi on the grid</span></div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    <span class="keyword">call </span>ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &amp;</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>        &amp; constants % icav_ia, constants % icav_ja, state % phi_cav, &amp;</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>        &amp; state % phi_grid)</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span> </div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>    <span class="comment">! assemble the intermediate zeta: S weighted by U evaluated on the</span></div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>    <span class="comment">! exposed grid points.</span></div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>    icav = 0</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>            <span class="keywordflow">if</span> (constants % ui(igrid, isph) .ne. zero) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>                icav = icav + 1</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>                state % zeta(icav) = constants % wgrid(igrid) * &amp;</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>                    &amp; constants % ui(igrid, isph) * ddot(constants % nbasis, &amp;</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>                    &amp; constants % vgrid(1, igrid), 1, state % s(1, isph), 1)</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span><span class="keywordflow">            end if</span></div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span> </div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx__cosmo.html#a98f054f224e5a703e765830c76fbb713">ddcosmo_derivative_setup</a></div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span> </div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx__cosmo.html">ddx_cosmo</a></div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span> </div>
 <div class="ttc" id="agroup___fortran__interface__ddcosmo_html_ga00df0d8f18848c101a4b321a0d4dc1ac"><div class="ttname"><a href="group___fortran__interface__ddcosmo.html#ga00df0d8f18848c101a4b321a0d4dc1ac">ddx_cosmo::ddcosmo_energy</a></div><div class="ttdeci">subroutine ddcosmo_energy(constants, state, esolv)</div><div class="ttdoc">Compute the ddCOSMO energy.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00078">ddx_cosmo.f90:79</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__ddcosmo_html_ga19e04e21fa4063a92520a59cc2f316b9"><div class="ttname"><a href="group___fortran__interface__ddcosmo.html#ga19e04e21fa4063a92520a59cc2f316b9">ddx_cosmo::ddcosmo_guess</a></div><div class="ttdeci">subroutine ddcosmo_guess(params, constants, workspace, state)</div><div class="ttdoc">Do a guess for the primal ddCOSMO linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00121">ddx_cosmo.f90:122</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__ddcosmo_html_ga501c58483a775fe4829bb94d7155f4f1"><div class="ttname"><a href="group___fortran__interface__ddcosmo.html#ga501c58483a775fe4829bb94d7155f4f1">ddx_cosmo::ddcosmo_setup</a></div><div class="ttdeci">subroutine ddcosmo_setup(params, constants, workspace, state, phi_cav, psi)</div><div class="ttdoc">Given the potential at the cavity points, assemble the RHS for ddCOSMO or for ddPCM.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00098">ddx_cosmo.f90:99</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__ddcosmo_html_ga7c10125a1107726da4c18e90d20dff1e"><div class="ttname"><a href="group___fortran__interface__ddcosmo.html#ga7c10125a1107726da4c18e90d20dff1e">ddx_cosmo::ddcosmo_guess_adjoint</a></div><div class="ttdeci">subroutine ddcosmo_guess_adjoint(params, constants, workspace, state)</div><div class="ttdoc">Do a guess for the adjoint ddCOSMO linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00141">ddx_cosmo.f90:142</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__ddcosmo_html_ga7c83eee1200de86e45846ae434a5236a"><div class="ttname"><a href="group___fortran__interface__ddcosmo.html#ga7c83eee1200de86e45846ae434a5236a">ddx_cosmo::ddcosmo</a></div><div class="ttdeci">subroutine ddcosmo(params, constants, workspace, state, phi_cav, psi, tol, esolv, force)</div><div class="ttdoc">ddCOSMO solver</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00040">ddx_cosmo.f90:42</a></div></div>
-<div class="ttc" id="agroup___fortran__interface__ddcosmo_html_ga82f05cf5eee50c7bb50b3f542c3222fe"><div class="ttname"><a href="group___fortran__interface__ddcosmo.html#ga82f05cf5eee50c7bb50b3f542c3222fe">ddx_cosmo::ddcosmo_solvation_force_terms</a></div><div class="ttdeci">subroutine ddcosmo_solvation_force_terms(params, constants, workspace, state, force)</div><div class="ttdoc">Compute the solvation term of the forces (solute aspecific). This must be summed to the solute specif...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00220">ddx_cosmo.f90:222</a></div></div>
+<div class="ttc" id="agroup___fortran__interface__ddcosmo_html_ga82f05cf5eee50c7bb50b3f542c3222fe"><div class="ttname"><a href="group___fortran__interface__ddcosmo.html#ga82f05cf5eee50c7bb50b3f542c3222fe">ddx_cosmo::ddcosmo_solvation_force_terms</a></div><div class="ttdeci">subroutine ddcosmo_solvation_force_terms(params, constants, workspace, state, force)</div><div class="ttdoc">Compute the solvation term of the forces (solute aspecific). This must be summed to the solute specif...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00224">ddx_cosmo.f90:226</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__ddcosmo_html_ga8437b9aa1205fce64eb67c376293a673"><div class="ttname"><a href="group___fortran__interface__ddcosmo.html#ga8437b9aa1205fce64eb67c376293a673">ddx_cosmo::ddcosmo_solve</a></div><div class="ttdeci">subroutine ddcosmo_solve(params, constants, workspace, state, tol)</div><div class="ttdoc">Solve the primal ddCOSMO linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00162">ddx_cosmo.f90:163</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__ddcosmo_html_ga997081b4362a37c671d1b0668acda3e3"><div class="ttname"><a href="group___fortran__interface__ddcosmo.html#ga997081b4362a37c671d1b0668acda3e3">ddx_cosmo::ddcosmo_solve_adjoint</a></div><div class="ttdeci">subroutine ddcosmo_solve_adjoint(params, constants, workspace, state, tol)</div><div class="ttdoc">Solve the adjoint ddCOSMO linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00191">ddx_cosmo.f90:192</a></div></div>
 <div class="ttc" id="anamespaceddx__cosmo_html"><div class="ttname"><a href="namespaceddx__cosmo.html">ddx_cosmo</a></div><div class="ttdoc">High-level subroutines for ddcosmo.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00013">ddx_cosmo.f90:13</a></div></div>
+<div class="ttc" id="anamespaceddx__cosmo_html_a98f054f224e5a703e765830c76fbb713"><div class="ttname"><a href="namespaceddx__cosmo.html#a98f054f224e5a703e765830c76fbb713">ddx_cosmo::ddcosmo_derivative_setup</a></div><div class="ttdeci">subroutine ddcosmo_derivative_setup(params, constants, workspace, state)</div><div class="ttdoc">This routines precomputes the intermediates to be used in the evaluation of ddCOSMO analytical deriva...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__cosmo_8f90_source.html#l00263">ddx_cosmo.f90:264</a></div></div>
 <div class="ttc" id="anamespaceddx__multipolar__solutes_html"><div class="ttname"><a href="namespaceddx__multipolar__solutes.html">ddx_multipolar_solutes</a></div><div class="ttdoc">Routines to build rhs (phi and psi)</div><div class="ttdef"><b>Definition:</b> <a href="ddx__multipolar__solutes_8f90_source.html#l00002">ddx_multipolar_solutes.f90:2</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html"><div class="ttname"><a href="namespaceddx__operators.html">ddx_operators</a></div><div class="ttdoc">Operators shared among ddX methods.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00013">ddx_operators.f90:13</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_a6f210175b888b158774e507e0d603b52"><div class="ttname"><a href="namespaceddx__operators.html#a6f210175b888b158774e507e0d603b52">ddx_operators::lstarx</a></div><div class="ttdeci">subroutine lstarx(params, constants, workspace, x, y)</div><div class="ttdoc">Adjoint single layer operator matvec.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00084">ddx_operators.f90:85</a></div></div>

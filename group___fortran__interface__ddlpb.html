@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.1</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.2</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -116,6 +116,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:gaa23bd2b57bd92b0a641e0cde2b4d2e43"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#gaa23bd2b57bd92b0a641e0cde2b4d2e43">ddx_lpb::ddlpb_solve_adjoint</a> (params, constants, workspace, state, tol)</td></tr>
 <tr class="memdesc:gaa23bd2b57bd92b0a641e0cde2b4d2e43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the adjoint ddLPB linear system.  <a href="group___fortran__interface__ddlpb.html#gaa23bd2b57bd92b0a641e0cde2b4d2e43">More...</a><br /></td></tr>
 <tr class="separator:gaa23bd2b57bd92b0a641e0cde2b4d2e43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafc4b0f021fd04b68148e20c4a380b419"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#gafc4b0f021fd04b68148e20c4a380b419">ddx_lpb::ddlpb_solvation_force_terms</a> (params, constants, workspace, state, hessianphi_cav, force)</td></tr>
+<tr class="memdesc:gafc4b0f021fd04b68148e20c4a380b419"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the solvation terms of the forces (solute aspecific). This must be summed to the solute specific term to get the full forces.  <a href="group___fortran__interface__ddlpb.html#gafc4b0f021fd04b68148e20c4a380b419">More...</a><br /></td></tr>
+<tr class="separator:gafc4b0f021fd04b68148e20c4a380b419"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <h2 class="groupheader">Function/Subroutine Documentation</h2>
@@ -189,7 +192,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00089">89</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00088">88</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
 
 </div>
 </div>
@@ -235,7 +238,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00154">154</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00153">153</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
 
 </div>
 </div>
@@ -295,7 +298,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00172">172</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00171">171</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
 
 </div>
 </div>
@@ -355,7 +358,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00199">199</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00198">198</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
 
 </div>
 </div>
@@ -415,7 +418,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00227">227</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00226">226</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
 
 </div>
 </div>
@@ -475,7 +478,74 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00267">267</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00266">266</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+
+</div>
+</div>
+<a id="gafc4b0f021fd04b68148e20c4a380b419" name="gafc4b0f021fd04b68148e20c4a380b419"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gafc4b0f021fd04b68148e20c4a380b419">&#9670;&nbsp;</a></span>ddlpb_solvation_force_terms()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_lpb::ddlpb_solvation_force_terms </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, 3, constants % ncav), intent(in)&#160;</td>
+          <td class="paramname"><em>hessianphi_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(out)&#160;</td>
+          <td class="paramname"><em>force</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the solvation terms of the forces (solute aspecific). This must be summed to the solute specific term to get the full forces. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: General options </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>: Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>: Solutions and relevant quantities </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">hessianphi_cav</td><td>: Electric field gradient at the grid points </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Geometrical contribution to the forces </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00309">309</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
 
 </div>
 </div>

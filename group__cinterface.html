@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.1</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.2</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -179,6 +179,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="separator:ga635415fc43a6c88bb0cdc0cc4c751458"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8ec332a45c75ba671624069486fc0885"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga8ec332a45c75ba671624069486fc0885">ddx_get_xi</a> (const void *state, const void *ddx, int ncav, double *xi)</td></tr>
 <tr class="separator:ga8ec332a45c75ba671624069486fc0885"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga580d8754e3a50e3c244292f79b80b742"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga580d8754e3a50e3c244292f79b80b742">ddx_get_zeta_dip</a> (const void *state, const void *ddx, int ncav, double *zeta_dip)</td></tr>
+<tr class="separator:ga580d8754e3a50e3c244292f79b80b742"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Problem setup and solution routines</h2></td></tr>
 <tr class="memitem:ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40">ddx_cosmo_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav)</td></tr>
@@ -1370,6 +1372,55 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
     <tr><td class="paramname">ncav</td><td>Number of cavity points </td></tr>
     <tr><td class="paramname">xi</td><td>Array to be filled with ncav </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga580d8754e3a50e3c244292f79b80b742" name="ga580d8754e3a50e3c244292f79b80b742"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga580d8754e3a50e3c244292f79b80b742">&#9670;&nbsp;</a></span>ddx_get_zeta_dip()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_get_zeta_dip </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ncav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>zeta_dip</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Return the zeta_dip, the dipolar contribution of the LPB adjoint solution, at the cavity points. The pointer should refer to the memory location of an array of size (3, ncav). Data will be stored in column-major format. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">ncav</td><td>Number of cavity points </td></tr>
+    <tr><td class="paramname">zeta_dip</td><td>Array to be filled with ncav </td></tr>
   </table>
   </dd>
 </dl>

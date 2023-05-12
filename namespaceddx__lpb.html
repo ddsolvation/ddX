@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.1</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.2</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -122,8 +122,12 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:gaa23bd2b57bd92b0a641e0cde2b4d2e43"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#gaa23bd2b57bd92b0a641e0cde2b4d2e43">ddlpb_solve_adjoint</a> (params, constants, workspace, state, tol)</td></tr>
 <tr class="memdesc:gaa23bd2b57bd92b0a641e0cde2b4d2e43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the adjoint ddLPB linear system.  <a href="group___fortran__interface__ddlpb.html#gaa23bd2b57bd92b0a641e0cde2b4d2e43">More...</a><br /></td></tr>
 <tr class="separator:gaa23bd2b57bd92b0a641e0cde2b4d2e43"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc4b0f021fd04b68148e20c4a380b419"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#afc4b0f021fd04b68148e20c4a380b419">ddlpb_solvation_force_terms</a> (params, constants, workspace, state, hessianphi_cav, force)</td></tr>
-<tr class="separator:afc4b0f021fd04b68148e20c4a380b419"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafc4b0f021fd04b68148e20c4a380b419"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddlpb.html#gafc4b0f021fd04b68148e20c4a380b419">ddlpb_solvation_force_terms</a> (params, constants, workspace, state, hessianphi_cav, force)</td></tr>
+<tr class="memdesc:gafc4b0f021fd04b68148e20c4a380b419"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the solvation terms of the forces (solute aspecific). This must be summed to the solute specific term to get the full forces.  <a href="group___fortran__interface__ddlpb.html#gafc4b0f021fd04b68148e20c4a380b419">More...</a><br /></td></tr>
+<tr class="separator:gafc4b0f021fd04b68148e20c4a380b419"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef81dbda735e9f40120587c1f66cfa0c"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb.html#aef81dbda735e9f40120587c1f66cfa0c">ddlpb_derivative_setup</a> (params, constants, workspace, state)</td></tr>
+<tr class="memdesc:aef81dbda735e9f40120587c1f66cfa0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">This routines precomputes two intermediates for its later usage in the computation of analytical derivatives (forces or other).  <a href="namespaceddx__lpb.html#aef81dbda735e9f40120587c1f66cfa0c">More...</a><br /></td></tr>
+<tr class="separator:aef81dbda735e9f40120587c1f66cfa0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >High-level subroutines for ddlpb. </p>
@@ -229,14 +233,14 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
-<a id="afc4b0f021fd04b68148e20c4a380b419" name="afc4b0f021fd04b68148e20c4a380b419"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc4b0f021fd04b68148e20c4a380b419">&#9670;&nbsp;</a></span>ddlpb_solvation_force_terms()</h2>
+<a id="aef81dbda735e9f40120587c1f66cfa0c" name="aef81dbda735e9f40120587c1f66cfa0c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef81dbda735e9f40120587c1f66cfa0c">&#9670;&nbsp;</a></span>ddlpb_derivative_setup()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">subroutine ddx_lpb::ddlpb_solvation_force_terms </td>
+          <td class="memname">subroutine ddx_lpb::ddlpb_derivative_setup </td>
           <td>(</td>
           <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
           <td class="paramname"><em>params</em>, </td>
@@ -257,19 +261,7 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, 3, constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>hessianphi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(out)&#160;</td>
-          <td class="paramname"><em>force</em>&#160;</td>
+          <td class="paramname"><em>state</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -279,7 +271,18 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00307">307</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
+<p>This routines precomputes two intermediates for its later usage in the computation of analytical derivatives (forces or other). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constant</td><td>ddx constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__lpb_8f90_source.html#l00445">445</a> of file <a class="el" href="ddx__lpb_8f90_source.html">ddx_lpb.f90</a>.</p>
 
 </div>
 </div>

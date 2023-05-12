@@ -32,7 +32,7 @@ MathJax.Hub.Config({
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.1</span>
+   <div id="projectname">ddx<span id="projectnumber">&#160;0.4.2</span>
    </div>
    <div id="projectbrief">Libary for domain-decomposition methods for polarizable continuum models</div>
   </td>
@@ -234,6 +234,14 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a7906f2fd69fb861e5e561addb1e56ec5"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a7906f2fd69fb861e5e561addb1e56ec5">zeta_dip</a></td></tr>
 <tr class="memdesc:a7906f2fd69fb861e5e561addb1e56ec5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zeta dipoles intermediate for the forces. Dimension (3, ncav). Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#a7906f2fd69fb861e5e561addb1e56ec5">More...</a><br /></td></tr>
 <tr class="separator:a7906f2fd69fb861e5e561addb1e56ec5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1425ca7b92fa2c97c905aa6b61c7fd2a"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a1425ca7b92fa2c97c905aa6b61c7fd2a">x_adj_re_grid</a></td></tr>
+<tr class="separator:a1425ca7b92fa2c97c905aa6b61c7fd2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a13c5630a88642530b670b5c7f54274"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a8a13c5630a88642530b670b5c7f54274">x_adj_r_grid</a></td></tr>
+<tr class="separator:a8a13c5630a88642530b670b5c7f54274"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c9e86473be0bea3096bd46d5d21d609"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a2c9e86473be0bea3096bd46d5d21d609">x_adj_e_grid</a></td></tr>
+<tr class="separator:a2c9e86473be0bea3096bd46d5d21d609"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d07fd4bc980c969e85af29036ff288d"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a9d07fd4bc980c969e85af29036ff288d">phi_n</a></td></tr>
+<tr class="separator:a9d07fd4bc980c969e85af29036ff288d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >This defined type contains the primal and adjoint RHSs, the solution of the primal and adjoint linear systems, useful intermediates for the computation of the forces, and the information about the convergence of the linear system solver (time, number of iterations, relative difference at each iteration). </p>
@@ -1029,6 +1037,70 @@ Public Attributes</h2></td></tr>
 <p>Zeta dipoles intermediate for the forces. Dimension (3, ncav). Allocated and used only by the LPB (model=3) model. </p>
 
 <p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00185">185</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a1425ca7b92fa2c97c905aa6b61c7fd2a" name="a1425ca7b92fa2c97c905aa6b61c7fd2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1425ca7b92fa2c97c905aa6b61c7fd2a">&#9670;&nbsp;</a></span>x_adj_re_grid</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::x_adj_re_grid</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00186">186</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a8a13c5630a88642530b670b5c7f54274" name="a8a13c5630a88642530b670b5c7f54274"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a13c5630a88642530b670b5c7f54274">&#9670;&nbsp;</a></span>x_adj_r_grid</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::x_adj_r_grid</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00187">187</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a2c9e86473be0bea3096bd46d5d21d609" name="a2c9e86473be0bea3096bd46d5d21d609"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2c9e86473be0bea3096bd46d5d21d609">&#9670;&nbsp;</a></span>x_adj_e_grid</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::x_adj_e_grid</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00188">188</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a9d07fd4bc980c969e85af29036ff288d" name="a9d07fd4bc980c969e85af29036ff288d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d07fd4bc980c969e85af29036ff288d">&#9670;&nbsp;</a></span>phi_n</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_core::ddx_state_type::phi_n</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00189">189</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
