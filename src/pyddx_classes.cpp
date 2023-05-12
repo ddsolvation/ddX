@@ -304,6 +304,13 @@ class State {
     ddx_get_xi(m_holder, m_model->holder(), m_model->n_cav(), xi.mutable_data());
     return xi;
   }
+  array_f_t zeta_dip() const {
+    check_solved_adjoint();
+    array_f_t zeta_dip({3, m_model->n_cav()});
+    ddx_get_zeta_dip(m_holder, m_model->holder(), m_model->n_cav(),
+                     zeta_dip.mutable_data());
+    return zeta_dip;
+  }
 
   //
   // Solving COSMO / PCM / LPB
@@ -702,6 +709,7 @@ void export_pyddx_classes(py::module& m) {
               "s_n_iter", &State::s_n_iter,
               "Number of iterations required to solve the adjoint problem.")
         .def_property_readonly("xi", &State::xi)
+        .def_property_readonly("zeta_dip", &State::zeta_dip)
         .def_property_readonly("is_solved", &State::is_solved,
                                "Return whether the forward problem is solved.")
         .def_property_readonly("is_solved_adjoint", &State::is_solved_adjoint,

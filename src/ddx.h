@@ -239,6 +239,17 @@ int ddx_get_s_niter(const void* state);
  *  \param xi      Array to be filled with ncav
  */
 void ddx_get_xi(const void* state, const void* ddx, int ncav, double* xi);
+
+/** Return the zeta_dip, the dipolar contribution of the LPB adjoint solution,
+ *  at the cavity points.
+ *  The pointer should refer to the memory location of an array of
+ *  size (3, ncav). Data will be stored in column-major format.
+ *  \param state     DDX state
+ *  \param ddx       DDX model
+ *  \param ncav      Number of cavity points
+ *  \param zeta_dip  Array to be filled with ncav
+ */
+void ddx_get_zeta_dip(const void* state, const void* ddx, int ncav, double* zeta_dip);
 ///@}
 
 /** \name Problem setup and solution routines */
