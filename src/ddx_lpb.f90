@@ -66,8 +66,7 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
         if (workspace % error_flag .eq. 1) return
         call ddlpb_solve_adjoint(params, constants, workspace, state, tol)
         if (workspace % error_flag .eq. 1) return
-        call ddlpb_derivative_intermediates(params, constants, &
-            & workspace, state)
+        call ddlpb_derivative_setup(params, constants, workspace, state)
         call ddlpb_solvation_force_terms(params, constants, workspace, &
             & state, hessianphi_cav, force)
         if (workspace % error_flag .eq. 1) return
@@ -443,7 +442,7 @@ end subroutine ddlpb_solvation_force_terms
 !! @param[inout] workspace: ddx workspaces
 !! @param[inout] state: ddx state
 !!
-subroutine ddlpb_derivative_intermediates(params, constants, workspace, state)
+subroutine ddlpb_derivative_setup(params, constants, workspace, state)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -608,6 +607,6 @@ subroutine ddlpb_derivative_intermediates(params, constants, workspace, state)
         end if
     end if
 
-end subroutine ddlpb_derivative_intermediates
+end subroutine ddlpb_derivative_setup
 
 end module ddx_lpb

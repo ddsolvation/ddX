@@ -62,6 +62,7 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
 
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
+        call ddpcm_derivative_setup(params, constants, workspace, state)
         call ddpcm_solvation_force_terms(params, constants, workspace, &
             & state, force)
     end if
@@ -269,25 +270,11 @@ subroutine ddpcm_solvation_force_terms(params, constants, workspace, &
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(out) :: force(3, params % nsph)
-    ! local
+
     real(dp) :: start_time, finish_time
-    real(dp), external :: ddot
-    integer :: icav, isph, igrid
+    integer :: isph
 
     start_time = omp_get_wtime()
-    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
-        & constants % icav_ia, constants % icav_ja, state % phi_cav, &
-        & state % phi_grid)
-    ! Get grid values of S and Y
-    call dgemm('T', 'N', params % ngrid, params % nsph, &
-        & constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &
-        & state % s, constants % nbasis, zero, state % sgrid, params % ngrid)
-    call dgemm('T', 'N', params % ngrid, params % nsph, &
-        & constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &
-        & state % y, constants % nbasis, zero, state % ygrid, params % ngrid)
-
-    state % g = - (state % phieps - state % phi)
-    state % qgrid = state % sgrid - fourpi/(params % eps - one)*state % ygrid
 
     call gradr(params, constants, workspace, state % g, state % ygrid, force)
 
@@ -302,21 +289,59 @@ subroutine ddpcm_solvation_force_terms(params, constants, workspace, &
     end do
     force = - pt5 * force
 
-    icav = 0
-    do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-            if(constants % ui(igrid, isph) .ne. zero) then
-                icav = icav + 1
-                state % zeta(icav) = constants % wgrid(igrid) * &
-                    & constants % ui(igrid, isph) * ddot(constants % nbasis, &
-                    & constants % vgrid(1, igrid), 1, &
-                    & state % q(1, isph), 1)
-            end if
-        end do
-    end do
     finish_time = omp_get_wtime()
     state % force_time = finish_time - start_time
 
 end subroutine ddpcm_solvation_force_terms
+
+!> This routines precomputes the intermediates to be used in the evaluation
+!! of ddCOSMO analytical derivatives.
+!!
+!> @ingroup Fortran_interface_ddcosmo
+!! @param[in] params: ddx parameters
+!! @param[in] constant: ddx constants
+!! @param[inout] workspace: ddx workspaces
+!! @param[inout] state: ddx state
+!!
+subroutine ddpcm_derivative_setup(params, constants, workspace, state)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+
+    real(dp), external :: ddot
+    integer :: icav, isph, igrid
+
+    ! Get grid values of S and Y
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+        & constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &
+        & state % s, constants % nbasis, zero, state % sgrid, params % ngrid)
+    call dgemm('T', 'N', params % ngrid, params % nsph, &
+        & constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &
+        & state % y, constants % nbasis, zero, state % ygrid, params % ngrid)
+
+    ! Get the values of phi on the grid
+    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
+        & constants % icav_ia, constants % icav_ja, state % phi_cav, &
+        & state % phi_grid)
+
+    state % g = - (state % phieps - state % phi)
+    state % qgrid = state % sgrid - fourpi/(params % eps - one)*state % ygrid
+
+    ! assemble the intermediate zeta: S weighted by U evaluated on the
+    ! exposed grid points.
+    icav = 0
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .ne. zero) then
+                icav = icav + 1
+                state % zeta(icav) = constants % wgrid(igrid) * &
+                    & constants % ui(igrid, isph) * ddot(constants % nbasis, &
+                    & constants % vgrid(1, igrid), 1, state % q(1, isph), 1)
+            end if
+        end do
+    end do
+
+end subroutine ddpcm_derivative_setup
 
 end module ddx_pcm

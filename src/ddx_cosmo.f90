@@ -63,6 +63,7 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
 
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
+        call ddcosmo_derivative_setup(params, constants, workspace, state)
         call ddcosmo_solvation_force_terms(params, constants, workspace, &
             & state, force)
     end if
@@ -228,19 +229,10 @@ subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(inout) :: force(3, params % nsph)
     ! local variables
-    real(dp), external :: ddot
     real(dp) :: start_time, finish_time
-    integer :: icav, isph, igrid
+    integer :: isph
 
     start_time = omp_get_wtime()
-    ! Get values of S on the grid
-    call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &
-        & constants % vgrid, constants % vgrid_nbasis, one, state % s, zero, &
-        & state % sgrid)
-    ! Get the values of phi on the grid
-    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
-        & constants % icav_ia, constants % icav_ja, state % phi_cav, &
-        & state % phi_grid)
 
     force = zero
     do isph = 1, params % nsph
@@ -254,9 +246,40 @@ subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
     end do
     force = - pt5 * force
 
+    finish_time = omp_get_wtime()
+    state % force_time = finish_time - start_time
+
+end subroutine ddcosmo_solvation_force_terms
+
+!> This routines precomputes the intermediates to be used in the evaluation
+!! of ddCOSMO analytical derivatives.
+!!
+!> @ingroup Fortran_interface_ddcosmo
+!! @param[in] params: ddx parameters
+!! @param[in] constant: ddx constants
+!! @param[inout] workspace: ddx workspaces
+!! @param[inout] state: ddx state
+!!
+subroutine ddcosmo_derivative_setup(params, constants, workspace, state)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+
+    real(dp), external :: ddot
+    integer :: icav, isph, igrid
+
+    ! Get values of S on the grid
+    call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &
+        & constants % vgrid, constants % vgrid_nbasis, one, state % s, zero, &
+        & state % sgrid)
+    ! Get the values of phi on the grid
+    call ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &
+        & constants % icav_ia, constants % icav_ja, state % phi_cav, &
+        & state % phi_grid)
+
     ! assemble the intermediate zeta: S weighted by U evaluated on the
-    ! exposed grid points. This is not required here, but it is used
-    ! in later steps.
+    ! exposed grid points.
     icav = 0
     do isph = 1, params % nsph
         do igrid = 1, params % ngrid
@@ -268,10 +291,8 @@ subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
             end if
         end do
     end do
-    finish_time = omp_get_wtime()
-    state % force_time = finish_time - start_time
 
-end subroutine ddcosmo_solvation_force_terms
+end subroutine ddcosmo_derivative_setup
 
 end module ddx_cosmo
 
