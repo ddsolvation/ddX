@@ -63,7 +63,6 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
 
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
-        call ddcosmo_derivative_setup(params, constants, workspace, state)
         call ddcosmo_solvation_force_terms(params, constants, workspace, &
             & state, force)
     end if
@@ -208,6 +207,8 @@ subroutine ddcosmo_solve_adjoint(params, constants, workspace, state, tol)
 
     state % q = state % s
 
+    call ddcosmo_derivative_setup(params, constants, workspace, state)
+
 end subroutine ddcosmo_solve_adjoint
 
 !> Compute the solvation term of the forces (solute aspecific). This must
@@ -254,7 +255,6 @@ end subroutine ddcosmo_solvation_force_terms
 !> This routines precomputes the intermediates to be used in the evaluation
 !! of ddCOSMO analytical derivatives.
 !!
-!> @ingroup Fortran_interface_ddcosmo
 !! @param[in] params: ddx parameters
 !! @param[in] constant: ddx constants
 !! @param[inout] workspace: ddx workspaces

@@ -62,7 +62,6 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
 
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
-        call ddpcm_derivative_setup(params, constants, workspace, state)
         call ddpcm_solvation_force_terms(params, constants, workspace, &
             & state, force)
     end if
@@ -251,6 +250,8 @@ subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol)
     ! compute the real adjoint solution and store it in Q
     state % q = state % s - fourpi/(params % eps - one)*state % y
 
+    call ddpcm_derivative_setup(params, constants, workspace, state)
+
 end subroutine ddpcm_solve_adjoint
 
 !> Compute the solvation contribution to the ddPCM forces
@@ -297,7 +298,6 @@ end subroutine ddpcm_solvation_force_terms
 !> This routines precomputes the intermediates to be used in the evaluation
 !! of ddCOSMO analytical derivatives.
 !!
-!> @ingroup Fortran_interface_ddcosmo
 !! @param[in] params: ddx parameters
 !! @param[in] constant: ddx constants
 !! @param[inout] workspace: ddx workspaces

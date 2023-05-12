@@ -66,7 +66,6 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
         if (workspace % error_flag .eq. 1) return
         call ddlpb_solve_adjoint(params, constants, workspace, state, tol)
         if (workspace % error_flag .eq. 1) return
-        call ddlpb_derivative_setup(params, constants, workspace, state)
         call ddlpb_solvation_force_terms(params, constants, workspace, &
             & state, hessianphi_cav, force)
         if (workspace % error_flag .eq. 1) return
@@ -292,6 +291,8 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
 
     state % q = state % x_adj_lpb(:, :, 1)
 
+    call ddlpb_derivative_setup(params, constants, workspace, state)
+
 end subroutine ddlpb_solve_adjoint
 
 !> Compute the solvation terms of the forces (solute aspecific). This
@@ -436,7 +437,6 @@ end subroutine ddlpb_solvation_force_terms
 !> This routines precomputes two intermediates for its later usage in
 !! the computation of analytical derivatives (forces or other).
 !!
-!> @ingroup Fortran_interface_ddlpb
 !! @param[in] params: ddx parameters
 !! @param[in] constant: ddx constants
 !! @param[inout] workspace: ddx workspaces
