@@ -713,7 +713,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) nproc
     if(nproc .lt. 0) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 2nd line of a config file ", fname, &
+            & "Error on the 2nd line of a config file ", trim(fname), &
             & ": `nproc` must be a positive integer value."
         ddx_data % error_flag = 1
         return
@@ -722,7 +722,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) model
     if((model .lt. 1) .or. (model .gt. 3)) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 3rd line of a config file ", fname, &
+            & "Error on the 3rd line of a config file ", trim(fname), &
             & ": `model` must be an integer of a value 1, 2 or 3."
         ddx_data % error_flag = 1
         return
@@ -731,7 +731,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) lmax
     if(lmax .lt. 0) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 4th line of a config file ", fname, &
+            & "Error on the 4th line of a config file ", trim(fname), &
             & ": `lmax` must be a non-negative integer value."
         ddx_data % error_flag = 1
         return
@@ -740,7 +740,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) ngrid
     if(ngrid .lt. 0) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 5th line of a config file ", fname, &
+            & "Error on the 5th line of a config file ", trim(fname), &
             & ": `ngrid` must be a non-negative integer value."
         ddx_data % error_flag = 1
         return
@@ -749,7 +749,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) eps
     if(eps .lt. zero) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 6th line of a config file ", fname, &
+            & "Error on the 6th line of a config file ", trim(fname), &
             & ": `eps` must be a non-negative floating point value."
         ddx_data % error_flag = 1
         return
@@ -758,7 +758,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) se
     if((se .lt. -one) .or. (se .gt. one)) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 7th line of a config file ", fname, &
+            & "Error on the 7th line of a config file ", trim(fname), &
             & ": `se` must be a floating point value in a range [-1, 1]."
         ddx_data % error_flag = 1
         return
@@ -767,7 +767,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) eta
     if((eta .lt. zero) .or. (eta .gt. one)) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 8th line of a config file ", fname, &
+            & "Error on the 8th line of a config file ", trim(fname), &
             & ": `eta` must be a floating point value in a range [0, 1]."
         ddx_data % error_flag = 1
         return
@@ -776,7 +776,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) kappa
     if(kappa .lt. zero) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 9th line of a config file ", fname, &
+            & "Error on the 9th line of a config file ", trim(fname), &
             & ": `kappa` must be a non-negative floating point value."
         ddx_data % error_flag = 1
         return
@@ -785,7 +785,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) matvecmem 
     if((matvecmem.lt. 0) .or. (matvecmem .gt. 1)) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 10th line of a config file ", fname, &
+            & "Error on the 10th line of a config file ", trim(fname), &
             & ": `matvecmem` must be an integer value of a value 0 or 1."
         ddx_data % error_flag = 1
         return
@@ -794,7 +794,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) tol
     if((tol .lt. 1d-14) .or. (tol .gt. one)) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 12th line of a config file ", fname, &
+            & "Error on the 12th line of a config file ", trim(fname), &
             & ": `tol` must be a floating point value in a range [1d-14, 1]."
         ddx_data % error_flag = 1
         return
@@ -803,7 +803,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) maxiter
     if((maxiter .le. 0)) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 13th line of a config file ", fname, &
+            & "Error on the 13th line of a config file ", trim(fname), &
             & ": `maxiter` must be a positive integer value."
         ddx_data % error_flag = 1
         return
@@ -812,7 +812,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) jacobi_ndiis
     if((jacobi_ndiis .lt. 0)) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 14th line of a config file ", fname, &
+            & "Error on the 14th line of a config file ", trim(fname), &
             & ": `jacobi_ndiis` must be a non-negative integer value."
         ddx_data % error_flag = 1
         return
@@ -821,7 +821,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) force
     if((force .lt. 0) .or. (force .gt. 1)) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 17th line of a config file ", fname, &
+            & "Error on the 17th line of a config file ", trim(fname), &
             & ": `force` must be an integer value of a value 0 or 1."
         ddx_data % error_flag = 1
         return
@@ -830,7 +830,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) fmm
     if((fmm .lt. 0) .or. (fmm .gt. 1)) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 18th line of a config file ", fname, &
+            & "Error on the 18th line of a config file ", trim(fname), &
             & ": `fmm` must be an integer value of a value 0 or 1."
         ddx_data % error_flag = 1
         return
@@ -839,7 +839,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) pm
     if(pm .lt. 0) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 19th line of a config file ", fname, &
+            & "Error on the 19th line of a config file ", trim(fname), &
             & ": `pm` must be a non-negative integer value."
         ddx_data % error_flag = 1
         return
@@ -848,7 +848,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) pl
     if(pl .lt. 0) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 20th line of a config file ", fname, &
+            & "Error on the 20th line of a config file ", trim(fname), &
             & ": `pl` must be a non-negative integer value."
         ddx_data % error_flag = 1
         return
@@ -857,7 +857,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     read(100, *) nsph
     if(nsph .le. 0) then
         write(ddx_data % error_message, "(3A)") &
-            & "Error on the 21th line of a config file ", fname, &
+            & "Error on the 21th line of a config file ", trim(fname), &
             & ": `nsph` must be a positive integer value."
         ddx_data % error_flag = 1
         return
@@ -3025,7 +3025,7 @@ subroutine get_banner(string)
     implicit none
     character (len=2047), intent(out) :: string
     character (len=10) :: vstr
-    write(vstr, *) "0.4.3"
+    write(vstr, *) "0.4.4"
     write(string, *) &
         & " +----------------------------------------------------------------+", &
         & NEW_LINE('a'), &
