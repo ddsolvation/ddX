@@ -106,7 +106,7 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
         call dm1vec(params, constants, workspace, workspace % tmp_y, &
             & workspace % tmp_x_new)
         ! DIIS extrapolation
-        if (params % jacobi_ndiis .gt. 0) then
+        if (params % jacobi_ndiis .gt. 2) then
             workspace % tmp_x_diis(:, nmat) = workspace % tmp_x_new
             workspace % tmp_e_diis(:, nmat) = workspace % tmp_x_new - x
             call diis(constants % n, nmat, params % jacobi_ndiis, &
@@ -159,7 +159,9 @@ subroutine diis(n, nmat, ndiis, x, e, b, xnew)
     real(dp), allocatable :: bloc(:,:), cex(:)
     integer,  allocatable :: ipiv(:)
     real(dp), parameter :: zero = 0.0d0, one = 1.0d0
-    integer,  parameter :: delta = 10
+    integer :: delta
+
+    delta = min(10, ndiis-1)
 
     if (nmat.ge.ndiis) then
         do j = 2, nmat - delta
