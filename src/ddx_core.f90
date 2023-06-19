@@ -2372,10 +2372,9 @@ subroutine tree_m2l_bessel_rotation_adj_work(params, constants, node_l, node_m)
     ! Local variables
     integer :: i, j, k
     real(dp) :: c1(3), c(3), r
-    ! Any order of this cycle is OK
     node_m = zero
-    !!$omp parallel do shared(constants,params,node_l,node_m) &
-    !!$omp private(i,c,r,k,c1,work,work_complex,j) schedule(dynamic)
+    !$omp parallel do shared(constants,params,node_l,node_m) &
+    !$omp private(i,c,r,k,c1,work,work_complex,j) schedule(dynamic)
     do i = 1, constants % nclusters
         ! If no far admissible pairs just set output to zero
         if (constants % nfar(i) .eq. 0) then
@@ -2386,19 +2385,18 @@ subroutine tree_m2l_bessel_rotation_adj_work(params, constants, node_l, node_m)
         ! Use the first far admissible pair to initialize output
         k = constants % far(constants % sfar(i))
         c1 = constants % cnode(:, k)
-        c1 = params % kappa*(c1 - c)
-        call fmm_m2l_bessel_rotation_adj_work(c1, constants % SI_rnode(:, i), &
-            & constants % SK_rnode(:, k), params % pm, &
-            & constants % vscales, one, &
-            & node_l(:, i), one, node_m(:, k), work, work_complex)
+        c1 = params % kappa*(c - c1)
+        call fmm_m2l_bessel_rotation_adj_work(c1, constants % SI_rnode(:, k), &
+            & constants % SK_rnode(:, i), params % pm, constants % vscales, &
+            & one, node_l(:, k), one, node_m(:, i), work, work_complex)
         do j = constants % sfar(i)+1, constants % sfar(i+1)-1
             k = constants % far(j)
             c1 = constants % cnode(:, k)
-            c1 = params % kappa*(c1 - c)
-            call fmm_m2l_bessel_rotation_adj_work(c1, constants % SI_rnode(:, i), &
-                & constants % SK_rnode(:, k), params % pm, &
-                & constants % vscales, one, &
-                & node_l(:, i), one, node_m(:, k), work, work_complex)
+            c1 = params % kappa*(c - c1)
+            call fmm_m2l_bessel_rotation_adj_work(c1, &
+                & constants % SI_rnode(:, k), constants % SK_rnode(:, i), &
+                & params % pm, constants % vscales, one, node_l(:, k), &
+                & one, node_m(:, i), work, work_complex)
         end do
     end do
 end subroutine tree_m2l_bessel_rotation_adj_work
