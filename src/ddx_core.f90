@@ -2774,28 +2774,25 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
         sph_m = beta * sph_m
     end if
     ! Cycle over all spheres
-    !!$omp parallel do default(none) shared(params,constants,p,sph_m,tmp, &
-    !!$omp alpha,grid_v) private(isph,inode,jnear,jnode,jsph,igrid,c, &
-    !!$omp iproc) schedule(dynamic)
+    !$omp parallel do default(none) shared(params,constants,p,sph_m, &
+    !$omp alpha,grid_v) private(isph,inode,jnear,jnode,jsph,igrid,c) &
+    !$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
-        ! iproc = omp_get_thread_num() + 1
         do jnear = constants % snear(inode), constants % snear(inode+1)-1
             ! Near-field interactions are possible only between leaf nodes,
             ! which must contain only a single input sphere
             jnode = constants % near(jnear)
             jsph = constants % order(constants % cluster(1, jnode))
-            ! Ignore self-interaction
-            !if(isph .eq. jsph) cycle
             ! Accumulate interaction for external grid points only
             do igrid = 1, params % ngrid
-                if(constants % ui(igrid, isph) .eq. zero) cycle
-                c = constants % cgrid(:, igrid)*params % rsph(isph) - &
-                    & params % csph(:, jsph) + params % csph(:, isph)
-                call fmm_m2p_bessel_adj(c, alpha*grid_v(igrid, isph), &
-                    & params % rsph(jsph), params % kappa, p, &
-                    & constants % vscales, one, sph_m(:, jsph))
+                if(constants % ui(igrid, jsph) .eq. zero) cycle
+                c = constants % cgrid(:, igrid)*params % rsph(jsph) - &
+                    & params % csph(:, isph) + params % csph(:, jsph)
+                call fmm_m2p_bessel_adj(c, alpha*grid_v(igrid, jsph), &
+                    & params % rsph(isph), params % kappa, p, &
+                    & constants % vscales, one, sph_m(:, isph))
             end do
         end do
     end do
