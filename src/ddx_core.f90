@@ -2415,8 +2415,9 @@ subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)
     ! Local variables
     integer :: i, j, k
     real(dp) :: c1(3), c(3), r1, r
-    ! Any order of this cycle is OK
     node_m = zero
+    !$omp parallel do default(none) shared(constants,params,node_m,node_l) &
+    !$omp private(i,c,r,k,c1,r1,j) schedule(dynamic)
     do i = 1, constants % nclusters
         ! If no far admissible pairs just set output to zero
         if (constants % nfar(i) .eq. 0) then
@@ -2428,18 +2429,18 @@ subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)
         k = constants % far(constants % sfar(i))
         c1 = constants % cnode(:, k)
         r1 = constants % rnode(k)
-        c1 = c - c1
-        call fmm_m2l_rotation_adj(c1, r, r1, params % pl, params % pm, &
+        c1 = c1 - c
+        call fmm_m2l_rotation_adj(c1, r1, r, params % pl, params % pm, &
             & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
-            & node_l(:, i), one, node_m(:, k))
+            & node_l(:, k), one, node_m(:, i))
         do j = constants % sfar(i)+1, constants % sfar(i+1)-1
             k = constants % far(j)
             c1 = constants % cnode(:, k)
             r1 = constants % rnode(k)
-            c1 = c - c1
-            call fmm_m2l_rotation_adj(c1, r, r1, params % pl, params % pm, &
+            c1 = c1 - c
+            call fmm_m2l_rotation_adj(c1, r1, r, params % pl, params % pm, &
                 & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
-                & node_l(:, i), one, node_m(:, k))
+                & node_l(:, k), one, node_m(:, i))
         end do
     end do
 end subroutine tree_m2l_rotation_adj
