@@ -1362,13 +1362,13 @@ subroutine prec_tstarx(params, constants, workspace, x, y)
     real(dp), dimension(params % maxiter) :: x_rel_diff
     real(dp) :: start_time
 
-
     start_time = omp_get_wtime()
     y(:,:,1) = x(:,:,1)
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, constants % inner_tol, y(:,:,1), &
-        & workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, ldm1x, hnorm)
+    call jacobi_diis(params, constants, workspace, constants % inner_tol, &
+        & y(:,:,1), workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, &
+        & ldm1x, hnorm)
     if (workspace % error_flag.ne.0) then
         workspace % error_message = 'prec_tstarx: ddCOSMO failed to converge'
         return
@@ -1378,14 +1378,16 @@ subroutine prec_tstarx(params, constants, workspace, x, y)
 
     start_time = omp_get_wtime()
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
-        & n_iter, x_rel_diff, bstarx, bx_prec, hnorm)
+    call jacobi_diis(params, constants, workspace, constants % inner_tol, &
+        & x(:,:,2), workspace % hsp_guess, n_iter, x_rel_diff, bstarx, &
+        & bx_prec, hnorm)
     if (workspace % error_flag.ne.0) then
         workspace % error_message = 'prec_tstarx: HSP failed to converge'
         return
     end if
     y(:,:,2) = workspace % hsp_guess
-    workspace % hsp_adj_time = workspace % hsp_adj_time + omp_get_wtime() - start_time
+    workspace % hsp_adj_time = workspace % hsp_adj_time &
+        & + omp_get_wtime() - start_time
 
 end subroutine prec_tstarx
 
@@ -1409,8 +1411,9 @@ subroutine prec_tx(params, constants, workspace, x, y)
     ! perform A^-1 * Yr
     start_time = omp_get_wtime()
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,1), &
-        & workspace % ddcosmo_guess, n_iter, x_rel_diff, lx, ldm1x, hnorm)
+    call jacobi_diis(params, constants, workspace, constants % inner_tol, &
+        & x(:,:,1), workspace % ddcosmo_guess, n_iter, x_rel_diff, lx, &
+        & ldm1x, hnorm)
     if (workspace % error_flag.ne.0) then
         workspace % error_message = 'prec_tx: ddCOSMO failed to converge'
         return
@@ -1424,8 +1427,9 @@ subroutine prec_tx(params, constants, workspace, x, y)
     ! perform B^-1 * Ye
     start_time = omp_get_wtime()
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
-        & n_iter, x_rel_diff, bx, bx_prec, hnorm)
+    call jacobi_diis(params, constants, workspace, constants % inner_tol, &
+        & x(:,:,2), workspace % hsp_guess, n_iter, x_rel_diff, bx, &
+        & bx_prec, hnorm)
     y(:,:,2) = workspace % hsp_guess
     workspace % hsp_time = workspace % hsp_time + omp_get_wtime() - start_time
 

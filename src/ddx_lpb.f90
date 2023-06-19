@@ -280,7 +280,6 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
     real(dp) :: start_time
 
     state % x_adj_lpb_niter = params % maxiter
-    constants % inner_tol = sqrt(tol)
     workspace % s_time = zero
     workspace % hsp_adj_time = zero
 
