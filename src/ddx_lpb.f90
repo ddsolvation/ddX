@@ -233,6 +233,8 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol)
     real(dp) :: start_time
 
     state % x_lpb_niter = params % maxiter
+    workspace % xs_time = zero
+    workspace % hsp_time = zero
 
     ! solve LS using Jacobi/DIIS
     start_time = omp_get_wtime()
@@ -251,6 +253,10 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol)
     ! the density so that it is consistent with the ddCOSMO and ddPCM
     ! ones.
     call convert_ddcosmo(params, constants, -1, state % x_lpb(:,:,1))
+
+    ! put the timings in the right places
+    state % xs_time = workspace % xs_time
+    state % hsp_time = workspace % hsp_time
 end subroutine ddlpb_solve
 
 
@@ -275,6 +281,8 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
 
     state % x_adj_lpb_niter = params % maxiter
     constants % inner_tol = sqrt(tol)
+    workspace % s_time = zero
+    workspace % hsp_adj_time = zero
 
     ! solve adjoint LS using Jacobi/DIIS
     start_time = omp_get_wtime()
@@ -290,6 +298,10 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
     state % x_adj_lpb_time = omp_get_wtime() - start_time
 
     state % q = state % x_adj_lpb(:, :, 1)
+
+    ! put the timings in the right places
+    state % s_time = workspace % s_time
+    state % hsp_adj_time = workspace % hsp_adj_time
 
     call ddlpb_derivative_setup(params, constants, workspace, state)
 

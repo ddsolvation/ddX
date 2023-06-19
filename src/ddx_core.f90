@@ -187,6 +187,8 @@ type ddx_state_type
     real(dp), allocatable :: x_adj_r_grid(:, :)
     real(dp), allocatable :: x_adj_e_grid(:, :)
     real(dp), allocatable :: phi_n(:, :)
+    real(dp) :: hsp_time
+    real(dp) :: hsp_adj_time
 
 end type ddx_state_type
 
