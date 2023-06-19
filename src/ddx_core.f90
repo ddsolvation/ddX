@@ -2720,9 +2720,9 @@ subroutine tree_m2p_adj(params, constants, p, alpha, grid_v, beta, sph_m)
         sph_m = beta * sph_m
     end if
     ! Cycle over all spheres
-    !!$omp parallel do default(none) shared(params,constants,grid_v,p, &
-    !!$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work) &
-    !!$omp schedule(dynamic)
+    !$omp parallel do default(none) shared(params,constants,grid_v,p, &
+    !$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work) &
+    !$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
@@ -2735,12 +2735,12 @@ subroutine tree_m2p_adj(params, constants, p, alpha, grid_v, beta, sph_m)
             if(isph .eq. jsph) cycle
             ! Accumulate interaction for external grid points only
             do igrid = 1, params % ngrid
-                if(constants % ui(igrid, isph) .eq. zero) cycle
-                c = constants % cgrid(:, igrid)*params % rsph(isph) - &
-                    & params % csph(:, jsph) + params % csph(:, isph)
-                call fmm_m2p_adj_work(c, alpha*grid_v(igrid, isph), &
-                    & params % rsph(jsph), p, constants % vscales_rel, one, &
-                    & sph_m(:, jsph), work)
+                if(constants % ui(igrid, jsph) .eq. zero) cycle
+                c = constants % cgrid(:, igrid)*params % rsph(jsph) - &
+                    & params % csph(:, isph) + params % csph(:, jsph)
+                call fmm_m2p_adj_work(c, alpha*grid_v(igrid, jsph), &
+                    & params % rsph(isph), p, constants % vscales_rel, one, &
+                    & sph_m(:, isph), work)
             end do
         end do
     end do
