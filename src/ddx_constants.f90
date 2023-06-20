@@ -219,6 +219,11 @@ type ddx_constants_type
     !! computation of forces (gradients). Allocated and used only if
     !! fmm=1.
     integer :: grad_nbasis
+    !> Number of layers in the bisection tree. Defined only if fmm=1.
+    integer :: nlayers
+    !> The first and the last clusters of each layer of the tree. The
+    !! dimension is (2, nlayers). Allocated and used only if fmm=1.
+    integer, allocatable :: layers(:, :)
     !> Inner tolerance for microiterations done when using ddLPB
     real(dp) :: inner_tol
     !> Whether the diagonal of the matrices has to be used in the mvp for
@@ -837,7 +842,21 @@ subroutine constants_geometry_init(params, constants)
             & constants % parent, constants % cnode, constants % rnode, &
             & constants % snode, constants % error_message, &
             & constants % error_flag)
+        if (constants % error_flag .ne. 0) return
+
+        constants % nlayers = int(log(dble(constants % nclusters))/log(two)) + 2
+        allocate(constants % layers(2, constants % nlayers), stat=info)
+        if (info .ne. 0) then
+            constants % error_flag = 1
+            constants % error_message = "constants_geometry_init: " // &
+                & "`layers` allocation failed"
+            return
+        end if
+        call compute_layers(constants % nclusters, constants % nlayers, &
+            & constants % layers, constants % children, &
+            & constants % error_flag, constants % error_message)
         if (params % error_flag .ne. 0) return
+
         ! Get number of far and near admissible pairs
         iwork = 0
         jwork = 1
@@ -1428,6 +1447,62 @@ subroutine mkprec(lmax, nbasis, nsph, ngrid, eps, ui, wgrid, vgrid, &
   ! Cleanup error message if there were no error
     error_message = ""
 end subroutine mkprec
+
+!> Compute and store information about the layers of the tree used in
+!! the fmm operations.
+!!
+subroutine compute_layers(nclusters, nlayers, layers, children, &
+        & error_flag, error_message)
+    implicit none
+    integer, intent(in) :: nclusters, nlayers
+    integer, intent(in) :: children(2, nclusters)
+    integer, intent(out) :: layers(2, nlayers)
+    integer :: i, start_index, stop_index, distance, info
+    integer, allocatable :: distance_from_root(:)
+    integer, intent(out) :: error_flag
+    character(len=255), intent(out) :: error_message
+
+    allocate(distance_from_root(nclusters), stat=info)
+    if (info.ne.0) then
+        error_flag = 1
+        error_message = "Allocation failed in compute_layers"
+        return
+    end if
+
+    distance_from_root(1) = 0
+    do i = 1, nclusters
+        distance = distance_from_root(i)
+        if (children(1, i) .ne. 0) &
+            & distance_from_root(children(1, i)) = distance + 1
+        if (children(2, i) .ne. 0) &
+            & distance_from_root(children(2, i)) = distance + 1
+    end do
+
+    distance = 0
+    layers(1, 1) = 1
+    do i = 1, nclusters
+        if (distance_from_root(i) .lt. distance) then
+            error_flag = 1
+            error_message = "Error in compute_layers"
+            return
+        end if
+        if (distance_from_root(i) .ne. distance) then
+            layers(2, distance + 1) = i
+            if (distance_from_root(i) .lt. nlayers) &
+                & layers(1, distance + 2) = i + 1
+            distance = distance_from_root(i)
+        end if
+    end do
+    layers(2, nlayers) = nclusters
+
+    deallocate(distance_from_root, stat=info)
+    if (info.ne.0) then
+        error_flag = 1
+        error_message = "Deallocation failed in compute_layers"
+        return
+    end if
+
+end subroutine compute_layers
 
 !> Build a recursive inertial binary tree
 !!
@@ -2245,6 +2320,14 @@ subroutine constants_free(constants)
         if (istat .ne. 0) then
             constants % error_message = "`m2l_ztranslate_adj_coef` " // &
                 & "deallocation failed!"
+            constants % error_flag = 1
+            return
+        end if
+    end if
+    if (allocated(constants % layers)) then
+        deallocate(constants % layers, stat=istat)
+        if (istat .ne. 0) then
+            constants % error_message = "`layers` deallocation failed!"
             constants % error_flag = 1
             return
         end if
