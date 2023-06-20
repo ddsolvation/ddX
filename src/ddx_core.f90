@@ -1883,8 +1883,8 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
     real(dp) :: c1(3), c(3), r1, r
     ! Bottom-to-top pass
     do l = constants % nlayers, 1, -1
-        !$omp parallel do default(none) shared(constants,params,node_m,l, &
-        !$omp work) private(i,j,c1,c,r1,r,iproc)
+        !!$omp parallel do default(none) shared(constants,params,node_m,l, &
+        !!$omp work) private(i,j,c1,c,r1,r,iproc)
         do i = constants % layers(1, l), constants % layers(2, l)
             iproc = omp_get_thread_num() + 1
             ! Leaf node does not need any update
