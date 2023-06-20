@@ -1878,34 +1878,36 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
     ! Temporary workspace
     real(dp), intent(out) :: work(6*params % pm**2 + 19*params % pm + 8)
     ! Local variables
-    integer :: i, j
+    integer :: i, j, l
     real(dp) :: c1(3), c(3), r1, r
     ! Bottom-to-top pass
-    !!$omp parallel do default(none) shared(constants,params,node_m) &
-    !!$omp private(i,j,c1,c,r1,r,work)
-    do i = constants % nclusters, 1, -1
-        ! Leaf node does not need any update
-        if (constants % children(1, i) == 0) cycle
-        c = constants % cnode(:, i)
-        r = constants % rnode(i)
-        ! First child initializes output
-        j = constants % children(1, i)
-        c1 = constants % cnode(:, j)
-        r1 = constants % rnode(j)
-        c1 = c1 - c
-        call fmm_m2m_rotation_work(c1, r1, r, &
-            & params % pm, &
-            & constants % vscales, &
-            & constants % vcnk, one, &
-            & node_m(:, j), zero, node_m(:, i), work)
-        ! All other children update the same output
-        do j = constants % children(1, i)+1, constants % children(2, i)
+    do l = constants % nlayers, 1, -1
+        !$omp parallel do default(none) shared(constants,params,node_m) &
+        !$omp private(i,j,c1,c,r1,r,work)
+        do i = constants % layers(1, l), constants % layers(2, l)
+            ! Leaf node does not need any update
+            if (constants % children(1, i) == 0) cycle
+            c = constants % cnode(:, i)
+            r = constants % rnode(i)
+            ! First child initializes output
+            j = constants % children(1, i)
             c1 = constants % cnode(:, j)
             r1 = constants % rnode(j)
             c1 = c1 - c
-            call fmm_m2m_rotation_work(c1, r1, r, params % pm, &
-                & constants % vscales, constants % vcnk, one, &
-                & node_m(:, j), one, node_m(:, i), work)
+            call fmm_m2m_rotation_work(c1, r1, r, &
+                & params % pm, &
+                & constants % vscales, &
+                & constants % vcnk, one, &
+                & node_m(:, j), zero, node_m(:, i), work)
+            ! All other children update the same output
+            do j = constants % children(1, i)+1, constants % children(2, i)
+                c1 = constants % cnode(:, j)
+                r1 = constants % rnode(j)
+                c1 = c1 - c
+                call fmm_m2m_rotation_work(c1, r1, r, params % pm, &
+                    & constants % vscales, constants % vcnk, one, &
+                    & node_m(:, j), one, node_m(:, i), work)
+            end do
         end do
     end do
 end subroutine tree_m2m_rotation_work
