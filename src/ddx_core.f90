@@ -2141,12 +2141,12 @@ subroutine tree_l2l_bessel_rotation_work(params, constants, node_l)
     real(dp) :: work(6*params % pl**2 + 19*params % pl + 8)
     complex(dp) :: work_complex(2*params % pl+1)
     ! Local variables
-    integer :: i, j
+    integer :: i, j, l
     real(dp) :: c_child(3), c_parent(3), c_diff(3)
     ! Top-to-bottom pass
     do l = 2, constants % nlayers
         !$omp parallel do default(none) shared(constants,params,node_l,l) &
-        !$omp private(i,j,c1,c,r1,r,work)
+        !$omp private(i,j,c_child,c_parent,c_diff,work,work_complex)
         do i = constants % layers(1, l), constants % layers(2, l)
             j = constants % parent(i)
             c_child = constants % cnode(:, j)
