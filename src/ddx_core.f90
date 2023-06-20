@@ -1882,7 +1882,7 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
     real(dp) :: c1(3), c(3), r1, r
     ! Bottom-to-top pass
     do l = constants % nlayers, 1, -1
-        !$omp parallel do default(none) shared(constants,params,node_m) &
+        !$omp parallel do default(none) shared(constants,params,node_m,l) &
         !$omp private(i,j,c1,c,r1,r,work)
         do i = constants % layers(1, l), constants % layers(2, l)
             ! Leaf node does not need any update
@@ -2090,21 +2090,23 @@ subroutine tree_l2l_rotation_work(params, constants, node_l, work)
     ! Temporary workspace
     real(dp), intent(out) :: work(6*params % pl**2 + 19*params % pl + 8)
     ! Local variables
-    integer :: i, j
+    integer :: i, j, l
     real(dp) :: c1(3), c(3), r1, r
     ! Top-to-bottom pass
-    !!$omp parallel do default(none) shared(constants,params,node_l) &
-    !!$omp private(i,j,c1,c,r1,r,work)
-    do i = 2, constants % nclusters
-        j = constants % parent(i)
-        c = constants % cnode(:, j)
-        r = constants % rnode(j)
-        c1 = constants % cnode(:, i)
-        r1 = constants % rnode(i)
-        c1 = c - c1
-        call fmm_l2l_rotation_work(c1, r, r1, params % pl, &
-            & constants % vscales, constants % vfact, one, &
-            & node_l(:, j), one, node_l(:, i), work)
+    do l = 2, constants % nlayers
+        !$omp parallel do default(none) shared(constants,params,node_l,l) &
+        !$omp private(i,j,c1,c,r1,r,work)
+        do i = constants % layers(1, l), constants % layers(2, l)
+            j = constants % parent(i)
+            c = constants % cnode(:, j)
+            r = constants % rnode(j)
+            c1 = constants % cnode(:, i)
+            r1 = constants % rnode(i)
+            c1 = c - c1
+            call fmm_l2l_rotation_work(c1, r, r1, params % pl, &
+                & constants % vscales, constants % vfact, one, &
+                & node_l(:, j), one, node_l(:, i), work)
+        end do
     end do
 end subroutine tree_l2l_rotation_work
 
@@ -2142,15 +2144,19 @@ subroutine tree_l2l_bessel_rotation_work(params, constants, node_l)
     integer :: i, j
     real(dp) :: c_child(3), c_parent(3), c_diff(3)
     ! Top-to-bottom pass
-    do i = 2, constants % nclusters
-        j = constants % parent(i)
-        c_child = constants % cnode(:, j)
-        c_parent = constants % cnode(:, i)
-        c_diff = params % kappa*(c_child - c_parent)
-        call fmm_l2l_bessel_rotation_work(c_diff, &
-            & constants % si_rnode(:, j), constants % si_rnode(:, i), &
-            & params % pl, constants % vscales, one, &
-            & node_l(:, j), one, node_l(:, i), work, work_complex)
+    do l = 2, constants % nlayers
+        !$omp parallel do default(none) shared(constants,params,node_l,l) &
+        !$omp private(i,j,c1,c,r1,r,work)
+        do i = constants % layers(1, l), constants % layers(2, l)
+            j = constants % parent(i)
+            c_child = constants % cnode(:, j)
+            c_parent = constants % cnode(:, i)
+            c_diff = params % kappa*(c_child - c_parent)
+            call fmm_l2l_bessel_rotation_work(c_diff, &
+                & constants % si_rnode(:, j), constants % si_rnode(:, i), &
+                & params % pl, constants % vscales, one, &
+                & node_l(:, j), one, node_l(:, i), work, work_complex)
+        end do
     end do
 end subroutine tree_l2l_bessel_rotation_work
 
