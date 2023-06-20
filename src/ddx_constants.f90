@@ -844,18 +844,8 @@ subroutine constants_geometry_init(params, constants)
             & constants % error_flag)
         if (constants % error_flag .ne. 0) return
 
-        constants % nlayers = int(log(dble(constants % nclusters))/log(two)) + 2
-        allocate(constants % layers(2, constants % nlayers), stat=info)
-        if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: " // &
-                & "`layers` allocation failed"
-            return
-        end if
-        call compute_layers(constants % nclusters, constants % nlayers, &
-            & constants % layers, constants % children, &
-            & constants % error_flag, constants % error_message)
-        if (params % error_flag .ne. 0) return
+        call compute_layers(constants)
+        if (constants % error_flag .ne. 0) return
 
         ! Get number of far and near admissible pairs
         iwork = 0
@@ -1451,54 +1441,65 @@ end subroutine mkprec
 !> Compute and store information about the layers of the tree used in
 !! the fmm operations.
 !!
-subroutine compute_layers(nclusters, nlayers, layers, children, &
-        & error_flag, error_message)
+!! @param[inout] constants: Object containing all constants.
+!!
+subroutine compute_layers(constants)
     implicit none
-    integer, intent(in) :: nclusters, nlayers
-    integer, intent(in) :: children(2, nclusters)
-    integer, intent(out) :: layers(2, nlayers)
-    integer :: i, start_index, stop_index, distance, info
+    type(ddx_constants_type), intent(inout) :: constants
+    integer :: i, distance, info, max_distance
     integer, allocatable :: distance_from_root(:)
-    integer, intent(out) :: error_flag
-    character(len=255), intent(out) :: error_message
 
-    allocate(distance_from_root(nclusters), stat=info)
+    allocate(distance_from_root(constants % nclusters), stat=info)
     if (info.ne.0) then
-        error_flag = 1
-        error_message = "Allocation failed in compute_layers"
+        constants % error_flag = 1
+        constants % error_message = "Allocation failed in compute_layers"
         return
     end if
 
+    ! first we compute the distances from the root of the tree and
+    ! the number of layers
     distance_from_root(1) = 0
-    do i = 1, nclusters
+    do i = 1, constants % nclusters
         distance = distance_from_root(i)
-        if (children(1, i) .ne. 0) &
-            & distance_from_root(children(1, i)) = distance + 1
-        if (children(2, i) .ne. 0) &
-            & distance_from_root(children(2, i)) = distance + 1
+        if (constants % children(1, i) .ne. 0) &
+            & distance_from_root(constants % children(1, i)) = distance + 1
+        if (constants % children(2, i) .ne. 0) &
+            & distance_from_root(constants % children(2, i)) = distance + 1
+        if (distance .gt. max_distance) max_distance = distance
     end do
+    constants % nlayers = max_distance + 1
 
+    ! now we can allocate the layer information using the actual number
+    ! of layers
+    allocate(constants % layers(2, constants % nlayers), stat=info)
+    if (info.ne.0) then
+        constants % error_flag = 1
+        constants % error_message = "Allocation failed in compute_layers"
+        return
+    end if
+
+    ! finally we can populate the layer information
     distance = 0
-    layers(1, 1) = 1
-    do i = 1, nclusters
+    constants % layers(1, 1) = 1
+    do i = 1, constants % nclusters
         if (distance_from_root(i) .lt. distance) then
-            error_flag = 1
-            error_message = "Error in compute_layers"
+            constants % error_flag = 1
+            constants % error_message = "Error in compute_layers"
             return
         end if
         if (distance_from_root(i) .ne. distance) then
-            layers(2, distance + 1) = i
-            if (distance_from_root(i) .lt. nlayers) &
-                & layers(1, distance + 2) = i + 1
+            constants % layers(2, distance + 1) = i
+            if (distance_from_root(i) .lt. constants % nlayers) &
+                & constants % layers(1, distance + 2) = i + 1
             distance = distance_from_root(i)
         end if
     end do
-    layers(2, nlayers) = nclusters
+    constants % layers(2, constants % nlayers) = constants % nclusters
 
     deallocate(distance_from_root, stat=info)
     if (info.ne.0) then
-        error_flag = 1
-        error_message = "Deallocation failed in compute_layers"
+        constants % error_flag = 1
+        constants % error_message = "Deallocation failed in compute_layers"
         return
     end if
 
