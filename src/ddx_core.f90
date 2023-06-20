@@ -3023,7 +3023,7 @@ subroutine get_banner(string)
     implicit none
     character (len=2047), intent(out) :: string
     character (len=10) :: vstr
-    write(vstr, *) "0.4.4"
+    write(vstr, *) "0.4.5"
     write(string, *) &
         & " +----------------------------------------------------------------+", &
         & NEW_LINE('a'), &
