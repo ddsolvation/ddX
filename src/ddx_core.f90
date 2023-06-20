@@ -1860,7 +1860,7 @@ subroutine tree_m2m_rotation(params, constants, node_m)
     ! Output
     real(dp), intent(inout) :: node_m((params % pm+1)**2, constants % nclusters)
     ! Temporary workspace
-    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
+    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8, params % nproc)
     ! Call corresponding work routine
     call tree_m2m_rotation_work(params, constants, node_m, work)
 end subroutine tree_m2m_rotation
@@ -1876,15 +1876,17 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
     ! Output
     real(dp), intent(inout) :: node_m((params % pm+1)**2, constants % nclusters)
     ! Temporary workspace
-    real(dp), intent(out) :: work(6*params % pm**2 + 19*params % pm + 8)
+    real(dp), intent(out) :: work(6*params % pm**2 + 19*params % pm + 8, &
+        & params % nproc)
     ! Local variables
-    integer :: i, j, l
+    integer :: i, j, l, iproc
     real(dp) :: c1(3), c(3), r1, r
     ! Bottom-to-top pass
     do l = constants % nlayers, 1, -1
-        !$omp parallel do default(none) shared(constants,params,node_m,l) &
-        !$omp private(i,j,c1,c,r1,r,work)
+        !$omp parallel do default(none) shared(constants,params,node_m,l, &
+        !$omp work) private(i,j,c1,c,r1,r,iproc)
         do i = constants % layers(1, l), constants % layers(2, l)
+            iproc = omp_get_thread_num() + 1
             ! Leaf node does not need any update
             if (constants % children(1, i) == 0) cycle
             c = constants % cnode(:, i)
@@ -1898,7 +1900,7 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
                 & params % pm, &
                 & constants % vscales, &
                 & constants % vcnk, one, &
-                & node_m(:, j), zero, node_m(:, i), work)
+                & node_m(:, j), zero, node_m(:, i), work(:, iproc))
             ! All other children update the same output
             do j = constants % children(1, i)+1, constants % children(2, i)
                 c1 = constants % cnode(:, j)
@@ -1906,7 +1908,7 @@ subroutine tree_m2m_rotation_work(params, constants, node_m, work)
                 c1 = c1 - c
                 call fmm_m2m_rotation_work(c1, r1, r, params % pm, &
                     & constants % vscales, constants % vcnk, one, &
-                    & node_m(:, j), one, node_m(:, i), work)
+                    & node_m(:, j), one, node_m(:, i), work(:, iproc))
             end do
         end do
     end do
@@ -1988,7 +1990,7 @@ subroutine tree_m2m_rotation_adj(params, constants, node_m)
     ! Output
     real(dp), intent(inout) :: node_m((params % pm+1)**2, constants % nclusters)
     ! Temporary workspace
-    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8)
+    real(dp) :: work(6*params % pm**2 + 19*params % pm + 8, params % nproc)
     ! Call corresponding work routine
     call tree_m2m_rotation_adj_work(params, constants, node_m, work)
 end subroutine tree_m2m_rotation_adj
@@ -2004,15 +2006,17 @@ subroutine tree_m2m_rotation_adj_work(params, constants, node_m, work)
     ! Output
     real(dp), intent(inout) :: node_m((params % pm+1)**2, constants % nclusters)
     ! Temporary workspace
-    real(dp), intent(out) :: work(6*params % pm**2 + 19*params % pm + 8)
+    real(dp), intent(out) :: work(6*params % pm**2 + 19*params % pm + 8, &
+        & params % nproc)
     ! Local variables
-    integer :: i, j, l
+    integer :: i, j, l, iproc
     real(dp) :: c1(3), c(3), r1, r
     ! Top-to-bottom pass
     do l = 2, constants % nlayers
-        !$omp parallel do default(none) shared(constants,params,node_m,l) &
-        !$omp private(i,j,c1,c,r1,r,work)
+        !$omp parallel do default(none) shared(constants,params,node_m,l, &
+        !$omp work) private(i,j,c1,c,r1,r,iproc)
         do i = constants % layers(1, l), constants % layers(2, l)
+            iproc = omp_get_thread_num() + 1
             j = constants % parent(i)
             c = constants % cnode(:, j)
             r = constants % rnode(j)
@@ -2021,7 +2025,7 @@ subroutine tree_m2m_rotation_adj_work(params, constants, node_m, work)
             c1 = c - c1
             call fmm_m2m_rotation_adj_work(c1, r, r1, params % pm, &
                 & constants % vscales, constants % vcnk, one, node_m(:, j), one, &
-                & node_m(:, i), work)
+                & node_m(:, i), work(:, iproc))
         end do
     end do
 end subroutine tree_m2m_rotation_adj_work
@@ -2083,7 +2087,7 @@ subroutine tree_l2l_rotation(params, constants, node_l)
     ! Output
     real(dp), intent(inout) :: node_l((params % pl+1)**2, constants % nclusters)
     ! Temporary workspace
-    real(dp) :: work(6*params % pl**2 + 19*params % pl + 8)
+    real(dp) :: work(6*params % pl**2 + 19*params % pl + 8, params % nproc)
     ! Call corresponding work routine
     call tree_l2l_rotation_work(params, constants, node_l, work)
 end subroutine tree_l2l_rotation
@@ -2099,15 +2103,17 @@ subroutine tree_l2l_rotation_work(params, constants, node_l, work)
     ! Output
     real(dp), intent(inout) :: node_l((params % pl+1)**2, constants % nclusters)
     ! Temporary workspace
-    real(dp), intent(out) :: work(6*params % pl**2 + 19*params % pl + 8)
+    real(dp), intent(out) :: work(6*params % pl**2 + 19*params % pl + 8, &
+        & params % nproc)
     ! Local variables
-    integer :: i, j, l
+    integer :: i, j, l, iproc
     real(dp) :: c1(3), c(3), r1, r
     ! Top-to-bottom pass
     do l = 2, constants % nlayers
-        !$omp parallel do default(none) shared(constants,params,node_l,l) &
-        !$omp private(i,j,c1,c,r1,r,work)
+        !$omp parallel do default(none) shared(constants,params,node_l,l, &
+        !$omp work) private(i,j,c1,c,r1,r,iproc)
         do i = constants % layers(1, l), constants % layers(2, l)
+            iproc = omp_get_thread_num() + 1
             j = constants % parent(i)
             c = constants % cnode(:, j)
             r = constants % rnode(j)
@@ -2116,7 +2122,7 @@ subroutine tree_l2l_rotation_work(params, constants, node_l, work)
             c1 = c - c1
             call fmm_l2l_rotation_work(c1, r, r1, params % pl, &
                 & constants % vscales, constants % vfact, one, &
-                & node_l(:, j), one, node_l(:, i), work)
+                & node_l(:, j), one, node_l(:, i), work(:, iproc))
         end do
     end do
 end subroutine tree_l2l_rotation_work
@@ -2182,7 +2188,7 @@ subroutine tree_l2l_rotation_adj(params, constants, node_l)
     ! Output
     real(dp), intent(inout) :: node_l((params % pl+1)**2, constants % nclusters)
     ! Temporary workspace
-    real(dp) :: work(6*params % pl**2 + 19*params % pl + 8)
+    real(dp) :: work(6*params % pl**2 + 19*params % pl + 8, params % nproc)
     ! Call corresponding work routine
     call tree_l2l_rotation_adj_work(params, constants, node_l, work)
 end subroutine tree_l2l_rotation_adj
@@ -2198,15 +2204,17 @@ subroutine tree_l2l_rotation_adj_work(params, constants, node_l, work)
     ! Output
     real(dp), intent(inout) :: node_l((params % pl+1)**2, constants % nclusters)
     ! Temporary workspace
-    real(dp), intent(out) :: work(6*params % pl**2 + 19*params % pl + 8)
+    real(dp), intent(out) :: work(6*params % pl**2 + 19*params % pl + 8, &
+        & params % nproc)
     ! Local variables
-    integer :: i, j, l
+    integer :: i, j, l, iproc
     real(dp) :: c1(3), c(3), r1, r
     ! Bottom-to-top pass
     do l = constants % nlayers, 1, -1
-        !$omp parallel do default(none) shared(constants,params,node_l,l) &
-        !$omp private(i,j,c1,c,r1,r,work)
+        !$omp parallel do default(none) shared(constants,params,node_l,l, &
+        !$omp work) private(i,j,c1,c,r1,r,iproc)
         do i = constants % layers(1, l), constants % layers(2, l)
+            iproc = omp_get_thread_num() + 1
             ! Leaf node does not need any update
             if (constants % children(1, i) == 0) cycle
             c = constants % cnode(:, i)
@@ -2226,7 +2234,7 @@ subroutine tree_l2l_rotation_adj_work(params, constants, node_l, work)
                 c1 = c1 - c
                 call fmm_l2l_rotation_adj_work(c1, r1, r, params % pl, &
                     & constants % vscales, constants % vfact, one, &
-                    & node_l(:, j), one, node_l(:, i), work)
+                    & node_l(:, j), one, node_l(:, i), work(:, iproc))
             end do
         end do
     end do
