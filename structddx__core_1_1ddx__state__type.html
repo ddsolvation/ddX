@@ -242,6 +242,10 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a2c9e86473be0bea3096bd46d5d21d609"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9d07fd4bc980c969e85af29036ff288d"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a9d07fd4bc980c969e85af29036ff288d">phi_n</a></td></tr>
 <tr class="separator:a9d07fd4bc980c969e85af29036ff288d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9e495f8ef8a2b9fc658d5aa0796005e"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ad9e495f8ef8a2b9fc658d5aa0796005e">hsp_time</a></td></tr>
+<tr class="separator:ad9e495f8ef8a2b9fc658d5aa0796005e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0545662a55a0e6c91055bfb1a747256b"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a0545662a55a0e6c91055bfb1a747256b">hsp_adj_time</a></td></tr>
+<tr class="separator:a0545662a55a0e6c91055bfb1a747256b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >This defined type contains the primal and adjoint RHSs, the solution of the primal and adjoint linear systems, useful intermediates for the computation of the forces, and the information about the convergence of the linear system solver (time, number of iterations, relative difference at each iteration). </p>
@@ -1101,6 +1105,38 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00189">189</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ad9e495f8ef8a2b9fc658d5aa0796005e" name="ad9e495f8ef8a2b9fc658d5aa0796005e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9e495f8ef8a2b9fc658d5aa0796005e">&#9670;&nbsp;</a></span>hsp_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp) ddx_core::ddx_state_type::hsp_time</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00190">190</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a0545662a55a0e6c91055bfb1a747256b" name="a0545662a55a0e6c91055bfb1a747256b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0545662a55a0e6c91055bfb1a747256b">&#9670;&nbsp;</a></span>hsp_adj_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp) ddx_core::ddx_state_type::hsp_adj_time</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00191">191</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>

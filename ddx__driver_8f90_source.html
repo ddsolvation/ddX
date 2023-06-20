@@ -381,104 +381,113 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>            &amp; state % x_lpb_rel_diff(i)</div>
 <div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span><span class="keywordflow">    end do</span></div>
 <div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>    <span class="comment">! Print number of iterations and time</span></div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>    <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;ddlpb step time: &quot;</span>, state % x_lpb_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
-<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>    <span class="keyword">write</span>(6, 300) <span class="stringliteral">&quot;ddlpb step iterations: &quot;</span>, state % x_lpb_niter</div>
-<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span><span class="keywordflow">end if</span></div>
-<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span> </div>
-<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span><span class="comment">! Print info on the primal ddCOSMO system</span></div>
-<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span><span class="comment">! Print each iteration if needed</span></div>
-<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span><span class="keywordflow">if</span> ((ddx_data % params % model.eq.1) .or. &amp;</div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>        &amp; (ddx_data % params % model.eq.2)) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>    <span class="keywordflow">do</span> i = 1, state % xs_niter</div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>        <span class="keyword">write</span>(6, 200) <span class="stringliteral">&quot;iter=&quot;</span>, i, <span class="stringliteral">&quot; relative difference: &quot;</span>, &amp;</div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>            &amp; state % xs_rel_diff(i)</div>
-<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>    <span class="comment">! Print number of iterations and time</span></div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;ddcosmo step time: &quot;</span>, state % xs_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
-<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>    <span class="keyword">write</span>(6, 300) <span class="stringliteral">&quot;ddcosmo step iterations: &quot;</span>, state % xs_niter</div>
-<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span><span class="keywordflow">end if</span></div>
-<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span> </div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span><span class="comment">! Print info on the adjoint solver</span></div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span><span class="keywordflow">if</span> (ddx_data % params % force .eq. 1) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>    <span class="comment">! Print info on the adjoint ddCOSMO system</span></div>
-<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>    <span class="keywordflow">if</span> ((ddx_data % params % model.eq.1) .or. &amp;</div>
-<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>            &amp; (ddx_data % params % model.eq.2)) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>        <span class="keywordflow">do</span> i = 1, state % s_niter</div>
-<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>            <span class="keyword">write</span>(6, 200) <span class="stringliteral">&quot;iter=&quot;</span>, i, <span class="stringliteral">&quot; relative difference: &quot;</span>, &amp;</div>
-<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>                &amp; state % s_rel_diff(i)</div>
-<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>        <span class="comment">! Print number of iterations and time</span></div>
-<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>        <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;adjoint ddcosmo step time: &quot;</span>, state % s_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
-<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>        <span class="keyword">write</span>(6, 300) <span class="stringliteral">&quot;adjoint ddcosmo step iterations: &quot;</span>, state % s_niter</div>
-<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span> </div>
-<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>    <span class="comment">! Print info on the adjoint ddPCM system</span></div>
-<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>    <span class="keywordflow">if</span> (ddx_data % params % model .eq. 2) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>        <span class="comment">! Print each iteration if needed</span></div>
-<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>        <span class="keywordflow">do</span> i = 1, state % y_niter</div>
-<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>            <span class="keyword">write</span>(6, 200) <span class="stringliteral">&quot;iter=&quot;</span>, i, <span class="stringliteral">&quot; relative difference: &quot;</span>, &amp;</div>
-<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>                &amp; state % y_rel_diff(i)</div>
-<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>        <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;adjoint ddpcm step time: &quot;</span>, state % y_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
-<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>        <span class="keyword">write</span>(6, 300) <span class="stringliteral">&quot;adjoint ddpcm step iterations: &quot;</span>, state % y_niter</div>
-<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span> </div>
-<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>    <span class="comment">! Print info on the adjoint ddLPB system</span></div>
-<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>    <span class="keywordflow">if</span> (ddx_data % params % model .eq. 3) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>        <span class="keywordflow">do</span> i = 1, state % x_adj_lpb_niter</div>
-<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>            <span class="keyword">write</span>(6, 200) <span class="stringliteral">&quot;iter=&quot;</span>, i, <span class="stringliteral">&quot; relative difference: &quot;</span>, &amp;</div>
-<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>                &amp; state % x_adj_lpb_rel_diff(i)</div>
-<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>        <span class="comment">! Print number of iterations and time</span></div>
-<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>        <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;adjoint ddlpb step time: &quot;</span>, &amp;</div>
-<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>            &amp; state % x_adj_lpb_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
-<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>        <span class="keyword">write</span>(6, 200) <span class="stringliteral">&quot;adjoint ddlpb step iterations: &quot;</span>, &amp;</div>
-<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>            &amp; state % x_adj_lpb_niter</div>
-<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span><span class="keywordflow">end if</span></div>
-<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span> </div>
-<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span><span class="keyword">write</span>(6, 400) <span class="stringliteral">&quot;Solvation energy (Hartree):&quot;</span>, esolv</div>
-<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span><span class="keyword">write</span>(6, 400) <span class="stringliteral">&quot;Solvation energy (kcal/mol):&quot;</span>, esolv*tokcal</div>
-<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span><span class="keywordflow">if</span> (ddx_data % params % force .eq. 1) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>    <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;Full forces (kcal/mol/A)&quot;</span></div>
-<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>    <span class="keywordflow">do</span> isph = 1, ddx_data % params % nsph</div>
-<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>        <span class="keyword">write</span>(6, 500) isph, force(:, isph)*tokcal/toang</div>
-<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>    <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;ddlpb step time: &quot;</span>, state % x_lpb_time, &amp;</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>        &amp; <span class="stringliteral">&quot; seconds, of which:&quot;</span></div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>    <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;    ddcosmo: &quot;</span>, state % xs_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>    <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;    hsp: &quot;</span>, state % hsp_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>    <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;    coupling terms: &quot;</span>, state % x_lpb_time &amp;</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>        &amp; - state % xs_time - state % hsp_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>    <span class="keyword">write</span>(6, 300) <span class="stringliteral">&quot;ddlpb step iterations: &quot;</span>, state % x_lpb_niter</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span><span class="keywordflow">end if</span></div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span> </div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span><span class="comment">! Print info on the primal ddCOSMO system</span></div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span><span class="comment">! Print each iteration if needed</span></div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span><span class="keywordflow">if</span> ((ddx_data % params % model.eq.1) .or. &amp;</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>        &amp; (ddx_data % params % model.eq.2)) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    <span class="keywordflow">do</span> i = 1, state % xs_niter</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>        <span class="keyword">write</span>(6, 200) <span class="stringliteral">&quot;iter=&quot;</span>, i, <span class="stringliteral">&quot; relative difference: &quot;</span>, &amp;</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>            &amp; state % xs_rel_diff(i)</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>    <span class="comment">! Print number of iterations and time</span></div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>    <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;ddcosmo step time: &quot;</span>, state % xs_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>    <span class="keyword">write</span>(6, 300) <span class="stringliteral">&quot;ddcosmo step iterations: &quot;</span>, state % xs_niter</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span><span class="keywordflow">end if</span></div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span> </div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span><span class="comment">! Print info on the adjoint solver</span></div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span><span class="keywordflow">if</span> (ddx_data % params % force .eq. 1) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>    <span class="comment">! Print info on the adjoint ddCOSMO system</span></div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>    <span class="keywordflow">if</span> ((ddx_data % params % model.eq.1) .or. &amp;</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>            &amp; (ddx_data % params % model.eq.2)) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>        <span class="keywordflow">do</span> i = 1, state % s_niter</div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>            <span class="keyword">write</span>(6, 200) <span class="stringliteral">&quot;iter=&quot;</span>, i, <span class="stringliteral">&quot; relative difference: &quot;</span>, &amp;</div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>                &amp; state % s_rel_diff(i)</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>        <span class="comment">! Print number of iterations and time</span></div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>        <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;adjoint ddcosmo step time: &quot;</span>, state % s_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>        <span class="keyword">write</span>(6, 300) <span class="stringliteral">&quot;adjoint ddcosmo step iterations: &quot;</span>, state % s_niter</div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span> </div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>    <span class="comment">! Print info on the adjoint ddPCM system</span></div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>    <span class="keywordflow">if</span> (ddx_data % params % model .eq. 2) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>        <span class="comment">! Print each iteration if needed</span></div>
+<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>        <span class="keywordflow">do</span> i = 1, state % y_niter</div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>            <span class="keyword">write</span>(6, 200) <span class="stringliteral">&quot;iter=&quot;</span>, i, <span class="stringliteral">&quot; relative difference: &quot;</span>, &amp;</div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>                &amp; state % y_rel_diff(i)</div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>        <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;adjoint ddpcm step time: &quot;</span>, state % y_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>        <span class="keyword">write</span>(6, 300) <span class="stringliteral">&quot;adjoint ddpcm step iterations: &quot;</span>, state % y_niter</div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span> </div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>    <span class="comment">! Print info on the adjoint ddLPB system</span></div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>    <span class="keywordflow">if</span> (ddx_data % params % model .eq. 3) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>        <span class="keywordflow">do</span> i = 1, state % x_adj_lpb_niter</div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>            <span class="keyword">write</span>(6, 200) <span class="stringliteral">&quot;iter=&quot;</span>, i, <span class="stringliteral">&quot; relative difference: &quot;</span>, &amp;</div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>                &amp; state % x_adj_lpb_rel_diff(i)</div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>        <span class="comment">! Print number of iterations and time</span></div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>        <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;adjoint ddlpb step time: &quot;</span>, &amp;</div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>            &amp; state % x_adj_lpb_time, <span class="stringliteral">&quot; seconds, of which:&quot;</span></div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>        <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;    adjoint ddcosmo: &quot;</span>, state % s_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>        <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;    adjoint hsp: &quot;</span>, state % hsp_adj_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>        <span class="keyword">write</span>(6, 100) <span class="stringliteral">&quot;    adjoint coupling terms: &quot;</span>, state % x_adj_lpb_time &amp;</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>            &amp; - state % s_time - state % hsp_adj_time, <span class="stringliteral">&quot; seconds&quot;</span></div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>        <span class="keyword">write</span>(6, 200) <span class="stringliteral">&quot;adjoint ddlpb step iterations: &quot;</span>, &amp;</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>            &amp; state % x_adj_lpb_niter</div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span><span class="keywordflow">end if</span></div>
 <div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span> </div>
-<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span><span class="comment">! Clean the workspace.</span></div>
-<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span> </div>
-<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span><span class="keyword">deallocate</span>(psi, phi_cav, multipoles, charges, stat=info)</div>
-<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span><span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>    <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;Deallocation failed in ddx_driver&quot;</span></div>
-<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>    stop 1</div>
-<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span><span class="keywordflow">end if</span></div>
-<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span><span class="keywordflow">if</span> (<span class="keyword">allocated</span>(e_cav)) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>    <span class="keyword">deallocate</span>(e_cav, stat=info)</div>
-<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>        <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;Deallocation failed in ddx_driver&quot;</span></div>
-<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>        stop 1</div>
-<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span><span class="keywordflow">end if</span></div>
-<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span><span class="keywordflow">if</span> (<span class="keyword">allocated</span>(g_cav)) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>    <span class="keyword">deallocate</span>(g_cav, stat=info)</div>
-<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>        <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;Deallocation failed in ddx_driver&quot;</span></div>
-<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>        stop 1</div>
-<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span><span class="keywordflow">end if</span></div>
-<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span><span class="keywordflow">if</span> (<span class="keyword">allocated</span>(force)) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>    <span class="keyword">deallocate</span>(force, stat=info)</div>
-<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>        <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;Deallocation failed in ddx_driver&quot;</span></div>
-<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>        stop 1</div>
-<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span><span class="keywordflow">end if</span></div>
-<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span> </div>
-<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span><span class="keyword">call </span>ddx_free_state(state)</div>
-<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span><span class="keyword">call </span>ddfree(ddx_data)</div>
-<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span> </div>
-<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span><span class="keyword">end program </span><a class="code hl_function" href="ddx__driver_8f90.html#a8ec2266d83cd6c0b762cbcbc92c0af3d">main</a></div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span><span class="keyword">write</span>(6, 400) <span class="stringliteral">&quot;Solvation energy (Hartree):&quot;</span>, esolv</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span><span class="keyword">write</span>(6, 400) <span class="stringliteral">&quot;Solvation energy (kcal/mol):&quot;</span>, esolv*tokcal</div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span><span class="keywordflow">if</span> (ddx_data % params % force .eq. 1) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>    <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;Full forces (kcal/mol/A)&quot;</span></div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>    <span class="keywordflow">do</span> isph = 1, ddx_data % params % nsph</div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>        <span class="keyword">write</span>(6, 500) isph, force(:, isph)*tokcal/toang</div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span><span class="keywordflow">end if</span></div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span> </div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span><span class="comment">! Clean the workspace.</span></div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span> </div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span><span class="keyword">deallocate</span>(psi, phi_cav, multipoles, charges, stat=info)</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span><span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>    <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;Deallocation failed in ddx_driver&quot;</span></div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>    stop 1</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span><span class="keywordflow">end if</span></div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span><span class="keywordflow">if</span> (<span class="keyword">allocated</span>(e_cav)) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>    <span class="keyword">deallocate</span>(e_cav, stat=info)</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>        <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;Deallocation failed in ddx_driver&quot;</span></div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>        stop 1</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span><span class="keywordflow">end if</span></div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span><span class="keywordflow">if</span> (<span class="keyword">allocated</span>(g_cav)) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>    <span class="keyword">deallocate</span>(g_cav, stat=info)</div>
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>        <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;Deallocation failed in ddx_driver&quot;</span></div>
+<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>        stop 1</div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span><span class="keywordflow">end if</span></div>
+<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span><span class="keywordflow">if</span> (<span class="keyword">allocated</span>(force)) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>    <span class="keyword">deallocate</span>(force, stat=info)</div>
+<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>        <span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;Deallocation failed in ddx_driver&quot;</span></div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>        stop 1</div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span><span class="keywordflow">end if</span></div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span> </div>
+<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span><span class="keyword">call </span>ddx_free_state(state)</div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span><span class="keyword">call </span>ddfree(ddx_data)</div>
+<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span> </div>
+<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span><span class="keyword">end program </span><a class="code hl_function" href="ddx__driver_8f90.html#a8ec2266d83cd6c0b762cbcbc92c0af3d">main</a></div>
 <div class="ttc" id="addx__driver_8f90_html_a8ec2266d83cd6c0b762cbcbc92c0af3d"><div class="ttname"><a href="ddx__driver_8f90.html#a8ec2266d83cd6c0b762cbcbc92c0af3d">main</a></div><div class="ttdeci">program main</div><div class="ttdoc">Standalone application of ddX: this program can compute the solvation energy and forces for a solute ...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__driver_8f90_source.html#l00015">ddx_driver.f90:15</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__multipolar_html_ga6611268f56ee74f9f64df0915594f8c7"><div class="ttname"><a href="group___fortran__interface__multipolar.html#ga6611268f56ee74f9f64df0915594f8c7">ddx_multipolar_solutes::build_phi</a></div><div class="ttdeci">subroutine build_phi(params, constants, workspace, multipoles, mmax, phi_cav)</div><div class="ttdoc">Given a multipolar distribution, compute the potential at the target points this is done with or with...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__multipolar__solutes_8f90_source.html#l00297">ddx_multipolar_solutes.f90:299</a></div></div>
 <div class="ttc" id="agroup___fortran__interface__multipolar_html_gabec05c36e4683b034461ddea3f93c3a0"><div class="ttname"><a href="group___fortran__interface__multipolar.html#gabec05c36e4683b034461ddea3f93c3a0">ddx_multipolar_solutes::build_g</a></div><div class="ttdeci">subroutine build_g(params, constants, workspace, multipoles, mmax, phi_cav, e_cav, g_cav)</div><div class="ttdoc">Given a multipolar distribution, compute the potential, its gradient and its hessian at the target po...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__multipolar__solutes_8f90_source.html#l00031">ddx_multipolar_solutes.f90:33</a></div></div>

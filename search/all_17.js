@@ -11,5 +11,5 @@ var searchData=
   ['xs_8',['xs',['../structddx__core_1_1ddx__state__type.html#a08d23dc0eceb14dcb6f623871c208529',1,'ddx_core::ddx_state_type']]],
   ['xs_5fniter_9',['xs_niter',['../structddx__core_1_1ddx__state__type.html#a8180c3d20b4cb8effeb4f8b65f170445',1,'ddx_core::ddx_state_type']]],
   ['xs_5frel_5fdiff_10',['xs_rel_diff',['../structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7',1,'ddx_core::ddx_state_type']]],
-  ['xs_5ftime_11',['xs_time',['../structddx__core_1_1ddx__state__type.html#afea532fb7fd4160a2984ce1aca68934b',1,'ddx_core::ddx_state_type']]]
+  ['xs_5ftime_11',['xs_time',['../structddx__core_1_1ddx__state__type.html#afea532fb7fd4160a2984ce1aca68934b',1,'ddx_core::ddx_state_type::xs_time()'],['../structddx__workspace_1_1ddx__workspace__type.html#aeaeeae637100c2c708a35eb2abe3f4ff',1,'ddx_workspace::ddx_workspace_type::xs_time()']]]
 ];
