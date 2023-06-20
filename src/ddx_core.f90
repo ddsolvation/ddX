@@ -187,6 +187,8 @@ type ddx_state_type
     real(dp), allocatable :: x_adj_r_grid(:, :)
     real(dp), allocatable :: x_adj_e_grid(:, :)
     real(dp), allocatable :: phi_n(:, :)
+    real(dp) :: hsp_time
+    real(dp) :: hsp_adj_time
 
 end type ddx_state_type
 
@@ -2370,10 +2372,9 @@ subroutine tree_m2l_bessel_rotation_adj_work(params, constants, node_l, node_m)
     ! Local variables
     integer :: i, j, k
     real(dp) :: c1(3), c(3), r
-    ! Any order of this cycle is OK
     node_m = zero
-    !!$omp parallel do shared(constants,params,node_l,node_m) &
-    !!$omp private(i,c,r,k,c1,work,work_complex,j) schedule(dynamic)
+    !$omp parallel do shared(constants,params,node_l,node_m) &
+    !$omp private(i,c,r,k,c1,work,work_complex,j) schedule(dynamic)
     do i = 1, constants % nclusters
         ! If no far admissible pairs just set output to zero
         if (constants % nfar(i) .eq. 0) then
@@ -2384,19 +2385,18 @@ subroutine tree_m2l_bessel_rotation_adj_work(params, constants, node_l, node_m)
         ! Use the first far admissible pair to initialize output
         k = constants % far(constants % sfar(i))
         c1 = constants % cnode(:, k)
-        c1 = params % kappa*(c1 - c)
-        call fmm_m2l_bessel_rotation_adj_work(c1, constants % SI_rnode(:, i), &
-            & constants % SK_rnode(:, k), params % pm, &
-            & constants % vscales, one, &
-            & node_l(:, i), one, node_m(:, k), work, work_complex)
+        c1 = params % kappa*(c - c1)
+        call fmm_m2l_bessel_rotation_adj_work(c1, constants % SI_rnode(:, k), &
+            & constants % SK_rnode(:, i), params % pm, constants % vscales, &
+            & one, node_l(:, k), one, node_m(:, i), work, work_complex)
         do j = constants % sfar(i)+1, constants % sfar(i+1)-1
             k = constants % far(j)
             c1 = constants % cnode(:, k)
-            c1 = params % kappa*(c1 - c)
-            call fmm_m2l_bessel_rotation_adj_work(c1, constants % SI_rnode(:, i), &
-                & constants % SK_rnode(:, k), params % pm, &
-                & constants % vscales, one, &
-                & node_l(:, i), one, node_m(:, k), work, work_complex)
+            c1 = params % kappa*(c - c1)
+            call fmm_m2l_bessel_rotation_adj_work(c1, &
+                & constants % SI_rnode(:, k), constants % SK_rnode(:, i), &
+                & params % pm, constants % vscales, one, node_l(:, k), &
+                & one, node_m(:, i), work, work_complex)
         end do
     end do
 end subroutine tree_m2l_bessel_rotation_adj_work
@@ -2415,8 +2415,9 @@ subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)
     ! Local variables
     integer :: i, j, k
     real(dp) :: c1(3), c(3), r1, r
-    ! Any order of this cycle is OK
     node_m = zero
+    !$omp parallel do default(none) shared(constants,params,node_m,node_l) &
+    !$omp private(i,c,r,k,c1,r1,j) schedule(dynamic)
     do i = 1, constants % nclusters
         ! If no far admissible pairs just set output to zero
         if (constants % nfar(i) .eq. 0) then
@@ -2428,18 +2429,18 @@ subroutine tree_m2l_rotation_adj(params, constants, node_l, node_m)
         k = constants % far(constants % sfar(i))
         c1 = constants % cnode(:, k)
         r1 = constants % rnode(k)
-        c1 = c - c1
-        call fmm_m2l_rotation_adj(c1, r, r1, params % pl, params % pm, &
+        c1 = c1 - c
+        call fmm_m2l_rotation_adj(c1, r1, r, params % pl, params % pm, &
             & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
-            & node_l(:, i), one, node_m(:, k))
+            & node_l(:, k), one, node_m(:, i))
         do j = constants % sfar(i)+1, constants % sfar(i+1)-1
             k = constants % far(j)
             c1 = constants % cnode(:, k)
             r1 = constants % rnode(k)
-            c1 = c - c1
-            call fmm_m2l_rotation_adj(c1, r, r1, params % pl, params % pm, &
+            c1 = c1 - c
+            call fmm_m2l_rotation_adj(c1, r1, r, params % pl, params % pm, &
                 & constants % vscales, constants % m2l_ztranslate_adj_coef, one, &
-                & node_l(:, i), one, node_m(:, k))
+                & node_l(:, k), one, node_m(:, i))
         end do
     end do
 end subroutine tree_m2l_rotation_adj
@@ -2720,9 +2721,9 @@ subroutine tree_m2p_adj(params, constants, p, alpha, grid_v, beta, sph_m)
         sph_m = beta * sph_m
     end if
     ! Cycle over all spheres
-    !!$omp parallel do default(none) shared(params,constants,grid_v,p, &
-    !!$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work) &
-    !!$omp schedule(dynamic)
+    !$omp parallel do default(none) shared(params,constants,grid_v,p, &
+    !$omp alpha,sph_m), private(isph,inode,jnear,jnode,jsph,igrid,c,work) &
+    !$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
@@ -2735,12 +2736,12 @@ subroutine tree_m2p_adj(params, constants, p, alpha, grid_v, beta, sph_m)
             if(isph .eq. jsph) cycle
             ! Accumulate interaction for external grid points only
             do igrid = 1, params % ngrid
-                if(constants % ui(igrid, isph) .eq. zero) cycle
-                c = constants % cgrid(:, igrid)*params % rsph(isph) - &
-                    & params % csph(:, jsph) + params % csph(:, isph)
-                call fmm_m2p_adj_work(c, alpha*grid_v(igrid, isph), &
-                    & params % rsph(jsph), p, constants % vscales_rel, one, &
-                    & sph_m(:, jsph), work)
+                if(constants % ui(igrid, jsph) .eq. zero) cycle
+                c = constants % cgrid(:, igrid)*params % rsph(jsph) - &
+                    & params % csph(:, isph) + params % csph(:, jsph)
+                call fmm_m2p_adj_work(c, alpha*grid_v(igrid, jsph), &
+                    & params % rsph(isph), p, constants % vscales_rel, one, &
+                    & sph_m(:, isph), work)
             end do
         end do
     end do
@@ -2771,28 +2772,25 @@ subroutine tree_m2p_bessel_adj(params, constants, p, alpha, grid_v, beta, sph_p,
         sph_m = beta * sph_m
     end if
     ! Cycle over all spheres
-    !!$omp parallel do default(none) shared(params,constants,p,sph_m,tmp, &
-    !!$omp alpha,grid_v) private(isph,inode,jnear,jnode,jsph,igrid,c, &
-    !!$omp iproc) schedule(dynamic)
+    !$omp parallel do default(none) shared(params,constants,p,sph_m, &
+    !$omp alpha,grid_v) private(isph,inode,jnear,jnode,jsph,igrid,c) &
+    !$omp schedule(dynamic)
     do isph = 1, params % nsph
         ! Cycle over all near-field admissible pairs of spheres
         inode = constants % snode(isph)
-        ! iproc = omp_get_thread_num() + 1
         do jnear = constants % snear(inode), constants % snear(inode+1)-1
             ! Near-field interactions are possible only between leaf nodes,
             ! which must contain only a single input sphere
             jnode = constants % near(jnear)
             jsph = constants % order(constants % cluster(1, jnode))
-            ! Ignore self-interaction
-            !if(isph .eq. jsph) cycle
             ! Accumulate interaction for external grid points only
             do igrid = 1, params % ngrid
-                if(constants % ui(igrid, isph) .eq. zero) cycle
-                c = constants % cgrid(:, igrid)*params % rsph(isph) - &
-                    & params % csph(:, jsph) + params % csph(:, isph)
-                call fmm_m2p_bessel_adj(c, alpha*grid_v(igrid, isph), &
-                    & params % rsph(jsph), params % kappa, p, &
-                    & constants % vscales, one, sph_m(:, jsph))
+                if(constants % ui(igrid, jsph) .eq. zero) cycle
+                c = constants % cgrid(:, igrid)*params % rsph(jsph) - &
+                    & params % csph(:, isph) + params % csph(:, jsph)
+                call fmm_m2p_bessel_adj(c, alpha*grid_v(igrid, jsph), &
+                    & params % rsph(isph), params % kappa, p, &
+                    & constants % vscales, one, sph_m(:, isph))
             end do
         end do
     end do

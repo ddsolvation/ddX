@@ -98,6 +98,8 @@ type ddx_workspace_type
     real(dp), allocatable :: tmp_bmat(:, :)
     !> ddLPB solutions for the microiterations
     real(dp), allocatable :: ddcosmo_guess(:,:), hsp_guess(:,:)
+    !> ddLPB temporary timings
+    real(dp) :: xs_time, s_time, hsp_time, hsp_adj_time
     !> Flag if there were an error
     integer :: error_flag = 2
     !> Last error message

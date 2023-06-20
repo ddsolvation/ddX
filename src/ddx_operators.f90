@@ -370,11 +370,14 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)
     ! Local variables
     real(dp) :: vji(3), sji(3)
     real(dp) :: vvji, tji, tt, f, rho, ctheta, stheta, cphi, sphi
-    integer :: its, isph, jsph, l, m, ind
+    integer :: its, isph, jsph, l, m, ind, iproc
     real(dp), external :: dnrm2
     y = zero
-    ! this loop is easily parallelizable
+    !$omp parallel do default(none) shared(do_diag,params,constants, &
+    !$omp workspace,x,y) private(isph,jsph,its,vji,vvji,tji,sji,rho, &
+    !$omp ctheta,stheta,cphi,sphi,tt,l,ind,f,m,iproc) schedule(dynamic)
     do isph = 1, params % nsph
+        iproc = omp_get_thread_num() + 1
         do jsph = 1, params % nsph
             if (jsph.ne.isph) then
                 do its = 1, params % ngrid
@@ -389,8 +392,10 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)
                         ! build the local basis
                         call ylmbas(sji, rho, ctheta, stheta, cphi, sphi, &
                             & params % lmax, constants % vscales, &
-                            & workspace % tmp_vylm, workspace % tmp_vplm, &
-                            & workspace % tmp_vcos, workspace % tmp_vsin)
+                            & workspace % tmp_vylm(:(params % lmax + 1)**2, iproc), &
+                            & workspace % tmp_vplm(:(params % lmax + 1)**2, iproc), &
+                            & workspace % tmp_vcos(:(params % lmax + 1), iproc), &
+                            & workspace % tmp_vsin(:(params % lmax + 1), iproc))
                         tt = constants % ui(its,jsph) &
                             & *dot_product(constants % vwgrid(:constants % nbasis, its), &
                             & x(:,jsph))/tji
@@ -399,7 +404,7 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y)
                             f = dble(l)*tt/ constants % vscales(ind)**2
                             do m = -l, l
                                 y(ind+m,isph) = y(ind+m,isph) + &
-                                    & f*workspace % tmp_vylm(ind+m, 1)
+                                    & f*workspace % tmp_vylm(ind+m, iproc)
                             end do
                             tt = tt/tji
                         end do
@@ -1355,26 +1360,34 @@ subroutine prec_tstarx(params, constants, workspace, x, y)
     real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
     integer :: n_iter
     real(dp), dimension(params % maxiter) :: x_rel_diff
+    real(dp) :: start_time
 
+    start_time = omp_get_wtime()
     y(:,:,1) = x(:,:,1)
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, constants % inner_tol, y(:,:,1), &
-        & workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, ldm1x, hnorm)
+    call jacobi_diis(params, constants, workspace, constants % inner_tol, &
+        & y(:,:,1), workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, &
+        & ldm1x, hnorm)
     if (workspace % error_flag.ne.0) then
         workspace % error_message = 'prec_tstarx: ddCOSMO failed to converge'
         return
     end if
     y(:,:,1) = workspace % ddcosmo_guess
+    workspace % s_time = workspace % s_time + omp_get_wtime() - start_time
 
+    start_time = omp_get_wtime()
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
-        & n_iter, x_rel_diff, bstarx, bx_prec, hnorm)
+    call jacobi_diis(params, constants, workspace, constants % inner_tol, &
+        & x(:,:,2), workspace % hsp_guess, n_iter, x_rel_diff, bstarx, &
+        & bx_prec, hnorm)
     if (workspace % error_flag.ne.0) then
         workspace % error_message = 'prec_tstarx: HSP failed to converge'
         return
     end if
     y(:,:,2) = workspace % hsp_guess
+    workspace % hsp_adj_time = workspace % hsp_adj_time &
+        & + omp_get_wtime() - start_time
 
 end subroutine prec_tstarx
 
@@ -1393,11 +1406,14 @@ subroutine prec_tx(params, constants, workspace, x, y)
     real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
     integer :: n_iter
     real(dp), dimension(params % maxiter) :: x_rel_diff
+    real(dp) :: start_time
 
     ! perform A^-1 * Yr
+    start_time = omp_get_wtime()
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,1), &
-        & workspace % ddcosmo_guess, n_iter, x_rel_diff, lx, ldm1x, hnorm)
+    call jacobi_diis(params, constants, workspace, constants % inner_tol, &
+        & x(:,:,1), workspace % ddcosmo_guess, n_iter, x_rel_diff, lx, &
+        & ldm1x, hnorm)
     if (workspace % error_flag.ne.0) then
         workspace % error_message = 'prec_tx: ddCOSMO failed to converge'
         return
@@ -1406,12 +1422,16 @@ subroutine prec_tx(params, constants, workspace, x, y)
     ! Scale by the factor of (2l+1)/4Pi
     y(:,:,1) = workspace % ddcosmo_guess
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
+    workspace % xs_time = workspace % xs_time + omp_get_wtime() - start_time
 
     ! perform B^-1 * Ye
+    start_time = omp_get_wtime()
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
-        & n_iter, x_rel_diff, bx, bx_prec, hnorm)
+    call jacobi_diis(params, constants, workspace, constants % inner_tol, &
+        & x(:,:,2), workspace % hsp_guess, n_iter, x_rel_diff, bx, &
+        & bx_prec, hnorm)
     y(:,:,2) = workspace % hsp_guess
+    workspace % hsp_time = workspace % hsp_time + omp_get_wtime() - start_time
 
     if (workspace % error_flag.ne.0) then
         workspace % error_message = 'prec_tx: HSP failed to converge'

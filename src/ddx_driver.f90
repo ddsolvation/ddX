@@ -298,7 +298,12 @@ if (ddx_data % params % model .eq. 3) then
             & state % x_lpb_rel_diff(i)
     end do
     ! Print number of iterations and time
-    write(6, 100) "ddlpb step time: ", state % x_lpb_time, " seconds"
+    write(6, 100) "ddlpb step time: ", state % x_lpb_time, &
+        & " seconds, of which:"
+    write(6, 100) "    ddcosmo: ", state % xs_time, " seconds"
+    write(6, 100) "    hsp: ", state % hsp_time, " seconds"
+    write(6, 100) "    coupling terms: ", state % x_lpb_time &
+        & - state % xs_time - state % hsp_time, " seconds"
     write(6, 300) "ddlpb step iterations: ", state % x_lpb_niter
 end if
 
@@ -348,7 +353,11 @@ if (ddx_data % params % force .eq. 1) then
         end do
         ! Print number of iterations and time
         write(6, 100) "adjoint ddlpb step time: ", &
-            & state % x_adj_lpb_time, " seconds"
+            & state % x_adj_lpb_time, " seconds, of which:"
+        write(6, 100) "    adjoint ddcosmo: ", state % s_time, " seconds"
+        write(6, 100) "    adjoint hsp: ", state % hsp_adj_time, " seconds"
+        write(6, 100) "    adjoint coupling terms: ", state % x_adj_lpb_time &
+            & - state % s_time - state % hsp_adj_time, " seconds"
         write(6, 200) "adjoint ddlpb step iterations: ", &
             & state % x_adj_lpb_niter
     end if
