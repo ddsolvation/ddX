@@ -22,6 +22,7 @@ character(len=255) :: fname
 character(len=2047) :: banner
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
+type(ddx_error_type) :: error
 real(dp), allocatable :: phi_cav(:), e_cav(:, :), &
     & g_cav(:, :, :), psi(:, :), force(:, :), charges(:), &
     & multipoles(:, :)
@@ -43,13 +44,13 @@ write(6, *) "Using provided file ", trim(fname), " as a config file"
 ! The model is a container for all the parameters, precomputed constants
 ! and preallocated workspaces.
 start_time = omp_get_wtime()
-call ddfromfile(fname, ddx_data, tol, charges)
+call ddfromfile(fname, ddx_data, tol, charges, error)
 finish_time = omp_get_wtime()
 write(*, 100) "Initialization time:", finish_time - start_time, &
     & " seconds"
-if (ddx_data % error_flag .ne. 0) then
-  write(6, *) ddx_data % error_message
-  stop
+if (error % flag .ne. 0) then
+    write(6, *) error % message
+    stop error % flag
 end if
 
 ! STEP 2: Initialization of the state.

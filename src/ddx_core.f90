@@ -192,6 +192,17 @@ type ddx_state_type
 
 end type ddx_state_type
 
+!> ddX type for containing error information
+type ddx_error_type
+    !> Flag for error codes
+    integer :: flag = 0
+    !> Error message log
+    integer :: max_length = 1000
+    character(len=1000) :: message
+    integer :: message_length = 1
+end type ddx_error_type
+
+
 !> Main ddX type that stores all the required information.
 !! Container for the params, contants and workspace derived types.
 type ddx_type
@@ -206,6 +217,21 @@ type ddx_type
 end type ddx_type
 
 contains
+
+subroutine update_error(error, message)
+    type(ddx_error_type), intent(inout) :: error
+    character(len=*) :: message
+    integer :: message_start, message_stop
+    ! update the error flag by summing one
+    error % flag = error % flag + 1
+    message_start = error % message_length
+    message_stop = message_start + len(message)
+    ! update the message if there is still space left
+    if (message_stop .lt. error % max_length) then
+        error % message(message_start:message_stop) = message
+        error % message_length = message_stop + 1
+    end if
+end subroutine
 
 !------------------------------------------------------------------------------
 !> Initialize ddX input with a full set of parameters
@@ -691,12 +717,11 @@ end subroutine ddx_init_state
 !!      < 0: If info=-i then i-th argument had an illegal value
 !!      > 0: Allocation of a buffer for the output ddx_data failed
 !------------------------------------------------------------------------------
-subroutine ddfromfile(fname, ddx_data, tol, charges)
+subroutine ddfromfile(fname, ddx_data, tol, charges, error)
     implicit none
-    ! Input
     character(len=*), intent(in) :: fname
-    ! Outputs
     type(ddx_type), intent(out) :: ddx_data
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(out) :: tol
     real(dp), allocatable, intent(out) :: charges(:)
     ! Local variables
@@ -714,163 +739,165 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
     ! Number of OpenMP threads to be used
     read(100, *) nproc
     if(nproc .lt. 0) then
-        write(ddx_data % error_message, "(3A)") &
-            & "Error on the 2nd line of a config file ", trim(fname), &
-            & ": `nproc` must be a positive integer value."
-        ddx_data % error_flag = 1
-        return
+        !write(error % message, "(3A)") &
+        !    & "Error on the 2nd line of a config file ", trim(fname), &
+        !    & ": `nproc` must be a positive integer value."
+        !error % flag = 1
+        call update_error(error, "Error on the 2nd line of a config " // &
+            & "file " // trim(fname) // ": `nproc` must be a positive " // &
+            & "integer value.")
     end if
     ! Model to be used: 1 for COSMO, 2 for PCM and 3 for LPB
     read(100, *) model
     if((model .lt. 1) .or. (model .gt. 3)) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 3rd line of a config file ", trim(fname), &
             & ": `model` must be an integer of a value 1, 2 or 3."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Max degree of modeling spherical harmonics
     read(100, *) lmax
     if(lmax .lt. 0) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 4th line of a config file ", trim(fname), &
             & ": `lmax` must be a non-negative integer value."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Approximate number of Lebedev points
     read(100, *) ngrid
     if(ngrid .lt. 0) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 5th line of a config file ", trim(fname), &
             & ": `ngrid` must be a non-negative integer value."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Dielectric permittivity constant of the solvent
     read(100, *) eps
     if(eps .lt. zero) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 6th line of a config file ", trim(fname), &
             & ": `eps` must be a non-negative floating point value."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Shift of the regularized characteristic function
     read(100, *) se
     if((se .lt. -one) .or. (se .gt. one)) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 7th line of a config file ", trim(fname), &
             & ": `se` must be a floating point value in a range [-1, 1]."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Regularization parameter
     read(100, *) eta
     if((eta .lt. zero) .or. (eta .gt. one)) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 8th line of a config file ", trim(fname), &
             & ": `eta` must be a floating point value in a range [0, 1]."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Debye H\"{u}ckel parameter
     read(100, *) kappa
     if(kappa .lt. zero) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 9th line of a config file ", trim(fname), &
             & ": `kappa` must be a non-negative floating point value."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! whether the (sparse) matrices are precomputed and kept in memory (1) or not (0).
     read(100, *) matvecmem 
     if((matvecmem.lt. 0) .or. (matvecmem .gt. 1)) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 10th line of a config file ", trim(fname), &
             & ": `matvecmem` must be an integer value of a value 0 or 1."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Relative convergence threshold for the iterative solver
     read(100, *) tol
     if((tol .lt. 1d-14) .or. (tol .gt. one)) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 12th line of a config file ", trim(fname), &
             & ": `tol` must be a floating point value in a range [1d-14, 1]."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Maximum number of iterations for the iterative solver
     read(100, *) maxiter
     if((maxiter .le. 0)) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 13th line of a config file ", trim(fname), &
             & ": `maxiter` must be a positive integer value."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Number of extrapolation points for Jacobi/DIIS solver
     read(100, *) jacobi_ndiis
     if((jacobi_ndiis .lt. 0)) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 14th line of a config file ", trim(fname), &
             & ": `jacobi_ndiis` must be a non-negative integer value."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Whether to compute (1) or not (0) forces as analytical gradients
     read(100, *) force
     if((force .lt. 0) .or. (force .gt. 1)) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 17th line of a config file ", trim(fname), &
             & ": `force` must be an integer value of a value 0 or 1."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Whether to use (1) or not (0) the FMM to accelerate computations
     read(100, *) fmm
     if((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 18th line of a config file ", trim(fname), &
             & ": `fmm` must be an integer value of a value 0 or 1."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Max degree of multipole spherical harmonics for the FMM
     read(100, *) pm
     if(pm .lt. 0) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 19th line of a config file ", trim(fname), &
             & ": `pm` must be a non-negative integer value."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Max degree of local spherical harmonics for the FMM
     read(100, *) pl
     if(pl .lt. 0) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 20th line of a config file ", trim(fname), &
             & ": `pl` must be a non-negative integer value."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Number of input spheres
     read(100, *) nsph
     if(nsph .le. 0) then
-        write(ddx_data % error_message, "(3A)") &
+        write(error % message, "(3A)") &
             & "Error on the 21th line of a config file ", trim(fname), &
             & ": `nsph` must be a positive integer value."
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     ! Coordinates, radii and charges
     allocate(charges(nsph), x(nsph), y(nsph), z(nsph), rvdw(nsph), stat=istatus)
     if(istatus .ne. 0) then
-        write(ddx_data % error_message, "(2A)") &
+        write(error % message, "(2A)") &
             & "Could not allocate space for coordinates, radii ", &
             & "and charges of atoms"
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
     do i = 1, nsph
@@ -890,15 +917,19 @@ subroutine ddfromfile(fname, ddx_data, tol, charges)
 
     !! Initialize ddx_data object
     call ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
-        & pm, pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, output_filename, ddx_data)
+        & pm, pl, se, eta, eps, kappa, matvecmem, maxiter, &
+        & jacobi_ndiis, nproc, output_filename, ddx_data)
+    if (error % flag .ne. 0) then
+        call update_error(error, "ddinit returned an error")
+        return
+    end if
     !! Clean local temporary data
     deallocate(x, y, z, rvdw, stat=istatus)
     if(istatus .ne. 0) then
-        write(ddx_data % error_message, "(2A)") &
+        write(error % message, "(2A)") &
             & "Could not deallocate space for coordinates, ", &
             & "radii and charges of atoms"
-        ddx_data % error_flag = 1
+        error % flag = 1
         return
     end if
 end subroutine ddfromfile
