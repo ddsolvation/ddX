@@ -18,6 +18,7 @@ implicit none
 
 character(len=255) :: finname, foutname, tmpstr
 type(ddx_type) :: ddx_data
+type(ddx_error_type) :: error
 type(ddx_state_type) :: state
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
     & hessianphi_cav(:, :, :), psi(:, :), force(:, :), charges(:)
@@ -33,8 +34,8 @@ call getarg(2, foutname)
 call getarg(3, tmpstr)
 read(tmpstr, *) threshold
 ! Init input from a file
-call ddfromfile(finname, ddx_data, tol, charges)
-if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
+call ddfromfile(finname, ddx_data, tol, charges, error)
+call check_error(error)
 call ddx_init_state(ddx_data % params, ddx_data % constants, state)
 if(state % error_flag .ne. 0) stop "Initialization failed"
 
@@ -43,7 +44,7 @@ allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constan
     & hessianphi_cav(3, 3, ddx_data % constants % ncav), &
     & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), force(3, ddx_data % params % nsph), &
     & stat=istatus)
-if(istatus .ne. 0) call error(-1, "Allocation failed")
+if(istatus .ne. 0) call test_error(-1, "Allocation failed")
 ! Prepare host-code-related entities
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
     & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
@@ -62,7 +63,7 @@ read(100, "(A)") tmpstr
 read(tmpstr(16:), *) esolv2
 if(abs(esolv2-esolv) .gt. threshold*abs(esolv)) then
     close(100)
-    call error(-1, "Energy is different")
+    call test_error(-1, "Energy is different")
 end if
 ! Compare forces
 if (ddx_data % params % force .eq. 1) then
@@ -75,25 +76,25 @@ if (ddx_data % params % force .eq. 1) then
     fdiff = dnrm2(3*ddx_data % params % nsph, force, 1)
     if(fdiff .gt. threshold*fnorm) then
         close(100)
-        call error(-1, "Forces are different")
+        call test_error(-1, "Forces are different")
     end if
 end if
 ! Close output file and deallocate resources
 close(100)
 deallocate(phi_cav, gradphi_cav, psi, force, charges, stat=istatus)
-if(istatus .ne. 0) call error(-1, "Deallocation failed")
+if(istatus .ne. 0) call test_error(-1, "Deallocation failed")
 call ddx_free_state(state)
 call ddfree(ddx_data)
 
 contains
 !> Print error message and exit with provided error code
-subroutine error(code, message)
+subroutine test_error(code, message)
     integer, intent(in) :: code
     character(len=*), intent(in) :: message
     write(0, "(A,A)") "ERROR: ", message
     write(0, "(A,I2)") "CODE:  ", code
     stop -1
-end subroutine
+end subroutine test_error
 end program main
 
 

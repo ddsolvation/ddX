@@ -16,6 +16,7 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
+type(ddx_error_type) :: error
 ! isph   : Index for number of spheres
 ! i      : Index for derivative components (i = 1,2,3)
 ! ibasis : Index for number of basis
@@ -77,8 +78,8 @@ real(dp), allocatable :: charges(:)
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file 12"
-call ddfromfile(fname, ddx_data, tol, charges)
-if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
+call ddfromfile(fname, ddx_data, tol, charges, error)
+call check_error(error)
 
 ! lmax0 set to minimum of 6 or given lmax.
 ! nbasis0 set to minimum of 49 or given (lmax+1)^2.

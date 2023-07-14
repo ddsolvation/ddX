@@ -355,13 +355,13 @@ end if
 
 contains
 !> Print error message and exit with provided error code
-subroutine error(code, message)
+subroutine test_error(code, message)
     integer, intent(in) :: code
     character(len=*), intent(in) :: message
     write(0, "(A,A)") "ERROR: ", message
     write(0, "(A,I2)") "CODE:  ", code
     stop -1
-end subroutine
+end subroutine test_error
 
 subroutine check_ddinit_args()
     ! Example of correct args
@@ -371,6 +371,7 @@ subroutine check_ddinit_args()
     real(dp) :: x(10), y(10), z(10), rvdw(10), se=zero, eta=1d-1, &
         & eps=1.1d1, kappa=1d0
     type(ddx_type) :: ddx_data
+    type(ddx_error_type) :: error
     integer :: i, j
     real(dp) :: tmp
     character(len=255) :: dummy_file_name = ''
@@ -384,8 +385,8 @@ subroutine check_ddinit_args()
     ! Check correct input
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "correct test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "correct test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check different correct inputs with different n <= 10 (hardcoded value)
@@ -393,8 +394,8 @@ subroutine check_ddinit_args()
         call ddinit(i, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
             & pm, pl, se, eta, eps, kappa, matvecmem, &
             & maxiter, jacobi_ndiis, nproc, &
-            & dummy_file_name, ddx_data)
-        if (ddx_data % error_flag .ne. 0) call error(-1, "`nsph` test failed in " // &
+            & dummy_file_name, ddx_data, error)
+        if (error % flag .ne. 0) call test_error(-1, "`nsph` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
@@ -402,15 +403,15 @@ subroutine check_ddinit_args()
     i = 0
     call ddinit(i, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`nsph` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`nsph` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(i, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`nsph` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`nsph` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check all possible models (1, 2, 3) with other correct inputs
@@ -418,8 +419,8 @@ subroutine check_ddinit_args()
         write(*, *) "model=", i
         call ddinit(n, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
             & pl, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-        if (ddx_data % error_flag .ne. 0) call error(-1, "`model` test failed in " // &
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+        if (error % flag .ne. 0) call test_error(-1, "`model` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
@@ -427,15 +428,15 @@ subroutine check_ddinit_args()
     i = -1
     call ddinit(n, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`model` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`model` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 4
     call ddinit(n, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`model` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`model` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct lmax >= 0
@@ -444,8 +445,8 @@ subroutine check_ddinit_args()
         call ddinit(n, x, y, z, rvdw, model, i, ngrid, force, fmm, &
             & pm, pl, se, eta, eps, kappa, &
             & matvecmem, maxiter, jacobi_ndiis, &
-            & nproc, dummy_file_name, ddx_data)
-        if (ddx_data % error_flag .ne. 0) call error(-1, "`lmax` test failed in " // &
+            & nproc, dummy_file_name, ddx_data, error)
+        if (error % flag .ne. 0) call test_error(-1, "`lmax` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
@@ -453,8 +454,8 @@ subroutine check_ddinit_args()
     i = -1
     call ddinit(n, x, y, z, rvdw, model, i, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`lmax` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`lmax` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct ngrid >= 0
@@ -462,8 +463,8 @@ subroutine check_ddinit_args()
         j = ng0(i)
         call ddinit(n, x, y, z, rvdw, model, lmax, j, force, fmm, pm, &
             & pl, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-        if (ddx_data % error_flag .ne. 0) call error(-1, "`ngrid` test failed in " // &
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+        if (error % flag .ne. 0) call test_error(-1, "`ngrid` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
@@ -471,16 +472,16 @@ subroutine check_ddinit_args()
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, i, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`ngrid` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`ngrid` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct force (0, 1)
     do i = 0, 1
         call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
             & pl, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-        if (ddx_data % error_flag .ne. 0) call error(-1, "`force` test failed in " // &
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+        if (error % flag .ne. 0) call test_error(-1, "`force` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
@@ -488,23 +489,23 @@ subroutine check_ddinit_args()
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`force` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`force` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`force` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`force` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct fmm (0, 1)
     do i = 0, 1
         call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, i, &
             & pm, pl, se, eta, eps, kappa, &
-            & matvecmem, maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-        if (ddx_data % error_flag .ne. 0) call error(-1, "`fmm` test failed in " // &
+            & matvecmem, maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+        if (error % flag .ne. 0) call test_error(-1, "`fmm` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
@@ -512,15 +513,15 @@ subroutine check_ddinit_args()
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`fmm` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`fmm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`fmm` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`fmm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct pm (ignored if fmm=0)
@@ -528,8 +529,8 @@ subroutine check_ddinit_args()
     do i = -2, 2
         call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & i, pl, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-        if (ddx_data % error_flag .ne. 0) call error(-1, "`pm` test failed in " // &
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+        if (error % flag .ne. 0) call test_error(-1, "`pm` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
@@ -538,16 +539,16 @@ subroutine check_ddinit_args()
     do i = 0, 20, 5
         call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & i, pl, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-        if (ddx_data % error_flag .ne. 0) call error(-1, "`pm` test failed in " // &
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+        if (error % flag .ne. 0) call test_error(-1, "`pm` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
         & i, pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`pm` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`pm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect pm (fmm=1)
@@ -555,8 +556,8 @@ subroutine check_ddinit_args()
     i = -2
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, j, i, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`pm` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`pm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct pl (ignored if fmm=0)
@@ -564,8 +565,8 @@ subroutine check_ddinit_args()
     do i = -2, 2
         call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & pm, i, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-        if (ddx_data % error_flag .ne. 0) call error(-1, "`pl` test failed in " // &
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+        if (error % flag .ne. 0) call test_error(-1, "`pl` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
@@ -574,16 +575,16 @@ subroutine check_ddinit_args()
     do i = 0, 20, 5
         call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & pm, i, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-        if (ddx_data % error_flag .ne. 0) call error(-1, "`pl` test failed in " // &
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+        if (error % flag .ne. 0) call test_error(-1, "`pl` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
         & pm, i, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`pl` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`pl` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect pl (fmm=1)
@@ -591,126 +592,126 @@ subroutine check_ddinit_args()
     i = -2
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, j, pm, &
         & i, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`pl` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`pl` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct se (interval [-1,1])
     tmp = -one
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`se` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = zero
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`se` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`se` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect se
     tmp = 1.01d0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`se` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1.01d0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`se` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct eta (interval [0,1])
     tmp = pt5
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`eta` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`eta` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect eta
     tmp = -0.0000005
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`eta` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = 1.01d0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`eta` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`eta` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct eps
     tmp = 1.01d0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`eps` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = dble(1000)
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`eps` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect eps
     tmp = zero
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`eps` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = pt5
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`eps` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = one
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`eps` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`eps` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct kappa
@@ -718,16 +719,16 @@ subroutine check_ddinit_args()
     j = 3 ! only referenced in case of LPB model
     call ddinit(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, tmp, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`kappa` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`kappa` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     tmp = -1d-2 ! not referenced in case of COSMO and PCM models
     do j = 1, 2
         call ddinit(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
             & pl, se, eta, eps, tmp, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-        if (ddx_data % error_flag .ne. 0) call error(-1, "`kappa` test failed in " // &
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+        if (error % flag .ne. 0) call test_error(-1, "`kappa` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
     end do
@@ -736,127 +737,127 @@ subroutine check_ddinit_args()
     tmp = -1d-2
     call ddinit(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, tmp, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`kappa` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`kappa` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct matvecmem
     i = 0
     call ddinit(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, i, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`matvecmem` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`matvecmem` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, i, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`matvecmem` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`matvecmem` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, i, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`matvecmem` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`matvecmem` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 2
     call ddinit(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, i, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`matvecmem` test failed in " // &
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`matvecmem` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct maxiter
     i = 1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & i, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`maxiter` test failed in " // &
+        & i, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1000000
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & i, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`maxiter` test failed in " // &
+        & i, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect maxiter
     i = 0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & i, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`maxiter` test failed in " // &
+        & i, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & i, jacobi_ndiis, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`maxiter` test failed in " // &
+        & i, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct ndiis
     i = 0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, i, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
+        & maxiter, i, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, i, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
+        & maxiter, i, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1000
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, i, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
+        & maxiter, i, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect jacobi_ndiis
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, i, nproc, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`jacobi_ndiis` test failed in " // &
+        & maxiter, i, nproc, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check correct nproc
     i = 0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, i, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`nproc` test failed in " // &
+        & maxiter, jacobi_ndiis, i, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = 1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, i, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`nproc` test failed in " // &
+        & maxiter, jacobi_ndiis, i, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     ! Check incorrect nproc
     i = 2
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, i, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .ne. 0) call error(-1, "`nproc` test failed in " // &
+        & maxiter, jacobi_ndiis, i, dummy_file_name, ddx_data, error)
+    if (error % flag .ne. 0) call test_error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, i, dummy_file_name, ddx_data)
-    if (ddx_data % error_flag .eq. 0) call error(-1, "`nproc` test failed in " // &
+        & maxiter, jacobi_ndiis, i, dummy_file_name, ddx_data, error)
+    if (error % flag .eq. 0) call test_error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
 end subroutine check_ddinit_args

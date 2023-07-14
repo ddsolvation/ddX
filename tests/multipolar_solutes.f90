@@ -7,6 +7,7 @@ integer, parameter :: natoms = 24
 character(len=255) :: dummy_file_name = ''
 
 type(ddx_type) :: nofmm, fmm
+type(ddx_error_type) :: error
 
 real(dp) :: coordinates(3, natoms), radii(natoms), charges(natoms)
 real(dp) :: x(natoms), y(natoms), z(natoms)
@@ -107,31 +108,33 @@ z = coordinates(3, :)
 
 call ddinit(natoms, x, y, z, radii, 1, 10, 302, 0, 0, 0, 0, 0.0d0, &
     & 0.1d0, 80.0d0, 0.104d0*tobohr, 0, 200, 25, nproc, &
-    & dummy_file_name, nofmm)
+    & dummy_file_name, nofmm, error)
+call check_error(error)
 
 call ddinit(natoms, x, y, z, radii,  1, 10, 302, 0, 1, 20, 20, 0.0d0, &
     & 0.1d0, 80.0d0, 0.104d0*tobohr, 0, 200, 25, nproc, &
-    & dummy_file_name, fmm)
+    & dummy_file_name, fmm, error)
+call check_error(error)
 
 if (nofmm % constants % ncav .ne. fmm % constants % ncav) &
-    & call error("Mismatch in geometry between FMM and no FMM.")
+    & call test_error("Mismatch in geometry between FMM and no FMM.")
 
 ! Compute the multipoles from the charges
 
 allocate(multipoles(1, natoms), stat=info)
-if (info .ne. 0) call error("Allocation failed in test_multipolar_solutes")
+if (info .ne. 0) call test_error("Allocation failed in test_multipolar_solutes")
 multipoles(1, :) = charges / sqrt4pi
 
 write(6, *) "Testing up to charges"
 call test(fmm, nofmm, multipoles, 0, natoms, threshold)
 
 deallocate(multipoles, stat=info)
-if (info .ne. 0) call error("Deallocation failed in test_multipolar_solutes")
+if (info .ne. 0) call test_error("Deallocation failed in test_multipolar_solutes")
 
 ! Now we do charges and some random dipoles
 
 allocate(multipoles(4, natoms), stat=info)
-if (info .ne. 0) call error("Allocation failed in test_multipolar_solutes")
+if (info .ne. 0) call test_error("Allocation failed in test_multipolar_solutes")
 multipoles(1, :) = charges / sqrt4pi
 multipoles(2, :) = 0.0d0
 multipoles(3, :) = 0.1d0
@@ -141,12 +144,12 @@ write(6, *) "Testing up to dipoles"
 call test(fmm, nofmm, multipoles, 1, natoms, threshold)
 
 deallocate(multipoles, stat=info)
-if (info .ne. 0) call error("Deallocation failed in test_multipolar_solutes")
+if (info .ne. 0) call test_error("Deallocation failed in test_multipolar_solutes")
 
 ! And finally we do  charges, random dipoles and random quadrupoles
 
 allocate(multipoles(10, natoms), stat=info)
-if (info .ne. 0) call error("Allocation failed in test_multipolar_solutes")
+if (info .ne. 0) call test_error("Allocation failed in test_multipolar_solutes")
 multipoles(1, :) = charges / sqrt4pi
 multipoles(2, :) = 0.0d0
 multipoles(3, :) = 0.1d0
@@ -162,7 +165,7 @@ write(6, *) "Testing up to quadrupoles"
 call test(fmm, nofmm, multipoles, 2, natoms, threshold)
 
 deallocate(multipoles, stat=info)
-if (info .ne. 0) call error("Deallocation failed in test_multipolar_solutes")
+if (info .ne. 0) call test_error("Deallocation failed in test_multipolar_solutes")
 
 ! deallocate
 
@@ -192,7 +195,7 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold)
         & g_fmm(3, 3, nofmm % constants % ncav), &
         & g_num(3, 3, nofmm % constants % ncav), &
         & stat=info)
-    if (info .ne. 0) call error("Allocation failed in test_multipolar_solutes")
+    if (info .ne. 0) call test_error("Allocation failed in test_multipolar_solutes")
 
     ! Compare the potential with and without FMMs
 
@@ -203,7 +206,7 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold)
         & multipoles, mmax, phi_fmm)
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
-    if (diff .ge. threshold) call error("build_phi, phi: FMM and no FMM mismatch")
+    if (diff .ge. threshold) call test_error("build_phi, phi: FMM and no FMM mismatch")
 
     ! Compare the field with and without FMMs, furthermore, compare the
     ! potential with the previously obtained one
@@ -215,16 +218,16 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold)
     ! are actually comparing build_phi with build_e
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
-    if (diff .ge. threshold) call error("build_e build_phi, phi: mismatch")
+    if (diff .ge. threshold) call test_error("build_e build_phi, phi: mismatch")
 
     call build_e(fmm % params, fmm % constants, fmm % workspace, &
         & multipoles, mmax, phi_fmm, e_fmm)
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
-    if (diff .ge. threshold) call error("build_e, phi: FMM and no FMM mismatch")
+    if (diff .ge. threshold) call test_error("build_e, phi: FMM and no FMM mismatch")
 
     diff = norm_inf_2d(3, nofmm % constants % ncav, e_nofmm, e_fmm)
-    if (diff .ge. threshold) call error("build_e, e: FMM and no FMM mismatch")
+    if (diff .ge. threshold) call test_error("build_e, e: FMM and no FMM mismatch")
 
     ! Compute the numerical field and check
 
@@ -234,7 +237,7 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold)
 
     diff = norm_inf_2d(3, nofmm % constants % ncav, e_nofmm, e_num)
     if (diff .ge. threshold) &
-        & call error("The analytical field does not match the numerical field")
+        & call test_error("The analytical field does not match the numerical field")
 
     ! Compare the field gradient with and without FMMs, furthermore, compare
     ! the field and the potential with the previously obtained ones
@@ -246,22 +249,22 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold)
     ! step, so we are actually comparing build_g with build_e
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
-    if (diff .ge. threshold) call error("build_g build_e, phi: mismatch")
+    if (diff .ge. threshold) call test_error("build_g build_e, phi: mismatch")
 
     diff = norm_inf_2d(3, nofmm % constants % ncav, e_nofmm, e_fmm)
-    if (diff .ge. threshold) call error("build_g build_e, e: mismatch")
+    if (diff .ge. threshold) call test_error("build_g build_e, e: mismatch")
 
     call build_g(fmm % params, fmm % constants, fmm % workspace, &
         & multipoles, mmax, phi_fmm, e_fmm, g_fmm)
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
-    if (diff .ge. threshold) call error("build_g, phi: FMM and no FMM mismatch")
+    if (diff .ge. threshold) call test_error("build_g, phi: FMM and no FMM mismatch")
 
     diff = norm_inf_2d(3, nofmm % constants % ncav, e_nofmm, e_fmm)
-    if (diff .ge. threshold) call error("build_g, e: FMM and no FMM mismatch")
+    if (diff .ge. threshold) call test_error("build_g, e: FMM and no FMM mismatch")
 
     diff = norm_inf_3d(3, 3, nofmm % constants % ncav, g_nofmm, g_fmm)
-    if (diff .ge. threshold) call error("build_g, g: FMM and no FMM mismatch")
+    if (diff .ge. threshold) call test_error("build_g, g: FMM and no FMM mismatch")
 
     ! Compute the numerical field gradient and check
 
@@ -271,14 +274,14 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold)
 
     diff = norm_inf_2d(3, nofmm % constants % ncav, g_nofmm, g_num)
     if (diff .ge. threshold) &
-        & call error("The analytical field gradient does not match the numerical field gradient")
+        & call test_error("The analytical field gradient does not match the numerical field gradient")
 
     ! Deallocate everything
 
     deallocate(phi_nofmm, phi_fmm, e_nofmm, e_fmm, e_num, g_nofmm, &
         & g_fmm, g_num, stat=info)
     if (info .ne. 0) &
-        & call error("Deallocation failed in test_multipolar_solutes")
+        & call test_error("Deallocation failed in test_multipolar_solutes")
 
 end subroutine test
 
@@ -303,12 +306,12 @@ real(dp) function norm_inf_3d(l, m, n, array_1, array_2)
     norm_inf_3d = maxval(abs(array_1 - array_2))
 end function norm_inf_3d
 
-subroutine error(message)
+subroutine test_error(message)
     implicit none
     character(*) :: message
     write(6,*) message
     stop 1
-end subroutine error
+end subroutine test_error
 
 subroutine numerical_field(multipoles, cm, mmax, nm, coordinates, &
         & npoints, num_field)

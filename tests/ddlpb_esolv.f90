@@ -23,6 +23,7 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
+type(ddx_error_type) :: error
 
 real(dp) :: esolv, default_value, tol
 integer :: i, istatus, default_lmax_val, n_iter
@@ -38,8 +39,8 @@ character(len=255) :: dummy_file_name = ''
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol, charges)
-if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
+call ddfromfile(fname, ddx_data, tol, charges, error)
+call check_error(error)
 
 ! Allocation for variable vectors
 ! default_"variable_name" : These are the precomputed values
@@ -177,6 +178,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
 
     type(ddx_state_type) :: state
     type(ddx_type) :: ddx_data2
+    type(ddx_error_type) :: error2
     real(dp), allocatable :: phi_cav2(:)
     real(dp), allocatable :: gradphi_cav2(:,:)
     real(dp), allocatable :: hessianphi_cav2(:,:,:)
@@ -192,7 +194,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
         & eta, epsilon_solv, kappa, 0,&
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, dummy_file_name, ddx_data2)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data2, error2)
 
     ! the state depends on lmax, so it is allocated here
     call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state)
