@@ -197,8 +197,8 @@ type ddx_error_type
     !> Flag for error codes
     integer :: flag = 0
     !> Error message log
-    integer :: max_length = 1000
-    character(len=1000) :: message
+    integer :: max_length = 2000
+    character(len=2000) :: message
     integer :: message_length = 1
 end type ddx_error_type
 
@@ -218,17 +218,30 @@ end type ddx_type
 
 contains
 
+subroutine check_error(error)
+    implicit none
+    type(ddx_error_type), intent(in) :: error
+    if (error % flag .ne. 0) then
+        write(6, "(A)") error % message(0:error % message_length-2)
+        stop error % flag
+    end if
+end subroutine
+
 subroutine update_error(error, message)
+    implicit none
     type(ddx_error_type), intent(inout) :: error
     character(len=*) :: message
     integer :: message_start, message_stop
     ! update the error flag by summing one
     error % flag = error % flag + 1
     message_start = error % message_length
-    message_stop = message_start + len(message)
+    message_stop = message_start + len(message) + 3
     ! update the message if there is still space left
     if (message_stop .lt. error % max_length) then
-        error % message(message_start:message_stop) = message
+        error % message(message_start:message_start) = " "
+        error % message(message_start + 1:message_stop - 2) = message
+        error % message(message_stop - 1:message_stop - 1) = achar(13)
+        error % message(message_stop:message_stop) = achar(10)
         error % message_length = message_stop + 1
     end if
 end subroutine
@@ -739,10 +752,6 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, error)
     ! Number of OpenMP threads to be used
     read(100, *) nproc
     if(nproc .lt. 0) then
-        !write(error % message, "(3A)") &
-        !    & "Error on the 2nd line of a config file ", trim(fname), &
-        !    & ": `nproc` must be a positive integer value."
-        !error % flag = 1
         call update_error(error, "Error on the 2nd line of a config " // &
             & "file " // trim(fname) // ": `nproc` must be a positive " // &
             & "integer value.")
@@ -750,154 +759,125 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, error)
     ! Model to be used: 1 for COSMO, 2 for PCM and 3 for LPB
     read(100, *) model
     if((model .lt. 1) .or. (model .gt. 3)) then
-        write(error % message, "(3A)") &
-            & "Error on the 3rd line of a config file ", trim(fname), &
-            & ": `model` must be an integer of a value 1, 2 or 3."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 3rd line of a config file " // &
+            & trim(fname) // ": `model` must be an integer of a value " // &
+            & "1, 2 or 3.")
     end if
     ! Max degree of modeling spherical harmonics
     read(100, *) lmax
     if(lmax .lt. 0) then
-        write(error % message, "(3A)") &
-            & "Error on the 4th line of a config file ", trim(fname), &
-            & ": `lmax` must be a non-negative integer value."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 4th line of a config file " // &
+            & trim(fname) // ": `lmax` must be a non-negative integer value.")
     end if
     ! Approximate number of Lebedev points
     read(100, *) ngrid
     if(ngrid .lt. 0) then
-        write(error % message, "(3A)") &
-            & "Error on the 5th line of a config file ", trim(fname), &
-            & ": `ngrid` must be a non-negative integer value."
+        call update_error(error, "Error on the 5th line of a config file " // &
+            & trim(fname) // ": `ngrid` must be a non-negative integer value.")
         error % flag = 1
-        return
     end if
     ! Dielectric permittivity constant of the solvent
     read(100, *) eps
     if(eps .lt. zero) then
-        write(error % message, "(3A)") &
-            & "Error on the 6th line of a config file ", trim(fname), &
-            & ": `eps` must be a non-negative floating point value."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 6th line of a config file " // &
+            & trim(fname) // ": `eps` must be a non-negative floating " // &
+            & "point value.")
     end if
     ! Shift of the regularized characteristic function
     read(100, *) se
     if((se .lt. -one) .or. (se .gt. one)) then
-        write(error % message, "(3A)") &
-            & "Error on the 7th line of a config file ", trim(fname), &
-            & ": `se` must be a floating point value in a range [-1, 1]."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 7th line of a config file " // &
+            & trim(fname) // ": `se` must be a floating point value in a " // &
+            & " range [-1, 1].")
     end if
     ! Regularization parameter
     read(100, *) eta
     if((eta .lt. zero) .or. (eta .gt. one)) then
-        write(error % message, "(3A)") &
-            & "Error on the 8th line of a config file ", trim(fname), &
-            & ": `eta` must be a floating point value in a range [0, 1]."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 8th line of a config file " // &
+            & trim(fname) // ": `eta` must be a floating point value " // &
+            & "in a range [0, 1].")
     end if
     ! Debye H\"{u}ckel parameter
     read(100, *) kappa
     if(kappa .lt. zero) then
-        write(error % message, "(3A)") &
-            & "Error on the 9th line of a config file ", trim(fname), &
-            & ": `kappa` must be a non-negative floating point value."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 9th line of a config file " // &
+            & trim(fname) // ": `kappa` must be a non-negative floating " // &
+            & "point value.")
     end if
-    ! whether the (sparse) matrices are precomputed and kept in memory (1) or not (0).
+    ! whether the (sparse) matrices are precomputed and kept in memory (1)
+    ! or not (0).
     read(100, *) matvecmem 
     if((matvecmem.lt. 0) .or. (matvecmem .gt. 1)) then
-        write(error % message, "(3A)") &
-            & "Error on the 10th line of a config file ", trim(fname), &
-            & ": `matvecmem` must be an integer value of a value 0 or 1."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 10th line of a config " // &
+            & "file " // trim(fname) // ": `matvecmem` must be an " // &
+            & "integer value of a value 0 or 1.")
     end if
     ! Relative convergence threshold for the iterative solver
     read(100, *) tol
     if((tol .lt. 1d-14) .or. (tol .gt. one)) then
-        write(error % message, "(3A)") &
-            & "Error on the 12th line of a config file ", trim(fname), &
-            & ": `tol` must be a floating point value in a range [1d-14, 1]."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 12th line of a config " // &
+            & "file " // trim(fname) // ": `tol` must be a floating " // &
+            & "point value in a range [1d-14, 1].")
     end if
     ! Maximum number of iterations for the iterative solver
     read(100, *) maxiter
     if((maxiter .le. 0)) then
-        write(error % message, "(3A)") &
-            & "Error on the 13th line of a config file ", trim(fname), &
-            & ": `maxiter` must be a positive integer value."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 13th line of a config " // &
+            & "file " // trim(fname) // ": `maxiter` must be a positive " // &
+            & " integer value.")
     end if
     ! Number of extrapolation points for Jacobi/DIIS solver
     read(100, *) jacobi_ndiis
     if((jacobi_ndiis .lt. 0)) then
-        write(error % message, "(3A)") &
-            & "Error on the 14th line of a config file ", trim(fname), &
-            & ": `jacobi_ndiis` must be a non-negative integer value."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 14th line of a config " // &
+            & "file " // trim(fname) // ": `jacobi_ndiis` must be a " // &
+            & "non-negative integer value.")
     end if
     ! Whether to compute (1) or not (0) forces as analytical gradients
     read(100, *) force
     if((force .lt. 0) .or. (force .gt. 1)) then
-        write(error % message, "(3A)") &
-            & "Error on the 17th line of a config file ", trim(fname), &
-            & ": `force` must be an integer value of a value 0 or 1."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 17th line of a config " // &
+            & "file " // trim(fname) // ": `force` must be an integer " // &
+            "value of a value 0 or 1.")
     end if
     ! Whether to use (1) or not (0) the FMM to accelerate computations
     read(100, *) fmm
     if((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        write(error % message, "(3A)") &
-            & "Error on the 18th line of a config file ", trim(fname), &
-            & ": `fmm` must be an integer value of a value 0 or 1."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 18th line of a config " // &
+            & "file " // trim(fname) // ": `fmm` must be an integer " // &
+            & "value of a value 0 or 1.")
     end if
     ! Max degree of multipole spherical harmonics for the FMM
     read(100, *) pm
     if(pm .lt. 0) then
-        write(error % message, "(3A)") &
-            & "Error on the 19th line of a config file ", trim(fname), &
-            & ": `pm` must be a non-negative integer value."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 19th line of a config " // &
+            & "file " // trim(fname) // ": `pm` must be a non-negative " // &
+            & "integer value.")
     end if
     ! Max degree of local spherical harmonics for the FMM
     read(100, *) pl
     if(pl .lt. 0) then
-        write(error % message, "(3A)") &
-            & "Error on the 20th line of a config file ", trim(fname), &
-            & ": `pl` must be a non-negative integer value."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 20th line of a config " // &
+            & "file " // trim(fname) // ": `pl` must be a non-negative " // &
+            & "integer value.")
     end if
     ! Number of input spheres
     read(100, *) nsph
     if(nsph .le. 0) then
-        write(error % message, "(3A)") &
-            & "Error on the 21th line of a config file ", trim(fname), &
-            & ": `nsph` must be a positive integer value."
-        error % flag = 1
-        return
+        call update_error(error, "Error on the 21th line of a config " // &
+            & "file " // trim(fname) // ": `nsph` must be a positive " // &
+            & "integer value.")
     end if
+
+    ! return in case of errors in the parameters
+    if (error % flag .ne. 0) return
+
     ! Coordinates, radii and charges
-    allocate(charges(nsph), x(nsph), y(nsph), z(nsph), rvdw(nsph), stat=istatus)
+    allocate(charges(nsph), x(nsph), y(nsph), z(nsph), rvdw(nsph), &
+        & stat=istatus)
     if(istatus .ne. 0) then
-        write(error % message, "(2A)") &
-            & "Could not allocate space for coordinates, radii ", &
-            & "and charges of atoms"
-        error % flag = 1
+        call update_error(error, "Could not allocate space for " // &
+            & "coordinates, radii and charges of atoms.")
         return
     end if
     do i = 1, nsph
@@ -926,10 +906,8 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, error)
     !! Clean local temporary data
     deallocate(x, y, z, rvdw, stat=istatus)
     if(istatus .ne. 0) then
-        write(error % message, "(2A)") &
-            & "Could not deallocate space for coordinates, ", &
-            & "radii and charges of atoms"
-        error % flag = 1
+        call update_error(error, "Could not deallocate space for " // &
+            & "coordinates, radii and charges of atoms")
         return
     end if
 end subroutine ddfromfile

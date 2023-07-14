@@ -46,12 +46,8 @@ write(6, *) "Using provided file ", trim(fname), " as a config file"
 start_time = omp_get_wtime()
 call ddfromfile(fname, ddx_data, tol, charges, error)
 finish_time = omp_get_wtime()
-write(*, 100) "Initialization time:", finish_time - start_time, &
-    & " seconds"
-if (error % flag .ne. 0) then
-    write(6, *) error % message
-    stop error % flag
-end if
+write(*, 100) "Initialization time:", finish_time - start_time, " seconds"
+call check_error(error)
 
 ! STEP 2: Initialization of the state.
 ! The state is a high level object which is related to solving the
