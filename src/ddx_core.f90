@@ -192,17 +192,6 @@ type ddx_state_type
 
 end type ddx_state_type
 
-!> ddX type for containing error information
-type ddx_error_type
-    !> Flag for error codes
-    integer :: flag = 0
-    !> Error message log
-    integer :: max_length = 2000
-    character(len=2000) :: message
-    integer :: message_length = 1
-end type ddx_error_type
-
-
 !> Main ddX type that stores all the required information.
 !! Container for the params, contants and workspace derived types.
 type ddx_type
@@ -217,34 +206,6 @@ type ddx_type
 end type ddx_type
 
 contains
-
-subroutine check_error(error)
-    implicit none
-    type(ddx_error_type), intent(in) :: error
-    if (error % flag .ne. 0) then
-        write(6, "(A)") error % message(0:error % message_length-2)
-        stop error % flag
-    end if
-end subroutine
-
-subroutine update_error(error, message)
-    implicit none
-    type(ddx_error_type), intent(inout) :: error
-    character(len=*) :: message
-    integer :: message_start, message_stop
-    ! update the error flag by summing one
-    error % flag = error % flag + 1
-    message_start = error % message_length
-    message_stop = message_start + len(message) + 3
-    ! update the message if there is still space left
-    if (message_stop .lt. error % max_length) then
-        error % message(message_start:message_start) = " "
-        error % message(message_start + 1:message_stop - 2) = message
-        error % message(message_stop - 1:message_stop - 1) = achar(13)
-        error % message(message_stop:message_stop) = achar(10)
-        error % message_length = message_stop + 1
-    end if
-end subroutine
 
 !------------------------------------------------------------------------------
 !> Initialize ddX input with a full set of parameters
@@ -284,10 +245,9 @@ end subroutine
 !!      to the same output nproc=1 since the library is not parallel.
 !! @param[out] ddx_data: Object containing all inputs
 !------------------------------------------------------------------------------
-subroutine ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, &
-        & fmm, pm, pl, se, eta, eps, kappa, &
-        & matvecmem, maxiter, jacobi_ndiis, &
-        & nproc, output_filename, ddx_data)
+subroutine ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
+        & pl, se, eta, eps, kappa, matvecmem, maxiter, jacobi_ndiis, nproc, &
+        & output_filename, ddx_data, error)
     ! Inputs
     implicit none
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
@@ -298,51 +258,47 @@ subroutine ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, &
     character(len=255), intent(in) :: output_filename
     ! Output
     type(ddx_type), target, intent(out) :: ddx_data
+    type(ddx_error_type), intent(inout) :: error
     ! Inouts
     integer, intent(inout) :: nproc
     ! Local variables
     real(dp), allocatable :: csph(:, :)
     integer :: istatus
-    ! set the object in non error state
-    ddx_data % error_flag = 0
-    ddx_data % error_message = ''
+    if (error % flag .ne. 0) then
+        call update_error(error, "ddinit received input in error state, " // &
+            & "exiting")
+        return
+    end if
     ! Init underlying objects
     allocate(csph(3, nsph), stat=istatus)
-    if (istatus.ne.0) then
-        write(ddx_data % error_message, *) 'Allocation failed in ddinit'
-        ddx_data % error_flag = 1
+    if (istatus .ne. 0) then
+        call update_error(error, "Allocation failed in ddinit")
         return
     end if
     csph(1, :) = x
     csph(2, :) = y
     csph(3, :) = z
     call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
-        & matvecmem, maxiter, jacobi_ndiis, &
-        & fmm, pm, pl, nproc, nsph, &
-        & csph, rvdw, &
-        & output_filename, ddx_data % params)
-    if (ddx_data % params % error_flag .ne. 0) then
-        ddx_data % error_flag = ddx_data % params % error_flag
-        ddx_data % error_message = ddx_data % params % error_message
+        & matvecmem, maxiter, jacobi_ndiis, fmm, pm, pl, nproc, nsph, &
+        & csph, rvdw, output_filename, ddx_data % params, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "params_init returned an error, exiting")
         return
     end if
-    call constants_init(ddx_data % params, ddx_data % constants)
-    if (ddx_data % constants % error_flag .ne. 0) then
-        ddx_data % error_flag = ddx_data % constants % error_flag
-        ddx_data % error_message = ddx_data % constants % error_message
+    call constants_init(ddx_data % params, ddx_data % constants, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "constants_init returned an error, exiting")
         return
     end if
     call workspace_init(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace)
-    if (ddx_data % workspace % error_flag .ne. 0) then
-        ddx_data % error_flag = ddx_data % workspace % error_flag
-        ddx_data % error_message = ddx_data % workspace % error_message
+    if (error % flag .ne. 0) then
+        call update_error(error, "workspace_init returned an error, exiting")
         return
     end if
     deallocate(csph, stat=istatus)
-    if (istatus.ne.0) then
-        write(ddx_data % error_message, *) 'Deallocation failed in ddinit'
-        ddx_data % error_flag = 1
+    if (istatus .ne. 0) then
+        call update_error(error, "Deallocation failed in ddinit")
         return
     end if
 end subroutine ddinit
@@ -898,9 +854,9 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, error)
     !! Initialize ddx_data object
     call ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
         & pm, pl, se, eta, eps, kappa, matvecmem, maxiter, &
-        & jacobi_ndiis, nproc, output_filename, ddx_data)
+        & jacobi_ndiis, nproc, output_filename, ddx_data, error)
     if (error % flag .ne. 0) then
-        call update_error(error, "ddinit returned an error")
+        call update_error(error, "ddinit returned an error, exiting")
         return
     end if
     !! Clean local temporary data

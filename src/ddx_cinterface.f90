@@ -2,6 +2,7 @@ module ddx_cinterface
     use, intrinsic :: iso_c_binding
     use ddx_core
     use ddx_definitions
+    use ddx_errors
     use ddx_constants
     use ddx_parameters
     use ddx_workspace
@@ -16,6 +17,7 @@ module ddx_cinterface
         type(ddx_params_type)    :: params
         type(ddx_constants_type) :: constants
         type(ddx_workspace_type) :: workspace
+        type(ddx_error_type) :: error
     end type ddx_setup
 
 contains
@@ -119,11 +121,11 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
     call params_init(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
         & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, &
         & fmm_multipole_lmax, fmm_local_lmax, passproc, n_spheres, &
-        & sphere_centres, sphere_radii, logfile, ddx%params)
+        & sphere_centres, sphere_radii, logfile, ddx%params, ddx%error)
     if (ddx%params%error_flag .ne. 0) then
         return
     endif
-    call constants_init(ddx%params, ddx%constants)
+    call constants_init(ddx%params, ddx%constants, ddx%error)
     if (ddx%constants%error_flag .ne. 0) then
         return
     endif
