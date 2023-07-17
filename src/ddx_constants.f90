@@ -237,6 +237,7 @@ contains
 !!
 !! @param[in] params: Object containing all inputs.
 !! @param[out] constants: Object containing all constants.
+!! @param[inout] error: ddX error
 !!
 subroutine constants_init(params, constants, error)
     use complex_bessel
@@ -725,10 +726,6 @@ subroutine build_b(constants, params, error)
 end subroutine build_b
 
 !> Computation of P_chi
-!!
-!! @param[in]  isph : Sphere number
-!! @param[out] pmat : Matrix of size nbasis X (lmax0+1)^2, Fixed lmax0
-!!
 subroutine mkpmat(params, constants, isph, pmat)
     type(ddx_params_type), intent(in)  :: params
     type(ddx_constants_type), intent(in)  :: constants
@@ -763,6 +760,8 @@ end subroutine mkpmat
 !!
 !! @param[in] params: Object containing all inputs.
 !! @param[inout] constants: Object containing all constants.
+!! @param[inout] error: ddX error
+!!
 subroutine constants_geometry_init(params, constants, error)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -775,7 +774,6 @@ subroutine constants_geometry_init(params, constants, error)
         & old_lwork, icav, info
     integer, allocatable :: work(:, :), tmp_work(:, :)
     real(dp) :: start_time
-    write(6,*) "HERE HERE HERE"
     !! The code
     ! Prepare FMM structures if needed
     start_time = omp_get_wtime()
@@ -1340,7 +1338,6 @@ real(dp) function dfsw(t, se, eta)
 end function dfsw
 
 !> Compute preconditioner
-!!
 !! assemble the diagonal blocks of the reps matrix
 !! then invert them to build the preconditioner
 subroutine mkprec(lmax, nbasis, nsph, ngrid, eps, ui, wgrid, vgrid, &
@@ -1433,6 +1430,7 @@ end subroutine mkprec
 !! @param[out] cnode: Center of a bounding sphere of each node
 !! @param[out] rnode: Radius of a bounding sphere of each node
 !! @param[out] snode: Array of leaf nodes containing input spheres
+!! @param[inout] error: ddX error
 subroutine tree_rib_build(nsph, csph, rsph, order, cluster, children, parent, &
         & cnode, rnode, snode, error)
     ! Inputs
@@ -1559,6 +1557,7 @@ end subroutine tree_rib_build
 !!      `order(1:div)` correspond to the first subcluster and indexes
 !!      `order(div+1:n)` correspond to the second subcluster.
 !! @param[out] div: Break point of `order` array between two clusters.
+!! @param[inout] error: ddX error
 subroutine tree_rib_node_bisect(nsph, csph, n, order, div, error)
     ! Inputs
     integer, intent(in) :: nsph, n
@@ -1818,6 +1817,7 @@ end subroutine tree_get_farnear
 !> @ingroup Fortran_interface_core
 !!
 !! @param[out] constants: Precomputed constants
+!! @param[inout] error: ddX error
 !!
 subroutine constants_free(constants)
     implicit none

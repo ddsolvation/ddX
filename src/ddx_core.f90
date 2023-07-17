@@ -291,7 +291,7 @@ subroutine ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         return
     end if
     call workspace_init(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace)
+        & ddx_data % workspace, error)
     if (error % flag .ne. 0) then
         call update_error(error, "workspace_init returned an error, exiting")
         return

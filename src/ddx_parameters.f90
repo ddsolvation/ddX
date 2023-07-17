@@ -123,10 +123,7 @@ contains
 !! @param[in] rsph: Van-der-Waals radii of atoms. Dimension is `(nsph)`.
 !! @param[in] output_filename: file name of log file.
 !! @param[out] params: Object containing all inputs.
-!!      = 0: Succesfull exit
-!!      = -1: One of the arguments had an illegal value, check
-!!          params % error_message
-!!      = 1: Allocation of memory to copy geometry data failed.
+!! @param[inout] error: ddX error
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & matvecmem, maxiter, jacobi_ndiis, fmm, pm, pl, nproc, nsph, &
         & csph, rsph, output_filename, params, error)
@@ -341,10 +338,8 @@ end subroutine params_init
 
 !> Free memory used by parameters
 !! @param[inout] params: Object containing all inputs
-!! @param[out] info: flag of succesfull exit
-!!      = 0: Succesfull exit
-!!      = -1: params is in error state
-!!      = 1: Deallocation of memory failed.
+!! @param[inout] error: ddX error
+!!
 subroutine params_deinit(params)
     !! Input
     type(ddx_params_type), intent(inout) :: params
