@@ -452,8 +452,7 @@ subroutine constants_init(params, constants, error)
             & constants % DI_ri(0:constants % dmax+1, params % nsph), &
             & constants % SK_ri(0:params % lmax+1, params % nsph), &
             & constants % DK_ri(0:params % lmax+1, params % nsph), &
-            & constants % Pchi(constants % nbasis, constants % nbasis0, &
-            & params % nsph), &
+            & constants % Pchi(constants % nbasis, constants % nbasis0, params % nsph), &
             & constants % C_ik(0:params % lmax, params % nsph), &
             & constants % termimat(0:params % lmax, params % nsph), &
             & stat=info)
@@ -526,7 +525,12 @@ subroutine constants_init(params, constants, error)
         end if
         ! if doing incore build nonzero blocks of B
         if (params % matvecmem .eq. 1) then
-            call build_b(constants, params)
+            call build_b(constants, params, error)
+            if (error % flag .ne. 0) then
+                call update_error(error, "build_b returned an " // &
+                    & "error, exiting")
+                return
+            end if
         end if
     end if
     deallocate(vplm, vcos, vsin, stat=info)
@@ -537,22 +541,32 @@ subroutine constants_init(params, constants, error)
     end if
     ! if doing incore build nonzero blocks of L
     if (params % matvecmem .eq. 1) then
-        call build_itrnl(constants, params)
-        call build_l(constants, params)
+        call build_itrnl(constants, params, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, "build_itrnl returned an " // &
+                & "error, exiting")
+            return
+        end if
+        call build_l(constants, params, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, "build_l returned an " // &
+                & "error, exiting")
+            return
+        end if
     end if
 end subroutine constants_init
 
 !> Build the transposed neighbor list
-subroutine build_itrnl(constants, params)
+subroutine build_itrnl(constants, params, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer :: isph, ij, jsph, ji, istat
 
     allocate(constants % itrnl(constants % inl(params % nsph + 1)), stat=istat)
     if (istat.ne.0) then
-        constants % error_message = 'Allocation failed in build_itrnl'
-        constants % error_flag = 1
+        call update_error(error, 'Allocation failed in build_itrnl')
         return
     end if
 
@@ -568,10 +582,11 @@ subroutine build_itrnl(constants, params)
 end subroutine build_itrnl
 
 !> Allocate and build the ddCOSMO sparse matrix, only if incore is set
-subroutine build_l(constants, params)
+subroutine build_l(constants, params, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer :: isph, ij, jsph, igrid, l, m, ind, info
     real(dp), dimension(3) :: vij, sij
     real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
@@ -584,8 +599,7 @@ subroutine build_l(constants, params)
     allocate(constants % l(constants % nbasis, constants % nbasis, &
         & constants % inl(params % nsph + 1)), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = 'Allocation failed in build_l'
+        call update_error(error, 'Allocation failed in build_l')
         return
     end if
 
@@ -636,10 +650,11 @@ subroutine build_l(constants, params)
 end subroutine build_l
 
 !> Allocate and build the HSP sparse matrix, only if incore is set
-subroutine build_b(constants, params)
+subroutine build_b(constants, params, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer :: isph, ij, jsph, igrid, l, m, ind
     real(dp), dimension(3) :: vij, sij
     real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
@@ -654,6 +669,10 @@ subroutine build_b(constants, params)
 
     allocate(constants % b(constants % nbasis, constants % nbasis, &
         & constants % inl(params % nsph + 1)), stat=info)
+    if (info.ne.0) then
+        call update_error(error, "Allocation failed in build_b")
+        return
+    end if
 
     thigh = one + pt5*(params % se + one)*params % eta
 
@@ -756,6 +775,7 @@ subroutine constants_geometry_init(params, constants, error)
         & old_lwork, icav, info
     integer, allocatable :: work(:, :), tmp_work(:, :)
     real(dp) :: start_time
+    write(6,*) "HERE HERE HERE"
     !! The code
     ! Prepare FMM structures if needed
     start_time = omp_get_wtime()
@@ -820,9 +840,12 @@ subroutine constants_geometry_init(params, constants, error)
         call tree_rib_build(params % nsph, params % csph, params % rsph, &
             & constants % order, constants % cluster, constants % children, &
             & constants % parent, constants % cnode, constants % rnode, &
-            & constants % snode, constants % error_message, &
-            & constants % error_flag)
-        if (params % error_flag .ne. 0) return
+            & constants % snode, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, "tree_rib_build returned an " // &
+                & "error, exiting")
+            return
+        end if
         ! Get number of far and near admissible pairs
         iwork = 0
         jwork = 1
@@ -906,7 +929,10 @@ subroutine constants_geometry_init(params, constants, error)
     else
         call neighbor_list_init(params, constants, error)
     end if
-    ! TODO:
+    if (error % flag .ne. 0) then
+        call update_error(error, "Neighbor list construction failed")
+        return
+    end if
     ! Allocate space for characteristic functions fi and ui
     allocate(constants % fi(params % ngrid, params % nsph), &
         & constants % ui(params % ngrid, params % nsph), stat=info)
@@ -1408,7 +1434,7 @@ end subroutine mkprec
 !! @param[out] rnode: Radius of a bounding sphere of each node
 !! @param[out] snode: Array of leaf nodes containing input spheres
 subroutine tree_rib_build(nsph, csph, rsph, order, cluster, children, parent, &
-        & cnode, rnode, snode, error_message, error_flag)
+        & cnode, rnode, snode, error)
     ! Inputs
     integer, intent(in) :: nsph
     real(dp), intent(in) :: csph(3, nsph), rsph(nsph)
@@ -1416,8 +1442,7 @@ subroutine tree_rib_build(nsph, csph, rsph, order, cluster, children, parent, &
     integer, intent(out) :: order(nsph), cluster(2, 2*nsph-1), &
         & children(2, 2*nsph-1), parent(2*nsph-1), snode(nsph)
     real(dp), intent(out) :: cnode(3, 2*nsph-1), rnode(2*nsph-1)
-    integer, intent(out) :: error_flag
-    character(len=255), intent(out) :: error_message
+    type(ddx_error_type), intent(inout) :: error
     ! Local variables
     integer :: nclusters, i, j, n, s, e, div
     real(dp) :: r, r1, r2, c(3), c1(3), c2(3), d, maxc
@@ -1445,8 +1470,12 @@ subroutine tree_rib_build(nsph, csph, rsph, order, cluster, children, parent, &
         if (n .gt. 1) then
             ! Use inertial bisection to reorder spheres and cut into 2 halfs
             call tree_rib_node_bisect(nsph, csph, n, order(s:e), div, &
-                & error_message, error_flag)
-            if (error_flag .ne. 0) return
+                & error)
+            if (error % flag .ne. 0) then
+                call update_error(error, "tree_rib_node_bisect returned " // &
+                    & "an error, exiting")
+                return
+            end if
             ! Assign the first half to the j-th node
             cluster(1, j) = s
             cluster(2, j) = s + div - 1
@@ -1530,16 +1559,14 @@ end subroutine tree_rib_build
 !!      `order(1:div)` correspond to the first subcluster and indexes
 !!      `order(div+1:n)` correspond to the second subcluster.
 !! @param[out] div: Break point of `order` array between two clusters.
-subroutine tree_rib_node_bisect(nsph, csph, n, order, div, error_message, &
-        & error_flag)
+subroutine tree_rib_node_bisect(nsph, csph, n, order, div, error)
     ! Inputs
     integer, intent(in) :: nsph, n
     real(dp), intent(in) :: csph(3, nsph)
     ! Outputs
     integer, intent(inout) :: order(n)
     integer, intent(out) :: div
-    integer, intent(out) :: error_flag
-    character(len=255), intent(out) :: error_message
+    type(ddx_error_type), intent(inout) :: error
     ! Local variables
     real(dp) :: c(3),  s(3)
     real(dp), allocatable :: tmp_csph(:, :), work(:)
@@ -1549,8 +1576,7 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div, error_message, &
 
     allocate(tmp_csph(3, n), tmp_order(n), stat=istat)
     if (istat.ne.0) then
-        error_message = 'Allocation failed in tree_node_bisect'
-        error_flag = 1
+        call update_error(error, 'Allocation failed in tree_node_bisect')
         return
     end if
 
@@ -1572,22 +1598,19 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div, error_message, &
     lwork = int(s(1))
     allocate(work(lwork), stat=istat)
     if (istat.ne.0) then
-        error_message = 'Allocation failed in tree_node_bisect'
-        error_flag = 1
+        call update_error(error, 'Allocation failed in tree_node_bisect')
         return
     end if
     ! Get right singular vectors
     call dgesvd('N', 'O', 3, n, tmp_csph, 3, s, tmp_csph, 3, tmp_csph, 3, &
         & work, lwork, info)
     if (info.ne.0) then
-        error_message = 'DGESVD failed in tree_node_bisect'
-        error_flag = 1
+        call update_error(error, 'DGESVD failed in tree_node_bisect')
         return
     end if
     deallocate(work, stat=istat)
     if (istat.ne.0) then
-        error_message = 'Deallocation failed in tree_node_bisect'
-        error_flag = 1
+        call update_error(error, 'Deallocation failed in tree_node_bisect')
         return
     end if
     !! Sort spheres by sign of the above scalar product, which is equal to
@@ -1615,8 +1638,7 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div, error_message, &
     order = tmp_order
     deallocate(tmp_csph, tmp_order, stat=istat)
     if (istat.ne.0) then
-        error_message = 'Deallocation failed in tree_node_bisect'
-        error_flag = 1
+        call update_error(error, 'Deallocation failed in tree_node_bisect')
         return
     end if
 end subroutine tree_rib_node_bisect

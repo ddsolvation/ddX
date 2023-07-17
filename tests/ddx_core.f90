@@ -389,6 +389,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "correct test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check different correct inputs with different n <= 10 (hardcoded value)
     do i = 1, 10
         call ddinit(i, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
@@ -398,6 +399,7 @@ subroutine check_ddinit_args()
         if (error % flag .ne. 0) call test_error(-1, "`nsph` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
+        call reset_error(error)
     end do
     ! Check incorrect input nsph <= 0
     i = 0
@@ -407,6 +409,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`nsph` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = -1
     call ddinit(i, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
@@ -414,15 +417,18 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`nsph` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check all possible models (1, 2, 3) with other correct inputs
     do i = 1, 3
-        write(*, *) "model=", i
+        write(*, *) "model=", i, n
         call ddinit(n, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
             & pl, se, eta, eps, kappa, matvecmem, &
             & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, error)
+        call print_error(error)
         if (error % flag .ne. 0) call test_error(-1, "`model` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
+        call reset_error(error)
     end do
     ! Check incorrect models
     i = -1
@@ -432,6 +438,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`model` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = 4
     call ddinit(n, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
@@ -439,6 +446,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`model` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct lmax >= 0
     !do i = 0, 6
     do i = 1, 6
@@ -449,6 +457,7 @@ subroutine check_ddinit_args()
         if (error % flag .ne. 0) call test_error(-1, "`lmax` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
+        call reset_error(error)
     end do
     ! Check incorrect lmax < 0
     i = -1
@@ -458,6 +467,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`lmax` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct ngrid >= 0
     do i = 1, nllg
         j = ng0(i)
@@ -467,6 +477,7 @@ subroutine check_ddinit_args()
         if (error % flag .ne. 0) call test_error(-1, "`ngrid` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
+        call reset_error(error)
     end do
     ! Check incorrect ngrid < 0
     i = -1
@@ -476,6 +487,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`ngrid` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct force (0, 1)
     do i = 0, 1
         call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
@@ -484,6 +496,7 @@ subroutine check_ddinit_args()
         if (error % flag .ne. 0) call test_error(-1, "`force` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
+        call reset_error(error)
     end do
     ! Check incorrect force
     i = -1
@@ -493,6 +506,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`force` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = 2
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
@@ -500,6 +514,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`force` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct fmm (0, 1)
     do i = 0, 1
         call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, i, &
@@ -508,6 +523,7 @@ subroutine check_ddinit_args()
         if (error % flag .ne. 0) call test_error(-1, "`fmm` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
+        call reset_error(error)
     end do
     ! Check incorrect fmm
     i = -1
@@ -517,6 +533,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`fmm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = 2
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
@@ -524,6 +541,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`fmm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct pm (ignored if fmm=0)
     j = 0
     do i = -2, 2
@@ -533,6 +551,7 @@ subroutine check_ddinit_args()
         if (error % flag .ne. 0) call test_error(-1, "`pm` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
+        call reset_error(error)
     end do
     ! Check correct pm (fmm=1)
     j = 1
@@ -543,6 +562,7 @@ subroutine check_ddinit_args()
         if (error % flag .ne. 0) call test_error(-1, "`pm` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
+        call reset_error(error)
     end do
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
@@ -551,6 +571,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`pm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check incorrect pm (fmm=1)
     j = 1
     i = -2
@@ -560,6 +581,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`pm` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct pl (ignored if fmm=0)
     j = 0
     do i = -2, 2
@@ -569,6 +591,7 @@ subroutine check_ddinit_args()
         if (error % flag .ne. 0) call test_error(-1, "`pl` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
+        call reset_error(error)
     end do
     ! Check correct pl (fmm=1)
     j = 1
@@ -579,6 +602,7 @@ subroutine check_ddinit_args()
         if (error % flag .ne. 0) call test_error(-1, "`pl` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
+        call reset_error(error)
     end do
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
@@ -587,6 +611,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`pl` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check incorrect pl (fmm=1)
     j = 1
     i = -2
@@ -596,6 +621,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`pl` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct se (interval [-1,1])
     tmp = -one
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -604,6 +630,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     tmp = zero
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
@@ -611,6 +638,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     tmp = one
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
@@ -618,6 +646,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check incorrect se
     tmp = 1.01d0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -626,6 +655,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     tmp = -1.01d0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
@@ -633,6 +663,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`se` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct eta (interval [0,1])
     tmp = pt5
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -641,6 +672,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     tmp = one
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
@@ -648,6 +680,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check incorrect eta
     tmp = -0.0000005
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -656,6 +689,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     tmp = 1.01d0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
@@ -663,6 +697,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     tmp = -1d-2
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
@@ -670,6 +705,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct eps
     tmp = 1.01d0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -678,6 +714,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     tmp = dble(1000)
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
@@ -685,6 +722,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check incorrect eps
     tmp = zero
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -693,6 +731,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     tmp = pt5
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
@@ -700,6 +739,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     tmp = one
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
@@ -707,6 +747,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     tmp = -1d-2
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
@@ -714,6 +755,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct kappa
     tmp = 1d-2
     j = 3 ! only referenced in case of LPB model
@@ -723,6 +765,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`kappa` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     tmp = -1d-2 ! not referenced in case of COSMO and PCM models
     do j = 1, 2
         call ddinit(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
@@ -731,6 +774,7 @@ subroutine check_ddinit_args()
         if (error % flag .ne. 0) call test_error(-1, "`kappa` test failed in " // &
             & "check_ddinit_args()")
         call ddfree(ddx_data)
+        call reset_error(error)
     end do
     ! Check incorrect kappa
     j = 3
@@ -741,6 +785,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`kappa` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct matvecmem
     i = 0
     call ddinit(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
@@ -749,6 +794,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`matvecmem` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = 1
     call ddinit(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, i, &
@@ -756,6 +802,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`matvecmem` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = -1
     call ddinit(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, i, &
@@ -763,6 +810,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`matvecmem` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = 2
     call ddinit(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, i, &
@@ -770,6 +818,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`matvecmem` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct maxiter
     i = 1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -778,6 +827,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = 1000000
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
@@ -785,6 +835,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check incorrect maxiter
     i = 0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -793,6 +844,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
@@ -800,6 +852,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`maxiter` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct ndiis
     i = 0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -808,6 +861,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = 1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
@@ -815,6 +869,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = 1000
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
@@ -822,6 +877,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check incorrect jacobi_ndiis
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -830,6 +886,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check correct nproc
     i = 0
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -838,6 +895,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = 1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
@@ -845,6 +903,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     ! Check incorrect nproc
     i = 2
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -853,6 +912,7 @@ subroutine check_ddinit_args()
     if (error % flag .ne. 0) call test_error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
     i = -1
     call ddinit(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
@@ -860,6 +920,7 @@ subroutine check_ddinit_args()
     if (error % flag .eq. 0) call test_error(-1, "`nproc` test failed in " // &
         & "check_ddinit_args()")
     call ddfree(ddx_data)
+    call reset_error(error)
 end subroutine check_ddinit_args
 
 ! Check Legendre polynomials
@@ -2471,8 +2532,8 @@ subroutine check_tree_rib(alpha)
     real(dp) :: csph(3, nsph), rsph(nsph), csph2(3, nsph), rsph2(nsph), &
         & cnode(3, 2*nsph-1), rnode(2*nsph-1)
     integer :: order(nsph), i, reorder(nsph), cluster(2, 2*nsph-1), &
-        & children(2, 2*nsph-1), parent(2*nsph-1), snode(nsph), flag
-    character (len=255) message
+        & children(2, 2*nsph-1), parent(2*nsph-1), snode(nsph)
+    type(ddx_error_type) :: error
     ! Scale inputs
     csph(:, 1) = alpha * (/1d0, 1d0, 1d0/)
     csph(:, 2) = alpha * (/2d0, 2d0, 2d0/)
@@ -2494,7 +2555,7 @@ subroutine check_tree_rib(alpha)
     end do
     ! Build a recursive inertial binary tree
     call tree_rib_build(nsph, csph2, rsph2, reorder, cluster, children, &
-        & parent, cnode, rnode, snode, message, flag)
+        & parent, cnode, rnode, snode, error)
 end subroutine check_tree_rib
 
 !subroutine check_tree_m2m(p, alpha)
