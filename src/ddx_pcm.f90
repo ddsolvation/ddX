@@ -35,30 +35,33 @@ contains
 !! @param[in] tol: Tolerance for the linear system solver
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Solvation contribution to the forces
+!! @param[inout] error: ddX error
 !!
 subroutine ddpcm(params, constants, workspace, state, phi_cav, &
-        & psi, tol, esolv, force)
+        & psi, tol, esolv, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(in) :: phi_cav(constants % ncav), &
         & psi(constants % nbasis, params % nsph), tol
     real(dp), intent(out) :: esolv
     real(dp), intent(out), optional :: force(3, params % nsph)
 
     call ddpcm_setup(params, constants, workspace, state, phi_cav, psi)
-    call ddpcm_guess(params, constants, workspace, state)
-    call ddpcm_solve(params, constants, workspace, state, tol)
+    call ddpcm_guess(params, constants, workspace, state, error)
+    call ddpcm_solve(params, constants, workspace, state, tol, error)
 
     call ddpcm_energy(constants, state, esolv)
 
     ! Get forces if needed
     if (params % force .eq. 1) then
         ! solve the adjoint
-        call ddpcm_guess_adjoint(params, constants, workspace, state)
-        call ddpcm_solve_adjoint(params, constants, workspace, state, tol)
+        call ddpcm_guess_adjoint(params, constants, workspace, state, error)
+        call ddpcm_solve_adjoint(params, constants, workspace, state, &
+            & tol, error)
 
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
@@ -118,15 +121,17 @@ end subroutine ddpcm_setup
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !!
-subroutine ddpcm_guess(params, constants, workspace, state)
+subroutine ddpcm_guess(params, constants, workspace, state, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
 
     state % xs = zero
-    call prec_repsx(params, constants, workspace, state % phi, state % phieps)
+    call prec_repsx(params, constants, workspace, state % phi, &
+        & state % phieps, error)
 
 end subroutine ddpcm_guess
 
@@ -138,15 +143,16 @@ end subroutine ddpcm_guess
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !!
-subroutine ddpcm_guess_adjoint(params, constants, workspace, state)
+subroutine ddpcm_guess_adjoint(params, constants, workspace, state, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
 
     state % y = zero
-    call ldm1x(params, constants, workspace, state % psi, state % s)
+    call ldm1x(params, constants, workspace, state % psi, state % s, error)
 
 end subroutine ddpcm_guess_adjoint
 
@@ -158,43 +164,47 @@ end subroutine ddpcm_guess_adjoint
 !! @param[inout] workspace : Preallocated workspaces
 !! @param[inout] state     : Solutions and relevant quantities
 !! @param[in] tol          : Tolerance for the iterative solvers
+!! @param[inout] error     : ddX error
 !!
-subroutine ddpcm_solve(params, constants, workspace, state, tol)
+subroutine ddpcm_solve(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(in) :: tol
     ! local variables
     real(dp) :: start_time, finish_time
 
-    call rinfx(params, constants, workspace, state % phi, state % phiinf)
+    call rinfx(params, constants, workspace, state % phi, state % phiinf, &
+        & error)
 
     state % phieps_niter = params % maxiter
     start_time = omp_get_wtime()
     call jacobi_diis(params, constants, workspace, tol, state % phiinf, &
         & state % phieps, state % phieps_niter, state % phieps_rel_diff, &
-        & repsx, prec_repsx, hnorm)
+        & repsx, prec_repsx, hnorm, error)
     finish_time = omp_get_wtime()
     state % phieps_time = finish_time - start_time
 
-    if (workspace % error_flag .ne. 0) then
-        workspace % error_message = "ddpcm_energy: solver for ddPCM " // &
-            & "system did not converge"
+    if (error % flag .ne. 0) then
+        call update_error(error, "ddpcm_solve: solver for ddPCM " // &
+            & "system did not converge, exiting")
         return
     end if
 
     state % xs_niter =  params % maxiter
     start_time = omp_get_wtime()
     call jacobi_diis(params, constants, workspace, tol, state % phieps, &
-        & state % xs, state % xs_niter, state % xs_rel_diff, lx, ldm1x, hnorm)
+        & state % xs, state % xs_niter, state % xs_rel_diff, lx, ldm1x, &
+        & hnorm, error)
     finish_time = omp_get_wtime()
     state % xs_time = finish_time - start_time
 
     if (workspace % error_flag .ne. 0) then
-        workspace % error_message = "ddpcm_energy: solver for ddCOSMO " // &
-            & "system did not converge"
+        call update_error(error, "ddpcm_solve: solver for ddCOSMO " // &
+            & "system did not converge, exiting")
         return
     end if
 
@@ -209,13 +219,15 @@ end subroutine ddpcm_solve
 !! @param[inout] state     : Solutions, guesses and relevant quantities
 !! @param[in] tol          : Tolerance for the iterative solvers
 !!
-subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol)
+!! @param[inout] error: ddX error
+subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
+    type(ddx_error_type), intent(inout) :: error
     ! local variables
     real(dp) :: start_time, finish_time
 
@@ -223,13 +235,13 @@ subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol)
     start_time = omp_get_wtime()
     call jacobi_diis(params, constants, workspace, tol, state % psi, &
         & state % s, state % s_niter, state % s_rel_diff, lstarx, ldm1x, &
-        & hnorm)
+        & hnorm, error)
     finish_time = omp_get_wtime()
     state % s_time = finish_time - start_time
 
-    if (workspace % error_flag .ne. 0) then
-        workspace % error_message = "ddpcm_energy: solver for adjoint " // &
-            & "ddCOSMO system did not converge"
+    if (error % flag .ne. 0) then
+        call update_error(error, "ddpcm_solve_adjoint: solver for ddCOSMO " // &
+            & "system did not converge, exiting")
         return
     end if
 
@@ -237,13 +249,13 @@ subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol)
     start_time = omp_get_wtime()
     call jacobi_diis(params, constants, workspace, tol, state % s, state % y, &
         & state % y_niter, state % y_rel_diff, repsstarx, prec_repsstarx, &
-        & hnorm)
+        & hnorm, error)
     finish_time = omp_get_wtime()
     state % y_time = finish_time - start_time
 
-    if (workspace % error_flag .ne. 0) then
-        workspace % error_message = "ddpcm_energy: solver for adjoint " // &
-            & "ddPCM system did not converge"
+    if (error % flag .ne. 0) then
+        call update_error(error, "ddpcm_solve_adjoint: solver for ddPCM " // &
+            & "system did not converge, exiting")
         return
     end if
 

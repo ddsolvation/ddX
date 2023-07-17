@@ -34,9 +34,10 @@ contains
 !! @param[in] tol: Tolerance for the linear system solver
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Solvation contribution to the forces
+!! @param[inout] error: ddX error
 !!
 subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
-        & psi, tol, esolv, hessianphi_cav, force)
+        & psi, tol, esolv, hessianphi_cav, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -48,27 +49,22 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
     real(dp), intent(out) :: esolv
     real(dp), intent(out), optional :: force(3, params % nsph)
     real(dp), intent(in), optional :: hessianphi_cav(3, 3, constants % ncav)
+    type(ddx_error_type), intent(inout) :: error
 
     call ddlpb_setup(params, constants, workspace, state, phi_cav, &
         & e_cav, psi)
-    if (workspace % error_flag .eq. 1) return
-    call ddlpb_guess(params, constants, workspace, state, tol)
-    if (workspace % error_flag .eq. 1) return
-    call ddlpb_solve(params, constants, workspace, state, tol)
-    if (workspace % error_flag .eq. 1) return
+    call ddlpb_guess(params, constants, workspace, state, tol, error)
+    call ddlpb_solve(params, constants, workspace, state, tol, error)
 
     ! Compute the solvation energy
     call ddlpb_energy(constants, state, esolv)
 
     ! Get forces if needed
     if(params % force .eq. 1) then
-        call ddlpb_guess_adjoint(params, constants, workspace, state, tol)
-        if (workspace % error_flag .eq. 1) return
-        call ddlpb_solve_adjoint(params, constants, workspace, state, tol)
-        if (workspace % error_flag .eq. 1) return
+        call ddlpb_guess_adjoint(params, constants, workspace, state, tol, error)
+        call ddlpb_solve_adjoint(params, constants, workspace, state, tol, error)
         call ddlpb_solvation_force_terms(params, constants, workspace, &
-            & state, hessianphi_cav, force)
-        if (workspace % error_flag .eq. 1) return
+            & state, hessianphi_cav, force, error)
     endif
 
 end subroutine ddlpb
@@ -167,14 +163,16 @@ end subroutine ddlpb_energy
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] tol: tolerance
+!! @param[inout] error: ddX error
 !!
-subroutine ddlpb_guess(params, constants, workspace, state, tol)
+subroutine ddlpb_guess(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
+    type(ddx_error_type), intent(inout) :: error
 
     ! set the inner tolerance
     constants % inner_tol =  sqrt(tol)
@@ -182,7 +180,8 @@ subroutine ddlpb_guess(params, constants, workspace, state, tol)
     ! guess
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
-    call prec_tx(params, constants, workspace, state % rhs_lpb, state % x_lpb)
+    call prec_tx(params, constants, workspace, state % rhs_lpb, &
+        & state % x_lpb, error)
 
 end subroutine ddlpb_guess
 
@@ -194,14 +193,17 @@ end subroutine ddlpb_guess
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] tol: tolerance
+!! @param[inout] error: ddX error
 !!
-subroutine ddlpb_guess_adjoint(params, constants, workspace, state, tol)
+subroutine ddlpb_guess_adjoint(params, constants, workspace, state, tol, &
+        & error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
+    type(ddx_error_type), intent(inout) :: error
 
     ! set the inner tolerance
     constants % inner_tol =  sqrt(tol)
@@ -210,7 +212,7 @@ subroutine ddlpb_guess_adjoint(params, constants, workspace, state, tol)
     workspace % ddcosmo_guess = zero
     workspace % hsp_guess = zero
     call prec_tstarx(params, constants, workspace, state % rhs_adj_lpb, &
-        & state % x_adj_lpb)
+        & state % x_adj_lpb, error)
 
 end subroutine ddlpb_guess_adjoint
 
@@ -223,13 +225,15 @@ end subroutine ddlpb_guess_adjoint
 !! @param[inout] state     : Solutions, guesses and relevant quantities
 !! @param[in] tol          : Tolerance for the iterative solvers
 !!
-subroutine ddlpb_solve(params, constants, workspace, state, tol)
+!! @param[inout] error: ddX error
+subroutine ddlpb_solve(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
+    type(ddx_error_type), intent(inout) :: error
     real(dp) :: start_time
 
     state % x_lpb_niter = params % maxiter
@@ -240,10 +244,11 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol)
     start_time = omp_get_wtime()
     call jacobi_diis_external(params, constants, workspace, &
         & 2*constants % n, tol, state % rhs_lpb, state % x_lpb, &
-        & state % x_lpb_niter, state % x_lpb_rel_diff, cx, prec_tx, rmsnorm)
-    if (workspace % error_flag .ne. 0) then
-        workspace % error_message = 'Jacobi solver failed to converge " // &
-            & "in ddlpb_solve'
+        & state % x_lpb_niter, state % x_lpb_rel_diff, cx, prec_tx, rmsnorm, &
+        & error)
+    if (error % flag.ne. 0) then
+        call update_error(error, 'Jacobi solver failed to converge " // &
+            & "in ddlpb_solve')
         return
     end if
     state % x_lpb_time = omp_get_wtime() - start_time
@@ -259,7 +264,6 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol)
     state % hsp_time = workspace % hsp_time
 end subroutine ddlpb_solve
 
-
 !> Solve the adjoint ddLPB linear system
 !!
 !> @ingroup Fortran_interface_ddlpb
@@ -268,14 +272,16 @@ end subroutine ddlpb_solve
 !! @param[inout] workspace : Preallocated workspaces
 !! @param[inout] state     : Solutions, guesses and relevant quantities
 !! @param[in] tol          : Tolerance for the iterative solvers
+!! @param[inout] error: ddX error
 !!
-subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
+subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
+    type(ddx_error_type), intent(inout) :: error
 
     real(dp) :: start_time
 
@@ -288,10 +294,10 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
     call jacobi_diis_external(params, constants, workspace, &
         & 2*constants % n, tol, state % rhs_adj_lpb, state % x_adj_lpb, &
         & state % x_adj_lpb_niter, state % x_adj_lpb_rel_diff, &
-        & cstarx, prec_tstarx, rmsnorm)
-    if (workspace % error_flag .ne. 0) then
-        workspace % error_message = 'Jacobi solver failed to ' // &
-            & 'converge in ddlpb_solve_adjoint'
+        & cstarx, prec_tstarx, rmsnorm, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, 'Jacobi solver failed to ' // &
+            & 'converge in ddlpb_solve_adjoint')
         return
     end if
     state % x_adj_lpb_time = omp_get_wtime() - start_time
@@ -302,7 +308,7 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol)
     state % s_time = workspace % s_time
     state % hsp_adj_time = workspace % hsp_adj_time
 
-    call ddlpb_derivative_setup(params, constants, workspace, state)
+    call ddlpb_derivative_setup(params, constants, workspace, state, error)
 
 end subroutine ddlpb_solve_adjoint
 
@@ -316,9 +322,10 @@ end subroutine ddlpb_solve_adjoint
 !! @param[inout] state       : Solutions and relevant quantities
 !! @param[in] hessianphi_cav : Electric field gradient at the grid points
 !! @param[out] force         : Geometrical contribution to the forces
+!! @param[inout] error: ddX error
 !!
 subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
-        & state, hessianphi_cav, force)
+        & state, hessianphi_cav, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -326,6 +333,7 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: hessianphi_cav(3, 3, constants % ncav)
     real(dp), intent(out) :: force(3, params % nsph)
+    type(ddx_error_type), intent(inout) :: error
 
     ! local
     real(dp), dimension(constants % nbasis) :: basloc, vplm
@@ -346,8 +354,7 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
         & diff_re(constants % nbasis, params % nsph), &
         & scaled_xr(constants % nbasis, params % nsph), stat=istat)
     if (istat.ne.0) then
-        workspace % error_message = 'Allocation failed in ddlpb_force_worker'
-        workspace % error_flag = 1
+        call update_error(error, 'Allocation failed in ddlpb_force_worker')
         return
     end if
 
@@ -432,8 +439,7 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
 
     deallocate(ef, normal_hessian_cav, diff_re, scaled_xr, stat=istat)
     if (istat.ne.0) then
-        workspace % error_message = 'Deallocation failed in ddlpb_force_worker'
-        workspace % error_flag = 1
+        call update_error(error, 'Deallocation failed in ddlpb_force_worker')
         return
     end if
     finish_time = omp_get_wtime()
@@ -452,13 +458,15 @@ end subroutine ddlpb_solvation_force_terms
 !! @param[in] constant: ddx constants
 !! @param[inout] workspace: ddx workspaces
 !! @param[inout] state: ddx state
+!! @param[inout] error: ddX error
 !!
-subroutine ddlpb_derivative_setup(params, constants, workspace, state)
+subroutine ddlpb_derivative_setup(params, constants, workspace, state, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
 
     real(dp), allocatable :: coefy_d(:, :, :)
     integer :: istat, jsph, igrid0, icav, isph, igrid, l0, m0, ind0, &
@@ -484,9 +492,8 @@ subroutine ddlpb_derivative_setup(params, constants, workspace, state)
         allocate(coefy_d(constants % ncav, params % ngrid, params % nsph), &
             & stat=istat)
         if (istat.ne.0) then
-            workspace % error_flag = 1
-            workspace % error_message = &
-                & "allocation error in ddlpb_derivative_intermediates"
+            call update_error(error, "allocation error in " // &
+                & "ddlpb_derivative_setup")
             return
         end if
         coefy_d = zero
@@ -611,9 +618,8 @@ subroutine ddlpb_derivative_setup(params, constants, workspace, state)
     if (allocated(coefy_d)) then
         deallocate(coefy_d, stat=istat)
         if (istat.ne.0) then
-            workspace % error_flag = 1
-            workspace % error_message = &
-                & "deallocation error in ddlpb_derivative_intermediates"
+            call update_error(error, &
+                & "deallocation error in ddlpb_derivative_setup")
             return
         end if
     end if

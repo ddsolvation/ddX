@@ -174,23 +174,23 @@ if (ddx_data % params % model .eq. 1) then
     call ddcosmo_setup(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, phi_cav, psi)
     call ddcosmo_guess(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state)
+        & ddx_data % workspace, state, error)
     call ddcosmo_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol)
+        & ddx_data % workspace, state, tol, error)
 else if (ddx_data % params % model .eq. 2) then
     call ddpcm_setup(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, phi_cav, psi)
     call ddpcm_guess(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state)
+        & ddx_data % workspace, state, error)
     call ddpcm_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol)
+        & ddx_data % workspace, state, tol, error)
 else if (ddx_data % params % model .eq. 3) then
     call ddlpb_setup(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, phi_cav, e_cav, psi)
     call ddlpb_guess(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol)
+        & ddx_data % workspace, state, tol, error)
     call ddlpb_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol)
+        & ddx_data % workspace, state, tol, error)
 end if
 
 ! STEP 5: compute the solvation energy
@@ -209,19 +209,19 @@ end if
 if (ddx_data % params % force .eq. 1) then
     if (ddx_data % params % model .eq. 1) then
         call ddcosmo_guess_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state)
+            & ddx_data % constants, ddx_data % workspace, state, error)
         call ddcosmo_solve_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol)
+            & ddx_data % constants, ddx_data % workspace, state, tol, error)
     else if (ddx_data % params % model .eq. 2) then
         call ddpcm_guess_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state)
+            & ddx_data % constants, ddx_data % workspace, state, error)
         call ddpcm_solve_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol)
+            & ddx_data % constants, ddx_data % workspace, state, tol, error)
     else if (ddx_data % params % model .eq. 3) then
         call ddlpb_guess_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol)
+            & ddx_data % constants, ddx_data % workspace, state, tol, error)
         call ddlpb_solve_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol)
+            & ddx_data % constants, ddx_data % workspace, state, tol, error)
     end if
 end if
 
@@ -257,11 +257,13 @@ if (ddx_data % params % force .eq. 1) then
     call grad_phi_for_charges(ddx_data % params, &
         & ddx_data % constants, ddx_data % workspace, state, &
         & charges, force, e_cav, error)
+    call check_error(error)
     if (ddx_data % params % model .eq. 3) then
         ! ddLPB has another term in the multipolar forces stemming
         ! from the electric field in the RHS
         call grad_e_for_charges(ddx_data % params, ddx_data % constants, &
             & ddx_data % workspace, state, charges, force, error)
+        call check_error(error)
     end if
     finish_time = omp_get_wtime()
     write(*, 100) "multipolar force terms time:", &

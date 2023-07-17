@@ -552,7 +552,7 @@ subroutine ddx_cosmo_guess(c_ddx, c_state) bind(C)
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddcosmo_guess(ddx%params, ddx%constants, ddx%workspace, state)
+    call ddcosmo_guess(ddx%params, ddx%constants, ddx%workspace, state, ddx%error)
 end
 
 ! Solve the problem
@@ -563,7 +563,7 @@ subroutine ddx_cosmo_solve(c_ddx, c_state, tol) bind(C)
     real(c_double), intent(in), value :: tol
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddcosmo_solve(ddx%params, ddx%constants, ddx%workspace, state, tol)
+    call ddcosmo_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, ddx%error)
 end subroutine
 
 ! Put a guess for the adjoint problem into the state (optional)
@@ -573,7 +573,7 @@ subroutine ddx_cosmo_guess_adjoint(c_ddx, c_state) bind(C)
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddcosmo_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state)
+    call ddcosmo_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, ddx%error)
 end
 
 ! Solve the adjoint problem inside the state
@@ -584,7 +584,7 @@ subroutine ddx_cosmo_solve_adjoint(c_ddx, c_state, tol) bind(C)
     real(c_double), intent(in), value :: tol
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddcosmo_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol)
+    call ddcosmo_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, ddx%error)
 end
 
 ! Compute the ddCOSMO energy
@@ -630,7 +630,7 @@ subroutine ddx_pcm_guess(c_ddx, c_state) bind(C)
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddpcm_guess(ddx%params, ddx%constants, ddx%workspace, state)
+    call ddpcm_guess(ddx%params, ddx%constants, ddx%workspace, state, ddx%error)
 end
 
 subroutine ddx_pcm_solve(c_ddx, c_state, tol) bind(C)
@@ -640,7 +640,7 @@ subroutine ddx_pcm_solve(c_ddx, c_state, tol) bind(C)
     real(c_double), intent(in), value :: tol
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddpcm_solve(ddx%params, ddx%constants, ddx%workspace, state, tol)
+    call ddpcm_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, ddx%error)
 end subroutine
 
 subroutine ddx_pcm_guess_adjoint(c_ddx, c_state) bind(C)
@@ -649,7 +649,7 @@ subroutine ddx_pcm_guess_adjoint(c_ddx, c_state) bind(C)
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddpcm_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state)
+    call ddpcm_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, ddx%error)
 end
 
 subroutine ddx_pcm_solve_adjoint(c_ddx, c_state, tol) bind(C)
@@ -659,7 +659,7 @@ subroutine ddx_pcm_solve_adjoint(c_ddx, c_state, tol) bind(C)
     real(c_double), intent(in), value :: tol
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddpcm_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol)
+    call ddpcm_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, ddx%error)
 end
 
 function ddx_pcm_energy(c_ddx, c_state) result(c_energy) bind(C)
@@ -704,7 +704,7 @@ subroutine ddx_lpb_guess(c_ddx, c_state, tol) bind(C)
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddlpb_guess(ddx%params, ddx%constants, ddx%workspace, state, tol)
+    call ddlpb_guess(ddx%params, ddx%constants, ddx%workspace, state, tol, ddx%error)
 end
 
 subroutine ddx_lpb_solve(c_ddx, c_state, tol) bind(C)
@@ -714,7 +714,7 @@ subroutine ddx_lpb_solve(c_ddx, c_state, tol) bind(C)
     real(c_double), intent(in), value :: tol
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddlpb_solve(ddx%params, ddx%constants, ddx%workspace, state, tol)
+    call ddlpb_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, ddx%error)
 end subroutine
 
 subroutine ddx_lpb_guess_adjoint(c_ddx, c_state, tol) bind(C)
@@ -724,7 +724,7 @@ subroutine ddx_lpb_guess_adjoint(c_ddx, c_state, tol) bind(C)
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddlpb_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol)
+    call ddlpb_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, ddx%error)
 end
 
 subroutine ddx_lpb_solve_adjoint(c_ddx, c_state, tol) bind(C)
@@ -734,7 +734,7 @@ subroutine ddx_lpb_solve_adjoint(c_ddx, c_state, tol) bind(C)
     real(c_double), intent(in), value :: tol
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddlpb_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol)
+    call ddlpb_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, ddx%error)
 end
 
 function ddx_lpb_energy(c_ddx, c_state) result(c_energy) bind(C)

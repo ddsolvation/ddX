@@ -34,8 +34,10 @@ contains
 !! @param[in] tol
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
+!! @param[inout] error: ddX error
+!!
 subroutine ddsolve(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
-        & psi, tol, esolv, force)
+        & psi, tol, esolv, force, error)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
     type(ddx_state_type), intent(inout) :: state
@@ -45,23 +47,24 @@ subroutine ddsolve(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
         & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
     ! Outputs
     real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
+    type(ddx_error_type), intent(inout) :: error
     ! Find proper model
     select case(ddx_data % params % model)
         ! COSMO model
         case (1)
             call ddcosmo(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, phi_cav, psi, &
-                & tol, esolv, force)
+                & tol, esolv, force, error)
         ! PCM model
         case (2)
             call ddpcm(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, phi_cav, psi, &
-                & tol, esolv, force)
+                & tol, esolv, force, error)
         ! LPB model
         case (3)
             call ddlpb(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, phi_cav, e_cav, &
-                & psi, tol, esolv, hessianphi_cav, force)
+                & psi, tol, esolv, hessianphi_cav, force, error)
         ! Error case
         case default
             ddx_data % params % error_flag = 1
