@@ -44,9 +44,11 @@ allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constan
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
     & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
 call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, &
-    & tol, esolv1, force)
+    & tol, esolv1, force, error)
+call check_error(error)
 call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
     & ddx_data % workspace, state, charges, force, -gradphi_cav, error)
+call check_error(error)
 
 ddx_data % params % force = 0
 do isph = 1, ddx_data % params % nsph
@@ -103,7 +105,8 @@ subroutine solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
         & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
     call ddsolve(ddx_data2, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, &
-        & force)
+        & force, error2)
+    call check_error(error2)
     call ddfree(ddx_data2)
 end subroutine solve
 

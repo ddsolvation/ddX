@@ -4623,7 +4623,6 @@ subroutine fmm_m2m_bessel_ztranslate_work(z, src_sk, dst_sk, p, vscales, &
         end if
     ! If harmonics are located at the same point
     else
-        stop 'this code needs to be checked'
         r1 = zero
         ! Overwrite output if beta is zero
         if (beta .eq. zero) then
@@ -4863,7 +4862,6 @@ subroutine fmm_m2m_bessel_ztranslate_adj_work(z, src_sk, dst_sk, p, vscales, &
         end if
     ! If harmonics are located at the same point
     else
-        stop 'this code needs to be checked'
         r1 = zero
         ! Overwrite output if beta is zero
         if (beta .eq. zero) then
@@ -6562,7 +6560,6 @@ subroutine fmm_l2l_bessel_ztranslate_work(z, src_si, dst_si, p, vscales, &
         end if
     ! If harmonics are located at the same point
     else
-        stop 'this code needs to be checked'
         r1 = zero
         ! Overwrite output if beta is zero
         if (beta .eq. zero) then
@@ -6803,7 +6800,6 @@ subroutine fmm_l2l_bessel_ztranslate_adj_work(z, src_si, dst_si, p, vscales, &
         end if
     ! If harmonics are located at the same point
     else
-        stop 'this code needs to be checked'
         r1 = zero
         ! Overwrite output if beta is zero
         if (beta .eq. zero) then
@@ -8637,7 +8633,6 @@ subroutine fmm_m2l_bessel_ztranslate_work(z, src_sk, dst_si, p, vscales, &
         end if
     ! If harmonics are located at the same point
     else
-        stop 'this code needs to be checked'
         r1 = zero
         ! Overwrite output if beta is zero
         if (beta .eq. zero) then
@@ -8877,7 +8872,6 @@ subroutine fmm_m2l_bessel_ztranslate_adj_work(z, src_sk, dst_si, p, vscales, &
         end if
     ! If harmonics are located at the same point
     else
-        stop 'this code needs to be checked'
         r1 = zero
         ! Overwrite output if beta is zero
         if (beta .eq. zero) then

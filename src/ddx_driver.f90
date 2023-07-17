@@ -192,6 +192,7 @@ else if (ddx_data % params % model .eq. 3) then
     call ddlpb_solve(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, tol, error)
 end if
+call check_error(error)
 
 ! STEP 5: compute the solvation energy
 if (ddx_data % params % model .eq. 1) then
@@ -224,6 +225,7 @@ if (ddx_data % params % force .eq. 1) then
             & ddx_data % constants, ddx_data % workspace, state, tol, error)
     end if
 end if
+call check_error(error)
 
 ! STEP 7: if required compute the solute aspecific contributions to the
 ! forces.
@@ -243,7 +245,7 @@ if (ddx_data % params % force .eq. 1) then
             & ddx_data % constants, ddx_data % workspace, state, force)
     else if (ddx_data % params % model .eq. 3) then
         call ddlpb_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, g_cav, force)
+            & ddx_data % constants, ddx_data % workspace, state, g_cav, force, error)
     end if
 end if
 

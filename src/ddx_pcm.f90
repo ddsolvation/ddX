@@ -218,8 +218,8 @@ end subroutine ddpcm_solve
 !! @param[inout] workspace : Preallocated workspaces
 !! @param[inout] state     : Solutions, guesses and relevant quantities
 !! @param[in] tol          : Tolerance for the iterative solvers
-!!
 !! @param[inout] error: ddX error
+!!
 subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params

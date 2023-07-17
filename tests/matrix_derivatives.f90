@@ -299,6 +299,7 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     ! igrid  : Index for grid points
     ! ibasis : Index for number of basis
     integer :: i, isph, igrid, ibasis
+    type(ddx_error_type) :: error
 
     ! Initialise new ddx_data with new centers coordinates
     call ddinit(ddx_data % params % nsph, &
@@ -355,15 +356,15 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     zero_vector = zero
     ! Call for matrix A
     call lx(ddx_data2 % params, ddx_data2 % constants, &
-          & ddx_data2 % workspace, random_vector_n_one, vector_cosmo)
+          & ddx_data2 % workspace, random_vector_n_one, vector_cosmo, error)
     ! Call for matrix B
     call bx(ddx_data2 % params, ddx_data2 % constants, &
               & ddx_data2 % workspace, &
-              & random_vector_n_one, vector_lpb)
+              & random_vector_n_one, vector_lpb, error)
     call cx(ddx_data2 % params, ddx_data2 % constants, &
                  & ddx_data2 % workspace, &
                  & random_vector_C_one, &
-                 & vector_c1_c2)
+                 & vector_c1_c2, error)
     ! Sum for U_i^e(x_in)
     do isph = 1,ddx_data2 %  params % nsph
       do igrid = 1,ddx_data2 %  params % ngrid

@@ -63,7 +63,8 @@ call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
 gradphi_cav = - gradphi_cav
 
 call ddlpb(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
-    & state, phi_cav, gradphi_cav, psi, tol, esolv, hessianphi_cav, force)
+    & state, phi_cav, gradphi_cav, psi, tol, esolv, hessianphi_cav, force, error)
+call check_error(error)
 
 ! add the solute specific contributions to the forces
 call grad_phi_for_charges(ddx_data % params, &
@@ -149,7 +150,8 @@ subroutine solve(ddx_data, esolv_in, tol, charges)
         & 1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2, charges)
     gradphi_cav2 = - gradphi_cav2
     call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
-        & psi2, tol, esolv_in, force2)
+        & psi2, tol, esolv_in, force2, error2)
+    call check_error(error2)
 
     call ddx_free_state(state)
     call ddfree(ddx_data2)

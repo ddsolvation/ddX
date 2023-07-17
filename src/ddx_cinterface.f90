@@ -529,7 +529,6 @@ subroutine ddx_get_zeta_dip(c_state, c_ddx, ncav, zeta_dip) bind(C)
     endif
 end subroutine
 
-
 !
 ! Cosmo
 !

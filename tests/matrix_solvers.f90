@@ -107,7 +107,8 @@ subroutine solve(ddx_data, state, matvecmem, esolv, charges)
             &  1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2, charges)
 
     call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
-        & psi2, tol, esolv, force2)
+        & psi2, tol, esolv, force2, error2)
+    call check_error(error2)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
     call ddfree(ddx_data2)
     return

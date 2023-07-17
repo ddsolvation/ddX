@@ -173,12 +173,12 @@ subroutine check_dx(ddx_data, pm, pl, threshold)
         ! Random check of FMM dx operator against dense dx operator
         do irand = 1, nrand
             call dx_dense(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, do_diag, x(:, :, irand), y(:, :, irand))
+                & ddx_data % workspace, do_diag, x(:, :, irand), y(:, :, irand), error)
         end do
         full_norm = dnrm2(ddx_data % constants % n * nrand, y, 1)
         do irand = 1, nrand
             call dx_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
-                & ddx_data_fmm % workspace, do_diag, x(:, :, irand), z(:, :, irand))
+                & ddx_data_fmm % workspace, do_diag, x(:, :, irand), z(:, :, irand), error)
         end do
         diff_norm = dnrm2(ddx_data % constants % n * nrand, y-z, 1)
         write(*, *) "dx_dense vs dx_fmm rel.error=", diff_norm/full_norm
@@ -188,14 +188,14 @@ subroutine check_dx(ddx_data, pm, pl, threshold)
         ! Check dense adjoint operator dstarx
         do irand = 1, nrand
             call dstarx_dense(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, do_diag, x(:, :, irand), y(:, :, irand))
+                & ddx_data % workspace, do_diag, x(:, :, irand), y(:, :, irand), error)
         end do
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, y, ddx_data % constants % n, &
             & y, ddx_data % constants % n, zero, xx, nrand)
         full_norm = dnrm2(nrand**2, xx, 1)
         do irand = 1, nrand
             call dx_dense(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, do_diag, y(:, :, irand), z(:, :, irand))
+                & ddx_data % workspace, do_diag, y(:, :, irand), z(:, :, irand), error)
         end do
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, z, ddx_data % constants % n, &
             & x, ddx_data % constants % n, zero, yy, nrand)
@@ -207,14 +207,14 @@ subroutine check_dx(ddx_data, pm, pl, threshold)
         ! Check FMM adjoint operator dstarx (without precomputed FMM matrices)
         do irand = 1, nrand
             call dstarx_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
-                & ddx_data_fmm % workspace, do_diag, x(:, :, irand), y(:, :, irand))
+                & ddx_data_fmm % workspace, do_diag, x(:, :, irand), y(:, :, irand), error)
         end do
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, y, ddx_data % constants % n, &
             & y, ddx_data % constants % n, zero, xx, nrand)
         full_norm = dnrm2(nrand**2, xx, 1)
         do irand = 1, nrand
             call dx_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
-                & ddx_data_fmm % workspace, do_diag, y(:, :, irand), z(:, :, irand))
+                & ddx_data_fmm % workspace, do_diag, y(:, :, irand), z(:, :, irand), error)
         end do
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, z, ddx_data % constants % n, &
             & x, ddx_data % constants % n, zero, yy, nrand)
