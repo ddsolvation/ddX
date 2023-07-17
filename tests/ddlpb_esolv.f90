@@ -195,9 +195,11 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, dummy_file_name, ddx_data2, error2)
+    call check_error(error2)
 
     ! the state depends on lmax, so it is allocated here
-    call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state)
+    call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state, error2)
+    call check_error(error2)
 
     allocate(phi_cav2(ddx_data2 % constants % ncav), gradphi_cav2(3, ddx_data2 % constants % ncav), &
             & hessianphi_cav2(3, 3, ddx_data2 % constants % ncav), &

@@ -101,7 +101,7 @@ type ddx_workspace_type
     !> ddLPB temporary timings
     real(dp) :: xs_time, s_time, hsp_time, hsp_adj_time
     !> Flag if there were an error
-    integer :: error_flag = 2
+    integer :: error_flag = 0
     !> Last error message
     character(len=255) :: error_message
 end type ddx_workspace_type
@@ -139,7 +139,7 @@ subroutine workspace_init(params, constants, workspace, error)
         & stat=info)
     if (info .ne. 0) then
         call update_error(error, "workspace_init: `tmp_vplm`, `tmp_vcos` " // &
-            & "and `tmp_vsin` allocations failed"
+            & "and `tmp_vsin` allocations failed")
         return
     end if
     allocate(workspace % tmp_vylm(constants % vgrid_nbasis, params % nproc), &

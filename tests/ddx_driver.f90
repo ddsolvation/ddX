@@ -36,8 +36,8 @@ read(tmpstr, *) threshold
 ! Init input from a file
 call ddfromfile(finname, ddx_data, tol, charges, error)
 call check_error(error)
-call ddx_init_state(ddx_data % params, ddx_data % constants, state)
-if(state % error_flag .ne. 0) stop "Initialization failed"
+call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call check_error(error)
 
 ! Allocate resources
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &

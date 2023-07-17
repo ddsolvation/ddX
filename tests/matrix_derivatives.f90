@@ -280,7 +280,6 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     ! Local variables
     ! ddx_data2  : New ddx_data with new coordinates
     type(ddx_type) :: ddx_data2
-    type(ddx_error_type) :: error2
     ! vector_n           : Unit vector of size n\times 1
     ! vector_cosmo            : y = Ax
     ! vector_lpb              : y = Bx

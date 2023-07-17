@@ -129,7 +129,7 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
     if (ddx%constants%error_flag .ne. 0) then
         return
     endif
-    call workspace_init(ddx%params, ddx%constants, ddx%workspace)
+    call workspace_init(ddx%params, ddx%constants, ddx%workspace, ddx%error)
     if (ddx%workspace%error_flag .ne. 0) then
         return
     endif
@@ -401,7 +401,7 @@ function ddx_allocate_state(c_ddx) result(c_state) bind(C)
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     allocate(state)
-    call ddx_init_state(ddx%params, ddx%constants, state)
+    call ddx_init_state(ddx%params, ddx%constants, state, ddx%error)
     c_state = c_loc(state)
 end function
 

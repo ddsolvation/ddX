@@ -55,11 +55,8 @@ call check_error(error)
 ! model (ddx_data). Different states can be used at the same time with
 ! a given model, for instance when solving for different solutes,
 ! or for different states of the solute.
-call ddx_init_state(ddx_data % params, ddx_data % constants, state)
-if (state % error_flag .ne. 0) then
-  write(6, *) state % error_message
-  stop
-end if
+call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call check_error(error)
 
 ! Print the ddX banner
 call get_banner(banner)

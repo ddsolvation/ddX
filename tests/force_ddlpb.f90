@@ -36,7 +36,8 @@ call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol, charges, error)
 call check_error(error)
-call ddx_init_state(ddx_data % params, ddx_data % constants, state)
+call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call check_error(error)
 
 ! Allocation for variable vectors
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
@@ -129,8 +130,10 @@ subroutine solve(ddx_data, esolv_in, tol, charges)
         & ddx_data % params % matvecmem, ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, dummy_file_name, ddx_data2, error2)
+    call check_error(error2)
 
-    call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state)
+    call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state, error2)
+    call check_error(error2)
 
     allocate(phi_cav2(ddx_data2 % constants % ncav), gradphi_cav2(3, ddx_data2 % constants % ncav), &
             & hessianphi_cav2(3, 3, ddx_data2 % constants % ncav), &
