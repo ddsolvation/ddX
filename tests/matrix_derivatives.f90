@@ -164,7 +164,7 @@ call contract_grad_C(ddx_data % params, ddx_data % constants, &
              & random_vector_nbasis_nsph_two, &
              & random_vector_nbasis_nsph_two, &
              & derivative_C1_C2, &
-             & diff_re)
+             & diff_re, error)
 
 do isph = 1, ddx_data % params % nsph
     do i = 1, 3

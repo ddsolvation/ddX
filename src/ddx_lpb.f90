@@ -409,7 +409,12 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     call contract_grad_C(params, constants, workspace, state % x_lpb(:,:,1), &
         & state % x_lpb(:,:,2), state % x_adj_r_grid, state % x_adj_e_grid, &
         & state % x_adj_lpb(:,:,1), state % x_adj_lpb(:,:,2), force, &
-        & diff_re)
+        & diff_re, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, &
+            & "contract_grad_C returned an error, exiting")
+        return
+    end if
     ! Computation of G0 continued
 
     ! NOTE: contract_grad_U returns a positive summation
@@ -432,8 +437,12 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     call contract_grad_f(params, constants, workspace, &
         & state % x_adj_lpb(:,:,1) + state % x_adj_lpb(:,:,2), &
         & state % x_adj_re_grid, state % gradphi_cav, &
-        & normal_hessian_cav, force, state)
-    if (workspace % error_flag .eq. 1) return
+        & normal_hessian_cav, force, state, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, &
+            & "contract_grad_f returned an error, exiting")
+        return
+    end if
 
     force = pt5*force
 
