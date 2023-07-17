@@ -46,7 +46,7 @@ call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
 call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, &
     & tol, esolv1, force)
 call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, charges, force, -gradphi_cav)
+    & ddx_data % workspace, state, charges, force, -gradphi_cav, error)
 
 ddx_data % params % force = 0
 do isph = 1, ddx_data % params % nsph

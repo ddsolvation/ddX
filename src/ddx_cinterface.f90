@@ -764,7 +764,7 @@ subroutine ddx_multipole_electrostatics_0(c_ddx, nsph, ncav, nmultipoles, multip
     call c_f_pointer(c_ddx, ddx)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
     call build_phi(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-            & phi_cav)
+            & phi_cav, ddx%error)
 end
 
 subroutine ddx_multipole_electrostatics_1(c_ddx, nsph, ncav, nmultipoles, multipoles, &
@@ -778,7 +778,7 @@ subroutine ddx_multipole_electrostatics_1(c_ddx, nsph, ncav, nmultipoles, multip
     call c_f_pointer(c_ddx, ddx)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
     call build_e(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-            & phi_cav, e_cav)
+            & phi_cav, e_cav, ddx%error)
 end
 
 subroutine ddx_multipole_electrostatics_2(c_ddx, nsph, ncav, nmultipoles, multipoles, &
@@ -792,7 +792,7 @@ subroutine ddx_multipole_electrostatics_2(c_ddx, nsph, ncav, nmultipoles, multip
     call c_f_pointer(c_ddx, ddx)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
     call build_g(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-            & phi_cav, e_cav, g_cav)
+            & phi_cav, e_cav, g_cav, ddx%error)
 end
 
 subroutine ddx_multipole_psi(c_ddx, nbasis, nsph, nmultipoles, multipoles, psi) bind(C)
@@ -821,7 +821,7 @@ subroutine ddx_multipole_forces(c_ddx, c_state, nsph, ncav, nmultipoles, multipo
     call c_f_pointer(c_state, state)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
     call grad_phi(ddx%params, ddx%constants, ddx%workspace, state, mmax, &
-        & multipoles, forces, e_cav)
+        & multipoles, forces, e_cav, ddx%error)
 end
 
 end

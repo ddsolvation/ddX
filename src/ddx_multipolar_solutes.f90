@@ -27,13 +27,15 @@ contains
 !!     size (3, ncav)
 !! @param[out] g_cav: electric field gradient at the target points,
 !!     size (3, 3, ncav)
+!! @param[inout] error: ddX error
 !!
 subroutine build_g(params, constants, workspace, multipoles, &
-        & mmax, phi_cav, e_cav, g_cav)
+        & mmax, phi_cav, e_cav, g_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav)
@@ -43,10 +45,10 @@ subroutine build_g(params, constants, workspace, multipoles, &
     if (params % fmm .eq. 0) then
         call build_g_dense(multipoles, params % csph, mmax, params % nsph, &
             & phi_cav, constants % ccav, constants % ncav, e_cav, g_cav, &
-            & workspace % error_flag, workspace % error_message)
+            & error)
     else if (params % fmm .eq. 1) then
         call build_g_fmm(params, constants, workspace, multipoles, &
-            & mmax, phi_cav, e_cav, g_cav)
+            & mmax, phi_cav, e_cav, g_cav, error)
     end if
 end subroutine build_g
 
@@ -66,16 +68,16 @@ end subroutine build_g
 !! @param[in] ncav: number of target points
 !! @param[out] error_flag: 0 if everything went fine
 !! @param[out] error_message: additional information in case of an error
+!! @param[inout] error: ddX error
 !!
 subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
-        & e_cav, g_cav, error_flag, error_message)
+        & e_cav, g_cav, error)
     implicit none
     integer, intent(in) :: mmax, nm, ncav
     real(dp), intent(in) :: multipoles((mmax + 1)**2, nm)
     real(dp), intent(in) :: cm(3, nm), ccav(3, ncav)
     real(dp), intent(out) :: phi_cav(ncav), e_cav(3, ncav), g_cav(3, 3, ncav)
-    integer, intent(inout) :: error_flag
-    character(len=255), intent(inout) :: error_message
+    type(ddx_error_type), intent(inout) :: error
     real(dp), allocatable  :: tmp_m_grad(:, :, :), vscales(:), &
         & vscales_rel(:), v4pi2lp1(:), tmp_m_hess(:, :, :, :), tmp(:, :)
     integer icav, im, info
@@ -88,24 +90,23 @@ subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
         & tmp_m_hess((mmax + 3)**2, 3, nm, 3), tmp((mmax + 2)**2, 3), &
         & stat=info)
     if (info .ne. 0) then
-        error_message = "Allocation failed in build_g_dense!"
-        error_flag = 1
+        call update_error(error, "Allocation failed in build_g_dense!")
         return
     end if
     call ylmscale(mmax + 2, vscales, v4pi2lp1, vscales_rel)
 
     ! call the helper routine for the M2M gradient and hessian
-    call grad_m2m(multipoles, mmax, nm, tmp_m_grad, error_flag, &
-        & error_message)
+    call grad_m2m(multipoles, mmax, nm, tmp_m_grad, error)
     tmp = tmp_m_grad(:, 1, :)
-    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 1), error_flag, &
-        & error_message)
+    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 1), error)
     tmp = tmp_m_grad(:, 2, :)
-    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 2), error_flag, &
-        & error_message)
+    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 2), error)
     tmp = tmp_m_grad(:, 3, :)
-    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 3), error_flag, &
-        & error_message)
+    call grad_m2m(tmp, mmax + 1, nm, tmp_m_hess(:, :, :, 3), error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "grad_m2m returned an error, exiting")
+        return
+    end if
 
     ! loop over the targets and the sources and assemble the electric
     ! potential and field
@@ -165,8 +166,7 @@ subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     deallocate(tmp_m_grad, vscales, vscales_rel, v4pi2lp1, tmp_m_hess, &
         & tmp, stat=info)
     if (info .ne. 0) then
-        error_message = "Deallocation failed in build_e_dense!"
-        error_flag = 1
+        call update_error(error, "Deallocation failed in build_e_dense!")
         return
     end if
 end subroutine build_g_dense
@@ -185,24 +185,25 @@ end subroutine build_g_dense
 !! @param[out] phi_cav: electric potential at the target points, size (ncav)
 !! @param[out] e_cav: electric field at the target points,
 !!     size (3, ncav)
+!! @param[inout] error: ddX error
 !!
 subroutine build_e(params, constants, workspace, multipoles, &
-        & mmax, phi_cav, e_cav)
+        & mmax, phi_cav, e_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav)
     real(dp), intent(out) :: e_cav(3, constants % ncav)
     if (params % fmm .eq. 0) then
         call build_e_dense(multipoles, params % csph, mmax, params % nsph, &
-            & phi_cav, constants % ccav, constants % ncav, e_cav, &
-            & workspace % error_flag, workspace % error_message)
+            & phi_cav, constants % ccav, constants % ncav, e_cav, error)
     else if (params % fmm .eq. 1) then
         call build_e_fmm(params, constants, workspace, multipoles, &
-            & mmax, phi_cav, e_cav)
+            & mmax, phi_cav, e_cav, error)
     end if
 end subroutine build_e
 
@@ -219,16 +220,16 @@ end subroutine build_e
 !! @param[out] e_cav: electric field at the target points, size (3, ncav)
 !! @param[in] ccav: coordinates of the target points, size (3,ncav)
 !! @param[in] ncav: number of target points
+!! @param[inout] error: ddX error
 !!
 subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
-        & e_cav, error_flag, error_message)
+        & e_cav, error)
     implicit none
     integer, intent(in) :: mmax, nm, ncav
     real(dp), intent(in) :: cm(3, nm), ccav(3, ncav), &
         & multipoles((mmax + 1)**2, nm)
     real(dp), intent(out) :: phi_cav(ncav), e_cav(3, ncav)
-    integer, intent(inout) :: error_flag
-    character(len=255), intent(inout) :: error_message
+    type(ddx_error_type), intent(inout) :: error
     ! local variables
     real(dp), allocatable  :: tmp_m_grad(:, :, :), vscales(:), &
         & vscales_rel(:), v4pi2lp1(:)
@@ -240,14 +241,18 @@ subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     allocate(tmp_m_grad((mmax + 2)**2, 3, nm), vscales((mmax + 2)**2), &
         & vscales_rel((mmax + 2)**2), v4pi2lp1(mmax + 2), stat=info)
     if (info .ne. 0) then
-        error_message = "Allocation failed in build_e_dense!"
-        error_flag = 1
+        call update_error(error, "Allocation failed in build_e_dense!")
         return
     end if
     call ylmscale(mmax + 1, vscales, v4pi2lp1, vscales_rel)
 
     ! call the helper routine for the M2M gradients
-    call grad_m2m(multipoles, mmax, nm, tmp_m_grad, error_flag, error_message)
+    call grad_m2m(multipoles, mmax, nm, tmp_m_grad, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "grad_m2m returned an error, exiting")
+        return
+    end if
+
 
     ! loop over the targets and the sources and assemble the electric
     ! potential and field
@@ -276,8 +281,7 @@ subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
 
     deallocate(tmp_m_grad, vscales, vscales_rel, v4pi2lp1, stat=info)
     if (info .ne. 0) then
-        error_message = "Deallocation failed in build_e_dense!"
-        error_flag = 1
+        call update_error(error, "Deallocation failed in build_e_dense!")
         return
     end if
 end subroutine build_e_dense
@@ -293,20 +297,21 @@ end subroutine build_e_dense
 !!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
 !! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[inout] error: ddX error
 !!
 subroutine build_phi(params, constants, workspace, multipoles, &
-        & mmax, phi_cav)
+        & mmax, phi_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav)
     if (params % fmm .eq. 0) then
         call build_phi_dense(multipoles, params % csph, mmax, params % nsph, &
-            & phi_cav, constants % ccav, constants % ncav, &
-            & workspace % error_flag, workspace % error_message)
+            & phi_cav, constants % ccav, constants % ncav, error)
     else if (params % fmm .eq. 1) then
         call build_phi_fmm(params, constants, workspace, multipoles, mmax, &
             & phi_cav)
@@ -325,16 +330,16 @@ end subroutine build_phi
 !! @param[out] phi_cav: electric potential at the target points, size (ncav)
 !! @param[in] ccav: coordinates of the target points, size (3,ncav)
 !! @param[in] ncav: number of target points
+!! @param[inout] error: ddX error
 !!
 subroutine build_phi_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
-        & error_flag, error_message)
+        & error)
     implicit none
     integer, intent(in) :: mmax, nm, ncav
     real(dp), intent(in) :: cm(3, nm), ccav(3, ncav), &
         & multipoles((mmax + 1)**2, nm)
     real(dp), intent(out) :: phi_cav(ncav)
-    integer, intent(inout) :: error_flag
-    character(len=255), intent(inout) :: error_message
+    type(ddx_error_type), intent(inout) :: error
     ! local variables
     integer icav, im, info
     real(dp) :: v, c(3)
@@ -344,8 +349,7 @@ subroutine build_phi_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     allocate(vscales((mmax + 1)**2), vscales_rel((mmax + 1)**2), &
         & v4pi2lp1(mmax + 1), stat=info)
     if (info .ne. 0) then
-        error_message = 'Allocation failed in build_phi_dense!'
-        error_flag = 1
+        call update_error(error, 'Allocation failed in build_phi_dense!')
         return
     end if
     call ylmscale(mmax, vscales, v4pi2lp1, vscales_rel)
@@ -362,8 +366,7 @@ subroutine build_phi_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
 
     deallocate(vscales, vscales_rel, v4pi2lp1, stat=info)
     if (info .ne. 0) then
-        error_message = 'Deallocation failed in build_phi_dense!'
-        error_flag = 1
+        call update_error(error, 'Deallocation failed in build_phi_dense!')
         return
     end if
 
@@ -380,13 +383,15 @@ end subroutine build_phi_dense
 !! @param[out] phi_cav: electric potential at the target points, size (ncav)
 !! @param[out] e_cav: electric field at the target points,
 !!     size(3, ncav)
+!! @param[inout] error: ddX error
 !!
 subroutine build_e_fmm(params, constants, workspace, multipoles, &
-        & mmax, phi_cav, e_cav)
+        & mmax, phi_cav, e_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav), &
@@ -399,14 +404,16 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
     allocate(tmp_m_grad((mmax + 2)**2, 3, params % nsph), &
         & grid_grad(params % ngrid, 3, params % nsph), stat=info)
     if (info .ne. 0) then
-        workspace % error_message = "Allocation failed in build_e_fmm!"
-        workspace % error_flag = 1
+        call update_error(error, "Allocation failed in build_e_fmm!")
         return
     end if
 
     ! compute the gradient of the m2m trasformation
-    call grad_m2m(multipoles, mmax, params % nsph, tmp_m_grad, &
-        & workspace % error_flag, workspace % error_message)
+    call grad_m2m(multipoles, mmax, params % nsph, tmp_m_grad, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "grad_m2m returned an error, exiting")
+        return
+    end if
 
     ! copy the multipoles in the right places
     call load_m(params, constants, workspace, multipoles, mmax)
@@ -474,8 +481,7 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
 
     deallocate(tmp_m_grad, grid_grad, stat=info)
     if (info .ne. 0) then
-        workspace % error_message = "Deallocation failed in build_e_fmm!"
-        workspace % error_flag = 1
+        call update_error(error, "Deallocation failed in build_e_fmm!")
         return
     end if
 
@@ -494,13 +500,15 @@ end subroutine build_e_fmm
 !!     size(3, ncav)
 !! @param[out] g_cav: electric field gradient at the target points,
 !!     size(3, 3, ncav)
+!! @param[inout] error: ddX error
 !!
 subroutine build_g_fmm(params, constants, workspace, multipoles, &
-        & mmax, phi_cav, e_cav, g_cav)
+        & mmax, phi_cav, e_cav, g_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav), &
@@ -525,26 +533,26 @@ subroutine build_g_fmm(params, constants, workspace, multipoles, &
         & grid_hessian2(params % ngrid, 3, params % nsph), &
         & stat=info)
     if (info .ne. 0) then
-        workspace % error_message = "Allocation failed in build_g_fmm!"
-        workspace % error_flag = 1
+        call update_error(error, "Allocation failed in build_g_fmm!")
         return
     end if
 
     ! compute the gradient of the m2m trasformation
-    call grad_m2m(multipoles, mmax, params % nsph, m_grad, &
-        & workspace % error_flag, workspace % error_message)
+    call grad_m2m(multipoles, mmax, params % nsph, m_grad, error)
 
     ! starting from the previously computed gradient, compute the
     ! hessian of the target multipoles
     m_grad_component = m_grad(:, 1, :)
-    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_x, &
-        & workspace % error_flag, workspace % error_message)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_x, error)
     m_grad_component = m_grad(:, 2, :)
-    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_y, &
-        & workspace % error_flag, workspace % error_message)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_y, error)
     m_grad_component = m_grad(:, 3, :)
-    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_z, &
-        & workspace % error_flag, workspace % error_message)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_z, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "grad_m2m returned an error, exiting")
+        return
+    end if
+
 
     ! copy the multipoles to the right places
     call load_m(params, constants, workspace, multipoles, mmax)
@@ -714,8 +722,7 @@ subroutine build_g_fmm(params, constants, workspace, multipoles, &
         & grid_grad, grid_hess_x, grid_hess_y, grid_hess_z, grid_hessian2, &
         & stat=info)
     if (info .ne. 0) then
-        workspace % error_message = "Deallocation failed in build_g_fmm!"
-        workspace % error_flag = 1
+        call update_error(error, "Deallocation failed in build_g_fmm!")
         return
     end if
 
@@ -847,6 +854,7 @@ end subroutine load_m
 !! @param[in] params: ddx parameters
 !! @param[in]  constants: ddx constants
 !! @param[inout] workspace: ddx workspace
+!! @param[inout] error: ddX error
 !!
 subroutine do_fmm(params, constants, workspace)
     implicit none
@@ -869,15 +877,14 @@ end subroutine do_fmm
 !! @param[in] nm: number of multipoles
 !! @param[out] tmp_m_grad: gradient of the M2M operator,
 !!     size ((mmax + 1)**2, 3, nm)
+!! @param[inout] error: ddX error
 !!
-subroutine grad_m2m(multipoles, mmax, nm, tmp_m_grad, error_flag, &
-        & error_message)
+subroutine grad_m2m(multipoles, mmax, nm, tmp_m_grad, error)
     implicit none
     integer, intent(in) :: mmax, nm
     real(dp), intent(in) :: multipoles((mmax + 1)**2, nm)
     real(dp), intent(out) :: tmp_m_grad((mmax + 2)**2, 3, nm)
-    integer, intent(inout) :: error_flag
-    character(len=255), intent(inout) :: error_message
+    type(ddx_error_type), intent(inout) :: error
     ! local variables
     real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
     real(dp), allocatable :: tmp(:, :)
@@ -886,8 +893,7 @@ subroutine grad_m2m(multipoles, mmax, nm, tmp_m_grad, error_flag, &
 
     allocate(tmp((mmax + 2)**2, nm), stat=info)
     if (info .ne. 0) then
-        error_message = "Allocation failed in grad_m2m!"
-        error_flag = 1
+        call update_error(error, "Allocation failed in grad_m2m!")
         return
     end if
 
@@ -933,8 +939,7 @@ subroutine grad_m2m(multipoles, mmax, nm, tmp_m_grad, error_flag, &
 
     deallocate(tmp, stat=info)
     if (info .ne. 0) then
-        error_message = "Deallocation failed in grad_m2m!"
-        error_flag = 1
+        call update_error(error, "Deallocation failed in grad_m2m!")
         return
     end if
 
@@ -947,14 +952,16 @@ end subroutine grad_m2m
 !! @param[inout] workspace: ddx workspace
 !! @param[in] charges: charges, size (nsph)
 !! @param[inout] forces: forces array, size (3, nsph)
+!! @param[inout] error: ddX error
 !!
 subroutine grad_phi_for_charges(params, constants, workspace, state, &
-        & charges, forces, e_cav)
+        & charges, forces, e_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(in) :: charges(params % nsph)
     real(dp), intent(inout) :: forces(3, params % nsph)
     real(dp), intent(in) :: e_cav(3, constants % ncav)
@@ -966,8 +973,7 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
     ! up to mmax + 1 as we are doing derivatives
     allocate(field(3, params % nsph), stat=info)
     if (info .ne. 0) then
-        workspace % error_message = "Allocation failed in grad_phi_for_charges!"
-        workspace % error_flag = 1
+        call update_error(error, "Allocation failed in grad_phi_for_charges!")
         return
     end if
 
@@ -983,6 +989,7 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
     end do
 
     ! second contribution
+    ! TODO: REMOVE
     call efld(constants % ncav, state % zeta, constants % ccav, &
         & params % nsph, params % csph, field)
 
@@ -997,8 +1004,7 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
 
     deallocate(field, stat=info)
     if (info .ne. 0) then
-        workspace % error_message = "Deallocation failed in grad_phi_for_charges!"
-        workspace % error_flag = 1
+        call update_error(error, "Deallocation failed in grad_phi_for_charges!")
         return
     end if
 
@@ -1017,14 +1023,16 @@ end subroutine grad_phi_for_charges
 !!     size ((mmax+1)**2, nsph)
 !! @param[inout] forces: forces array, size (3, nsph)
 !! @param[in] e_cav: electric field, size (3, ncav)
+!! @param[inout] error: ddX error
 !!
 subroutine grad_phi(params, constants, workspace, state, mmax, &
-        & multipoles, forces, e_cav)
+        & multipoles, forces, e_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(inout) :: forces(3, params % nsph)
@@ -1039,8 +1047,7 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
     allocate(adj_phi((mmax + 2)**2, params % nsph), &
         & m_grad((mmax + 2)**2, 3, params % nsph), stat=info)
     if (info .ne. 0) then
-        workspace % error_message = "Allocation failed in grad_phi!"
-        workspace % error_flag = 1
+        call update_error(error, "Allocation failed in grad_phi!")
         return
     end if
 
@@ -1058,11 +1065,18 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
 
     ! build the adjoint potential
     call build_adj_phi(params, constants, workspace, state % zeta, &
-        & mmax + 1, adj_phi)
+        & mmax + 1, adj_phi, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "build_adj_phi returned an error, exiting")
+        return
+    end if
 
     ! build the gradient of the M2M transformation
-    call grad_m2m(multipoles, mmax, params % nsph, m_grad, &
-        & workspace % error_flag, workspace % error_message)
+    call grad_m2m(multipoles, mmax, params % nsph, m_grad, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "grad_m2m returned an error, exiting")
+        return
+    end if
 
     ! contract the two ingredients to build the second contribution
     do im = 1, params % nsph
@@ -1083,8 +1097,7 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
 
     deallocate(adj_phi, m_grad, stat=info)
     if (info .ne. 0) then
-        workspace % error_message = "Deallocation failed in grad_phi!"
-        workspace % error_flag = 1
+        call update_error(error, "Deallocation failed in grad_phi!")
         return
     end if
 
@@ -1101,22 +1114,24 @@ end subroutine grad_phi
 !! @param[in] mmax: maximum angular momentum of the target multipoles
 !! @param[out] adj_phi: electrostatic properties up to order mmax at
 !!     the target multipoles, size ((mmax+1)**2, nsph)
+!! @param[inout] error: ddX error
 !!
-subroutine build_adj_phi(params, constants, workspace, charges, mmax, adj_phi)
+subroutine build_adj_phi(params, constants, workspace, charges, mmax, &
+        & adj_phi, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer, intent(in) :: mmax
     real(dp), intent(in) :: charges(constants % ncav)
     real(dp), intent(out) :: adj_phi((mmax + 1)**2, params % nsph)
     if (params % fmm .eq. 0) then
         call build_adj_phi_dense(charges, constants % ccav, constants % ncav, &
-            & params % csph, mmax, params % nsph, adj_phi, &
-            & workspace % error_flag, workspace % error_message)
+            & params % csph, mmax, params % nsph, adj_phi, error)
     else if (params % fmm .eq. 1) then
         call build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
-            & adj_phi)
+            & adj_phi, error)
     end if
 end subroutine build_adj_phi
 
@@ -1131,15 +1146,15 @@ end subroutine build_adj_phi
 !! @param[in] mmax: maximum angular momentum of the multipoles
 !! @param[in] nm: number of multipoles
 !! @param[out] adj_phi: adjoint potential, size((mmax+1)**2,nm)
+!! @param[inout] error: ddX error
 !!
 subroutine build_adj_phi_dense(qcav, ccav, ncav, cm, mmax, nm, adj_phi, &
-        & error_flag, error_message)
+        & error)
     implicit none
     integer, intent (in) :: ncav, mmax, nm
     real(dp), intent(in) :: qcav(ncav), ccav(3, ncav), cm(3, nm)
     real(dp), intent(out) :: adj_phi((mmax + 1)**2, nm)
-    integer, intent(inout) :: error_flag
-    character(len=255), intent(inout) :: error_message
+    type(ddx_error_type), intent(inout) :: error
     ! local variables
     integer :: icav, im, info
     real(dp) :: c(3)
@@ -1149,8 +1164,7 @@ subroutine build_adj_phi_dense(qcav, ccav, ncav, cm, mmax, nm, adj_phi, &
     allocate(vscales((mmax + 1)**2), vscales_rel((mmax + 1)**2), &
         & v4pi2lp1(mmax + 1), work((mmax + 1)**2 + 3*mmax), stat=info)
     if (info .ne. 0) then
-        error_message = 'Allocation failed in build_adj_phi_dense!'
-        error_flag = 1
+        call update_error(error, 'Allocation failed in build_adj_phi_dense!')
         return
     end if
     call ylmscale(mmax, vscales, v4pi2lp1, vscales_rel)
@@ -1166,8 +1180,7 @@ subroutine build_adj_phi_dense(qcav, ccav, ncav, cm, mmax, nm, adj_phi, &
 
     deallocate(vscales, vscales_rel, v4pi2lp1, work, stat=info)
     if (info .ne. 0) then
-        error_message = 'Deallocation failed in build_adj_phi_dense!'
-        error_flag = 1
+        call update_error(error, 'Deallocation failed in build_adj_phi_dense!')
         return
     end if
 
@@ -1184,13 +1197,15 @@ end subroutine build_adj_phi_dense
 !! @param[in] mmax: maximum angular momentum of the target multipoles
 !! @param[out] adj_phi: electrostatic properties up to order mmax at
 !!     the target multipoles, size ((mmax+1)**2, nsph)
+!! @param[inout] error: ddX error
 !!
 subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
-        & adj_phi)
+        & adj_phi, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer, intent(in) :: mmax
     real(dp), intent(in) :: charges(constants % ncav)
     real(dp), intent(out) :: adj_phi((mmax + 1)**2, params % nsph)
@@ -1204,8 +1219,7 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
         & sph_m((mmax + 1)**2, params % nsph), &
         & work((mmax + 1)**2 + 3*mmax), stat=info)
     if (info .ne. 0) then
-        workspace % error_message = "Allocation failed in build_adj_phi_fmm!"
-        workspace % error_flag = 1
+        call update_error(error, "Allocation failed in build_adj_phi_fmm!")
         return
     end if
 
@@ -1277,8 +1291,7 @@ subroutine build_adj_phi_fmm(params, constants, workspace, charges, mmax, &
 
     deallocate(tmp_grid, work, stat=info)
     if (info .ne. 0) then
-        workspace % error_message = "Deallocation failed in build_adj_phi_fmm"
-        workspace % error_flag = 1
+        call update_error(error, "Deallocation failed in build_adj_phi_fmm")
         return
     end if
 
@@ -1293,24 +1306,35 @@ end subroutine build_adj_phi_fmm
 !! @param[inout] state: ddx state
 !! @param[in] charges: charges, size (nsph)
 !! @param[inout] forces: forces array, size (3, nsph)
+!! @param[inout] error: ddX error
 !!
 subroutine grad_e_for_charges(params, constants, workspace, state, &
-        & charges, force)
+        & charges, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(in) :: charges(params % nsph)
     real(dp), intent(inout) :: force(3, params % nsph)
     real(dp), allocatable :: multipoles(:, :)
     integer :: info
 
     allocate(multipoles(1, params % nsph), stat=info)
+    if (info .ne. 0) then
+        call update_error(error, "Allocation failed in grad_e_for_charges")
+        return
+    end if
     ! convert the charges to multipoles
     multipoles(1, :) = charges/sqrt4pi
-    call grad_e(params, constants, workspace, state, 0, multipoles, force)
+    call grad_e(params, constants, workspace, state, 0, multipoles, force, &
+        & error)
     deallocate(multipoles, stat=info)
+    if (info .ne. 0) then
+        call update_error(error, "Deallocation failed in grad_e_for_charges")
+        return
+    end if
 
 end subroutine grad_e_for_charges
 
@@ -1326,14 +1350,16 @@ end subroutine grad_e_for_charges
 !! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[inout] forces: forces array, size (3, nsph)
+!! @param[inout] error: ddX error
 !!
 subroutine grad_e(params, constants, workspace, state, mmax, &
-        & multipoles, force)
+        & multipoles, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax+1)**2, params % nsph)
     real(dp), intent(inout) :: force(3, params % nsph)
@@ -1356,38 +1382,43 @@ subroutine grad_e(params, constants, workspace, state, mmax, &
         & m_grad_component((mmax+2)**2, params % nsph), &
         & stat=info)
     if (info.ne.0) then
-        workspace % error_flag = 1
-        workspace % error_message = "Allocation failed in grad_e"
+        call update_error(error, "Allocation failed in grad_e")
         return
     end if
 
     ! compute the gradient of the target charges
-    call grad_m2m(multipoles, mmax, params % nsph, m_grad, &
-        & workspace % error_flag, workspace % error_message)
+    call grad_m2m(multipoles, mmax, params % nsph, m_grad, error)
 
     ! starting from the previously computed gradient, compute the
     ! hessian of the target multipoles
     m_grad_component = m_grad(:, 1, :)
-    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_x, &
-        & workspace % error_flag, workspace % error_message)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_x, error)
     m_grad_component = m_grad(:, 2, :)
-    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_y, &
-        & workspace % error_flag, workspace % error_message)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_y, error)
     m_grad_component = m_grad(:, 3, :)
-    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_z, &
-        & workspace % error_flag, workspace % error_message)
+    call grad_m2m(m_grad_component, mmax + 1, params % nsph, m_hess_z, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "grad_m2m returned an error, exiting")
+        return
+    end if
+
 
     ! now we compute the adjoint potential of the x, y and z components
     ! of the input dipoles separately
     zeta_comp = state % zeta_dip(1, :)
     call build_adj_phi(params, constants, workspace, zeta_comp, &
-        & mmax + 2, adj_phi_x)
+        & mmax + 2, adj_phi_x, error)
     zeta_comp = state % zeta_dip(2, :)
     call build_adj_phi(params, constants, workspace, zeta_comp, &
-        & mmax + 2, adj_phi_y)
+        & mmax + 2, adj_phi_y, error)
     zeta_comp = state % zeta_dip(3, :)
     call build_adj_phi(params, constants, workspace, zeta_comp, &
-        & mmax + 2, adj_phi_z)
+        & mmax + 2, adj_phi_z, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "build_adj_phi returned an error, exiting")
+        return
+    end if
+
 
     ! contract the hessian of the multipoles with the three adjoint
     ! potentials to get the forces contributions
@@ -1416,8 +1447,7 @@ subroutine grad_e(params, constants, workspace, state, mmax, &
     deallocate(zeta_comp, adj_phi_x, adj_phi_y, adj_phi_z, m_hess_x, &
         & m_hess_y, m_hess_z, m_grad, m_grad_component, stat=info)
     if (info.ne.0) then
-        workspace % error_flag = 1
-        workspace % error_message = "Allocation failed in grad_e"
+        call update_error(error, "Allocation failed in grad_e")
         return
     end if
 

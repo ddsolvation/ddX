@@ -68,9 +68,11 @@ call ddlpb(ddx_data % params, ddx_data % constants, ddx_data % workspace, &
 ! add the solute specific contributions to the forces
 call grad_phi_for_charges(ddx_data % params, &
     & ddx_data % constants, ddx_data % workspace, state, &
-    & charges, force, gradphi_cav)
+    & charges, force, gradphi_cav, error)
+call check_error(error)
 call grad_e_for_charges(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, charges, force)
+    & ddx_data % workspace, state, charges, force, error)
+call check_error(error)
 
 do isph = 1, ddx_data % params % nsph
   do i = 1, 3

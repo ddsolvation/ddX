@@ -144,13 +144,13 @@ end if
 ! Compute the required electrostatic properties.
 if (do_phi .and. do_e .and. do_g) then
     call build_g(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, multipoles, 0, phi_cav, e_cav, g_cav)
+        & ddx_data % workspace, multipoles, 0, phi_cav, e_cav, g_cav, error)
 else if (do_phi .and. do_e) then
     call build_e(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, multipoles, 0, phi_cav, e_cav)
+        & ddx_data % workspace, multipoles, 0, phi_cav, e_cav, error)
 else
     call build_phi(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, multipoles, 0, phi_cav)
+        & ddx_data % workspace, multipoles, 0, phi_cav, error)
 end if
 
 finish_time = omp_get_wtime()
@@ -256,12 +256,12 @@ if (ddx_data % params % force .eq. 1) then
     start_time = omp_get_wtime()
     call grad_phi_for_charges(ddx_data % params, &
         & ddx_data % constants, ddx_data % workspace, state, &
-        & charges, force, e_cav)
+        & charges, force, e_cav, error)
     if (ddx_data % params % model .eq. 3) then
         ! ddLPB has another term in the multipolar forces stemming
         ! from the electric field in the RHS
         call grad_e_for_charges(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, charges, force)
+            & ddx_data % workspace, state, charges, force, error)
     end if
     finish_time = omp_get_wtime()
     write(*, 100) "multipolar force terms time:", &
