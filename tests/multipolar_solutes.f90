@@ -172,8 +172,10 @@ if (info .ne. 0) call test_error("Deallocation failed in test_multipolar_solutes
 
 ! deallocate
 
-call ddfree(nofmm)
-call ddfree(fmm)
+call ddfree(nofmm, error)
+call check_error(error)
+call ddfree(fmm, error)
+call check_error(error)
 
 contains
 

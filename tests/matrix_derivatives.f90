@@ -247,7 +247,7 @@ deallocate(derivative_num_A, derivative_num_B, derivative_num_Ui, &
            & random_vector_two_evaluated_at_grid, &
            & derivative_C1_C2, &
            & derivative_A, derivative_B, diff_re, derivative_num_C, charges)
-call ddfree(ddx_data)
+call ddfree(ddx_data, error)
 
 write(*, *) "Rel.error of A     :", relerr_A
 write(*, *) "Rel.error of B     :", relerr_B

@@ -50,10 +50,6 @@ type ddx_state_type
     real(dp), allocatable :: phi_grid(:, :)
     !> Zeta intermediate for the forces. Dimension (ncav).
     real(dp), allocatable :: zeta(:)
-    !> Error flag, nonzero in case of an error.
-    integer :: error_flag
-    !> Last error message.
-    character(len=255) :: error_message
     !> Time to compute the solvation force terms
     real(dp) :: force_time
 
@@ -190,6 +186,9 @@ type ddx_state_type
     real(dp) :: hsp_time
     real(dp) :: hsp_adj_time
 
+    integer :: error_flag = 0
+    character(len=255) :: error_message
+
 end type ddx_state_type
 
 !> Main ddX type that stores all the required information.
@@ -199,10 +198,6 @@ type ddx_type
     type(ddx_params_type) :: params
     type(ddx_constants_type) :: constants
     type(ddx_workspace_type) :: workspace
-    !> Flag if there were an error
-    integer :: error_flag = 0
-    !> Last error message
-    character(len=255) :: error_message
 end type ddx_type
 
 contains
@@ -318,9 +313,6 @@ subroutine ddx_init_state(params, constants, state, error)
     type(ddx_state_type), intent(out) :: state
     type(ddx_error_type), intent(inout) :: error
     integer :: istatus
-
-    state % error_flag = 0
-    state % error_message = ''
 
     allocate(state % psi(constants % nbasis, params % nsph), stat=istatus)
     if (istatus .ne. 0) then
@@ -830,275 +822,231 @@ end subroutine ddfromfile
 !> Deallocate object with corresponding data
 !!
 !! @param[inout] ddx_data: object to deallocate
+!! @param[inout] error: ddX error
 !------------------------------------------------------------------------------
-subroutine ddfree(ddx_data)
+subroutine ddfree(ddx_data, error)
     implicit none
     ! Input/output
     type(ddx_type), intent(inout) :: ddx_data
+    type(ddx_error_type), intent(inout) :: error
     ! Local variables
-    call workspace_free(ddx_data % workspace)
-    if (ddx_data % workspace % error_flag .ne. 0) then
-        write(ddx_data % error_message, *) "workspace_free failed!"
-        ddx_data % error_flag = 1
-        return
-    end if
-    call constants_free(ddx_data % constants)
-    if (ddx_data % workspace % error_flag .ne. 0) then
-        write(ddx_data % error_message, *) "constants_free failed!"
-        ddx_data % error_flag = 1
-        return
-    end if
-    call params_free(ddx_data % params)
-    if (ddx_data % workspace % error_flag .ne. 0) then
-        write(ddx_data % error_message, *) "params_free failed!"
-        ddx_data % error_flag = 1
-        return
-    end if
+    call workspace_free(ddx_data % workspace, error)
+    call constants_free(ddx_data % constants, error)
+    call params_free(ddx_data % params, error)
 end subroutine ddfree
 
 !> Deallocate the ddx_state object
 !> @ingroup Fortran_interface_core
 !!
 !! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[inout] error: ddX error
 !!
-subroutine ddx_free_state(state)
+subroutine ddx_free_state(state, error)
     implicit none
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     integer :: istatus
 
     if (allocated(state % phi_cav)) then
         deallocate(state % phi_cav, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`phi_cav` deallocation failed!"
+            call update_error(error, "`phi_cav` deallocation failed!")
             return
         endif
     end if
     if (allocated(state % gradphi_cav)) then
         deallocate(state % gradphi_cav, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`gradphi_cav` deallocation failed!"
+            call update_error(error, "`gradphi_cav` deallocation failed!")
             return
         endif
     end if
     if (allocated(state % psi)) then
         deallocate(state % psi, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`psi` deallocation failed!"
+            call update_error(error, "`psi` deallocation failed!")
             return
         endif
     end if
     if (allocated(state % phi_grid)) then
         deallocate(state % phi_grid, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`phi_grid` deallocation failed!"
+            call update_error(error, "`phi_grid` deallocation failed!")
             return
         endif
     end if
     if (allocated(state % phi)) then
         deallocate(state % phi, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`phi` deallocation failed!"
+            call update_error(error, "`phi` deallocation failed!")
         endif
     end if
     if (allocated(state % phiinf)) then
         deallocate(state % phiinf, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`phiinf` deallocation failed!"
+            call update_error(error, "`phiinf` deallocation failed!")
         endif
     end if
     if (allocated(state % phieps)) then
         deallocate(state % phieps, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`phieps` deallocation failed!"
+            call update_error(error, "`phieps` deallocation failed!")
         endif
     end if
     if (allocated(state % phieps_rel_diff)) then
         deallocate(state % phieps_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`phieps_rel_diff` deallocation failed!"
+            call update_error(error, "`phieps_rel_diff` deallocation failed!")
         endif
     end if
     if (allocated(state % xs)) then
         deallocate(state % xs, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`xs` deallocation failed!"
+            call update_error(error, "`xs` deallocation failed!")
         endif
     end if
     if (allocated(state % xs_rel_diff)) then
         deallocate(state % xs_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`xs_rel_diff` deallocation failed!"
+            call update_error(error, "`xs_rel_diff` deallocation failed!")
         endif
     end if
     if (allocated(state % s)) then
         deallocate(state % s, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`s` deallocation failed!"
+            call update_error(error, "`s` deallocation failed!")
         endif
     end if
     if (allocated(state % s_rel_diff)) then
         deallocate(state % s_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`s_rel_diff` deallocation failed!"
+            call update_error(error, "`s_rel_diff` deallocation failed!")
         endif
     end if
     if (allocated(state % sgrid)) then
         deallocate(state % sgrid, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`sgrid` deallocation failed!"
+            call update_error(error, "`sgrid` deallocation failed!")
         endif
     end if
     if (allocated(state % y)) then
         deallocate(state % y, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`y` deallocation failed!"
+            call update_error(error, "`y` deallocation failed!")
         endif
     end if
     if (allocated(state % y_rel_diff)) then
         deallocate(state % y_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`y_rel_diff` deallocation failed!"
+            call update_error(error, "`y_rel_diff` deallocation failed!")
         endif
     end if
     if (allocated(state % ygrid)) then
         deallocate(state % ygrid, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`ygrid` deallocation failed!"
+            call update_error(error, "`ygrid` deallocation failed!")
         endif
     end if
     if (allocated(state % g)) then
         deallocate(state % g, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`g` deallocation failed!"
+            call update_error(error, "`g` deallocation failed!")
         endif
     end if
     if (allocated(state % q)) then
         deallocate(state % q, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`q` deallocation failed!"
+            call update_error(error, "`q` deallocation failed!")
         endif
     end if
     if (allocated(state % qgrid)) then
         deallocate(state % qgrid, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`qgrid` deallocation failed!"
+            call update_error(error, "`qgrid` deallocation failed!")
         endif
     end if
     if (allocated(state % zeta)) then
         deallocate(state % zeta, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`zeta` deallocation failed!"
+            call update_error(error, "`zeta` deallocation failed!")
         endif
     end if
     if (allocated(state % x_lpb)) then
         deallocate(state % x_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`x_lpb` deallocation failed!"
+            call update_error(error, "`x_lpb` deallocation failed!")
         endif
     end if
     if (allocated(state % x_lpb_rel_diff)) then
         deallocate(state % x_lpb_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`x_lpb_rel_diff` deallocation failed!"
+            call update_error(error, "`x_lpb_rel_diff` deallocation failed!")
         end if
     end if
     if (allocated(state % x_adj_lpb)) then
         deallocate(state % x_adj_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "x_adj_lpb deallocation failed!"
+            call update_error(error, "x_adj_lpb deallocation failed!")
         endif
     end if
     if (allocated(state % x_adj_lpb_rel_diff)) then
         deallocate(state % x_adj_lpb_rel_diff, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`x_adj_lpb_rel_diff` deallocation failed!"
+            call update_error(error, "`x_adj_lpb_rel_diff` deallocation failed!")
         end if
     end if
     if (allocated(state % g_lpb)) then
         deallocate(state % g_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`g_lpb` deallocation failed!"
+            call update_error(error, "`g_lpb` deallocation failed!")
         endif
     end if
     if (allocated(state % f_lpb)) then
         deallocate(state % f_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`f_lpb` deallocation failed!"
+            call update_error(error, "`f_lpb` deallocation failed!")
         endif
     end if
     if (allocated(state % rhs_lpb)) then
         deallocate(state % rhs_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`rhs_lpb` deallocation failed!"
+            call update_error(error, "`rhs_lpb` deallocation failed!")
         endif
     end if
     if (allocated(state % rhs_adj_lpb)) then
         deallocate(state % rhs_adj_lpb, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`rhs_adj_lpb` deallocation failed!"
+            call update_error(error, "`rhs_adj_lpb` deallocation failed!")
         endif
     end if
     if (allocated(state % zeta_dip)) then
         deallocate(state % zeta_dip, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`zeta_dip` deallocation failed!"
+            call update_error(error, "`zeta_dip` deallocation failed!")
         endif
     end if
     if (allocated(state % x_adj_re_grid)) then
         deallocate(state % x_adj_re_grid, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`x_adj_re_grid` deallocation failed!"
+            call update_error(error, "`x_adj_re_grid` deallocation failed!")
         endif
     end if
     if (allocated(state % x_adj_r_grid)) then
         deallocate(state % x_adj_r_grid, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`x_adj_r_grid` deallocation failed!"
+            call update_error(error, "`x_adj_r_grid` deallocation failed!")
         endif
     end if
     if (allocated(state % x_adj_e_grid)) then
         deallocate(state % x_adj_e_grid, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`x_adj_e_grid` deallocation failed!"
+            call update_error(error, "`x_adj_e_grid` deallocation failed!")
         endif
     end if
     if (allocated(state % phi_n)) then
         deallocate(state % phi_n, stat=istatus)
         if (istatus .ne. 0) then
-            state % error_flag = 1
-            state % error_message = "`phi_n` deallocation failed!"
+            call update_error(error, "`phi_n` deallocation failed!")
         endif
     end if
 end subroutine ddx_free_state

@@ -73,8 +73,8 @@ do i = 1, ddx_data % params % nsph
 end do
 
 deallocate(phi_cav, gradphi_cav, psi, force, force_num, charges)
-call ddx_free_state(state)
-call ddfree(ddx_data)
+call ddx_free_state(state, error)
+call ddfree(ddx_data, error)
 
 write(*, *) "Rel.error of forces:", relerr
 if (relerr .gt. 1d-5) stop 1
@@ -107,7 +107,7 @@ subroutine solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &
     call ddsolve(ddx_data2, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, &
         & force, error2)
     call check_error(error2)
-    call ddfree(ddx_data2)
+    call ddfree(ddx_data2, error2)
 end subroutine solve
 
 end program main

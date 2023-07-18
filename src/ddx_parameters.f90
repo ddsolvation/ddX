@@ -65,11 +65,6 @@ type ddx_params_type
     real(dp), allocatable :: rsph(:)
     !> Dielectric permittivity of the cavity (used by ddLPB), hardcoded to one
     real(dp) :: epsp = 1.0_dp
-    !> Error state. 0 in case of no error or 1 if there were errors and 2 if
-    !! the object is not initialised.
-    integer :: error_flag = 2
-    !> Last error message
-    character(len=255) :: error_message
     !> integer matvecmem. Build hsp matrix to speed up matrix-vec product
     integer :: matvecmem
     !> variable to enable debug printins:
@@ -336,34 +331,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     end if
 end subroutine params_init
 
-!> Free memory used by parameters
-!! @param[inout] params: Object containing all inputs
-!! @param[inout] error: ddX error
-!!
-subroutine params_deinit(params)
-    !! Input
-    type(ddx_params_type), intent(inout) :: params
-    integer :: info
-    !! Code
-    ! Deallocate memory to avoid leaks
-    deallocate(params % csph, stat=info)
-    if (info .ne. 0) then
-        params % error_flag = 1
-        params % error_message = "params_deinit: `csph` deallocation failed"
-        info = 1
-    end if
-    deallocate(params % rsph, stat=info)
-    if (info .ne. 0) then
-        params % error_flag = 1
-        params % error_message = "params_deinit: `rsph` deallocation failed"
-        info = 1
-    end if
-    info = 0
-    ! Set params in error state to avoid its usage (due to deallocation)
-    params % error_flag = 1
-    params % error_message = "Not initialized"
-end subroutine params_deinit
-
 !> Adjust a guess for the number of Lebedev grid points.
 !!
 !! @param[inout] ngrid: Approximate number of Lebedev grid points on input and
@@ -388,31 +355,26 @@ end subroutine
 !> @ingroup Fortran_interface_core
 !!
 !! @param[out] params: User specified parameters
+!! @param[inout] error: ddX error
 !!
-subroutine params_free(params)
+subroutine params_free(params, error)
     implicit none
     type(ddx_params_type), intent(inout) :: params
+    type(ddx_error_type), intent(inout) :: error
     integer :: istat
 
-    istat = 0
-
     call finalize_printing(params)
-    if (params % error_flag .ne. 0) return
 
     if (allocated(params % csph)) then
         deallocate(params % csph, stat=istat)
         if (istat .ne. 0) then
-            params % error_message = "`csph` deallocation failed!"
-            params % error_flag = 1
-            return
+            call update_error(error, "params_free: `csph` deallocation failed")
         end if
     end if
     if (allocated(params % rsph)) then
         deallocate(params % rsph, stat=istat)
         if (istat .ne. 0) then
-            params % error_message = "`rsph` deallocation failed!"
-            params % error_flag = 1
-            return
+            call update_error(error, "params_free: `rsph` deallocation failed")
         end if
     end if
 end subroutine params_free

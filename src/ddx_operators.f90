@@ -157,9 +157,6 @@ subroutine ldm1x(params, constants, workspace, x, y, error)
     type(ddx_error_type), intent(inout) :: error
     !! Local variables
     integer :: isph, l, ind
-    ! workspace is here to comply with the interface
-    ! this dummy statement disables the warnings
-    if (workspace % error_flag .eq. 0) continue
     !! Loop over harmonics
     !$omp parallel do default(none) shared(params,constants,x,y) &
     !$omp private(isph,l,ind) schedule(dynamic)
@@ -621,9 +618,6 @@ subroutine prec_repsx(params, constants, workspace, x, y, error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: error
     integer :: isph
-    ! workspace is here to comply with the interface
-    ! this dummy statement disables the warnings
-    if ((workspace % error_flag .eq. 0) .or. (error % flag .eq. 0)) continue
     ! simply do a matrix-vector product with the transposed preconditioner 
     !$omp parallel do default(shared) schedule(static,1) &
     !$omp private(isph)
@@ -648,9 +642,6 @@ subroutine prec_repsstarx(params, constants, workspace, x, y, error)
     type(ddx_error_type), intent(inout) :: error
     ! Local variables
     integer :: isph
-    ! workspace and error are here to comply with the interface
-    ! this dummy statement disables the warnings
-    if (workspace % error_flag .eq. 0 .and. error % flag .eq. 0) continue
     ! simply do a matrix-vector product with the transposed preconditioner 
     !$omp parallel do default(shared) schedule(static,1) &
     !$omp private(isph)
@@ -789,11 +780,6 @@ subroutine bx_prec(params, constants, workspace, x, y, error)
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
     type(ddx_error_type), intent(inout) :: error
-    ! params, costants and workspace are here to comply with the interface
-    ! this dummy statement disables the warnings
-    if ((params % error_flag .eq. 0) .or. (constants % error_flag .eq. 0) &
-        & .or. (workspace % error_flag .eq. 0) .or. (error % flag .eq. 0)) &
-        continue
     y = x
 end subroutine bx_prec
 

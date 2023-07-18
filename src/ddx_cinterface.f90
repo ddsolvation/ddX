@@ -17,7 +17,7 @@ module ddx_cinterface
         type(ddx_params_type)    :: params
         type(ddx_constants_type) :: constants
         type(ddx_workspace_type) :: workspace
-        type(ddx_error_type) :: error
+        type(ddx_error_type)     :: error
     end type ddx_setup
 
 contains
@@ -88,6 +88,15 @@ subroutine ddx_scaled_ylm(c_ddx, lmax, x, sphere, ylm) bind(C)
 end
 
 !
+! Error
+!
+function ddx_allocate_error() result(c_error) bind(C)
+    type(ddx_error_type), pointer :: error
+    type(c_ptr) :: c_error
+    call c_f_pointer(c_error, error)
+end function
+
+!
 ! Setup object
 !
 function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
@@ -122,15 +131,15 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
         & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, &
         & fmm_multipole_lmax, fmm_local_lmax, passproc, n_spheres, &
         & sphere_centres, sphere_radii, logfile, ddx%params, ddx%error)
-    if (ddx%params%error_flag .ne. 0) then
+    if (ddx%error%flag .ne. 0) then
         return
     endif
     call constants_init(ddx%params, ddx%constants, ddx%error)
-    if (ddx%constants%error_flag .ne. 0) then
+    if (ddx%error%flag .ne. 0) then
         return
     endif
     call workspace_init(ddx%params, ddx%constants, ddx%workspace, ddx%error)
-    if (ddx%workspace%error_flag .ne. 0) then
+    if (ddx%error%flag .ne. 0) then
         return
     endif
 end function
@@ -139,9 +148,9 @@ subroutine ddx_deallocate_model(c_ddx) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
     type(ddx_setup), pointer :: ddx
     call c_f_pointer(c_ddx, ddx)
-    call params_deinit(ddx%params)
-    call constants_free(ddx%constants)
-    call workspace_free(ddx%workspace)
+    call params_free(ddx%params, ddx%error)
+    call constants_free(ddx%constants, ddx%error)
+    call workspace_free(ddx%workspace, ddx%error)
     deallocate(ddx)
 end
 
@@ -150,14 +159,7 @@ function ddx_get_error_flag(c_ddx) result(has_error) bind(C)
     type(ddx_setup), pointer :: ddx
     integer(c_int) :: has_error
     call c_f_pointer(c_ddx, ddx)
-    has_error = 0
-    if (ddx%params%error_flag .ne. 0) then
-        has_error = ddx%params%error_flag
-    elseif (ddx%constants%error_flag .ne. 0) then
-        has_error = ddx%constants%error_flag
-    elseif (ddx%workspace%error_flag .ne. 0) then
-        has_error = ddx%workspace%error_flag
-    endif
+    has_error = ddx%error%flag
 end
 
 subroutine ddx_get_error_message(c_ddx, message, maxlen) bind(C)
@@ -168,13 +170,8 @@ subroutine ddx_get_error_message(c_ddx, message, maxlen) bind(C)
     type(ddx_setup), pointer :: ddx
     integer :: length, i
     call c_f_pointer(c_ddx, ddx)
-    ! Get the actual error message from the collection of structs
-    if (ddx%params%error_flag .ne. 0) then
-        error_message = ddx%params%error_message
-    elseif (ddx%constants%error_flag .ne. 0) then
-        error_message = ddx%constants%error_message
-    elseif (ddx%workspace%error_flag .ne. 0) then
-        error_message = ddx%workspace%error_message
+    if (ddx%error%flag .ne. 0) then
+        error_message = ddx%error%message
     else
         error_message = ''
     endif
@@ -408,8 +405,9 @@ end function
 subroutine ddx_deallocate_state(c_state) bind(C)
     type(c_ptr), intent(in), value :: c_state
     type(ddx_state_type), pointer :: state
+    type(ddx_error_type) :: error
     call c_f_pointer(c_state, state)
-    call ddx_free_state(state)
+    call ddx_free_state(state, error)
     deallocate(state)
 end subroutine
 
@@ -693,7 +691,7 @@ subroutine ddx_lpb_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav, gradp
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_state, state)
-    call ddlpb_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, gradphi_cav, psi)
+    call ddlpb_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, gradphi_cav, psi, ddx%error)
 end subroutine
 
 subroutine ddx_lpb_guess(c_ddx, c_state, tol) bind(C)

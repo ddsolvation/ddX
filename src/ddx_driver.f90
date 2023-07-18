@@ -186,7 +186,7 @@ else if (ddx_data % params % model .eq. 2) then
         & ddx_data % workspace, state, tol, error)
 else if (ddx_data % params % model .eq. 3) then
     call ddlpb_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, e_cav, psi)
+        & ddx_data % workspace, state, phi_cav, e_cav, psi, error)
     call ddlpb_guess(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, tol, error)
     call ddlpb_solve(ddx_data % params, ddx_data % constants, &
@@ -399,7 +399,7 @@ if (allocated(force)) then
     end if
 end if
 
-call ddx_free_state(state)
-call ddfree(ddx_data)
+call ddx_free_state(state, error)
+call ddfree(ddx_data, error)
 
 end program main

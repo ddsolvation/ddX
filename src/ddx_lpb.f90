@@ -52,7 +52,7 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
     type(ddx_error_type), intent(inout) :: error
 
     call ddlpb_setup(params, constants, workspace, state, phi_cav, &
-        & e_cav, psi)
+        & e_cav, psi, error)
     call ddlpb_guess(params, constants, workspace, state, tol, error)
     call ddlpb_solve(params, constants, workspace, state, tol, error)
 
@@ -80,14 +80,16 @@ end subroutine ddlpb
 !! @param[in] phi_cav: electrostatic potential at the cavity points
 !! @param[in] e_cav: electrostatic field at the cavity points
 !! @param[in] psi: representation of the solute density
+!! @param[inout] error: ddX error
 !!
 subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
-        & e_cav, psi)
+        & e_cav, psi, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
@@ -123,7 +125,8 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
     state % gradphi_cav = - e_cav
 
     ! wghpot_f : Intermediate computation of F_0 Eq.(75) from QSM19.SISC
-    call wghpot_f(params, constants, workspace, state % gradphi_cav, state % f_lpb)
+    call wghpot_f(params, constants, workspace, state % gradphi_cav, &
+        & state % f_lpb, error)
 
     ! Setting of the local variables
     state % rhs_lpb = zero
@@ -418,7 +421,6 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     ! Computation of G0 continued
 
     ! NOTE: contract_grad_U returns a positive summation
-    if (workspace % error_flag .eq. 1) return
     force = -force
     icav = 0
     do isph = 1, params % nsph

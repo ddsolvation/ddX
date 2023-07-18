@@ -202,7 +202,7 @@ subroutine ddpcm_solve(params, constants, workspace, state, tol, error)
     finish_time = omp_get_wtime()
     state % xs_time = finish_time - start_time
 
-    if (workspace % error_flag .ne. 0) then
+    if (error % flag .ne. 0) then
         call update_error(error, "ddpcm_solve: solver for ddCOSMO " // &
             & "system did not converge, exiting")
         return

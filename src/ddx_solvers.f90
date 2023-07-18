@@ -307,10 +307,10 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
       ! Jacobi iterations
       do it = 1, n_iter
         ! y = rhs - O x
-        call matvec(params, constants, workspace, x, y )
+        call matvec(params, constants, workspace, x, y, error)
         y = rhs - y
         ! x_new = D^-1 y
-        call dm1vec(params, constants, workspace, y, x_new)
+        call dm1vec(params, constants, workspace, y, x_new, error)
         ! DIIS extrapolation
         if (dodiis) then
           x_diis(:,nmat) = x_new

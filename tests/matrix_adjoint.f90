@@ -402,7 +402,7 @@ deallocate(random_vector_nbasis_nsph_two, &
            & vector_C_star_two, &
            & zero_vector, &
            & charges)
-call ddfree(ddx_data)
+call ddfree(ddx_data, error)
 
 write(*, *) "y4(A)x1  :", check_A_one, ", x1(A*)y4  :", check_A_star_one
 write(*, *) "y3(A)x2  :", check_A_two, ", x2(A*)y3  :", check_A_star_two

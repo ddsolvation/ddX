@@ -160,7 +160,7 @@ deallocate(default_epsilon, default_eta, &
 
 if (istatus.ne.0) write(6,*) 'Deallocation failed'
 
-call ddfree(ddx_data)
+call ddfree(ddx_data, error)
 
 contains
 
@@ -219,8 +219,8 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
     n_iter = state % x_lpb_niter
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
 
-    call ddx_free_state(state)
-    call ddfree(ddx_data2)
+    call ddx_free_state(state, error2)
+    call ddfree(ddx_data2, error2)
 end subroutine solve
 
 ! This subroutine checks if the default and computed values are same

@@ -58,7 +58,7 @@ do i = 1, size(alpha)
     call check_dx(ddx_data, lmax+1, lmax+1, 1d-4)
     call check_gradr(ddx_data, 40, 40, 1d-12)
     call check_gradr(ddx_data, lmax+2, lmax+2, 1d-3)
-    call ddfree(ddx_data)
+    call ddfree(ddx_data, error)
 end do
 
 contains
@@ -225,7 +225,7 @@ subroutine check_dx(ddx_data, pm, pl, threshold)
         end if
     end do
     ! Free temporary objects
-    call ddfree(ddx_data_fmm)
+    call ddfree(ddx_data_fmm, error)
 end subroutine check_dx
 
 subroutine check_gradr(ddx_data, pm, pl, threshold)
@@ -271,7 +271,7 @@ subroutine check_gradr(ddx_data, pm, pl, threshold)
         call test_error(-1, "Forces are different")
     end if
     deallocate(ygrid, g)
-    call ddfree(ddx_data_fmm)
+    call ddfree(ddx_data_fmm, error)
 end subroutine check_gradr
 
 end program test_ddx_operators

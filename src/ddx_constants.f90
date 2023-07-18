@@ -224,10 +224,6 @@ type ddx_constants_type
     !> Whether the diagonal of the matrices has to be used in the mvp for
     !! ddCOSMO, ddPCM or inner ddLPB iterations
     logical  :: dodiag
-    !> Flag if there were an error
-    integer :: error_flag = 2
-    !> Last error message
-    character(len=255) :: error_message
 end type ddx_constants_type
 
 contains
@@ -1819,9 +1815,10 @@ end subroutine tree_get_farnear
 !! @param[out] constants: Precomputed constants
 !! @param[inout] error: ddX error
 !!
-subroutine constants_free(constants)
+subroutine constants_free(constants, error)
     implicit none
     type(ddx_constants_type), intent(out) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer :: istat
 
     istat = 0
@@ -1829,403 +1826,305 @@ subroutine constants_free(constants)
     if (allocated(constants % vscales)) then
         deallocate(constants % vscales, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vscales` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vscales` deallocation failed!")
         end if
     end if
     if (allocated(constants % v4pi2lp1)) then
         deallocate(constants % v4pi2lp1, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`v4pi2lp1` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`v4pi2lp1` deallocation failed!")
         end if
     end if
     if (allocated(constants % vscales_rel)) then
         deallocate(constants % vscales_rel, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vscales_rel` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vscales_rel` deallocation failed!")
         end if
     end if
     if (allocated(constants % vfact)) then
         deallocate(constants % vfact, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vfact` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vfact` deallocation failed!")
         end if
     end if
     if (allocated(constants % vcnk)) then
         deallocate(constants % vcnk, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vcnk` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vcnk` deallocation failed!")
         end if
     end if
     if (allocated(constants % m2l_ztranslate_coef)) then
         deallocate(constants % m2l_ztranslate_coef, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`m2l_ztranslate_coef` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, &
+                & "`m2l_ztranslate_coef` deallocation failed!")
         end if
     end if
     if (allocated(constants % m2l_ztranslate_adj_coef)) then
         deallocate(constants % m2l_ztranslate_adj_coef, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`m2l_ztranslate_adj_coef` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, &
+                & "`m2l_ztranslate_adj_coef` deallocation failed!")
         end if
     end if
     if (allocated(constants % cgrid)) then
         deallocate(constants % cgrid, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`cgrid` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`cgrid` deallocation failed!")
         end if
     end if
     if (allocated(constants % wgrid)) then
         deallocate(constants % wgrid, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`wgrid` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`wgrid` deallocation failed!")
         end if
     end if
     if (allocated(constants % vgrid)) then
         deallocate(constants % vgrid, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vgrid` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vgrid` deallocation failed!")
         end if
     end if
     if (allocated(constants % vwgrid)) then
         deallocate(constants % vwgrid, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vwgrid` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vwgrid` deallocation failed!")
         end if
     end if
     if (allocated(constants % vgrid2)) then
         deallocate(constants % vgrid2, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vgrid2` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vgrid2` deallocation failed!")
         end if
     end if
     if (allocated(constants % pchi)) then
         deallocate(constants % pchi, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`pchi` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`pchi` deallocation failed!")
         end if
     end if
     if (allocated(constants % c_ik)) then
         deallocate(constants % c_ik, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`c_ik` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`c_ik` deallocation failed!")
         end if
     end if
     if (allocated(constants % si_ri)) then
         deallocate(constants % si_ri, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`si_ri` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`si_ri` deallocation failed!")
         end if
     end if
     if (allocated(constants % di_ri)) then
         deallocate(constants % di_ri, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`di_ri` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`di_ri` deallocation failed!")
         end if
     end if
     if (allocated(constants % sk_ri)) then
         deallocate(constants % sk_ri, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`sk_ri` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`sk_ri` deallocation failed!")
         end if
     end if
     if (allocated(constants % dk_ri)) then
         deallocate(constants % dk_ri, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`dk_ri` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`dk_ri` deallocation failed!")
         end if
     end if
     if (allocated(constants % termimat)) then
         deallocate(constants % termimat, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`termimat` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`termimat` deallocation failed!")
         end if
     end if
     if (allocated(constants % b)) then
         deallocate(constants % b, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`b` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`b` deallocation failed!")
         end if
     end if
     if (allocated(constants % l)) then
         deallocate(constants % l, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`l` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`l` deallocation failed!")
         end if
     end if
     if (allocated(constants % inl)) then
         deallocate(constants % inl, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`inl` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`inl` deallocation failed!")
         end if
     end if
     if (allocated(constants % nl)) then
         deallocate(constants % nl, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`nl` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`nl` deallocation failed!")
         end if
     end if
     if (allocated(constants % itrnl)) then
         deallocate(constants % itrnl, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`itrnl` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`itrnl` deallocation failed!")
         end if
     end if
     if (allocated(constants % fi)) then
         deallocate(constants % fi, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`fi` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`fi` deallocation failed!")
         end if
     end if
     if (allocated(constants % ui)) then
         deallocate(constants % ui, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`ui` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`ui` deallocation failed!")
         end if
     end if
     if (allocated(constants % ui_cav)) then
         deallocate(constants % ui_cav, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`ui_cav` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`ui_cav` deallocation failed!")
         end if
     end if
     if (allocated(constants % zi)) then
         deallocate(constants % zi, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`zi` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`zi` deallocation failed!")
         end if
     end if
     if (allocated(constants % ncav_sph)) then
         deallocate(constants % ncav_sph, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`ncav_sph` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`ncav_sph` deallocation failed!")
         end if
     end if
     if (allocated(constants % ccav)) then
         deallocate(constants % ccav, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`ccav` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`ccav` deallocation failed!")
         end if
     end if
     if (allocated(constants % icav_ia)) then
         deallocate(constants % icav_ia, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`icav_ia` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`icav_ia` deallocation failed!")
         end if
     end if
     if (allocated(constants % icav_ja)) then
         deallocate(constants % icav_ja, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`icav_ja` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`icav_ja` deallocation failed!")
         end if
     end if
     if (allocated(constants % rx_prc)) then
         deallocate(constants % rx_prc, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`rx_prc` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`rx_prc` deallocation failed!")
         end if
     end if
     if (allocated(constants % order)) then
         deallocate(constants % order, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`order` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`order` deallocation failed!")
         end if
     end if
     if (allocated(constants % cluster)) then
         deallocate(constants % cluster, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`cluster` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`cluster` deallocation failed!")
         end if
     end if
     if (allocated(constants % children)) then
         deallocate(constants % children, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`children` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`children` deallocation failed!")
         end if
     end if
     if (allocated(constants % parent)) then
         deallocate(constants % parent, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`parent` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`parent` deallocation failed!")
         end if
     end if
     if (allocated(constants % cnode)) then
         deallocate(constants % cnode, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`cnode` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`cnode` deallocation failed!")
         end if
     end if
     if (allocated(constants % rnode)) then
         deallocate(constants % rnode, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`rnode` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`rnode` deallocation failed!")
         end if
     end if
     if (allocated(constants % snode)) then
         deallocate(constants % snode, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`snode` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`snode` deallocation failed!")
         end if
     end if
     if (allocated(constants % sk_rnode)) then
         deallocate(constants % sk_rnode, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`sk_rnode` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`sk_rnode` deallocation failed!")
         end if
     end if
     if (allocated(constants % si_rnode)) then
         deallocate(constants % si_rnode, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`si_rnode` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`si_rnode` deallocation failed!")
         end if
     end if
     if (allocated(constants % nfar)) then
         deallocate(constants % nfar, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`nfar` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`nfar` deallocation failed!")
         end if
     end if
     if (allocated(constants % nnear)) then
         deallocate(constants % nnear, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`nnear` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`nnear` deallocation failed!")
         end if
     end if
     if (allocated(constants % far)) then
         deallocate(constants % far, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`far` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`far` deallocation failed!")
         end if
     end if
     if (allocated(constants % near)) then
         deallocate(constants % near, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`near` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`near` deallocation failed!")
         end if
     end if
     if (allocated(constants % sfar)) then
         deallocate(constants % sfar, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`sfar` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`sfar` deallocation failed!")
         end if
     end if
     if (allocated(constants % snear)) then
         deallocate(constants % snear, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`snear` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`snear` deallocation failed!")
         end if
     end if
     if (allocated(constants % m2l_ztranslate_coef)) then
         deallocate(constants % m2l_ztranslate_coef, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`m2l_ztranslate_coef` " // &
-                & "deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`m2l_ztranslate_coef` " // &
+                & "deallocation failed!")
         end if
     end if
     if (allocated(constants % m2l_ztranslate_adj_coef)) then
         deallocate(constants % m2l_ztranslate_adj_coef, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`m2l_ztranslate_adj_coef` " // &
-                & "deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`m2l_ztranslate_adj_coef` " // &
+                & "deallocation failed!")
         end if
     end if
 end subroutine constants_free

@@ -67,9 +67,8 @@ subroutine ddsolve(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
                 & psi, tol, esolv, hessianphi_cav, force, error)
         ! Error case
         case default
-            ddx_data % params % error_flag = 1
-            ddx_data % params % error_message = "unsupported solvation " // &
-                & " model in the dd solver."
+            call update_error(error, "unsupported solvation " // &
+                & " model in the dd solver.")
             return
     end select
 end subroutine ddsolve
