@@ -50,11 +50,11 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
     real(dp), intent(out) :: esolv
     real(dp), intent(out), optional :: force(3, params % nsph)
 
-    call ddpcm_setup(params, constants, workspace, state, phi_cav, psi)
+    call ddpcm_setup(params, constants, workspace, state, phi_cav, psi, error)
     call ddpcm_guess(params, constants, workspace, state, error)
     call ddpcm_solve(params, constants, workspace, state, tol, error)
 
-    call ddpcm_energy(constants, state, esolv)
+    call ddpcm_energy(constants, state, esolv, error)
 
     ! Get forces if needed
     if (params % force .eq. 1) then
@@ -66,7 +66,7 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
         call ddpcm_solvation_force_terms(params, constants, workspace, &
-            & state, force)
+            & state, force, error)
     end if
 
 end subroutine ddpcm
@@ -77,11 +77,13 @@ end subroutine ddpcm
 !! @param[in] constants: Precomputed constants
 !! @param[in] state: ddx state (contains solutions and RHSs)
 !! @param[out] esolv: resulting energy
+!! @param[inout] error: ddX error
 !!
-subroutine ddpcm_energy(constants, state, esolv)
+subroutine ddpcm_energy(constants, state, esolv, error)
     implicit none
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(in) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
     esolv = pt5*ddot(constants % n, state % xs, 1, state % psi, 1)
@@ -97,13 +99,15 @@ end subroutine ddpcm_energy
 !! @param[inout] state: ddx state
 !! @param[in] phi_cav: electrostatic potential at the cavity points
 !! @param[in] psi: representation of the solute density
+!! @param[inout] error: ddX error
 !!
-subroutine ddpcm_setup(params, constants, workspace, state, phi_cav, psi)
+subroutine ddpcm_setup(params, constants, workspace, state, phi_cav, psi, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     call cav_to_spherical(params, constants, workspace, phi_cav, &
@@ -274,14 +278,16 @@ end subroutine ddpcm_solve_adjoint
 !! @param[inout] workspace : Preallocated workspaces
 !! @param[inout] state     : Solutions and relevant quantities
 !! @param[out] force       : Geometrical contribution to the forces
+!! @param[inout] error: ddX error
 !!
 subroutine ddpcm_solvation_force_terms(params, constants, workspace, &
-        & state, force)
+        & state, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(out) :: force(3, params % nsph)
 
     real(dp) :: start_time, finish_time

@@ -51,11 +51,11 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
     real(dp), intent(out), optional :: force(3, params % nsph)
     type(ddx_error_type), intent(inout) :: error
 
-    call ddcosmo_setup(params, constants, workspace, state, phi_cav, psi)
+    call ddcosmo_setup(params, constants, workspace, state, phi_cav, psi, error)
     call ddcosmo_guess(params, constants, workspace, state, error)
     call ddcosmo_solve(params, constants, workspace, state, tol, error)
 
-    call ddcosmo_energy(constants, state, esolv)
+    call ddcosmo_energy(constants, state, esolv, error)
 
     ! Get forces if needed
     if (params % force .eq. 1) then
@@ -67,7 +67,7 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
         call ddcosmo_solvation_force_terms(params, constants, workspace, &
-            & state, force)
+            & state, force, error)
     end if
 end subroutine ddcosmo
 
@@ -78,10 +78,11 @@ end subroutine ddcosmo
 !! @param[in] state: ddx state (contains solutions and RHSs)
 !! @param[out] esolv: resulting energy
 !!
-subroutine ddcosmo_energy(constants, state, esolv)
+subroutine ddcosmo_energy(constants, state, esolv, error)
     implicit none
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(in) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
     esolv = pt5*ddot(constants % n, state % xs, 1, state % psi, 1)
@@ -97,13 +98,15 @@ end subroutine ddcosmo_energy
 !! @param[inout] state: ddx state
 !! @param[in] phi_cav: electrostatic potential at the cavity points
 !! @param[in] psi: representation of the solute density
+!! @param[inout] error: ddX error
 !!
-subroutine ddcosmo_setup(params, constants, workspace, state, phi_cav, psi)
+subroutine ddcosmo_setup(params, constants, workspace, state, phi_cav, psi, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     call cav_to_spherical(params, constants, workspace, phi_cav, &
@@ -233,14 +236,16 @@ end subroutine ddcosmo_solve_adjoint
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[inout] force: force term
+!! @param[inout] error: ddX error
 !!
 subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
-        & state, force)
+        & state, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(inout) :: force(3, params % nsph)
     ! local variables
     real(dp) :: start_time, finish_time

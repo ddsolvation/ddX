@@ -172,14 +172,14 @@ write(*, 100) "Psi time:", finish_time-start_time, " seconds"
 ! STEP 4: solve the primal linear system.
 if (ddx_data % params % model .eq. 1) then
     call ddcosmo_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, psi)
+        & ddx_data % workspace, state, phi_cav, psi, error)
     call ddcosmo_guess(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, error)
     call ddcosmo_solve(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, tol, error)
 else if (ddx_data % params % model .eq. 2) then
     call ddpcm_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, psi)
+        & ddx_data % workspace, state, phi_cav, psi, error)
     call ddpcm_guess(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, error)
     call ddpcm_solve(ddx_data % params, ddx_data % constants, &
@@ -196,11 +196,11 @@ call check_error(error)
 
 ! STEP 5: compute the solvation energy
 if (ddx_data % params % model .eq. 1) then
-    call ddcosmo_energy(ddx_data % constants, state, esolv)
+    call ddcosmo_energy(ddx_data % constants, state, esolv, error)
 else if (ddx_data % params % model .eq. 2) then
-    call ddpcm_energy(ddx_data % constants, state, esolv)
+    call ddpcm_energy(ddx_data % constants, state, esolv, error)
 else if (ddx_data % params % model .eq. 3) then
-    call ddlpb_energy(ddx_data % constants, state, esolv)
+    call ddlpb_energy(ddx_data % constants, state, esolv, error)
 end if
 
 ! STEP 6: if required solve the adjoint linear system. The adjoint
@@ -239,10 +239,10 @@ if (ddx_data % params % force .eq. 1) then
 
     if (ddx_data % params % model .eq. 1) then
         call ddcosmo_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, force)
+            & ddx_data % constants, ddx_data % workspace, state, force, error)
     else if (ddx_data % params % model .eq. 2) then
         call ddpcm_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, force)
+            & ddx_data % constants, ddx_data % workspace, state, force, error)
     else if (ddx_data % params % model .eq. 3) then
         call ddlpb_solvation_force_terms(ddx_data % params, &
             & ddx_data % constants, ddx_data % workspace, state, g_cav, force, error)

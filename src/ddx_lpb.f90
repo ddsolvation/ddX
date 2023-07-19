@@ -57,7 +57,7 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
     call ddlpb_solve(params, constants, workspace, state, tol, error)
 
     ! Compute the solvation energy
-    call ddlpb_energy(constants, state, esolv)
+    call ddlpb_energy(constants, state, esolv, error)
 
     ! Get forces if needed
     if(params % force .eq. 1) then
@@ -148,11 +148,13 @@ end subroutine ddlpb_setup
 !! @param[in] constants: Precomputed constants
 !! @param[in] state: ddx state (contains solutions and RHSs)
 !! @param[out] esolv: resulting energy
+!! @param[inout] error: ddX error
 !!
-subroutine ddlpb_energy(constants, state, esolv)
+subroutine ddlpb_energy(constants, state, esolv, error)
     implicit none
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(in) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
     esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, state % psi, 1)

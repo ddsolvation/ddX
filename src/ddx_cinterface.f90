@@ -513,7 +513,7 @@ subroutine ddx_cosmo_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav, c_e
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, psi)
+    call ddcosmo_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, psi, error)
 end subroutine
 
 ! Put a guess for the problem into the state (optional)
@@ -581,7 +581,7 @@ function ddx_cosmo_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_energy(ddx%constants, state, c_energy)
+    call ddcosmo_energy(ddx%constants, state, c_energy, error)
 end function
 
 ! Compute the forces
@@ -596,7 +596,7 @@ subroutine ddx_cosmo_solvation_force_terms(c_ddx, c_state, nsph, forces, c_error
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, forces)
+    call ddcosmo_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, forces, error)
 end
 
 !
@@ -613,7 +613,7 @@ subroutine ddx_pcm_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav, c_err
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, psi)
+    call ddpcm_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, psi, error)
 end subroutine
 
 subroutine ddx_pcm_guess(c_ddx, c_state, c_error) bind(C)
@@ -676,7 +676,7 @@ function ddx_pcm_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_energy(ddx%constants, state, c_energy)
+    call ddpcm_energy(ddx%constants, state, c_energy, error)
 end function
 
 subroutine ddx_pcm_solvation_force_terms(c_ddx, c_state, nsph, forces, c_error) bind(C)
@@ -690,7 +690,7 @@ subroutine ddx_pcm_solvation_force_terms(c_ddx, c_state, nsph, forces, c_error) 
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, forces)
+    call ddpcm_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, forces, error)
 end
 
 !
@@ -772,7 +772,7 @@ function ddx_lpb_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_energy(ddx%constants, state, c_energy)
+    call ddlpb_energy(ddx%constants, state, c_energy, error)
 end function
 
 ! TODO LPB force terms not yet supported in C and python interface
