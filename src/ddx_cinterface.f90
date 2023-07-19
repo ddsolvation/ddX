@@ -109,7 +109,7 @@ subroutine ddx_get_error_message(c_error, message, maxlen) bind(C)
     type(c_ptr), intent(in), value :: c_error
     integer(c_int), intent(in), value :: maxlen
     character(len=1, kind=C_char), intent(out) :: message(maxlen)
-    character(len=2000) :: error_message
+    character(len=2047) :: error_message
     type(ddx_error_type), pointer :: error
     integer :: length, i
     call c_f_pointer(c_error, error)

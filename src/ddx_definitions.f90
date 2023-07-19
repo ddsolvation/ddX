@@ -41,8 +41,6 @@ integer, parameter :: ng0(nllg) = (/ 6, 14, 26, 38, 50, 74, 86, 110, 146, &
     & 2030, 2354, 2702, 3074, 3470, 3890, 4334, 4802, 5294, 5810 /)
 !> Names of ddX models
 character(len=255), parameter :: model_str(3) = (/ "COSMO", "PCM  ", "LPB  " /)
-!> length of the error message
-integer, parameter :: error_length = 2000
 
 end module ddx_definitions
 

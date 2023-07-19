@@ -138,8 +138,8 @@ class Model {
   // Check for errors
   void throw_if_error() const {
     if (ddx_get_error_flag(error()) != 0) {
-      char message[2000];
-      ddx_get_error_message(error(), message, 2000);
+      char message[2047];
+      ddx_get_error_message(error(), message, 2047);
       throw std::runtime_error(std::string(message));
     }
   }

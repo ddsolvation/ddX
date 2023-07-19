@@ -1,12 +1,14 @@
 module ddx_errors
 
+use ddx_definitions
+
 !> ddX type for containing error information
 type ddx_error_type
     !> Flag for error codes
     integer :: flag = 0
     !> Error message log
-    integer :: max_length = 2000
-    character(len=2000) :: message
+    integer :: max_length = 2047
+    character(len=2047) :: message
     integer :: message_length = 1
 end type ddx_error_type
 
