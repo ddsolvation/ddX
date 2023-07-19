@@ -42,6 +42,24 @@ int ddx_supported_lebedev_grids(int maxlen, int* grids);
 void ddx_scaled_ylm(const void* ddx, int lmax, const double* x, int sphere, double* ylm);
 ///@}
 
+/** \name Allocate and manage the ddX error object */
+///@{
+
+/** Allocate the ddX error. */
+void* ddx_allocate_error();
+
+/** Get the error flag stored inside the model (0 is no error). It is the responsibility
+ * of the user of DDX to regularly check for a non-zero error flag and take appropriate
+ * actions if an error is present. */
+int ddx_get_error_flag(const void* error);
+
+/** Store the error message corresponding to the most recent error inside the passed
+ * char array. at most maxlen characters are copied (so set this to the number of
+ * allocated characters in the passed array to avoid a buffer overflow. */
+void ddx_get_error_message(const void* error, char* message, int maxlen);
+
+///@}
+
 /** \name Allocate and manage the ddx model object */
 ///@{
 
@@ -75,6 +93,7 @@ void ddx_scaled_ylm(const void* ddx, int lmax, const double* x, int sphere, doub
  *                         be quite verbose for larger runs and should only be used for
  *                         debugging.
  * \param logfile          The logfile name (empty if no log)
+ * \param error            The ddX error object
  */
 void* ddx_allocate_model(int model, int enable_force, double solvent_epsilon,
                          double solvent_kappa, double eta, double shift, int lmax,
@@ -82,20 +101,11 @@ void* ddx_allocate_model(int model, int enable_force, double solvent_epsilon,
                          int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax,
                          int n_proc, int n_spheres, const double* sphere_centres,
                          const double* sphere_radii, int length_logfile,
-                         const char* logfile);
+                         const char* logfile, const void* error);
 
 /** Deallocate the model object */
-void ddx_deallocate_model(void* ddx);
+void ddx_deallocate_model(void* ddx, const void* error);
 
-/** Get the error flag stored inside the model (0 is no error). It is the responsibility
- * of the user of DDX to regularly check for a non-zero error flag and take appropriate
- * actions if an error is present. */
-int ddx_get_error_flag(const void* ddx);
-
-/** Store the error message corresponding to the most recent error inside the passed
- * char array. at most maxlen characters are copied (so set this to the number of
- * allocated characters in the passed array to avoid a buffer overflow. */
-void ddx_get_error_message(const void* ddx, char* message, int maxlen);
 ///@}
 
 /** \name Getters for properties of the state object */
@@ -185,20 +195,10 @@ void ddx_get_cavity(const void* ddx, int ncav, double* c_ccav);
 /** \name Allocate and manage the state object */
 ///@{
 /** Allocate an empty state from a model */
-void* ddx_allocate_state(const void* ddx);
+void* ddx_allocate_state(const void* ddx, const void* error);
 
 /** Deallocate a state object */
-void ddx_deallocate_state(void* state);
-
-/** Get the error flag stored inside the state (0 is no error). It is the responsibility
- * of the user of DDX to regularly check for a non-zero error flag and take appropriate
- * actions if an error is present. */
-int ddx_get_state_error_flag(const void* state);
-
-/** Store the error message corresponding to the most recent error inside the passed
- * char array. At most maxlen characters are copied. So best set maxlen to the number of
- * allocated characters in the passed array to avoid a buffer overflow. */
-void ddx_get_state_error_message(const void* state, char* message, int maxlen);
+void ddx_deallocate_state(void* state, const void* error);
 
 /** Get the solution of the forward problem stored inside the state
  *  as a (nbasis, nsph) array in column-major ordering.
@@ -262,48 +262,52 @@ void ddx_get_zeta_dip(const void* state, const void* ddx, int ncav, double* zeta
  *  \param nbasis  Number of basis functions used by DDX
  *  \param nsph    Number of cavity spheres
  *  \param psi     Psi array (nbasis, nsph)-shaped array (in column-major ordering)
- *  \param phi_cav Phi array (ncav, )-shaped array
+ *  \param phi_cav Phi array adjoint (ncav, )-shaped array
  */
 void ddx_cosmo_setup(const void* ddx, void* state, int ncav, int nbasis, int nsph,
-                     const double* psi, const double* phi_cav);
+                     const double* psi, const double* phi_cav, const void* error);
 
 /** In-place adjust the guess inside the state, getting ready to solve a COSMO problem.
  *  Avoid calling this step if you want to use the currently stored solution as an
  * initial guess */
-void ddx_cosmo_guess(const void* ddx, void* state);
+void ddx_cosmo_guess(const void* ddx, void* state, const void* error);
 
 /** In-place adjust the guess inside the state, getting ready to solve an adjoint COSMO
  *  problem. Avoid calling this step if you want to use the currently stored solution as
  *  an initial guess */
-void ddx_cosmo_guess_adjoint(const void* ddx, void* state);
+void ddx_cosmo_guess_adjoint(const void* ddx, void* state, const void* error);
 
 /** Solve the COSMO problem.
  *  \param state   DDX state
  *  \param ddx     DDX model
- *  \param tol Tolerance up to which the problem is solved */
-void ddx_cosmo_solve(const void* ddx, void* state, double tol);
+ *  \param tol Tolerance up to which the problem is solved
+ *  \param error   DDX error */
+void ddx_cosmo_solve(const void* ddx, void* state, double tol, const void* error);
 
 /** Solve the adjoint COSMO problem.
  *  \param state   DDX state
  *  \param ddx     DDX model
- *  \param tol Tolerance up to which the problem is solved */
-void ddx_cosmo_solve_adjoint(const void* ddx, void* state, double tol);
+ *  \param tol Tolerance up to which the problem is solved
+ *  \param error   DDX error */
+void ddx_cosmo_solve_adjoint(const void* ddx, void* state, double tol, const void* error);
 
 /** Compute COSMO energy (without any scaling by (epsilon - 1) / epsilon
  *  or similar).
  *  \param state   DDX state
  *  \param ddx     DDX model
+ *  \param error   DDX ERROR
  */
-double ddx_cosmo_energy(const void* ddx, void* state);
+double ddx_cosmo_energy(const void* ddx, void* state, const void* error);
 
 /** Compute the COSMO force terms.
  *  \param ddx     DDX model
  *  \param state   DDX state
  *  \param nsph    Number of cavity spheres
  *  \param forces  Output force array (3, nsph) in column-major order
+ *  \param error   DDX error
  */
 void ddx_cosmo_solvation_force_terms(const void* ddx, void* state, int nsph,
-                                     double* forces);
+                                     double* forces, const void* error);
 
 /** Setup a PCM problem in the passed state.
  *  \param ddx     DDX model
@@ -313,45 +317,50 @@ void ddx_cosmo_solvation_force_terms(const void* ddx, void* state, int nsph,
  *  \param nsph    Number of cavity spheres
  *  \param psi     Psi array (nbasis, nsph)-shaped array (in column-major ordering)
  *  \param phi_cav Phi array (ncav, )-shaped array
+ *  \param error   DDX error
  */
 void ddx_pcm_setup(const void* ddx, void* state, int ncav, int nbasis, int nsph,
-                   const double* psi, const double* phi_cav);
+                   const double* psi, const double* phi_cav, const void* error);
 
 /** In-place adjust the guess inside the state, getting ready to solve a PCM problem.
  *  Avoid calling this step if you want to use the currently stored solution as an
  * initial guess */
-void ddx_pcm_guess(const void* ddx, void* state);
+void ddx_pcm_guess(const void* ddx, void* state, const void* error);
 
 /** In-place adjust the guess inside the state, getting ready to solve an adjoint PCM
  *  problem. Avoid calling this step if you want to use the currently stored solution as
  *  an initial guess */
-void ddx_pcm_guess_adjoint(const void* ddx, void* state);
+void ddx_pcm_guess_adjoint(const void* ddx, void* state, const void* error);
 
 /** Solve the forward PCM problem.
  *  \param state   DDX state
  *  \param ddx     DDX model
+ *  \param error   DDX error
  *  \param tol Tolerance up to which the problem is solved */
-void ddx_pcm_solve(const void* ddx, void* state, double tol);
+void ddx_pcm_solve(const void* ddx, void* state, double tol, const void* error);
 
 /** Solve the adjoint PCM problem.
  *  \param state   DDX state
  *  \param ddx     DDX model
+ *  \param error   DDX error
  *  \param tol Tolerance up to which the problem is solved */
-void ddx_pcm_solve_adjoint(const void* ddx, void* state, double tol);
+void ddx_pcm_solve_adjoint(const void* ddx, void* state, double tol, const void* error);
 
 /** Compute PCM energy
  *  \param state   DDX state
+ *  \param error   DDX error
  *  \param ddx     DDX model */
-double ddx_pcm_energy(const void* ddx, void* state);
+double ddx_pcm_energy(const void* ddx, void* state, const void* error);
 
 /** Compute the PCM force terms.
  *  \param ddx     DDX model
  *  \param state   DDX state
  *  \param nsph    Number of cavity spheres
  *  \param forces  Output force array (3, nsph) in column-major order
+ *  \param error   DDX error
  */
 void ddx_pcm_solvation_force_terms(const void* ddx, void* state, int nsph,
-                                   double* forces);
+                                   double* forces, const void* error);
 
 // TODO LPB
 
@@ -365,38 +374,43 @@ void ddx_pcm_solvation_force_terms(const void* ddx, void* state, int nsph,
  *  \param phi_cav Phi array (ncav, )-shaped array
  *  \param e_cav   Electric field generated by multipoles: (3, ncav)-shaped array
  *                 (column major)
+ *  \param error   DDX error
  */
 void ddx_lpb_setup(const void* ddx, void* state, int ncav, int nbasis, int nsph,
-                   const double* psi, const double* phi_cav, const double* e_cav);
+                   const double* psi, const double* phi_cav, const double* e_cav,
+                   const void* error);
 
 /** In-place adjust the guess inside the state, getting ready to solve a LPB problem.
  *  Avoid calling this step if you want to use the currently stored solution as an
  *  initial guess. tol is the tolerance for solving a simplified initial-guess problem.
  *  The same tolerance as for the ddx_lpb_solve call should be chosen. */
-void ddx_lpb_guess(const void* ddx, void* state, double tol);
+void ddx_lpb_guess(const void* ddx, void* state, double tol, const void* error);
 
 /** In-place adjust the guess inside the state, getting ready to solve an adjoint LPB
  *  problem. Avoid calling this step if you want to use the currently stored solution as
  *  an initial guess. tol is the tolerance for solving a simplified initial-guess problem.
  *  The same tolerance as for the ddx_lpb_solve call should be chosen. */
-void ddx_lpb_guess_adjoint(const void* ddx, void* state, double tol);
+void ddx_lpb_guess_adjoint(const void* ddx, void* state, double tol, const void* error);
 
 /** Solve the forward LPB problem.
  *  \param state   DDX state
  *  \param ddx     DDX model
+ *  \param error   DDX error
  *  \param tol Tolerance up to which the problem is solved */
-void ddx_lpb_solve(const void* ddx, void* state, double tol);
+void ddx_lpb_solve(const void* ddx, void* state, double tol, const void* error);
 
 /** Solve the adjoint LPB problem.
  *  \param state   DDX state
  *  \param ddx     DDX model
+ *  \param error   DDX error
  *  \param tol Tolerance up to which the problem is solved */
-void ddx_lpb_solve_adjoint(const void* ddx, void* state, double tol);
+void ddx_lpb_solve_adjoint(const void* ddx, void* state, double tol, const void* error);
 
 /** Compute LPB energy
  *  \param state   DDX state
+ *  \param error   DDX error
  *  \param ddx     DDX model */
-double ddx_lpb_energy(const void* ddx, void* state);
+double ddx_lpb_energy(const void* ddx, void* state, const void* error);
 
 // TODO LPB force terms not yet supported in C and python interface
 
@@ -413,10 +427,12 @@ double ddx_lpb_energy(const void* ddx, void* state);
  *                      this is (mmax+1)^2. E.g. for charges, dipoles and quadrupoles
  *                      (mmax=2), this is 9.
  *  \param multipoles   Multipoles (nmultipoles, nsph)-shaped array in column-major
- * order. \param phi_cav  Potential (phi) generated by multipoles: (ncav, )-shaped array
+ *                      order.
+ *  \param phi_cav  Potential (phi) generated by multipoles: (ncav, )-shaped array
+ *  \param error   DDX error
  */
 void ddx_multipole_electrostatics_0(const void* ddx, int nsph, int ncav, int nmultipoles,
-                                    const double* multipoles, double* phi_cav);
+                                    const double* multipoles, double* phi_cav, const void* error);
 
 /** Build potential and electric field generated by a multipolar charge distribution.
  *  \param ddx      DDX model
@@ -426,13 +442,15 @@ void ddx_multipole_electrostatics_0(const void* ddx, int nsph, int ncav, int nmu
  *                      this is (mmax+1)^2. E.g. for charges, dipoles and quadrupoles
  *                      (mmax=2), this is 9.
  *  \param multipoles   Multipoles (nmultipoles, nsph)-shaped array in column-major
- * order. \param phi_cav  Potential (phi) generated by multipoles: (ncav, )-shaped array
+ *                      order.
+ *  \param phi_cav  Potential (phi) generated by multipoles: (ncav, )-shaped array
  *  \param e_cav    Electric field generated by multipoles: (3, ncav)-shaped array
  *                  (column major)
+ *  \param error   DDX error
  */
 void ddx_multipole_electrostatics_1(const void* ddx, int nsph, int ncav, int nmultipoles,
                                     const double* multipoles, double* phi_cav,
-                                    double* e_cav);
+                                    double* e_cav, const void* error);
 
 /** Build potential, electric field and field gradient generated by a multipolar charge
  *  distribution.
@@ -443,15 +461,17 @@ void ddx_multipole_electrostatics_1(const void* ddx, int nsph, int ncav, int nmu
  *                      this is (mmax+1)^2. E.g. for charges, dipoles and quadrupoles
  *                      (mmax=2), this is 9.
  *  \param multipoles   Multipoles (nmultipoles, nsph)-shaped array in column-major
- * order. \param phi_cav  Potential (phi) generated by multipoles: (ncav, )-shaped array
+ *                      order.
+ *  \param phi_cav  Potential (phi) generated by multipoles: (ncav, )-shaped array
  *  \param e_cav    Electric field generated by multipoles: (3, ncav)-shaped array
  *                  (column major)
  *  \param g_cav    Electric field gradient gen. by multipoles: (3, 3, ncav)-shaped
- * array (column major)
+ *                  array (column major)
+ *  \param error   DDX error
  */
 void ddx_multipole_electrostatics_2(const void* ddx, int nsph, int ncav, int nmultipoles,
                                     const double* multipoles, double* phi_cav,
-                                    double* e_cav, double* g_cav);
+                                    double* e_cav, double* g_cav, const void* error);
 
 /** Build the Psi generated by a multipolar charge distribution
  *  \param ddx     DDX model
@@ -461,10 +481,12 @@ void ddx_multipole_electrostatics_2(const void* ddx, int nsph, int ncav, int nmu
  *                      this is (mmax+1)^2. E.g. for charges, dipoles and quadrupoles
  *                      (mmax=2), this is 9.
  *  \param multipoles   Multipoles (nmultipoles, nsph)-shaped array in column-major
- * order. \param psi     Psi array (nbasis, nsph)-shaped array (column major)
+ *                      order.
+ *  \param psi     Psi array (nbasis, nsph)-shaped array (column major)
+ *  \param error   DDX error
  */
 void ddx_multipole_psi(const void* ddx, int nbasis, int nsph, int nmultipoles,
-                       const double* multipoles, double* psi);
+                       const double* multipoles, double* psi, const void* error);
 
 /** Compute the force terms generated by a multipolar charge distribution
  *  \param ddx     DDX model
@@ -475,13 +497,15 @@ void ddx_multipole_psi(const void* ddx, int nbasis, int nsph, int nmultipoles,
  *                      this is (mmax+1)^2. E.g. for charges, dipoles and quadrupoles
  *                      (mmax=2), this is 9.
  *  \param multipoles   Multipoles (nmultipoles, nsph)-shaped array in column-major
- * order. \param e_cav   Electric field generated by multipoles: (3, ncav)-shaped array
+ *                      order.
+ *  \param e_cav   Electric field generated by multipoles: (3, ncav)-shaped array
  *                 (column major)
  *  \param forces  Output force array (3, nsph) in column-major order
+ *  \param error   DDX error
  */
 void ddx_multipole_forces(const void* ddx, void* state, int nsph, int ncav,
                           int nmultipoles, const double* multipoles, const double* e_cav,
-                          double* forces);
+                          double* forces, const void* error);
 
 ///@}
 ///@}

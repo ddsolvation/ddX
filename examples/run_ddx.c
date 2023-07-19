@@ -3,14 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void print_model_error(void* model) {
-  char message[256];
-  ddx_get_error_message(model, message, 256);
-  printf("Model error: %s\n", message);
-}
-void print_state_error(void* state) {
-  char message[256];
-  ddx_get_state_error_message(state, message, 256);
+void print_error(void* error) {
+  char message[2000];
+  ddx_get_error_message(error, message, 2000);
   printf("Model error: %s\n", message);
 }
 
@@ -62,15 +57,17 @@ int main() {
   int length_logfile     = 0;
   char logfile[1]        = {'\0'};
 
+  void* error = ddx_allocate_error();
+
   //
   // Allocate model and print some info
   //
   void* model = ddx_allocate_model(pcm, enable_forces, epsilon, kappa, eta, shift, lmax,
                                    n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm,
                                    fmm_multipole_lmax, fmm_local_lmax, n_proc, n_spheres,
-                                   centres, radii, length_logfile, logfile);
-  if (ddx_get_error_flag(model) != 0) {
-    print_model_error(model);
+                                   centres, radii, length_logfile, logfile, error);
+  if (ddx_get_error_flag(error) != 0) {
+    print_error(error);
     return 1;
   }
 
@@ -93,42 +90,42 @@ int main() {
     solute_multipoles[i] = charges[i] / sqrt(4.0 * M_PI);
   }
   ddx_multipole_electrostatics_1(model, nsph, ncav, nmultipoles, solute_multipoles,
-                                 phi_cav, e_cav);
-  if (ddx_get_error_flag(model) != 0) {
-    print_model_error(model);
+                                 phi_cav, e_cav, error);
+  if (ddx_get_error_flag(error) != 0) {
+    print_error(error);
     return 1;
   }
 
   double* psi = (double*)malloc(sizeof(double) * nsph * nbasis);
-  ddx_multipole_psi(model, nbasis, nsph, nmultipoles, solute_multipoles, psi);
-  if (ddx_get_error_flag(model) != 0) {
-    print_model_error(model);
+  ddx_multipole_psi(model, nbasis, nsph, nmultipoles, solute_multipoles, psi, error);
+  if (ddx_get_error_flag(error) != 0) {
+    print_error(error);
     return 1;
   }
 
   //
   // Solve the PCM problem
   //
-  void* state = ddx_allocate_state(model);
-  if (ddx_get_state_error_flag(state) != 0) {
-    print_state_error(state);
+  void* state = ddx_allocate_state(model, error);
+  if (ddx_get_error_flag(error) != 0) {
+    print_error(state);
     return 1;
   }
 
   double tol = 1e-9;
-  ddx_pcm_setup(model, state, ncav, nbasis, nsph, psi, phi_cav);
-  ddx_pcm_guess(model, state);
-  ddx_pcm_solve(model, state, tol);
-  if (ddx_get_error_flag(model) != 0) {
-    print_model_error(model);
+  ddx_pcm_setup(model, state, ncav, nbasis, nsph, psi, phi_cav, error);
+  ddx_pcm_guess(model, state, error);
+  ddx_pcm_solve(model, state, tol, error);
+  if (ddx_get_error_flag(error) != 0) {
+    print_error(error);
     return 1;
   }
   printf("Forward system solved after %i iterations.\n", ddx_get_x_niter(state));
 
-  ddx_pcm_guess_adjoint(model, state);
-  ddx_pcm_solve_adjoint(model, state, tol);
-  if (ddx_get_error_flag(model) != 0) {
-    print_model_error(model);
+  ddx_pcm_guess_adjoint(model, state, error);
+  ddx_pcm_solve_adjoint(model, state, tol, error);
+  if (ddx_get_error_flag(error) != 0) {
+    print_error(error);
     return 1;
   }
   printf("Adjoint system solved after %i iterations.\n", ddx_get_s_niter(state));
@@ -136,12 +133,12 @@ int main() {
   //
   // Compute energy and forces
   //
-  double energy = ddx_pcm_energy(model, state);
+  double energy = ddx_pcm_energy(model, state, error);
 
   double* forces = (double*)malloc(sizeof(double) * 3 * nsph);
-  ddx_pcm_solvation_force_terms(model, state, nsph, forces);
-  if (ddx_get_error_flag(model) != 0) {
-    print_model_error(model);
+  ddx_pcm_solvation_force_terms(model, state, nsph, forces, error);
+  if (ddx_get_error_flag(error) != 0) {
+    print_error(error);
     return 1;
   }
 
@@ -157,11 +154,11 @@ int main() {
 
   // Finish up
   free(forces);
-  ddx_deallocate_state(state);
+  ddx_deallocate_state(state, error);
   free(psi);
   free(solute_multipoles);
   free(e_cav);
   free(phi_cav);
-  ddx_deallocate_model(model);
+  ddx_deallocate_model(model, error);
   return ret;
 }

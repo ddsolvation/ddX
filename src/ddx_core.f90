@@ -186,9 +186,6 @@ type ddx_state_type
     real(dp) :: hsp_time
     real(dp) :: hsp_adj_time
 
-    integer :: error_flag = 0
-    character(len=255) :: error_message
-
 end type ddx_state_type
 
 !> Main ddX type that stores all the required information.
