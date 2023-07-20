@@ -371,7 +371,7 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     real(dp), dimension(params % lmax + 1) :: vsin, vcos
 
     ! large local are allocatable
-    real(dp), allocatable :: ef(:,:), normal_hessian_cav(:,:), &
+    real(dp), allocatable :: normal_hessian_cav(:,:), &
         & diff_re(:,:), scaled_xr(:,:)
     integer :: isph, icav, igrid, istat
     integer :: i
@@ -379,8 +379,7 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     real(dp) :: start_time, finish_time
 
     start_time = omp_get_wtime()
-    allocate(ef(3, params % nsph), &
-        & normal_hessian_cav(3, constants % ncav), &
+    allocate(normal_hessian_cav(3, constants % ncav), &
         & diff_re(constants % nbasis, params % nsph), &
         & scaled_xr(constants % nbasis, params % nsph), stat=istat)
     if (istat.ne.0) then
@@ -397,7 +396,6 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     vplm = zero
     basloc = zero
     dbasloc = zero
-    ef = zero
     force = zero
 
     ! Compute the derivative of the normal derivative of psi_0
@@ -475,17 +473,26 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
 
     force = pt5*force
 
-    deallocate(ef, normal_hessian_cav, diff_re, scaled_xr, stat=istat)
+    deallocate(normal_hessian_cav, diff_re, scaled_xr, stat=istat)
     if (istat.ne.0) then
         call update_error(error, 'Deallocation failed in ddlpb_force_worker')
         return
     end if
-    finish_time = omp_get_wtime()
-    state % force_time = finish_time - start_time
 
     ! and now we remove again the factor, so that the density is
     ! restored.
     call convert_ddcosmo(params, constants, -1, state % x_lpb(:, :, 1))
+
+    ! Finally add the zeta - electric field contribution. Since the
+    ! subroutine takes as input the electric field, we temporarily swap
+    ! the sign of the gradient of the potential (this trick avoids
+    ! dangerous memory allocation)
+    state % gradphi_cav = - state % gradphi_cav
+    call zeta_grad(params, constants, state, state % gradphi_cav, force)
+    state % gradphi_cav = - state % gradphi_cav
+
+    finish_time = omp_get_wtime()
+    state % force_time = finish_time - start_time
 
 end subroutine ddlpb_solvation_force_terms
 
