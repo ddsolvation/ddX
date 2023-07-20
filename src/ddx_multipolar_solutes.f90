@@ -967,32 +967,21 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
     real(dp), intent(inout) :: forces(3, params % nsph)
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     ! local variables
-    integer :: isph, igrid, icav, info
-    real(dp), allocatable :: field(:, :)
+    integer :: info
+    real(dp), allocatable :: multipoles(:, :)
 
-    ! get some space for the adjoint potential, note that we need it
-    ! up to mmax + 1 as we are doing derivatives
-    allocate(field(3, params % nsph), stat=info)
+    allocate(multipoles(1, params % nsph), stat=info)
     if (info .ne. 0) then
-        call update_error(error, "Allocation failed in grad_phi_for_charges!")
+        call update_error(error, "Allocation failed in grad_phi_for_charges")
         return
     end if
-
-    call efld(constants % ncav, state % zeta, constants % ccav, &
-        & params % nsph, params % csph, field)
-
-    do isph = 1, params % nsph
-        forces(1, isph) = forces(1, isph) &
-            & + pt5*charges(isph)*field(1, isph)
-        forces(2, isph) = forces(2, isph) &
-            & + pt5*charges(isph)*field(2, isph)
-        forces(3, isph) = forces(3, isph) &
-            & + pt5*charges(isph)*field(3, isph)
-    end do
-
-    deallocate(field, stat=info)
+    ! convert the charges to multipoles
+    multipoles(1, :) = charges/sqrt4pi
+    call grad_phi(params, constants, workspace, state, 0, multipoles, forces, &
+        & e_cav, error)
+    deallocate(multipoles, stat=info)
     if (info .ne. 0) then
-        call update_error(error, "Deallocation failed in grad_phi_for_charges!")
+        call update_error(error, "Deallocation failed in grad_phi_for_charges")
         return
     end if
 
