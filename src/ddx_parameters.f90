@@ -177,7 +177,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (error % flag .ne. 0) then
         call update_error(error, "params_init received input in error " // &
             & " state, exiting")
-        return
     end if
     ! parse the log file name
     if (len(trim(output_filename)) .ne. 0) then
@@ -192,43 +191,36 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Model, 1=COSMO, 2=PCM, 3=LPB
     if ((model .lt. 1) .or. (model .gt. 3)) then
         call update_error(error, "params_init: invalid value of `model`")
-        return
     end if
     params % model = model
     ! Check if forces are needed
     if ((force .lt. 0) .or. (force .gt. 1)) then
         call update_error(error, "params_init: invalid value of `force`")
-        return
     end if
     params % force = force
     ! Relative dielectric permittivity
     if (eps .le. one) then
         call update_error(error, "params_init: invalid value of `eps`")
-        return
     end if
     params % eps = eps
     ! Debye-H\"{u}ckel parameter (only used in ddLPB)
     if ((model .eq. 3) .and. (kappa .le. zero)) then
         call update_error(error, "params_init: invalid value of `kappa`")
-        return
     end if
     params % kappa = kappa
     ! Regularization parameter
     if ((eta .lt. zero) .or. (eta .gt. one)) then
         call update_error(error, "params_init: invalid value of `eta`")
-        return
     end if
     params % eta = eta
     ! Shift of a regularization
     if ((se .lt. -one) .or. (se .gt. one)) then
         call update_error(error, "params_init: invalid value of `se`")
-        return
     end if
     params % se = se
     ! Degree of modeling spherical harmonics
     if (lmax .lt. 0) then
         call update_error(error, "params_init: invalid value of `lmax`")
-        return
     end if
     params % lmax = lmax
     ! Check number of Lebedev grid points
@@ -241,25 +233,21 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     end do
     if (igrid .eq. 0) then
         call update_error(error, "params_init: Unsupported value of `ngrid`")
-        return
     end if
     params % ngrid = ngrid
     ! Maximum number of iterations
     if (maxiter .le. 0) then
         call update_error(error, "params_init: invalid value of `maxiter`")
-        return
     end if
     params % maxiter = maxiter
     ! Number of Jacobi DIIS extrapolation points (ndiis=25 works)
     if (jacobi_ndiis .lt. 0) then
         call update_error(error, "params_init: invalid value of `jacobi_ndiis`")
-        return
     end if
     params % jacobi_ndiis = jacobi_ndiis
     ! Check if FMM-acceleration is needed
     if ((fmm .lt. 0) .or. (fmm .gt. 1)) then
         call update_error(error, "params_init: invalid value of `fmm`")
-        return
     end if
     params % fmm = fmm
     ! Set FMM parameters if FMM is needed
@@ -269,14 +257,12 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         ! interactions are taken into account.
         if (pm .lt. -1) then
             call update_error(error, "params_init: invalid value of `pm`")
-            return
         end if
         ! Maximal degree of local spherical harmonics. Value -1 means no 
         ! far-field interactions are to be computed, only near-field
         ! interactions are taken into account.
         if (pl .lt. -1) then
             call update_error(error, "params_init: invalid value of `pl`")
-            return
         end if
         ! If far-field interactions are to be ignored
         if ((pl .eq. -1) .or. (pm .eq. -1)) then
@@ -296,7 +282,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! available.
     if (nproc .lt. 0) then
         call update_error(error, "params_init: invalid value of `nproc`")
-        return
+        params % nproc = 1
     else if (nproc .eq. 0) then
         params % nproc = 1
     else
@@ -306,7 +292,6 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Number of atoms
     if (nsph .le. 0) then
         call update_error(error, "params_init: invalid value of `nsph`")
-        return
     end if
     params % nsph = nsph
     allocate(params % csph(3, nsph), params % rsph(nsph), stat=info)
@@ -321,8 +306,10 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         params % matvecmem = matvecmem
     else
         call update_error(error, "params_init: invalid value of `matvecmem`")
-        return
     end if
+
+    if (error % flag .ne. 0) return
+
     ! init log
     call init_printing(params, error)
     if (error % flag .ne. 0) then

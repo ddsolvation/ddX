@@ -677,7 +677,6 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, error)
     if(ngrid .lt. 0) then
         call update_error(error, "Error on the 5th line of a config file " // &
             & trim(fname) // ": `ngrid` must be a non-negative integer value.")
-        error % flag = 1
     end if
     ! Dielectric permittivity constant of the solvent
     read(100, *) eps

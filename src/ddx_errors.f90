@@ -17,7 +17,7 @@ contains
 subroutine print_error(error)
     implicit none
     type(ddx_error_type), intent(in) :: error
-    write(6, "(A)") error % message(0:error % message_length-2)
+    write(6, "(A)") error % message(1:error % message_length-2)
 end subroutine print_error
 
 subroutine check_error(error)
@@ -53,6 +53,7 @@ subroutine reset_error(error)
     type(ddx_error_type), intent(inout) :: error
     integer :: i
     error % flag = 0
+    error % message_length = 1
     do i = 1, error % max_length
         error % message(i:i) = " "
     end do
