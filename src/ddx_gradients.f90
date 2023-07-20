@@ -11,7 +11,6 @@
 module ddx_gradients
 ! Get the core-routines
 use ddx_core
-use ddx_multipolar_solutes
 !
 contains
 
@@ -2210,5 +2209,28 @@ subroutine gradr_dense(params, constants, workspace, g, ygrid, fx)
     end do
 end subroutine gradr_dense
 
+!> Force term: interaction of the external electric field with the zeta
+!! intermediate. This routine is called by the gradients of ddCOSMO
+!! ddPCM and ddLPB.
+subroutine zeta_grad(params, constants, state, e_cav, forces)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(inout) :: forces(3, params % nsph)
+    real(dp), intent(in) :: e_cav(3, constants % ncav)
+    ! local variables
+    integer :: icav, isph, igrid
+
+    icav = 0
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .eq. zero) cycle
+            icav = icav + 1
+            forces(:, isph) = forces(:, isph) + pt5 &
+                & *state % zeta(icav)*e_cav(:, icav)
+        end do
+    end do
+end subroutine zeta_grad
 
 end module ddx_gradients

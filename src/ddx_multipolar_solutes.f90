@@ -3,6 +3,7 @@ module ddx_multipolar_solutes
 
 use ddx_definitions
 use ddx_core
+use ddx_gradients
 
 implicit none
 
@@ -977,19 +978,6 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
         return
     end if
 
-    ! first contribution
-    icav = 0
-    do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-            if (constants % ui(igrid, isph) .eq. zero) cycle
-            icav = icav + 1
-            forces(:, isph) = forces(:, isph) + pt5*state % zeta(icav) &
-                & *e_cav(:, icav)
-        end do
-    end do
-
-    ! second contribution
-    ! TODO: REMOVE
     call efld(constants % ncav, state % zeta, constants % ccav, &
         & params % nsph, params % csph, field)
 
@@ -1038,7 +1026,7 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
     real(dp), intent(inout) :: forces(3, params % nsph)
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     ! local variables
-    integer :: isph, igrid, icav, info, im, lm, ind, l, m
+    integer :: info, im, lm, ind, l, m
     real(dp), allocatable :: adj_phi(:, :), m_grad(:, :, :)
     real(dp) :: fac
 
@@ -1050,18 +1038,6 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
         call update_error(error, "Allocation failed in grad_phi!")
         return
     end if
-
-    ! first contribution
-    ! zeta * field
-    icav = 0
-    do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-            if (constants % ui(igrid, isph) .eq. zero) cycle
-            icav = icav + 1
-            forces(:, isph) = forces(:, isph) + pt5 &
-                & *state % zeta(icav)*e_cav(:, icav)
-        end do
-    end do
 
     ! build the adjoint potential
     call build_adj_phi(params, constants, workspace, state % zeta, &

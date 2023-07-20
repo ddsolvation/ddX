@@ -53,12 +53,12 @@ subroutine ddsolve(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
         ! COSMO model
         case (1)
             call ddcosmo(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, state, phi_cav, psi, &
+                & ddx_data % workspace, state, phi_cav, psi, e_cav, &
                 & tol, esolv, force, error)
         ! PCM model
         case (2)
             call ddpcm(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, state, phi_cav, psi, &
+                & ddx_data % workspace, state, phi_cav, psi, e_cav, &
                 & tol, esolv, force, error)
         ! LPB model
         case (3)

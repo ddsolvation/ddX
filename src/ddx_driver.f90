@@ -239,10 +239,10 @@ if (ddx_data % params % force .eq. 1) then
 
     if (ddx_data % params % model .eq. 1) then
         call ddcosmo_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, force, error)
+            & ddx_data % constants, ddx_data % workspace, state, e_cav, force, error)
     else if (ddx_data % params % model .eq. 2) then
         call ddpcm_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, force, error)
+            & ddx_data % constants, ddx_data % workspace, state, e_cav, force, error)
     else if (ddx_data % params % model .eq. 3) then
         call ddlpb_solvation_force_terms(ddx_data % params, &
             & ddx_data % constants, ddx_data % workspace, state, g_cav, force, error)
