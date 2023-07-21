@@ -777,8 +777,20 @@ function ddx_lpb_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
     call ddlpb_energy(ddx%constants, state, c_energy, error)
 end function
 
-! TODO LPB force terms not yet supported in C and python interface
-
+subroutine ddx_lpb_solvation_force_terms(c_ddx, c_state, nsph, ncav, g_cav, forces, c_error) bind(C)
+    type(c_ptr), intent(in), value :: c_error
+    type(c_ptr), intent(in), value :: c_ddx, c_state
+    type(ddx_setup), pointer :: ddx
+    type(ddx_error_type), pointer :: error
+    type(ddx_state_type), pointer :: state
+    integer(c_int), intent(in), value :: nsph, ncav
+    real(c_double), intent(in) :: g_cav(3, 3, ncav)
+    real(c_double), intent(out) :: forces(3, nsph)
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_error, error)
+    call c_f_pointer(c_state, state)
+    call ddlpb_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, g_cav, forces, error)
+end
 
 !
 ! multipolar solutes
@@ -850,7 +862,7 @@ subroutine ddx_multipole_psi(c_ddx, nbasis, nsph, nmultipoles, multipoles, psi, 
 end
 
 subroutine ddx_multipole_forces(c_ddx, c_state, nsph, ncav, nmultipoles, multipoles, &
-                & e_cav, forces, c_error) bind(C)
+        & forces, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
     type(ddx_setup), pointer :: ddx
@@ -858,15 +870,15 @@ subroutine ddx_multipole_forces(c_ddx, c_state, nsph, ncav, nmultipoles, multipo
     type(ddx_state_type), pointer :: state
     integer(c_int), intent(in), value :: nmultipoles, nsph, ncav
     integer :: mmax
-    real(c_double), intent(in) :: multipoles(nmultipoles, nsph), &
-        & e_cav(3, ncav)
+    real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
     real(c_double), intent(out) :: forces(3, nsph)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
-    call grad_phi(ddx%params, ddx%constants, ddx%workspace, state, mmax, &
-        & multipoles, forces, e_cav, error)
+    forces = zero
+    call multipole_forces(ddx%params, ddx%constants, ddx%workspace, state, mmax, &
+        & multipoles, forces, error)
 end
 
 end

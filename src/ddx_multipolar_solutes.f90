@@ -956,7 +956,7 @@ end subroutine grad_m2m
 !! @param[inout] error: ddX error
 !!
 subroutine grad_phi_for_charges(params, constants, workspace, state, &
-        & charges, forces, e_cav, error)
+        & charges, forces, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -965,7 +965,6 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
     type(ddx_error_type), intent(inout) :: error
     real(dp), intent(in) :: charges(params % nsph)
     real(dp), intent(inout) :: forces(3, params % nsph)
-    real(dp), intent(in) :: e_cav(3, constants % ncav)
     ! local variables
     integer :: info
     real(dp), allocatable :: multipoles(:, :)
@@ -978,7 +977,7 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
     ! convert the charges to multipoles
     multipoles(1, :) = charges/sqrt4pi
     call grad_phi(params, constants, workspace, state, 0, multipoles, forces, &
-        & e_cav, error)
+        & error)
     deallocate(multipoles, stat=info)
     if (info .ne. 0) then
         call update_error(error, "Deallocation failed in grad_phi_for_charges")
@@ -999,11 +998,10 @@ end subroutine grad_phi_for_charges
 !! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[inout] forces: forces array, size (3, nsph)
-!! @param[in] e_cav: electric field, size (3, ncav)
 !! @param[inout] error: ddX error
 !!
 subroutine grad_phi(params, constants, workspace, state, mmax, &
-        & multipoles, forces, e_cav, error)
+        & multipoles, forces, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -1013,7 +1011,6 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(inout) :: forces(3, params % nsph)
-    real(dp), intent(in) :: e_cav(3, constants % ncav)
     ! local variables
     integer :: info, im, lm, ind, l, m
     real(dp), allocatable :: adj_phi(:, :), m_grad(:, :, :)
@@ -1417,5 +1414,50 @@ subroutine grad_e(params, constants, workspace, state, mmax, &
     end if
 
 end subroutine grad_e
+
+!> @ingroup Fortran_interface_multipolar
+!> Given a multipolar distribution in real spherical harmonics and
+!> centered on the spheres, compute the contributions to the forces
+!> stemming from its electrostatic interactions.
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[inout] state: ddx state
+!! @param[in] mmax: maximum angular momentum of the multipolar distribution
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2, nsph)
+!! @param[inout] forces: forces array, size (3, nsph)
+!! @param[inout] error: ddX error
+!!
+subroutine multipole_forces(params, constants, workspace, state, mmax, &
+        & multipoles, forces, error)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
+    integer, intent(in) :: mmax
+    real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(inout) :: forces(3, params % nsph)
+
+    call grad_phi(params, constants, workspace, state, mmax, multipoles, &
+        & forces, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "multipole_forces: grad_phi returned an " // &
+            & "error, exiting")
+        return
+    end if
+
+    if (params % model .eq. 3) then
+        call grad_e(params, constants, workspace, state, mmax, multipoles, &
+            & forces, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, "multipole_forces: grad_phi " // &
+                & "returned an error, exiting")
+            return
+        end if
+    end if
+end subroutine multipole_forces
 
 end module ddx_multipolar_solutes

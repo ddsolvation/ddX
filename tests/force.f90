@@ -47,7 +47,7 @@ call ddsolve(ddx_data, state, phi_cav, -gradphi_cav, hessianphi_cav, psi, &
     & tol, esolv1, force, error)
 call check_error(error)
 call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, charges, force, -gradphi_cav, error)
+    & ddx_data % workspace, state, charges, force, error)
 call check_error(error)
 
 ddx_data % params % force = 0

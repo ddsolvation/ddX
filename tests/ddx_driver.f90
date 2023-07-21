@@ -53,7 +53,7 @@ call ddsolve(ddx_data, state, phi_cav, -gradphi_cav, hessianphi_cav, psi, tol, e
 call check_error(error)
 ! compute the second contribution to the forces
 call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, charges, force, -gradphi_cav, error)
+    & ddx_data % workspace, state, charges, force, error)
 call check_error(error)
 ! Open output file for reading
 open(unit=100, file=foutname, form='formatted', access='sequential')
