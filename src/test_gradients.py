@@ -76,14 +76,14 @@ def numerical_forces(model_name, charges, rvdw, centres, step=1e-3):
 def test_ddcosmo():
     _, force = ddsolve("cosmo", charges, rvdw, centres, True)
     num_force = numerical_forces("cosmo", charges, rvdw, centres)
-    assert np.max(np.abs(force - num_force)) < 1e-6
+    assert np.max(np.abs(force - num_force)) < 1e-8
 
 def test_ddpcm():
     _, force = ddsolve("pcm", charges, rvdw, centres, True)
     num_force = numerical_forces("pcm", charges, rvdw, centres)
-    assert np.max(np.abs(force - num_force)) < 1e-6
+    assert np.max(np.abs(force - num_force)) < 1e-8
 
 def test_ddlpb():
     _, force = ddsolve("lpb", charges, rvdw, centres, True)
     num_force = numerical_forces("lpb", charges, rvdw, centres)
-    assert np.max(np.abs(force - num_force)) < 1e-6
+    assert np.max(np.abs(force - num_force)) < 1e-8
