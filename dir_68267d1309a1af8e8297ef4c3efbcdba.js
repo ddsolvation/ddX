@@ -9,6 +9,7 @@ var dir_68267d1309a1af8e8297ef4c3efbcdba =
     [ "ddx_cosmo.f90", "ddx__cosmo_8f90.html", "ddx__cosmo_8f90" ],
     [ "ddx_definitions.f90", "ddx__definitions_8f90.html", "ddx__definitions_8f90" ],
     [ "ddx_driver.f90", "ddx__driver_8f90.html", "ddx__driver_8f90" ],
+    [ "ddx_errors.f90", "ddx__errors_8f90_source.html", null ],
     [ "ddx_gradients.f90", "ddx__gradients_8f90_source.html", null ],
     [ "ddx_harmonics.f90", "ddx__harmonics_8f90.html", "ddx__harmonics_8f90" ],
     [ "ddx_lpb.f90", "ddx__lpb_8f90_source.html", null ],

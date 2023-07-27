@@ -102,15 +102,19 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="memitem:gaa2d4bd125f3063859e91aadfa906ae54"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaa2d4bd125f3063859e91aadfa906ae54">ddx_scaled_ylm</a> (const void *ddx, int lmax, const double *x, int sphere, double *ylm)</td></tr>
 <tr class="separator:gaa2d4bd125f3063859e91aadfa906ae54"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader">Allocate and manage the ddX error object</h2></td></tr>
+<tr class="memitem:gacfaf53bdb85077b58ec744c058068be7"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gacfaf53bdb85077b58ec744c058068be7">ddx_allocate_error</a> ()</td></tr>
+<tr class="separator:gacfaf53bdb85077b58ec744c058068be7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2c11a5cef84cb249165f9c901eef68b9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga2c11a5cef84cb249165f9c901eef68b9">ddx_get_error_flag</a> (const void *error)</td></tr>
+<tr class="separator:ga2c11a5cef84cb249165f9c901eef68b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4ab4d1766042fe048c1b3ed9f6735de5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga4ab4d1766042fe048c1b3ed9f6735de5">ddx_get_error_message</a> (const void *error, char *message, int maxlen)</td></tr>
+<tr class="separator:ga4ab4d1766042fe048c1b3ed9f6735de5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Allocate and manage the ddx model object</h2></td></tr>
-<tr class="memitem:gafbb2313350962849c41cb145e4bc8791"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gafbb2313350962849c41cb145e4bc8791">ddx_allocate_model</a> (int model, int enable_force, double solvent_epsilon, double solvent_kappa, double eta, double shift, int lmax, int n_lebedev, int incore, int maxiter, int jacobi_n_diis, int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax, int n_proc, int n_spheres, const double *sphere_centres, const double *sphere_radii, int length_logfile, const char *logfile)</td></tr>
-<tr class="separator:gafbb2313350962849c41cb145e4bc8791"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga70257d8416730dc0ed5c77d004cf01a0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga70257d8416730dc0ed5c77d004cf01a0">ddx_deallocate_model</a> (void *ddx)</td></tr>
-<tr class="separator:ga70257d8416730dc0ed5c77d004cf01a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga29f72e0201515831c3ea02e6b10ab08e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga29f72e0201515831c3ea02e6b10ab08e">ddx_get_error_flag</a> (const void *ddx)</td></tr>
-<tr class="separator:ga29f72e0201515831c3ea02e6b10ab08e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga989dc37c68e6f28eb86af500c41b18fb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga989dc37c68e6f28eb86af500c41b18fb">ddx_get_error_message</a> (const void *ddx, char *message, int maxlen)</td></tr>
-<tr class="separator:ga989dc37c68e6f28eb86af500c41b18fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad6d6aee891c68a6eea2b4341c30adc3e"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gad6d6aee891c68a6eea2b4341c30adc3e">ddx_allocate_model</a> (int model, int enable_force, double solvent_epsilon, double solvent_kappa, double eta, double shift, int lmax, int n_lebedev, int incore, int maxiter, int jacobi_n_diis, int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax, int n_proc, int n_spheres, const double *sphere_centres, const double *sphere_radii, int length_logfile, const char *logfile, void *error)</td></tr>
+<tr class="separator:gad6d6aee891c68a6eea2b4341c30adc3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9f6d8e4d59d1e673e278508c6e7771ce"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga9f6d8e4d59d1e673e278508c6e7771ce">ddx_deallocate_model</a> (void *ddx, void *error)</td></tr>
+<tr class="separator:ga9f6d8e4d59d1e673e278508c6e7771ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Getters for properties of the state object</h2></td></tr>
 <tr class="memitem:ga0a32b39bbefb26523f30760e7ef6e91d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga0a32b39bbefb26523f30760e7ef6e91d">ddx_get_logfile</a> (const void *ddx, char *logfile, int maxlen)</td></tr>
@@ -161,14 +165,10 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="separator:ga0d4122aff3401e73cd33aaa1ae4e05be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Allocate and manage the state object</h2></td></tr>
-<tr class="memitem:ga97af7df535d2c4c82d8b4b10794f704e"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga97af7df535d2c4c82d8b4b10794f704e">ddx_allocate_state</a> (const void *ddx)</td></tr>
-<tr class="separator:ga97af7df535d2c4c82d8b4b10794f704e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae26768fc967d2052f5a5cd5a04f3662b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gae26768fc967d2052f5a5cd5a04f3662b">ddx_deallocate_state</a> (void *state)</td></tr>
-<tr class="separator:gae26768fc967d2052f5a5cd5a04f3662b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab323c84910176952ff8e77726399451c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gab323c84910176952ff8e77726399451c">ddx_get_state_error_flag</a> (const void *state)</td></tr>
-<tr class="separator:gab323c84910176952ff8e77726399451c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8e4f83fda73b2f6b4fa206feccd4f58b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga8e4f83fda73b2f6b4fa206feccd4f58b">ddx_get_state_error_message</a> (const void *state, char *message, int maxlen)</td></tr>
-<tr class="separator:ga8e4f83fda73b2f6b4fa206feccd4f58b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1a8a7d6df7077136b4abe8294497a203"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga1a8a7d6df7077136b4abe8294497a203">ddx_allocate_state</a> (const void *ddx, void *error)</td></tr>
+<tr class="separator:ga1a8a7d6df7077136b4abe8294497a203"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac73abdd49d8df3f25b5d12c1528bd76c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gac73abdd49d8df3f25b5d12c1528bd76c">ddx_deallocate_state</a> (void *state, void *error)</td></tr>
+<tr class="separator:gac73abdd49d8df3f25b5d12c1528bd76c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7f2b51213c60472afadf3008a308c4c2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga7f2b51213c60472afadf3008a308c4c2">ddx_get_x</a> (const void *state, int nbasis, int nsph, double *x)</td></tr>
 <tr class="separator:ga7f2b51213c60472afadf3008a308c4c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9cb16966049ca897b51421557e898717"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga9cb16966049ca897b51421557e898717">ddx_get_x_niter</a> (const void *state)</td></tr>
@@ -183,58 +183,58 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="separator:ga580d8754e3a50e3c244292f79b80b742"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Problem setup and solution routines</h2></td></tr>
-<tr class="memitem:ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40">ddx_cosmo_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav)</td></tr>
-<tr class="separator:ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga146da88294e79a57ac8bba351cf78af0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga146da88294e79a57ac8bba351cf78af0">ddx_cosmo_guess</a> (const void *ddx, void *state)</td></tr>
-<tr class="separator:ga146da88294e79a57ac8bba351cf78af0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf27762210854d5783cd591910e19d955"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaf27762210854d5783cd591910e19d955">ddx_cosmo_guess_adjoint</a> (const void *ddx, void *state)</td></tr>
-<tr class="separator:gaf27762210854d5783cd591910e19d955"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab7bf7b9132439ac409b7ec56fa5433eb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gab7bf7b9132439ac409b7ec56fa5433eb">ddx_cosmo_solve</a> (const void *ddx, void *state, double tol)</td></tr>
-<tr class="separator:gab7bf7b9132439ac409b7ec56fa5433eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaeafd8e48dfaa94533265ab4761238a17"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaeafd8e48dfaa94533265ab4761238a17">ddx_cosmo_solve_adjoint</a> (const void *ddx, void *state, double tol)</td></tr>
-<tr class="separator:gaeafd8e48dfaa94533265ab4761238a17"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa945cc471891bf5804808829d2248bb6"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaa945cc471891bf5804808829d2248bb6">ddx_cosmo_energy</a> (const void *ddx, void *state)</td></tr>
-<tr class="separator:gaa945cc471891bf5804808829d2248bb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab4e1dea7b295c1aa15c36904a2834b59"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gab4e1dea7b295c1aa15c36904a2834b59">ddx_cosmo_solvation_force_terms</a> (const void *ddx, void *state, int nsph, double *forces)</td></tr>
-<tr class="separator:gab4e1dea7b295c1aa15c36904a2834b59"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga676762bb48bfa4c144dba5bd7e21377f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga676762bb48bfa4c144dba5bd7e21377f">ddx_pcm_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav)</td></tr>
-<tr class="separator:ga676762bb48bfa4c144dba5bd7e21377f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac1ee2465f0f9e0b2f8ab716ce3dc17ac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gac1ee2465f0f9e0b2f8ab716ce3dc17ac">ddx_pcm_guess</a> (const void *ddx, void *state)</td></tr>
-<tr class="separator:gac1ee2465f0f9e0b2f8ab716ce3dc17ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gacd62d6ee046927a5f9e6f0d7ca9f1287"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gacd62d6ee046927a5f9e6f0d7ca9f1287">ddx_pcm_guess_adjoint</a> (const void *ddx, void *state)</td></tr>
-<tr class="separator:gacd62d6ee046927a5f9e6f0d7ca9f1287"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4b3012869b881d0075b28e463d8d643a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga4b3012869b881d0075b28e463d8d643a">ddx_pcm_solve</a> (const void *ddx, void *state, double tol)</td></tr>
-<tr class="separator:ga4b3012869b881d0075b28e463d8d643a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa37a2a6143eee997d918a41c8769322d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaa37a2a6143eee997d918a41c8769322d">ddx_pcm_solve_adjoint</a> (const void *ddx, void *state, double tol)</td></tr>
-<tr class="separator:gaa37a2a6143eee997d918a41c8769322d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaee4a247d4b5cd4d2d3367aded28ca4c1"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaee4a247d4b5cd4d2d3367aded28ca4c1">ddx_pcm_energy</a> (const void *ddx, void *state)</td></tr>
-<tr class="separator:gaee4a247d4b5cd4d2d3367aded28ca4c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga7fac3c26650775e78bf08ba6f684db0d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga7fac3c26650775e78bf08ba6f684db0d">ddx_pcm_solvation_force_terms</a> (const void *ddx, void *state, int nsph, double *forces)</td></tr>
-<tr class="separator:ga7fac3c26650775e78bf08ba6f684db0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gacd3ec994a0f1c532c399ffbb0a746e19"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gacd3ec994a0f1c532c399ffbb0a746e19">ddx_lpb_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav, const double *e_cav)</td></tr>
-<tr class="separator:gacd3ec994a0f1c532c399ffbb0a746e19"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gabb5c1bebe25da8846fcf758f1c88322d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gabb5c1bebe25da8846fcf758f1c88322d">ddx_lpb_guess</a> (const void *ddx, void *state, double tol)</td></tr>
-<tr class="separator:gabb5c1bebe25da8846fcf758f1c88322d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae617727c5eda76251665306218505502"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gae617727c5eda76251665306218505502">ddx_lpb_guess_adjoint</a> (const void *ddx, void *state, double tol)</td></tr>
-<tr class="separator:gae617727c5eda76251665306218505502"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga44c856c790e22768b4d17bdc145f93fd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga44c856c790e22768b4d17bdc145f93fd">ddx_lpb_solve</a> (const void *ddx, void *state, double tol)</td></tr>
-<tr class="separator:ga44c856c790e22768b4d17bdc145f93fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5e86d14a8645cf075c4e730e54c688e1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga5e86d14a8645cf075c4e730e54c688e1">ddx_lpb_solve_adjoint</a> (const void *ddx, void *state, double tol)</td></tr>
-<tr class="separator:ga5e86d14a8645cf075c4e730e54c688e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaeba66de5f525276d9c6c66639bb5a618"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaeba66de5f525276d9c6c66639bb5a618">ddx_lpb_energy</a> (const void *ddx, void *state)</td></tr>
-<tr class="separator:gaeba66de5f525276d9c6c66639bb5a618"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3fb6dcee6fde518e2bc63048fe59011d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga3fb6dcee6fde518e2bc63048fe59011d">ddx_cosmo_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav, void *error)</td></tr>
+<tr class="separator:ga3fb6dcee6fde518e2bc63048fe59011d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5122d465f8343d61df549c8ef6717990"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga5122d465f8343d61df549c8ef6717990">ddx_cosmo_guess</a> (const void *ddx, void *state, void *error)</td></tr>
+<tr class="separator:ga5122d465f8343d61df549c8ef6717990"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2f9b802ce3aaba75886f9a93ffc32a35"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga2f9b802ce3aaba75886f9a93ffc32a35">ddx_cosmo_guess_adjoint</a> (const void *ddx, void *state, void *error)</td></tr>
+<tr class="separator:ga2f9b802ce3aaba75886f9a93ffc32a35"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacd4241c6e9bbec1d831170a548d61667"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gacd4241c6e9bbec1d831170a548d61667">ddx_cosmo_solve</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
+<tr class="separator:gacd4241c6e9bbec1d831170a548d61667"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga246d27eedb0ee21f1c3372c36f08d253"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga246d27eedb0ee21f1c3372c36f08d253">ddx_cosmo_solve_adjoint</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
+<tr class="separator:ga246d27eedb0ee21f1c3372c36f08d253"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1e625965053a384f4004a23c096c68ea"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga1e625965053a384f4004a23c096c68ea">ddx_cosmo_energy</a> (const void *ddx, void *state, void *error)</td></tr>
+<tr class="separator:ga1e625965053a384f4004a23c096c68ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4fa3418faee867ef808503b89c8ae267"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga4fa3418faee867ef808503b89c8ae267">ddx_cosmo_solvation_force_terms</a> (const void *ddx, void *state, int nsph, double *forces, void *error)</td></tr>
+<tr class="separator:ga4fa3418faee867ef808503b89c8ae267"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3cba40aa928496a68337a8046af6e353"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga3cba40aa928496a68337a8046af6e353">ddx_pcm_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav, void *error)</td></tr>
+<tr class="separator:ga3cba40aa928496a68337a8046af6e353"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gade5d39fdba7a5118b8338c02625e3f18"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gade5d39fdba7a5118b8338c02625e3f18">ddx_pcm_guess</a> (const void *ddx, void *state, void *error)</td></tr>
+<tr class="separator:gade5d39fdba7a5118b8338c02625e3f18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga422463ca31cbf50d2f9e4dbfad1526fe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga422463ca31cbf50d2f9e4dbfad1526fe">ddx_pcm_guess_adjoint</a> (const void *ddx, void *state, void *error)</td></tr>
+<tr class="separator:ga422463ca31cbf50d2f9e4dbfad1526fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaedd18a11fd0d42372e94f7f6c64f4109"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaedd18a11fd0d42372e94f7f6c64f4109">ddx_pcm_solve</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
+<tr class="separator:gaedd18a11fd0d42372e94f7f6c64f4109"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga20e255f242701686226b994ba8b4d50a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga20e255f242701686226b994ba8b4d50a">ddx_pcm_solve_adjoint</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
+<tr class="separator:ga20e255f242701686226b994ba8b4d50a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2c8872fc3c9957018ba1fdba20f81b56"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga2c8872fc3c9957018ba1fdba20f81b56">ddx_pcm_energy</a> (const void *ddx, void *state, void *error)</td></tr>
+<tr class="separator:ga2c8872fc3c9957018ba1fdba20f81b56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa211bca535bfbfaa38da99fe2392af88"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaa211bca535bfbfaa38da99fe2392af88">ddx_pcm_solvation_force_terms</a> (const void *ddx, void *state, int nsph, double *forces, void *error)</td></tr>
+<tr class="separator:gaa211bca535bfbfaa38da99fe2392af88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3f5f103fe55edb73793916fb41cadf5f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga3f5f103fe55edb73793916fb41cadf5f">ddx_lpb_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav, const double *e_cav, void *error)</td></tr>
+<tr class="separator:ga3f5f103fe55edb73793916fb41cadf5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacafb9944876fd963279e45d3c9068ab1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gacafb9944876fd963279e45d3c9068ab1">ddx_lpb_guess</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
+<tr class="separator:gacafb9944876fd963279e45d3c9068ab1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1642f3ee3ead84667acd02fc78f81cff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga1642f3ee3ead84667acd02fc78f81cff">ddx_lpb_guess_adjoint</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
+<tr class="separator:ga1642f3ee3ead84667acd02fc78f81cff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab1e2fd6127502efc4aa148bdabd06fd0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gab1e2fd6127502efc4aa148bdabd06fd0">ddx_lpb_solve</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
+<tr class="separator:gab1e2fd6127502efc4aa148bdabd06fd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacf28bceafa33539a249c697a53ddeb8b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gacf28bceafa33539a249c697a53ddeb8b">ddx_lpb_solve_adjoint</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
+<tr class="separator:gacf28bceafa33539a249c697a53ddeb8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga864c73dae77c81607b6b960eb0375ce0"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga864c73dae77c81607b6b960eb0375ce0">ddx_lpb_energy</a> (const void *ddx, void *state, void *error)</td></tr>
+<tr class="separator:ga864c73dae77c81607b6b960eb0375ce0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Multipolar solutes</h2></td></tr>
-<tr class="memitem:ga3bb8c58ebd1dc9785773f023dd15e0c6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga3bb8c58ebd1dc9785773f023dd15e0c6">ddx_multipole_electrostatics_0</a> (const void *ddx, int nsph, int ncav, int nmultipoles, const double *multipoles, double *phi_cav)</td></tr>
-<tr class="separator:ga3bb8c58ebd1dc9785773f023dd15e0c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9f9a4f1bacbf34b28841fc2795765b4d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga9f9a4f1bacbf34b28841fc2795765b4d">ddx_multipole_electrostatics_1</a> (const void *ddx, int nsph, int ncav, int nmultipoles, const double *multipoles, double *phi_cav, double *e_cav)</td></tr>
-<tr class="separator:ga9f9a4f1bacbf34b28841fc2795765b4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga53683193504647c532d718748adcfb10"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga53683193504647c532d718748adcfb10">ddx_multipole_electrostatics_2</a> (const void *ddx, int nsph, int ncav, int nmultipoles, const double *multipoles, double *phi_cav, double *e_cav, double *g_cav)</td></tr>
-<tr class="separator:ga53683193504647c532d718748adcfb10"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab24b8fe321b8208e1273f286be21662c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gab24b8fe321b8208e1273f286be21662c">ddx_multipole_psi</a> (const void *ddx, int nbasis, int nsph, int nmultipoles, const double *multipoles, double *psi)</td></tr>
-<tr class="separator:gab24b8fe321b8208e1273f286be21662c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0c6da0c933f1bd46dba4bf0fd783e99c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga0c6da0c933f1bd46dba4bf0fd783e99c">ddx_multipole_forces</a> (const void *ddx, void *state, int nsph, int ncav, int nmultipoles, const double *multipoles, const double *e_cav, double *forces)</td></tr>
-<tr class="separator:ga0c6da0c933f1bd46dba4bf0fd783e99c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga10529fa3e96f380136952d71a158ad43"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga10529fa3e96f380136952d71a158ad43">ddx_multipole_electrostatics_0</a> (const void *ddx, int nsph, int ncav, int nmultipoles, const double *multipoles, double *phi_cav, void *error)</td></tr>
+<tr class="separator:ga10529fa3e96f380136952d71a158ad43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf6fd9c9d13826f6063fcd3d9a4490e68"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaf6fd9c9d13826f6063fcd3d9a4490e68">ddx_multipole_electrostatics_1</a> (const void *ddx, int nsph, int ncav, int nmultipoles, const double *multipoles, double *phi_cav, double *e_cav, void *error)</td></tr>
+<tr class="separator:gaf6fd9c9d13826f6063fcd3d9a4490e68"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0659f96fca18455b366bcff1f009fff9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga0659f96fca18455b366bcff1f009fff9">ddx_multipole_electrostatics_2</a> (const void *ddx, int nsph, int ncav, int nmultipoles, const double *multipoles, double *phi_cav, double *e_cav, double *g_cav, void *error)</td></tr>
+<tr class="separator:ga0659f96fca18455b366bcff1f009fff9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga50bf6f324e0e7f5df477bece4451f01b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga50bf6f324e0e7f5df477bece4451f01b">ddx_multipole_psi</a> (const void *ddx, int nbasis, int nsph, int nmultipoles, const double *multipoles, double *psi, void *error)</td></tr>
+<tr class="separator:ga50bf6f324e0e7f5df477bece4451f01b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0dbc280a05c16c29fb2670ad73e479f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga0dbc280a05c16c29fb2670ad73e479f9">ddx_multipole_forces</a> (const void *ddx, void *state, int nsph, int ncav, int nmultipoles, const double *multipoles, const double *e_cav, double *forces, void *error)</td></tr>
+<tr class="separator:ga0dbc280a05c16c29fb2670ad73e479f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p >Header file defining the C interface of ddx. </p>
@@ -347,8 +347,80 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="gafbb2313350962849c41cb145e4bc8791" name="gafbb2313350962849c41cb145e4bc8791"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gafbb2313350962849c41cb145e4bc8791">&#9670;&nbsp;</a></span>ddx_allocate_model()</h2>
+<a id="gacfaf53bdb85077b58ec744c058068be7" name="gacfaf53bdb85077b58ec744c058068be7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacfaf53bdb85077b58ec744c058068be7">&#9670;&nbsp;</a></span>ddx_allocate_error()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void * ddx_allocate_error </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Allocate the ddX error. </p>
+
+</div>
+</div>
+<a id="ga2c11a5cef84cb249165f9c901eef68b9" name="ga2c11a5cef84cb249165f9c901eef68b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2c11a5cef84cb249165f9c901eef68b9">&#9670;&nbsp;</a></span>ddx_get_error_flag()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ddx_get_error_flag </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>error</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Get the error flag stored inside the model (0 is no error). It is the responsibility of the user of DDX to regularly check for a non-zero error flag and take appropriate actions if an error is present. </p>
+
+</div>
+</div>
+<a id="ga4ab4d1766042fe048c1b3ed9f6735de5" name="ga4ab4d1766042fe048c1b3ed9f6735de5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga4ab4d1766042fe048c1b3ed9f6735de5">&#9670;&nbsp;</a></span>ddx_get_error_message()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_get_error_message </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>maxlen</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Store the error message corresponding to the most recent error inside the passed char array. at most maxlen characters are copied (so set this to the number of allocated characters in the passed array to avoid a buffer overflow. </p>
+
+</div>
+</div>
+<a id="gad6d6aee891c68a6eea2b4341c30adc3e" name="gad6d6aee891c68a6eea2b4341c30adc3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad6d6aee891c68a6eea2b4341c30adc3e">&#9670;&nbsp;</a></span>ddx_allocate_model()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -471,7 +543,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>logfile</em>&#160;</td>
+          <td class="paramname"><em>logfile</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -503,14 +581,15 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">sphere_radii</td><td>The radii of the spheres. </td></tr>
     <tr><td class="paramname">length_logfile</td><td>Length of the logfile name (0 if no log). Note that logs can be quite verbose for larger runs and should only be used for debugging. </td></tr>
     <tr><td class="paramname">logfile</td><td>The logfile name (empty if no log) </td></tr>
+    <tr><td class="paramname">error</td><td>The ddX error object </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ga70257d8416730dc0ed5c77d004cf01a0" name="ga70257d8416730dc0ed5c77d004cf01a0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga70257d8416730dc0ed5c77d004cf01a0">&#9670;&nbsp;</a></span>ddx_deallocate_model()</h2>
+<a id="ga9f6d8e4d59d1e673e278508c6e7771ce" name="ga9f6d8e4d59d1e673e278508c6e7771ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9f6d8e4d59d1e673e278508c6e7771ce">&#9670;&nbsp;</a></span>ddx_deallocate_model()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -519,57 +598,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="memname">void ddx_deallocate_model </td>
           <td>(</td>
           <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>ddx</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >Deallocate the model object </p>
-
-</div>
-</div>
-<a id="ga29f72e0201515831c3ea02e6b10ab08e" name="ga29f72e0201515831c3ea02e6b10ab08e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga29f72e0201515831c3ea02e6b10ab08e">&#9670;&nbsp;</a></span>ddx_get_error_flag()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int ddx_get_error_flag </td>
-          <td>(</td>
-          <td class="paramtype">const void *&#160;</td>
-          <td class="paramname"><em>ddx</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >Get the error flag stored inside the model (0 is no error). It is the responsibility of the user of DDX to regularly check for a non-zero error flag and take appropriate actions if an error is present. </p>
-
-</div>
-</div>
-<a id="ga989dc37c68e6f28eb86af500c41b18fb" name="ga989dc37c68e6f28eb86af500c41b18fb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga989dc37c68e6f28eb86af500c41b18fb">&#9670;&nbsp;</a></span>ddx_get_error_message()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ddx_get_error_message </td>
-          <td>(</td>
-          <td class="paramtype">const void *&#160;</td>
           <td class="paramname"><em>ddx</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>maxlen</em>&#160;</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -578,7 +613,7 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
         </tr>
       </table>
 </div><div class="memdoc">
-<p >Store the error message corresponding to the most recent error inside the passed char array. at most maxlen characters are copied (so set this to the number of allocated characters in the passed array to avoid a buffer overflow. </p>
+<p >Deallocate the model object </p>
 
 </div>
 </div>
@@ -1099,8 +1134,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="ga97af7df535d2c4c82d8b4b10794f704e" name="ga97af7df535d2c4c82d8b4b10794f704e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga97af7df535d2c4c82d8b4b10794f704e">&#9670;&nbsp;</a></span>ddx_allocate_state()</h2>
+<a id="ga1a8a7d6df7077136b4abe8294497a203" name="ga1a8a7d6df7077136b4abe8294497a203"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1a8a7d6df7077136b4abe8294497a203">&#9670;&nbsp;</a></span>ddx_allocate_state()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1109,76 +1144,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="memname">void * ddx_allocate_state </td>
           <td>(</td>
           <td class="paramtype">const void *&#160;</td>
-          <td class="paramname"><em>ddx</em></td><td>)</td>
-          <td></td>
+          <td class="paramname"><em>ddx</em>, </td>
         </tr>
-      </table>
-</div><div class="memdoc">
-<p >Allocate an empty state from a model </p>
-
-</div>
-</div>
-<a id="gae26768fc967d2052f5a5cd5a04f3662b" name="gae26768fc967d2052f5a5cd5a04f3662b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gae26768fc967d2052f5a5cd5a04f3662b">&#9670;&nbsp;</a></span>ddx_deallocate_state()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
         <tr>
-          <td class="memname">void ddx_deallocate_state </td>
-          <td>(</td>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>state</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >Deallocate a state object </p>
-
-</div>
-</div>
-<a id="gab323c84910176952ff8e77726399451c" name="gab323c84910176952ff8e77726399451c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gab323c84910176952ff8e77726399451c">&#9670;&nbsp;</a></span>ddx_get_state_error_flag()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int ddx_get_state_error_flag </td>
-          <td>(</td>
-          <td class="paramtype">const void *&#160;</td>
-          <td class="paramname"><em>state</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >Get the error flag stored inside the state (0 is no error). It is the responsibility of the user of DDX to regularly check for a non-zero error flag and take appropriate actions if an error is present. </p>
-
-</div>
-</div>
-<a id="ga8e4f83fda73b2f6b4fa206feccd4f58b" name="ga8e4f83fda73b2f6b4fa206feccd4f58b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga8e4f83fda73b2f6b4fa206feccd4f58b">&#9670;&nbsp;</a></span>ddx_get_state_error_message()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ddx_get_state_error_message </td>
-          <td>(</td>
-          <td class="paramtype">const void *&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>maxlen</em>&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1187,7 +1159,36 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
         </tr>
       </table>
 </div><div class="memdoc">
-<p >Store the error message corresponding to the most recent error inside the passed char array. At most maxlen characters are copied. So best set maxlen to the number of allocated characters in the passed array to avoid a buffer overflow. </p>
+<p >Allocate an empty state from a model </p>
+
+</div>
+</div>
+<a id="gac73abdd49d8df3f25b5d12c1528bd76c" name="gac73abdd49d8df3f25b5d12c1528bd76c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac73abdd49d8df3f25b5d12c1528bd76c">&#9670;&nbsp;</a></span>ddx_deallocate_state()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_deallocate_state </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Deallocate a state object </p>
 
 </div>
 </div>
@@ -1427,8 +1428,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40" name="ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga8a6f6f4ac8ca0ccdbc7a54a12f78dc40">&#9670;&nbsp;</a></span>ddx_cosmo_setup()</h2>
+<a id="ga3fb6dcee6fde518e2bc63048fe59011d" name="ga3fb6dcee6fde518e2bc63048fe59011d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3fb6dcee6fde518e2bc63048fe59011d">&#9670;&nbsp;</a></span>ddx_cosmo_setup()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1473,7 +1474,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>phi_cav</em>&#160;</td>
+          <td class="paramname"><em>phi_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1490,15 +1497,15 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">nbasis</td><td>Number of basis functions used by DDX </td></tr>
     <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
     <tr><td class="paramname">psi</td><td>Psi array (nbasis, nsph)-shaped array (in column-major ordering) </td></tr>
-    <tr><td class="paramname">phi_cav</td><td>Phi array (ncav, )-shaped array </td></tr>
+    <tr><td class="paramname">phi_cav</td><td>Phi array adjoint (ncav, )-shaped array </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ga146da88294e79a57ac8bba351cf78af0" name="ga146da88294e79a57ac8bba351cf78af0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga146da88294e79a57ac8bba351cf78af0">&#9670;&nbsp;</a></span>ddx_cosmo_guess()</h2>
+<a id="ga5122d465f8343d61df549c8ef6717990" name="ga5122d465f8343d61df549c8ef6717990"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5122d465f8343d61df549c8ef6717990">&#9670;&nbsp;</a></span>ddx_cosmo_guess()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1513,7 +1520,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>state</em>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1526,8 +1539,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="gaf27762210854d5783cd591910e19d955" name="gaf27762210854d5783cd591910e19d955"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf27762210854d5783cd591910e19d955">&#9670;&nbsp;</a></span>ddx_cosmo_guess_adjoint()</h2>
+<a id="ga2f9b802ce3aaba75886f9a93ffc32a35" name="ga2f9b802ce3aaba75886f9a93ffc32a35"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2f9b802ce3aaba75886f9a93ffc32a35">&#9670;&nbsp;</a></span>ddx_cosmo_guess_adjoint()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1542,7 +1555,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>state</em>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1555,8 +1574,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="gab7bf7b9132439ac409b7ec56fa5433eb" name="gab7bf7b9132439ac409b7ec56fa5433eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gab7bf7b9132439ac409b7ec56fa5433eb">&#9670;&nbsp;</a></span>ddx_cosmo_solve()</h2>
+<a id="gacd4241c6e9bbec1d831170a548d61667" name="gacd4241c6e9bbec1d831170a548d61667"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacd4241c6e9bbec1d831170a548d61667">&#9670;&nbsp;</a></span>ddx_cosmo_solve()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1577,7 +1596,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>tol</em>&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1591,14 +1616,15 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">state</td><td>DDX state </td></tr>
     <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
     <tr><td class="paramname">tol</td><td>Tolerance up to which the problem is solved </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="gaeafd8e48dfaa94533265ab4761238a17" name="gaeafd8e48dfaa94533265ab4761238a17"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaeafd8e48dfaa94533265ab4761238a17">&#9670;&nbsp;</a></span>ddx_cosmo_solve_adjoint()</h2>
+<a id="ga246d27eedb0ee21f1c3372c36f08d253" name="ga246d27eedb0ee21f1c3372c36f08d253"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga246d27eedb0ee21f1c3372c36f08d253">&#9670;&nbsp;</a></span>ddx_cosmo_solve_adjoint()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1619,7 +1645,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>tol</em>&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1633,14 +1665,15 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">state</td><td>DDX state </td></tr>
     <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
     <tr><td class="paramname">tol</td><td>Tolerance up to which the problem is solved </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="gaa945cc471891bf5804808829d2248bb6" name="gaa945cc471891bf5804808829d2248bb6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaa945cc471891bf5804808829d2248bb6">&#9670;&nbsp;</a></span>ddx_cosmo_energy()</h2>
+<a id="ga1e625965053a384f4004a23c096c68ea" name="ga1e625965053a384f4004a23c096c68ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1e625965053a384f4004a23c096c68ea">&#9670;&nbsp;</a></span>ddx_cosmo_energy()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1655,7 +1688,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>state</em>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1668,14 +1707,15 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
   <table class="params">
     <tr><td class="paramname">state</td><td>DDX state </td></tr>
     <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">error</td><td>DDX ERROR </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="gab4e1dea7b295c1aa15c36904a2834b59" name="gab4e1dea7b295c1aa15c36904a2834b59"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gab4e1dea7b295c1aa15c36904a2834b59">&#9670;&nbsp;</a></span>ddx_cosmo_solvation_force_terms()</h2>
+<a id="ga4fa3418faee867ef808503b89c8ae267" name="ga4fa3418faee867ef808503b89c8ae267"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga4fa3418faee867ef808503b89c8ae267">&#9670;&nbsp;</a></span>ddx_cosmo_solvation_force_terms()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1702,7 +1742,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>forces</em>&#160;</td>
+          <td class="paramname"><em>forces</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1717,14 +1763,15 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">state</td><td>DDX state </td></tr>
     <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
     <tr><td class="paramname">forces</td><td>Output force array (3, nsph) in column-major order </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ga676762bb48bfa4c144dba5bd7e21377f" name="ga676762bb48bfa4c144dba5bd7e21377f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga676762bb48bfa4c144dba5bd7e21377f">&#9670;&nbsp;</a></span>ddx_pcm_setup()</h2>
+<a id="ga3cba40aa928496a68337a8046af6e353" name="ga3cba40aa928496a68337a8046af6e353"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3cba40aa928496a68337a8046af6e353">&#9670;&nbsp;</a></span>ddx_pcm_setup()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1769,7 +1816,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>phi_cav</em>&#160;</td>
+          <td class="paramname"><em>phi_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1787,14 +1840,15 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
     <tr><td class="paramname">psi</td><td>Psi array (nbasis, nsph)-shaped array (in column-major ordering) </td></tr>
     <tr><td class="paramname">phi_cav</td><td>Phi array (ncav, )-shaped array </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="gac1ee2465f0f9e0b2f8ab716ce3dc17ac" name="gac1ee2465f0f9e0b2f8ab716ce3dc17ac"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gac1ee2465f0f9e0b2f8ab716ce3dc17ac">&#9670;&nbsp;</a></span>ddx_pcm_guess()</h2>
+<a id="gade5d39fdba7a5118b8338c02625e3f18" name="gade5d39fdba7a5118b8338c02625e3f18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gade5d39fdba7a5118b8338c02625e3f18">&#9670;&nbsp;</a></span>ddx_pcm_guess()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1809,7 +1863,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>state</em>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1822,8 +1882,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="gacd62d6ee046927a5f9e6f0d7ca9f1287" name="gacd62d6ee046927a5f9e6f0d7ca9f1287"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gacd62d6ee046927a5f9e6f0d7ca9f1287">&#9670;&nbsp;</a></span>ddx_pcm_guess_adjoint()</h2>
+<a id="ga422463ca31cbf50d2f9e4dbfad1526fe" name="ga422463ca31cbf50d2f9e4dbfad1526fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga422463ca31cbf50d2f9e4dbfad1526fe">&#9670;&nbsp;</a></span>ddx_pcm_guess_adjoint()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1838,7 +1898,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>state</em>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1851,8 +1917,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="ga4b3012869b881d0075b28e463d8d643a" name="ga4b3012869b881d0075b28e463d8d643a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga4b3012869b881d0075b28e463d8d643a">&#9670;&nbsp;</a></span>ddx_pcm_solve()</h2>
+<a id="gaedd18a11fd0d42372e94f7f6c64f4109" name="gaedd18a11fd0d42372e94f7f6c64f4109"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaedd18a11fd0d42372e94f7f6c64f4109">&#9670;&nbsp;</a></span>ddx_pcm_solve()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1873,7 +1939,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>tol</em>&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1886,6 +1958,7 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
   <table class="params">
     <tr><td class="paramname">state</td><td>DDX state </td></tr>
     <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
     <tr><td class="paramname">tol</td><td>Tolerance up to which the problem is solved </td></tr>
   </table>
   </dd>
@@ -1893,8 +1966,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="gaa37a2a6143eee997d918a41c8769322d" name="gaa37a2a6143eee997d918a41c8769322d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaa37a2a6143eee997d918a41c8769322d">&#9670;&nbsp;</a></span>ddx_pcm_solve_adjoint()</h2>
+<a id="ga20e255f242701686226b994ba8b4d50a" name="ga20e255f242701686226b994ba8b4d50a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga20e255f242701686226b994ba8b4d50a">&#9670;&nbsp;</a></span>ddx_pcm_solve_adjoint()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1915,7 +1988,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>tol</em>&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1928,6 +2007,7 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
   <table class="params">
     <tr><td class="paramname">state</td><td>DDX state </td></tr>
     <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
     <tr><td class="paramname">tol</td><td>Tolerance up to which the problem is solved </td></tr>
   </table>
   </dd>
@@ -1935,8 +2015,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="gaee4a247d4b5cd4d2d3367aded28ca4c1" name="gaee4a247d4b5cd4d2d3367aded28ca4c1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaee4a247d4b5cd4d2d3367aded28ca4c1">&#9670;&nbsp;</a></span>ddx_pcm_energy()</h2>
+<a id="ga2c8872fc3c9957018ba1fdba20f81b56" name="ga2c8872fc3c9957018ba1fdba20f81b56"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2c8872fc3c9957018ba1fdba20f81b56">&#9670;&nbsp;</a></span>ddx_pcm_energy()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1951,7 +2031,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>state</em>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1963,6 +2049,7 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <p >Compute PCM energy </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
     <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
   </table>
   </dd>
@@ -1970,8 +2057,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="ga7fac3c26650775e78bf08ba6f684db0d" name="ga7fac3c26650775e78bf08ba6f684db0d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga7fac3c26650775e78bf08ba6f684db0d">&#9670;&nbsp;</a></span>ddx_pcm_solvation_force_terms()</h2>
+<a id="gaa211bca535bfbfaa38da99fe2392af88" name="gaa211bca535bfbfaa38da99fe2392af88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa211bca535bfbfaa38da99fe2392af88">&#9670;&nbsp;</a></span>ddx_pcm_solvation_force_terms()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1998,7 +2085,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>forces</em>&#160;</td>
+          <td class="paramname"><em>forces</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2013,14 +2106,15 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">state</td><td>DDX state </td></tr>
     <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
     <tr><td class="paramname">forces</td><td>Output force array (3, nsph) in column-major order </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="gacd3ec994a0f1c532c399ffbb0a746e19" name="gacd3ec994a0f1c532c399ffbb0a746e19"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gacd3ec994a0f1c532c399ffbb0a746e19">&#9670;&nbsp;</a></span>ddx_lpb_setup()</h2>
+<a id="ga3f5f103fe55edb73793916fb41cadf5f" name="ga3f5f103fe55edb73793916fb41cadf5f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3f5f103fe55edb73793916fb41cadf5f">&#9670;&nbsp;</a></span>ddx_lpb_setup()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2071,7 +2165,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double *&#160;</td>
-          <td class="paramname"><em>e_cav</em>&#160;</td>
+          <td class="paramname"><em>e_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2090,14 +2190,15 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">psi</td><td>Psi array (nbasis, nsph)-shaped array (in column-major ordering) </td></tr>
     <tr><td class="paramname">phi_cav</td><td>Phi array (ncav, )-shaped array </td></tr>
     <tr><td class="paramname">e_cav</td><td>Electric field generated by multipoles: (3, ncav)-shaped array (column major) </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="gabb5c1bebe25da8846fcf758f1c88322d" name="gabb5c1bebe25da8846fcf758f1c88322d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gabb5c1bebe25da8846fcf758f1c88322d">&#9670;&nbsp;</a></span>ddx_lpb_guess()</h2>
+<a id="gacafb9944876fd963279e45d3c9068ab1" name="gacafb9944876fd963279e45d3c9068ab1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacafb9944876fd963279e45d3c9068ab1">&#9670;&nbsp;</a></span>ddx_lpb_guess()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2118,7 +2219,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>tol</em>&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2131,8 +2238,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="gae617727c5eda76251665306218505502" name="gae617727c5eda76251665306218505502"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gae617727c5eda76251665306218505502">&#9670;&nbsp;</a></span>ddx_lpb_guess_adjoint()</h2>
+<a id="ga1642f3ee3ead84667acd02fc78f81cff" name="ga1642f3ee3ead84667acd02fc78f81cff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1642f3ee3ead84667acd02fc78f81cff">&#9670;&nbsp;</a></span>ddx_lpb_guess_adjoint()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2153,7 +2260,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>tol</em>&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2166,8 +2279,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="ga44c856c790e22768b4d17bdc145f93fd" name="ga44c856c790e22768b4d17bdc145f93fd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga44c856c790e22768b4d17bdc145f93fd">&#9670;&nbsp;</a></span>ddx_lpb_solve()</h2>
+<a id="gab1e2fd6127502efc4aa148bdabd06fd0" name="gab1e2fd6127502efc4aa148bdabd06fd0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab1e2fd6127502efc4aa148bdabd06fd0">&#9670;&nbsp;</a></span>ddx_lpb_solve()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2188,7 +2301,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>tol</em>&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2201,6 +2320,7 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
   <table class="params">
     <tr><td class="paramname">state</td><td>DDX state </td></tr>
     <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
     <tr><td class="paramname">tol</td><td>Tolerance up to which the problem is solved </td></tr>
   </table>
   </dd>
@@ -2208,8 +2328,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="ga5e86d14a8645cf075c4e730e54c688e1" name="ga5e86d14a8645cf075c4e730e54c688e1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga5e86d14a8645cf075c4e730e54c688e1">&#9670;&nbsp;</a></span>ddx_lpb_solve_adjoint()</h2>
+<a id="gacf28bceafa33539a249c697a53ddeb8b" name="gacf28bceafa33539a249c697a53ddeb8b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacf28bceafa33539a249c697a53ddeb8b">&#9670;&nbsp;</a></span>ddx_lpb_solve_adjoint()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2230,7 +2350,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>tol</em>&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2243,6 +2369,7 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
   <table class="params">
     <tr><td class="paramname">state</td><td>DDX state </td></tr>
     <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
     <tr><td class="paramname">tol</td><td>Tolerance up to which the problem is solved </td></tr>
   </table>
   </dd>
@@ -2250,8 +2377,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="gaeba66de5f525276d9c6c66639bb5a618" name="gaeba66de5f525276d9c6c66639bb5a618"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaeba66de5f525276d9c6c66639bb5a618">&#9670;&nbsp;</a></span>ddx_lpb_energy()</h2>
+<a id="ga864c73dae77c81607b6b960eb0375ce0" name="ga864c73dae77c81607b6b960eb0375ce0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga864c73dae77c81607b6b960eb0375ce0">&#9670;&nbsp;</a></span>ddx_lpb_energy()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2266,7 +2393,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>state</em>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2278,6 +2411,7 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <p >Compute LPB energy </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
     <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
   </table>
   </dd>
@@ -2285,8 +2419,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="ga3bb8c58ebd1dc9785773f023dd15e0c6" name="ga3bb8c58ebd1dc9785773f023dd15e0c6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga3bb8c58ebd1dc9785773f023dd15e0c6">&#9670;&nbsp;</a></span>ddx_multipole_electrostatics_0()</h2>
+<a id="ga10529fa3e96f380136952d71a158ad43" name="ga10529fa3e96f380136952d71a158ad43"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga10529fa3e96f380136952d71a158ad43">&#9670;&nbsp;</a></span>ddx_multipole_electrostatics_0()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2325,7 +2459,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>phi_cav</em>&#160;</td>
+          <td class="paramname"><em>phi_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2340,16 +2480,17 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
     <tr><td class="paramname">ncav</td><td>Number of cavity points </td></tr>
     <tr><td class="paramname">nmultipoles</td><td>Total number of multipoles. If multipoles up to mmax are used, this is (mmax+1)^2. E.g. for charges, dipoles and quadrupoles (mmax=2), this is 9. </td></tr>
-    <tr><td class="paramname">multipoles</td><td>Multipoles (nmultipoles, nsph)-shaped array in column-major order.</td></tr>
+    <tr><td class="paramname">multipoles</td><td>Multipoles (nmultipoles, nsph)-shaped array in column-major order. </td></tr>
     <tr><td class="paramname">phi_cav</td><td>Potential (phi) generated by multipoles: (ncav, )-shaped array </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ga9f9a4f1bacbf34b28841fc2795765b4d" name="ga9f9a4f1bacbf34b28841fc2795765b4d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga9f9a4f1bacbf34b28841fc2795765b4d">&#9670;&nbsp;</a></span>ddx_multipole_electrostatics_1()</h2>
+<a id="gaf6fd9c9d13826f6063fcd3d9a4490e68" name="gaf6fd9c9d13826f6063fcd3d9a4490e68"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf6fd9c9d13826f6063fcd3d9a4490e68">&#9670;&nbsp;</a></span>ddx_multipole_electrostatics_1()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2394,7 +2535,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>e_cav</em>&#160;</td>
+          <td class="paramname"><em>e_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2409,17 +2556,18 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
     <tr><td class="paramname">ncav</td><td>Number of cavity points </td></tr>
     <tr><td class="paramname">nmultipoles</td><td>Total number of multipoles. If multipoles up to mmax are used, this is (mmax+1)^2. E.g. for charges, dipoles and quadrupoles (mmax=2), this is 9. </td></tr>
-    <tr><td class="paramname">multipoles</td><td>Multipoles (nmultipoles, nsph)-shaped array in column-major order.</td></tr>
+    <tr><td class="paramname">multipoles</td><td>Multipoles (nmultipoles, nsph)-shaped array in column-major order. </td></tr>
     <tr><td class="paramname">phi_cav</td><td>Potential (phi) generated by multipoles: (ncav, )-shaped array </td></tr>
     <tr><td class="paramname">e_cav</td><td>Electric field generated by multipoles: (3, ncav)-shaped array (column major) </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ga53683193504647c532d718748adcfb10" name="ga53683193504647c532d718748adcfb10"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga53683193504647c532d718748adcfb10">&#9670;&nbsp;</a></span>ddx_multipole_electrostatics_2()</h2>
+<a id="ga0659f96fca18455b366bcff1f009fff9" name="ga0659f96fca18455b366bcff1f009fff9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0659f96fca18455b366bcff1f009fff9">&#9670;&nbsp;</a></span>ddx_multipole_electrostatics_2()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2470,7 +2618,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>g_cav</em>&#160;</td>
+          <td class="paramname"><em>g_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2485,18 +2639,19 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
     <tr><td class="paramname">ncav</td><td>Number of cavity points </td></tr>
     <tr><td class="paramname">nmultipoles</td><td>Total number of multipoles. If multipoles up to mmax are used, this is (mmax+1)^2. E.g. for charges, dipoles and quadrupoles (mmax=2), this is 9. </td></tr>
-    <tr><td class="paramname">multipoles</td><td>Multipoles (nmultipoles, nsph)-shaped array in column-major order.</td></tr>
+    <tr><td class="paramname">multipoles</td><td>Multipoles (nmultipoles, nsph)-shaped array in column-major order. </td></tr>
     <tr><td class="paramname">phi_cav</td><td>Potential (phi) generated by multipoles: (ncav, )-shaped array </td></tr>
     <tr><td class="paramname">e_cav</td><td>Electric field generated by multipoles: (3, ncav)-shaped array (column major) </td></tr>
     <tr><td class="paramname">g_cav</td><td>Electric field gradient gen. by multipoles: (3, 3, ncav)-shaped array (column major) </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="gab24b8fe321b8208e1273f286be21662c" name="gab24b8fe321b8208e1273f286be21662c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gab24b8fe321b8208e1273f286be21662c">&#9670;&nbsp;</a></span>ddx_multipole_psi()</h2>
+<a id="ga50bf6f324e0e7f5df477bece4451f01b" name="ga50bf6f324e0e7f5df477bece4451f01b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga50bf6f324e0e7f5df477bece4451f01b">&#9670;&nbsp;</a></span>ddx_multipole_psi()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2535,7 +2690,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>psi</em>&#160;</td>
+          <td class="paramname"><em>psi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2550,16 +2711,17 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">nbasis</td><td>Number of basis functions used by DDX </td></tr>
     <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
     <tr><td class="paramname">nmultipoles</td><td>Total number of multipoles. If multipoles up to mmax are used, this is (mmax+1)^2. E.g. for charges, dipoles and quadrupoles (mmax=2), this is 9. </td></tr>
-    <tr><td class="paramname">multipoles</td><td>Multipoles (nmultipoles, nsph)-shaped array in column-major order.</td></tr>
+    <tr><td class="paramname">multipoles</td><td>Multipoles (nmultipoles, nsph)-shaped array in column-major order. </td></tr>
     <tr><td class="paramname">psi</td><td>Psi array (nbasis, nsph)-shaped array (column major) </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ga0c6da0c933f1bd46dba4bf0fd783e99c" name="ga0c6da0c933f1bd46dba4bf0fd783e99c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga0c6da0c933f1bd46dba4bf0fd783e99c">&#9670;&nbsp;</a></span>ddx_multipole_forces()</h2>
+<a id="ga0dbc280a05c16c29fb2670ad73e479f9" name="ga0dbc280a05c16c29fb2670ad73e479f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0dbc280a05c16c29fb2670ad73e479f9">&#9670;&nbsp;</a></span>ddx_multipole_forces()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2610,7 +2772,13 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>forces</em>&#160;</td>
+          <td class="paramname"><em>forces</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2626,9 +2794,10 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
     <tr><td class="paramname">ncav</td><td>Number of cavity points </td></tr>
     <tr><td class="paramname">nmultipoles</td><td>Total number of multipoles. If multipoles up to mmax are used, this is (mmax+1)^2. E.g. for charges, dipoles and quadrupoles (mmax=2), this is 9. </td></tr>
-    <tr><td class="paramname">multipoles</td><td>Multipoles (nmultipoles, nsph)-shaped array in column-major order.</td></tr>
+    <tr><td class="paramname">multipoles</td><td>Multipoles (nmultipoles, nsph)-shaped array in column-major order. </td></tr>
     <tr><td class="paramname">e_cav</td><td>Electric field generated by multipoles: (3, ncav)-shaped array (column major) </td></tr>
     <tr><td class="paramname">forces</td><td>Output force array (3, nsph) in column-major order </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
   </table>
   </dd>
 </dl>

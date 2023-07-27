@@ -101,36 +101,36 @@ $(document).ready(function(){initNavTree('group___fortran__interface__ddpcm.html
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:gaac7e2eb04f8acc0b10a8aa7096d735e0"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#gaac7e2eb04f8acc0b10a8aa7096d735e0">ddx_pcm::ddpcm</a> (params, constants, workspace, state, phi_cav, psi, tol, esolv, force)</td></tr>
-<tr class="memdesc:gaac7e2eb04f8acc0b10a8aa7096d735e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddPCM solver  <a href="group___fortran__interface__ddpcm.html#gaac7e2eb04f8acc0b10a8aa7096d735e0">More...</a><br /></td></tr>
-<tr class="separator:gaac7e2eb04f8acc0b10a8aa7096d735e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa230a041e3ec99afe8e77a034aa1e209"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#gaa230a041e3ec99afe8e77a034aa1e209">ddx_pcm::ddpcm_energy</a> (constants, state, esolv)</td></tr>
-<tr class="memdesc:gaa230a041e3ec99afe8e77a034aa1e209"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the ddPCM energy.  <a href="group___fortran__interface__ddpcm.html#gaa230a041e3ec99afe8e77a034aa1e209">More...</a><br /></td></tr>
-<tr class="separator:gaa230a041e3ec99afe8e77a034aa1e209"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga372f8ee7283b914b8e18cdb3fe191961"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga372f8ee7283b914b8e18cdb3fe191961">ddx_pcm::ddpcm_setup</a> (params, constants, workspace, state, phi_cav, psi)</td></tr>
-<tr class="memdesc:ga372f8ee7283b914b8e18cdb3fe191961"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given the potential at the cavity points, assemble the RHS for ddCOSMO or for ddPCM.  <a href="group___fortran__interface__ddpcm.html#ga372f8ee7283b914b8e18cdb3fe191961">More...</a><br /></td></tr>
-<tr class="separator:ga372f8ee7283b914b8e18cdb3fe191961"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gafcf10e5bf414f7bbb08631623e021ee8"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#gafcf10e5bf414f7bbb08631623e021ee8">ddx_pcm::ddpcm_guess</a> (params, constants, workspace, state)</td></tr>
-<tr class="memdesc:gafcf10e5bf414f7bbb08631623e021ee8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the primal ddPCM linear system.  <a href="group___fortran__interface__ddpcm.html#gafcf10e5bf414f7bbb08631623e021ee8">More...</a><br /></td></tr>
-<tr class="separator:gafcf10e5bf414f7bbb08631623e021ee8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga19181358de0ded287e1e5426f11da2e5"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga19181358de0ded287e1e5426f11da2e5">ddx_pcm::ddpcm_guess_adjoint</a> (params, constants, workspace, state)</td></tr>
-<tr class="memdesc:ga19181358de0ded287e1e5426f11da2e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the adjoint ddPCM linear system.  <a href="group___fortran__interface__ddpcm.html#ga19181358de0ded287e1e5426f11da2e5">More...</a><br /></td></tr>
-<tr class="separator:ga19181358de0ded287e1e5426f11da2e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaad1df8961dc4af2e658ebab9510c2807"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#gaad1df8961dc4af2e658ebab9510c2807">ddx_pcm::ddpcm_solve</a> (params, constants, workspace, state, tol)</td></tr>
-<tr class="memdesc:gaad1df8961dc4af2e658ebab9510c2807"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the ddPCM primal linear system.  <a href="group___fortran__interface__ddpcm.html#gaad1df8961dc4af2e658ebab9510c2807">More...</a><br /></td></tr>
-<tr class="separator:gaad1df8961dc4af2e658ebab9510c2807"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga39d2a1ee8cb28f8a12bbbb023a66ccf2"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga39d2a1ee8cb28f8a12bbbb023a66ccf2">ddx_pcm::ddpcm_solve_adjoint</a> (params, constants, workspace, state, tol)</td></tr>
-<tr class="memdesc:ga39d2a1ee8cb28f8a12bbbb023a66ccf2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the ddPCM adjpint linear system.  <a href="group___fortran__interface__ddpcm.html#ga39d2a1ee8cb28f8a12bbbb023a66ccf2">More...</a><br /></td></tr>
-<tr class="separator:ga39d2a1ee8cb28f8a12bbbb023a66ccf2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae5bf3638d2a8c2ffd89f551fffe38814"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#gae5bf3638d2a8c2ffd89f551fffe38814">ddx_pcm::ddpcm_solvation_force_terms</a> (params, constants, workspace, state, force)</td></tr>
-<tr class="memdesc:gae5bf3638d2a8c2ffd89f551fffe38814"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the solvation contribution to the ddPCM forces.  <a href="group___fortran__interface__ddpcm.html#gae5bf3638d2a8c2ffd89f551fffe38814">More...</a><br /></td></tr>
-<tr class="separator:gae5bf3638d2a8c2ffd89f551fffe38814"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7f4ab910aea0530a3d9ba9ffb66ac8dd"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga7f4ab910aea0530a3d9ba9ffb66ac8dd">ddx_pcm::ddpcm</a> (params, constants, workspace, state, phi_cav, psi, tol, esolv, force, error)</td></tr>
+<tr class="memdesc:ga7f4ab910aea0530a3d9ba9ffb66ac8dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddPCM solver  <a href="group___fortran__interface__ddpcm.html#ga7f4ab910aea0530a3d9ba9ffb66ac8dd">More...</a><br /></td></tr>
+<tr class="separator:ga7f4ab910aea0530a3d9ba9ffb66ac8dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga74e0e581512ebe914e97c49a5594f692"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga74e0e581512ebe914e97c49a5594f692">ddx_pcm::ddpcm_energy</a> (constants, state, esolv, error)</td></tr>
+<tr class="memdesc:ga74e0e581512ebe914e97c49a5594f692"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the ddPCM energy.  <a href="group___fortran__interface__ddpcm.html#ga74e0e581512ebe914e97c49a5594f692">More...</a><br /></td></tr>
+<tr class="separator:ga74e0e581512ebe914e97c49a5594f692"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5d9eb538eef6afe8b4606ed7cc6360a7"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga5d9eb538eef6afe8b4606ed7cc6360a7">ddx_pcm::ddpcm_setup</a> (params, constants, workspace, state, phi_cav, psi, error)</td></tr>
+<tr class="memdesc:ga5d9eb538eef6afe8b4606ed7cc6360a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given the potential at the cavity points, assemble the RHS for ddCOSMO or for ddPCM.  <a href="group___fortran__interface__ddpcm.html#ga5d9eb538eef6afe8b4606ed7cc6360a7">More...</a><br /></td></tr>
+<tr class="separator:ga5d9eb538eef6afe8b4606ed7cc6360a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga933cba3ac8ebea8ca97cd6447990a271"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga933cba3ac8ebea8ca97cd6447990a271">ddx_pcm::ddpcm_guess</a> (params, constants, workspace, state, error)</td></tr>
+<tr class="memdesc:ga933cba3ac8ebea8ca97cd6447990a271"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the primal ddPCM linear system.  <a href="group___fortran__interface__ddpcm.html#ga933cba3ac8ebea8ca97cd6447990a271">More...</a><br /></td></tr>
+<tr class="separator:ga933cba3ac8ebea8ca97cd6447990a271"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga52a63b53b30b4af42441c486436fecf4"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga52a63b53b30b4af42441c486436fecf4">ddx_pcm::ddpcm_guess_adjoint</a> (params, constants, workspace, state, error)</td></tr>
+<tr class="memdesc:ga52a63b53b30b4af42441c486436fecf4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the adjoint ddPCM linear system.  <a href="group___fortran__interface__ddpcm.html#ga52a63b53b30b4af42441c486436fecf4">More...</a><br /></td></tr>
+<tr class="separator:ga52a63b53b30b4af42441c486436fecf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac0931e735945af09ac6e15f3a70032c7"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#gac0931e735945af09ac6e15f3a70032c7">ddx_pcm::ddpcm_solve</a> (params, constants, workspace, state, tol, error)</td></tr>
+<tr class="memdesc:gac0931e735945af09ac6e15f3a70032c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the ddPCM primal linear system.  <a href="group___fortran__interface__ddpcm.html#gac0931e735945af09ac6e15f3a70032c7">More...</a><br /></td></tr>
+<tr class="separator:gac0931e735945af09ac6e15f3a70032c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac210cb06cd65f2fdd0f26eb2440a792a"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#gac210cb06cd65f2fdd0f26eb2440a792a">ddx_pcm::ddpcm_solve_adjoint</a> (params, constants, workspace, state, tol, error)</td></tr>
+<tr class="memdesc:gac210cb06cd65f2fdd0f26eb2440a792a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the ddPCM adjpint linear system.  <a href="group___fortran__interface__ddpcm.html#gac210cb06cd65f2fdd0f26eb2440a792a">More...</a><br /></td></tr>
+<tr class="separator:gac210cb06cd65f2fdd0f26eb2440a792a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga24b4fb14c0488a5a326c89e5b5cbc1fe"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddpcm.html#ga24b4fb14c0488a5a326c89e5b5cbc1fe">ddx_pcm::ddpcm_solvation_force_terms</a> (params, constants, workspace, state, force, error)</td></tr>
+<tr class="memdesc:ga24b4fb14c0488a5a326c89e5b5cbc1fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the solvation contribution to the ddPCM forces.  <a href="group___fortran__interface__ddpcm.html#ga24b4fb14c0488a5a326c89e5b5cbc1fe">More...</a><br /></td></tr>
+<tr class="separator:ga24b4fb14c0488a5a326c89e5b5cbc1fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p >Exposed ddpcm modules in the Fortran API. </p>
 <h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="gaac7e2eb04f8acc0b10a8aa7096d735e0" name="gaac7e2eb04f8acc0b10a8aa7096d735e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaac7e2eb04f8acc0b10a8aa7096d735e0">&#9670;&nbsp;</a></span>ddpcm()</h2>
+<a id="ga7f4ab910aea0530a3d9ba9ffb66ac8dd" name="ga7f4ab910aea0530a3d9ba9ffb66ac8dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga7f4ab910aea0530a3d9ba9ffb66ac8dd">&#9670;&nbsp;</a></span>ddpcm()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -187,7 +187,13 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">real(dp), dimension(3, params % nsph), intent(out), optional&#160;</td>
-          <td class="paramname"><em>force</em>&#160;</td>
+          <td class="paramname"><em>force</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -210,16 +216,17 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>Tolerance for the linear system solver </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">esolv</td><td>Solvation energy </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>Solvation contribution to the forces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00039">39</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00040">40</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
-<a id="gaa230a041e3ec99afe8e77a034aa1e209" name="gaa230a041e3ec99afe8e77a034aa1e209"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaa230a041e3ec99afe8e77a034aa1e209">&#9670;&nbsp;</a></span>ddpcm_energy()</h2>
+<a id="ga74e0e581512ebe914e97c49a5594f692" name="ga74e0e581512ebe914e97c49a5594f692"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga74e0e581512ebe914e97c49a5594f692">&#9670;&nbsp;</a></span>ddpcm_energy()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -240,7 +247,13 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">real(dp), intent(out)&#160;</td>
-          <td class="paramname"><em>esolv</em>&#160;</td>
+          <td class="paramname"><em>esolv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -256,16 +269,17 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">esolv</td><td>resulting energy </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00078">78</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00107">107</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
-<a id="ga372f8ee7283b914b8e18cdb3fe191961" name="ga372f8ee7283b914b8e18cdb3fe191961"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga372f8ee7283b914b8e18cdb3fe191961">&#9670;&nbsp;</a></span>ddpcm_setup()</h2>
+<a id="ga5d9eb538eef6afe8b4606ed7cc6360a7" name="ga5d9eb538eef6afe8b4606ed7cc6360a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5d9eb538eef6afe8b4606ed7cc6360a7">&#9670;&nbsp;</a></span>ddpcm_setup()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -304,7 +318,13 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>psi</em>&#160;</td>
+          <td class="paramname"><em>psi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -323,16 +343,17 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">phi_cav</td><td>electrostatic potential at the cavity points </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">psi</td><td>representation of the solute density </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00098">98</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00129">129</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
-<a id="gafcf10e5bf414f7bbb08631623e021ee8" name="gafcf10e5bf414f7bbb08631623e021ee8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gafcf10e5bf414f7bbb08631623e021ee8">&#9670;&nbsp;</a></span>ddpcm_guess()</h2>
+<a id="ga933cba3ac8ebea8ca97cd6447990a271" name="ga933cba3ac8ebea8ca97cd6447990a271"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga933cba3ac8ebea8ca97cd6447990a271">&#9670;&nbsp;</a></span>ddpcm_guess()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -359,7 +380,13 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -380,12 +407,12 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00121">121</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00153">153</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
-<a id="ga19181358de0ded287e1e5426f11da2e5" name="ga19181358de0ded287e1e5426f11da2e5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga19181358de0ded287e1e5426f11da2e5">&#9670;&nbsp;</a></span>ddpcm_guess_adjoint()</h2>
+<a id="ga52a63b53b30b4af42441c486436fecf4" name="ga52a63b53b30b4af42441c486436fecf4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga52a63b53b30b4af42441c486436fecf4">&#9670;&nbsp;</a></span>ddpcm_guess_adjoint()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -412,7 +439,13 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -433,12 +466,12 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00141">141</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00175">175</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
-<a id="gaad1df8961dc4af2e658ebab9510c2807" name="gaad1df8961dc4af2e658ebab9510c2807"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaad1df8961dc4af2e658ebab9510c2807">&#9670;&nbsp;</a></span>ddpcm_solve()</h2>
+<a id="gac0931e735945af09ac6e15f3a70032c7" name="gac0931e735945af09ac6e15f3a70032c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac0931e735945af09ac6e15f3a70032c7">&#9670;&nbsp;</a></span>ddpcm_solve()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -471,7 +504,13 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>tol</em>&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -489,16 +528,17 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>: Preallocated workspaces </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>: Solutions and relevant quantities </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>: Tolerance for the iterative solvers </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>: ddX error </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00162">162</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00198">198</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
-<a id="ga39d2a1ee8cb28f8a12bbbb023a66ccf2" name="ga39d2a1ee8cb28f8a12bbbb023a66ccf2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga39d2a1ee8cb28f8a12bbbb023a66ccf2">&#9670;&nbsp;</a></span>ddpcm_solve_adjoint()</h2>
+<a id="gac210cb06cd65f2fdd0f26eb2440a792a" name="gac210cb06cd65f2fdd0f26eb2440a792a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac210cb06cd65f2fdd0f26eb2440a792a">&#9670;&nbsp;</a></span>ddpcm_solve_adjoint()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -531,7 +571,13 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>tol</em>&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -549,16 +595,17 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>: Preallocated workspaces </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>: Solutions, guesses and relevant quantities </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>: Tolerance for the iterative solvers </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00212">212</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00252">252</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>
-<a id="gae5bf3638d2a8c2ffd89f551fffe38814" name="gae5bf3638d2a8c2ffd89f551fffe38814"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gae5bf3638d2a8c2ffd89f551fffe38814">&#9670;&nbsp;</a></span>ddpcm_solvation_force_terms()</h2>
+<a id="ga24b4fb14c0488a5a326c89e5b5cbc1fe" name="ga24b4fb14c0488a5a326c89e5b5cbc1fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga24b4fb14c0488a5a326c89e5b5cbc1fe">&#9670;&nbsp;</a></span>ddpcm_solvation_force_terms()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -591,7 +638,13 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">real(dp), dimension(3, params % nsph), intent(out)&#160;</td>
-          <td class="paramname"><em>force</em>&#160;</td>
+          <td class="paramname"><em>force</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -609,11 +662,12 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>: Preallocated workspaces </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>: Solutions and relevant quantities </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>: Geometrical contribution to the forces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00266">266</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__pcm_8f90_source.html#l00308">308</a> of file <a class="el" href="ddx__pcm_8f90_source.html">ddx_pcm.f90</a>.</p>
 
 </div>
 </div>

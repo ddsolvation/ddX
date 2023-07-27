@@ -8,7 +8,10 @@ var annotated_dup =
     ] ],
     [ "ddx_core", "namespaceddx__core.html", [
       [ "ddx_state_type", "structddx__core_1_1ddx__state__type.html", "structddx__core_1_1ddx__state__type" ],
-      [ "ddx_type", "structddx__core_1_1ddx__type.html", "structddx__core_1_1ddx__type" ]
+      [ "ddx_type", "structddx__core_1_1ddx__type.html", null ]
+    ] ],
+    [ "ddx_errors", null, [
+      [ "ddx_error_type", "structddx__errors_1_1ddx__error__type.html", "structddx__errors_1_1ddx__error__type" ]
     ] ],
     [ "ddx_parameters", "namespaceddx__parameters.html", [
       [ "ddx_params_type", "structddx__parameters_1_1ddx__params__type.html", "structddx__parameters_1_1ddx__params__type" ]

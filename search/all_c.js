@@ -9,9 +9,10 @@ var searchData=
   ['matvec_5finterface_6',['matvec_interface',['../interfaceddx__solvers_1_1matvec__interface.html',1,'ddx_solvers']]],
   ['matvec_5finterface_5fexternal_7',['matvec_interface_external',['../interfaceddx__solvers_1_1matvec__interface__external.html',1,'ddx_solvers']]],
   ['matvecmem_8',['matvecmem',['../structddx__parameters_1_1ddx__params__type.html#aff335b17a4bd5435a7d7ef8ea618e19a',1,'ddx_parameters::ddx_params_type']]],
-  ['maxiter_9',['maxiter',['../structddx__parameters_1_1ddx__params__type.html#a144db6ae7b0003dc11d822b59df51fbf',1,'ddx_parameters::ddx_params_type']]],
-  ['mkpmat_10',['mkpmat',['../namespaceddx__constants.html#af5826bc847008b2eb36949c6b05b3e5d',1,'ddx_constants']]],
-  ['mkprec_11',['mkprec',['../namespaceddx__constants.html#a5d1fc3f2c16984ceaa0e1ed9de8fb548',1,'ddx_constants']]],
-  ['model_12',['model',['../structddx__parameters_1_1ddx__params__type.html#a1c894bf3f401534f58322ee913f205f4',1,'ddx_parameters::ddx_params_type']]],
-  ['model_5fstr_13',['model_str',['../namespaceddx__definitions.html#a27faa3db3323ba2c6427084fcbf7b953',1,'ddx_definitions']]]
+  ['max_5flength_9',['max_length',['../structddx__errors_1_1ddx__error__type.html#ac095f510feda5770f0cc6f72b3433f9c',1,'ddx_errors::ddx_error_type']]],
+  ['maxiter_10',['maxiter',['../structddx__parameters_1_1ddx__params__type.html#a144db6ae7b0003dc11d822b59df51fbf',1,'ddx_parameters::ddx_params_type']]],
+  ['mkpmat_11',['mkpmat',['../namespaceddx__constants.html#af5826bc847008b2eb36949c6b05b3e5d',1,'ddx_constants']]],
+  ['mkprec_12',['mkprec',['../namespaceddx__constants.html#a3098a4f3cdfb6b9f5a11704e6d573c37',1,'ddx_constants']]],
+  ['model_13',['model',['../structddx__parameters_1_1ddx__params__type.html#a1c894bf3f401534f58322ee913f205f4',1,'ddx_parameters::ddx_params_type']]],
+  ['model_5fstr_14',['model_str',['../namespaceddx__definitions.html#a27faa3db3323ba2c6427084fcbf7b953',1,'ddx_definitions']]]
 ];

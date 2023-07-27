@@ -1,12 +1,12 @@
 var ddx__core_8f90 =
 [
     [ "ddx_core::ddx_state_type", "structddx__core_1_1ddx__state__type.html", "structddx__core_1_1ddx__state__type" ],
-    [ "ddx_core::ddx_type", "structddx__core_1_1ddx__type.html", "structddx__core_1_1ddx__type" ],
-    [ "ddinit", "ddx__core_8f90.html#ad61ab429c20650b346640e460ed8049d", null ],
-    [ "ddx_init_state", "ddx__core_8f90.html#gab34ec195fbaa7838303efa0b7e0f0453", null ],
-    [ "ddfromfile", "ddx__core_8f90.html#a2aee75a4b91a88dc68c3f3e02c8ae158", null ],
-    [ "ddfree", "ddx__core_8f90.html#a3258ae6ef23a4f07ea8a14ccf612acaa", null ],
-    [ "ddx_free_state", "ddx__core_8f90.html#ga5614410792c4a18a359eae6fd226cc8e", null ],
+    [ "ddx_core::ddx_type", "structddx__core_1_1ddx__type.html", null ],
+    [ "ddinit", "ddx__core_8f90.html#a4f476fb63aa88c88e5973f93919f1a23", null ],
+    [ "ddx_init_state", "ddx__core_8f90.html#gab531c12369a8149f274a363ce16d142b", null ],
+    [ "ddfromfile", "ddx__core_8f90.html#afff7fd18f5ff921b36bbe62225ceef57", null ],
+    [ "ddfree", "ddx__core_8f90.html#a492fbc523986e0e2b2df6e797b9a0ed1", null ],
+    [ "ddx_free_state", "ddx__core_8f90.html#ga66ae63e8f0f7cd98004519423685fa5b", null ],
     [ "print_spherical", "ddx__core_8f90.html#af4eafcca2db08df6f222c4a9874f1350", null ],
     [ "print_nodes", "ddx__core_8f90.html#a4fb708956f0cfee0096fc319575ad228", null ],
     [ "print_ddvector", "ddx__core_8f90.html#a7ee983451a2d6b52ce89801a59fb33e6", null ],
