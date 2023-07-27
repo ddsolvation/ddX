@@ -101,10 +101,10 @@ void* ddx_allocate_model(int model, int enable_force, double solvent_epsilon,
                          int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax,
                          int n_proc, int n_spheres, const double* sphere_centres,
                          const double* sphere_radii, int length_logfile,
-                         const char* logfile, const void* error);
+                         const char* logfile, void* error);
 
 /** Deallocate the model object */
-void ddx_deallocate_model(void* ddx, const void* error);
+void ddx_deallocate_model(void* ddx, void* error);
 
 ///@}
 
@@ -195,10 +195,10 @@ void ddx_get_cavity(const void* ddx, int ncav, double* c_ccav);
 /** \name Allocate and manage the state object */
 ///@{
 /** Allocate an empty state from a model */
-void* ddx_allocate_state(const void* ddx, const void* error);
+void* ddx_allocate_state(const void* ddx, void* error);
 
 /** Deallocate a state object */
-void ddx_deallocate_state(void* state, const void* error);
+void ddx_deallocate_state(void* state, void* error);
 
 /** Get the solution of the forward problem stored inside the state
  *  as a (nbasis, nsph) array in column-major ordering.
@@ -265,31 +265,31 @@ void ddx_get_zeta_dip(const void* state, const void* ddx, int ncav, double* zeta
  *  \param phi_cav Phi array adjoint (ncav, )-shaped array
  */
 void ddx_cosmo_setup(const void* ddx, void* state, int ncav, int nbasis, int nsph,
-                     const double* psi, const double* phi_cav, const void* error);
+                     const double* psi, const double* phi_cav, void* error);
 
 /** In-place adjust the guess inside the state, getting ready to solve a COSMO problem.
  *  Avoid calling this step if you want to use the currently stored solution as an
  * initial guess */
-void ddx_cosmo_guess(const void* ddx, void* state, const void* error);
+void ddx_cosmo_guess(const void* ddx, void* state, void* error);
 
 /** In-place adjust the guess inside the state, getting ready to solve an adjoint COSMO
  *  problem. Avoid calling this step if you want to use the currently stored solution as
  *  an initial guess */
-void ddx_cosmo_guess_adjoint(const void* ddx, void* state, const void* error);
+void ddx_cosmo_guess_adjoint(const void* ddx, void* state, void* error);
 
 /** Solve the COSMO problem.
  *  \param state   DDX state
  *  \param ddx     DDX model
  *  \param tol Tolerance up to which the problem is solved
  *  \param error   DDX error */
-void ddx_cosmo_solve(const void* ddx, void* state, double tol, const void* error);
+void ddx_cosmo_solve(const void* ddx, void* state, double tol, void* error);
 
 /** Solve the adjoint COSMO problem.
  *  \param state   DDX state
  *  \param ddx     DDX model
  *  \param tol Tolerance up to which the problem is solved
  *  \param error   DDX error */
-void ddx_cosmo_solve_adjoint(const void* ddx, void* state, double tol, const void* error);
+void ddx_cosmo_solve_adjoint(const void* ddx, void* state, double tol, void* error);
 
 /** Compute COSMO energy (without any scaling by (epsilon - 1) / epsilon
  *  or similar).
@@ -297,7 +297,7 @@ void ddx_cosmo_solve_adjoint(const void* ddx, void* state, double tol, const voi
  *  \param ddx     DDX model
  *  \param error   DDX ERROR
  */
-double ddx_cosmo_energy(const void* ddx, void* state, const void* error);
+double ddx_cosmo_energy(const void* ddx, void* state, void* error);
 
 /** Compute the COSMO force terms.
  *  \param ddx     DDX model
@@ -307,7 +307,7 @@ double ddx_cosmo_energy(const void* ddx, void* state, const void* error);
  *  \param error   DDX error
  */
 void ddx_cosmo_solvation_force_terms(const void* ddx, void* state, int nsph,
-                                     double* forces, const void* error);
+                                     double* forces, void* error);
 
 /** Setup a PCM problem in the passed state.
  *  \param ddx     DDX model
@@ -320,37 +320,37 @@ void ddx_cosmo_solvation_force_terms(const void* ddx, void* state, int nsph,
  *  \param error   DDX error
  */
 void ddx_pcm_setup(const void* ddx, void* state, int ncav, int nbasis, int nsph,
-                   const double* psi, const double* phi_cav, const void* error);
+                   const double* psi, const double* phi_cav, void* error);
 
 /** In-place adjust the guess inside the state, getting ready to solve a PCM problem.
  *  Avoid calling this step if you want to use the currently stored solution as an
  * initial guess */
-void ddx_pcm_guess(const void* ddx, void* state, const void* error);
+void ddx_pcm_guess(const void* ddx, void* state, void* error);
 
 /** In-place adjust the guess inside the state, getting ready to solve an adjoint PCM
  *  problem. Avoid calling this step if you want to use the currently stored solution as
  *  an initial guess */
-void ddx_pcm_guess_adjoint(const void* ddx, void* state, const void* error);
+void ddx_pcm_guess_adjoint(const void* ddx, void* state, void* error);
 
 /** Solve the forward PCM problem.
  *  \param state   DDX state
  *  \param ddx     DDX model
  *  \param error   DDX error
  *  \param tol Tolerance up to which the problem is solved */
-void ddx_pcm_solve(const void* ddx, void* state, double tol, const void* error);
+void ddx_pcm_solve(const void* ddx, void* state, double tol, void* error);
 
 /** Solve the adjoint PCM problem.
  *  \param state   DDX state
  *  \param ddx     DDX model
  *  \param error   DDX error
  *  \param tol Tolerance up to which the problem is solved */
-void ddx_pcm_solve_adjoint(const void* ddx, void* state, double tol, const void* error);
+void ddx_pcm_solve_adjoint(const void* ddx, void* state, double tol, void* error);
 
 /** Compute PCM energy
  *  \param state   DDX state
  *  \param error   DDX error
  *  \param ddx     DDX model */
-double ddx_pcm_energy(const void* ddx, void* state, const void* error);
+double ddx_pcm_energy(const void* ddx, void* state, void* error);
 
 /** Compute the PCM force terms.
  *  \param ddx     DDX model
@@ -360,7 +360,7 @@ double ddx_pcm_energy(const void* ddx, void* state, const void* error);
  *  \param error   DDX error
  */
 void ddx_pcm_solvation_force_terms(const void* ddx, void* state, int nsph,
-                                   double* forces, const void* error);
+                                   double* forces, void* error);
 
 // TODO LPB
 
@@ -378,39 +378,39 @@ void ddx_pcm_solvation_force_terms(const void* ddx, void* state, int nsph,
  */
 void ddx_lpb_setup(const void* ddx, void* state, int ncav, int nbasis, int nsph,
                    const double* psi, const double* phi_cav, const double* e_cav,
-                   const void* error);
+                   void* error);
 
 /** In-place adjust the guess inside the state, getting ready to solve a LPB problem.
  *  Avoid calling this step if you want to use the currently stored solution as an
  *  initial guess. tol is the tolerance for solving a simplified initial-guess problem.
  *  The same tolerance as for the ddx_lpb_solve call should be chosen. */
-void ddx_lpb_guess(const void* ddx, void* state, double tol, const void* error);
+void ddx_lpb_guess(const void* ddx, void* state, double tol, void* error);
 
 /** In-place adjust the guess inside the state, getting ready to solve an adjoint LPB
  *  problem. Avoid calling this step if you want to use the currently stored solution as
  *  an initial guess. tol is the tolerance for solving a simplified initial-guess problem.
  *  The same tolerance as for the ddx_lpb_solve call should be chosen. */
-void ddx_lpb_guess_adjoint(const void* ddx, void* state, double tol, const void* error);
+void ddx_lpb_guess_adjoint(const void* ddx, void* state, double tol, void* error);
 
 /** Solve the forward LPB problem.
  *  \param state   DDX state
  *  \param ddx     DDX model
  *  \param error   DDX error
  *  \param tol Tolerance up to which the problem is solved */
-void ddx_lpb_solve(const void* ddx, void* state, double tol, const void* error);
+void ddx_lpb_solve(const void* ddx, void* state, double tol, void* error);
 
 /** Solve the adjoint LPB problem.
  *  \param state   DDX state
  *  \param ddx     DDX model
  *  \param error   DDX error
  *  \param tol Tolerance up to which the problem is solved */
-void ddx_lpb_solve_adjoint(const void* ddx, void* state, double tol, const void* error);
+void ddx_lpb_solve_adjoint(const void* ddx, void* state, double tol, void* error);
 
 /** Compute LPB energy
  *  \param state   DDX state
  *  \param error   DDX error
  *  \param ddx     DDX model */
-double ddx_lpb_energy(const void* ddx, void* state, const void* error);
+double ddx_lpb_energy(const void* ddx, void* state, void* error);
 
 // TODO LPB force terms not yet supported in C and python interface
 
@@ -432,7 +432,7 @@ double ddx_lpb_energy(const void* ddx, void* state, const void* error);
  *  \param error   DDX error
  */
 void ddx_multipole_electrostatics_0(const void* ddx, int nsph, int ncav, int nmultipoles,
-                                    const double* multipoles, double* phi_cav, const void* error);
+                                    const double* multipoles, double* phi_cav, void* error);
 
 /** Build potential and electric field generated by a multipolar charge distribution.
  *  \param ddx      DDX model
@@ -450,7 +450,7 @@ void ddx_multipole_electrostatics_0(const void* ddx, int nsph, int ncav, int nmu
  */
 void ddx_multipole_electrostatics_1(const void* ddx, int nsph, int ncav, int nmultipoles,
                                     const double* multipoles, double* phi_cav,
-                                    double* e_cav, const void* error);
+                                    double* e_cav, void* error);
 
 /** Build potential, electric field and field gradient generated by a multipolar charge
  *  distribution.
@@ -471,7 +471,7 @@ void ddx_multipole_electrostatics_1(const void* ddx, int nsph, int ncav, int nmu
  */
 void ddx_multipole_electrostatics_2(const void* ddx, int nsph, int ncav, int nmultipoles,
                                     const double* multipoles, double* phi_cav,
-                                    double* e_cav, double* g_cav, const void* error);
+                                    double* e_cav, double* g_cav, void* error);
 
 /** Build the Psi generated by a multipolar charge distribution
  *  \param ddx     DDX model
@@ -486,7 +486,7 @@ void ddx_multipole_electrostatics_2(const void* ddx, int nsph, int ncav, int nmu
  *  \param error   DDX error
  */
 void ddx_multipole_psi(const void* ddx, int nbasis, int nsph, int nmultipoles,
-                       const double* multipoles, double* psi, const void* error);
+                       const double* multipoles, double* psi, void* error);
 
 /** Compute the force terms generated by a multipolar charge distribution
  *  \param ddx     DDX model
@@ -505,7 +505,7 @@ void ddx_multipole_psi(const void* ddx, int nbasis, int nsph, int nmultipoles,
  */
 void ddx_multipole_forces(const void* ddx, void* state, int nsph, int ncav,
                           int nmultipoles, const double* multipoles, const double* e_cav,
-                          double* forces, const void* error);
+                          double* forces, void* error);
 
 ///@}
 ///@}

@@ -53,8 +53,23 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
 
     call ddlpb_setup(params, constants, workspace, state, phi_cav, &
         & e_cav, psi, error)
+    if (error % flag .ne. 0) then
+        call update_error(error,
+            "ddlpb: ddlpb_setup returned an error, exiting")
+        return
+    end if
     call ddlpb_guess(params, constants, workspace, state, tol, error)
+    if (error % flag .ne. 0) then
+        call update_error(error,
+            "ddlpb: ddlpb_guess returned an error, exiting")
+        return
+    end if
     call ddlpb_solve(params, constants, workspace, state, tol, error)
+    if (error % flag .ne. 0) then
+        call update_error(error,
+            "ddlpb: ddlpb_solve returned an error, exiting")
+        return
+    end if
 
     ! Compute the solvation energy
     call ddlpb_energy(constants, state, esolv, error)
@@ -62,7 +77,17 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
     ! Get forces if needed
     if(params % force .eq. 1) then
         call ddlpb_guess_adjoint(params, constants, workspace, state, tol, error)
+        if (error % flag .ne. 0) then
+            call update_error(error,
+                "ddlpb: ddlpb_guess_adjoint returned an error, exiting")
+            return
+        end if
         call ddlpb_solve_adjoint(params, constants, workspace, state, tol, error)
+        if (error % flag .ne. 0) then
+            call update_error(error,
+                "ddlpb: ddlpb_solve_adjoint returned an error, exiting")
+            return
+        end if
         call ddlpb_solvation_force_terms(params, constants, workspace, &
             & state, hessianphi_cav, force, error)
     endif

@@ -151,6 +151,8 @@ class Model {
   // Return the holder pointer ... internal function. Use only if you know
   // what you are doing.
   void* holder() const { return m_holder; }
+  // Return the error pointer ... internal function. Use only if you know
+  // what you are doing.
   void* error() const { return m_error; }
 
   bool has_fmm_enabled() const { return 1 == ddx_get_enable_fmm(m_holder); }
