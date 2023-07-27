@@ -20,7 +20,7 @@ implicit none
 ! Interfaces
 interface
     ! Interface for the matrix-vector product function
-    subroutine matvec_interface(params, constants, workspace, x, y)
+    subroutine matvec_interface(params, constants, workspace, x, y, error)
         !! Add definitions for derived types
         use ddx_core
         !! Inputs
@@ -31,11 +31,13 @@ interface
         type(ddx_workspace_type), intent(inout) :: workspace
         ! Output
         real(dp), intent(out) :: y(constants % nbasis, params % nsph)
+        type(ddx_error_type), intent(inout) :: error
     end subroutine matvec_interface
 
     ! Interface for the matrix-vector product function for external jacobi_diis.
     ! note that the dimension of x and y is double for ddlpb.
-    subroutine matvec_interface_external(params, constants, workspace, x, y)
+    subroutine matvec_interface_external(params, constants, workspace, x, y, &
+            & error)
         !! Add definitions for derived types
         use ddx_core
         !! Inputs
@@ -46,6 +48,7 @@ interface
         type(ddx_workspace_type), intent(inout) :: workspace
         ! Output
         real(dp), intent(out) :: y(constants % nbasis, params % nsph, 2)
+        type(ddx_error_type), intent(inout) :: error
     end subroutine matvec_interface_external
 
     ! Interface for the norm calculating function
@@ -76,8 +79,10 @@ contains
 !! @param[in] matvec: Routine that performs
 !! @param[in] dm1vec:
 !! @param[in] norm_func:
+!! @param[inout] error: ddX error
+!!
 subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
-        & x_rel_diff, matvec, dm1vec, norm_func)
+        & x_rel_diff, matvec, dm1vec, norm_func, error)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -88,6 +93,7 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
     real(dp), intent(inout) :: x(constants % n)
     integer, intent(inout) :: niter
     real(dp), intent(out) :: x_rel_diff(niter)
+    type(ddx_error_type), intent(inout) :: error
     !! External procedures
     procedure(matvec_interface) :: matvec, dm1vec
     procedure(norm_interface) :: norm_func
@@ -100,11 +106,19 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
     ! Iterations
     do it = 1, niter
         ! y = rhs - O x
-        call matvec(params, constants, workspace, x, workspace % tmp_y)
+        call matvec(params, constants, workspace, x, workspace % tmp_y, error)
         workspace % tmp_y = rhs - workspace % tmp_y
+        if (error % flag .ne. 0) then
+            call update_error(error, 'Matvec error, exiting')
+            return
+        end if
         ! x_new = D^-1 y
         call dm1vec(params, constants, workspace, workspace % tmp_y, &
-            & workspace % tmp_x_new)
+            & workspace % tmp_x_new, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, 'Preconditioning error, exiting')
+            return
+        end if
         ! DIIS extrapolation
         if (params % jacobi_ndiis .gt. 2) then
             workspace % tmp_x_diis(:, nmat) = workspace % tmp_x_new
@@ -141,9 +155,7 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
             return
         end if
     end do
-    workspace % error_flag = 1
-    workspace % error_message = "Jacobi solver did not converge"
-    return
+    call update_error(error, "Jacobi solver did not converge")
 endsubroutine jacobi_diis
 
 !> DIIS helper routine
@@ -251,7 +263,7 @@ end subroutine makeb
 !! - uses copies of the norm subroutine, so that it can also be called with 
 !!   a user-given size for arrays
 subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_iter, &
-          & x_rel_diff, matvec, dm1vec, norm_func)
+          & x_rel_diff, matvec, dm1vec, norm_func, error)
       type(ddx_params_type),    intent(in)    :: params
       type(ddx_constants_type), intent(inout) :: constants
       type(ddx_workspace_type), intent(inout) :: workspace
@@ -262,6 +274,7 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
       ! Outputs
       real(dp),  dimension(n),  intent(inout) :: x
       integer,                  intent(inout) :: n_iter
+      type(ddx_error_type), intent(inout) :: error
       real(dp), intent(out) :: x_rel_diff(n_iter)
       external                                :: matvec, dm1vec
       procedure(norm_interface)               :: norm_func
@@ -278,9 +291,8 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
         lenb = params % jacobi_ndiis + 1
         allocate( x_diis(n,params % jacobi_ndiis), e_diis(n,params % jacobi_ndiis), bmat(lenb,lenb) , stat=istatus )
         if (istatus .ne. 0) then
-          workspace % error_flag = 1
-          workspace % error_message = ' jacobi_diis: [1] failed allocation (diis)'
-          return
+            call update_error(error, 'jacobi_diis_external: failed allocation (diis)')
+            return
         endif
         ! initialize the number of points for diis to one.
         ! note that nmat is updated by diis.
@@ -289,17 +301,16 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
       ! allocate workspaces
       allocate( x_new(n), y(n) , stat=istatus )
       if (istatus .ne. 0) then
-          workspace % error_flag = 1
-          workspace % error_message = ' jacobi_diis: [2] failed allocation (diis)'
+          call update_error(error, 'jacobi_diis_external: failed allocation (diis)')
           return
       endif
       ! Jacobi iterations
       do it = 1, n_iter
         ! y = rhs - O x
-        call matvec(params, constants, workspace, x, y )
+        call matvec(params, constants, workspace, x, y, error)
         y = rhs - y
         ! x_new = D^-1 y
-        call dm1vec(params, constants, workspace, y, x_new)
+        call dm1vec(params, constants, workspace, y, x_new, error)
         ! DIIS extrapolation
         if (dodiis) then
           x_diis(:,nmat) = x_new
@@ -331,10 +342,7 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
             return
         end if
       enddo
-
-      workspace % error_flag = 1
-      workspace % error_message = ' jacobi_diis: [2] failed allocation (diis)'
-
+      call update_error(error, 'Jacobi external solver failed to converge')
 endsubroutine jacobi_diis_external
 
 end module ddx_solvers

@@ -224,10 +224,6 @@ type ddx_constants_type
     !> Whether the diagonal of the matrices has to be used in the mvp for
     !! ddCOSMO, ddPCM or inner ddLPB iterations
     logical  :: dodiag
-    !> Flag if there were an error
-    integer :: error_flag = 2
-    !> Last error message
-    character(len=255) :: error_message
 end type ddx_constants_type
 
 contains
@@ -237,13 +233,15 @@ contains
 !!
 !! @param[in] params: Object containing all inputs.
 !! @param[out] constants: Object containing all constants.
+!! @param[inout] error: ddX error
 !!
-subroutine constants_init(params, constants)
+subroutine constants_init(params, constants, error)
     use complex_bessel
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     !! Outputs
     type(ddx_constants_type), intent(out) :: constants
+    type(ddx_error_type), intent(inout) :: error
     !! Local variables
     integer :: i, alloc_size, l, indl, igrid, isph, l0, &
         & NZ, ierr, info, tmp_pmax
@@ -255,13 +253,9 @@ subroutine constants_init(params, constants)
     complex(dp) :: z
     !! The code
     ! Clean error state of constants to proceed with geometry
-    constants % error_flag = 0
-    constants % error_message = ""
-    ! Check if params are OK
-    if (params % error_flag .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "constants_init: `params` is in " // &
-            & "error state"
+    if (error % flag .ne. 0) then
+        call update_error(error, "constants_init received input in error " // &
+            & " state, exiting")
         return
     end if
     ! activate inner iterations diagonal in mvp for debugging purposes only.
@@ -309,23 +303,20 @@ subroutine constants_init(params, constants)
     ! Allocate space for scaling factors of spherical harmonics
     allocate(constants % vscales(constants % nscales), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "constants_init: `vscales` allocation " &
-            & // "failed"
+        call update_error(error, "constants_init: `vscales` allocation " &
+            & // "failed")
         return
     end if
     allocate(constants % v4pi2lp1(constants % dmax+1), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "constants_init: `v4pi2lp1` allocation " &
-            & // "failed"
+        call update_error(error, "constants_init: `v4pi2lp1` allocation " &
+            & // "failed")
         return
     end if
     allocate(constants % vscales_rel(constants % nscales), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "constants_init: `vscales_rel` " // &
-            & "allocation failed"
+        call update_error(error, "constants_init: `vscales_rel` " // &
+            & "allocation failed")
         return
     end if
     ! Compute scaling factors of spherical harmonics
@@ -334,8 +325,7 @@ subroutine constants_init(params, constants)
     ! Allocate square roots of factorials
     allocate(constants % vfact(constants % nfact), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "constants_init: `vfact` allocation failed"
+        call update_error(error, "constants_init: `vfact` allocation failed")
         return
     end if
     ! Compute square roots of factorials
@@ -352,9 +342,8 @@ subroutine constants_init(params, constants)
         ! Allocate C_n^k
         allocate(constants % vcnk(alloc_size), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_init: `vcnk` allocation " &
-                & // "failed"
+            call update_error(error, "constants_init: `vcnk` allocation " &
+                & // "failed")
             return
         end if
         ! Allocate M2L OZ coefficients
@@ -362,9 +351,8 @@ subroutine constants_init(params, constants)
             & (params % pm+1), (params % pl+1), (params % pl+1)), &
             & stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_init: " // &
-                & "`m2l_ztranslate_coef` allocation failed"
+            call update_error(error, "constants_init: " // &
+                & "`m2l_ztranslate_coef` allocation failed")
             return
         end if
         ! Allocate adjoint M2L OZ coefficients
@@ -372,9 +360,8 @@ subroutine constants_init(params, constants)
             & (params % pl+1), (params % pl+1), (params % pm+1)), &
             & stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_init: " // &
-                & "`m2l_ztranslate_adj_coef` allocation failed"
+            call update_error(error, "constants_init: " // &
+                & "`m2l_ztranslate_adj_coef` allocation failed")
             return
         end if
         ! Compute combinatorial numbers C_n^k and M2L OZ translate coefficients
@@ -387,9 +374,8 @@ subroutine constants_init(params, constants)
     allocate(constants % cgrid(3, params % ngrid), &
         & constants % wgrid(params % ngrid), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "constants_init: `cgrid` and `wgrid` " // &
-            & "allocations failed"
+        call update_error(error, "constants_init: `cgrid` and `wgrid` " // &
+            & "allocations failed")
         return
     end if
     ! Get weights and coordinates of Lebedev grid points
@@ -400,17 +386,15 @@ subroutine constants_init(params, constants)
         & constants % vwgrid(constants % vgrid_nbasis, params % ngrid), &
         & stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "constants_init: `vgrid`, `wgrid` and" // &
-            & " allocations failed"
+        call update_error(error, "constants_init: `vgrid`, `wgrid` and" // &
+            & " allocations failed")
         return
     end if
     allocate(vplm(constants % vgrid_nbasis), vcos(constants % vgrid_dmax+1), &
         & vsin(constants % vgrid_dmax+1), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "constants_init: `vplm`, `vcos` and " // &
-            & "`vsin` allocations failed"
+        call update_error(error, "constants_init: `vplm`, `vcos` and " // &
+            & "`vsin` allocations failed")
         return
     end if
     ! Compute non-weighted and weighted spherical harmonics and the single
@@ -427,9 +411,8 @@ subroutine constants_init(params, constants)
             & constants % vgrid_nbasis, params % ngrid), &
             & stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_init: `vgrid2` " // &
-                & "allocation failed"
+            call update_error(error, "constants_init: `vgrid2` " // &
+                & "allocation failed")
             return
         end if
         do igrid = 1, params % ngrid
@@ -441,9 +424,15 @@ subroutine constants_init(params, constants)
             end do
         end do
     end if
+
     ! Generate geometry-related constants (required by the LPB code)
-    call constants_geometry_init(params, constants)
-    if (constants % error_flag .ne. 0) return
+    call constants_geometry_init(params, constants, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "constants_geometry_init returned an " // &
+            & "error, exiting")
+        return
+    end if
+
     ! Precompute LPB-related constants
     if (params % model .eq. 3) then
         constants % lmax0 = params % lmax
@@ -452,19 +441,22 @@ subroutine constants_init(params, constants)
             & SK_rijn(0:constants % lmax0), DK_rijn(0:constants % lmax0), &
             & bessel_work(constants % dmax+2), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_init: `vylm`, `SK_rijn` and " // &
-                & "`DK_rijn` allocations failed"
+            call update_error(error, "constants_init: `vylm`, `SK_rijn` " // &
+                & "and `DK_rijn` allocations failed")
             return
         end if
-        allocate(constants % SI_ri(0:constants % dmax+1, params % nsph))
-        allocate(constants % DI_ri(0:constants % dmax+1, params % nsph))
-        allocate(constants % SK_ri(0:params % lmax+1, params % nsph))
-        allocate(constants % DK_ri(0:params % lmax+1, params % nsph))
-        allocate(constants % Pchi(constants % nbasis, constants % nbasis0, &
-            & params % nsph))
-        allocate(constants % C_ik(0:params % lmax, params % nsph))
-        allocate(constants % termimat(0:params % lmax, params % nsph))
+        allocate(constants % SI_ri(0:constants % dmax+1, params % nsph), &
+            & constants % DI_ri(0:constants % dmax+1, params % nsph), &
+            & constants % SK_ri(0:params % lmax+1, params % nsph), &
+            & constants % DK_ri(0:params % lmax+1, params % nsph), &
+            & constants % Pchi(constants % nbasis, constants % nbasis0, params % nsph), &
+            & constants % C_ik(0:params % lmax, params % nsph), &
+            & constants % termimat(0:params % lmax, params % nsph), &
+            & stat=info)
+        if (info .ne. 0) then
+            call update_error(error, "constants_init: allocation failed")
+            return
+        end if
         SK_rijn = zero
         DK_rijn = zero
         do isph = 1, params % nsph
@@ -502,9 +494,8 @@ subroutine constants_init(params, constants)
                 & constants % SK_rnode(tmp_pmax+1, constants % nclusters), &
                 & stat=info)
             if (info.ne.0) then
-                constants % error_flag = 1
-                constants % error_message = "constants_init: `si_rnode, " // &
-                    & "sk_rnode allocation failed"
+                call update_error(error, "constants_init: `si_rnode, " // &
+                    & "sk_rnode allocation failed")
                 return
             end if
             do i = 1, constants % nclusters
@@ -525,41 +516,54 @@ subroutine constants_init(params, constants)
         end if
         deallocate(vylm, SK_rijn, DK_rijn, bessel_work, stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_init: `vylm`, `SK_rijn` and " // &
-                & "`DK_rijn` deallocations failed"
+            call update_error(error, "constants_init: `vylm`, `SK_rijn` " // &
+                & "and `DK_rijn` deallocations failed")
             return
         end if
         ! if doing incore build nonzero blocks of B
         if (params % matvecmem .eq. 1) then
-            call build_b(constants, params)
+            call build_b(constants, params, error)
+            if (error % flag .ne. 0) then
+                call update_error(error, "build_b returned an " // &
+                    & "error, exiting")
+                return
+            end if
         end if
     end if
     deallocate(vplm, vcos, vsin, stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "constants_init: `vplm`, `vcos` and " // &
-            & "`vsin` deallocations failed"
+        call update_error(error, "constants_init: `vplm`, `vcos` and " // &
+            & "`vsin` deallocations failed")
         return
     end if
     ! if doing incore build nonzero blocks of L
     if (params % matvecmem .eq. 1) then
-        call build_itrnl(constants, params)
-        call build_l(constants, params)
+        call build_itrnl(constants, params, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, "build_itrnl returned an " // &
+                & "error, exiting")
+            return
+        end if
+        call build_l(constants, params, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, "build_l returned an " // &
+                & "error, exiting")
+            return
+        end if
     end if
 end subroutine constants_init
 
 !> Build the transposed neighbor list
-subroutine build_itrnl(constants, params)
+subroutine build_itrnl(constants, params, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer :: isph, ij, jsph, ji, istat
 
     allocate(constants % itrnl(constants % inl(params % nsph + 1)), stat=istat)
     if (istat.ne.0) then
-        constants % error_message = 'Allocation failed in build_itrnl'
-        constants % error_flag = 1
+        call update_error(error, 'Allocation failed in build_itrnl')
         return
     end if
 
@@ -575,10 +579,11 @@ subroutine build_itrnl(constants, params)
 end subroutine build_itrnl
 
 !> Allocate and build the ddCOSMO sparse matrix, only if incore is set
-subroutine build_l(constants, params)
+subroutine build_l(constants, params, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer :: isph, ij, jsph, igrid, l, m, ind, info
     real(dp), dimension(3) :: vij, sij
     real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
@@ -591,8 +596,7 @@ subroutine build_l(constants, params)
     allocate(constants % l(constants % nbasis, constants % nbasis, &
         & constants % inl(params % nsph + 1)), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = 'Allocation failed in build_l'
+        call update_error(error, 'Allocation failed in build_l')
         return
     end if
 
@@ -643,10 +647,11 @@ subroutine build_l(constants, params)
 end subroutine build_l
 
 !> Allocate and build the HSP sparse matrix, only if incore is set
-subroutine build_b(constants, params)
+subroutine build_b(constants, params, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer :: isph, ij, jsph, igrid, l, m, ind
     real(dp), dimension(3) :: vij, sij
     real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
@@ -661,6 +666,10 @@ subroutine build_b(constants, params)
 
     allocate(constants % b(constants % nbasis, constants % nbasis, &
         & constants % inl(params % nsph + 1)), stat=info)
+    if (info.ne.0) then
+        call update_error(error, "Allocation failed in build_b")
+        return
+    end if
 
     thigh = one + pt5*(params % se + one)*params % eta
 
@@ -713,10 +722,6 @@ subroutine build_b(constants, params)
 end subroutine build_b
 
 !> Computation of P_chi
-!!
-!! @param[in]  isph : Sphere number
-!! @param[out] pmat : Matrix of size nbasis X (lmax0+1)^2, Fixed lmax0
-!!
 subroutine mkpmat(params, constants, isph, pmat)
     type(ddx_params_type), intent(in)  :: params
     type(ddx_constants_type), intent(in)  :: constants
@@ -751,11 +756,14 @@ end subroutine mkpmat
 !!
 !! @param[in] params: Object containing all inputs.
 !! @param[inout] constants: Object containing all constants.
-subroutine constants_geometry_init(params, constants)
+!! @param[inout] error: ddX error
+!!
+subroutine constants_geometry_init(params, constants, error)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     !! Outputs
     type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_error_type), intent(inout) :: error
     !! Local variables
     real(dp) :: swthr, v(3), maxv, ssqv, vv, t
     integer :: i, isph, jsph, inear, igrid, iwork, jwork, lwork, &
@@ -769,117 +777,106 @@ subroutine constants_geometry_init(params, constants)
         ! Allocate space for a cluster tree
         allocate(constants % order(params % nsph), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `order` " &
-                & // "allocation failed"
+            call update_error(error, "constants_geometry_init: `order` " &
+                & // "allocation failed")
             return
         end if
         constants % nclusters = 2*params % nsph - 1
         allocate(constants % cluster(2, constants % nclusters), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `cluster` " &
-                & // "allocation failed"
+            call update_error(error, "constants_geometry_init: `cluster` " &
+                & // "allocation failed")
             return
         end if
         allocate(constants % children(2, constants % nclusters), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: " // &
-                & "`children` allocation failed"
+            call update_error(error, "constants_geometry_init: " // &
+                & "`children` allocation failed")
             return
         endif
         allocate(constants % parent(constants % nclusters), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `parent` " &
-                & // "allocation failed"
+            call update_error(error, "constants_geometry_init: `parent` " &
+                & // "allocation failed")
             return
         endif
         allocate(constants % cnode(3, constants % nclusters), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `cnode` " &
-                & // "allocation failed"
+            call update_error(error, "constants_geometry_init: `cnode` " &
+                & // "allocation failed")
             return
         endif
         allocate(constants % rnode(constants % nclusters), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `rnode` " &
-                & // "allocation failed"
+            call update_error(error, "constants_geometry_init: `rnode` " &
+                & // "allocation failed")
             return
         endif
         allocate(constants % snode(params % nsph), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `snode` " &
-                & // "allocation failed"
+            call update_error(error, "constants_geometry_init: `snode` " &
+                & // "allocation failed")
             return
         endif
         allocate(constants % nfar(constants % nclusters), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `nfar` " &
-                & // "allocation failed"
+            call update_error(error, "constants_geometry_init: `nfar` " &
+                & // "allocation failed")
             return
         endif
         allocate(constants % nnear(constants % nclusters), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `nnear` " &
-                & // "allocation failed"
+            call update_error(error, "constants_geometry_init: `nnear` " &
+                & // "allocation failed")
             return
         endif
         ! Get the tree
         call tree_rib_build(params % nsph, params % csph, params % rsph, &
             & constants % order, constants % cluster, constants % children, &
             & constants % parent, constants % cnode, constants % rnode, &
-            & constants % snode, constants % error_message, &
-            & constants % error_flag)
-        if (params % error_flag .ne. 0) return
+            & constants % snode, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, "tree_rib_build returned an " // &
+                & "error, exiting")
+            return
+        end if
         ! Get number of far and near admissible pairs
         iwork = 0
         jwork = 1
         lwork = 1
         allocate(work(3, lwork), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `work` " &
-                & // "allocation failed"
+            call update_error(error, "constants_geometry_init: `work` " &
+                & // "allocation failed")
             return
         end if
         do while (iwork .le. jwork)
             allocate(tmp_work(3, lwork), stat=info)
             if (info .ne. 0) then
-                constants % error_flag = 1
-                constants % error_message = "constants_geometry_init: " // &
-                    & "`tmp_work` allocation failed"
+            call update_error(error, "constants_geometry_init: " // &
+                    & "`tmp_work` allocation failed")
                 return
             end if
             tmp_work = work
             deallocate(work, stat=info)
             if (info .ne. 0) then
-                constants % error_flag = 1
-                constants % error_message = "constants_geometry_init: " // &
-                    & "`work` deallocation failed"
+            call update_error(error, "constants_geometry_init: " // &
+                    & "`work` deallocation failed")
                 return
             end if
             old_lwork = lwork
             lwork = old_lwork + 1000*params % nsph
             allocate(work(3, lwork), stat=info)
             if (info .ne. 0) then
-                constants % error_flag = 1
-                constants % error_message = "constants_geometry_init: " // &
-                    & "`work` allocation failed"
+            call update_error(error, "constants_geometry_init: " // &
+                    & "`work` allocation failed")
                 return
             end if
             work(:, 1:old_lwork) = tmp_work
             deallocate(tmp_work, stat=info)
             if (info .ne. 0) then
-                constants % error_flag = 1
-                constants % error_message = "constants_geometry_init: " // &
-                    & "`tmp_work` deallocation failed"
+            call update_error(error, "constants_geometry_init: " // &
+                    & "`tmp_work` deallocation failed")
                 return
             end if
             call tree_get_farnear_work(constants % nclusters, &
@@ -891,23 +888,20 @@ subroutine constants_geometry_init(params, constants)
         allocate(constants % sfar(constants % nclusters+1), &
             & constants % snear(constants % nclusters+1), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `sfar` " // &
-                & "and `snear` allocations failed"
+            call update_error(error, "constants_geometry_init: `sfar` " // &
+                & "and `snear` allocations failed")
             return
         end if
         allocate(constants % far(constants % nnfar), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `far` " // &
-                & "allocation failed"
+            call update_error(error, "constants_geometry_init: `far` " // &
+                & "allocation failed")
             return
         end if
         allocate(constants % near(constants % nnnear), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `near` " // &
-                & "allocation failed"
+            call update_error(error, "constants_geometry_init: `near` " // &
+                & "allocation failed")
             return
         end if
         call tree_get_farnear(jwork, lwork, work, constants % nclusters, &
@@ -916,9 +910,8 @@ subroutine constants_geometry_init(params, constants)
             & constants % snear, constants % near)
         deallocate(work, stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `work` " // &
-                & "deallocation failed"
+            call update_error(error, "constants_geometry_init: `work` " // &
+                & "deallocation failed")
             return
         end if
     end if
@@ -926,16 +919,19 @@ subroutine constants_geometry_init(params, constants)
     swthr = one + (params % se+one)*params % eta/two
     ! Assemble neighbor list
     if (params % fmm .eq. 1) then
-        call neighbor_list_init_fmm(params, constants)
+        call neighbor_list_init_fmm(params, constants, error)
     else
-        call neighbor_list_init(params, constants)
+        call neighbor_list_init(params, constants, error)
+    end if
+    if (error % flag .ne. 0) then
+        call update_error(error, "Neighbor list construction failed")
+        return
     end if
     ! Allocate space for characteristic functions fi and ui
     allocate(constants % fi(params % ngrid, params % nsph), &
         & constants % ui(params % ngrid, params % nsph), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`fi` and `ui` allocations failed"
+        call update_error(error, "`fi` and `ui` allocations failed")
         return
     end if
     constants % fi = zero
@@ -944,8 +940,7 @@ subroutine constants_geometry_init(params, constants)
     if (params % force .eq. 1) then
         allocate(constants % zi(3, params % ngrid, params % nsph), stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "`zi` allocation failed"
+            call update_error(error, "`zi` allocation failed")
             return
         endif
         constants % zi = zero
@@ -990,8 +985,7 @@ subroutine constants_geometry_init(params, constants)
     ! Build cavity array. At first get total count for each sphere
     allocate(constants % ncav_sph(params % nsph), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`ncav_sph` allocation failed"
+        call update_error(error, "`ncav_sph` allocation failed")
         return
     endif
     !$omp parallel do default(none) shared(params,constants) &
@@ -1012,16 +1006,14 @@ subroutine constants_geometry_init(params, constants)
         & constants % icav_ia(params % nsph+1), &
         & constants % icav_ja(constants % ncav), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`ccav`, `icav_ia` and " // &
-            & "`icav_ja` allocations failed"
+        call update_error(error, "`ccav`, `icav_ia` and " // &
+            & "`icav_ja` allocations failed")
         return
     endif
     ! Allocate space for characteristic functions ui at cavity points
     allocate(constants % ui_cav(constants % ncav), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`ui_cav` allocations failed"
+        call update_error(error, "`ui_cav` allocations failed")
         return
     end if
     ! Get actual cavity coordinates and indexes in CSR format and fill in
@@ -1053,26 +1045,26 @@ subroutine constants_geometry_init(params, constants)
             & constants % nbasis, constants % nbasis, params % nsph), &
             & stat=info)
         if (info .ne. 0) then
-            constants % error_flag = 1
-            constants % error_message = "constants_geometry_init: `rx_prc` " &
-                & // "allocation failed"
+            call update_error(error, "constants_geometry_init: `rx_prc` " &
+                & // "allocation failed")
             return
         endif
         call mkprec(params % lmax, constants % nbasis, params % nsph, &
             & params % ngrid, params % eps, constants % ui, &
             & constants % wgrid, constants % vgrid, constants % vgrid_nbasis, &
-            & constants % rx_prc, info, constants % error_message)
+            & constants % rx_prc, error)
         if (info .ne. 0) then
-            constants % error_flag = 1
+            call update_error(error, "mkprec returned an error, exiting")
             return
         end if
     end if
 end subroutine constants_geometry_init
 
 !> Build the neighbor list using a N^2 code
-subroutine neighbor_list_init(params, constants)
+subroutine neighbor_list_init(params, constants, error)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_error_type), intent(inout) :: error
     real(dp) :: swthr, v(3), maxv, ssqv, vv, r
     integer :: nngmax, i, lnl, isph, jsph, info
     integer, allocatable :: tmp_nl(:)
@@ -1083,8 +1075,7 @@ subroutine neighbor_list_init(params, constants)
     allocate(constants % inl(params % nsph+1), &
         & constants % nl(params % nsph*nngmax), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`inl` and `nl` allocations failed"
+        call update_error(error, "`inl` and `nl` allocations failed")
         return
     end if
     i = 1
@@ -1112,36 +1103,32 @@ subroutine neighbor_list_init(params, constants)
                     if (i .gt. params % nsph*nngmax) then
                         allocate(tmp_nl(params % nsph*nngmax), stat=info)
                         if (info .ne. 0) then
-                            constants % error_flag = 1
-                            constants % error_message = "`tmp_nl` " // &
-                                & "allocation failed"
+                            call update_error(error, "`tmp_nl` " // &
+                                & "allocation failed")
                             return
                         end if
                         tmp_nl(1:params % nsph*nngmax) = &
                             & constants % nl(1:params % nsph*nngmax)
                         deallocate(constants % nl, stat=info)
                         if (info .ne. 0) then
-                            constants % error_flag = 1
-                            constants % error_message = "`nl` " // &
-                                & "deallocation failed"
+                            call update_error(error, "`nl` " // &
+                                & "deallocation failed")
                             return
                         end if
                         nngmax = nngmax + 10
                         allocate(constants % nl(params % nsph*nngmax), &
                             & stat=info)
                         if (info .ne. 0) then
-                            constants % error_flag = 1
-                            constants % error_message = "`nl` " // &
-                                & "allocation failed"
+                            call update_error(error, "`nl` " // &
+                                & "allocation failed")
                             return
                         end if
                         constants % nl(1:params % nsph*(nngmax-10)) = &
                             & tmp_nl(1:params % nsph*(nngmax-10))
                         deallocate(tmp_nl, stat=info)
                         if (info .ne. 0) then
-                            constants % error_flag = 1
-                            constants % error_message = "`tmp_nl` " // &
-                                & "deallocation failed"
+                            call update_error(error, "`tmp_nl` " // &
+                                & "deallocation failed")
                             return
                         end if
                     end if
@@ -1155,9 +1142,10 @@ end subroutine neighbor_list_init
 
 !> Build the neighbor list using a linear scaling code (only if FMMs
 !! are enabled)
-subroutine neighbor_list_init_fmm(params, constants)
+subroutine neighbor_list_init_fmm(params, constants, error)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_error_type), intent(inout) :: error
     real(dp) :: swthr, v(3), maxv, ssqv, vv, r
     integer :: nngmax, i, lnl, isph, jsph, inode, jnode, j, k, info
     integer, allocatable :: tmp_nl(:)
@@ -1168,8 +1156,7 @@ subroutine neighbor_list_init_fmm(params, constants)
     allocate(constants % inl(params % nsph+1), &
         & constants % nl(params % nsph*nngmax), stat=info)
     if (info .ne. 0) then
-        constants % error_flag = 1
-        constants % error_message = "`inl` and `nl` allocations failed"
+        call update_error(error, "`inl` and `nl` allocations failed")
         return
     end if
     i = 1
@@ -1203,36 +1190,32 @@ subroutine neighbor_list_init_fmm(params, constants)
                         if (i .gt. params % nsph*nngmax) then
                             allocate(tmp_nl(params % nsph*nngmax), stat=info)
                             if (info .ne. 0) then
-                                constants % error_flag = 1
-                                constants % error_message = "`tmp_nl` " // &
-                                    & "allocation failed"
+                                call update_error(error, "`tmp_nl` " // &
+                                    & "allocation failed")
                                 return
                             end if
                             tmp_nl(1:params % nsph*nngmax) = &
                                 & constants % nl(1:params % nsph*nngmax)
                             deallocate(constants % nl, stat=info)
                             if (info .ne. 0) then
-                                constants % error_flag = 1
-                                constants % error_message = "`nl` " // &
-                                    & "deallocation failed"
+                                call update_error(error, "`nl` " // &
+                                    & "deallocation failed")
                                 return
                             end if
                             nngmax = nngmax + 10
                             allocate(constants % nl(params % nsph*nngmax), &
                                 & stat=info)
                             if (info .ne. 0) then
-                                constants % error_flag = 1
-                                constants % error_message = "`nl` " // &
-                                    & "allocation failed"
+                                call update_error(error, "`nl` " // &
+                                    & "allocation failed")
                                 return
                             end if
                             constants % nl(1:params % nsph*(nngmax-10)) = &
                                 & tmp_nl(1:params % nsph*(nngmax-10))
                             deallocate(tmp_nl, stat=info)
                             if (info .ne. 0) then
-                                constants % error_flag = 1
-                                constants % error_message = "`tmp_nl` " // &
-                                    & "deallocation failed"
+                                call update_error(error, "`tmp_nl` " // &
+                                    & "deallocation failed")
                                 return
                             end if
                         end if
@@ -1351,30 +1334,27 @@ real(dp) function dfsw(t, se, eta)
 end function dfsw
 
 !> Compute preconditioner
-!!
 !! assemble the diagonal blocks of the reps matrix
 !! then invert them to build the preconditioner
 subroutine mkprec(lmax, nbasis, nsph, ngrid, eps, ui, wgrid, vgrid, &
-        & vgrid_nbasis, rx_prc, info, error_message)
+        & vgrid_nbasis, rx_prc, error)
     !! Inputs
     integer, intent(in) :: lmax, nbasis, nsph, ngrid, vgrid_nbasis
     real(dp), intent(in) :: eps, ui(ngrid, nsph), wgrid(ngrid), &
         & vgrid(vgrid_nbasis, ngrid)
     !! Output
     real(dp), intent(out) :: rx_prc(nbasis, nbasis, nsph)
-    integer, intent(out) :: info
-    character(len=255), intent(out) :: error_message
+    type(ddx_error_type), intent(inout) :: error
     !! Local variables
-    integer :: isph, lm, l1, m1, ind1, igrid
-    real(dp)  :: f, f1
+    integer :: info, isph, lm, l1, m1, ind1, igrid
+    real(dp) :: f, f1
     integer, allocatable :: ipiv(:)
     real(dp),  allocatable :: work(:)
     external :: dgetrf, dgetri
     ! Allocation of temporaries
     allocate(ipiv(nbasis), work(nbasis**2), stat=info)
     if (info .ne. 0) then
-        error_message = "mkprec: `ipiv` and `work` allocation failed"
-        info = 1
+        call update_error(error, "mkprec: `ipiv` and `work` allocation failed")
         return
     endif
     ! Init
@@ -1405,28 +1385,24 @@ subroutine mkprec(lmax, nbasis, nsph, ngrid, eps, ui, wgrid, vgrid, &
     ! invert the blocks
     do isph = 1, nsph
         call dgetrf(nbasis, nbasis, rx_prc(:, :, isph), nbasis, ipiv, info)
-        if (info .ne. 0) then 
-            error_message = "mkprec: dgetrf failed"
-            info = 1
+        if (info .ne. 0) then
+            call update_error(error, "mkprec: dgetrf failed")
             return
         end if
         call dgetri(nbasis, rx_prc(:, :, isph), nbasis, ipiv, work, &
             & nbasis**2, info)
         if (info .ne. 0) then 
-            error_message = "mkprec: dgetri failed"
-            info = 1
+            call update_error(error, "mkprec: dgetri failed")
             return
         end if
     end do
     ! Cleanup temporaries
     deallocate(work, ipiv, stat=info)
     if (info .ne. 0) then
-        error_message = "mkprec: `ipiv` and `work` deallocation failed"
-        info = 1
+        call update_error(error, "mkprec: `ipiv` and `work` " // &
+            & "deallocation failed")
         return
     end if
-  ! Cleanup error message if there were no error
-    error_message = ""
 end subroutine mkprec
 
 !> Build a recursive inertial binary tree
@@ -1450,8 +1426,9 @@ end subroutine mkprec
 !! @param[out] cnode: Center of a bounding sphere of each node
 !! @param[out] rnode: Radius of a bounding sphere of each node
 !! @param[out] snode: Array of leaf nodes containing input spheres
+!! @param[inout] error: ddX error
 subroutine tree_rib_build(nsph, csph, rsph, order, cluster, children, parent, &
-        & cnode, rnode, snode, error_message, error_flag)
+        & cnode, rnode, snode, error)
     ! Inputs
     integer, intent(in) :: nsph
     real(dp), intent(in) :: csph(3, nsph), rsph(nsph)
@@ -1459,8 +1436,7 @@ subroutine tree_rib_build(nsph, csph, rsph, order, cluster, children, parent, &
     integer, intent(out) :: order(nsph), cluster(2, 2*nsph-1), &
         & children(2, 2*nsph-1), parent(2*nsph-1), snode(nsph)
     real(dp), intent(out) :: cnode(3, 2*nsph-1), rnode(2*nsph-1)
-    integer, intent(out) :: error_flag
-    character(len=255), intent(out) :: error_message
+    type(ddx_error_type), intent(inout) :: error
     ! Local variables
     integer :: nclusters, i, j, n, s, e, div
     real(dp) :: r, r1, r2, c(3), c1(3), c2(3), d, maxc
@@ -1488,8 +1464,12 @@ subroutine tree_rib_build(nsph, csph, rsph, order, cluster, children, parent, &
         if (n .gt. 1) then
             ! Use inertial bisection to reorder spheres and cut into 2 halfs
             call tree_rib_node_bisect(nsph, csph, n, order(s:e), div, &
-                & error_message, error_flag)
-            if (error_flag .ne. 0) return
+                & error)
+            if (error % flag .ne. 0) then
+                call update_error(error, "tree_rib_node_bisect returned " // &
+                    & "an error, exiting")
+                return
+            end if
             ! Assign the first half to the j-th node
             cluster(1, j) = s
             cluster(2, j) = s + div - 1
@@ -1573,16 +1553,15 @@ end subroutine tree_rib_build
 !!      `order(1:div)` correspond to the first subcluster and indexes
 !!      `order(div+1:n)` correspond to the second subcluster.
 !! @param[out] div: Break point of `order` array between two clusters.
-subroutine tree_rib_node_bisect(nsph, csph, n, order, div, error_message, &
-        & error_flag)
+!! @param[inout] error: ddX error
+subroutine tree_rib_node_bisect(nsph, csph, n, order, div, error)
     ! Inputs
     integer, intent(in) :: nsph, n
     real(dp), intent(in) :: csph(3, nsph)
     ! Outputs
     integer, intent(inout) :: order(n)
     integer, intent(out) :: div
-    integer, intent(out) :: error_flag
-    character(len=255), intent(out) :: error_message
+    type(ddx_error_type), intent(inout) :: error
     ! Local variables
     real(dp) :: c(3),  s(3)
     real(dp), allocatable :: tmp_csph(:, :), work(:)
@@ -1592,8 +1571,7 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div, error_message, &
 
     allocate(tmp_csph(3, n), tmp_order(n), stat=istat)
     if (istat.ne.0) then
-        error_message = 'Allocation failed in tree_node_bisect'
-        error_flag = 1
+        call update_error(error, 'Allocation failed in tree_node_bisect')
         return
     end if
 
@@ -1615,22 +1593,19 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div, error_message, &
     lwork = int(s(1))
     allocate(work(lwork), stat=istat)
     if (istat.ne.0) then
-        error_message = 'Allocation failed in tree_node_bisect'
-        error_flag = 1
+        call update_error(error, 'Allocation failed in tree_node_bisect')
         return
     end if
     ! Get right singular vectors
     call dgesvd('N', 'O', 3, n, tmp_csph, 3, s, tmp_csph, 3, tmp_csph, 3, &
         & work, lwork, info)
     if (info.ne.0) then
-        error_message = 'DGESVD failed in tree_node_bisect'
-        error_flag = 1
+        call update_error(error, 'DGESVD failed in tree_node_bisect')
         return
     end if
     deallocate(work, stat=istat)
     if (istat.ne.0) then
-        error_message = 'Deallocation failed in tree_node_bisect'
-        error_flag = 1
+        call update_error(error, 'Deallocation failed in tree_node_bisect')
         return
     end if
     !! Sort spheres by sign of the above scalar product, which is equal to
@@ -1658,8 +1633,7 @@ subroutine tree_rib_node_bisect(nsph, csph, n, order, div, error_message, &
     order = tmp_order
     deallocate(tmp_csph, tmp_order, stat=istat)
     if (istat.ne.0) then
-        error_message = 'Deallocation failed in tree_node_bisect'
-        error_flag = 1
+        call update_error(error, 'Deallocation failed in tree_node_bisect')
         return
     end if
 end subroutine tree_rib_node_bisect
@@ -1839,10 +1813,12 @@ end subroutine tree_get_farnear
 !> @ingroup Fortran_interface_core
 !!
 !! @param[out] constants: Precomputed constants
+!! @param[inout] error: ddX error
 !!
-subroutine constants_free(constants)
+subroutine constants_free(constants, error)
     implicit none
     type(ddx_constants_type), intent(out) :: constants
+    type(ddx_error_type), intent(inout) :: error
     integer :: istat
 
     istat = 0
@@ -1850,403 +1826,305 @@ subroutine constants_free(constants)
     if (allocated(constants % vscales)) then
         deallocate(constants % vscales, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vscales` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vscales` deallocation failed!")
         end if
     end if
     if (allocated(constants % v4pi2lp1)) then
         deallocate(constants % v4pi2lp1, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`v4pi2lp1` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`v4pi2lp1` deallocation failed!")
         end if
     end if
     if (allocated(constants % vscales_rel)) then
         deallocate(constants % vscales_rel, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vscales_rel` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vscales_rel` deallocation failed!")
         end if
     end if
     if (allocated(constants % vfact)) then
         deallocate(constants % vfact, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vfact` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vfact` deallocation failed!")
         end if
     end if
     if (allocated(constants % vcnk)) then
         deallocate(constants % vcnk, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vcnk` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vcnk` deallocation failed!")
         end if
     end if
     if (allocated(constants % m2l_ztranslate_coef)) then
         deallocate(constants % m2l_ztranslate_coef, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`m2l_ztranslate_coef` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, &
+                & "`m2l_ztranslate_coef` deallocation failed!")
         end if
     end if
     if (allocated(constants % m2l_ztranslate_adj_coef)) then
         deallocate(constants % m2l_ztranslate_adj_coef, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`m2l_ztranslate_adj_coef` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, &
+                & "`m2l_ztranslate_adj_coef` deallocation failed!")
         end if
     end if
     if (allocated(constants % cgrid)) then
         deallocate(constants % cgrid, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`cgrid` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`cgrid` deallocation failed!")
         end if
     end if
     if (allocated(constants % wgrid)) then
         deallocate(constants % wgrid, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`wgrid` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`wgrid` deallocation failed!")
         end if
     end if
     if (allocated(constants % vgrid)) then
         deallocate(constants % vgrid, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vgrid` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vgrid` deallocation failed!")
         end if
     end if
     if (allocated(constants % vwgrid)) then
         deallocate(constants % vwgrid, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vwgrid` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vwgrid` deallocation failed!")
         end if
     end if
     if (allocated(constants % vgrid2)) then
         deallocate(constants % vgrid2, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`vgrid2` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`vgrid2` deallocation failed!")
         end if
     end if
     if (allocated(constants % pchi)) then
         deallocate(constants % pchi, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`pchi` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`pchi` deallocation failed!")
         end if
     end if
     if (allocated(constants % c_ik)) then
         deallocate(constants % c_ik, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`c_ik` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`c_ik` deallocation failed!")
         end if
     end if
     if (allocated(constants % si_ri)) then
         deallocate(constants % si_ri, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`si_ri` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`si_ri` deallocation failed!")
         end if
     end if
     if (allocated(constants % di_ri)) then
         deallocate(constants % di_ri, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`di_ri` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`di_ri` deallocation failed!")
         end if
     end if
     if (allocated(constants % sk_ri)) then
         deallocate(constants % sk_ri, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`sk_ri` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`sk_ri` deallocation failed!")
         end if
     end if
     if (allocated(constants % dk_ri)) then
         deallocate(constants % dk_ri, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`dk_ri` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`dk_ri` deallocation failed!")
         end if
     end if
     if (allocated(constants % termimat)) then
         deallocate(constants % termimat, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`termimat` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`termimat` deallocation failed!")
         end if
     end if
     if (allocated(constants % b)) then
         deallocate(constants % b, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`b` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`b` deallocation failed!")
         end if
     end if
     if (allocated(constants % l)) then
         deallocate(constants % l, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`l` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`l` deallocation failed!")
         end if
     end if
     if (allocated(constants % inl)) then
         deallocate(constants % inl, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`inl` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`inl` deallocation failed!")
         end if
     end if
     if (allocated(constants % nl)) then
         deallocate(constants % nl, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`nl` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`nl` deallocation failed!")
         end if
     end if
     if (allocated(constants % itrnl)) then
         deallocate(constants % itrnl, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`itrnl` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`itrnl` deallocation failed!")
         end if
     end if
     if (allocated(constants % fi)) then
         deallocate(constants % fi, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`fi` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`fi` deallocation failed!")
         end if
     end if
     if (allocated(constants % ui)) then
         deallocate(constants % ui, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`ui` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`ui` deallocation failed!")
         end if
     end if
     if (allocated(constants % ui_cav)) then
         deallocate(constants % ui_cav, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`ui_cav` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`ui_cav` deallocation failed!")
         end if
     end if
     if (allocated(constants % zi)) then
         deallocate(constants % zi, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`zi` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`zi` deallocation failed!")
         end if
     end if
     if (allocated(constants % ncav_sph)) then
         deallocate(constants % ncav_sph, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`ncav_sph` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`ncav_sph` deallocation failed!")
         end if
     end if
     if (allocated(constants % ccav)) then
         deallocate(constants % ccav, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`ccav` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`ccav` deallocation failed!")
         end if
     end if
     if (allocated(constants % icav_ia)) then
         deallocate(constants % icav_ia, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`icav_ia` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`icav_ia` deallocation failed!")
         end if
     end if
     if (allocated(constants % icav_ja)) then
         deallocate(constants % icav_ja, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`icav_ja` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`icav_ja` deallocation failed!")
         end if
     end if
     if (allocated(constants % rx_prc)) then
         deallocate(constants % rx_prc, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`rx_prc` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`rx_prc` deallocation failed!")
         end if
     end if
     if (allocated(constants % order)) then
         deallocate(constants % order, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`order` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`order` deallocation failed!")
         end if
     end if
     if (allocated(constants % cluster)) then
         deallocate(constants % cluster, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`cluster` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`cluster` deallocation failed!")
         end if
     end if
     if (allocated(constants % children)) then
         deallocate(constants % children, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`children` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`children` deallocation failed!")
         end if
     end if
     if (allocated(constants % parent)) then
         deallocate(constants % parent, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`parent` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`parent` deallocation failed!")
         end if
     end if
     if (allocated(constants % cnode)) then
         deallocate(constants % cnode, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`cnode` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`cnode` deallocation failed!")
         end if
     end if
     if (allocated(constants % rnode)) then
         deallocate(constants % rnode, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`rnode` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`rnode` deallocation failed!")
         end if
     end if
     if (allocated(constants % snode)) then
         deallocate(constants % snode, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`snode` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`snode` deallocation failed!")
         end if
     end if
     if (allocated(constants % sk_rnode)) then
         deallocate(constants % sk_rnode, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`sk_rnode` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`sk_rnode` deallocation failed!")
         end if
     end if
     if (allocated(constants % si_rnode)) then
         deallocate(constants % si_rnode, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`si_rnode` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`si_rnode` deallocation failed!")
         end if
     end if
     if (allocated(constants % nfar)) then
         deallocate(constants % nfar, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`nfar` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`nfar` deallocation failed!")
         end if
     end if
     if (allocated(constants % nnear)) then
         deallocate(constants % nnear, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`nnear` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`nnear` deallocation failed!")
         end if
     end if
     if (allocated(constants % far)) then
         deallocate(constants % far, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`far` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`far` deallocation failed!")
         end if
     end if
     if (allocated(constants % near)) then
         deallocate(constants % near, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`near` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`near` deallocation failed!")
         end if
     end if
     if (allocated(constants % sfar)) then
         deallocate(constants % sfar, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`sfar` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`sfar` deallocation failed!")
         end if
     end if
     if (allocated(constants % snear)) then
         deallocate(constants % snear, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`snear` deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`snear` deallocation failed!")
         end if
     end if
     if (allocated(constants % m2l_ztranslate_coef)) then
         deallocate(constants % m2l_ztranslate_coef, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`m2l_ztranslate_coef` " // &
-                & "deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`m2l_ztranslate_coef` " // &
+                & "deallocation failed!")
         end if
     end if
     if (allocated(constants % m2l_ztranslate_adj_coef)) then
         deallocate(constants % m2l_ztranslate_adj_coef, stat=istat)
         if (istat .ne. 0) then
-            constants % error_message = "`m2l_ztranslate_adj_coef` " // &
-                & "deallocation failed!"
-            constants % error_flag = 1
-            return
+            call update_error(error, "`m2l_ztranslate_adj_coef` " // &
+                & "deallocation failed!")
         end if
     end if
 end subroutine constants_free

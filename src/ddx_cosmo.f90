@@ -36,9 +36,10 @@ contains
 !! @param[in] tol: Tolerance for the linear system solver
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Solvation contribution to the forces
+!! @param[inout] error: ddX error
 !!
 subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
-        & psi, tol, esolv, force)
+        & psi, tol, esolv, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -48,23 +49,50 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
         & psi(constants % nbasis, params % nsph), tol
     real(dp), intent(out) :: esolv
     real(dp), intent(out), optional :: force(3, params % nsph)
+    type(ddx_error_type), intent(inout) :: error
 
-    call ddcosmo_setup(params, constants, workspace, state, phi_cav, psi)
-    call ddcosmo_guess(params, constants, workspace, state)
-    call ddcosmo_solve(params, constants, workspace, state, tol)
+    call ddcosmo_setup(params, constants, workspace, state, phi_cav, psi, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, &
+            & "ddlpb: ddcosmo_setup returned an error, exiting")
+        return
+    end if
+    call ddcosmo_guess(params, constants, workspace, state, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, &
+            & "ddlpb: ddcosmo_guess returned an error, exiting")
+        return
+    end if
+    call ddcosmo_solve(params, constants, workspace, state, tol, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, &
+            & "ddlpb: ddcosmo_solve returned an error, exiting")
+        return
+    end if
 
-    call ddcosmo_energy(constants, state, esolv)
+    call ddcosmo_energy(constants, state, esolv, error)
 
     ! Get forces if needed
     if (params % force .eq. 1) then
         ! solve the adjoint
-        call ddcosmo_guess_adjoint(params, constants, workspace, state)
-        call ddcosmo_solve_adjoint(params, constants, workspace, state, tol)
+        call ddcosmo_guess_adjoint(params, constants, workspace, state, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, &
+                & "ddlpb: ddcosmo_guess_adjoint returned an error, exiting")
+            return
+        end if
+        call ddcosmo_solve_adjoint(params, constants, workspace, state, tol, &
+            & error)
+        if (error % flag .ne. 0) then
+            call update_error(error, &
+                & "ddlpb: ddcosmo_guess_adjoint returned an error, exiting")
+            return
+        end if
 
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
         call ddcosmo_solvation_force_terms(params, constants, workspace, &
-            & state, force)
+            & state, force, error)
     end if
 end subroutine ddcosmo
 
@@ -75,10 +103,11 @@ end subroutine ddcosmo
 !! @param[in] state: ddx state (contains solutions and RHSs)
 !! @param[out] esolv: resulting energy
 !!
-subroutine ddcosmo_energy(constants, state, esolv)
+subroutine ddcosmo_energy(constants, state, esolv, error)
     implicit none
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(in) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
     esolv = pt5*ddot(constants % n, state % xs, 1, state % psi, 1)
@@ -94,13 +123,15 @@ end subroutine ddcosmo_energy
 !! @param[inout] state: ddx state
 !! @param[in] phi_cav: electrostatic potential at the cavity points
 !! @param[in] psi: representation of the solute density
+!! @param[inout] error: ddX error
 !!
-subroutine ddcosmo_setup(params, constants, workspace, state, phi_cav, psi)
+subroutine ddcosmo_setup(params, constants, workspace, state, phi_cav, psi, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     call cav_to_spherical(params, constants, workspace, phi_cav, &
@@ -117,16 +148,18 @@ end subroutine ddcosmo_setup
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[inout] error: ddX error
 !!
-subroutine ddcosmo_guess(params, constants, workspace, state)
+subroutine ddcosmo_guess(params, constants, workspace, state, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
 
     ! apply the diagonal preconditioner as a guess
-    call ldm1x(params, constants, workspace, state % phi, state % xs)
+    call ldm1x(params, constants, workspace, state % phi, state % xs, error)
 
 end subroutine ddcosmo_guess
 
@@ -137,16 +170,18 @@ end subroutine ddcosmo_guess
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[inout] error: ddX error
 !!
-subroutine ddcosmo_guess_adjoint(params, constants, workspace, state)
+subroutine ddcosmo_guess_adjoint(params, constants, workspace, state, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
 
     ! apply the diagonal preconditioner as a guess
-    call ldm1x(params, constants, workspace, state % psi, state % s)
+    call ldm1x(params, constants, workspace, state % psi, state % s, error)
 
 end subroutine ddcosmo_guess_adjoint
 
@@ -158,14 +193,16 @@ end subroutine ddcosmo_guess_adjoint
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] tol: Tolerance for the linear system solver
+!! @param[inout] error: ddX error
 !!
-subroutine ddcosmo_solve(params, constants, workspace, state, tol)
+subroutine ddcosmo_solve(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
+    type(ddx_error_type), intent(inout) :: error
     ! local variables
     real(dp) :: start_time, finish_time
 
@@ -173,7 +210,7 @@ subroutine ddcosmo_solve(params, constants, workspace, state, tol)
     start_time = omp_get_wtime()
     call jacobi_diis(params, constants, workspace, tol, state % phi, &
         & state % xs, state % xs_niter, state % xs_rel_diff, lx, ldm1x, &
-        & hnorm)
+        & hnorm, error)
     finish_time = omp_get_wtime()
     state % xs_time = finish_time - start_time
 
@@ -187,21 +224,25 @@ end subroutine ddcosmo_solve
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] tol: Tolerance for the linear system solver
+!! @param[inout] error: ddX error
 !!
-subroutine ddcosmo_solve_adjoint(params, constants, workspace, state, tol)
+subroutine ddcosmo_solve_adjoint(params, constants, workspace, state, tol, &
+        & error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
+    type(ddx_error_type), intent(inout) :: error
     ! local variables
     real(dp) :: start_time, finish_time
 
     state % s_niter = params % maxiter
     start_time = omp_get_wtime()
     call jacobi_diis(params, constants, workspace, tol, state % psi, &
-        & state % s, state % s_niter, state % s_rel_diff, lstarx, ldm1x, hnorm)
+        & state % s, state % s_niter, state % s_rel_diff, lstarx, ldm1x, &
+        & hnorm, error)
     finish_time = omp_get_wtime()
     state % s_time = finish_time - start_time
 
@@ -220,14 +261,16 @@ end subroutine ddcosmo_solve_adjoint
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[inout] force: force term
+!! @param[inout] error: ddX error
 !!
 subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
-        & state, force)
+        & state, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
     real(dp), intent(inout) :: force(3, params % nsph)
     ! local variables
     real(dp) :: start_time, finish_time

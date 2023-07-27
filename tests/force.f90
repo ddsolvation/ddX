@@ -18,6 +18,7 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
+type(ddx_error_type) :: error
 type(ddx_state_type) :: state
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
     & hessianphi_cav(:, :, :), psi(:, :), &
@@ -30,10 +31,10 @@ character(len=255) :: dummy_file_name = ''
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol, charges)
-if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
-call ddx_init_state(ddx_data % params, ddx_data % constants, state)
-if(state % error_flag .ne. 0) stop "Initialization failed"
+call ddfromfile(fname, ddx_data, tol, charges, error)
+call check_error(error)
+call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call check_error(error)
 
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
     & hessianphi_cav(3, 3, ddx_data % constants % ncav), &
@@ -43,9 +44,11 @@ allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constan
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
     & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
 call ddsolve(ddx_data, state, phi_cav, gradphi_cav, hessianphi_cav, psi, &
-    & tol, esolv1, force)
+    & tol, esolv1, force, error)
+call check_error(error)
 call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, charges, force, -gradphi_cav)
+    & ddx_data % workspace, state, charges, force, -gradphi_cav, error)
+call check_error(error)
 
 ddx_data % params % force = 0
 do isph = 1, ddx_data % params % nsph
@@ -70,8 +73,8 @@ do i = 1, ddx_data % params % nsph
 end do
 
 deallocate(phi_cav, gradphi_cav, psi, force, force_num, charges)
-call ddx_free_state(state)
-call ddfree(ddx_data)
+call ddx_free_state(state, error)
+call ddfree(ddx_data, error)
 
 write(*, *) "Rel.error of forces:", relerr
 if (relerr .gt. 1d-5) stop 1
@@ -89,6 +92,7 @@ subroutine solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &
         & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), &
         & force(3, ddx_data % params % nsph)
     type(ddx_type) :: ddx_data2
+    type(ddx_error_type) :: error2
     call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, 0, &
@@ -97,12 +101,13 @@ subroutine solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, &
         & ddx_data % params % matvecmem, ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, dummy_file_name, ddx_data2)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data2, error2)
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
         & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
     call ddsolve(ddx_data2, state, phi_cav, gradphi_cav, hessianphi_cav, psi, tol, esolv, &
-        & force)
-    call ddfree(ddx_data2)
+        & force, error2)
+    call check_error(error2)
+    call ddfree(ddx_data2, error2)
 end subroutine solve
 
 end program main

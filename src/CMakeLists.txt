@@ -1,6 +1,7 @@
 # Define common source files
 set(SRC
     ddx_definitions.f90
+    ddx_errors.f90
     ddx_parameters.f90
     ddx_constants.f90
     ddx_workspace.f90

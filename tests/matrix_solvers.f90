@@ -22,6 +22,7 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
+type(ddx_error_type) :: error
 type(ddx_state_type) :: state
 character(len=255) :: dummy_file_name = ''
 
@@ -34,10 +35,10 @@ real(dp), allocatable :: charges(:)
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol, charges)
-if(ddx_data % error_flag .ne. 0) stop "Initialization failed"
-call ddx_init_state(ddx_data % params, ddx_data % constants, state)
-if(state % error_flag .ne. 0) stop "Initialization failed"
+call ddfromfile(fname, ddx_data, tol, charges, error)
+call check_error(error)
+call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call check_error(error)
 
 ! Initial values
 default_value = zero
@@ -58,8 +59,8 @@ if(abs(esolv_one - esolv_two) .gt. 1e-8) then
   stop 1
 endif
 
-call ddx_free_state(state)
-call ddfree(ddx_data)
+call ddx_free_state(state, error)
+call ddfree(ddx_data, error)
 deallocate(charges)
 
 contains
@@ -72,6 +73,7 @@ subroutine solve(ddx_data, state, matvecmem, esolv, charges)
     real(dp), intent(in) :: charges(ddx_data % params % nsph)
 
     type(ddx_type) :: ddx_data2
+    type(ddx_error_type) :: error2
     real(dp), allocatable :: phi_cav2(:)
     real(dp), allocatable :: gradphi_cav2(:,:)
     real(dp), allocatable :: hessianphi_cav2(:,:,:)
@@ -87,7 +89,7 @@ subroutine solve(ddx_data, state, matvecmem, esolv, charges)
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, matvecmem,&
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, dummy_file_name, ddx_data2)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data2, error2)
 
     allocate(phi_cav2(ddx_data2 % constants % ncav), &
             & gradphi_cav2(3, ddx_data2 % constants % ncav), &
@@ -105,9 +107,10 @@ subroutine solve(ddx_data, state, matvecmem, esolv, charges)
             &  1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2, charges)
 
     call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
-        & psi2, tol, esolv, force2)
+        & psi2, tol, esolv, force2, error2)
+    call check_error(error2)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
-    call ddfree(ddx_data2)
+    call ddfree(ddx_data2, error2)
     return
 end subroutine solve
 

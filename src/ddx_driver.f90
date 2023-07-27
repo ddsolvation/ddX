@@ -22,6 +22,7 @@ character(len=255) :: fname
 character(len=2047) :: banner
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
+type(ddx_error_type) :: error
 real(dp), allocatable :: phi_cav(:), e_cav(:, :), &
     & g_cav(:, :, :), psi(:, :), force(:, :), charges(:), &
     & multipoles(:, :)
@@ -43,14 +44,10 @@ write(6, *) "Using provided file ", trim(fname), " as a config file"
 ! The model is a container for all the parameters, precomputed constants
 ! and preallocated workspaces.
 start_time = omp_get_wtime()
-call ddfromfile(fname, ddx_data, tol, charges)
+call ddfromfile(fname, ddx_data, tol, charges, error)
 finish_time = omp_get_wtime()
-write(*, 100) "Initialization time:", finish_time - start_time, &
-    & " seconds"
-if (ddx_data % error_flag .ne. 0) then
-  write(6, *) ddx_data % error_message
-  stop
-end if
+write(*, 100) "Initialization time:", finish_time - start_time, " seconds"
+call check_error(error)
 
 ! STEP 2: Initialization of the state.
 ! The state is a high level object which is related to solving the
@@ -58,11 +55,8 @@ end if
 ! model (ddx_data). Different states can be used at the same time with
 ! a given model, for instance when solving for different solutes,
 ! or for different states of the solute.
-call ddx_init_state(ddx_data % params, ddx_data % constants, state)
-if (state % error_flag .ne. 0) then
-  write(6, *) state % error_message
-  stop
-end if
+call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call check_error(error)
 
 ! Print the ddX banner
 call get_banner(banner)
@@ -150,13 +144,13 @@ end if
 ! Compute the required electrostatic properties.
 if (do_phi .and. do_e .and. do_g) then
     call build_g(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, multipoles, 0, phi_cav, e_cav, g_cav)
+        & ddx_data % workspace, multipoles, 0, phi_cav, e_cav, g_cav, error)
 else if (do_phi .and. do_e) then
     call build_e(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, multipoles, 0, phi_cav, e_cav)
+        & ddx_data % workspace, multipoles, 0, phi_cav, e_cav, error)
 else
     call build_phi(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, multipoles, 0, phi_cav)
+        & ddx_data % workspace, multipoles, 0, phi_cav, error)
 end if
 
 finish_time = omp_get_wtime()
@@ -178,34 +172,35 @@ write(*, 100) "Psi time:", finish_time-start_time, " seconds"
 ! STEP 4: solve the primal linear system.
 if (ddx_data % params % model .eq. 1) then
     call ddcosmo_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, psi)
+        & ddx_data % workspace, state, phi_cav, psi, error)
     call ddcosmo_guess(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state)
+        & ddx_data % workspace, state, error)
     call ddcosmo_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol)
+        & ddx_data % workspace, state, tol, error)
 else if (ddx_data % params % model .eq. 2) then
     call ddpcm_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, psi)
+        & ddx_data % workspace, state, phi_cav, psi, error)
     call ddpcm_guess(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state)
+        & ddx_data % workspace, state, error)
     call ddpcm_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol)
+        & ddx_data % workspace, state, tol, error)
 else if (ddx_data % params % model .eq. 3) then
     call ddlpb_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, e_cav, psi)
+        & ddx_data % workspace, state, phi_cav, e_cav, psi, error)
     call ddlpb_guess(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol)
+        & ddx_data % workspace, state, tol, error)
     call ddlpb_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol)
+        & ddx_data % workspace, state, tol, error)
 end if
+call check_error(error)
 
 ! STEP 5: compute the solvation energy
 if (ddx_data % params % model .eq. 1) then
-    call ddcosmo_energy(ddx_data % constants, state, esolv)
+    call ddcosmo_energy(ddx_data % constants, state, esolv, error)
 else if (ddx_data % params % model .eq. 2) then
-    call ddpcm_energy(ddx_data % constants, state, esolv)
+    call ddpcm_energy(ddx_data % constants, state, esolv, error)
 else if (ddx_data % params % model .eq. 3) then
-    call ddlpb_energy(ddx_data % constants, state, esolv)
+    call ddlpb_energy(ddx_data % constants, state, esolv, error)
 end if
 
 ! STEP 6: if required solve the adjoint linear system. The adjoint
@@ -215,21 +210,22 @@ end if
 if (ddx_data % params % force .eq. 1) then
     if (ddx_data % params % model .eq. 1) then
         call ddcosmo_guess_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state)
+            & ddx_data % constants, ddx_data % workspace, state, error)
         call ddcosmo_solve_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol)
+            & ddx_data % constants, ddx_data % workspace, state, tol, error)
     else if (ddx_data % params % model .eq. 2) then
         call ddpcm_guess_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state)
+            & ddx_data % constants, ddx_data % workspace, state, error)
         call ddpcm_solve_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol)
+            & ddx_data % constants, ddx_data % workspace, state, tol, error)
     else if (ddx_data % params % model .eq. 3) then
         call ddlpb_guess_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol)
+            & ddx_data % constants, ddx_data % workspace, state, tol, error)
         call ddlpb_solve_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol)
+            & ddx_data % constants, ddx_data % workspace, state, tol, error)
     end if
 end if
+call check_error(error)
 
 ! STEP 7: if required compute the solute aspecific contributions to the
 ! forces.
@@ -243,13 +239,13 @@ if (ddx_data % params % force .eq. 1) then
 
     if (ddx_data % params % model .eq. 1) then
         call ddcosmo_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, force)
+            & ddx_data % constants, ddx_data % workspace, state, force, error)
     else if (ddx_data % params % model .eq. 2) then
         call ddpcm_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, force)
+            & ddx_data % constants, ddx_data % workspace, state, force, error)
     else if (ddx_data % params % model .eq. 3) then
         call ddlpb_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, g_cav, force)
+            & ddx_data % constants, ddx_data % workspace, state, g_cav, force, error)
     end if
 end if
 
@@ -262,12 +258,14 @@ if (ddx_data % params % force .eq. 1) then
     start_time = omp_get_wtime()
     call grad_phi_for_charges(ddx_data % params, &
         & ddx_data % constants, ddx_data % workspace, state, &
-        & charges, force, e_cav)
+        & charges, force, e_cav, error)
+    call check_error(error)
     if (ddx_data % params % model .eq. 3) then
         ! ddLPB has another term in the multipolar forces stemming
         ! from the electric field in the RHS
         call grad_e_for_charges(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, charges, force)
+            & ddx_data % workspace, state, charges, force, error)
+        call check_error(error)
     end if
     finish_time = omp_get_wtime()
     write(*, 100) "multipolar force terms time:", &
@@ -401,7 +399,7 @@ if (allocated(force)) then
     end if
 end if
 
-call ddx_free_state(state)
-call ddfree(ddx_data)
+call ddx_free_state(state, error)
+call ddfree(ddx_data, error)
 
 end program main

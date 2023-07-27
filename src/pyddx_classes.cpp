@@ -118,16 +118,18 @@ class Model {
     const int intfmm       = enable_fmm ? 1 : 0;
     const int intincore    = incore ? 1 : 0;
 
+    m_error = ddx_allocate_error();
+
     m_holder = ddx_allocate_model(
           model_id, enable_force, solvent_epsilon, solvent_kappa, eta, shift, lmax,
           n_lebedev, intincore, maxiter, jacobi_n_diis, intfmm, fmm_multipole_lmax,
           fmm_local_lmax, n_proc, n_spheres, sphere_centres.data(), sphere_radii.data(),
-          logfile.size(), logfile.c_str());
+          logfile.size(), logfile.c_str(), m_error);
     throw_if_error();
   }
 
   ~Model() {
-    if (m_holder) ddx_deallocate_model(m_holder);
+    if (m_holder) ddx_deallocate_model(m_holder, error());
     m_holder = nullptr;
   }
   Model(const Model&)            = delete;
@@ -135,9 +137,9 @@ class Model {
 
   // Check for errors
   void throw_if_error() const {
-    if (ddx_get_error_flag(holder()) != 0) {
-      char message[256];
-      ddx_get_error_message(holder(), message, 256);
+    if (ddx_get_error_flag(error()) != 0) {
+      char message[2047];
+      ddx_get_error_message(error(), message, 2047);
       throw std::runtime_error(std::string(message));
     }
   }
@@ -149,6 +151,9 @@ class Model {
   // Return the holder pointer ... internal function. Use only if you know
   // what you are doing.
   void* holder() const { return m_holder; }
+  // Return the error pointer ... internal function. Use only if you know
+  // what you are doing.
+  void* error() const { return m_error; }
 
   bool has_fmm_enabled() const { return 1 == ddx_get_enable_fmm(m_holder); }
   bool has_force_enabled() const { return 1 == ddx_get_enable_force(m_holder); }
@@ -226,12 +231,13 @@ class Model {
  private:
   void* m_holder;
   std::string m_model;
+  void* m_error;
 };
 
 class State {
  public:
   State(std::shared_ptr<Model> model)
-        : m_holder(ddx_allocate_state(model->holder())),
+        : m_holder(ddx_allocate_state(model->holder(), model->error())),
           m_model(model),
           m_solved(false),
           m_solved_adjoint(false) {
@@ -251,18 +257,13 @@ class State {
   }
 
   ~State() {
-    if (m_holder) ddx_deallocate_state(m_holder);
+    if (m_holder) ddx_deallocate_state(m_holder, model()->error());
     m_holder = nullptr;
   }
   State(const State&)            = delete;
   State& operator=(const State&) = delete;
 
   void throw_if_error() const {
-    if (ddx_get_state_error_flag(holder()) != 0) {
-      char message[256];
-      ddx_get_state_error_message(holder(), message, 256);
-      throw std::runtime_error(std::string(message));
-    }
     model()->throw_if_error();
   }
 
@@ -329,10 +330,10 @@ class State {
 
     if (model()->model() == "cosmo") {
       ddx_cosmo_setup(model()->holder(), holder(), model()->n_cav(), model()->n_basis(),
-                      model()->n_spheres(), psi.data(), phi.data());
+                      model()->n_spheres(), psi.data(), phi.data(), model()->error());
     } else if (model()->model() == "pcm") {
       ddx_pcm_setup(model()->holder(), holder(), model()->n_cav(), model()->n_basis(),
-                    model()->n_spheres(), psi.data(), phi.data());
+                    model()->n_spheres(), psi.data(), phi.data(), model()->error());
     } else if (model()->model() == "lpb") {
       if (py_elec_field.is_none()) {
         throw py::value_error("For LPB elec_field needs to be provided.");
@@ -345,7 +346,8 @@ class State {
       }
 
       ddx_lpb_setup(model()->holder(), holder(), model()->n_cav(), model()->n_basis(),
-                    model()->n_spheres(), psi.data(), phi.data(), elec_field.data());
+                    model()->n_spheres(), psi.data(), phi.data(), elec_field.data(),
+                    model()->error());
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -356,11 +358,11 @@ class State {
 
   void fill_guess(double tol) {
     if (model()->model() == "cosmo") {
-      ddx_cosmo_guess(model()->holder(), holder());
+      ddx_cosmo_guess(model()->holder(), holder(), model()->error());
     } else if (model()->model() == "pcm") {
-      ddx_pcm_guess(model()->holder(), holder());
+      ddx_pcm_guess(model()->holder(), holder(), model()->error());
     } else if (model()->model() == "lpb") {
-      ddx_lpb_guess(model()->holder(), holder(), tol);
+      ddx_lpb_guess(model()->holder(), holder(), tol, model()->error());
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -370,11 +372,11 @@ class State {
 
   void fill_guess_adjoint(double tol) {
     if (model()->model() == "cosmo") {
-      ddx_cosmo_guess_adjoint(model()->holder(), holder());
+      ddx_cosmo_guess_adjoint(model()->holder(), holder(), model()->error());
     } else if (model()->model() == "pcm") {
-      ddx_pcm_guess_adjoint(model()->holder(), holder());
+      ddx_pcm_guess_adjoint(model()->holder(), holder(), model()->error());
     } else if (model()->model() == "lpb") {
-      ddx_lpb_guess_adjoint(model()->holder(), holder(), tol);
+      ddx_lpb_guess_adjoint(model()->holder(), holder(), tol, model()->error());
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -385,11 +387,11 @@ class State {
   // Solve the forward COSMO / PCM / LPB System. The state is modified in-place.
   void solve(double tol) {
     if (model()->model() == "cosmo") {
-      ddx_cosmo_solve(model()->holder(), holder(), tol);
+      ddx_cosmo_solve(model()->holder(), holder(), tol, model()->error());
     } else if (model()->model() == "pcm") {
-      ddx_pcm_solve(model()->holder(), holder(), tol);
+      ddx_pcm_solve(model()->holder(), holder(), tol, model()->error());
     } else if (model()->model() == "lpb") {
-      ddx_lpb_solve(model()->holder(), holder(), tol);
+      ddx_lpb_solve(model()->holder(), holder(), tol, model()->error());
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -400,11 +402,11 @@ class State {
   // Solve the adjoint COSMO / PCM / LPB System. The state is modified in-place.
   void solve_adjoint(double tol) {
     if (model()->model() == "cosmo") {
-      ddx_cosmo_solve_adjoint(model()->holder(), holder(), tol);
+      ddx_cosmo_solve_adjoint(model()->holder(), holder(), tol, model()->error());
     } else if (model()->model() == "pcm") {
-      ddx_pcm_solve_adjoint(model()->holder(), holder(), tol);
+      ddx_pcm_solve_adjoint(model()->holder(), holder(), tol, model()->error());
     } else if (model()->model() == "lpb") {
-      ddx_lpb_solve_adjoint(model()->holder(), holder(), tol);
+      ddx_lpb_solve_adjoint(model()->holder(), holder(), tol, model()->error());
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -417,11 +419,11 @@ class State {
     check_solved();
     double ret = 0.0;
     if (model()->model() == "cosmo") {
-      ret = ddx_cosmo_energy(model()->holder(), holder());
+      ret = ddx_cosmo_energy(model()->holder(), holder(), model()->error());
     } else if (model()->model() == "pcm") {
-      ret = ddx_pcm_energy(model()->holder(), holder());
+      ret = ddx_pcm_energy(model()->holder(), holder(), model()->error());
     } else if (model()->model() == "lpb") {
-      ret = ddx_lpb_energy(model()->holder(), holder());
+      ret = ddx_lpb_energy(model()->holder(), holder(), model()->error());
     } else {
       throw py::value_error("Model " + model()->model() + " not yet implemented.");
     }
@@ -435,10 +437,10 @@ class State {
     array_f_t forces({3, model()->n_spheres()});
     if (model()->model() == "cosmo") {
       ddx_cosmo_solvation_force_terms(model()->holder(), holder(), model()->n_spheres(),
-                                      forces.mutable_data());
+                                      forces.mutable_data(), model()->error());
     } else if (model()->model() == "pcm") {
       ddx_pcm_solvation_force_terms(model()->holder(), holder(), model()->n_spheres(),
-                                    forces.mutable_data());
+                                    forces.mutable_data(), model()->error());
     } else if (model()->model() == "lpb") {
       throw py::value_error(
             "Forces not yet fully implemented for ddLPB on the python side.");
@@ -470,7 +472,7 @@ class State {
     array_f_t forces({3, model()->n_spheres()});
     ddx_multipole_forces(model()->holder(), holder(), model()->n_spheres(),
                          model()->n_cav(), multipoles.shape(0), multipoles.data(),
-                         e.data(), forces.mutable_data());
+                         e.data(), forces.mutable_data(), model()->error());
     throw_if_error();
     return forces;
   }
@@ -543,14 +545,14 @@ py::dict multipole_electrostatics(std::shared_ptr<Model> model, array_f_t multip
   if (derivative_order == 0) {
     ddx_multipole_electrostatics_0(model->holder(), model->n_spheres(), model->n_cav(),
                                    multipoles.shape(0), multipoles.data(),
-                                   phi.mutable_data());
+                                   phi.mutable_data(), model->error());
     model->throw_if_error();
     return py::dict("phi"_a = phi);
   } else if (derivative_order == 1) {
     array_f_t e({3, model->n_cav()});
     ddx_multipole_electrostatics_1(model->holder(), model->n_spheres(), model->n_cav(),
                                    multipoles.shape(0), multipoles.data(),
-                                   phi.mutable_data(), e.mutable_data());
+                                   phi.mutable_data(), e.mutable_data(), model->error());
     model->throw_if_error();
     return py::dict("phi"_a = phi, "e"_a = e);
   } else if (derivative_order == 2) {
@@ -558,7 +560,8 @@ py::dict multipole_electrostatics(std::shared_ptr<Model> model, array_f_t multip
     array_f_t g({3, 3, model->n_cav()});
     ddx_multipole_electrostatics_2(
           model->holder(), model->n_spheres(), model->n_cav(), multipoles.shape(0),
-          multipoles.data(), phi.mutable_data(), e.mutable_data(), g.mutable_data());
+          multipoles.data(), phi.mutable_data(), e.mutable_data(), g.mutable_data(),
+          model->error());
     model->throw_if_error();
     return py::dict("phi"_a = phi, "e"_a = e, "g"_a = g);
   } else {
@@ -579,7 +582,8 @@ array_f_t multipole_psi(std::shared_ptr<Model> model, array_f_t multipoles) {
 
   array_f_t psi({model->n_basis(), model->n_spheres()});
   ddx_multipole_psi(model->holder(), model->n_basis(), model->n_spheres(),
-                    multipoles.shape(0), multipoles.data(), psi.mutable_data());
+                    multipoles.shape(0), multipoles.data(), psi.mutable_data(),
+                    model->error());
   model->throw_if_error();
   return psi;
 }
