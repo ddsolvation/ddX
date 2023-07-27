@@ -53,20 +53,20 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
 
     call ddcosmo_setup(params, constants, workspace, state, phi_cav, psi, error)
     if (error % flag .ne. 0) then
-        call update_error(error,
-            "ddlpb: ddcosmo_setup returned an error, exiting")
+        call update_error(error, &
+            & "ddlpb: ddcosmo_setup returned an error, exiting")
         return
     end if
     call ddcosmo_guess(params, constants, workspace, state, error)
     if (error % flag .ne. 0) then
-        call update_error(error,
-            "ddlpb: ddcosmo_guess returned an error, exiting")
+        call update_error(error, &
+            & "ddlpb: ddcosmo_guess returned an error, exiting")
         return
     end if
     call ddcosmo_solve(params, constants, workspace, state, tol, error)
     if (error % flag .ne. 0) then
-        call update_error(error,
-            "ddlpb: ddcosmo_solve returned an error, exiting")
+        call update_error(error, &
+            & "ddlpb: ddcosmo_solve returned an error, exiting")
         return
     end if
 
@@ -77,15 +77,15 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
         ! solve the adjoint
         call ddcosmo_guess_adjoint(params, constants, workspace, state, error)
         if (error % flag .ne. 0) then
-            call update_error(error,
-                "ddlpb: ddcosmo_guess_adjoint returned an error, exiting")
+            call update_error(error, &
+                & "ddlpb: ddcosmo_guess_adjoint returned an error, exiting")
             return
         end if
         call ddcosmo_solve_adjoint(params, constants, workspace, state, tol, &
             & error)
         if (error % flag .ne. 0) then
-            call update_error(error,
-                "ddlpb: ddcosmo_guess_adjoint returned an error, exiting")
+            call update_error(error, &
+                & "ddlpb: ddcosmo_guess_adjoint returned an error, exiting")
             return
         end if
 

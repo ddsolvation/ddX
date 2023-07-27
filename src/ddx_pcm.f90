@@ -52,20 +52,20 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
 
     call ddpcm_setup(params, constants, workspace, state, phi_cav, psi, error)
     if (error % flag .ne. 0) then
-        call update_error(error,
-            "ddlpb: ddpcm_setup returned an error, exiting")
+        call update_error(error, &
+            & "ddlpb: ddpcm_setup returned an error, exiting")
         return
     end if
     call ddpcm_guess(params, constants, workspace, state, error)
     if (error % flag .ne. 0) then
-        call update_error(error,
-            "ddlpb: ddpcm_guess returned an error, exiting")
+        call update_error(error, &
+            & "ddlpb: ddpcm_guess returned an error, exiting")
         return
     end if
     call ddpcm_solve(params, constants, workspace, state, tol, error)
     if (error % flag .ne. 0) then
-        call update_error(error,
-            "ddlpb: ddpcm_solve returned an error, exiting")
+        call update_error(error, &
+            & "ddlpb: ddpcm_solve returned an error, exiting")
         return
     end if
 
@@ -76,15 +76,15 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
         ! solve the adjoint
         call ddpcm_guess_adjoint(params, constants, workspace, state, error)
         if (error % flag .ne. 0) then
-            call update_error(error,
-                "ddlpb: ddpcm_guess_adjoint returned an error, exiting")
+            call update_error(error, &
+                & "ddlpb: ddpcm_guess_adjoint returned an error, exiting")
             return
         end if
         call ddpcm_solve_adjoint(params, constants, workspace, state, &
             & tol, error)
         if (error % flag .ne. 0) then
-            call update_error(error,
-                "ddlpb: ddpcm_guess_adjoint returned an error, exiting")
+            call update_error(error, &
+                & "ddlpb: ddpcm_guess_adjoint returned an error, exiting")
             return
         end if
 
@@ -92,7 +92,6 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
         force = zero
         call ddpcm_solvation_force_terms(params, constants, workspace, &
             & state, force, error)
-        end if
     end if
 
 end subroutine ddpcm
