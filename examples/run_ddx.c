@@ -78,6 +78,7 @@ int main() {
   printf("nbasis = %4d\n", nbasis);
   printf("ncav   = %4d\n", ncav);
 
+
   //
   // Compute solute electrostatics
   //
@@ -102,6 +103,12 @@ int main() {
     print_error(error);
     return 1;
   }
+
+  // Testing but not using the new electrostatics
+  void* electrostatics = ddx_allocate_electrostatics(model, error);
+  ddx_multipole_electrostatics(model, nsph, nmultipoles, solute_multipoles,
+                               electrostatics, error);
+  ddx_deallocate_electrostatics(electrostatics, error);
 
   //
   // Solve the PCM problem

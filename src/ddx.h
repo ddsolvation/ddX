@@ -60,6 +60,25 @@ void ddx_get_error_message(const void* error, char* message, int maxlen);
 
 ///@}
 
+/** \name Allocate and manage the ddX electrostatics object */
+///@{
+
+/** Allocate the ddX electrostatics object. */
+void* ddx_allocate_electrostatics(void* ddx, void* error);
+
+/** Compute the electrostatic properties for a multipolar distribution **/
+void ddx_multipole_electrostatics(void* ddx, int nsph, int nmultipoles,
+                                  const double* multipoles,
+                                  void* electrostatics, void* error);
+
+/** Deallocate the ddX electrostatics object. */
+void ddx_deallocate_electrostatics(void* electrostatics, void* error);
+
+///@}
+
+/** \name Allocate and manage the ddx model object */
+///@{
+
 /** \name Allocate and manage the ddx model object */
 ///@{
 

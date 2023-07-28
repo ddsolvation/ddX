@@ -136,6 +136,51 @@ subroutine ddx_get_error_message(c_error, message, maxlen) bind(C)
 end
 
 !
+! Electrostatics container
+!
+function ddx_allocate_electrostatics(c_ddx, c_error) result(c_electrostatics) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_error
+    type(ddx_setup), pointer :: ddx
+    type(ddx_error_type), pointer :: error
+    type(c_ptr) :: c_electrostatics
+    type(ddx_electrostatics_type), pointer :: electrostatics
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_error, error)
+    allocate(electrostatics)
+    call allocate_electrostatics(ddx%params, ddx%constants, electrostatics, error)
+    c_electrostatics = c_loc(electrostatics)
+end function
+
+subroutine ddx_deallocate_electrostatics(c_electrostatics, c_error) bind(C)
+    type(c_ptr), intent(in), value :: c_electrostatics, c_error
+    type(ddx_electrostatics_type), pointer :: electrostatics
+    type(ddx_error_type), pointer :: error
+    call c_f_pointer(c_electrostatics, electrostatics)
+    call c_f_pointer(c_error, error)
+    call deallocate_electrostatics(electrostatics, error)
+    deallocate(electrostatics)
+end
+
+subroutine ddx_multipole_electrostatics(c_ddx, nsph, nmultipoles, multipoles, &
+        & c_electrostatics, c_error) bind(C)
+    implicit none
+    type(c_ptr), intent(in), value :: c_ddx, c_electrostatics, c_error
+    integer(c_int), intent(in), value :: nsph, nmultipoles
+    real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
+    type(ddx_setup), pointer :: ddx
+    type(ddx_error_type), pointer :: error
+    type(ddx_electrostatics_type), pointer :: electrostatics
+    integer :: mmax
+
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_error, error)
+    call c_f_pointer(c_electrostatics, electrostatics)
+    mmax = int(sqrt(dble(nmultipoles)) - 1d0)
+
+    call multipole_electrostatics(ddx%params, ddx%constants, ddx%workspace, &
+        & multipoles, mmax, electrostatics, error)
+end
+!
 ! Setup object
 !
 function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
