@@ -188,6 +188,27 @@ type ddx_state_type
 
 end type ddx_state_type
 
+!> Container for the electrostatic properties. Since different methods
+!! require different electrostatic properties, defining this kind of
+!! general purpose container simplify the interfaces as we don't need
+!! different interfaces for different methods.
+type ddx_electrostatics_type
+    !> Electric potential at the cavity points, size (ncav).
+    real(dp), allocatable :: phi_cav(:)
+    !> Electric field at the cavity points, defined as minus gradient
+    !! of the potential, size (3, ncav).
+    real(dp), allocatable :: e_cav(:, :)
+    !> Electric field gradient at the cavity points, defined as minus the
+    !! gradient of the electric potential, size (3, 3, ncav).
+    real(dp), allocatable :: g_cav(:, :, :)
+    !> Flag for enabling the computation of the electric potential.
+    logical :: do_phi = .false.
+    !> Flag for enabling the computation of the electric field.
+    logical :: do_e = .false.
+    !> Flag for enabling the computation of the electric field gradient.
+    logical :: do_g = .false.
+end type ddx_electrostatics_type
+
 !> Main ddX type that stores all the required information.
 !! Container for the params, contants and workspace derived types.
 type ddx_type
@@ -294,6 +315,113 @@ subroutine ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         return
     end if
 end subroutine ddinit
+
+!> Given the chosen model, find the required electrostatic properties,
+!! and allocate the arrays for them in the container.
+!!
+!> @ingroup Fortran_interface_core
+!! @param[in] params: ddx parameters
+!! @param[in]  constants: ddx constants
+!! @param[out] electrostatics, ddX electrostatic properties container
+!! @param[inout] error: ddX error
+!!
+subroutine allocate_electrostatics(params, constants, electrostatics, error)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_electrostatics_type), intent(out) :: electrostatics
+    type(ddx_error_type), intent(inout) :: error
+
+    ! local variables
+    integer :: info
+
+    ! Figure out the required properties
+    if (params % model .eq. 3) then
+        if (params % force .eq. 1) then
+            electrostatics % do_phi = .true.
+            electrostatics % do_e = .true.
+            electrostatics % do_g = .true.
+        else
+            electrostatics % do_phi = .true.
+            electrostatics % do_e = .true.
+            electrostatics % do_g = .false.
+        end if
+    else
+        if (params % force .eq. 1) then
+            electrostatics % do_phi = .true.
+            electrostatics % do_e = .true.
+            electrostatics % do_g = .false.
+        else
+            electrostatics % do_phi = .true.
+            electrostatics % do_e = .false.
+            electrostatics % do_g = .false.
+        end if
+    end if
+
+    ! Allocate the arrays for the required electrostatic properties
+    if (electrostatics % do_phi) then
+        allocate(electrostatics % phi_cav(constants % ncav), stat=info)
+        if (info .ne. 0) then
+            call update_error(error, &
+                & "Allocation failed in allocate_electrostatics")
+            return
+        end if
+    end if
+    if (electrostatics % do_e) then
+        allocate(electrostatics % e_cav(3, constants % ncav), stat=info)
+        if (info .ne. 0) then
+            call update_error(error, &
+                & "Allocation failed in allocate_electrostatics")
+            return
+        end if
+    end if
+    if (electrostatics % do_g) then
+        allocate(electrostatics % g_cav(3, 3, constants % ncav), stat=info)
+        if (info .ne. 0) then
+            call update_error(error, &
+                & "Allocation failed in allocate_electrostatics")
+            return
+        end if
+    end if
+end subroutine allocate_electrostatics
+
+!> Deallocate the electrostatic properties.
+!!
+!> @ingroup Fortran_interface_core
+!! @param[out] electrostatics, ddX electrostatic properties container
+!! @param[inout] error: ddX error
+!!
+subroutine deallocate_electrostatics(electrostatics, error)
+    implicit none
+    type(ddx_electrostatics_type), intent(inout) :: electrostatics
+    type(ddx_error_type), intent(inout) :: error
+
+    ! local variables
+    integer :: info
+
+    ! Allocate the arrays for the required electrostatic properties
+    if (allocated(electrostatics % phi_cav)) then
+        deallocate(electrostatics % phi_cav, stat=info)
+        if (info .ne. 0) then
+            call update_error(error, &
+                & "Deallocation failed in deallocate_electrostatics")
+        end if
+    end if
+    if (allocated(electrostatics % e_cav)) then
+        deallocate(electrostatics % e_cav, stat=info)
+        if (info .ne. 0) then
+            call update_error(error, &
+                & "Deallocation failed in deallocate_electrostatics")
+        end if
+    end if
+    if (allocated(electrostatics % g_cav)) then
+        deallocate(electrostatics % g_cav, stat=info)
+        if (info .ne. 0) then
+            call update_error(error, &
+                & "Deallocation failed in deallocate_electrostatics")
+        end if
+    end if
+end subroutine deallocate_electrostatics
 
 !> Initialize the ddx_state object
 !> @ingroup Fortran_interface_core

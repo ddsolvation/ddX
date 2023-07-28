@@ -12,7 +12,54 @@ contains
 !> @defgroup Fortran_interface_multipolar Fortran interface: multipolar terms
 !! Exposed multipolar modules in the Fortran API
 
+!> Given a multipolar distribution, compute the required electrostatic
+!! properties for the chosen model
+!!
 !> @ingroup Fortran_interface_multipolar
+!! @param[in] params: ddx parameters
+!! @param[in]  constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2, nsph)
+!! @param[in] mmax: maximum angular momentum of the multipoles
+!! @param[out] electrostatics, ddX electrostatic properties container
+!! @param[inout] error: ddX error
+!!
+subroutine multipole_electrostatics(params, constants, workspace, multipoles, &
+        & mmax, electrostatics, error)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    integer, intent(in) :: mmax
+    real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
+    type(ddx_electrostatics_type), intent(out) :: electrostatics
+    type(ddx_error_type), intent(inout) :: error
+
+    call allocate_electrostatics(params, constants, electrostatics, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, &
+            & "allocate_electrostatics returned an error, exiting")
+        return
+    end if
+
+    ! Compute the required electrostatic properties
+    if (electrostatics % do_phi .and. electrostatics % do_e &
+            & .and. electrostatics % do_g) then
+        call multipole_electrostatics_2(params, constants, workspace, &
+            & multipoles, 0, electrostatics % phi_cav, &
+            & electrostatics % e_cav, electrostatics % g_cav, error)
+    else if (electrostatics % do_phi .and. electrostatics % do_e) then
+        call multipole_electrostatics_1(params, constants, workspace, &
+            & multipoles, 0, electrostatics % phi_cav, &
+            & electrostatics % e_cav, error)
+    else
+        call multipole_electrostatics_0(params, constants, workspace, &
+            & multipoles, 0, electrostatics % phi_cav, error)
+    end if
+
+end subroutine multipole_electrostatics
+
 !> Given a multipolar distribution, compute the potential, its gradient and
 !> its hessian at the target points this is done with or without FMMs depending
 !> on the relevant flag
@@ -172,7 +219,6 @@ subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     end if
 end subroutine build_g_dense
 
-!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution, compute the potential and its gradient
 !> at the target points this is done with or without FMMs depending on the
 !> relevant flag
@@ -287,7 +333,6 @@ subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     end if
 end subroutine build_e_dense
 
-!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution, compute the potential at the target points
 !> this is done with or without FMMs depending on the relevant flag
 !> The multipoles must be centered on the ddx spheres.
@@ -986,7 +1031,6 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
 
 end subroutine grad_phi_for_charges
 
-!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution in real spherical harmonics and
 !> centered on the spheres, compute the contributions to the forces
 !> stemming from its electrostatic interactions.
@@ -1300,7 +1344,6 @@ subroutine grad_e_for_charges(params, constants, workspace, state, &
 
 end subroutine grad_e_for_charges
 
-!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution in real spherical harmonics and
 !> centered on the spheres, compute the contributions to the forces
 !> stemming from its electrostatic interactions in case of ddLPB F RHS.

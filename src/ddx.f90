@@ -73,4 +73,31 @@ subroutine ddsolve(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
     end select
 end subroutine ddsolve
 
+!> Setup the state for the different models
+!!
+!> @ingroup Fortran_interface
+!! @param[in] params: User specified parameters
+!! @param[in] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[in] phi_cav: Potential at cavity points, size (ncav)
+!! @param[in] psi: Representation of the solute potential in spherical
+!!     harmonics, size (nbasis, nsph)
+!! @param[in] tol: Tolerance for the linear system solver
+!! @param[out] esolv: Solvation energy
+!! @param[out] force: Solvation contribution to the forces
+!! @param[inout] error: ddX error
+subroutine setup(params, constants, workspace, state, electrostatics, &
+        & psi, error)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    type(ddx_electrostatics_type), intent(in) :: electrostatics
+    real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+    type(ddx_error_type), intent(inout) :: error
+
+end subroutine setup
+
 end module ddx

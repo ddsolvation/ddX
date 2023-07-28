@@ -23,11 +23,10 @@ character(len=2047) :: banner
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
 type(ddx_error_type) :: error
-real(dp), allocatable :: phi_cav(:), e_cav(:, :), &
-    & g_cav(:, :, :), psi(:, :), force(:, :), charges(:), &
+type(ddx_electrostatics_type) :: electrostatics
+real(dp), allocatable :: psi(:, :), force(:, :), charges(:), &
     & multipoles(:, :)
 real(dp) :: tol, esolv, start_time, finish_time
-logical :: do_phi, do_e, do_g
 integer :: i, isph, info
 100 format(X,A,ES11.4E2,A)
 200 format(X,A,I4,A,ES20.14)
@@ -95,63 +94,9 @@ if (info .ne. 0) then
 end if
 multipoles(1, :) = charges/sqrt4pi
 
-! Get the required electrostatic properties.
-if (ddx_data % params % model .eq. 3) then
-    if (ddx_data % params % force .eq. 1) then
-        do_phi = .true.
-        do_e = .true.
-        do_g = .true.
-    else
-        do_phi = .true.
-        do_e = .true.
-        do_g = .false.
-    end if
-else
-    if (ddx_data % params % force .eq. 1) then
-        do_phi = .true.
-        do_e = .true.
-        do_g = .false.
-    else
-        do_phi = .true.
-        do_e = .false.
-        do_g = .false.
-    end if
-end if
-
-! Allocate the arrays for the required electrostatic properties.
-if (do_phi) then
-    allocate(phi_cav(ddx_data % constants % ncav), stat=info)
-    if (info .ne. 0) then
-        write(6, *) "Allocation failed in ddx_driver"
-        stop 1
-    end if
-end if
-if (do_e) then
-    allocate(e_cav(3, ddx_data % constants % ncav), stat=info)
-    if (info .ne. 0) then
-        write(6, *) "Allocation failed in ddx_driver"
-        stop 1
-    end if
-end if
-if (do_g) then
-    allocate(g_cav(3, 3, ddx_data % constants % ncav), stat=info)
-    if (info .ne. 0) then
-        write(6, *) "Allocation failed in ddx_driver"
-        stop 1
-    end if
-end if
-
-! Compute the required electrostatic properties.
-if (do_phi .and. do_e .and. do_g) then
-    call multipole_electrostatics_2(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, multipoles, 0, phi_cav, e_cav, g_cav, error)
-else if (do_phi .and. do_e) then
-    call multipole_electrostatics_1(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, multipoles, 0, phi_cav, e_cav, error)
-else
-    call multipole_electrostatics_0(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, multipoles, 0, phi_cav, error)
-end if
+! compute the required electrostatics properties for a multipolar solute
+call multipole_electrostatics(ddx_data % params, ddx_data % constants, &
+    & ddx_data % workspace, multipoles, 0, electrostatics, error)
 
 finish_time = omp_get_wtime()
 write(*, 100) "Electrostatic properties time:", finish_time-start_time, &
@@ -172,21 +117,21 @@ write(*, 100) "Psi time:", finish_time-start_time, " seconds"
 ! STEP 4: solve the primal linear system.
 if (ddx_data % params % model .eq. 1) then
     call cosmo_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, psi, error)
+        & ddx_data % workspace, state, electrostatics % phi_cav, psi, error)
     call cosmo_guess(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, error)
     call cosmo_solve(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, tol, error)
 else if (ddx_data % params % model .eq. 2) then
     call pcm_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, psi, error)
+        & ddx_data % workspace, state, electrostatics % phi_cav, psi, error)
     call pcm_guess(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, error)
     call pcm_solve(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, tol, error)
 else if (ddx_data % params % model .eq. 3) then
     call lpb_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, e_cav, psi, error)
+        & ddx_data % workspace, state, electrostatics % phi_cav, electrostatics % e_cav, psi, error)
     call lpb_guess(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, tol, error)
     call lpb_solve(ddx_data % params, ddx_data % constants, &
@@ -239,13 +184,13 @@ if (ddx_data % params % force .eq. 1) then
 
     if (ddx_data % params % model .eq. 1) then
         call cosmo_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, e_cav, force, error)
+            & ddx_data % constants, ddx_data % workspace, state, electrostatics % e_cav, force, error)
     else if (ddx_data % params % model .eq. 2) then
         call pcm_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, e_cav, force, error)
+            & ddx_data % constants, ddx_data % workspace, state, electrostatics % e_cav, force, error)
     else if (ddx_data % params % model .eq. 3) then
         call lpb_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, g_cav, force, error)
+            & ddx_data % constants, ddx_data % workspace, state, electrostatics % g_cav, force, error)
     end if
 end if
 
@@ -372,24 +317,10 @@ end if
 
 ! Clean the workspace.
 
-deallocate(psi, phi_cav, multipoles, charges, stat=info)
+deallocate(psi, multipoles, charges, stat=info)
 if (info .ne. 0) then
     write(6, *) "Deallocation failed in ddx_driver"
     stop 1
-end if
-if (allocated(e_cav)) then
-    deallocate(e_cav, stat=info)
-    if (info .ne. 0) then
-        write(6, *) "Deallocation failed in ddx_driver"
-        stop 1
-    end if
-end if
-if (allocated(g_cav)) then
-    deallocate(g_cav, stat=info)
-    if (info .ne. 0) then
-        write(6, *) "Deallocation failed in ddx_driver"
-        stop 1
-    end if
 end if
 if (allocated(force)) then
     deallocate(force, stat=info)
@@ -399,6 +330,7 @@ if (allocated(force)) then
     end if
 end if
 
+call deallocate_electrostatics(electrostatics, error)
 call ddx_free_state(state, error)
 call ddfree(ddx_data, error)
 
