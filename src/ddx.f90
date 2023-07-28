@@ -1,14 +1,3 @@
-!> @copyright (c) 2020-2021 RWTH Aachen. All rights reserved.
-!!
-!! ddX software
-!!
-!! @file src/ddx.f90
-!! Main driver routine of the ddX with all the per-model solvers
-!!
-!! @version 1.0.0
-!! @author Aleksandr Mikhalev
-!! @date 2021-02-25
-
 !> High-level module of the ddX software
 module ddx
 ! Get ddcosmo-module
@@ -21,11 +10,340 @@ implicit none
 
 contains
 
+
+!> Read the configuration from ddX input file and return a ddx_data
+!! structure
+!!
+!> @ingroup Fortran_interface
+!! @param[in] fname: Filename containing all the required info
+!! @param[out] ddx_data: Object containing all inputs
+!! @param[out] tol: tolerance for iterative solvers
+!! @param[out] charges: charge array, size(nsph)
+!! @param[inout] error: ddX error
+!!
+subroutine ddfromfile(fname, ddx_data, tol, charges, error)
+    implicit none
+    character(len=*), intent(in) :: fname
+    type(ddx_type), intent(out) :: ddx_data
+    type(ddx_error_type), intent(inout) :: error
+    real(dp), intent(out) :: tol
+    real(dp), allocatable, intent(out) :: charges(:)
+    ! Local variables
+    integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
+        & nsph, i, matvecmem, maxiter, jacobi_ndiis, &
+        & istatus
+    real(dp) :: eps, se, eta, kappa
+    real(dp), allocatable :: csph(:, :), radii(:)
+    character(len=255) :: output_filename
+    !! Read all the parameters from the file
+    ! Open a configuration file
+    open(unit=100, file=fname, form='formatted', access='sequential')
+    ! Printing flag
+    read(100, *) output_filename
+    ! Number of OpenMP threads to be used
+    read(100, *) nproc
+    if(nproc .lt. 0) then
+        call update_error(error, "Error on the 2nd line of a config " // &
+            & "file " // trim(fname) // ": `nproc` must be a positive " // &
+            & "integer value.")
+    end if
+    ! Model to be used: 1 for COSMO, 2 for PCM and 3 for LPB
+    read(100, *) model
+    if((model .lt. 1) .or. (model .gt. 3)) then
+        call update_error(error, "Error on the 3rd line of a config file " // &
+            & trim(fname) // ": `model` must be an integer of a value " // &
+            & "1, 2 or 3.")
+    end if
+    ! Max degree of modeling spherical harmonics
+    read(100, *) lmax
+    if(lmax .lt. 0) then
+        call update_error(error, "Error on the 4th line of a config file " // &
+            & trim(fname) // ": `lmax` must be a non-negative integer value.")
+    end if
+    ! Approximate number of Lebedev points
+    read(100, *) ngrid
+    if(ngrid .lt. 0) then
+        call update_error(error, "Error on the 5th line of a config file " // &
+            & trim(fname) // ": `ngrid` must be a non-negative integer value.")
+    end if
+    ! Dielectric permittivity constant of the solvent
+    read(100, *) eps
+    if(eps .lt. zero) then
+        call update_error(error, "Error on the 6th line of a config file " // &
+            & trim(fname) // ": `eps` must be a non-negative floating " // &
+            & "point value.")
+    end if
+    ! Shift of the regularized characteristic function
+    read(100, *) se
+    if((se .lt. -one) .or. (se .gt. one)) then
+        call update_error(error, "Error on the 7th line of a config file " // &
+            & trim(fname) // ": `se` must be a floating point value in a " // &
+            & " range [-1, 1].")
+    end if
+    ! Regularization parameter
+    read(100, *) eta
+    if((eta .lt. zero) .or. (eta .gt. one)) then
+        call update_error(error, "Error on the 8th line of a config file " // &
+            & trim(fname) // ": `eta` must be a floating point value " // &
+            & "in a range [0, 1].")
+    end if
+    ! Debye H\"{u}ckel parameter
+    read(100, *) kappa
+    if(kappa .lt. zero) then
+        call update_error(error, "Error on the 9th line of a config file " // &
+            & trim(fname) // ": `kappa` must be a non-negative floating " // &
+            & "point value.")
+    end if
+    ! whether the (sparse) matrices are precomputed and kept in memory (1)
+    ! or not (0).
+    read(100, *) matvecmem 
+    if((matvecmem.lt. 0) .or. (matvecmem .gt. 1)) then
+        call update_error(error, "Error on the 10th line of a config " // &
+            & "file " // trim(fname) // ": `matvecmem` must be an " // &
+            & "integer value of a value 0 or 1.")
+    end if
+    ! Relative convergence threshold for the iterative solver
+    read(100, *) tol
+    if((tol .lt. 1d-14) .or. (tol .gt. one)) then
+        call update_error(error, "Error on the 12th line of a config " // &
+            & "file " // trim(fname) // ": `tol` must be a floating " // &
+            & "point value in a range [1d-14, 1].")
+    end if
+    ! Maximum number of iterations for the iterative solver
+    read(100, *) maxiter
+    if((maxiter .le. 0)) then
+        call update_error(error, "Error on the 13th line of a config " // &
+            & "file " // trim(fname) // ": `maxiter` must be a positive " // &
+            & " integer value.")
+    end if
+    ! Number of extrapolation points for Jacobi/DIIS solver
+    read(100, *) jacobi_ndiis
+    if((jacobi_ndiis .lt. 0)) then
+        call update_error(error, "Error on the 14th line of a config " // &
+            & "file " // trim(fname) // ": `jacobi_ndiis` must be a " // &
+            & "non-negative integer value.")
+    end if
+    ! Whether to compute (1) or not (0) forces as analytical gradients
+    read(100, *) force
+    if((force .lt. 0) .or. (force .gt. 1)) then
+        call update_error(error, "Error on the 17th line of a config " // &
+            & "file " // trim(fname) // ": `force` must be an integer " // &
+            "value of a value 0 or 1.")
+    end if
+    ! Whether to use (1) or not (0) the FMM to accelerate computations
+    read(100, *) fmm
+    if((fmm .lt. 0) .or. (fmm .gt. 1)) then
+        call update_error(error, "Error on the 18th line of a config " // &
+            & "file " // trim(fname) // ": `fmm` must be an integer " // &
+            & "value of a value 0 or 1.")
+    end if
+    ! Max degree of multipole spherical harmonics for the FMM
+    read(100, *) pm
+    if(pm .lt. 0) then
+        call update_error(error, "Error on the 19th line of a config " // &
+            & "file " // trim(fname) // ": `pm` must be a non-negative " // &
+            & "integer value.")
+    end if
+    ! Max degree of local spherical harmonics for the FMM
+    read(100, *) pl
+    if(pl .lt. 0) then
+        call update_error(error, "Error on the 20th line of a config " // &
+            & "file " // trim(fname) // ": `pl` must be a non-negative " // &
+            & "integer value.")
+    end if
+    ! Number of input spheres
+    read(100, *) nsph
+    if(nsph .le. 0) then
+        call update_error(error, "Error on the 21th line of a config " // &
+            & "file " // trim(fname) // ": `nsph` must be a positive " // &
+            & "integer value.")
+    end if
+
+    ! return in case of errors in the parameters
+    if (error % flag .ne. 0) return
+
+    ! Coordinates, radii and charges
+    allocate(charges(nsph), csph(3, nsph), radii(nsph), stat=istatus)
+    if(istatus .ne. 0) then
+        call update_error(error, "Could not allocate space for " // &
+            & "coordinates, radii and charges of atoms.")
+        return
+    end if
+    do i = 1, nsph
+        read(100, *) charges(i), csph(1, i), csph(2, i), csph(3, i), radii(i)
+    end do
+    ! Finish reading
+    close(100)
+    !! Convert Angstrom input into Bohr units
+    csph = csph * tobohr
+    radii = radii * tobohr
+    kappa = kappa / tobohr
+
+    ! adjust ngrid
+    call closest_supported_lebedev_grid(ngrid)
+
+    !! Initialize ddx_data object
+    call ddinit(model, nsph, csph, radii, eps, ddx_data, error, &
+        & force=force, kappa=kappa, eta=eta, shift=se, lmax=lmax, &
+        & ngrid=ngrid, incore=matvecmem, maxiter=maxiter, &
+        & jacobi_ndiis=jacobi_ndiis, enable_fmm=fmm, pm=pm, pl=pl, &
+        & nproc=nproc, logfile=output_filename)
+
+    if (error % flag .ne. 0) then
+        call update_error(error, "ddinit returned an error, exiting")
+        return
+    end if
+    !! Clean local temporary data
+    deallocate(radii, csph, stat=istatus)
+    if(istatus .ne. 0) then
+        call update_error(error, "Could not deallocate space for " // &
+            & "coordinates, radii and charges of atoms")
+        return
+    end if
+end subroutine ddfromfile
+
+!> Wrapper to the initialization routine which supports optional arguments.
+!! This will make future maintenance easier.
+!!
+!> @ingroup Fortran_interface
+!! @param[in] model: 1 for COSMO, 2 for PCM and 3 for LPB
+!! @param[in] nsph: number of spheres n > 0
+!! @param[in] coords: coordinates of the spheres, size (3, nsph)
+!! @param[in] radii: radii of the spheres, size (nsph)
+!! @param[in] eps: relative dielectric permittivity eps > 1
+!! @param[out] ddx_data: Container for ddX data structures
+!! @param[inout] error: ddX error
+!!
+!! @param[in,optional] force: 1 if forces are required and 0 otherwise
+!! @param[in,optional] kappa: Debye-H\"{u}ckel parameter
+!! @param[in,optional] eta: regularization parameter 0 < eta <= 1
+!! @param[in,optional] shift: shift of characteristic function -1 for interior,
+!!                     0 for centered and 1 for outer regularization
+!! @param[in,optional] lmax: Maximal degree of modeling spherical harmonics,
+!!                     `lmax` >= 0
+!! @param[in,optional] ngrid: Number of Lebedev grid points `ngrid` >= 0
+!! @param[in,optional] incore: handling of the sparse matrices, 1 for
+!!                     precomputing them and keeping them in memory,
+!!                     0 for assembling the matrix-vector products on-the-fly
+!! @param[in,optional] maxiter: Maximum number of iterations for the
+!!                     iterative solver,  maxiter > 0
+!! @param[in,optional] jacobi_ndiis: Number of extrapolation points for
+!!                     the  Jacobi/DIIS solver, ndiis >= 0
+!! @param[in,optional] enable_fmm: 1 to use FMM acceleration and 0 otherwise
+!! @param[in,optional] pm: Maximal degree of multipole spherical harmonics.
+!!                     Ignored in the case `fmm=0`. Value -1 means no
+!!                     far-field FMM interactions are computed, `pm` >= -1
+!! @param[in,optional] pl: Maximal degree of local spherical harmonics.
+!!                     Ignored in the case `fmm=0`. Value -1 means no
+!!                     far-field FMM interactions are computed, `pl` >= -1
+!! @param[in,optional] nproc: Number of OpenMP threads, nproc >= 0.
+!! @param[in,optional] logfile: file name for log information.
+!!
+subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, error, &
+        & force, kappa, eta, shift, lmax, ngrid, incore, maxiter, &
+        & jacobi_ndiis, enable_fmm, pm, pl, nproc, logfile, adjoint, eps_int)
+
+    ! mandatory arguments
+    integer, intent(in) :: model, nsph
+    real(dp), intent(in) :: coords(3, nsph), radii(nsph)
+    type(ddx_type), target, intent(out) :: ddx_data
+    type(ddx_error_type), intent(inout) :: error
+    real(dp), intent(in) :: eps
+
+    ! optional arguments
+    integer, intent(in), optional :: force, adjoint, lmax, ngrid, incore, &
+        & maxiter, jacobi_ndiis, enable_fmm, pm, pl, nproc
+    real(dp), intent(in), optional :: kappa, eta, shift, eps_int
+    character(len=255), intent(in), optional :: logfile
+
+    ! local copies of the optional arguments with dummy default values
+    integer :: local_force = 0
+    integer :: local_adjoint
+    integer :: local_lmax = 6
+    integer :: local_ngrid = 302
+    integer :: local_incore = 0
+    integer :: local_maxiter = 100
+    integer :: local_jacobi_ndiis = 20
+    integer :: local_enable_fmm = 1
+    integer :: local_pm = 8
+    integer :: local_pl = 8
+    integer :: local_nproc = 1
+    real(dp) :: local_kappa = 0.0d0
+    real(dp) :: local_eta = 0.1d0
+    real(dp) :: local_shift
+    real(dp) :: local_eps_int
+    character(len=255) :: local_logfile = ""
+
+    ! arrays for x, y, z coordinates
+    real(dp), allocatable :: x(:), y(:), z(:)
+    integer :: info
+
+    ! Update local variables with provided optional arguments
+    if (present(force)) local_force = force
+    if (present(lmax)) local_lmax = lmax
+    if (present(ngrid)) local_ngrid = ngrid
+    if (present(incore)) local_incore = incore
+    if (present(maxiter)) local_maxiter = maxiter
+    if (present(jacobi_ndiis)) local_jacobi_ndiis = jacobi_ndiis
+    if (present(enable_fmm)) local_enable_fmm = enable_fmm
+    if (present(pm)) local_pm = pm
+    if (present(pl)) local_pl = pl
+    if (present(nproc)) local_nproc = nproc
+    if (present(kappa)) local_kappa = kappa
+    if (present(eta)) local_eta = eta
+    if (present(logfile)) local_logfile = logfile
+
+    ! for the shift eta the default value depends on the model
+    ! ddCOSMO has an interal shift, ddPCM and ddLPB a symmetric shift
+    if (present(shift)) then
+        local_shift = shift
+    else
+        if (model.eq.1) then
+            local_shift = -one
+        else
+            local_shift = zero
+        end if
+    end if
+
+    ! this are not yet supported, but they will probably
+    if (present(adjoint)) then
+        call update_error(error, &
+            & "ddinit: adjoint argument is not yet supported")
+        return
+    end if
+    if (present(eps_int)) then
+        call update_error(error, &
+            & "ddinit: eps_int argument is not yet supported")
+        return
+    end if
+
+    allocate(x(nsph), y(nsph), z(nsph), stat=info)
+    if (info .ne. 0) then
+        call update_error(error, "ddinit: allocation failed")
+        return
+    end if
+    x = coords(1,:)
+    y = coords(2,:)
+    z = coords(3,:)
+
+    call allocate_model(nsph, x, y, z, radii, model, local_lmax, local_ngrid, &
+        & local_force, local_enable_fmm, local_pm, local_pl, local_shift, &
+        & local_eta, eps, local_kappa, local_incore, local_maxiter, &
+        & local_jacobi_ndiis, local_nproc, local_logfile, ddx_data, error)
+
+    deallocate(x, y, z, stat=info)
+    if (info.ne.0) then
+        call update_error(error, "ddinit: deallocation failed")
+        return
+    end if
+end subroutine ddinit
+
 !> Main solver routine
 !!
 !! Solves the solvation problem, computes the energy, and if required
 !! computes the forces.
 !!
+!> @ingroup Fortran_interface
 !! @param[in] ddx_data: ddX object with all input information
 !! @param[inout] state: ddx state (contains RHSs and solutions)
 !! @param[in] electrostatics: electrostatic property container

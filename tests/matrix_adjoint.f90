@@ -9,6 +9,7 @@
 !! @date 2022-03-29
 
 program main
+use ddx
 use ddx_core
 use ddx_operators
 use ddx_lpb

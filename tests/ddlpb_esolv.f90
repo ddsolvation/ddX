@@ -19,6 +19,7 @@ use ddx_operators
 use ddx_solvers
 use ddx_lpb
 use ddx_legacy
+use ddx
 implicit none
 
 character(len=255) :: fname

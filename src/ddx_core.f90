@@ -252,10 +252,6 @@ contains
 !! @param[in] ndiis: Number of extrapolation points for Jacobi/DIIS solver.
 !!      ndiis >= 0.
 !! @param[inout] nproc: Number of OpenMP threads to be used where applicable.
-!!      nproc >= 0. If input nproc=0 then on exit this value contains actual
-!!      number of threads that ddX will use. If OpenMP support in ddX is
-!!      disabled, only possible input values are 0 or 1 and both inputs lead
-!!      to the same output nproc=1 since the library is not parallel.
 !! @param[out] ddx_data: Object containing all inputs
 !------------------------------------------------------------------------------
 subroutine allocate_model(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
@@ -265,15 +261,13 @@ subroutine allocate_model(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, p
     implicit none
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
         & matvecmem, maxiter, jacobi_ndiis, &
-        & ngrid
+        & ngrid, nproc
     real(dp), intent(in):: x(nsph), y(nsph), z(nsph), &
         & rvdw(nsph), se, eta, eps, kappa
     character(len=255), intent(in) :: output_filename
     ! Output
     type(ddx_type), target, intent(out) :: ddx_data
     type(ddx_error_type), intent(inout) :: error
-    ! Inouts
-    integer, intent(inout) :: nproc
     ! Local variables
     real(dp), allocatable :: csph(:, :)
     integer :: istatus
@@ -315,6 +309,23 @@ subroutine allocate_model(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, p
         return
     end if
 end subroutine allocate_model
+
+!------------------------------------------------------------------------------
+!> Deallocate object with corresponding data
+!!
+!! @param[inout] ddx_data: object to deallocate
+!! @param[inout] error: ddX error
+!------------------------------------------------------------------------------
+subroutine deallocate_model(ddx_data, error)
+    implicit none
+    ! Input/output
+    type(ddx_type), intent(inout) :: ddx_data
+    type(ddx_error_type), intent(inout) :: error
+    ! Local variables
+    call workspace_free(ddx_data % workspace, error)
+    call constants_free(ddx_data % constants, error)
+    call params_free(ddx_data % params, error)
+end subroutine deallocate_model
 
 !> Given the chosen model, find the required electrostatic properties,
 !! and allocate the arrays for them in the container.
@@ -752,213 +763,6 @@ subroutine allocate_state(params, constants, state, error)
     end if
 end subroutine allocate_state
 
-!------------------------------------------------------------------------------
-!> Read configuration from a file
-!!
-!! @param[in] fname: Filename containing all the required info
-!! @param[out] ddx_data: Object containing all inputs
-!! @param[out] info: flag of succesfull exit
-!!      = 0: Succesfull exit
-!!      < 0: If info=-i then i-th argument had an illegal value
-!!      > 0: Allocation of a buffer for the output ddx_data failed
-!------------------------------------------------------------------------------
-subroutine ddfromfile(fname, ddx_data, tol, charges, error)
-    implicit none
-    character(len=*), intent(in) :: fname
-    type(ddx_type), intent(out) :: ddx_data
-    type(ddx_error_type), intent(inout) :: error
-    real(dp), intent(out) :: tol
-    real(dp), allocatable, intent(out) :: charges(:)
-    ! Local variables
-    integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
-        & nsph, i, matvecmem, maxiter, jacobi_ndiis, &
-        & istatus
-    real(dp) :: eps, se, eta, kappa
-    real(dp), allocatable :: x(:), y(:), z(:), rvdw(:)
-    character(len=255) :: output_filename
-    !! Read all the parameters from the file
-    ! Open a configuration file
-    open(unit=100, file=fname, form='formatted', access='sequential')
-    ! Printing flag
-    read(100, *) output_filename
-    ! Number of OpenMP threads to be used
-    read(100, *) nproc
-    if(nproc .lt. 0) then
-        call update_error(error, "Error on the 2nd line of a config " // &
-            & "file " // trim(fname) // ": `nproc` must be a positive " // &
-            & "integer value.")
-    end if
-    ! Model to be used: 1 for COSMO, 2 for PCM and 3 for LPB
-    read(100, *) model
-    if((model .lt. 1) .or. (model .gt. 3)) then
-        call update_error(error, "Error on the 3rd line of a config file " // &
-            & trim(fname) // ": `model` must be an integer of a value " // &
-            & "1, 2 or 3.")
-    end if
-    ! Max degree of modeling spherical harmonics
-    read(100, *) lmax
-    if(lmax .lt. 0) then
-        call update_error(error, "Error on the 4th line of a config file " // &
-            & trim(fname) // ": `lmax` must be a non-negative integer value.")
-    end if
-    ! Approximate number of Lebedev points
-    read(100, *) ngrid
-    if(ngrid .lt. 0) then
-        call update_error(error, "Error on the 5th line of a config file " // &
-            & trim(fname) // ": `ngrid` must be a non-negative integer value.")
-    end if
-    ! Dielectric permittivity constant of the solvent
-    read(100, *) eps
-    if(eps .lt. zero) then
-        call update_error(error, "Error on the 6th line of a config file " // &
-            & trim(fname) // ": `eps` must be a non-negative floating " // &
-            & "point value.")
-    end if
-    ! Shift of the regularized characteristic function
-    read(100, *) se
-    if((se .lt. -one) .or. (se .gt. one)) then
-        call update_error(error, "Error on the 7th line of a config file " // &
-            & trim(fname) // ": `se` must be a floating point value in a " // &
-            & " range [-1, 1].")
-    end if
-    ! Regularization parameter
-    read(100, *) eta
-    if((eta .lt. zero) .or. (eta .gt. one)) then
-        call update_error(error, "Error on the 8th line of a config file " // &
-            & trim(fname) // ": `eta` must be a floating point value " // &
-            & "in a range [0, 1].")
-    end if
-    ! Debye H\"{u}ckel parameter
-    read(100, *) kappa
-    if(kappa .lt. zero) then
-        call update_error(error, "Error on the 9th line of a config file " // &
-            & trim(fname) // ": `kappa` must be a non-negative floating " // &
-            & "point value.")
-    end if
-    ! whether the (sparse) matrices are precomputed and kept in memory (1)
-    ! or not (0).
-    read(100, *) matvecmem 
-    if((matvecmem.lt. 0) .or. (matvecmem .gt. 1)) then
-        call update_error(error, "Error on the 10th line of a config " // &
-            & "file " // trim(fname) // ": `matvecmem` must be an " // &
-            & "integer value of a value 0 or 1.")
-    end if
-    ! Relative convergence threshold for the iterative solver
-    read(100, *) tol
-    if((tol .lt. 1d-14) .or. (tol .gt. one)) then
-        call update_error(error, "Error on the 12th line of a config " // &
-            & "file " // trim(fname) // ": `tol` must be a floating " // &
-            & "point value in a range [1d-14, 1].")
-    end if
-    ! Maximum number of iterations for the iterative solver
-    read(100, *) maxiter
-    if((maxiter .le. 0)) then
-        call update_error(error, "Error on the 13th line of a config " // &
-            & "file " // trim(fname) // ": `maxiter` must be a positive " // &
-            & " integer value.")
-    end if
-    ! Number of extrapolation points for Jacobi/DIIS solver
-    read(100, *) jacobi_ndiis
-    if((jacobi_ndiis .lt. 0)) then
-        call update_error(error, "Error on the 14th line of a config " // &
-            & "file " // trim(fname) // ": `jacobi_ndiis` must be a " // &
-            & "non-negative integer value.")
-    end if
-    ! Whether to compute (1) or not (0) forces as analytical gradients
-    read(100, *) force
-    if((force .lt. 0) .or. (force .gt. 1)) then
-        call update_error(error, "Error on the 17th line of a config " // &
-            & "file " // trim(fname) // ": `force` must be an integer " // &
-            "value of a value 0 or 1.")
-    end if
-    ! Whether to use (1) or not (0) the FMM to accelerate computations
-    read(100, *) fmm
-    if((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        call update_error(error, "Error on the 18th line of a config " // &
-            & "file " // trim(fname) // ": `fmm` must be an integer " // &
-            & "value of a value 0 or 1.")
-    end if
-    ! Max degree of multipole spherical harmonics for the FMM
-    read(100, *) pm
-    if(pm .lt. 0) then
-        call update_error(error, "Error on the 19th line of a config " // &
-            & "file " // trim(fname) // ": `pm` must be a non-negative " // &
-            & "integer value.")
-    end if
-    ! Max degree of local spherical harmonics for the FMM
-    read(100, *) pl
-    if(pl .lt. 0) then
-        call update_error(error, "Error on the 20th line of a config " // &
-            & "file " // trim(fname) // ": `pl` must be a non-negative " // &
-            & "integer value.")
-    end if
-    ! Number of input spheres
-    read(100, *) nsph
-    if(nsph .le. 0) then
-        call update_error(error, "Error on the 21th line of a config " // &
-            & "file " // trim(fname) // ": `nsph` must be a positive " // &
-            & "integer value.")
-    end if
-
-    ! return in case of errors in the parameters
-    if (error % flag .ne. 0) return
-
-    ! Coordinates, radii and charges
-    allocate(charges(nsph), x(nsph), y(nsph), z(nsph), rvdw(nsph), &
-        & stat=istatus)
-    if(istatus .ne. 0) then
-        call update_error(error, "Could not allocate space for " // &
-            & "coordinates, radii and charges of atoms.")
-        return
-    end if
-    do i = 1, nsph
-        read(100, *) charges(i), x(i), y(i), z(i), rvdw(i)
-    end do
-    ! Finish reading
-    close(100)
-    !! Convert Angstrom input into Bohr units
-    x = x * tobohr
-    y = y * tobohr
-    z = z * tobohr
-    rvdw = rvdw * tobohr
-    kappa = kappa / tobohr
-
-    ! adjust ngrid
-    call closest_supported_lebedev_grid(ngrid)
-
-    !! Initialize ddx_data object
-    call allocate_model(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
-        & pm, pl, se, eta, eps, kappa, matvecmem, maxiter, &
-        & jacobi_ndiis, nproc, output_filename, ddx_data, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, "allocate_model returned an error, exiting")
-        return
-    end if
-    !! Clean local temporary data
-    deallocate(x, y, z, rvdw, stat=istatus)
-    if(istatus .ne. 0) then
-        call update_error(error, "Could not deallocate space for " // &
-            & "coordinates, radii and charges of atoms")
-        return
-    end if
-end subroutine ddfromfile
-
-!------------------------------------------------------------------------------
-!> Deallocate object with corresponding data
-!!
-!! @param[inout] ddx_data: object to deallocate
-!! @param[inout] error: ddX error
-!------------------------------------------------------------------------------
-subroutine deallocate_model(ddx_data, error)
-    implicit none
-    ! Input/output
-    type(ddx_type), intent(inout) :: ddx_data
-    type(ddx_error_type), intent(inout) :: error
-    ! Local variables
-    call workspace_free(ddx_data % workspace, error)
-    call constants_free(ddx_data % constants, error)
-    call params_free(ddx_data % params, error)
-end subroutine deallocate_model
 
 !> Deallocate the ddx_state object
 !> @ingroup Fortran_interface_core
