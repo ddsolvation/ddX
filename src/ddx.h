@@ -531,9 +531,9 @@ void ddx_multipole_psi(const void* ddx, int nbasis, int nsph, int nmultipoles,
  *  \param forces  Output force array (3, nsph) in column-major order
  *  \param error   DDX error
  */
-void ddx_multipole_forces(const void* ddx, void* state, int nsph,
-                          int nmultipoles, const double* multipoles,
-                          double* forces, void* error);
+void ddx_multipole_force_terms(const void* ddx, void* state, int nsph
+                               int nmultipoles, const double* multipoles,
+                               double* forces, void* error);
 
 ///@}
 ///@}

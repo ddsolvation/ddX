@@ -1472,7 +1472,7 @@ end subroutine grad_e
 !! @param[inout] forces: forces array, size (3, nsph)
 !! @param[inout] error: ddX error
 !!
-subroutine multipole_forces(params, constants, workspace, state, mmax, &
+subroutine multipole_force_terms(params, constants, workspace, state, mmax, &
         & multipoles, forces, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -1487,8 +1487,8 @@ subroutine multipole_forces(params, constants, workspace, state, mmax, &
     call grad_phi(params, constants, workspace, state, mmax, multipoles, &
         & forces, error)
     if (error % flag .ne. 0) then
-        call update_error(error, "multipole_forces: grad_phi returned an " // &
-            & "error, exiting")
+        call update_error(error, &
+            & "multipole_force_terms: grad_phi returned an error, exiting")
         return
     end if
 
@@ -1496,11 +1496,11 @@ subroutine multipole_forces(params, constants, workspace, state, mmax, &
         call grad_e(params, constants, workspace, state, mmax, multipoles, &
             & forces, error)
         if (error % flag .ne. 0) then
-            call update_error(error, "multipole_forces: grad_phi " // &
-                & "returned an error, exiting")
+            call update_error(error, &
+                & "multipole_force_terms: grad_e returned an error, exiting")
             return
         end if
     end if
-end subroutine multipole_forces
+end subroutine multipole_force_terms
 
 end module ddx_multipolar_solutes

@@ -201,17 +201,9 @@ if (ddx_data % params % force .eq. 1) write(*, 100) &
 ! forces.
 if (ddx_data % params % force .eq. 1) then
     start_time = omp_get_wtime()
-    call grad_phi_for_charges(ddx_data % params, &
-        & ddx_data % constants, ddx_data % workspace, state, &
-        & charges, force, error)
-    call check_error(error)
-    if (ddx_data % params % model .eq. 3) then
-        ! ddLPB has another term in the multipolar forces stemming
-        ! from the electric field in the RHS
-        call grad_e_for_charges(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, charges, force, error)
+    call multipole_force_terms(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, 0, multipoles, force, error)
         call check_error(error)
-    end if
     finish_time = omp_get_wtime()
     write(*, 100) "multipolar force terms time:", &
         & finish_time - start_time, " seconds"

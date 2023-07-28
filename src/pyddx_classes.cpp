@@ -493,9 +493,9 @@ class State {
     }
 
     array_f_t forces({3, model()->n_spheres()});
-    ddx_multipole_forces(model()->holder(), holder(), model()->n_spheres(),
-                         multipoles.shape(0), multipoles.data(),
-                         forces.mutable_data(), model()->error());
+    ddx_multipole_force_terms(model()->holder(), holder(), model()->n_spheres(),
+                              multipoles.shape(0), multipoles.data(),
+                              forces.mutable_data(), model()->error());
     throw_if_error();
     return forces;
   }

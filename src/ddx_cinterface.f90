@@ -906,7 +906,7 @@ subroutine ddx_multipole_psi(c_ddx, nbasis, nsph, nmultipoles, multipoles, psi, 
     call multipole_psi(ddx%params, multipoles, mmax, psi)
 end
 
-subroutine ddx_multipole_forces(c_ddx, c_state, nsph, nmultipoles, multipoles, &
+subroutine ddx_multipole_force_terms(c_ddx, c_state, nsph, nmultipoles, multipoles, &
         & forces, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
@@ -922,7 +922,7 @@ subroutine ddx_multipole_forces(c_ddx, c_state, nsph, nmultipoles, multipoles, &
     call c_f_pointer(c_state, state)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
     forces = zero
-    call multipole_forces(ddx%params, ddx%constants, ddx%workspace, state, mmax, &
+    call multipole_force_terms(ddx%params, ddx%constants, ddx%workspace, state, mmax, &
         & multipoles, forces, error)
 end
 
