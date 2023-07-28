@@ -48,10 +48,10 @@ esolv_two = zero
 ! Computation for different storage
 write(*,*) 'Different storage of matrix'
 default_value = 1
-call solve(ddx_data, state, default_value, esolv_one, charges)
+call test_solve(ddx_data, state, default_value, esolv_one, charges)
 write(*,*) 'Esolv : ', esolv_one
 default_value = 0
-call solve(ddx_data, state, default_value, esolv_two, charges)
+call test_solve(ddx_data, state, default_value, esolv_two, charges)
 write(*,*) 'Esolv : ', esolv_two
 
 if(abs(esolv_one - esolv_two) .gt. 1e-8) then
@@ -65,7 +65,7 @@ deallocate(charges)
 
 contains
 
-subroutine solve(ddx_data, state, matvecmem, esolv, charges)
+subroutine test_solve(ddx_data, state, matvecmem, esolv, charges)
     type(ddx_type), intent(inout) :: ddx_data
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(inout) :: esolv
@@ -112,7 +112,7 @@ subroutine solve(ddx_data, state, matvecmem, esolv, charges)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
     call deallocate_model(ddx_data2, error2)
     return
-end subroutine solve
+end subroutine test_solve
 
 end program main
 

@@ -181,13 +181,13 @@ do isph = 1, ddx_data % params % nsph
         ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) &
                                            & + step
         ! Call solve
-        call solve(ddx_data, sum_A_plus_h, sum_B_plus_h, sum_Ui_plus_h, &
+        call test_solve(ddx_data, sum_A_plus_h, sum_B_plus_h, sum_Ui_plus_h, &
                    & sum_C_plus_h)
         ! Set the center to x - h
         ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) &
                                            & - two*step
         ! Call solve
-        call solve(ddx_data, sum_A_minus_h, sum_B_minus_h, sum_Ui_minus_h, &
+        call test_solve(ddx_data, sum_A_minus_h, sum_B_minus_h, sum_Ui_minus_h, &
                    & sum_C_minus_h)
         ! Set the center to x
         ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) &
@@ -274,7 +274,7 @@ endif
 
 contains
 
-subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
+subroutine test_solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     type(ddx_type), intent(inout) :: ddx_data
     real(dp), intent(inout) :: sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2
     ! Local variables
@@ -396,6 +396,6 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
                & random_vector_nbasis_nsph_two, &
                & random_vector_C_one, &
                & vector_lpb, vector_c1_c2)
-end subroutine solve
+end subroutine test_solve
 
 end program main

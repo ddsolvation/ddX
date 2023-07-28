@@ -253,12 +253,12 @@ do isph = 1, ddx_data % nsph
         ! Set the centers to x + h
         ddx_data % csph(i, isph) = ddx_data % csph(i, isph) + step
         ! Call solve
-        call solve(ddx_data, sum_esolv_plus_h, sum_char_plus_h, &
+        call test_solve(ddx_data, sum_esolv_plus_h, sum_char_plus_h, &
                  & Xadj_r, Xadj_e)
         ! Set the center to x - h
         ddx_data % csph(i, isph) = ddx_data % csph(i, isph) - two*step
         ! Call solve
-        call solve(ddx_data, sum_esolv_minus_h, sum_char_minus_h, &
+        call test_solve(ddx_data, sum_esolv_minus_h, sum_char_minus_h, &
                  & Xadj_r, Xadj_e)
         ! Set the center to x
         ddx_data % csph(i, isph) = ddx_data % csph(i, isph) + step
@@ -335,7 +335,7 @@ do isph = 1, nsph
 end do
 end subroutine efld
 
-subroutine solve(ddx_data, sum_esolv, sum_char, Xadj_r, Xadj_e)
+subroutine test_solve(ddx_data, sum_esolv, sum_char, Xadj_r, Xadj_e)
     type(ddx_type), intent(inout) :: ddx_data
     real(dp), dimension(ddx_data % nbasis, ddx_data % nsph) :: Xadj_r, Xadj_e
     real(dp), intent(out) :: sum_esolv, sum_char
@@ -462,6 +462,6 @@ subroutine solve(ddx_data, sum_esolv, sum_char, Xadj_r, Xadj_e)
                & vector_r_c1_c2,&
                & vector_e_c1_c2, vector_g0, phi_grid2, psi2, gradphi_cav2, phi_cav2, &
                & vector_f0, tmp_grid2, hessian_cav2)
-end subroutine solve
+end subroutine test_solve
 
 end program main

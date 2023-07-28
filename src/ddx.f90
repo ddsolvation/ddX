@@ -80,24 +80,237 @@ end subroutine ddsolve
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
-!! @param[in] phi_cav: Potential at cavity points, size (ncav)
+!! @param[in] electrostatics: electrostatic property container
 !! @param[in] psi: Representation of the solute potential in spherical
 !!     harmonics, size (nbasis, nsph)
-!! @param[in] tol: Tolerance for the linear system solver
-!! @param[out] esolv: Solvation energy
-!! @param[out] force: Solvation contribution to the forces
 !! @param[inout] error: ddX error
+!!
 subroutine setup(params, constants, workspace, state, electrostatics, &
         & psi, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     type(ddx_electrostatics_type), intent(in) :: electrostatics
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: error
 
+    if (params % model .eq. 1) then
+        call cosmo_setup(params, constants, workspace, state, &
+            & electrostatics % phi_cav, psi, error)
+    else if (params % model .eq. 2) then
+        call pcm_setup(params, constants, workspace, state, &
+            & electrostatics % phi_cav, psi, error)
+    else if (params % model .eq. 3) then
+        call lpb_setup(params, constants, workspace, state, &
+            & electrostatics % phi_cav, electrostatics % e_cav, &
+            & psi, error)
+    else
+        call update_error(error, "Unknow model in setup.")
+        return
+    end if
+
 end subroutine setup
+
+!> Do a guess for the primal linear system for the different models
+!!
+!> @ingroup Fortran_interface
+!! @param[in] params: User specified parameters
+!! @param[inout] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[in] tol: tolerance
+!! @param[inout] error: ddX error
+!!
+subroutine fill_guess(params, constants, workspace, state, tol, error)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: tol
+    type(ddx_error_type), intent(inout) :: error
+
+    if (params % model .eq. 1) then
+        call cosmo_guess(params, constants, workspace, state, error)
+    else if (params % model .eq. 2) then
+        call pcm_guess(params, constants, workspace, state, error)
+    else if (params % model .eq. 3) then
+        call lpb_guess(params, constants, workspace, state, tol, error)
+    else
+        call update_error(error, "Unknow model in fill_guess.")
+        return
+    end if
+
+end subroutine fill_guess
+
+!> Do a guess for the adjoint linear system for the different models
+!!
+!> @ingroup Fortran_interface
+!! @param[in] params: User specified parameters
+!! @param[inout] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: ddx state (contains solutions and RHSs)
+!! @param[in] tol: tolerance
+!! @param[inout] error: ddX error
+!!
+subroutine fill_guess_adjoint(params, constants, workspace, state, tol, error)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: tol
+    type(ddx_error_type), intent(inout) :: error
+
+    if (params % model .eq. 1) then
+        call cosmo_guess_adjoint(params, constants, workspace, state, error)
+    else if (params % model .eq. 2) then
+        call pcm_guess_adjoint(params, constants, workspace, state, error)
+    else if (params % model .eq. 3) then
+        call lpb_guess_adjoint(params, constants, workspace, state, tol, error)
+    else
+        call update_error(error, "Unknow model in fill_guess_adjoint.")
+        return
+    end if
+
+end subroutine fill_guess_adjoint
+
+!> Solve the primal linear system for the different models
+!!
+!> @ingroup Fortran_interface
+!! @param[in] params       : General options
+!! @param[in] constants    : Precomputed constants
+!! @param[inout] workspace : Preallocated workspaces
+!! @param[inout] state     : Solutions, guesses and relevant quantities
+!! @param[in] tol          : Tolerance for the iterative solvers
+!! @param[inout] error: ddX error
+!!
+subroutine solve(params, constants, workspace, state, tol, error)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: tol
+    type(ddx_error_type), intent(inout) :: error
+
+    if (params % model .eq. 1) then
+        call cosmo_solve(params, constants, workspace, state, tol, error)
+    else if (params % model .eq. 2) then
+        call pcm_solve(params, constants, workspace, state, tol, error)
+    else if (params % model .eq. 3) then
+        call lpb_solve(params, constants, workspace, state, tol, error)
+    else
+        call update_error(error, "Unknow model in solve.")
+        return
+    end if
+
+end subroutine solve
+
+!> Solve the adjoint linear system for the different models
+!!
+!> @ingroup Fortran_interface
+!! @param[in] params       : General options
+!! @param[in] constants    : Precomputed constants
+!! @param[inout] workspace : Preallocated workspaces
+!! @param[inout] state     : Solutions, guesses and relevant quantities
+!! @param[in] tol          : Tolerance for the iterative solvers
+!! @param[inout] error: ddX error
+!!
+subroutine solve_adjoint(params, constants, workspace, state, tol, error)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(inout) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    real(dp), intent(in) :: tol
+    type(ddx_error_type), intent(inout) :: error
+
+    if (params % model .eq. 1) then
+        call cosmo_solve_adjoint(params, constants, workspace, state, tol, error)
+    else if (params % model .eq. 2) then
+        call pcm_solve_adjoint(params, constants, workspace, state, tol, error)
+    else if (params % model .eq. 3) then
+        call lpb_solve_adjoint(params, constants, workspace, state, tol, error)
+    else
+        call update_error(error, "Unknow model in solve_adjoint.")
+        return
+    end if
+
+end subroutine solve_adjoint
+
+!> Compute the energy for the different models
+!!
+!> @ingroup Fortran_interface
+!! @param[in] params: General options
+!! @param[in] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[in] state: ddx state (contains solutions and RHSs)
+!! @param[out] solvation_energy: resulting energy
+!! @param[inout] error: ddX error
+!!
+subroutine energy(params, constants, workspace, state, solvation_energy, error)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(in) :: workspace
+    type(ddx_state_type), intent(in) :: state
+    type(ddx_error_type), intent(inout) :: error
+    real(dp), intent(out) :: solvation_energy
+
+    if (params % model .eq. 1) then
+        call cosmo_energy(constants, state, solvation_energy, error)
+    else if (params % model .eq. 2) then
+        call pcm_energy(constants, state, solvation_energy, error)
+    else if (params % model .eq. 3) then
+        call lpb_energy(constants, state, solvation_energy, error)
+    else
+        call update_error(error, "Unknow model in energy.")
+        return
+    end if
+
+end subroutine energy
+
+!> Compute the solvation terms of the forces (solute aspecific) for the
+!! different models. This must be summed to the solute specific term to get
+!! the full forces
+!!
+!> @ingroup Fortran_interface
+!! @param[in] params: General options
+!! @param[in] constants: Precomputed constants
+!! @param[inout] workspace: Preallocated workspaces
+!! @param[inout] state: Solutions and relevant quantities
+!! @param[in] electrostatics: Electrostatic properties container.
+!! @param[out] force: Geometrical contribution to the forces
+!! @param[inout] error: ddX error
+!!
+subroutine solvation_force_terms(params, constants, workspace, &
+        & state, electrostatics, force, error)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_state_type), intent(inout) :: state
+    type(ddx_electrostatics_type), intent(in) :: electrostatics
+    real(dp), intent(out) :: force(3, params % nsph)
+    type(ddx_error_type), intent(inout) :: error
+
+    if (params % model .eq. 1) then
+        call cosmo_solvation_force_terms(params, constants, workspace, &
+            & state, electrostatics % e_cav, force, error)
+    else if (params % model .eq. 2) then
+        call pcm_solvation_force_terms(params, constants, workspace, &
+            & state, electrostatics % e_cav, force, error)
+    else if (params % model .eq. 3) then
+        call lpb_solvation_force_terms(params, constants, workspace, &
+            & state, electrostatics % g_cav, force, error)
+    else
+        call update_error(error, "Unknow model in solvation_force_terms.")
+        return
+    end if
+
+end subroutine solvation_force_terms
 
 end module ddx

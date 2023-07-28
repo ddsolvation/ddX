@@ -115,62 +115,30 @@ finish_time = omp_get_wtime()
 write(*, 100) "Psi time:", finish_time-start_time, " seconds"
 
 ! STEP 4: solve the primal linear system.
-if (ddx_data % params % model .eq. 1) then
-    call cosmo_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, electrostatics % phi_cav, psi, error)
-    call cosmo_guess(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, error)
-    call cosmo_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol, error)
-else if (ddx_data % params % model .eq. 2) then
-    call pcm_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, electrostatics % phi_cav, psi, error)
-    call pcm_guess(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, error)
-    call pcm_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol, error)
-else if (ddx_data % params % model .eq. 3) then
-    call lpb_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, electrostatics % phi_cav, electrostatics % e_cav, psi, error)
-    call lpb_guess(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol, error)
-    call lpb_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol, error)
-end if
+call setup(ddx_data % params, ddx_data % constants, &
+    & ddx_data % workspace, state, electrostatics, psi, error)
+call fill_guess(ddx_data % params, ddx_data % constants, &
+    & ddx_data % workspace, state, tol, error)
+call solve(ddx_data % params, ddx_data % constants, &
+    & ddx_data % workspace, state, tol, error)
 call check_error(error)
 
 ! STEP 5: compute the solvation energy
-if (ddx_data % params % model .eq. 1) then
-    call cosmo_energy(ddx_data % constants, state, esolv, error)
-else if (ddx_data % params % model .eq. 2) then
-    call pcm_energy(ddx_data % constants, state, esolv, error)
-else if (ddx_data % params % model .eq. 3) then
-    call lpb_energy(ddx_data % constants, state, esolv, error)
-end if
+call energy(ddx_data % params, ddx_data % constants, &
+    & ddx_data % workspace, state, esolv, error)
+call check_error(error)
 
 ! STEP 6: if required solve the adjoint linear system. The adjoint
 ! linear system is required whenever analytical derivatives are needed.
 ! In this case the only analytical derivative that we compute are the
 ! forces.
 if (ddx_data % params % force .eq. 1) then
-    if (ddx_data % params % model .eq. 1) then
-        call cosmo_guess_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, error)
-        call cosmo_solve_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol, error)
-    else if (ddx_data % params % model .eq. 2) then
-        call pcm_guess_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, error)
-        call pcm_solve_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol, error)
-    else if (ddx_data % params % model .eq. 3) then
-        call lpb_guess_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol, error)
-        call lpb_solve_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol, error)
-    end if
+    call fill_guess_adjoint(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, tol, error)
+    call solve_adjoint(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, tol, error)
+    call check_error(error)
 end if
-call check_error(error)
 
 ! STEP 7: if required compute the solute aspecific contributions to the
 ! forces.
@@ -182,16 +150,9 @@ if (ddx_data % params % force .eq. 1) then
     end if
     force = zero
 
-    if (ddx_data % params % model .eq. 1) then
-        call cosmo_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, electrostatics % e_cav, force, error)
-    else if (ddx_data % params % model .eq. 2) then
-        call pcm_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, electrostatics % e_cav, force, error)
-    else if (ddx_data % params % model .eq. 3) then
-        call lpb_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, electrostatics % g_cav, force, error)
-    end if
+    call solvation_force_terms(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, electrostatics, force, error)
+    call check_error(error)
 end if
 
 if (ddx_data % params % force .eq. 1) write(*, 100) &

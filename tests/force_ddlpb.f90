@@ -80,9 +80,9 @@ do isph = 1, ddx_data % params % nsph
     esolv_plus_h = zero
     esolv_minus_h = zero
     ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) + step
-    call solve(ddx_data, esolv_plus_h, tol, charges)
+    call test_solve(ddx_data, esolv_plus_h, tol, charges)
     ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) - step
-    !call solve(ddx_data, esolv_minus_h)
+    !call test_solve(ddx_data, esolv_minus_h)
     !write(*,*) 'esolv  :', esolv, 'esolv+h  : ', esolv_plus_h, ' , esolv : ', esolv_minus_h, ' , step :', step
     force_num(i, isph) = (esolv_plus_h - esolv) / step
     if(abs(force_num(i,isph)) .le. 1.d-8) force_num(i,isph) = zero
@@ -108,7 +108,7 @@ write(*, *) "Rel.error of forces:", relerr
 if (relerr .gt. 1.d-5) stop 1
 contains
 
-subroutine solve(ddx_data, esolv_in, tol, charges)
+subroutine test_solve(ddx_data, esolv_in, tol, charges)
     implicit none
     type(ddx_type), intent(inout) :: ddx_data
     real(dp), intent(inout) :: esolv_in
@@ -156,7 +156,7 @@ subroutine solve(ddx_data, esolv_in, tol, charges)
     call deallocate_state(state, error2)
     call deallocate_model(ddx_data2, error2)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
-end subroutine solve
+end subroutine test_solve
 
 end program main
 

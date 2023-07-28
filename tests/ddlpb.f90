@@ -277,12 +277,12 @@ do isph = 1, ddx_data % nsph
         ! Set the centers to x + h
         ddx_data % csph(i, isph) = ddx_data % csph(i, isph) + step
         ! Call solve
-        call solve(ddx_data, sum_cosmo_plus_h, sum_lpb_plus_h, sum_char_plus_h, &
+        call test_solve(ddx_data, sum_cosmo_plus_h, sum_lpb_plus_h, sum_char_plus_h, &
                    & sum_der_u_plus_h, sum_der_g0_plus_h, sum_der_f0_plus_h)
         ! Set the center to x - h
         ddx_data % csph(i, isph) = ddx_data % csph(i, isph) - two*step
         ! Call solve
-        call solve(ddx_data, sum_cosmo_minus_h, sum_lpb_minus_h, sum_char_minus_h, &
+        call test_solve(ddx_data, sum_cosmo_minus_h, sum_lpb_minus_h, sum_char_minus_h, &
                    & sum_der_u_minus_h, sum_der_g0_minus_h, sum_der_f0_minus_h)
         ! Set the center to x
         ddx_data % csph(i, isph) = ddx_data % csph(i, isph) + step
@@ -413,7 +413,7 @@ do isph = 1, nsph
 end do
 end subroutine efld
 
-subroutine solve(ddx_data, sum_cosmo, sum_lpb, sum_char, sum_der_u, sum_g0, sum_f0)
+subroutine test_solve(ddx_data, sum_cosmo, sum_lpb, sum_char, sum_der_u, sum_g0, sum_f0)
     type(ddx_type), intent(inout) :: ddx_data
     real(dp), intent(out) :: sum_cosmo, sum_lpb, sum_char, sum_der_u, sum_g0, sum_f0
     ! Local variables
@@ -529,6 +529,6 @@ subroutine solve(ddx_data, sum_cosmo, sum_lpb, sum_char, sum_der_u, sum_g0, sum_
     deallocate(unit_vector_n, vector_cosmo, vector_lpb, unit_vector_nbasis_nsph, vector_r_c1_c2,&
                & vector_e_c1_c2, vector_g0, phi_grid2, psi2, gradphi_cav2, phi_cav2, &
                & unit_vector_ncav, vector_f0, tmp_grid2, hessian_cav2)
-end subroutine solve
+end subroutine test_solve
 
 end program main

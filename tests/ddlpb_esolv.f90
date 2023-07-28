@@ -106,7 +106,7 @@ do i = 1, 4
   default_value = 0.2*(10**i)
   write(*,*) 'epsilon_solv : ', default_value
   esolv = zero
-  call solve(ddx_data, esolv, n_iter, default_value, &
+  call test_solve(ddx_data, esolv, n_iter, default_value, &
            & ddx_data % params % eta, ddx_data % params % kappa, &
            & ddx_data % params % lmax, tol, charges)
   call check_values(default_epsilon(i), esolv)
@@ -120,7 +120,7 @@ do i = 1, 4
   default_value = 0.00001*(10**i)
   write(*,*) 'eta : ', default_value
   esolv = zero
-  call solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
+  call test_solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
            & default_value, ddx_data % params % kappa, &
            & ddx_data % params % lmax, tol, charges)
   call check_values(default_eta(i), esolv)
@@ -133,7 +133,7 @@ do i = 1, 4
   default_value = 1.0/(2.0*i)
   write(*,*) 'kappa : ', default_value
   esolv = zero
-  call solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
+  call test_solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
            & ddx_data % params % eta, default_value, &
            & ddx_data % params % lmax, tol, charges)
   call check_values(default_kappa(i), esolv)
@@ -146,7 +146,7 @@ do i = 1, 4
   default_lmax_val = 2**i
   write(*,*) 'lmax : ', default_lmax_val
   esolv = zero
-  call solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
+  call test_solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
            & ddx_data % params % eta, &
            & ddx_data % params % kappa, default_lmax_val, tol, charges)
   call check_values(default_lmax(i), esolv)
@@ -164,7 +164,7 @@ call deallocate_model(ddx_data, error)
 
 contains
 
-subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol, charges)
+subroutine test_solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol, charges)
     implicit none
     type(ddx_type), intent(inout) :: ddx_data
     real(dp), intent(in) :: charges(ddx_data % params % nsph)
@@ -221,7 +221,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
 
     call deallocate_state(state, error2)
     call deallocate_model(ddx_data2, error2)
-end subroutine solve
+end subroutine test_solve
 
 ! This subroutine checks if the default and computed values are same
 subroutine check_values(default_value, computed_value)
