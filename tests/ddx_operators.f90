@@ -11,6 +11,7 @@
 
 program test_ddx_operators
 use ddx_operators
+use ddx_legacy
 implicit none
 
 integer :: i, ngrid=590, nproc=1

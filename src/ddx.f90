@@ -135,58 +135,6 @@ subroutine ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, &
 
 end subroutine ddsolve
 
-!> Main solver routine
-!!
-!! Solves the problem within COSMO model using a domain decomposition approach.
-!!
-!! @param[in] ddx_data: ddX object with all input information
-!! @param[in] phi_cav: Potential at cavity points
-!! @param[in] e_cav: Gradient of the eletric potential at cavity points
-!! @param[in] hessianphi_cav: Hessian of the eletric potential at cavity points
-!! @param[inout] state: ddx state (contains RHSs and solutions)
-!! @param[in] psi: RHS of the adjoint problem
-!! @param[in] tol
-!! @param[out] esolv: Solvation energy
-!! @param[out] force: Analytical forces
-!! @param[inout] error: ddX error
-!!
-subroutine ddsolve_legacy(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
-        & psi, tol, esolv, force, error)
-    ! Inputs
-    type(ddx_type), intent(inout) :: ddx_data
-    type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: phi_cav(ddx_data % constants % ncav), &
-        & e_cav(3, ddx_data % constants % ncav), &
-        & hessianphi_cav(3, ddx_data % constants % ncav), &
-        & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
-    ! Outputs
-    real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
-    type(ddx_error_type), intent(inout) :: error
-    ! Find proper model
-    select case(ddx_data % params % model)
-        ! COSMO model
-        case (1)
-            call ddcosmo(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, state, phi_cav, psi, e_cav, &
-                & tol, esolv, force, error)
-        ! PCM model
-        case (2)
-            call ddpcm(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, state, phi_cav, psi, e_cav, &
-                & tol, esolv, force, error)
-        ! LPB model
-        case (3)
-            call ddlpb(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, state, phi_cav, e_cav, &
-                & psi, tol, esolv, hessianphi_cav, force, error)
-        ! Error case
-        case default
-            call update_error(error, "unsupported solvation " // &
-                & " model in the dd solver.")
-            return
-    end select
-end subroutine ddsolve_legacy
-
 !> Setup the state for the different models
 !!
 !> @ingroup Fortran_interface

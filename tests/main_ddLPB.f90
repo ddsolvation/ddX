@@ -15,6 +15,7 @@ use ddx_core
 use ddx_operators
 use ddx_solvers
 use ddx_lpb
+use ddx_legacy
 implicit none
 
 character(len=255) :: fname
