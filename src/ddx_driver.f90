@@ -54,7 +54,7 @@ call check_error(error)
 ! model (ddx_data). Different states can be used at the same time with
 ! a given model, for instance when solving for different solutes,
 ! or for different states of the solute.
-call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call allocate_state(ddx_data % params, ddx_data % constants, state, error)
 call check_error(error)
 
 ! Print the ddX banner
@@ -331,7 +331,7 @@ if (allocated(force)) then
 end if
 
 call deallocate_electrostatics(electrostatics, error)
-call ddx_free_state(state, error)
+call deallocate_state(state, error)
 call ddfree(ddx_data, error)
 
 end program main

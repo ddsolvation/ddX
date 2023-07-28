@@ -36,7 +36,7 @@ read(tmpstr, *) threshold
 ! Init input from a file
 call ddfromfile(finname, ddx_data, tol, charges, error)
 call check_error(error)
-call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call allocate_state(ddx_data % params, ddx_data % constants, state, error)
 call check_error(error)
 
 ! Allocate resources
@@ -85,7 +85,7 @@ end if
 close(100)
 deallocate(phi_cav, gradphi_cav, psi, force, charges, stat=istatus)
 if(istatus .ne. 0) call test_error(-1, "Deallocation failed")
-call ddx_free_state(state, error)
+call deallocate_state(state, error)
 call ddfree(ddx_data, error)
 
 contains

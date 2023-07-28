@@ -407,7 +407,7 @@ function ddx_allocate_state(c_ddx, c_error) result(c_state) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     allocate(state)
-    call ddx_init_state(ddx%params, ddx%constants, state, error)
+    call allocate_state(ddx%params, ddx%constants, state, error)
     c_state = c_loc(state)
 end function
 
@@ -417,7 +417,7 @@ subroutine ddx_deallocate_state(c_state, c_error) bind(C)
     type(ddx_error_type), pointer :: error
     call c_f_pointer(c_state, state)
     call c_f_pointer(c_error, error)
-    call ddx_free_state(state, error)
+    call deallocate_state(state, error)
     deallocate(state)
 end subroutine
 

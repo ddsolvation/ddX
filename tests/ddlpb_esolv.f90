@@ -198,7 +198,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
     call check_error(error2)
 
     ! the state depends on lmax, so it is allocated here
-    call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state, error2)
+    call allocate_state(ddx_data2 % params, ddx_data2 % constants, state, error2)
     call check_error(error2)
 
     allocate(phi_cav2(ddx_data2 % constants % ncav), gradphi_cav2(3, ddx_data2 % constants % ncav), &
@@ -219,7 +219,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
     n_iter = state % x_lpb_niter
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
 
-    call ddx_free_state(state, error2)
+    call deallocate_state(state, error2)
     call ddfree(ddx_data2, error2)
 end subroutine solve
 

@@ -36,7 +36,7 @@ call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol, charges, error)
 call check_error(error)
-call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call allocate_state(ddx_data % params, ddx_data % constants, state, error)
 call check_error(error)
 
 ! Allocation for variable vectors
@@ -101,7 +101,7 @@ end do
 
 deallocate(phi_cav, gradphi_cav, hessianphi_cav, psi, force, force_num, charges)
 
-call ddx_free_state(state, error)
+call deallocate_state(state, error)
 call ddfree(ddx_data, error)
 
 write(*, *) "Rel.error of forces:", relerr
@@ -135,7 +135,7 @@ subroutine solve(ddx_data, esolv_in, tol, charges)
         & ddx_data % params % nproc, dummy_file_name, ddx_data2, error2)
     call check_error(error2)
 
-    call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state, error2)
+    call allocate_state(ddx_data2 % params, ddx_data2 % constants, state, error2)
     call check_error(error2)
 
     allocate(phi_cav2(ddx_data2 % constants % ncav), gradphi_cav2(3, ddx_data2 % constants % ncav), &
@@ -153,7 +153,7 @@ subroutine solve(ddx_data, esolv_in, tol, charges)
         & psi2, tol, esolv_in, force2, error2)
     call check_error(error2)
 
-    call ddx_free_state(state, error2)
+    call deallocate_state(state, error2)
     call ddfree(ddx_data2, error2)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
 end subroutine solve

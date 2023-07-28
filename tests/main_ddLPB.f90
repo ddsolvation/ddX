@@ -122,7 +122,7 @@ call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pmax, pmax
     & se, eta, eps, kappa, matvecmem, maxiter, &
     & jacobi_ndiis, nproc, ddx_data, info)
 
-call ddx_init_state(ddx_data % params, ddx_data % constants, state)
+call allocate_state(ddx_data % params, ddx_data % constants, state)
 
 allocate(phi(ddx_data % constants % ncav), psi(ddx_data % constants % nbasis,n), &
     & gradphi(3, ddx_data % constants % ncav), hessianphi(3, 3, ddx_data % constants % ncav))
@@ -154,7 +154,7 @@ if (iprint.ge.3) call prtsph('Solution to the ddLPB equation', &
 write (6,'(1x,a,f14.6)') 'ddLPB Electrostatic Solvation Energy (kcal/mol):', esolv*tokcal
 deallocate(phi, psi, gradphi)
 deallocate(x, y, z, rvdw, charge)
-call ddx_free_state(state)
+call deallocate_state(state)
 call ddfree(ddx_data)
 
 end program main

@@ -37,7 +37,7 @@ call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol, charges, error)
 call check_error(error)
-call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call allocate_state(ddx_data % params, ddx_data % constants, state, error)
 call check_error(error)
 
 ! Initial values
@@ -59,7 +59,7 @@ if(abs(esolv_one - esolv_two) .gt. 1e-8) then
   stop 1
 endif
 
-call ddx_free_state(state, error)
+call deallocate_state(state, error)
 call ddfree(ddx_data, error)
 deallocate(charges)
 
