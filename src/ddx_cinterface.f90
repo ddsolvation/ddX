@@ -808,8 +808,8 @@ subroutine ddx_multipole_electrostatics_0(c_ddx, nsph, ncav, nmultipoles, multip
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_ddx, ddx)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
-    call build_phi(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-            & phi_cav, error)
+    call multipole_electrostatics_0(ddx%params, ddx%constants, &
+        & ddx%workspace, multipoles, mmax, phi_cav, error)
 end
 
 subroutine ddx_multipole_electrostatics_1(c_ddx, nsph, ncav, nmultipoles, multipoles, &
@@ -825,8 +825,8 @@ subroutine ddx_multipole_electrostatics_1(c_ddx, nsph, ncav, nmultipoles, multip
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
-    call build_e(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-            & phi_cav, e_cav, error)
+    call multipole_electrostatics_1(ddx%params, ddx%constants, &
+        & ddx%workspace, multipoles, mmax, phi_cav, e_cav, error)
 end
 
 subroutine ddx_multipole_electrostatics_2(c_ddx, nsph, ncav, nmultipoles, multipoles, &
@@ -842,8 +842,8 @@ subroutine ddx_multipole_electrostatics_2(c_ddx, nsph, ncav, nmultipoles, multip
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
-    call build_g(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-            & phi_cav, e_cav, g_cav, error)
+    call multipole_electrostatics_2(ddx%params, ddx%constants, &
+        & ddx%workspace, multipoles, mmax, phi_cav, e_cav, g_cav, error)
 end
 
 subroutine ddx_multipole_psi(c_ddx, nbasis, nsph, nmultipoles, multipoles, psi, c_error) bind(C)
@@ -858,7 +858,7 @@ subroutine ddx_multipole_psi(c_ddx, nbasis, nsph, nmultipoles, multipoles, psi, 
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
-    call build_psi(ddx%params, multipoles, mmax, psi)
+    call multipole_psi(ddx%params, multipoles, mmax, psi)
 end
 
 subroutine ddx_multipole_forces(c_ddx, c_state, nsph, nmultipoles, multipoles, &

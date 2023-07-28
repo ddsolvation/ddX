@@ -30,7 +30,7 @@ contains
 !!     size (3, 3, ncav)
 !! @param[inout] error: ddX error
 !!
-subroutine build_g(params, constants, workspace, multipoles, &
+subroutine multipole_electrostatics_2(params, constants, workspace, multipoles, &
         & mmax, phi_cav, e_cav, g_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -51,7 +51,7 @@ subroutine build_g(params, constants, workspace, multipoles, &
         call build_g_fmm(params, constants, workspace, multipoles, &
             & mmax, phi_cav, e_cav, g_cav, error)
     end if
-end subroutine build_g
+end subroutine multipole_electrostatics_2
 
 !> Given a multipolar distribution, compute the potential, its gradient and
 !> its hessian at the target points using a N^2 code.
@@ -188,7 +188,7 @@ end subroutine build_g_dense
 !!     size (3, ncav)
 !! @param[inout] error: ddX error
 !!
-subroutine build_e(params, constants, workspace, multipoles, &
+subroutine multipole_electrostatics_1(params, constants, workspace, multipoles, &
         & mmax, phi_cav, e_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -206,7 +206,7 @@ subroutine build_e(params, constants, workspace, multipoles, &
         call build_e_fmm(params, constants, workspace, multipoles, &
             & mmax, phi_cav, e_cav, error)
     end if
-end subroutine build_e
+end subroutine multipole_electrostatics_1
 
 !> Given a multipolar distribution, compute the potential and its gradient
 !> at the target points using a N^2 code. 
@@ -300,7 +300,7 @@ end subroutine build_e_dense
 !! @param[out] phi_cav: electric potential at the target points, size (ncav)
 !! @param[inout] error: ddX error
 !!
-subroutine build_phi(params, constants, workspace, multipoles, &
+subroutine multipole_electrostatics_0(params, constants, workspace, multipoles, &
         & mmax, phi_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -317,7 +317,7 @@ subroutine build_phi(params, constants, workspace, multipoles, &
         call build_phi_fmm(params, constants, workspace, multipoles, mmax, &
             & phi_cav)
     end if
-end subroutine build_phi
+end subroutine multipole_electrostatics_0
 
 !> Given a multipolar distribution, compute the potential at the target points
 !> using a N^2 code.
@@ -790,7 +790,7 @@ end subroutine build_phi_fmm
 !! @param[out] psi: RHS for adjoint linear systems,
 !!     size ((lmax+1)**2,nsph), the internal lmax should be >= mmax
 !!
-subroutine build_psi(params, multipoles, mmax, psi)
+subroutine multipole_psi(params, multipoles, mmax, psi)
     implicit none
     type(ddx_params_type), intent(in) :: params
     integer, intent(in) :: mmax
@@ -809,7 +809,7 @@ subroutine build_psi(params, multipoles, mmax, psi)
             end do
         end do
     end do
-end subroutine build_psi
+end subroutine multipole_psi
 
 !> Given a multipolar distribution, load it into workspace % tmp_sph
 !> and workspace % tmp_node_m to be used by the FMM

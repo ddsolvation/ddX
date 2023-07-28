@@ -201,39 +201,44 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold, error)
         & g_fmm(3, 3, nofmm % constants % ncav), &
         & g_num(3, 3, nofmm % constants % ncav), &
         & stat=info)
-    if (info .ne. 0) call test_error("Allocation failed in test_multipolar_solutes")
+    if (info .ne. 0) &
+        & call test_error("Allocation failed in test_multipolar_solutes")
 
     ! Compare the potential with and without FMMs
 
-    call build_phi(nofmm % params, nofmm % constants, nofmm % workspace, &
-        & multipoles, mmax, phi_nofmm, error)
+    call multipole_electrostatics_0(nofmm % params, nofmm % constants, &
+        & nofmm % workspace, multipoles, mmax, phi_nofmm, error)
 
-    call build_phi(fmm % params, fmm % constants, fmm % workspace, &
-        & multipoles, mmax, phi_fmm, error)
+    call multipole_electrostatics_0(fmm % params, fmm % constants, &
+        & fmm % workspace, multipoles, mmax, phi_fmm, error)
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
-    if (diff .ge. threshold) call test_error("build_phi, phi: FMM and no FMM mismatch")
+    if (diff .ge. threshold) &
+        & call test_error("multipole_electrostatics_0, phi: FMM and no FMM mismatch")
 
     ! Compare the field with and without FMMs, furthermore, compare the
     ! potential with the previously obtained one
 
-    call build_e(nofmm % params, nofmm % constants, nofmm % workspace, &
-        & multipoles, mmax, phi_nofmm, e_nofmm, error)
+    call multipole_electrostatics_1(nofmm % params, nofmm % constants, &
+        & nofmm % workspace, multipoles, mmax, phi_nofmm, e_nofmm, error)
 
     ! Note, here phi_fmm contains the one from the previous step, so we
-    ! are actually comparing build_phi with build_e
+    ! are actually comparing multipole_electrostatics_0 with multipole_electrostatics_1
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
-    if (diff .ge. threshold) call test_error("build_e build_phi, phi: mismatch")
+    if (diff .ge. threshold) &
+        & call test_error("multipole_electrostatics_1 multipole_electrostatics_0, phi: mismatch")
 
-    call build_e(fmm % params, fmm % constants, fmm % workspace, &
+    call multipole_electrostatics_1(fmm % params, fmm % constants, fmm % workspace, &
         & multipoles, mmax, phi_fmm, e_fmm, error)
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
-    if (diff .ge. threshold) call test_error("build_e, phi: FMM and no FMM mismatch")
+    if (diff .ge. threshold) &
+        & call test_error("multipole_electrostatics_1, phi: FMM and no FMM mismatch")
 
     diff = norm_inf_2d(3, nofmm % constants % ncav, e_nofmm, e_fmm)
-    if (diff .ge. threshold) call test_error("build_e, e: FMM and no FMM mismatch")
+    if (diff .ge. threshold) &
+        & call test_error("multipole_electrostatics_1, e: FMM and no FMM mismatch")
 
     ! Compute the numerical field and check
 
@@ -248,29 +253,34 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold, error)
     ! Compare the field gradient with and without FMMs, furthermore, compare
     ! the field and the potential with the previously obtained ones
 
-    call build_g(nofmm % params, nofmm % constants, nofmm % workspace, &
-        & multipoles, mmax, phi_nofmm, e_nofmm, g_nofmm, error)
+    call multipole_electrostatics_2(nofmm % params, nofmm % constants, &
+        & nofmm % workspace, multipoles, mmax, phi_nofmm, e_nofmm, g_nofmm, error)
 
     ! Note, here phi_fmm and e_fmm contain the properties from the previous
-    ! step, so we are actually comparing build_g with build_e
+    ! step, so we are actually comparing multipole_electrostatics_2 with multipole_electrostatics_1
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
-    if (diff .ge. threshold) call test_error("build_g build_e, phi: mismatch")
+    if (diff .ge. threshold) &
+        & call test_error("multipole_electrostatics_2 multipole_electrostatics_1, phi: mismatch")
 
     diff = norm_inf_2d(3, nofmm % constants % ncav, e_nofmm, e_fmm)
-    if (diff .ge. threshold) call test_error("build_g build_e, e: mismatch")
+    if (diff .ge. threshold) &
+        & call test_error("multipole_electrostatics_2 multipole_electrostatics_1, e: mismatch")
 
-    call build_g(fmm % params, fmm % constants, fmm % workspace, &
+    call multipole_electrostatics_2(fmm % params, fmm % constants, fmm % workspace, &
         & multipoles, mmax, phi_fmm, e_fmm, g_fmm, error)
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
-    if (diff .ge. threshold) call test_error("build_g, phi: FMM and no FMM mismatch")
+    if (diff .ge. threshold) &
+        & call test_error("multipole_electrostatics_2, phi: FMM and no FMM mismatch")
 
     diff = norm_inf_2d(3, nofmm % constants % ncav, e_nofmm, e_fmm)
-    if (diff .ge. threshold) call test_error("build_g, e: FMM and no FMM mismatch")
+    if (diff .ge. threshold) &
+        & call test_error("multipole_electrostatics_2, e: FMM and no FMM mismatch")
 
     diff = norm_inf_3d(3, 3, nofmm % constants % ncav, g_nofmm, g_fmm)
-    if (diff .ge. threshold) call test_error("build_g, g: FMM and no FMM mismatch")
+    if (diff .ge. threshold) &
+        & call test_error("multipole_electrostatics_2, g: FMM and no FMM mismatch")
 
     ! Compute the numerical field gradient and check
 

@@ -143,13 +143,13 @@ end if
 
 ! Compute the required electrostatic properties.
 if (do_phi .and. do_e .and. do_g) then
-    call build_g(ddx_data % params, ddx_data % constants, &
+    call multipole_electrostatics_2(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, multipoles, 0, phi_cav, e_cav, g_cav, error)
 else if (do_phi .and. do_e) then
-    call build_e(ddx_data % params, ddx_data % constants, &
+    call multipole_electrostatics_1(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, multipoles, 0, phi_cav, e_cav, error)
 else
-    call build_phi(ddx_data % params, ddx_data % constants, &
+    call multipole_electrostatics_0(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, multipoles, 0, phi_cav, error)
 end if
 
@@ -165,7 +165,7 @@ if (info .ne. 0) then
     write(6, *) "Allocation failed in ddx_driver"
     stop 1
 end if
-call build_psi(ddx_data % params, multipoles, 0, psi)
+call multipole_psi(ddx_data % params, multipoles, 0, psi)
 finish_time = omp_get_wtime()
 write(*, 100) "Psi time:", finish_time-start_time, " seconds"
 
