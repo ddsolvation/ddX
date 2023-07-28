@@ -114,46 +114,18 @@ call multipole_psi(ddx_data % params, multipoles, 0, psi)
 finish_time = omp_get_wtime()
 write(*, 100) "Psi time:", finish_time-start_time, " seconds"
 
-! STEP 4: solve the primal linear system.
-call setup(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, electrostatics, psi, error)
-call fill_guess(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, tol, error)
-call solve(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, tol, error)
-call check_error(error)
-
-! STEP 5: compute the solvation energy
-call energy(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, esolv, error)
-call check_error(error)
-
-! STEP 6: if required solve the adjoint linear system. The adjoint
-! linear system is required whenever analytical derivatives are needed.
-! In this case the only analytical derivative that we compute are the
-! forces.
-if (ddx_data % params % force .eq. 1) then
-    call fill_guess_adjoint(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol, error)
-    call solve_adjoint(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol, error)
-    call check_error(error)
-end if
-
-! STEP 7: if required compute the solute aspecific contributions to the
-! forces.
 if (ddx_data % params % force .eq. 1) then
     allocate(force(3, ddx_data % params % nsph), stat=info)
     if (info .ne. 0) then
         write(6, *) "Allocation failed in ddx_driver"
         stop 1
     end if
-    force = zero
-
-    call solvation_force_terms(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, electrostatics, force, error)
-    call check_error(error)
+    call ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, error, &
+        & force)
+else
+    call ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, error)
 end if
+call check_error(error)
 
 if (ddx_data % params % force .eq. 1) write(*, 100) &
     & "solvation force terms time:", state % force_time, " seconds"

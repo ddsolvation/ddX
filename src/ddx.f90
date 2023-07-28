@@ -23,6 +23,120 @@ contains
 
 !> Main solver routine
 !!
+!! Solves the solvation problem, computes the energy, and if required
+!! computes the forces.
+!!
+!! @param[in] ddx_data: ddX object with all input information
+!! @param[inout] state: ddx state (contains RHSs and solutions)
+!! @param[in] electrostatics: electrostatic property container
+!! @param[in] psi: RHS of the adjoint problem
+!! @param[in] tol: tolerance for the linear system solvers
+!! @param[out] esolv: solvation energy
+!! @param[inout] error: ddX error
+!! @param[out] force: Analytical forces (optional argument, only if
+!!             required)
+!! @param[in] read_guess: optional argument, if true read the guess
+!!            from the state object
+!!
+subroutine ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, &
+        & error, force, read_guess)
+    type(ddx_type), intent(inout) :: ddx_data
+    type(ddx_state_type), intent(inout) :: state
+    type(ddx_electrostatics_type), intent(in) :: electrostatics
+    real(dp), intent(in) :: psi(ddx_data % constants % nbasis, &
+        & ddx_data % params % nsph)
+    real(dp), intent(in) :: tol
+    real(dp), intent(out) :: esolv
+    type(ddx_error_type), intent(inout) :: error
+    real(dp), intent(out), optional :: force(3, ddx_data % params % nsph)
+    logical, intent(in), optional :: read_guess
+    ! local variables
+    logical :: do_guess
+
+    ! decide if the guess has to be read or must be done
+    if (present(read_guess)) then
+        do_guess = .not.read_guess
+    else
+        do_guess = .true.
+    end if
+
+    ! if the forces are to be computed, but the array is not passed, raise
+    ! an error
+    if ((.not.present(force)) .and. (ddx_data % params % force .eq. 1)) then
+        call update_error(error, &
+            & "ddsolve: forces are to be computed, but the optional force" // &
+            & " array has not been passed.")
+        return
+    end if
+
+    call setup(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, electrostatics, psi, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "ddsolve: setup returned an error, exiting")
+        return
+    end if
+
+    ! solve the primal linear system
+    if (do_guess) then
+        call fill_guess(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, state, tol, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, &
+                & "ddsolve: fill_guess returned an error, exiting")
+            return
+        end if
+    end if
+    call solve(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, tol, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "ddsolve: solve returned an error, exiting")
+        return
+    end if
+
+    ! compute the energy
+    call energy(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, esolv, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "ddsolve: energy returned an error, exiting")
+        return
+    end if
+
+    ! solve the primal linear system
+    if (ddx_data % params % force .eq. 1) then
+        if (do_guess) then
+            call fill_guess_adjoint(ddx_data % params, ddx_data % constants, &
+                & ddx_data % workspace, state, tol, error)
+            if (error % flag .ne. 0) then
+                call update_error(error, &
+                    & "ddsolve: fill_guess_adjoint returned an error, exiting")
+                return
+            end if
+        end if
+        call solve_adjoint(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, state, tol, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, &
+                & "ddsolve: solve_adjoint returned an error, exiting")
+            return
+        end if
+    end if
+
+    ! compute the forces
+    if (ddx_data % params % force .eq. 1) then
+        force = zero
+        call solvation_force_terms(ddx_data % params, ddx_data % constants, &
+            & ddx_data % workspace, state, electrostatics, force, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, &
+                & "ddsolve: solvation_force_terms returned an error, exiting")
+            return
+        end if
+    end if
+
+end subroutine ddsolve
+
+!> Main solver routine
+!!
 !! Solves the problem within COSMO model using a domain decomposition approach.
 !!
 !! @param[in] ddx_data: ddX object with all input information
