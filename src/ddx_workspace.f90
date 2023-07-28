@@ -20,7 +20,6 @@ use ddx_constants
 
 implicit none
 
-!> @defgroup Fortran_interface_core Fortran interface: core routines
 
 !> Container for temporary arrays
 type ddx_workspace_type
@@ -105,7 +104,6 @@ end type ddx_workspace_type
 contains
 
 !> Initialize and allocate the temporary workspaces
-!> @ingroup Fortran_interface_core
 !!
 !! @param[in] params: User specified parameters
 !! @param[in] constants: Precomputed constants
@@ -280,7 +278,6 @@ subroutine workspace_init(params, constants, workspace, error)
 end subroutine workspace_init
 
 !> Deallocate the temporary workspaces
-!> @ingroup Fortran_interface_core
 !!
 !! @param[out] workspace: Preallocated workspaces
 !! @param[inout] error: ddX error

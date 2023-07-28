@@ -20,7 +20,6 @@ use ddx_errors
 use omp_lib
 implicit none
 
-!> @defgroup Fortran_interface_core Fortran interface: core routines
 
 !> Type to check and store user input parameters
 type ddx_params_type
@@ -81,7 +80,6 @@ end type ddx_params_type
 contains
 
 !> Initialize and check input parameters
-!> @ingroup Fortran_interface_core
 !!
 !! @param[in] model: Choose model: 1 for COSMO, 2 for PCM and 3 for LPB.
 !! @param[in] force: 1 if forces will probably be required and 0 otherwise.
@@ -339,7 +337,6 @@ subroutine closest_supported_lebedev_grid(ngrid)
 end subroutine
 
 !> Deallocate the parameter object
-!> @ingroup Fortran_interface_core
 !!
 !! @param[out] params: User specified parameters
 !! @param[inout] error: ddX error

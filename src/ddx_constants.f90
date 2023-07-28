@@ -23,7 +23,6 @@ use omp_lib, only : omp_get_wtime
 
 implicit none
 
-!> @defgroup Fortran_interface_core Fortran interface: core routines
 
 !> Container for precomputed constants
 type ddx_constants_type
@@ -229,7 +228,6 @@ end type ddx_constants_type
 contains
 
 !> Compute all necessary constants
-!> @ingroup Fortran_interface_core
 !!
 !! @param[in] params: Object containing all inputs.
 !! @param[out] constants: Object containing all constants.
@@ -1810,7 +1808,6 @@ subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
 end subroutine tree_get_farnear
 
 !> Deallocate the constants
-!> @ingroup Fortran_interface_core
 !!
 !! @param[out] constants: Precomputed constants
 !! @param[inout] error: ddX error

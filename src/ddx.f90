@@ -10,11 +10,12 @@ implicit none
 
 contains
 
+!> @defgroup Fortran_interface_core Fortran interface: core routines
 
 !> Read the configuration from ddX input file and return a ddx_data
 !! structure
 !!
-!> @ingroup Fortran_interface
+!> @ingroup Fortran_interface_core
 !! @param[in] fname: Filename containing all the required info
 !! @param[out] ddx_data: Object containing all inputs
 !! @param[out] tol: tolerance for iterative solvers
@@ -205,7 +206,7 @@ end subroutine ddfromfile
 !> Wrapper to the initialization routine which supports optional arguments.
 !! This will make future maintenance easier.
 !!
-!> @ingroup Fortran_interface
+!> @ingroup Fortran_interface_core
 !! @param[in] model: 1 for COSMO, 2 for PCM and 3 for LPB
 !! @param[in] nsph: number of spheres n > 0
 !! @param[in] coords: coordinates of the spheres, size (3, nsph)
@@ -343,7 +344,7 @@ end subroutine ddinit
 !! Solves the solvation problem, computes the energy, and if required
 !! computes the forces.
 !!
-!> @ingroup Fortran_interface
+!> @ingroup Fortran_interface_core
 !! @param[in] ddx_data: ddX object with all input information
 !! @param[inout] state: ddx state (contains RHSs and solutions)
 !! @param[in] electrostatics: electrostatic property container
@@ -455,7 +456,7 @@ end subroutine ddsolve
 
 !> Setup the state for the different models
 !!
-!> @ingroup Fortran_interface
+!> @ingroup Fortran_interface_core
 !! @param[in] params: User specified parameters
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
@@ -495,7 +496,7 @@ end subroutine setup
 
 !> Do a guess for the primal linear system for the different models
 !!
-!> @ingroup Fortran_interface
+!> @ingroup Fortran_interface_core
 !! @param[in] params: User specified parameters
 !! @param[inout] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
@@ -527,7 +528,7 @@ end subroutine fill_guess
 
 !> Do a guess for the adjoint linear system for the different models
 !!
-!> @ingroup Fortran_interface
+!> @ingroup Fortran_interface_core
 !! @param[in] params: User specified parameters
 !! @param[inout] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
@@ -559,7 +560,7 @@ end subroutine fill_guess_adjoint
 
 !> Solve the primal linear system for the different models
 !!
-!> @ingroup Fortran_interface
+!> @ingroup Fortran_interface_core
 !! @param[in] params       : General options
 !! @param[in] constants    : Precomputed constants
 !! @param[inout] workspace : Preallocated workspaces
@@ -591,7 +592,7 @@ end subroutine solve
 
 !> Solve the adjoint linear system for the different models
 !!
-!> @ingroup Fortran_interface
+!> @ingroup Fortran_interface_core
 !! @param[in] params       : General options
 !! @param[in] constants    : Precomputed constants
 !! @param[inout] workspace : Preallocated workspaces
@@ -623,7 +624,7 @@ end subroutine solve_adjoint
 
 !> Compute the energy for the different models
 !!
-!> @ingroup Fortran_interface
+!> @ingroup Fortran_interface_core
 !! @param[in] params: General options
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
@@ -657,7 +658,7 @@ end subroutine energy
 !! different models. This must be summed to the solute specific term to get
 !! the full forces
 !!
-!> @ingroup Fortran_interface
+!> @ingroup Fortran_interface_core
 !! @param[in] params: General options
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
