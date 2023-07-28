@@ -51,20 +51,20 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
     real(dp), intent(in), optional :: hessianphi_cav(3, 3, constants % ncav)
     type(ddx_error_type), intent(inout) :: error
 
-    call ddlpb_setup(params, constants, workspace, state, phi_cav, &
+    call lpb_setup(params, constants, workspace, state, phi_cav, &
         & e_cav, psi, error)
     if (error % flag .ne. 0) then
         call update_error(error, &
             & "ddlpb: ddlpb_setup returned an error, exiting")
         return
     end if
-    call ddlpb_guess(params, constants, workspace, state, tol, error)
+    call lpb_guess(params, constants, workspace, state, tol, error)
     if (error % flag .ne. 0) then
         call update_error(error, &
             & "ddlpb: ddlpb_guess returned an error, exiting")
         return
     end if
-    call ddlpb_solve(params, constants, workspace, state, tol, error)
+    call lpb_solve(params, constants, workspace, state, tol, error)
     if (error % flag .ne. 0) then
         call update_error(error, &
             & "ddlpb: ddlpb_solve returned an error, exiting")
@@ -72,23 +72,23 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
     end if
 
     ! Compute the solvation energy
-    call ddlpb_energy(constants, state, esolv, error)
+    call lpb_energy(constants, state, esolv, error)
 
     ! Get forces if needed
     if(params % force .eq. 1) then
-        call ddlpb_guess_adjoint(params, constants, workspace, state, tol, error)
+        call lpb_guess_adjoint(params, constants, workspace, state, tol, error)
         if (error % flag .ne. 0) then
             call update_error(error, &
                 & "ddlpb: ddlpb_guess_adjoint returned an error, exiting")
             return
         end if
-        call ddlpb_solve_adjoint(params, constants, workspace, state, tol, error)
+        call lpb_solve_adjoint(params, constants, workspace, state, tol, error)
         if (error % flag .ne. 0) then
             call update_error(error, &
                 & "ddlpb: ddlpb_solve_adjoint returned an error, exiting")
             return
         end if
-        call ddlpb_solvation_force_terms(params, constants, workspace, &
+        call lpb_solvation_force_terms(params, constants, workspace, &
             & state, hessianphi_cav, force, error)
     endif
 
@@ -107,7 +107,7 @@ end subroutine ddlpb
 !! @param[in] psi: representation of the solute density
 !! @param[inout] error: ddX error
 !!
-subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
+subroutine lpb_setup(params, constants, workspace, state, phi_cav, &
         & e_cav, psi, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -165,7 +165,7 @@ subroutine ddlpb_setup(params, constants, workspace, state, phi_cav, &
         & constants % vgrid_nbasis, state % f_lpb, state % rhs_lpb(:,:,2))
     state % rhs_lpb(:,:,1) = state % rhs_lpb(:,:,1) + state % rhs_lpb(:,:,2)
 
-end subroutine ddlpb_setup
+end subroutine lpb_setup
 
 !> Compute the ddLPB energy
 !!
@@ -175,7 +175,7 @@ end subroutine ddlpb_setup
 !! @param[out] esolv: resulting energy
 !! @param[inout] error: ddX error
 !!
-subroutine ddlpb_energy(constants, state, esolv, error)
+subroutine lpb_energy(constants, state, esolv, error)
     implicit none
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(in) :: state
@@ -183,7 +183,7 @@ subroutine ddlpb_energy(constants, state, esolv, error)
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
     esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, state % psi, 1)
-end subroutine ddlpb_energy
+end subroutine lpb_energy
 
 !> Do a guess for the primal ddLPB linear system
 !!
@@ -195,7 +195,7 @@ end subroutine ddlpb_energy
 !! @param[in] tol: tolerance
 !! @param[inout] error: ddX error
 !!
-subroutine ddlpb_guess(params, constants, workspace, state, tol, error)
+subroutine lpb_guess(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -213,7 +213,7 @@ subroutine ddlpb_guess(params, constants, workspace, state, tol, error)
     call prec_tx(params, constants, workspace, state % rhs_lpb, &
         & state % x_lpb, error)
 
-end subroutine ddlpb_guess
+end subroutine lpb_guess
 
 !> Do a guess for the adjoint ddLPB linear system
 !!
@@ -225,7 +225,7 @@ end subroutine ddlpb_guess
 !! @param[in] tol: tolerance
 !! @param[inout] error: ddX error
 !!
-subroutine ddlpb_guess_adjoint(params, constants, workspace, state, tol, &
+subroutine lpb_guess_adjoint(params, constants, workspace, state, tol, &
         & error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -244,7 +244,7 @@ subroutine ddlpb_guess_adjoint(params, constants, workspace, state, tol, &
     call prec_tstarx(params, constants, workspace, state % rhs_adj_lpb, &
         & state % x_adj_lpb, error)
 
-end subroutine ddlpb_guess_adjoint
+end subroutine lpb_guess_adjoint
 
 !> Solve the ddLPB primal linear system
 !!
@@ -256,7 +256,7 @@ end subroutine ddlpb_guess_adjoint
 !! @param[in] tol          : Tolerance for the iterative solvers
 !!
 !! @param[inout] error: ddX error
-subroutine ddlpb_solve(params, constants, workspace, state, tol, error)
+subroutine lpb_solve(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -292,7 +292,7 @@ subroutine ddlpb_solve(params, constants, workspace, state, tol, error)
     ! put the timings in the right places
     state % xs_time = workspace % xs_time
     state % hsp_time = workspace % hsp_time
-end subroutine ddlpb_solve
+end subroutine lpb_solve
 
 !> Solve the adjoint ddLPB linear system
 !!
@@ -304,7 +304,7 @@ end subroutine ddlpb_solve
 !! @param[in] tol          : Tolerance for the iterative solvers
 !! @param[inout] error: ddX error
 !!
-subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol, error)
+subroutine lpb_solve_adjoint(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -338,9 +338,9 @@ subroutine ddlpb_solve_adjoint(params, constants, workspace, state, tol, error)
     state % s_time = workspace % s_time
     state % hsp_adj_time = workspace % hsp_adj_time
 
-    call ddlpb_derivative_setup(params, constants, workspace, state, error)
+    call lpb_derivative_setup(params, constants, workspace, state, error)
 
-end subroutine ddlpb_solve_adjoint
+end subroutine lpb_solve_adjoint
 
 !> Compute the solvation terms of the forces (solute aspecific). This
 !! must be summed to the solute specific term to get the full forces.
@@ -354,7 +354,7 @@ end subroutine ddlpb_solve_adjoint
 !! @param[out] force         : Geometrical contribution to the forces
 !! @param[inout] error: ddX error
 !!
-subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
+subroutine lpb_solvation_force_terms(params, constants, workspace, &
         & state, hessianphi_cav, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -494,7 +494,7 @@ subroutine ddlpb_solvation_force_terms(params, constants, workspace, &
     finish_time = omp_get_wtime()
     state % force_time = finish_time - start_time
 
-end subroutine ddlpb_solvation_force_terms
+end subroutine lpb_solvation_force_terms
 
 !> This routines precomputes two intermediates for its later usage in
 !! the computation of analytical derivatives (forces or other).
@@ -505,7 +505,7 @@ end subroutine ddlpb_solvation_force_terms
 !! @param[inout] state: ddx state
 !! @param[inout] error: ddX error
 !!
-subroutine ddlpb_derivative_setup(params, constants, workspace, state, error)
+subroutine lpb_derivative_setup(params, constants, workspace, state, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -669,6 +669,6 @@ subroutine ddlpb_derivative_setup(params, constants, workspace, state, error)
         end if
     end if
 
-end subroutine ddlpb_derivative_setup
+end subroutine lpb_derivative_setup
 
 end module ddx_lpb

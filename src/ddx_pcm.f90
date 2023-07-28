@@ -51,37 +51,37 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     real(dp), intent(out), optional :: force(3, params % nsph)
 
-    call ddpcm_setup(params, constants, workspace, state, phi_cav, psi, error)
+    call pcm_setup(params, constants, workspace, state, phi_cav, psi, error)
     if (error % flag .ne. 0) then
         call update_error(error, &
             & "ddlpb: ddpcm_setup returned an error, exiting")
         return
     end if
-    call ddpcm_guess(params, constants, workspace, state, error)
+    call pcm_guess(params, constants, workspace, state, error)
     if (error % flag .ne. 0) then
         call update_error(error, &
             & "ddlpb: ddpcm_guess returned an error, exiting")
         return
     end if
-    call ddpcm_solve(params, constants, workspace, state, tol, error)
+    call pcm_solve(params, constants, workspace, state, tol, error)
     if (error % flag .ne. 0) then
         call update_error(error, &
             & "ddlpb: ddpcm_solve returned an error, exiting")
         return
     end if
 
-    call ddpcm_energy(constants, state, esolv, error)
+    call pcm_energy(constants, state, esolv, error)
 
     ! Get forces if needed
     if (params % force .eq. 1) then
         ! solve the adjoint
-        call ddpcm_guess_adjoint(params, constants, workspace, state, error)
+        call pcm_guess_adjoint(params, constants, workspace, state, error)
         if (error % flag .ne. 0) then
             call update_error(error, &
                 & "ddlpb: ddpcm_guess_adjoint returned an error, exiting")
             return
         end if
-        call ddpcm_solve_adjoint(params, constants, workspace, state, &
+        call pcm_solve_adjoint(params, constants, workspace, state, &
             & tol, error)
         if (error % flag .ne. 0) then
             call update_error(error, &
@@ -91,7 +91,7 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
 
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
-        call ddpcm_solvation_force_terms(params, constants, workspace, &
+        call pcm_solvation_force_terms(params, constants, workspace, &
             & state, e_cav, force, error)
     end if
 
@@ -105,7 +105,7 @@ end subroutine ddpcm
 !! @param[out] esolv: resulting energy
 !! @param[inout] error: ddX error
 !!
-subroutine ddpcm_energy(constants, state, esolv, error)
+subroutine pcm_energy(constants, state, esolv, error)
     implicit none
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(in) :: state
@@ -113,7 +113,7 @@ subroutine ddpcm_energy(constants, state, esolv, error)
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
     esolv = pt5*ddot(constants % n, state % xs, 1, state % psi, 1)
-end subroutine ddpcm_energy
+end subroutine pcm_energy
 
 !> Given the potential at the cavity points, assemble the RHS for ddCOSMO
 !> or for ddPCM.
@@ -127,7 +127,7 @@ end subroutine ddpcm_energy
 !! @param[in] psi: representation of the solute density
 !! @param[inout] error: ddX error
 !!
-subroutine ddpcm_setup(params, constants, workspace, state, phi_cav, psi, error)
+subroutine pcm_setup(params, constants, workspace, state, phi_cav, psi, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -141,7 +141,7 @@ subroutine ddpcm_setup(params, constants, workspace, state, phi_cav, psi, error)
     state % phi = - state % phi
     state % phi_cav = phi_cav
     state % psi = psi
-end subroutine ddpcm_setup
+end subroutine pcm_setup
 
 !> Do a guess for the primal ddPCM linear system
 !!
@@ -151,7 +151,7 @@ end subroutine ddpcm_setup
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !!
-subroutine ddpcm_guess(params, constants, workspace, state, error)
+subroutine pcm_guess(params, constants, workspace, state, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -163,7 +163,7 @@ subroutine ddpcm_guess(params, constants, workspace, state, error)
     call prec_repsx(params, constants, workspace, state % phi, &
         & state % phieps, error)
 
-end subroutine ddpcm_guess
+end subroutine pcm_guess
 
 !> Do a guess for the adjoint ddPCM linear system
 !!
@@ -173,7 +173,7 @@ end subroutine ddpcm_guess
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !!
-subroutine ddpcm_guess_adjoint(params, constants, workspace, state, error)
+subroutine pcm_guess_adjoint(params, constants, workspace, state, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -184,7 +184,7 @@ subroutine ddpcm_guess_adjoint(params, constants, workspace, state, error)
     state % y = zero
     call ldm1x(params, constants, workspace, state % psi, state % s, error)
 
-end subroutine ddpcm_guess_adjoint
+end subroutine pcm_guess_adjoint
 
 !> Solve the ddPCM primal linear system
 !!
@@ -196,7 +196,7 @@ end subroutine ddpcm_guess_adjoint
 !! @param[in] tol          : Tolerance for the iterative solvers
 !! @param[inout] error     : ddX error
 !!
-subroutine ddpcm_solve(params, constants, workspace, state, tol, error)
+subroutine pcm_solve(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -238,7 +238,7 @@ subroutine ddpcm_solve(params, constants, workspace, state, tol, error)
         return
     end if
 
-end subroutine ddpcm_solve
+end subroutine pcm_solve
 
 !> Solve the ddPCM adjpint linear system
 !!
@@ -250,7 +250,7 @@ end subroutine ddpcm_solve
 !! @param[in] tol          : Tolerance for the iterative solvers
 !! @param[inout] error: ddX error
 !!
-subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol, error)
+subroutine pcm_solve_adjoint(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -292,9 +292,9 @@ subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol, error)
     ! compute the real adjoint solution and store it in Q
     state % q = state % s - fourpi/(params % eps - one)*state % y
 
-    call ddpcm_derivative_setup(params, constants, workspace, state)
+    call pcm_derivative_setup(params, constants, workspace, state)
 
-end subroutine ddpcm_solve_adjoint
+end subroutine pcm_solve_adjoint
 
 !> Compute the solvation contribution to the ddPCM forces
 !!
@@ -307,7 +307,7 @@ end subroutine ddpcm_solve_adjoint
 !! @param[out] force       : Geometrical contribution to the forces
 !! @param[inout] error: ddX error
 !!
-subroutine ddpcm_solvation_force_terms(params, constants, workspace, &
+subroutine pcm_solvation_force_terms(params, constants, workspace, &
         & state, e_cav, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -341,7 +341,7 @@ subroutine ddpcm_solvation_force_terms(params, constants, workspace, &
     finish_time = omp_get_wtime()
     state % force_time = finish_time - start_time
 
-end subroutine ddpcm_solvation_force_terms
+end subroutine pcm_solvation_force_terms
 
 !> This routines precomputes the intermediates to be used in the evaluation
 !! of ddCOSMO analytical derivatives.
@@ -351,7 +351,7 @@ end subroutine ddpcm_solvation_force_terms
 !! @param[inout] workspace: ddx workspaces
 !! @param[inout] state: ddx state
 !!
-subroutine ddpcm_derivative_setup(params, constants, workspace, state)
+subroutine pcm_derivative_setup(params, constants, workspace, state)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -390,6 +390,6 @@ subroutine ddpcm_derivative_setup(params, constants, workspace, state)
         end do
     end do
 
-end subroutine ddpcm_derivative_setup
+end subroutine pcm_derivative_setup
 
 end module ddx_pcm

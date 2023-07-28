@@ -513,7 +513,7 @@ subroutine ddx_cosmo_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav, c_e
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, psi, error)
+    call cosmo_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, psi, error)
 end subroutine
 
 ! Put a guess for the problem into the state (optional)
@@ -526,7 +526,7 @@ subroutine ddx_cosmo_guess(c_ddx, c_state, c_error) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_guess(ddx%params, ddx%constants, ddx%workspace, state, error)
+    call cosmo_guess(ddx%params, ddx%constants, ddx%workspace, state, error)
 end
 
 ! Solve the problem
@@ -540,7 +540,7 @@ subroutine ddx_cosmo_solve(c_ddx, c_state, tol, c_error) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call cosmo_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end subroutine
 
 ! Put a guess for the adjoint problem into the state (optional)
@@ -553,7 +553,7 @@ subroutine ddx_cosmo_guess_adjoint(c_ddx, c_state, c_error) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, error)
+    call cosmo_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, error)
 end
 
 ! Solve the adjoint problem inside the state
@@ -567,7 +567,7 @@ subroutine ddx_cosmo_solve_adjoint(c_ddx, c_state, tol, c_error) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call cosmo_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end
 
 ! Compute the ddCOSMO energy
@@ -581,7 +581,7 @@ function ddx_cosmo_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_energy(ddx%constants, state, c_energy, error)
+    call cosmo_energy(ddx%constants, state, c_energy, error)
 end function
 
 ! Compute the forces
@@ -597,7 +597,7 @@ subroutine ddx_cosmo_solvation_force_terms(c_ddx, c_state, nsph, ncav, e_cav, fo
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, e_cav, forces, error)
+    call cosmo_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, e_cav, forces, error)
 end
 
 !
@@ -614,7 +614,7 @@ subroutine ddx_pcm_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav, c_err
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, psi, error)
+    call pcm_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, psi, error)
 end subroutine
 
 subroutine ddx_pcm_guess(c_ddx, c_state, c_error) bind(C)
@@ -626,7 +626,7 @@ subroutine ddx_pcm_guess(c_ddx, c_state, c_error) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_guess(ddx%params, ddx%constants, ddx%workspace, state, error)
+    call pcm_guess(ddx%params, ddx%constants, ddx%workspace, state, error)
 end
 
 subroutine ddx_pcm_solve(c_ddx, c_state, tol, c_error) bind(C)
@@ -639,7 +639,7 @@ subroutine ddx_pcm_solve(c_ddx, c_state, tol, c_error) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call pcm_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end subroutine
 
 subroutine ddx_pcm_guess_adjoint(c_ddx, c_state, c_error) bind(C)
@@ -651,7 +651,7 @@ subroutine ddx_pcm_guess_adjoint(c_ddx, c_state, c_error) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, error)
+    call pcm_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, error)
 end
 
 subroutine ddx_pcm_solve_adjoint(c_ddx, c_state, tol, c_error) bind(C)
@@ -664,7 +664,7 @@ subroutine ddx_pcm_solve_adjoint(c_ddx, c_state, tol, c_error) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call pcm_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end
 
 function ddx_pcm_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
@@ -677,7 +677,7 @@ function ddx_pcm_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_energy(ddx%constants, state, c_energy, error)
+    call pcm_energy(ddx%constants, state, c_energy, error)
 end function
 
 subroutine ddx_pcm_solvation_force_terms(c_ddx, c_state, nsph, ncav, e_cav, forces, c_error) bind(C)
@@ -692,7 +692,7 @@ subroutine ddx_pcm_solvation_force_terms(c_ddx, c_state, nsph, ncav, e_cav, forc
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, e_cav, forces, error)
+    call pcm_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, e_cav, forces, error)
 end
 
 !
@@ -709,7 +709,7 @@ subroutine ddx_lpb_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav, gradp
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, gradphi_cav, psi, error)
+    call lpb_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, gradphi_cav, psi, error)
 end subroutine
 
 subroutine ddx_lpb_guess(c_ddx, c_state, tol, c_error) bind(C)
@@ -722,7 +722,7 @@ subroutine ddx_lpb_guess(c_ddx, c_state, tol, c_error) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_guess(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call lpb_guess(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end
 
 subroutine ddx_lpb_solve(c_ddx, c_state, tol, c_error) bind(C)
@@ -735,7 +735,7 @@ subroutine ddx_lpb_solve(c_ddx, c_state, tol, c_error) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call lpb_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end subroutine
 
 subroutine ddx_lpb_guess_adjoint(c_ddx, c_state, tol, c_error) bind(C)
@@ -748,7 +748,7 @@ subroutine ddx_lpb_guess_adjoint(c_ddx, c_state, tol, c_error) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call lpb_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end
 
 subroutine ddx_lpb_solve_adjoint(c_ddx, c_state, tol, c_error) bind(C)
@@ -761,7 +761,7 @@ subroutine ddx_lpb_solve_adjoint(c_ddx, c_state, tol, c_error) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call lpb_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end
 
 function ddx_lpb_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
@@ -774,7 +774,7 @@ function ddx_lpb_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_energy(ddx%constants, state, c_energy, error)
+    call lpb_energy(ddx%constants, state, c_energy, error)
 end function
 
 subroutine ddx_lpb_solvation_force_terms(c_ddx, c_state, nsph, ncav, g_cav, forces, c_error) bind(C)
@@ -789,7 +789,7 @@ subroutine ddx_lpb_solvation_force_terms(c_ddx, c_state, nsph, ncav, g_cav, forc
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, g_cav, forces, error)
+    call lpb_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, g_cav, forces, error)
 end
 
 !
