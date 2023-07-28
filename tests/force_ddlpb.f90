@@ -102,7 +102,7 @@ end do
 deallocate(phi_cav, gradphi_cav, hessianphi_cav, psi, force, force_num, charges)
 
 call deallocate_state(state, error)
-call ddfree(ddx_data, error)
+call deallocate_model(ddx_data, error)
 
 write(*, *) "Rel.error of forces:", relerr
 if (relerr .gt. 1.d-5) stop 1
@@ -124,7 +124,7 @@ subroutine solve(ddx_data, esolv_in, tol, charges)
     real(dp), allocatable :: psi2(:,:)
     real(dp), allocatable :: force2(:,:)
 
-    call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
+    call allocate_model(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, 0, &
         & ddx_data % params % fmm, ddx_data % params % pm, ddx_data % params % pl, &
@@ -154,7 +154,7 @@ subroutine solve(ddx_data, esolv_in, tol, charges)
     call check_error(error2)
 
     call deallocate_state(state, error2)
-    call ddfree(ddx_data2, error2)
+    call deallocate_model(ddx_data2, error2)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
 end subroutine solve
 

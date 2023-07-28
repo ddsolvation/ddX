@@ -160,7 +160,7 @@ deallocate(default_epsilon, default_eta, &
 
 if (istatus.ne.0) write(6,*) 'Deallocation failed'
 
-call ddfree(ddx_data, error)
+call deallocate_model(ddx_data, error)
 
 contains
 
@@ -185,7 +185,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
     real(dp), allocatable :: psi2(:,:)
     real(dp), allocatable :: force2(:,:)
 
-    call ddinit(ddx_data % params % nsph, &
+    call allocate_model(ddx_data % params % nsph, &
         & ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, lmax, ddx_data % params % ngrid, 0, &
@@ -220,7 +220,7 @@ subroutine solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax, tol
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
 
     call deallocate_state(state, error2)
-    call ddfree(ddx_data2, error2)
+    call deallocate_model(ddx_data2, error2)
 end subroutine solve
 
 ! This subroutine checks if the default and computed values are same

@@ -39,7 +39,7 @@ call getarg(1, fname)
 write(6, *) "Using provided file ", trim(fname), " as a config file"
 
 ! STEP 1: Initialization of the model.
-! Read the input file and call "ddinit" to initialize the model.
+! Read the input file and call "allocate_model" to initialize the model.
 ! The model is a container for all the parameters, precomputed constants
 ! and preallocated workspaces.
 start_time = omp_get_wtime()
@@ -324,6 +324,6 @@ end if
 
 call deallocate_electrostatics(electrostatics, error)
 call deallocate_state(state, error)
-call ddfree(ddx_data, error)
+call deallocate_model(ddx_data, error)
 
 end program main

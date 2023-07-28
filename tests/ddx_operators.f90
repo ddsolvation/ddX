@@ -44,7 +44,7 @@ do i = 1, size(alpha)
     charge = abs(alpha(i)) * gcharge
     csph = alpha(i) * gcsph
     rsph = abs(alpha(i)) * grsph
-    call ddinit(nsph, csph(1, :), csph(2, :), csph(3, :), rsph, 2, &
+    call allocate_model(nsph, csph(1, :), csph(2, :), csph(3, :), rsph, 2, &
         lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
         & matvecmem, maxiter, jacobi_ndiis, &
         & nproc, dummy_file_name, ddx_data, error)
@@ -58,7 +58,7 @@ do i = 1, size(alpha)
     call check_dx(ddx_data, lmax+1, lmax+1, 1d-4)
     call check_gradr(ddx_data, 40, 40, 1d-12)
     call check_gradr(ddx_data, lmax+2, lmax+2, 1d-3)
-    call ddfree(ddx_data, error)
+    call deallocate_model(ddx_data, error)
 end do
 
 contains
@@ -87,7 +87,7 @@ subroutine check_mkrhs(ddx_data, pm, pl, threshold, charges)
     real(dp) :: fnorm, fdiff
     real(dp), external :: dnrm2
     ! Init FMM-related ddx_data
-    call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
+    call allocate_model(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), &
         & ddx_data % params % rsph, ddx_data % params % model, &
         & ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
@@ -155,7 +155,7 @@ subroutine check_dx(ddx_data, pm, pl, threshold)
         & xx(nrand, nrand), yy(nrand, nrand), full_norm, diff_norm
     real(dp), external :: dnrm2
     ! Init FMM-related ddx_data
-    call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
+    call allocate_model(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
@@ -225,7 +225,7 @@ subroutine check_dx(ddx_data, pm, pl, threshold)
         end if
     end do
     ! Free temporary objects
-    call ddfree(ddx_data_fmm, error)
+    call deallocate_model(ddx_data_fmm, error)
 end subroutine check_dx
 
 subroutine check_gradr(ddx_data, pm, pl, threshold)
@@ -243,7 +243,7 @@ subroutine check_gradr(ddx_data, pm, pl, threshold)
         & forces2(3, ddx_data % params % nsph)
     real(dp), external :: dnrm2
     ! Init FMM-related ddx_data
-    call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
+    call allocate_model(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, ddx_data % params % force, &
         & 1, pm, pl, ddx_data % params % se, ddx_data % params % eta, &
@@ -271,7 +271,7 @@ subroutine check_gradr(ddx_data, pm, pl, threshold)
         call test_error(-1, "Forces are different")
     end if
     deallocate(ygrid, g)
-    call ddfree(ddx_data_fmm, error)
+    call deallocate_model(ddx_data_fmm, error)
 end subroutine check_gradr
 
 end program test_ddx_operators

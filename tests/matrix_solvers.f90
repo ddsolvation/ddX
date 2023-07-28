@@ -60,7 +60,7 @@ if(abs(esolv_one - esolv_two) .gt. 1e-8) then
 endif
 
 call deallocate_state(state, error)
-call ddfree(ddx_data, error)
+call deallocate_model(ddx_data, error)
 deallocate(charges)
 
 contains
@@ -80,7 +80,7 @@ subroutine solve(ddx_data, state, matvecmem, esolv, charges)
     real(dp), allocatable :: psi2(:,:)
     real(dp), allocatable :: force2(:,:)
 
-    call ddinit(ddx_data % params % nsph, &
+    call allocate_model(ddx_data % params % nsph, &
         & ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, 0, &
@@ -110,7 +110,7 @@ subroutine solve(ddx_data, state, matvecmem, esolv, charges)
         & psi2, tol, esolv, force2, error2)
     call check_error(error2)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
-    call ddfree(ddx_data2, error2)
+    call deallocate_model(ddx_data2, error2)
     return
 end subroutine solve
 

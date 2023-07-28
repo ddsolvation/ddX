@@ -247,7 +247,7 @@ deallocate(derivative_num_A, derivative_num_B, derivative_num_Ui, &
            & random_vector_two_evaluated_at_grid, &
            & derivative_C1_C2, &
            & derivative_A, derivative_B, diff_re, derivative_num_C, charges)
-call ddfree(ddx_data, error)
+call deallocate_model(ddx_data, error)
 
 write(*, *) "Rel.error of A     :", relerr_A
 write(*, *) "Rel.error of B     :", relerr_B
@@ -302,7 +302,7 @@ subroutine solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     type(ddx_error_type) :: error
 
     ! Initialise new ddx_data with new centers coordinates
-    call ddinit(ddx_data % params % nsph, &
+    call allocate_model(ddx_data % params % nsph, &
         & ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), &
         & ddx_data % params % csph(3, :), &

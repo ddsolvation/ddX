@@ -294,7 +294,7 @@ deallocate(derivative_num_force, derivative_num_char, &
            & unit_vector_nbasis_nsph, unit_vector_evaluated_at_grid, &
            & force, diff_re, &
            & ef, phi_n, hessian_cav, normal_hessian_cav)
-call ddfree(ddx_data)
+call deallocate_model(ddx_data)
 
 write(*, *) "Rel.error of Force :", relerr_force
 write(*, *) "Rel.error of U_i^e :", relerr_char
@@ -363,7 +363,7 @@ subroutine solve(ddx_data, sum_esolv, sum_char, Xadj_r, Xadj_e)
     real(dp) :: v, vij(3), rijn
 
     ! Initialise new ddx_data with new centers coordinates
-    call ddinit(ddx_data % nsph, ddx_data % charge, ddx_data % csph(1, :), &
+    call allocate_model(ddx_data % nsph, ddx_data % charge, ddx_data % csph(1, :), &
         & ddx_data % csph(2, :), ddx_data % csph(3, :), ddx_data % rsph, &
         & ddx_data % model, ddx_data % lmax, ddx_data % ngrid, 0, &
         & ddx_data % fmm, ddx_data % pm, ddx_data % pl, &

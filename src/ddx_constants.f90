@@ -471,7 +471,7 @@ subroutine constants_init(params, constants, error)
                 & constants % SK_ri(:, isph), constants % DK_ri(:, isph), &
                 & bessel_work)
             ! Compute matrix PU_i^e(x_in)
-            ! Previous implementation in update_rhs. Made it in ddinit, so as to use
+            ! Previous implementation in update_rhs. Made it in allocate_model, so as to use
             ! it in Forces as well.
             call mkpmat(params, constants, isph, constants % Pchi(:, :, isph))
             ! Compute i'_l(r_i)/i_l(r_i)

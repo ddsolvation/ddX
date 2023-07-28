@@ -258,7 +258,7 @@ contains
 !!      to the same output nproc=1 since the library is not parallel.
 !! @param[out] ddx_data: Object containing all inputs
 !------------------------------------------------------------------------------
-subroutine ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
+subroutine allocate_model(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, maxiter, jacobi_ndiis, nproc, &
         & output_filename, ddx_data, error)
     ! Inputs
@@ -278,14 +278,14 @@ subroutine ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
     real(dp), allocatable :: csph(:, :)
     integer :: istatus
     if (error % flag .ne. 0) then
-        call update_error(error, "ddinit received input in error state, " // &
+        call update_error(error, "allocate_model received input in error state, " // &
             & "exiting")
         return
     end if
     ! Init underlying objects
     allocate(csph(3, nsph), stat=istatus)
     if (istatus .ne. 0) then
-        call update_error(error, "Allocation failed in ddinit")
+        call update_error(error, "Allocation failed in allocate_model")
         return
     end if
     csph(1, :) = x
@@ -311,10 +311,10 @@ subroutine ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
     end if
     deallocate(csph, stat=istatus)
     if (istatus .ne. 0) then
-        call update_error(error, "Deallocation failed in ddinit")
+        call update_error(error, "Deallocation failed in allocate_model")
         return
     end if
-end subroutine ddinit
+end subroutine allocate_model
 
 !> Given the chosen model, find the required electrostatic properties,
 !! and allocate the arrays for them in the container.
@@ -927,11 +927,11 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, error)
     call closest_supported_lebedev_grid(ngrid)
 
     !! Initialize ddx_data object
-    call ddinit(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
+    call allocate_model(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
         & pm, pl, se, eta, eps, kappa, matvecmem, maxiter, &
         & jacobi_ndiis, nproc, output_filename, ddx_data, error)
     if (error % flag .ne. 0) then
-        call update_error(error, "ddinit returned an error, exiting")
+        call update_error(error, "allocate_model returned an error, exiting")
         return
     end if
     !! Clean local temporary data
@@ -949,7 +949,7 @@ end subroutine ddfromfile
 !! @param[inout] ddx_data: object to deallocate
 !! @param[inout] error: ddX error
 !------------------------------------------------------------------------------
-subroutine ddfree(ddx_data, error)
+subroutine deallocate_model(ddx_data, error)
     implicit none
     ! Input/output
     type(ddx_type), intent(inout) :: ddx_data
@@ -958,7 +958,7 @@ subroutine ddfree(ddx_data, error)
     call workspace_free(ddx_data % workspace, error)
     call constants_free(ddx_data % constants, error)
     call params_free(ddx_data % params, error)
-end subroutine ddfree
+end subroutine deallocate_model
 
 !> Deallocate the ddx_state object
 !> @ingroup Fortran_interface_core

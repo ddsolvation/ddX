@@ -92,7 +92,7 @@ allocate(x(n), y(n), z(n), rvdw(n), charge(n))
 !
 ! We also read from the same file the charges, coordinates and vdw radii.
 ! In this example, the coordinates and radii are read in Angstrom and
-! converted in Bohr before calling ddinit.
+! converted in Bohr before calling allocate_model.
 !
 do i = 1, n
   read(100,*) charge(i), x(i), y(i), z(i), rvdw(i)
@@ -118,7 +118,7 @@ se=-one
 matvecmem=0
 tol=1d-1**iconv
 maxiter=200
-call ddinit(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pmax, pmax, &
+call allocate_model(n, charge, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pmax, pmax, &
     & se, eta, eps, kappa, matvecmem, maxiter, &
     & jacobi_ndiis, nproc, ddx_data, info)
 
@@ -155,7 +155,7 @@ write (6,'(1x,a,f14.6)') 'ddLPB Electrostatic Solvation Energy (kcal/mol):', eso
 deallocate(phi, psi, gradphi)
 deallocate(x, y, z, rvdw, charge)
 call deallocate_state(state)
-call ddfree(ddx_data)
+call deallocate_model(ddx_data)
 
 end program main
 

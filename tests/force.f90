@@ -74,7 +74,7 @@ end do
 
 deallocate(phi_cav, gradphi_cav, psi, force, force_num, charges)
 call deallocate_state(state, error)
-call ddfree(ddx_data, error)
+call deallocate_model(ddx_data, error)
 
 write(*, *) "Rel.error of forces:", relerr
 if (relerr .gt. 1d-5) stop 1
@@ -93,7 +93,7 @@ subroutine solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &
         & force(3, ddx_data % params % nsph)
     type(ddx_type) :: ddx_data2
     type(ddx_error_type) :: error2
-    call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
+    call allocate_model(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, 0, &
         & ddx_data % params % fmm, ddx_data % params % pm, ddx_data % params % pl, &
@@ -107,7 +107,7 @@ subroutine solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &
     call ddsolve(ddx_data2, state, phi_cav, -gradphi_cav, hessianphi_cav, psi, tol, esolv, &
         & force, error2)
     call check_error(error2)
-    call ddfree(ddx_data2, error2)
+    call deallocate_model(ddx_data2, error2)
 end subroutine solve
 
 end program main

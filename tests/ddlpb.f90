@@ -368,7 +368,7 @@ deallocate(derivative_num_cosmo, derivative_num_lpb, derivative_num_char, &
            & derivative_u_e, derivative_u_r, &
            & derivative_cosmo, derivative_lpb, diff_re, derivative_num_u, &
            & derivative_g0, derivative_f0, ef, phi_n, hessian_cav, normal_hessian_cav)
-call ddfree(ddx_data)
+call deallocate_model(ddx_data)
 
 write(*, *) "Rel.error of A     :", relerr_cosmo
 write(*, *) "Rel.error of B     :", relerr_lpb
@@ -441,7 +441,7 @@ subroutine solve(ddx_data, sum_cosmo, sum_lpb, sum_char, sum_der_u, sum_g0, sum_
     real(dp) :: v, vij(3), rijn
 
     ! Initialise new ddx_data with new centers coordinates
-    call ddinit(ddx_data % nsph, ddx_data % charge, ddx_data % csph(1, :), &
+    call allocate_model(ddx_data % nsph, ddx_data % charge, ddx_data % csph(1, :), &
         & ddx_data % csph(2, :), ddx_data % csph(3, :), ddx_data % rsph, &
         & ddx_data % model, ddx_data % lmax, ddx_data % ngrid, 0, &
         & ddx_data % fmm, ddx_data % pm, ddx_data % pl, &

@@ -86,7 +86,7 @@ close(100)
 deallocate(phi_cav, gradphi_cav, psi, force, charges, stat=istatus)
 if(istatus .ne. 0) call test_error(-1, "Deallocation failed")
 call deallocate_state(state, error)
-call ddfree(ddx_data, error)
+call deallocate_model(ddx_data, error)
 
 contains
 !> Print error message and exit with provided error code

@@ -106,12 +106,12 @@ z = coordinates(3, :)
 
 ! Initialize two ddX model instances, with and without FMMs
 
-call ddinit(natoms, x, y, z, radii, 1, 10, 302, 0, 0, 0, 0, 0.0d0, &
+call allocate_model(natoms, x, y, z, radii, 1, 10, 302, 0, 0, 0, 0, 0.0d0, &
     & 0.1d0, 80.0d0, 0.104d0*tobohr, 0, 200, 25, nproc, &
     & dummy_file_name, nofmm, error)
 call check_error(error)
 
-call ddinit(natoms, x, y, z, radii,  1, 10, 302, 0, 1, 20, 20, 0.0d0, &
+call allocate_model(natoms, x, y, z, radii,  1, 10, 302, 0, 1, 20, 20, 0.0d0, &
     & 0.1d0, 80.0d0, 0.104d0*tobohr, 0, 200, 25, nproc, &
     & dummy_file_name, fmm, error)
 call check_error(error)
@@ -172,9 +172,9 @@ if (info .ne. 0) call test_error("Deallocation failed in test_multipolar_solutes
 
 ! deallocate
 
-call ddfree(nofmm, error)
+call deallocate_model(nofmm, error)
 call check_error(error)
-call ddfree(fmm, error)
+call deallocate_model(fmm, error)
 call check_error(error)
 
 contains
