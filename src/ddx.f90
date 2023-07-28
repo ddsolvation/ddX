@@ -36,7 +36,7 @@ contains
 !! @param[out] force: Analytical forces
 !! @param[inout] error: ddX error
 !!
-subroutine ddsolve(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
+subroutine ddsolve_legacy(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
         & psi, tol, esolv, force, error)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
@@ -71,7 +71,7 @@ subroutine ddsolve(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
                 & " model in the dd solver.")
             return
     end select
-end subroutine ddsolve
+end subroutine ddsolve_legacy
 
 !> Setup the state for the different models
 !!

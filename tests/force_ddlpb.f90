@@ -149,7 +149,7 @@ subroutine test_solve(ddx_data, esolv_in, tol, charges)
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
         & 1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2, charges)
     gradphi_cav2 = - gradphi_cav2
-    call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
+    call ddsolve_legacy(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
         & psi2, tol, esolv_in, force2, error2)
     call check_error(error2)
 
