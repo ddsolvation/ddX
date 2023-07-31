@@ -43,6 +43,8 @@ subroutine mkrhs(params, constants, workspace, phi_flag, phi_cav, grad_flag, &
         & grid_hessian2(:,:,:)
     real(dp), external :: dnrm2
 
+    write(6, *) "Warning: subroutine mkrhs is deprecated"
+
     if (grad_flag .eq. 1) allocate(grid_grad(params % ngrid, 3, &
         & params % nsph))
     if (hessian_flag .eq. 1) allocate(grid_hessian(params % ngrid, &
@@ -292,6 +294,9 @@ subroutine ddsolve_legacy(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
     ! Outputs
     real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
     type(ddx_error_type), intent(inout) :: error
+
+    write(6, *) "Warning: subroutine ddsolve_legacy is deprecated"
+
     ! Find proper model
     select case(ddx_data % params % model)
         ! COSMO model
@@ -347,6 +352,8 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     real(dp), intent(out), optional :: force(3, params % nsph)
     type(ddx_error_type), intent(inout) :: error
+
+    write(6, *) "Warning: subroutine ddcosmo is deprecated"
 
     call cosmo_setup(params, constants, workspace, state, phi_cav, psi, error)
     if (error % flag .ne. 0) then
@@ -423,6 +430,8 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
     real(dp), intent(out) :: esolv
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     real(dp), intent(out), optional :: force(3, params % nsph)
+
+    write(6, *) "Warning: subroutine ddpcm is deprecated"
 
     call pcm_setup(params, constants, workspace, state, phi_cav, psi, error)
     if (error % flag .ne. 0) then
@@ -501,6 +510,8 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
     real(dp), intent(out), optional :: force(3, params % nsph)
     real(dp), intent(in), optional :: hessianphi_cav(3, 3, constants % ncav)
     type(ddx_error_type), intent(inout) :: error
+
+    write(6, *) "Warning: subroutine ddlpb is deprecated"
 
     call lpb_setup(params, constants, workspace, state, phi_cav, &
         & e_cav, psi, error)
