@@ -271,6 +271,64 @@ void ddx_get_xi(const void* state, const void* ddx, int ncav, double* xi);
 void ddx_get_zeta_dip(const void* state, const void* ddx, int ncav, double* zeta_dip);
 ///@}
 
+/** \name Model nonspecific setup and solution routines */
+///@{
+///
+/** Setup a problem in the passed state.
+ *  \param ddx            DDX model
+ *  \param state          DDX state
+ *  \param electrostatics DDX electrostatic properties container
+ *  \param nbasis         Number of basis functions used by DDX
+ *  \param nsph           Number of cavity spheres
+ *  \param psi            Psi array (nbasis, nsph)-shaped array (in column-major ordering)
+ *  \param phi_cav        Phi array adjoint (ncav, )-shaped array
+ */
+void ddx_setup(const void* ddx, void* state, const void* electrostatics,
+               int nbasis, int nsph, const double* psi, void* error);
+
+/** In-place adjust the guess inside the state.
+ *  Avoid calling this step if you want to use the currently stored solution as an
+ * initial guess */
+void ddx_fill_guess(const void* ddx, void* state, double tol, void* error);
+
+/** In-place adjust the adjoint guess inside the state.
+ *  problem. Avoid calling this step if you want to use the currently stored solution as
+ *  an initial guess */
+void ddx_fill_guess_adjoint(const void* ddx, void* state, const double* tol, void* error);
+
+/** Solve the forward problem.
+ *  \param state   DDX state
+ *  \param ddx     DDX model
+ *  \param tol     Tolerance up to which the problem is solved
+ *  \param error   DDX error */
+void ddx_solve(const void* ddx, void* state, double tol, void* error);
+
+/** Solve the adjoint COSMO problem.
+ *  \param state   DDX state
+ *  \param ddx     DDX model
+ *  \param tol     Tolerance up to which the problem is solved
+ *  \param error   DDX error */
+void ddx_solve_adjoint(const void* ddx, void* state, double tol, void* error);
+
+/** Compute the solvation energy.
+ *  \param state   DDX state
+ *  \param ddx     DDX model
+ *  \param error   DDX ERROR
+ */
+double ddx_energy(const void* ddx, void* state, void* error);
+
+/** Compute the solvation force terms.
+ *  \param ddx     DDX model
+ *  \param state   DDX state
+ *  \param electrostatics DDX electrostatic properties container
+ *  \param nsph    Number of cavity spheres
+ *  \param forces  Output force array (3, nsph) in column-major order
+ *  \param error   DDX error
+ */
+void ddx_solvation_force_terms(const void* ddx, void* state, void* electrostatics,
+                               int nsph, double* forces, void* error);
+///@}
+
 /** \name Problem setup and solution routines */
 ///@{
 
