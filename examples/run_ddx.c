@@ -78,6 +78,7 @@ int main() {
   printf("nbasis = %4d\n", nbasis);
   printf("ncav   = %4d\n", ncav);
 
+  double* forces = (double*)malloc(sizeof(double) * 3 * nsph);
 
   // convert the charges to multipoles
   int nmultipoles = 1;
@@ -99,16 +100,32 @@ int main() {
     return 1;
   }
 
-  //
-  // Solve the PCM problem
-  //
+  // Initialize the state
   void* state = ddx_allocate_state(model, error);
   if (ddx_get_error_flag(error) != 0) {
     print_error(state);
     return 1;
   }
 
+  //
+  // Solve the PCM problem all at once ...
+  //
+  int read_guess = 0;
   double tol = 1e-9;
+  int ret     = 0;
+  double eref = -0.00017974013712832552;
+
+  double energy = ddx_ddsolve(model, state, electrostatics, nbasis, nsph, psi,
+                       tol, forces, read_guess, error);
+
+  if (fabs(eref - energy) > 1e-6) {
+    printf("Large deviation:   %15.9g\n", eref - energy);
+    ret = 1;
+  }
+
+  //
+  // ... or solve the PCM problem step by step
+  //
   ddx_setup(model, state, electrostatics, nbasis, nsph, psi, error);
   ddx_fill_guess(model, state, tol, error);
   ddx_solve(model, state, tol, error);
@@ -129,16 +146,15 @@ int main() {
   //
   // Compute energy and forces
   //
-  double energy = ddx_pcm_energy(model, state, error);
+  energy = ddx_energy(model, state, error);
 
-  double* forces = (double*)malloc(sizeof(double) * 3 * nsph);
   ddx_solvation_force_terms(model, state, electrostatics, nsph, forces, error);
   if (ddx_get_error_flag(error) != 0) {
     print_error(error);
     return 1;
   }
 
-  ddx_multipole_force_terms(model, state, nsph, 0, nmultipoles, solute_multipoles,
+  ddx_multipole_force_terms(model, state, nsph, nmultipoles, solute_multipoles,
                             forces, error);
   if (ddx_get_error_flag(error) != 0) {
     print_error(error);
@@ -148,8 +164,6 @@ int main() {
   //
   // Check results
   //
-  int ret     = 0;
-  double eref = -0.00017974013712832552;
   if (fabs(eref - energy) > 1e-6) {
     printf("Large deviation:   %15.9g\n", eref - energy);
     ret = 1;

@@ -273,7 +273,24 @@ void ddx_get_zeta_dip(const void* state, const void* ddx, int ncav, double* zeta
 
 /** \name Model nonspecific setup and solution routines */
 ///@{
-///
+
+/** Solve everything and return the energy.
+ *  \param ddx            DDX model
+ *  \param state          DDX state
+ *  \param electrostatics DDX electrostatic properties container
+ *  \param nbasis         Number of basis functions used by DDX
+ *  \param nsph           Number of cavity spheres
+ *  \param psi            Psi array (nbasis, nsph)-shaped array (in column-major ordering)
+ *  \param tol            Tolerance for the linear system solver
+ *  \param forces         Force array
+ *  \param read_guess     Flag for guess, if different from zero the guess is read from the state
+ *  \param error   DDX error
+ */
+double ddx_ddsolve(const void* ddx, void* state, const void* electrostatics,
+                   int nbasis, int nsph, const double* psi, double tol,
+                   double* forces, const int read_guess, void* error);
+
+/** In-place adjust the guess inside the state.
 /** Setup a problem in the passed state.
  *  \param ddx            DDX model
  *  \param state          DDX state
@@ -281,7 +298,7 @@ void ddx_get_zeta_dip(const void* state, const void* ddx, int ncav, double* zeta
  *  \param nbasis         Number of basis functions used by DDX
  *  \param nsph           Number of cavity spheres
  *  \param psi            Psi array (nbasis, nsph)-shaped array (in column-major ordering)
- *  \param phi_cav        Phi array adjoint (ncav, )-shaped array
+ *  \param error   DDX error
  */
 void ddx_setup(const void* ddx, void* state, const void* electrostatics,
                int nbasis, int nsph, const double* psi, void* error);
@@ -589,7 +606,7 @@ void ddx_multipole_psi(const void* ddx, int nbasis, int nsph, int nmultipoles,
  *  \param forces  Output force array (3, nsph) in column-major order
  *  \param error   DDX error
  */
-void ddx_multipole_force_terms(const void* ddx, void* state, int nsph
+void ddx_multipole_force_terms(const void* ddx, void* state, int nsph,
                                int nmultipoles, const double* multipoles,
                                double* forces, void* error);
 

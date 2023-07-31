@@ -536,15 +536,15 @@ end subroutine
 !
 ! High level APIs (model nonspecific)
 !
-subroutine ddx_ddsolve(c_ddx, c_state, c_electrostatics, nbasis, nsph, &
-        & psi, tol, esolv, force, read_guess, c_error) bind(C)
+function ddx_ddsolve(c_ddx, c_state, c_electrostatics, nbasis, nsph, &
+        & psi, tol, force, read_guess, c_error) result(c_energy) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state, c_electrostatics, &
         & c_error
     integer(c_int), intent(in), value :: nbasis, nsph
     real(c_double), intent(in) :: psi(nbasis, nsph)
     real(c_double), intent(in), value :: tol
     real(c_double), intent(out) :: force(3, nsph)
-    real(c_double), intent(out) :: esolv
+    real(c_double) :: c_energy
     integer(c_int), intent(in), value :: read_guess
     type(ddx_setup_type), pointer :: ddx
     logical :: do_guess
@@ -564,7 +564,7 @@ subroutine ddx_ddsolve(c_ddx, c_state, c_electrostatics, nbasis, nsph, &
     if (ddx_get_error_flag(c_error) .ne. 0) return
 
     ! energy
-    esolv = ddx_energy(c_ddx, c_state, c_error)
+    c_energy = ddx_energy(c_ddx, c_state, c_error)
     if (ddx_get_error_flag(c_error) .ne. 0) return
 
     ! adjoint linear system
@@ -584,7 +584,7 @@ subroutine ddx_ddsolve(c_ddx, c_state, c_electrostatics, nbasis, nsph, &
         if (ddx_get_error_flag(c_error) .ne. 0) return
     end if
 
-end subroutine
+end function
 
 subroutine ddx_setup(c_ddx, c_state, c_electrostatics, nbasis, nsph, psi, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state, c_electrostatics, &
