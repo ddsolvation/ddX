@@ -861,14 +861,14 @@ subroutine ddx_multipole_psi(c_ddx, nbasis, nsph, nmultipoles, multipoles, psi, 
     call build_psi(ddx%params, multipoles, mmax, psi)
 end
 
-subroutine ddx_multipole_forces(c_ddx, c_state, nsph, ncav, nmultipoles, multipoles, &
+subroutine ddx_multipole_forces(c_ddx, c_state, nsph, nmultipoles, multipoles, &
         & forces, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
     type(ddx_setup), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
-    integer(c_int), intent(in), value :: nmultipoles, nsph, ncav
+    integer(c_int), intent(in), value :: nmultipoles, nsph
     integer :: mmax
     real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
     real(c_double), intent(out) :: forces(3, nsph)

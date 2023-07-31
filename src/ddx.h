@@ -504,7 +504,6 @@ void ddx_multipole_psi(const void* ddx, int nbasis, int nsph, int nmultipoles,
  *  \param ddx     DDX model
  *  \param state   DDX state
  *  \param nsph    Number of cavity spheres
- *  \param ncav    Number of cavity points
  *  \param nmultipoles  Total number of multipoles. If multipoles up to mmax are used,
  *                      this is (mmax+1)^2. E.g. for charges, dipoles and quadrupoles
  *                      (mmax=2), this is 9.
@@ -513,7 +512,7 @@ void ddx_multipole_psi(const void* ddx, int nbasis, int nsph, int nmultipoles,
  *  \param forces  Output force array (3, nsph) in column-major order
  *  \param error   DDX error
  */
-void ddx_multipole_forces(const void* ddx, void* state, int nsph, int ncav,
+void ddx_multipole_forces(const void* ddx, void* state, int nsph,
                           int nmultipoles, const double* multipoles,
                           double* forces, void* error);
 
