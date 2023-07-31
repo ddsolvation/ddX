@@ -294,7 +294,7 @@ void ddx_fill_guess(const void* ddx, void* state, double tol, void* error);
 /** In-place adjust the adjoint guess inside the state.
  *  problem. Avoid calling this step if you want to use the currently stored solution as
  *  an initial guess */
-void ddx_fill_guess_adjoint(const void* ddx, void* state, const double* tol, void* error);
+void ddx_fill_guess_adjoint(const void* ddx, void* state, double tol, void* error);
 
 /** Solve the forward problem.
  *  \param state   DDX state

@@ -1058,7 +1058,7 @@ subroutine ddx_multipole_force_terms(c_ddx, c_state, nsph, nmultipoles, multipol
     integer(c_int), intent(in), value :: nmultipoles, nsph
     integer :: mmax
     real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
-    real(c_double), intent(out) :: forces(3, nsph)
+    real(c_double), intent(inout) :: forces(3, nsph)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)

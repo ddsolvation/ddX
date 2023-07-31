@@ -79,23 +79,18 @@ int main() {
   printf("ncav   = %4d\n", ncav);
 
 
-  //
-  // Compute solute electrostatics
-  //
-  double* phi_cav = (double*)malloc(sizeof(double) * ncav);
-  double* e_cav   = (double*)malloc(sizeof(double) * 3 * ncav);
-
-  int nmultipoles           = 1;  // Just charges
+  // convert the charges to multipoles
+  int nmultipoles = 1;
   double* solute_multipoles = (double*)malloc(sizeof(double) * nmultipoles * nsph);
   for (int i = 0; i < nmultipoles * nsph; ++i) {
     solute_multipoles[i] = charges[i] / sqrt(4.0 * M_PI);
   }
-  ddx_multipole_electrostatics_1(model, nsph, ncav, nmultipoles, solute_multipoles,
-                                 phi_cav, e_cav, error);
-  if (ddx_get_error_flag(error) != 0) {
-    print_error(error);
-    return 1;
-  }
+
+
+  // Compute the RHSs
+  void* electrostatics = ddx_allocate_electrostatics(model, error);
+  ddx_multipole_electrostatics(model, nsph, nmultipoles, solute_multipoles,
+                               electrostatics, error);
 
   double* psi = (double*)malloc(sizeof(double) * nsph * nbasis);
   ddx_multipole_psi(model, nbasis, nsph, nmultipoles, solute_multipoles, psi, error);
@@ -103,12 +98,6 @@ int main() {
     print_error(error);
     return 1;
   }
-
-  // Testing but not using the new electrostatics
-  void* electrostatics = ddx_allocate_electrostatics(model, error);
-  ddx_multipole_electrostatics(model, nsph, nmultipoles, solute_multipoles,
-                               electrostatics, error);
-  ddx_deallocate_electrostatics(electrostatics, error);
 
   //
   // Solve the PCM problem
@@ -120,17 +109,17 @@ int main() {
   }
 
   double tol = 1e-9;
-  ddx_pcm_setup(model, state, ncav, nbasis, nsph, psi, phi_cav, error);
-  ddx_pcm_guess(model, state, error);
-  ddx_pcm_solve(model, state, tol, error);
+  ddx_setup(model, state, electrostatics, nbasis, nsph, psi, error);
+  ddx_fill_guess(model, state, tol, error);
+  ddx_solve(model, state, tol, error);
   if (ddx_get_error_flag(error) != 0) {
     print_error(error);
     return 1;
   }
   printf("Forward system solved after %i iterations.\n", ddx_get_x_niter(state));
 
-  ddx_pcm_guess_adjoint(model, state, error);
-  ddx_pcm_solve_adjoint(model, state, tol, error);
+  ddx_fill_guess_adjoint(model, state, tol, error);
+  ddx_solve_adjoint(model, state, tol, error);
   if (ddx_get_error_flag(error) != 0) {
     print_error(error);
     return 1;
@@ -143,7 +132,14 @@ int main() {
   double energy = ddx_pcm_energy(model, state, error);
 
   double* forces = (double*)malloc(sizeof(double) * 3 * nsph);
-  ddx_pcm_solvation_force_terms(model, state, nsph, ncav, e_cav, forces, error);
+  ddx_solvation_force_terms(model, state, electrostatics, nsph, forces, error);
+  if (ddx_get_error_flag(error) != 0) {
+    print_error(error);
+    return 1;
+  }
+
+  ddx_multipole_force_terms(model, state, nsph, 0, nmultipoles, solute_multipoles,
+                            forces, error);
   if (ddx_get_error_flag(error) != 0) {
     print_error(error);
     return 1;
@@ -164,8 +160,7 @@ int main() {
   ddx_deallocate_state(state, error);
   free(psi);
   free(solute_multipoles);
-  free(e_cav);
-  free(phi_cav);
   ddx_deallocate_model(model, error);
+  ddx_deallocate_electrostatics(electrostatics, error);
   return ret;
 }
