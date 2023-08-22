@@ -432,17 +432,23 @@ class State {
   }
 
   // Obtain the COSMO / PCM / LPB forces. The state is modified in-place
-  array_f_t solvation_force_terms(py::object py_elec_property) {
+  array_f_t solvation_force_terms(py::dict py_elec_properties) {
     array_f_t elec_field, elec_field_grad;
     if (model()->model() == "cosmo" || model()->model() == "pcm") {
-      elec_field = py_elec_property.cast<array_f_t>();
+      if (!py_elec_properties.contains("e")) {
+        throw py::value_error("Electric field missing in the dictionary");
+      }
+      elec_field = py_elec_properties["e"].cast<array_f_t>();
       if (elec_field.ndim() != 2 || elec_field.shape(0) != 3 ||
           elec_field.shape(1) != model()->n_cav()) {
         throw py::value_error("elec_field not of shape (3, n_cav) == (3, " +
                               std::to_string(model()->n_cav()) + ").");
       }
     } else if (model()->model() == "lpb") {
-      elec_field_grad = py_elec_property.cast<array_f_t>();
+      if (!py_elec_properties.contains("g")) {
+        throw py::value_error("Electric field gradient missing in the dictionary");
+      }
+      elec_field_grad = py_elec_properties["g"].cast<array_f_t>();
       if (elec_field_grad.ndim() != 3 || elec_field_grad.shape(0) != 3 ||
           elec_field_grad.shape(1) != 3 ||
           elec_field_grad.shape(2) != model()->n_cav()) {

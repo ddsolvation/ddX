@@ -50,10 +50,7 @@ def ddsolve(model_name, charges, rvdw, centres, do_forces=False):
     if do_forces:
         state.fill_guess_adjoint()
         state.solve_adjoint()
-        if model_name == "lpb":
-            forces = state.solvation_force_terms(solute_field["g"])
-        else:
-            forces = state.solvation_force_terms(solute_field["e"])
+        forces = state.solvation_force_terms(solute_field)
         forces += state.multipole_force_terms(solute_multipoles);
 
     return energy, forces
