@@ -120,10 +120,10 @@ if (ddx_data % params % force .eq. 1) then
         write(6, *) "Allocation failed in ddx_driver"
         stop 1
     end if
-    call ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, error, &
+    call ddrun(ddx_data, state, electrostatics, psi, tol, esolv, error, &
         & force)
 else
-    call ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, error)
+    call ddrun(ddx_data, state, electrostatics, psi, tol, esolv, error)
 end if
 call check_error(error)
 

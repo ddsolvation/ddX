@@ -1,4 +1,5 @@
 #include "ddx.h"
+#include <pybind11/eval.h>
 #include <pybind11/numpy.h>
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
@@ -18,7 +19,8 @@ class Model {
   Model(std::string model, array_f_t sphere_centres, array_f_t sphere_radii,
         double solvent_epsilon, double solvent_kappa, double eta, double shift, int lmax,
         int n_lebedev, bool incore, int maxiter, int jacobi_n_diis, bool enable_fmm,
-        int fmm_multipole_lmax, int fmm_local_lmax, int n_proc, std::string logfile)
+        int fmm_multipole_lmax, int fmm_local_lmax, int n_proc, std::string logfile,
+        bool enable_force)
         : m_holder(nullptr), m_model(model) {
     int model_id = 0;
     if (model == "cosmo") {
@@ -114,14 +116,14 @@ class Model {
             "disabling local FMM contributions.");
     }
 
-    const int enable_force = 1;  // Always support force calculations.
-    const int intfmm       = enable_fmm ? 1 : 0;
-    const int intincore    = incore ? 1 : 0;
+    const int intforce  = enable_force ? 1 : 0;
+    const int intfmm    = enable_fmm ? 1 : 0;
+    const int intincore = incore ? 1 : 0;
 
     m_error = ddx_allocate_error();
 
     m_holder = ddx_allocate_model(
-          model_id, enable_force, solvent_epsilon, solvent_kappa, eta, shift, lmax,
+          model_id, intforce, solvent_epsilon, solvent_kappa, eta, shift, lmax,
           n_lebedev, intincore, maxiter, jacobi_n_diis, intfmm, fmm_multipole_lmax,
           fmm_local_lmax, n_proc, n_spheres, sphere_centres.data(), sphere_radii.data(),
           logfile.size(), logfile.c_str(), m_error);
@@ -500,6 +502,42 @@ class State {
     return forces;
   }
 
+  //
+  // High level API
+  //
+
+  py::object ddrun(py::object py_elec_properties, bool py_read_guess, double tol) {
+    py::dict dict;
+    dict["self"] = py::cast(this);
+    dict["read_guess"] = py::cast(py_read_guess);
+    dict["tol"] = py::cast(tol);
+
+    py::exec(R"(
+      if not read_guess:
+          self.fill_guess(tol)
+      self.solve(tol)
+    )", dict);
+    py::object ene = py::cast(energy());
+
+    if (model()->has_force_enabled()) {
+      if (py_elec_properties == py::none()) {
+        throw py::value_error("Force calculation requested but "
+                              "electrostatic properties are not provided");
+      }
+      dict["solute_field"] = py_elec_properties;
+      py::exec(R"(
+        if not read_guess:
+            self.fill_guess_adjoint(tol)
+        self.solve_adjoint(tol)
+        force = self.solvation_force_terms(solute_field)
+      )", dict);
+      py::object force = dict["force"];
+      return py::make_tuple(ene, force);
+    } else {
+      return ene;
+    }
+  }
+
  private:
   void check_solved() const {
     if (!m_solved)
@@ -646,13 +684,13 @@ void export_pyddx_classes(py::module& m) {
   py::class_<Model, std::shared_ptr<Model>>(m, "Model",
                                             "Solvation model using ddX library.")
         .def(py::init<std::string, array_f_t, array_f_t, double, double, double, double,
-                      int, int, int, int, int, bool, int, int, int, std::string>(),
+                      int, int, int, int, int, bool, int, int, int, std::string, bool>(),
              init_docstring, "model"_a, "sphere_centres"_a, "sphere_radii"_a,
              "solvent_epsilon"_a, "solvent_kappa"_a = 0.0, "eta"_a = 0.1,
              "shift"_a = -100, "lmax"_a = 9, "n_lebedev"_a = 302, "incore"_a = false,
              "maxiter"_a = 100, "jacobi_n_diis"_a = 20, "enable_fmm"_a = true,
              "fmm_multipole_lmax"_a = 9, "fmm_local_lmax"_a = 6, "n_proc"_a = 1,
-             "logfile"_a = "")
+             "logfile"_a = "", "enable_force"_a = true)
         //
         .def_property_readonly("has_fmm_enabled", &Model::has_fmm_enabled)
         .def_property_readonly("has_force_enabled", &Model::has_force_enabled)
@@ -717,7 +755,6 @@ void export_pyddx_classes(py::module& m) {
              "Return the solute contribution to psi generated from a distribution "
              "of multipoles on the cavity centres.",
              "multipoles"_a)
-        //
         ;
 
   py::class_<State, std::shared_ptr<State>>(
@@ -770,5 +807,9 @@ void export_pyddx_classes(py::module& m) {
         .def("multipole_force_terms", &State::multipole_force_terms,
              "Obtain the solute force contributions from a solute represented using "
              "multipoles. ",
-             "multipoles"_a);
+             "multipoles"_a)
+        .def("ddrun", &State::ddrun,
+             "Perform all the steps of a ddX calculation and return energy and, "
+             "if requested, forces", "elec_field"_a = py::none(),
+             "read_guess"_a = false, "tol"_a = DEFAULT_TOLERANCE);
 }

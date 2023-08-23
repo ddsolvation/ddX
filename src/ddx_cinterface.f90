@@ -536,7 +536,7 @@ end subroutine
 !
 ! High level APIs (model nonspecific)
 !
-function ddx_ddsolve(c_ddx, c_state, c_electrostatics, nbasis, nsph, &
+function ddx_ddrun(c_ddx, c_state, c_electrostatics, nbasis, nsph, &
         & psi, tol, force, read_guess, c_error) result(c_energy) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_state, c_electrostatics, &
         & c_error

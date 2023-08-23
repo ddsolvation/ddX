@@ -41,9 +41,17 @@ state.solve()
 state.fill_guess_adjoint()
 state.solve_adjoint()
 
-# Show results
+# Compute energy and forces
 energy = 0.5 * np.sum(state.x * solute_psi)
 force = state.solvation_force_terms(solute_field)
+force += state.multipole_force_terms(solute_multipoles);
+
+# Show results
+print(energy)
+print(force)
+
+# or the short way
+energy, force = state.ddrun(solute_field)
 force += state.multipole_force_terms(solute_multipoles);
 print(energy)
 print(force)

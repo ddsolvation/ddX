@@ -357,7 +357,7 @@ end subroutine ddinit
 !! @param[in] read_guess: optional argument, if true read the guess
 !!            from the state object
 !!
-subroutine ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, &
+subroutine ddrun(ddx_data, state, electrostatics, psi, tol, esolv, &
         & error, force, read_guess)
     type(ddx_type), intent(inout) :: ddx_data
     type(ddx_state_type), intent(inout) :: state
@@ -383,7 +383,7 @@ subroutine ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, &
     ! an error
     if ((.not.present(force)) .and. (ddx_data % params % force .eq. 1)) then
         call update_error(error, &
-            & "ddsolve: forces are to be computed, but the optional force" // &
+            & "ddrun: forces are to be computed, but the optional force" // &
             & " array has not been passed.")
         return
     end if
@@ -391,7 +391,7 @@ subroutine ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, &
     call setup(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, electrostatics, psi, error)
     if (error % flag .ne. 0) then
-        call update_error(error, "ddsolve: setup returned an error, exiting")
+        call update_error(error, "ddrun: setup returned an error, exiting")
         return
     end if
 
@@ -401,14 +401,14 @@ subroutine ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, &
             & ddx_data % workspace, state, tol, error)
         if (error % flag .ne. 0) then
             call update_error(error, &
-                & "ddsolve: fill_guess returned an error, exiting")
+                & "ddrun: fill_guess returned an error, exiting")
             return
         end if
     end if
     call solve(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, tol, error)
     if (error % flag .ne. 0) then
-        call update_error(error, "ddsolve: solve returned an error, exiting")
+        call update_error(error, "ddrun: solve returned an error, exiting")
         return
     end if
 
@@ -416,7 +416,7 @@ subroutine ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, &
     call energy(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, esolv, error)
     if (error % flag .ne. 0) then
-        call update_error(error, "ddsolve: energy returned an error, exiting")
+        call update_error(error, "ddrun: energy returned an error, exiting")
         return
     end if
 
@@ -427,7 +427,7 @@ subroutine ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, &
                 & ddx_data % workspace, state, tol, error)
             if (error % flag .ne. 0) then
                 call update_error(error, &
-                    & "ddsolve: fill_guess_adjoint returned an error, exiting")
+                    & "ddrun: fill_guess_adjoint returned an error, exiting")
                 return
             end if
         end if
@@ -435,7 +435,7 @@ subroutine ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, &
             & ddx_data % workspace, state, tol, error)
         if (error % flag .ne. 0) then
             call update_error(error, &
-                & "ddsolve: solve_adjoint returned an error, exiting")
+                & "ddrun: solve_adjoint returned an error, exiting")
             return
         end if
     end if
@@ -447,12 +447,12 @@ subroutine ddsolve(ddx_data, state, electrostatics, psi, tol, esolv, &
             & ddx_data % workspace, state, electrostatics, force, error)
         if (error % flag .ne. 0) then
             call update_error(error, &
-                & "ddsolve: solvation_force_terms returned an error, exiting")
+                & "ddrun: solvation_force_terms returned an error, exiting")
             return
         end if
     end if
 
-end subroutine ddsolve
+end subroutine ddrun
 
 !> Setup the state for the different models
 !!

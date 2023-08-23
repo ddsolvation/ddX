@@ -115,8 +115,8 @@ int main() {
   int ret     = 0;
   double eref = -0.00017974013712832552;
 
-  double energy = ddx_ddsolve(model, state, electrostatics, nbasis, nsph, psi,
-                       tol, forces, read_guess, error);
+  double energy = ddx_run(model, state, electrostatics, nbasis, nsph, psi,
+                          tol, forces, read_guess, error);
 
   if (fabs(eref - energy) > 1e-6) {
     printf("Large deviation:   %15.9g\n", eref - energy);
