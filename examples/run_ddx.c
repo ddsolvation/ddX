@@ -117,6 +117,10 @@ int main() {
 
   double energy = ddx_ddrun(model, state, electrostatics, nbasis, nsph, psi,
                             tol, forces, read_guess, error);
+  if (ddx_get_error_flag(error) != 0) {
+    print_error(state);
+    return 1;
+  }
 
   if (fabs(eref - energy) > 1e-6) {
     printf("Large deviation:   %15.9g\n", eref - energy);

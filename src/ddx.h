@@ -291,7 +291,7 @@ double ddx_ddsolve(const void* ddx, void* state, const void* electrostatics,
                    double* forces, const int read_guess, void* error);
 
 /** In-place adjust the guess inside the state.
-/** Setup a problem in the passed state.
+ ** Setup a problem in the passed state.
  *  \param ddx            DDX model
  *  \param state          DDX state
  *  \param electrostatics DDX electrostatic properties container
@@ -344,6 +344,11 @@ double ddx_energy(const void* ddx, void* state, void* error);
  */
 void ddx_solvation_force_terms(const void* ddx, void* state, void* electrostatics,
                                int nsph, double* forces, void* error);
+
+double ddx_ddrun(const void* ddx, void* state, void* electrostatics, int nbasis,
+                 int nsph, double* psi, const double tol, double* forces,
+                 int read_guess, void* error);
+
 ///@}
 
 /** \name Problem setup and solution routines */
