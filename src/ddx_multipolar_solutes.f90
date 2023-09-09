@@ -3,6 +3,7 @@ module ddx_multipolar_solutes
 
 use ddx_definitions
 use ddx_core
+use ddx_gradients
 
 implicit none
 
@@ -955,7 +956,7 @@ end subroutine grad_m2m
 !! @param[inout] error: ddX error
 !!
 subroutine grad_phi_for_charges(params, constants, workspace, state, &
-        & charges, forces, e_cav, error)
+        & charges, forces, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -964,47 +965,22 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
     type(ddx_error_type), intent(inout) :: error
     real(dp), intent(in) :: charges(params % nsph)
     real(dp), intent(inout) :: forces(3, params % nsph)
-    real(dp), intent(in) :: e_cav(3, constants % ncav)
     ! local variables
-    integer :: isph, igrid, icav, info
-    real(dp), allocatable :: field(:, :)
+    integer :: info
+    real(dp), allocatable :: multipoles(:, :)
 
-    ! get some space for the adjoint potential, note that we need it
-    ! up to mmax + 1 as we are doing derivatives
-    allocate(field(3, params % nsph), stat=info)
+    allocate(multipoles(1, params % nsph), stat=info)
     if (info .ne. 0) then
-        call update_error(error, "Allocation failed in grad_phi_for_charges!")
+        call update_error(error, "Allocation failed in grad_phi_for_charges")
         return
     end if
-
-    ! first contribution
-    icav = 0
-    do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-            if (constants % ui(igrid, isph) .eq. zero) cycle
-            icav = icav + 1
-            forces(:, isph) = forces(:, isph) + pt5*state % zeta(icav) &
-                & *e_cav(:, icav)
-        end do
-    end do
-
-    ! second contribution
-    ! TODO: REMOVE
-    call efld(constants % ncav, state % zeta, constants % ccav, &
-        & params % nsph, params % csph, field)
-
-    do isph = 1, params % nsph
-        forces(1, isph) = forces(1, isph) &
-            & + pt5*charges(isph)*field(1, isph)
-        forces(2, isph) = forces(2, isph) &
-            & + pt5*charges(isph)*field(2, isph)
-        forces(3, isph) = forces(3, isph) &
-            & + pt5*charges(isph)*field(3, isph)
-    end do
-
-    deallocate(field, stat=info)
+    ! convert the charges to multipoles
+    multipoles(1, :) = charges/sqrt4pi
+    call grad_phi(params, constants, workspace, state, 0, multipoles, forces, &
+        & error)
+    deallocate(multipoles, stat=info)
     if (info .ne. 0) then
-        call update_error(error, "Deallocation failed in grad_phi_for_charges!")
+        call update_error(error, "Deallocation failed in grad_phi_for_charges")
         return
     end if
 
@@ -1022,11 +998,10 @@ end subroutine grad_phi_for_charges
 !! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[inout] forces: forces array, size (3, nsph)
-!! @param[in] e_cav: electric field, size (3, ncav)
 !! @param[inout] error: ddX error
 !!
 subroutine grad_phi(params, constants, workspace, state, mmax, &
-        & multipoles, forces, e_cav, error)
+        & multipoles, forces, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -1036,9 +1011,8 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(inout) :: forces(3, params % nsph)
-    real(dp), intent(in) :: e_cav(3, constants % ncav)
     ! local variables
-    integer :: isph, igrid, icav, info, im, lm, ind, l, m
+    integer :: info, im, lm, ind, l, m
     real(dp), allocatable :: adj_phi(:, :), m_grad(:, :, :)
     real(dp) :: fac
 
@@ -1050,18 +1024,6 @@ subroutine grad_phi(params, constants, workspace, state, mmax, &
         call update_error(error, "Allocation failed in grad_phi!")
         return
     end if
-
-    ! first contribution
-    ! zeta * field
-    icav = 0
-    do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-            if (constants % ui(igrid, isph) .eq. zero) cycle
-            icav = icav + 1
-            forces(:, isph) = forces(:, isph) + pt5 &
-                & *state % zeta(icav)*e_cav(:, icav)
-        end do
-    end do
 
     ! build the adjoint potential
     call build_adj_phi(params, constants, workspace, state % zeta, &
@@ -1452,5 +1414,50 @@ subroutine grad_e(params, constants, workspace, state, mmax, &
     end if
 
 end subroutine grad_e
+
+!> @ingroup Fortran_interface_multipolar
+!> Given a multipolar distribution in real spherical harmonics and
+!> centered on the spheres, compute the contributions to the forces
+!> stemming from its electrostatic interactions.
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[inout] state: ddx state
+!! @param[in] mmax: maximum angular momentum of the multipolar distribution
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2, nsph)
+!! @param[inout] forces: forces array, size (3, nsph)
+!! @param[inout] error: ddX error
+!!
+subroutine multipole_forces(params, constants, workspace, state, mmax, &
+        & multipoles, forces, error)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_workspace_type), intent(inout) :: workspace
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_state_type), intent(inout) :: state
+    type(ddx_error_type), intent(inout) :: error
+    integer, intent(in) :: mmax
+    real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
+    real(dp), intent(inout) :: forces(3, params % nsph)
+
+    call grad_phi(params, constants, workspace, state, mmax, multipoles, &
+        & forces, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, "multipole_forces: grad_phi returned an " // &
+            & "error, exiting")
+        return
+    end if
+
+    if (params % model .eq. 3) then
+        call grad_e(params, constants, workspace, state, mmax, multipoles, &
+            & forces, error)
+        if (error % flag .ne. 0) then
+            call update_error(error, "multipole_forces: grad_phi " // &
+                & "returned an error, exiting")
+            return
+        end if
+    end if
+end subroutine multipole_forces
 
 end module ddx_multipolar_solutes

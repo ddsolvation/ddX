@@ -136,7 +136,7 @@ int main() {
   double energy = ddx_pcm_energy(model, state, error);
 
   double* forces = (double*)malloc(sizeof(double) * 3 * nsph);
-  ddx_pcm_solvation_force_terms(model, state, nsph, forces, error);
+  ddx_pcm_solvation_force_terms(model, state, nsph, ncav, e_cav, forces, error);
   if (ddx_get_error_flag(error) != 0) {
     print_error(error);
     return 1;

@@ -432,20 +432,47 @@ class State {
   }
 
   // Obtain the COSMO / PCM / LPB forces. The state is modified in-place
-  array_f_t solvation_force_terms() {
+  array_f_t solvation_force_terms(py::dict py_elec_properties) {
+    array_f_t elec_field, elec_field_grad;
+    if (model()->model() == "cosmo" || model()->model() == "pcm") {
+      if (!py_elec_properties.contains("e")) {
+        throw py::value_error("Electric field missing in the dictionary");
+      }
+      elec_field = py_elec_properties["e"].cast<array_f_t>();
+      if (elec_field.ndim() != 2 || elec_field.shape(0) != 3 ||
+          elec_field.shape(1) != model()->n_cav()) {
+        throw py::value_error("elec_field not of shape (3, n_cav) == (3, " +
+                              std::to_string(model()->n_cav()) + ").");
+      }
+    } else if (model()->model() == "lpb") {
+      if (!py_elec_properties.contains("g")) {
+        throw py::value_error("Electric field gradient missing in the dictionary");
+      }
+      elec_field_grad = py_elec_properties["g"].cast<array_f_t>();
+      if (elec_field_grad.ndim() != 3 || elec_field_grad.shape(0) != 3 ||
+          elec_field_grad.shape(1) != 3 ||
+          elec_field_grad.shape(2) != model()->n_cav()) {
+        throw py::value_error("elec_field_grad not of shape (3, 3, n_cav) == (3, 3, "
+                              + std::to_string(model()->n_cav()) + ").");
+      }
+    } else {
+      throw py::value_error("Model " + model()->model() + " not yet implemented.");
+    }
+
     check_solved_adjoint();
     array_f_t forces({3, model()->n_spheres()});
     if (model()->model() == "cosmo") {
       ddx_cosmo_solvation_force_terms(model()->holder(), holder(), model()->n_spheres(),
+                                      model()->n_cav(), elec_field.data(),
                                       forces.mutable_data(), model()->error());
     } else if (model()->model() == "pcm") {
       ddx_pcm_solvation_force_terms(model()->holder(), holder(), model()->n_spheres(),
+                                    model()->n_cav(), elec_field.data(),
                                     forces.mutable_data(), model()->error());
     } else if (model()->model() == "lpb") {
-      throw py::value_error(
-            "Forces not yet fully implemented for ddLPB on the python side.");
-    } else {
-      throw py::value_error("Model " + model()->model() + " not yet implemented.");
+      ddx_lpb_solvation_force_terms(model()->holder(), holder(), model()->n_spheres(),
+                                    model()->n_cav(), elec_field_grad.data(),
+                                    forces.mutable_data(), model()->error());
     }
     throw_if_error();
     return forces;
@@ -454,11 +481,7 @@ class State {
   //
   // Multipolar functions
   //
-  array_f_t multipole_force_terms(array_f_t multipoles, array_f_t e) {
-    if (e.ndim() != 2 || e.shape(0) != 3 || e.shape(1) != model()->n_cav()) {
-      throw py::value_error("e not of shape (3, n_cav) == (3, " +
-                            std::to_string(model()->n_cav()) + ").");
-    }
+  array_f_t multipole_force_terms(array_f_t multipoles) {
     if (multipoles.ndim() != 2 || multipoles.shape(1) != model()->n_spheres()) {
       throw py::value_error(
             "'multipoles' should be an (nmultipoles, n_spheres) sized array");
@@ -471,8 +494,8 @@ class State {
 
     array_f_t forces({3, model()->n_spheres()});
     ddx_multipole_forces(model()->holder(), holder(), model()->n_spheres(),
-                         model()->n_cav(), multipoles.shape(0), multipoles.data(),
-                         e.data(), forces.mutable_data(), model()->error());
+                         multipoles.shape(0), multipoles.data(),
+                         forces.mutable_data(), model()->error());
     throw_if_error();
     return forces;
   }
@@ -743,9 +766,9 @@ void export_pyddx_classes(py::module& m) {
              "COSMO).")
         .def("solvation_force_terms", &State::solvation_force_terms,
              "Compute and return the force terms of the solvation part of the solvation "
-             "model.")
+             "model.", "elec_field"_a)
         .def("multipole_force_terms", &State::multipole_force_terms,
              "Obtain the solute force contributions from a solute represented using "
              "multipoles. ",
-             "multipoles"_a, "e"_a);
+             "multipoles"_a);
 }

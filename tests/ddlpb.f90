@@ -379,6 +379,40 @@ write(*, *) "Rel.error of F0    :", relerr_f0
 !if (relerr .gt. 1d-6) stop 1
 contains
 
+!------------------------------------------------------------------------------
+!> TODO
+!------------------------------------------------------------------------------
+subroutine efld(ncav,zeta,ccav,nsph,csph,force)
+implicit none
+integer,                    intent(in)    :: ncav, nsph
+real*8,  dimension(ncav),   intent(in)    :: zeta
+real*8,  dimension(3,ncav), intent(in)    :: ccav
+real*8,  dimension(3,nsph), intent(in)    :: csph
+real*8,  dimension(3,nsph), intent(inout) :: force
+!
+integer :: icav, isph
+real*8  :: dx, dy, dz, rijn2, rijn, rijn3, f, sum_int(3)
+real*8, parameter :: zero=0.0d0
+!
+force = zero
+do isph = 1, nsph
+  sum_int = zero
+  do icav = 1, ncav
+    dx   = csph(1,isph) - ccav(1,icav)
+    dy   = csph(2,isph) - ccav(2,icav)
+    dz   = csph(3,isph) - ccav(3,icav)
+    rijn2   = dx*dx + dy*dy + dz*dz
+    rijn   = sqrt(rijn2)
+    rijn3   = rijn2*rijn
+    f    = zeta(icav)/rijn3
+    sum_int(1) = sum_int(1) + f*dx
+    sum_int(2) = sum_int(2) + f*dy
+    sum_int(3) = sum_int(3) + f*dz
+  end do
+  force(:,isph) = sum_int
+end do
+end subroutine efld
+
 subroutine solve(ddx_data, sum_cosmo, sum_lpb, sum_char, sum_der_u, sum_g0, sum_f0)
     type(ddx_type), intent(inout) :: ddx_data
     real(dp), intent(out) :: sum_cosmo, sum_lpb, sum_char, sum_der_u, sum_g0, sum_f0

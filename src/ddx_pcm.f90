@@ -38,7 +38,7 @@ contains
 !! @param[inout] error: ddX error
 !!
 subroutine ddpcm(params, constants, workspace, state, phi_cav, &
-        & psi, tol, esolv, force, error)
+        & psi, e_cav, tol, esolv, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -48,6 +48,7 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
     real(dp), intent(in) :: phi_cav(constants % ncav), &
         & psi(constants % nbasis, params % nsph), tol
     real(dp), intent(out) :: esolv
+    real(dp), intent(in) :: e_cav(3, constants % ncav)
     real(dp), intent(out), optional :: force(3, params % nsph)
 
     call ddpcm_setup(params, constants, workspace, state, phi_cav, psi, error)
@@ -91,7 +92,7 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
         call ddpcm_solvation_force_terms(params, constants, workspace, &
-            & state, force, error)
+            & state, e_cav, force, error)
     end if
 
 end subroutine ddpcm
@@ -302,17 +303,19 @@ end subroutine ddpcm_solve_adjoint
 !! @param[in] constants    : Precomputed constants
 !! @param[inout] workspace : Preallocated workspaces
 !! @param[inout] state     : Solutions and relevant quantities
+!! @param[in] e_cav: electric field, size (3, ncav)
 !! @param[out] force       : Geometrical contribution to the forces
 !! @param[inout] error: ddX error
 !!
 subroutine ddpcm_solvation_force_terms(params, constants, workspace, &
-        & state, force, error)
+        & state, e_cav, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     type(ddx_error_type), intent(inout) :: error
+    real(dp), intent(in) :: e_cav(3, constants % ncav)
     real(dp), intent(out) :: force(3, params % nsph)
 
     real(dp) :: start_time, finish_time
@@ -332,6 +335,8 @@ subroutine ddpcm_solvation_force_terms(params, constants, workspace, &
             & state % phi_grid, force(:, isph))
     end do
     force = - pt5 * force
+
+    call zeta_grad(params, constants, state, e_cav, force)
 
     finish_time = omp_get_wtime()
     state % force_time = finish_time - start_time

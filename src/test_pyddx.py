@@ -58,9 +58,10 @@ def test_reference_pcm():
     state.solve()
     state.solve_adjoint()
 
-    force = state.solvation_force_terms()
+    force = state.solvation_force_terms(solute_field)
+    force += state.multipole_force_terms(solute_multipoles);
     assert abs(state.energy() - ref) < 5e-9
-    assert np.max(np.abs(force - ref_force)) < 1e-5
+    assert np.max(np.abs(force - ref_force)) < 1e-8
 
 
 def test_reference_lpb():

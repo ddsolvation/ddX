@@ -239,10 +239,10 @@ if (ddx_data % params % force .eq. 1) then
 
     if (ddx_data % params % model .eq. 1) then
         call ddcosmo_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, force, error)
+            & ddx_data % constants, ddx_data % workspace, state, e_cav, force, error)
     else if (ddx_data % params % model .eq. 2) then
         call ddpcm_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, force, error)
+            & ddx_data % constants, ddx_data % workspace, state, e_cav, force, error)
     else if (ddx_data % params % model .eq. 3) then
         call ddlpb_solvation_force_terms(ddx_data % params, &
             & ddx_data % constants, ddx_data % workspace, state, g_cav, force, error)
@@ -258,7 +258,7 @@ if (ddx_data % params % force .eq. 1) then
     start_time = omp_get_wtime()
     call grad_phi_for_charges(ddx_data % params, &
         & ddx_data % constants, ddx_data % workspace, state, &
-        & charges, force, e_cav, error)
+        & charges, force, error)
     call check_error(error)
     if (ddx_data % params % model .eq. 3) then
         ! ddLPB has another term in the multipolar forces stemming

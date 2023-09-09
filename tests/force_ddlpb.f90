@@ -69,7 +69,7 @@ call check_error(error)
 ! add the solute specific contributions to the forces
 call grad_phi_for_charges(ddx_data % params, &
     & ddx_data % constants, ddx_data % workspace, state, &
-    & charges, force, gradphi_cav, error)
+    & charges, force, error)
 call check_error(error)
 call grad_e_for_charges(ddx_data % params, ddx_data % constants, &
     & ddx_data % workspace, state, charges, force, error)
