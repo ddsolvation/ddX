@@ -151,6 +151,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:a0992df69c893c3febf16dd28cbac2c7d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a0992df69c893c3febf16dd28cbac2c7d">gradr_dense</a> (params, constants, workspace, g, ygrid, fx)</td></tr>
 <tr class="memdesc:a0992df69c893c3febf16dd28cbac2c7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gradient of the ddPCM matrix using N^2 code.  <a href="namespaceddx__gradients.html#a0992df69c893c3febf16dd28cbac2c7d">More...</a><br /></td></tr>
 <tr class="separator:a0992df69c893c3febf16dd28cbac2c7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4fabae3a616233473710abf5635d0e4d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__gradients.html#a4fabae3a616233473710abf5635d0e4d">zeta_grad</a> (params, constants, state, e_cav, forces)</td></tr>
+<tr class="memdesc:a4fabae3a616233473710abf5635d0e4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Force term: interaction of the external electric field with the zeta intermediate. This routine is called by the gradients of ddCOSMO ddPCM and ddLPB.  <a href="namespaceddx__gradients.html#a4fabae3a616233473710abf5635d0e4d">More...</a><br /></td></tr>
+<tr class="separator:a4fabae3a616233473710abf5635d0e4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Core routines and parameters specific to gradients. </p>
@@ -242,7 +245,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Compute the gradients of the ddCOSMO matrix. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00019">19</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00018">18</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -328,7 +331,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Contribution to the gradients of the ddCOSMO matrix. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00036">36</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00035">35</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -414,7 +417,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Contribution to the gradients of the ddCOSMO matrix. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00104">104</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00103">103</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -470,7 +473,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Gradient of the characteristic function U. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00212">212</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00211">211</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -537,7 +540,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00255">255</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00254">254</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -649,7 +652,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00286">286</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00285">285</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -743,7 +746,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00327">327</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00326">326</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -810,7 +813,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00366">366</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00365">365</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -878,7 +881,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00450">450</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00449">449</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -959,7 +962,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00584">584</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00583">583</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -1072,7 +1075,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00865">865</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l00864">864</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -1154,7 +1157,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01238">1238</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01237">1237</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -1220,7 +1223,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01577">1577</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01576">1576</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -1306,7 +1309,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Sphere contribution to the ddPCM matrix gradient using N^2 code. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01633">1633</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01632">1632</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -1362,7 +1365,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Compute the ddPCM matrix gradient using FMMS (2 matvecs) </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01938">1938</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l01937">1937</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -1418,7 +1421,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Gradient of the ddPCM matrix. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l02171">2171</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l02170">2170</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>
@@ -1474,7 +1477,57 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Gradient of the ddPCM matrix using N^2 code. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l02191">2191</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l02190">2190</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
+
+</div>
+</div>
+<a id="a4fabae3a616233473710abf5635d0e4d" name="a4fabae3a616233473710abf5635d0e4d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4fabae3a616233473710abf5635d0e4d">&#9670;&nbsp;</a></span>zeta_grad()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_gradients::zeta_grad </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
+          <td class="paramname"><em>e_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
+          <td class="paramname"><em>forces</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Force term: interaction of the external electric field with the zeta intermediate. This routine is called by the gradients of ddCOSMO ddPCM and ddLPB. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__gradients_8f90_source.html#l02215">2215</a> of file <a class="el" href="ddx__gradients_8f90_source.html">ddx_gradients.f90</a>.</p>
 
 </div>
 </div>

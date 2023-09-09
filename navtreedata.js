@@ -99,9 +99,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"group___fortran__interface__ddcosmo.html#ga52522f2d93664cccd575db59a8129809",
-"namespaceddx__harmonics.html#a3cd0d97cf18e84aa23c13847a3977fb3",
-"structddx__constants_1_1ddx__constants__type.html#a80d2cd0084e8529f0d126178c302f6c5",
+"group___fortran__interface__ddcosmo.html#gae1d7cacc341e0d18f398910d86d08202",
+"namespaceddx__harmonics.html#a3a330c054807d19fa99aa1bcfec71f9e",
+"structddx__constants_1_1ddx__constants__type.html#a7edefe62fc488968584c2f2e5b03124d",
 "structddx__workspace_1_1ddx__workspace__type.html#aebf5d2c2ee52f1c2874caf8c3ba0280b"
 ];
 

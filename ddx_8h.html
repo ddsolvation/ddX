@@ -194,8 +194,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga246d27eedb0ee21f1c3372c36f08d253"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1e625965053a384f4004a23c096c68ea"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga1e625965053a384f4004a23c096c68ea">ddx_cosmo_energy</a> (const void *ddx, void *state, void *error)</td></tr>
 <tr class="separator:ga1e625965053a384f4004a23c096c68ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4fa3418faee867ef808503b89c8ae267"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga4fa3418faee867ef808503b89c8ae267">ddx_cosmo_solvation_force_terms</a> (const void *ddx, void *state, int nsph, double *forces, void *error)</td></tr>
-<tr class="separator:ga4fa3418faee867ef808503b89c8ae267"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaaf0002a8996fec97b9d2cd38e0c06f5f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaaf0002a8996fec97b9d2cd38e0c06f5f">ddx_cosmo_solvation_force_terms</a> (const void *ddx, void *state, int nsph, int ncav, const double *e_cav, double *forces, void *error)</td></tr>
+<tr class="separator:gaaf0002a8996fec97b9d2cd38e0c06f5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3cba40aa928496a68337a8046af6e353"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga3cba40aa928496a68337a8046af6e353">ddx_pcm_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav, void *error)</td></tr>
 <tr class="separator:ga3cba40aa928496a68337a8046af6e353"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gade5d39fdba7a5118b8338c02625e3f18"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gade5d39fdba7a5118b8338c02625e3f18">ddx_pcm_guess</a> (const void *ddx, void *state, void *error)</td></tr>
@@ -208,8 +208,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga20e255f242701686226b994ba8b4d50a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2c8872fc3c9957018ba1fdba20f81b56"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga2c8872fc3c9957018ba1fdba20f81b56">ddx_pcm_energy</a> (const void *ddx, void *state, void *error)</td></tr>
 <tr class="separator:ga2c8872fc3c9957018ba1fdba20f81b56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa211bca535bfbfaa38da99fe2392af88"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaa211bca535bfbfaa38da99fe2392af88">ddx_pcm_solvation_force_terms</a> (const void *ddx, void *state, int nsph, double *forces, void *error)</td></tr>
-<tr class="separator:gaa211bca535bfbfaa38da99fe2392af88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa6ab9628ff621390f2c38eafd34293cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaa6ab9628ff621390f2c38eafd34293cb">ddx_pcm_solvation_force_terms</a> (const void *ddx, void *state, int nsph, int ncav, const double *e_cav, double *forces, void *error)</td></tr>
+<tr class="separator:gaa6ab9628ff621390f2c38eafd34293cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3f5f103fe55edb73793916fb41cadf5f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga3f5f103fe55edb73793916fb41cadf5f">ddx_lpb_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav, const double *e_cav, void *error)</td></tr>
 <tr class="separator:ga3f5f103fe55edb73793916fb41cadf5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacafb9944876fd963279e45d3c9068ab1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gacafb9944876fd963279e45d3c9068ab1">ddx_lpb_guess</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
@@ -222,6 +222,8 @@ Functions</h2></td></tr>
 <tr class="separator:gacf28bceafa33539a249c697a53ddeb8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga864c73dae77c81607b6b960eb0375ce0"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga864c73dae77c81607b6b960eb0375ce0">ddx_lpb_energy</a> (const void *ddx, void *state, void *error)</td></tr>
 <tr class="separator:ga864c73dae77c81607b6b960eb0375ce0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga181d40657543512d54e4a8e22bad196d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga181d40657543512d54e4a8e22bad196d">ddx_lpb_solvation_force_terms</a> (const void *ddx, void *state, int nsph, int ncav, const double *g_cav, double *forces, const void *error)</td></tr>
+<tr class="separator:ga181d40657543512d54e4a8e22bad196d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Multipolar solutes</div></td></tr>
 <tr class="memitem:ga10529fa3e96f380136952d71a158ad43"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga10529fa3e96f380136952d71a158ad43">ddx_multipole_electrostatics_0</a> (const void *ddx, int nsph, int ncav, int nmultipoles, const double *multipoles, double *phi_cav, void *error)</td></tr>
 <tr class="separator:ga10529fa3e96f380136952d71a158ad43"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -231,8 +233,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga0659f96fca18455b366bcff1f009fff9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga50bf6f324e0e7f5df477bece4451f01b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga50bf6f324e0e7f5df477bece4451f01b">ddx_multipole_psi</a> (const void *ddx, int nbasis, int nsph, int nmultipoles, const double *multipoles, double *psi, void *error)</td></tr>
 <tr class="separator:ga50bf6f324e0e7f5df477bece4451f01b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0dbc280a05c16c29fb2670ad73e479f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga0dbc280a05c16c29fb2670ad73e479f9">ddx_multipole_forces</a> (const void *ddx, void *state, int nsph, int ncav, int nmultipoles, const double *multipoles, const double *e_cav, double *forces, void *error)</td></tr>
-<tr class="separator:ga0dbc280a05c16c29fb2670ad73e479f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4f6f4c3a911da17538965c5f9df42ba9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga4f6f4c3a911da17538965c5f9df42ba9">ddx_multipole_forces</a> (const void *ddx, void *state, int nsph, int nmultipoles, const double *multipoles, double *forces, void *error)</td></tr>
+<tr class="separator:ga4f6f4c3a911da17538965c5f9df42ba9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >C header for interfacing with ddx. </p>

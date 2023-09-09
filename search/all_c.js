@@ -14,5 +14,6 @@ var searchData=
   ['mkpmat_11',['mkpmat',['../namespaceddx__constants.html#af5826bc847008b2eb36949c6b05b3e5d',1,'ddx_constants']]],
   ['mkprec_12',['mkprec',['../namespaceddx__constants.html#a3098a4f3cdfb6b9f5a11704e6d573c37',1,'ddx_constants']]],
   ['model_13',['model',['../structddx__parameters_1_1ddx__params__type.html#a1c894bf3f401534f58322ee913f205f4',1,'ddx_parameters::ddx_params_type']]],
-  ['model_5fstr_14',['model_str',['../namespaceddx__definitions.html#a27faa3db3323ba2c6427084fcbf7b953',1,'ddx_definitions']]]
+  ['model_5fstr_14',['model_str',['../namespaceddx__definitions.html#a27faa3db3323ba2c6427084fcbf7b953',1,'ddx_definitions']]],
+  ['multipole_5fforces_15',['multipole_forces',['../group___fortran__interface__multipolar.html#ga15a5fdef855de5c989a3fa6de1cc1647',1,'ddx_multipolar_solutes']]]
 ];

@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['ldm1x_0',['ldm1x',['../namespaceddx__operators.html#a1e850edc7a3932a9785c7c16aefaec85',1,'ddx_operators']]],
-  ['load_5fm_1',['load_m',['../namespaceddx__multipolar__solutes.html#a61c22d6edf664b23153d1d41a1036db8',1,'ddx_multipolar_solutes']]],
-  ['lstarx_2',['lstarx',['../namespaceddx__operators.html#a5feaca1fa1b6971612811e873312e553',1,'ddx_operators']]],
-  ['lx_3',['lx',['../namespaceddx__operators.html#a0661fd28885c91ac7dfa07df51449bfd',1,'ddx_operators']]]
+  ['main_0',['main',['../ddx__driver_8f90.html#a8ec2266d83cd6c0b762cbcbc92c0af3d',1,'ddx_driver.f90']]],
+  ['makeb_1',['makeb',['../namespaceddx__solvers.html#ab078495566540e84394991dfd0506f6c',1,'ddx_solvers']]],
+  ['mkpmat_2',['mkpmat',['../namespaceddx__constants.html#af5826bc847008b2eb36949c6b05b3e5d',1,'ddx_constants']]],
+  ['mkprec_3',['mkprec',['../namespaceddx__constants.html#a3098a4f3cdfb6b9f5a11704e6d573c37',1,'ddx_constants']]],
+  ['multipole_5fforces_4',['multipole_forces',['../group___fortran__interface__multipolar.html#ga15a5fdef855de5c989a3fa6de1cc1647',1,'ddx_multipolar_solutes']]]
 ];

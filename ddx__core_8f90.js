@@ -53,7 +53,6 @@ var ddx__core_8f90 =
     [ "tree_m2p_adj", "ddx__core_8f90.html#a8866ff0507514c1a83f3348e2cc55401", null ],
     [ "tree_m2p_bessel_adj", "ddx__core_8f90.html#aa34ea25c06052ba20613b35da813f54e", null ],
     [ "tree_m2p_bessel_nodiag_adj", "ddx__core_8f90.html#a7f61e8dc65fa676434374f7ea9a07743", null ],
-    [ "efld", "ddx__core_8f90.html#a3c8789fc01ba244fdaa0d4fef8e9d725", null ],
     [ "tree_grad_m2m", "ddx__core_8f90.html#a86f701c3486a5b26c650d5b157b6e213", null ],
     [ "tree_grad_l2l", "ddx__core_8f90.html#a0bbe738fff5a4d15f744dfa0b26938cf", null ],
     [ "get_banner", "ddx__core_8f90.html#gaf7818bc26493b4749c2b8656c9a772d5", null ],

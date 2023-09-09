@@ -28,7 +28,7 @@ var NAVTREEINDEX0 =
 "ddx__constants_8f90_source.html":[12,0,0,4],
 "ddx__core_8f90.html":[12,0,0,5],
 "ddx__core_8f90.html#a02e2c9f1fe4c143bba50d01f1b4d338f":[12,0,0,5,37],
-"ddx__core_8f90.html#a0bbe738fff5a4d15f744dfa0b26938cf":[12,0,0,5,55],
+"ddx__core_8f90.html#a0bbe738fff5a4d15f744dfa0b26938cf":[12,0,0,5,54],
 "ddx__core_8f90.html#a0d41a631eb1ddf7d6c96b28919385514":[12,0,0,5,45],
 "ddx__core_8f90.html#a1111c683b53bd2eb55ea0d130980bcd9":[12,0,0,5,47],
 "ddx__core_8f90.html#a144b53f7df72de5a2717b78c6b903160":[12,0,0,5,32],
@@ -37,9 +37,8 @@ var NAVTREEINDEX0 =
 "ddx__core_8f90.html#a202929912f5b0db1b6fd9f6c8809074c":[12,0,0,5,13],
 "ddx__core_8f90.html#a2b3e39f4eaa589b097d4e9f37673e8f1":[12,0,0,5,15],
 "ddx__core_8f90.html#a2ee14de3640c3649fe523dfb4d083bc9":[12,0,0,5,46],
-"ddx__core_8f90.html#a2ff2b3f242a701748d2ce58e54acdee5":[12,0,0,5,57],
+"ddx__core_8f90.html#a2ff2b3f242a701748d2ce58e54acdee5":[12,0,0,5,56],
 "ddx__core_8f90.html#a343cdc81dac01fcc275b329aaff6584d":[12,0,0,5,33],
-"ddx__core_8f90.html#a3c8789fc01ba244fdaa0d4fef8e9d725":[12,0,0,5,53],
 "ddx__core_8f90.html#a3d18e8fd9f3dbc808deefd71af3c6892":[12,0,0,5,40],
 "ddx__core_8f90.html#a492fbc523986e0e2b2df6e797b9a0ed1":[12,0,0,5,5],
 "ddx__core_8f90.html#a4b801c0c80a755fcdedd743c93e63d13":[12,0,0,5,30],
@@ -61,7 +60,7 @@ var NAVTREEINDEX0 =
 "ddx__core_8f90.html#a7f61e8dc65fa676434374f7ea9a07743":[12,0,0,5,52],
 "ddx__core_8f90.html#a8190329d0b54f19cfd0323e20740cd1a":[12,0,0,5,41],
 "ddx__core_8f90.html#a824b2d46bc4f19b41d1e59efc101fe97":[12,0,0,5,25],
-"ddx__core_8f90.html#a86f701c3486a5b26c650d5b157b6e213":[12,0,0,5,54],
+"ddx__core_8f90.html#a86f701c3486a5b26c650d5b157b6e213":[12,0,0,5,53],
 "ddx__core_8f90.html#a8866ff0507514c1a83f3348e2cc55401":[12,0,0,5,50],
 "ddx__core_8f90.html#aa34ea25c06052ba20613b35da813f54e":[12,0,0,5,51],
 "ddx__core_8f90.html#aa459fca8ccf1b5380372e23d03d72fcf":[12,0,0,5,14],
@@ -249,5 +248,6 @@ var NAVTREEINDEX0 =
 "group___fortran__interface__ddcosmo.html#ga1613c53f027e333c1521757049eb2a7d":[9,2,1],
 "group___fortran__interface__ddcosmo.html#ga1c9686af95c5d448b6ff1d2ac8f916b8":[9,2,6],
 "group___fortran__interface__ddcosmo.html#ga1e3403078eb1f6e42ae0b9e3785219a8":[9,2,2],
-"group___fortran__interface__ddcosmo.html#ga326bf7b01f1026036ef9cdf7ef28ea4b":[9,2,0]
+"group___fortran__interface__ddcosmo.html#ga52522f2d93664cccd575db59a8129809":[9,2,5],
+"group___fortran__interface__ddcosmo.html#gac1c57bb8a1b201ee7c88c727ad3de581":[9,2,0]
 };

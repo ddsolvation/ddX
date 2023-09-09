@@ -103,8 +103,8 @@ $(document).ready(function(){initNavTree('ddx__pcm_8f90_source.html',''); initRe
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keyword">contains</span></div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#ga7f4ab910aea0530a3d9ba9ffb66ac8dd">   40</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga7f4ab910aea0530a3d9ba9ffb66ac8dd">ddpcm</a>(params, constants, workspace, state, phi_cav, &amp;</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>        &amp; psi, tol, esolv, force, error)</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#gae486d1463e3f4ad910e9999942d4f46a">   40</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gae486d1463e3f4ad910e9999942d4f46a">ddpcm</a>(params, constants, workspace, state, phi_cav, &amp;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>        &amp; psi, e_cav, tol, esolv, force, error)</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="keywordtype">implicit none</span></div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
@@ -114,280 +114,284 @@ $(document).ready(function(){initNavTree('ddx__pcm_8f90_source.html',''); initRe
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: phi_cav(constants % ncav), &amp;</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>        &amp; psi(constants % nbasis, params % nsph), tol</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="keywordtype">real(dp)</span>, <span class="keywordtype">intent(out)</span> :: esolv</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span>, <span class="keywordtype">optional</span> :: force(3, params % nsph)</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga5d9eb538eef6afe8b4606ed7cc6360a7">ddpcm_setup</a>(params, constants, workspace, state, phi_cav, psi, error)</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <span class="keyword">call </span>update_error(error, &amp;</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>            &amp; <span class="stringliteral">&quot;ddlpb: ddpcm_setup returned an error, exiting&quot;</span>)</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga933cba3ac8ebea8ca97cd6447990a271">ddpcm_guess</a>(params, constants, workspace, state, error)</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        <span class="keyword">call </span>update_error(error, &amp;</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>            &amp; <span class="stringliteral">&quot;ddlpb: ddpcm_guess returned an error, exiting&quot;</span>)</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gac0931e735945af09ac6e15f3a70032c7">ddpcm_solve</a>(params, constants, workspace, state, tol, error)</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        <span class="keyword">call </span>update_error(error, &amp;</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>            &amp; <span class="stringliteral">&quot;ddlpb: ddpcm_solve returned an error, exiting&quot;</span>)</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga74e0e581512ebe914e97c49a5594f692">ddpcm_energy</a>(constants, state, esolv, error)</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="comment">! Get forces if needed</span></div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="keywordflow">if</span> (params % force .eq. 1) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>        <span class="comment">! solve the adjoint</span></div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>        <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga52a63b53b30b4af42441c486436fecf4">ddpcm_guess_adjoint</a>(params, constants, workspace, state, error)</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>        <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>            <span class="keyword">call </span>update_error(error, &amp;</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>                &amp; <span class="stringliteral">&quot;ddlpb: ddpcm_guess_adjoint returned an error, exiting&quot;</span>)</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>            <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span><span class="keywordflow">        end if</span></div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>        <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gac210cb06cd65f2fdd0f26eb2440a792a">ddpcm_solve_adjoint</a>(params, constants, workspace, state, &amp;</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>            &amp; tol, error)</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>        <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>            <span class="keyword">call </span>update_error(error, &amp;</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>                &amp; <span class="stringliteral">&quot;ddlpb: ddpcm_guess_adjoint returned an error, exiting&quot;</span>)</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>            <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><span class="keywordflow">        end if</span></div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>        <span class="comment">! evaluate the solvent unspecific contribution analytical derivatives</span></div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>        force = zero</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>        <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga24b4fb14c0488a5a326c89e5b5cbc1fe">ddpcm_solvation_force_terms</a>(params, constants, workspace, &amp;</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>            &amp; state, force, error)</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga7f4ab910aea0530a3d9ba9ffb66ac8dd">ddpcm</a></div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#ga74e0e581512ebe914e97c49a5594f692">  107</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga74e0e581512ebe914e97c49a5594f692">ddpcm_energy</a>(constants, state, esolv, error)</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(in)</span> :: state</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: esolv</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">external</span> :: ddot</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    esolv = pt5*ddot(constants % n, state % xs, 1, state % psi, 1)</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga74e0e581512ebe914e97c49a5594f692">ddpcm_energy</a></div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#ga5d9eb538eef6afe8b4606ed7cc6360a7">  129</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga5d9eb538eef6afe8b4606ed7cc6360a7">ddpcm_setup</a>(params, constants, workspace, state, phi_cav, psi, error)</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: phi_cav(constants % ncav)</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: psi(constants % nbasis, params % nsph)</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    <span class="keyword">call </span>cav_to_spherical(params, constants, workspace, phi_cav, &amp;</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>        &amp; state % phi)</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    state % phi = - state % phi</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>    state % phi_cav = phi_cav</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>    state % psi = psi</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga5d9eb538eef6afe8b4606ed7cc6360a7">ddpcm_setup</a></div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span> </div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#ga933cba3ac8ebea8ca97cd6447990a271">  153</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga933cba3ac8ebea8ca97cd6447990a271">ddpcm_guess</a>(params, constants, workspace, state, error)</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span> </div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    state % xs = zero</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__operators.html#a480a3157e0716d4cff6c8366f86ee1b0">prec_repsx</a>(params, constants, workspace, state % phi, &amp;</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>        &amp; state % phieps, error)</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span> </div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga933cba3ac8ebea8ca97cd6447990a271">ddpcm_guess</a></div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span> </div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#ga52a63b53b30b4af42441c486436fecf4">  175</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga52a63b53b30b4af42441c486436fecf4">ddpcm_guess_adjoint</a>(params, constants, workspace, state, error)</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span> </div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    state % y = zero</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__operators.html#a1e850edc7a3932a9785c7c16aefaec85">ldm1x</a>(params, constants, workspace, state % psi, state % s, error)</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span> </div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga52a63b53b30b4af42441c486436fecf4">ddpcm_guess_adjoint</a></div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span> </div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#gac0931e735945af09ac6e15f3a70032c7">  198</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gac0931e735945af09ac6e15f3a70032c7">ddpcm_solve</a>(params, constants, workspace, state, tol, error)</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: tol</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    <span class="comment">! local variables</span></div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span><span class="keywordtype">    real</span>(dp) :: start_time, finish_time</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span> </div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__operators.html#ae0bbba5c8b792c1f2ce645293238b0ca">rinfx</a>(params, constants, workspace, state % phi, state % phiinf, &amp;</div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>        &amp; error)</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span> </div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    state % phieps_niter = params % maxiter</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    start_time = omp_get_wtime()</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    <span class="keyword">call </span>jacobi_diis(params, constants, workspace, tol, state % phiinf, &amp;</div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>        &amp; state % phieps, state % phieps_niter, state % phieps_rel_diff, &amp;</div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>        &amp; <a class="code hl_function" href="namespaceddx__operators.html#a0110f22d13849879dee13438d6fa4246">repsx</a>, <a class="code hl_function" href="namespaceddx__operators.html#a480a3157e0716d4cff6c8366f86ee1b0">prec_repsx</a>, hnorm, error)</div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>    finish_time = omp_get_wtime()</div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    state % phieps_time = finish_time - start_time</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span> </div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;ddpcm_solve: solver for ddPCM &quot;</span> // &amp;</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>            &amp; <span class="stringliteral">&quot;system did not converge, exiting&quot;</span>)</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span> </div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    state % xs_niter =  params % maxiter</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>    start_time = omp_get_wtime()</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>    <span class="keyword">call </span>jacobi_diis(params, constants, workspace, tol, state % phieps, &amp;</div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>        &amp; state % xs, state % xs_niter, state % xs_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#a0661fd28885c91ac7dfa07df51449bfd">lx</a>, <a class="code hl_function" href="namespaceddx__operators.html#a1e850edc7a3932a9785c7c16aefaec85">ldm1x</a>, &amp;</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>        &amp; hnorm, error)</div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>    finish_time = omp_get_wtime()</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>    state % xs_time = finish_time - start_time</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span> </div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;ddpcm_solve: solver for ddCOSMO &quot;</span> // &amp;</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>            &amp; <span class="stringliteral">&quot;system did not converge, exiting&quot;</span>)</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span> </div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gac0931e735945af09ac6e15f3a70032c7">ddpcm_solve</a></div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span> </div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#gac210cb06cd65f2fdd0f26eb2440a792a">  252</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gac210cb06cd65f2fdd0f26eb2440a792a">ddpcm_solve_adjoint</a>(params, constants, workspace, state, tol, error)</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: tol</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    <span class="comment">! local variables</span></div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span><span class="keywordtype">    real</span>(dp) :: start_time, finish_time</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span> </div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>    state % s_niter =  params % maxiter</div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    start_time = omp_get_wtime()</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    <span class="keyword">call </span>jacobi_diis(params, constants, workspace, tol, state % psi, &amp;</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>        &amp; state % s, state % s_niter, state % s_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#a5feaca1fa1b6971612811e873312e553">lstarx</a>, <a class="code hl_function" href="namespaceddx__operators.html#a1e850edc7a3932a9785c7c16aefaec85">ldm1x</a>, &amp;</div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>        &amp; hnorm, error)</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>    finish_time = omp_get_wtime()</div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>    state % s_time = finish_time - start_time</div>
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span> </div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;ddpcm_solve_adjoint: solver for ddCOSMO &quot;</span> // &amp;</div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>            &amp; <span class="stringliteral">&quot;system did not converge, exiting&quot;</span>)</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span> </div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    state % y_niter = params % maxiter</div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>    start_time = omp_get_wtime()</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>    <span class="keyword">call </span>jacobi_diis(params, constants, workspace, tol, state % s, state % y, &amp;</div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>        &amp; state % y_niter, state % y_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#a3fdb59095524a4b45def9f946b13a6e2">repsstarx</a>, <a class="code hl_function" href="namespaceddx__operators.html#a330398b8bbde101b2827bbe3b0a2562f">prec_repsstarx</a>, &amp;</div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>        &amp; hnorm, error)</div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>    finish_time = omp_get_wtime()</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>    state % y_time = finish_time - start_time</div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span> </div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;ddpcm_solve_adjoint: solver for ddPCM &quot;</span> // &amp;</div>
-<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>            &amp; <span class="stringliteral">&quot;system did not converge, exiting&quot;</span>)</div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>        <span class="keywordflow">return</span></div>
-<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span> </div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>    <span class="comment">! compute the real adjoint solution and store it in Q</span></div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>    state % q = state % s - fourpi/(params % eps - one)*state % y</div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span> </div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b">ddpcm_derivative_setup</a>(params, constants, workspace, state)</div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span> </div>
-<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gac210cb06cd65f2fdd0f26eb2440a792a">ddpcm_solve_adjoint</a></div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span> </div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#ga24b4fb14c0488a5a326c89e5b5cbc1fe">  308</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga24b4fb14c0488a5a326c89e5b5cbc1fe">ddpcm_solvation_force_terms</a>(params, constants, workspace, &amp;</div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>        &amp; state, force, error)</div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>    <span class="keywordtype">implicit none</span></div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
-<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
-<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: force(3, params % nsph)</div>
-<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span> </div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span><span class="keywordtype">    real</span>(dp) :: start_time, finish_time</div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>    <span class="keywordtype">integer</span> :: isph</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: e_cav(3, constants % ncav)</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span>, <span class="keywordtype">optional</span> :: force(3, params % nsph)</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga5d9eb538eef6afe8b4606ed7cc6360a7">ddpcm_setup</a>(params, constants, workspace, state, phi_cav, psi, error)</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        <span class="keyword">call </span>update_error(error, &amp;</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>            &amp; <span class="stringliteral">&quot;ddlpb: ddpcm_setup returned an error, exiting&quot;</span>)</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga933cba3ac8ebea8ca97cd6447990a271">ddpcm_guess</a>(params, constants, workspace, state, error)</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>        <span class="keyword">call </span>update_error(error, &amp;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>            &amp; <span class="stringliteral">&quot;ddlpb: ddpcm_guess returned an error, exiting&quot;</span>)</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gac0931e735945af09ac6e15f3a70032c7">ddpcm_solve</a>(params, constants, workspace, state, tol, error)</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        <span class="keyword">call </span>update_error(error, &amp;</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>            &amp; <span class="stringliteral">&quot;ddlpb: ddpcm_solve returned an error, exiting&quot;</span>)</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga74e0e581512ebe914e97c49a5594f692">ddpcm_energy</a>(constants, state, esolv, error)</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="comment">! Get forces if needed</span></div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="keywordflow">if</span> (params % force .eq. 1) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>        <span class="comment">! solve the adjoint</span></div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>        <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga52a63b53b30b4af42441c486436fecf4">ddpcm_guess_adjoint</a>(params, constants, workspace, state, error)</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>        <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>            <span class="keyword">call </span>update_error(error, &amp;</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>                &amp; <span class="stringliteral">&quot;ddlpb: ddpcm_guess_adjoint returned an error, exiting&quot;</span>)</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>            <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span><span class="keywordflow">        end if</span></div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>        <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gac210cb06cd65f2fdd0f26eb2440a792a">ddpcm_solve_adjoint</a>(params, constants, workspace, state, &amp;</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>            &amp; tol, error)</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>        <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>            <span class="keyword">call </span>update_error(error, &amp;</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>                &amp; <span class="stringliteral">&quot;ddlpb: ddpcm_guess_adjoint returned an error, exiting&quot;</span>)</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>            <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="keywordflow">        end if</span></div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>        <span class="comment">! evaluate the solvent unspecific contribution analytical derivatives</span></div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>        force = zero</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>        <span class="keyword">call </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga9f5ff8b2e2f3ae1d0df0ebea4f2d249f">ddpcm_solvation_force_terms</a>(params, constants, workspace, &amp;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>            &amp; state, e_cav, force, error)</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gae486d1463e3f4ad910e9999942d4f46a">ddpcm</a></div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#ga74e0e581512ebe914e97c49a5594f692">  108</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga74e0e581512ebe914e97c49a5594f692">ddpcm_energy</a>(constants, state, esolv, error)</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(in)</span> :: state</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: esolv</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">external</span> :: ddot</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    esolv = pt5*ddot(constants % n, state % xs, 1, state % psi, 1)</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga74e0e581512ebe914e97c49a5594f692">ddpcm_energy</a></div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span> </div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#ga5d9eb538eef6afe8b4606ed7cc6360a7">  130</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga5d9eb538eef6afe8b4606ed7cc6360a7">ddpcm_setup</a>(params, constants, workspace, state, phi_cav, psi, error)</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: phi_cav(constants % ncav)</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: psi(constants % nbasis, params % nsph)</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    <span class="keyword">call </span>cav_to_spherical(params, constants, workspace, phi_cav, &amp;</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>        &amp; state % phi)</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>    state % phi = - state % phi</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>    state % phi_cav = phi_cav</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>    state % psi = psi</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga5d9eb538eef6afe8b4606ed7cc6360a7">ddpcm_setup</a></div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span> </div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#ga933cba3ac8ebea8ca97cd6447990a271">  154</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga933cba3ac8ebea8ca97cd6447990a271">ddpcm_guess</a>(params, constants, workspace, state, error)</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span> </div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>    state % xs = zero</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__operators.html#a480a3157e0716d4cff6c8366f86ee1b0">prec_repsx</a>(params, constants, workspace, state % phi, &amp;</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>        &amp; state % phieps, error)</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span> </div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga933cba3ac8ebea8ca97cd6447990a271">ddpcm_guess</a></div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span> </div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#ga52a63b53b30b4af42441c486436fecf4">  176</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga52a63b53b30b4af42441c486436fecf4">ddpcm_guess_adjoint</a>(params, constants, workspace, state, error)</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span> </div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    state % y = zero</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__operators.html#a1e850edc7a3932a9785c7c16aefaec85">ldm1x</a>(params, constants, workspace, state % psi, state % s, error)</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span> </div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga52a63b53b30b4af42441c486436fecf4">ddpcm_guess_adjoint</a></div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span> </div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#gac0931e735945af09ac6e15f3a70032c7">  199</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gac0931e735945af09ac6e15f3a70032c7">ddpcm_solve</a>(params, constants, workspace, state, tol, error)</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: tol</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>    <span class="comment">! local variables</span></div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span><span class="keywordtype">    real</span>(dp) :: start_time, finish_time</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span> </div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__operators.html#ae0bbba5c8b792c1f2ce645293238b0ca">rinfx</a>(params, constants, workspace, state % phi, state % phiinf, &amp;</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>        &amp; error)</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span> </div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    state % phieps_niter = params % maxiter</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    start_time = omp_get_wtime()</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>    <span class="keyword">call </span>jacobi_diis(params, constants, workspace, tol, state % phiinf, &amp;</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>        &amp; state % phieps, state % phieps_niter, state % phieps_rel_diff, &amp;</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>        &amp; <a class="code hl_function" href="namespaceddx__operators.html#a0110f22d13849879dee13438d6fa4246">repsx</a>, <a class="code hl_function" href="namespaceddx__operators.html#a480a3157e0716d4cff6c8366f86ee1b0">prec_repsx</a>, hnorm, error)</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    finish_time = omp_get_wtime()</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    state % phieps_time = finish_time - start_time</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span> </div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;ddpcm_solve: solver for ddPCM &quot;</span> // &amp;</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>            &amp; <span class="stringliteral">&quot;system did not converge, exiting&quot;</span>)</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span> </div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>    state % xs_niter =  params % maxiter</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>    start_time = omp_get_wtime()</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>    <span class="keyword">call </span>jacobi_diis(params, constants, workspace, tol, state % phieps, &amp;</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>        &amp; state % xs, state % xs_niter, state % xs_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#a0661fd28885c91ac7dfa07df51449bfd">lx</a>, <a class="code hl_function" href="namespaceddx__operators.html#a1e850edc7a3932a9785c7c16aefaec85">ldm1x</a>, &amp;</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>        &amp; hnorm, error)</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>    finish_time = omp_get_wtime()</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    state % xs_time = finish_time - start_time</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span> </div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;ddpcm_solve: solver for ddCOSMO &quot;</span> // &amp;</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>            &amp; <span class="stringliteral">&quot;system did not converge, exiting&quot;</span>)</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span> </div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gac0931e735945af09ac6e15f3a70032c7">ddpcm_solve</a></div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span> </div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#gac210cb06cd65f2fdd0f26eb2440a792a">  253</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gac210cb06cd65f2fdd0f26eb2440a792a">ddpcm_solve_adjoint</a>(params, constants, workspace, state, tol, error)</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: tol</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    <span class="comment">! local variables</span></div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span><span class="keywordtype">    real</span>(dp) :: start_time, finish_time</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span> </div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    state % s_niter =  params % maxiter</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    start_time = omp_get_wtime()</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>    <span class="keyword">call </span>jacobi_diis(params, constants, workspace, tol, state % psi, &amp;</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>        &amp; state % s, state % s_niter, state % s_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#a5feaca1fa1b6971612811e873312e553">lstarx</a>, <a class="code hl_function" href="namespaceddx__operators.html#a1e850edc7a3932a9785c7c16aefaec85">ldm1x</a>, &amp;</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>        &amp; hnorm, error)</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>    finish_time = omp_get_wtime()</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>    state % s_time = finish_time - start_time</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span> </div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;ddpcm_solve_adjoint: solver for ddCOSMO &quot;</span> // &amp;</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>            &amp; <span class="stringliteral">&quot;system did not converge, exiting&quot;</span>)</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span> </div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>    state % y_niter = params % maxiter</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>    start_time = omp_get_wtime()</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>    <span class="keyword">call </span>jacobi_diis(params, constants, workspace, tol, state % s, state % y, &amp;</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>        &amp; state % y_niter, state % y_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#a3fdb59095524a4b45def9f946b13a6e2">repsstarx</a>, <a class="code hl_function" href="namespaceddx__operators.html#a330398b8bbde101b2827bbe3b0a2562f">prec_repsstarx</a>, &amp;</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>        &amp; hnorm, error)</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>    finish_time = omp_get_wtime()</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>    state % y_time = finish_time - start_time</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span> </div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;ddpcm_solve_adjoint: solver for ddPCM &quot;</span> // &amp;</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>            &amp; <span class="stringliteral">&quot;system did not converge, exiting&quot;</span>)</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>        <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span><span class="keywordflow">    end if</span></div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span> </div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>    <span class="comment">! compute the real adjoint solution and store it in Q</span></div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>    state % q = state % s - fourpi/(params % eps - one)*state % y</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span> </div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b">ddpcm_derivative_setup</a>(params, constants, workspace, state)</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span> </div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#gac210cb06cd65f2fdd0f26eb2440a792a">ddpcm_solve_adjoint</a></div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span> </div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno"><a class="line" href="group___fortran__interface__ddpcm.html#ga9f5ff8b2e2f3ae1d0df0ebea4f2d249f">  310</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga9f5ff8b2e2f3ae1d0df0ebea4f2d249f">ddpcm_solvation_force_terms</a>(params, constants, workspace, &amp;</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>        &amp; state, e_cav, force, error)</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>    <span class="keywordtype">implicit none</span></div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: error</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(in)</span> :: e_cav(3, constants % ncav)</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: force(3, params % nsph)</div>
 <div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span> </div>
-<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>    start_time = omp_get_wtime()</div>
-<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span> </div>
-<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>    <span class="keyword">call </span>gradr(params, constants, workspace, state % g, state % ygrid, force)</div>
-<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span> </div>
-<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>        <span class="keyword">call </span>contract_grad_l(params, constants, isph, state % xs, &amp;</div>
-<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>            &amp; state % sgrid, workspace % tmp_vylm(:, 1), &amp;</div>
-<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>            &amp; workspace % tmp_vdylm(:, :, 1), workspace % tmp_vplm(:, 1), &amp;</div>
-<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>            &amp; workspace % tmp_vcos(:, 1), workspace % tmp_vsin(:, 1), &amp;</div>
-<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>            &amp; force(:, isph))</div>
-<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>        <span class="keyword">call </span>contract_grad_u(params, constants, isph, state % qgrid, &amp;</div>
-<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>            &amp; state % phi_grid, force(:, isph))</div>
-<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>    force = - pt5 * force</div>
-<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span> </div>
-<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>    finish_time = omp_get_wtime()</div>
-<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>    state % force_time = finish_time - start_time</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span><span class="keywordtype">    real</span>(dp) :: start_time, finish_time</div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>    <span class="keywordtype">integer</span> :: isph</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span> </div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>    start_time = omp_get_wtime()</div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span> </div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>    <span class="keyword">call </span>gradr(params, constants, workspace, state % g, state % ygrid, force)</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span> </div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>        <span class="keyword">call </span>contract_grad_l(params, constants, isph, state % xs, &amp;</div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>            &amp; state % sgrid, workspace % tmp_vylm(:, 1), &amp;</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>            &amp; workspace % tmp_vdylm(:, :, 1), workspace % tmp_vplm(:, 1), &amp;</div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>            &amp; workspace % tmp_vcos(:, 1), workspace % tmp_vsin(:, 1), &amp;</div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>            &amp; force(:, isph))</div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>        <span class="keyword">call </span>contract_grad_u(params, constants, isph, state % qgrid, &amp;</div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>            &amp; state % phi_grid, force(:, isph))</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>    force = - pt5 * force</div>
 <div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span> </div>
-<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga24b4fb14c0488a5a326c89e5b5cbc1fe">ddpcm_solvation_force_terms</a></div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>    <span class="keyword">call </span>zeta_grad(params, constants, state, e_cav, force)</div>
 <div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span> </div>
-<div class="line"><a id="l00349" name="l00349"></a><span class="lineno"><a class="line" href="namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b">  349</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b">ddpcm_derivative_setup</a>(params, constants, workspace, state)</div>
-<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
-<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
-<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
-<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
-<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span> </div>
-<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">external</span> :: ddot</div>
-<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>    <span class="keywordtype">integer</span> :: icav, isph, igrid</div>
-<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span> </div>
-<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>    <span class="comment">! Get grid values of S and Y</span></div>
-<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>    <span class="keyword">call </span>dgemm(<span class="stringliteral">&#39;T&#39;</span>, <span class="stringliteral">&#39;N&#39;</span>, params % ngrid, params % nsph, &amp;</div>
-<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>        &amp; constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &amp;</div>
-<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>        &amp; state % s, constants % nbasis, zero, state % sgrid, params % ngrid)</div>
-<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>    <span class="keyword">call </span>dgemm(<span class="stringliteral">&#39;T&#39;</span>, <span class="stringliteral">&#39;N&#39;</span>, params % ngrid, params % nsph, &amp;</div>
-<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>        &amp; constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &amp;</div>
-<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>        &amp; state % y, constants % nbasis, zero, state % ygrid, params % ngrid)</div>
-<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span> </div>
-<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>    <span class="comment">! Get the values of phi on the grid</span></div>
-<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>    <span class="keyword">call </span>ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &amp;</div>
-<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>        &amp; constants % icav_ia, constants % icav_ja, state % phi_cav, &amp;</div>
-<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>        &amp; state % phi_grid)</div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>    finish_time = omp_get_wtime()</div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>    state % force_time = finish_time - start_time</div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span> </div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__ddpcm.html#ga9f5ff8b2e2f3ae1d0df0ebea4f2d249f">ddpcm_solvation_force_terms</a></div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span> </div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno"><a class="line" href="namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b">  354</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b">ddpcm_derivative_setup</a>(params, constants, workspace, state)</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>    <span class="keywordtype">type</span>(ddx_params_type), <span class="keywordtype">intent(in)</span> :: params</div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>    <span class="keywordtype">type</span>(ddx_constants_type), <span class="keywordtype">intent(in)</span> :: constants</div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>    <span class="keywordtype">type</span>(ddx_workspace_type), <span class="keywordtype">intent(inout)</span> :: workspace</div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>    <span class="keywordtype">type</span>(ddx_state_type), <span class="keywordtype">intent(inout)</span> :: state</div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span> </div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">external</span> :: ddot</div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>    <span class="keywordtype">integer</span> :: icav, isph, igrid</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span> </div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>    <span class="comment">! Get grid values of S and Y</span></div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>    <span class="keyword">call </span>dgemm(<span class="stringliteral">&#39;T&#39;</span>, <span class="stringliteral">&#39;N&#39;</span>, params % ngrid, params % nsph, &amp;</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>        &amp; constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &amp;</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>        &amp; state % s, constants % nbasis, zero, state % sgrid, params % ngrid)</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>    <span class="keyword">call </span>dgemm(<span class="stringliteral">&#39;T&#39;</span>, <span class="stringliteral">&#39;N&#39;</span>, params % ngrid, params % nsph, &amp;</div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>        &amp; constants % nbasis, one, constants % vgrid, constants % vgrid_nbasis, &amp;</div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>        &amp; state % y, constants % nbasis, zero, state % ygrid, params % ngrid)</div>
 <div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span> </div>
-<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>    state % g = - (state % phieps - state % phi)</div>
-<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>    state % qgrid = state % sgrid - fourpi/(params % eps - one)*state % ygrid</div>
-<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span> </div>
-<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>    <span class="comment">! assemble the intermediate zeta: S weighted by U evaluated on the</span></div>
-<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>    <span class="comment">! exposed grid points.</span></div>
-<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>    icav = 0</div>
-<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
-<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
-<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>            <span class="keywordflow">if</span> (constants % ui(igrid, isph) .ne. zero) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>                icav = icav + 1</div>
-<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>                state % zeta(icav) = constants % wgrid(igrid) * &amp;</div>
-<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>                    &amp; constants % ui(igrid, isph) * ddot(constants % nbasis, &amp;</div>
-<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>                    &amp; constants % vgrid(1, igrid), 1, state % q(1, isph), 1)</div>
-<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span><span class="keywordflow">            end if</span></div>
-<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span><span class="keywordflow">        end do</span></div>
-<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span><span class="keywordflow">    end do</span></div>
-<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span> </div>
-<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b">ddpcm_derivative_setup</a></div>
-<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span> </div>
-<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx__pcm.html">ddx_pcm</a></div>
-<div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga24b4fb14c0488a5a326c89e5b5cbc1fe"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga24b4fb14c0488a5a326c89e5b5cbc1fe">ddx_pcm::ddpcm_solvation_force_terms</a></div><div class="ttdeci">subroutine ddpcm_solvation_force_terms(params, constants, workspace, state, force, error)</div><div class="ttdoc">Compute the solvation contribution to the ddPCM forces.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00308">ddx_pcm.f90:310</a></div></div>
-<div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga52a63b53b30b4af42441c486436fecf4"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga52a63b53b30b4af42441c486436fecf4">ddx_pcm::ddpcm_guess_adjoint</a></div><div class="ttdeci">subroutine ddpcm_guess_adjoint(params, constants, workspace, state, error)</div><div class="ttdoc">Do a guess for the adjoint ddPCM linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00175">ddx_pcm.f90:176</a></div></div>
-<div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga5d9eb538eef6afe8b4606ed7cc6360a7"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga5d9eb538eef6afe8b4606ed7cc6360a7">ddx_pcm::ddpcm_setup</a></div><div class="ttdeci">subroutine ddpcm_setup(params, constants, workspace, state, phi_cav, psi, error)</div><div class="ttdoc">Given the potential at the cavity points, assemble the RHS for ddCOSMO or for ddPCM.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00129">ddx_pcm.f90:130</a></div></div>
-<div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga74e0e581512ebe914e97c49a5594f692"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga74e0e581512ebe914e97c49a5594f692">ddx_pcm::ddpcm_energy</a></div><div class="ttdeci">subroutine ddpcm_energy(constants, state, esolv, error)</div><div class="ttdoc">Compute the ddPCM energy.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00107">ddx_pcm.f90:108</a></div></div>
-<div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga7f4ab910aea0530a3d9ba9ffb66ac8dd"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga7f4ab910aea0530a3d9ba9ffb66ac8dd">ddx_pcm::ddpcm</a></div><div class="ttdeci">subroutine ddpcm(params, constants, workspace, state, phi_cav, psi, tol, esolv, force, error)</div><div class="ttdoc">ddPCM solver</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00040">ddx_pcm.f90:42</a></div></div>
-<div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga933cba3ac8ebea8ca97cd6447990a271"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga933cba3ac8ebea8ca97cd6447990a271">ddx_pcm::ddpcm_guess</a></div><div class="ttdeci">subroutine ddpcm_guess(params, constants, workspace, state, error)</div><div class="ttdoc">Do a guess for the primal ddPCM linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00153">ddx_pcm.f90:154</a></div></div>
-<div class="ttc" id="agroup___fortran__interface__ddpcm_html_gac0931e735945af09ac6e15f3a70032c7"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#gac0931e735945af09ac6e15f3a70032c7">ddx_pcm::ddpcm_solve</a></div><div class="ttdeci">subroutine ddpcm_solve(params, constants, workspace, state, tol, error)</div><div class="ttdoc">Solve the ddPCM primal linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00198">ddx_pcm.f90:199</a></div></div>
-<div class="ttc" id="agroup___fortran__interface__ddpcm_html_gac210cb06cd65f2fdd0f26eb2440a792a"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#gac210cb06cd65f2fdd0f26eb2440a792a">ddx_pcm::ddpcm_solve_adjoint</a></div><div class="ttdeci">subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol, error)</div><div class="ttdoc">Solve the ddPCM adjpint linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00252">ddx_pcm.f90:253</a></div></div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>    <span class="comment">! Get the values of phi on the grid</span></div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>    <span class="keyword">call </span>ddcav_to_grid_work(params % ngrid, params % nsph, constants % ncav, &amp;</div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>        &amp; constants % icav_ia, constants % icav_ja, state % phi_cav, &amp;</div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>        &amp; state % phi_grid)</div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span> </div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>    state % g = - (state % phieps - state % phi)</div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>    state % qgrid = state % sgrid - fourpi/(params % eps - one)*state % ygrid</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span> </div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>    <span class="comment">! assemble the intermediate zeta: S weighted by U evaluated on the</span></div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>    <span class="comment">! exposed grid points.</span></div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>    icav = 0</div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>    <span class="keywordflow">do</span> isph = 1, params % nsph</div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>        <span class="keywordflow">do</span> igrid = 1, params % ngrid</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>            <span class="keywordflow">if</span> (constants % ui(igrid, isph) .ne. zero) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>                icav = icav + 1</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>                state % zeta(icav) = constants % wgrid(igrid) * &amp;</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>                    &amp; constants % ui(igrid, isph) * ddot(constants % nbasis, &amp;</div>
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>                    &amp; constants % vgrid(1, igrid), 1, state % q(1, isph), 1)</div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span><span class="keywordflow">            end if</span></div>
+<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span><span class="keywordflow">        end do</span></div>
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span><span class="keywordflow">    end do</span></div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span> </div>
+<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b">ddpcm_derivative_setup</a></div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span> </div>
+<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span><span class="keyword">end module </span><a class="code hl_namespace" href="namespaceddx__pcm.html">ddx_pcm</a></div>
+<div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga52a63b53b30b4af42441c486436fecf4"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga52a63b53b30b4af42441c486436fecf4">ddx_pcm::ddpcm_guess_adjoint</a></div><div class="ttdeci">subroutine ddpcm_guess_adjoint(params, constants, workspace, state, error)</div><div class="ttdoc">Do a guess for the adjoint ddPCM linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00176">ddx_pcm.f90:177</a></div></div>
+<div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga5d9eb538eef6afe8b4606ed7cc6360a7"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga5d9eb538eef6afe8b4606ed7cc6360a7">ddx_pcm::ddpcm_setup</a></div><div class="ttdeci">subroutine ddpcm_setup(params, constants, workspace, state, phi_cav, psi, error)</div><div class="ttdoc">Given the potential at the cavity points, assemble the RHS for ddCOSMO or for ddPCM.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00130">ddx_pcm.f90:131</a></div></div>
+<div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga74e0e581512ebe914e97c49a5594f692"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga74e0e581512ebe914e97c49a5594f692">ddx_pcm::ddpcm_energy</a></div><div class="ttdeci">subroutine ddpcm_energy(constants, state, esolv, error)</div><div class="ttdoc">Compute the ddPCM energy.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00108">ddx_pcm.f90:109</a></div></div>
+<div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga933cba3ac8ebea8ca97cd6447990a271"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga933cba3ac8ebea8ca97cd6447990a271">ddx_pcm::ddpcm_guess</a></div><div class="ttdeci">subroutine ddpcm_guess(params, constants, workspace, state, error)</div><div class="ttdoc">Do a guess for the primal ddPCM linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00154">ddx_pcm.f90:155</a></div></div>
+<div class="ttc" id="agroup___fortran__interface__ddpcm_html_ga9f5ff8b2e2f3ae1d0df0ebea4f2d249f"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#ga9f5ff8b2e2f3ae1d0df0ebea4f2d249f">ddx_pcm::ddpcm_solvation_force_terms</a></div><div class="ttdeci">subroutine ddpcm_solvation_force_terms(params, constants, workspace, state, e_cav, force, error)</div><div class="ttdoc">Compute the solvation contribution to the ddPCM forces.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00310">ddx_pcm.f90:312</a></div></div>
+<div class="ttc" id="agroup___fortran__interface__ddpcm_html_gac0931e735945af09ac6e15f3a70032c7"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#gac0931e735945af09ac6e15f3a70032c7">ddx_pcm::ddpcm_solve</a></div><div class="ttdeci">subroutine ddpcm_solve(params, constants, workspace, state, tol, error)</div><div class="ttdoc">Solve the ddPCM primal linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00199">ddx_pcm.f90:200</a></div></div>
+<div class="ttc" id="agroup___fortran__interface__ddpcm_html_gac210cb06cd65f2fdd0f26eb2440a792a"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#gac210cb06cd65f2fdd0f26eb2440a792a">ddx_pcm::ddpcm_solve_adjoint</a></div><div class="ttdeci">subroutine ddpcm_solve_adjoint(params, constants, workspace, state, tol, error)</div><div class="ttdoc">Solve the ddPCM adjpint linear system.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00253">ddx_pcm.f90:254</a></div></div>
+<div class="ttc" id="agroup___fortran__interface__ddpcm_html_gae486d1463e3f4ad910e9999942d4f46a"><div class="ttname"><a href="group___fortran__interface__ddpcm.html#gae486d1463e3f4ad910e9999942d4f46a">ddx_pcm::ddpcm</a></div><div class="ttdeci">subroutine ddpcm(params, constants, workspace, state, phi_cav, psi, e_cav, tol, esolv, force, error)</div><div class="ttdoc">ddPCM solver</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00040">ddx_pcm.f90:42</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html"><div class="ttname"><a href="namespaceddx__operators.html">ddx_operators</a></div><div class="ttdoc">Operators shared among ddX methods.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00013">ddx_operators.f90:13</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_a0110f22d13849879dee13438d6fa4246"><div class="ttname"><a href="namespaceddx__operators.html#a0110f22d13849879dee13438d6fa4246">ddx_operators::repsx</a></div><div class="ttdeci">subroutine repsx(params, constants, workspace, x, y, error)</div><div class="ttdoc">Apply  operator to spherical harmonics.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00499">ddx_operators.f90:500</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_a0661fd28885c91ac7dfa07df51449bfd"><div class="ttname"><a href="namespaceddx__operators.html#a0661fd28885c91ac7dfa07df51449bfd">ddx_operators::lx</a></div><div class="ttdeci">subroutine lx(params, constants, workspace, x, y, error)</div><div class="ttdoc">Single layer operator matvec.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00025">ddx_operators.f90:26</a></div></div>
@@ -398,7 +402,7 @@ $(document).ready(function(){initNavTree('ddx__pcm_8f90_source.html',''); initRe
 <div class="ttc" id="anamespaceddx__operators_html_a5feaca1fa1b6971612811e873312e553"><div class="ttname"><a href="namespaceddx__operators.html#a5feaca1fa1b6971612811e873312e553">ddx_operators::lstarx</a></div><div class="ttdeci">subroutine lstarx(params, constants, workspace, x, y, error)</div><div class="ttdoc">Adjoint single layer operator matvec.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00085">ddx_operators.f90:86</a></div></div>
 <div class="ttc" id="anamespaceddx__operators_html_ae0bbba5c8b792c1f2ce645293238b0ca"><div class="ttname"><a href="namespaceddx__operators.html#ae0bbba5c8b792c1f2ce645293238b0ca">ddx_operators::rinfx</a></div><div class="ttdeci">subroutine rinfx(params, constants, workspace, x, y, error)</div><div class="ttdoc">Apply  operator to spherical harmonics.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__operators_8f90_source.html#l00559">ddx_operators.f90:560</a></div></div>
 <div class="ttc" id="anamespaceddx__pcm_html"><div class="ttname"><a href="namespaceddx__pcm.html">ddx_pcm</a></div><div class="ttdoc">High-level subroutines for ddpcm.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00013">ddx_pcm.f90:13</a></div></div>
-<div class="ttc" id="anamespaceddx__pcm_html_ac26eb8d7859f50cdf2885ba6a516110b"><div class="ttname"><a href="namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b">ddx_pcm::ddpcm_derivative_setup</a></div><div class="ttdeci">subroutine ddpcm_derivative_setup(params, constants, workspace, state)</div><div class="ttdoc">This routines precomputes the intermediates to be used in the evaluation of ddCOSMO analytical deriva...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00349">ddx_pcm.f90:350</a></div></div>
+<div class="ttc" id="anamespaceddx__pcm_html_ac26eb8d7859f50cdf2885ba6a516110b"><div class="ttname"><a href="namespaceddx__pcm.html#ac26eb8d7859f50cdf2885ba6a516110b">ddx_pcm::ddpcm_derivative_setup</a></div><div class="ttdeci">subroutine ddpcm_derivative_setup(params, constants, workspace, state)</div><div class="ttdoc">This routines precomputes the intermediates to be used in the evaluation of ddCOSMO analytical deriva...</div><div class="ttdef"><b>Definition:</b> <a href="ddx__pcm_8f90_source.html#l00354">ddx_pcm.f90:355</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
