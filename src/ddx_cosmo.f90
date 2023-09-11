@@ -21,82 +21,6 @@ implicit none
 
 contains
 
-!> ddCOSMO solver
-!!
-!! Solves the problem within COSMO model using a domain decomposition approach.
-!!
-!> @ingroup Fortran_interface_ddcosmo
-!! @param[in] params: User specified parameters
-!! @param[in] constants: Precomputed constants
-!! @param[inout] workspace: Preallocated workspaces
-!! @param[inout] state: ddx state (contains solutions and RHSs)
-!! @param[in] phi_cav: Potential at cavity points, size (ncav)
-!! @param[in] psi: Representation of the solute potential in spherical
-!!     harmonics, size (nbasis, nsph)
-!! @param[in] tol: Tolerance for the linear system solver
-!! @param[out] esolv: Solvation energy
-!! @param[out] force: Solvation contribution to the forces
-!! @param[inout] error: ddX error
-!!
-subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
-        & psi, e_cav, tol, esolv, force, error)
-    implicit none
-    type(ddx_params_type), intent(in) :: params
-    type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_state_type), intent(inout) :: state
-    real(dp), intent(in) :: phi_cav(constants % ncav), &
-        & psi(constants % nbasis, params % nsph), tol
-    real(dp), intent(out) :: esolv
-    real(dp), intent(in) :: e_cav(3, constants % ncav)
-    real(dp), intent(out), optional :: force(3, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
-
-    call ddcosmo_setup(params, constants, workspace, state, phi_cav, psi, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
-            & "ddlpb: ddcosmo_setup returned an error, exiting")
-        return
-    end if
-    call ddcosmo_guess(params, constants, workspace, state, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
-            & "ddlpb: ddcosmo_guess returned an error, exiting")
-        return
-    end if
-    call ddcosmo_solve(params, constants, workspace, state, tol, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
-            & "ddlpb: ddcosmo_solve returned an error, exiting")
-        return
-    end if
-
-    call ddcosmo_energy(constants, state, esolv, error)
-
-    ! Get forces if needed
-    if (params % force .eq. 1) then
-        ! solve the adjoint
-        call ddcosmo_guess_adjoint(params, constants, workspace, state, error)
-        if (error % flag .ne. 0) then
-            call update_error(error, &
-                & "ddlpb: ddcosmo_guess_adjoint returned an error, exiting")
-            return
-        end if
-        call ddcosmo_solve_adjoint(params, constants, workspace, state, tol, &
-            & error)
-        if (error % flag .ne. 0) then
-            call update_error(error, &
-                & "ddlpb: ddcosmo_guess_adjoint returned an error, exiting")
-            return
-        end if
-
-        ! evaluate the solvent unspecific contribution analytical derivatives
-        force = zero
-        call ddcosmo_solvation_force_terms(params, constants, workspace, &
-            & state, e_cav, force, error)
-    end if
-end subroutine ddcosmo
-
 !> Compute the ddCOSMO energy
 !!
 !> @ingroup Fortran_interface_ddcosmo
@@ -104,7 +28,7 @@ end subroutine ddcosmo
 !! @param[in] state: ddx state (contains solutions and RHSs)
 !! @param[out] esolv: resulting energy
 !!
-subroutine ddcosmo_energy(constants, state, esolv, error)
+subroutine cosmo_energy(constants, state, esolv, error)
     implicit none
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(in) :: state
@@ -112,7 +36,7 @@ subroutine ddcosmo_energy(constants, state, esolv, error)
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
     esolv = pt5*ddot(constants % n, state % xs, 1, state % psi, 1)
-end subroutine ddcosmo_energy
+end subroutine cosmo_energy
 
 !> Given the potential at the cavity points, assemble the RHS for ddCOSMO
 !> or for ddPCM.
@@ -126,7 +50,7 @@ end subroutine ddcosmo_energy
 !! @param[in] psi: representation of the solute density
 !! @param[inout] error: ddX error
 !!
-subroutine ddcosmo_setup(params, constants, workspace, state, phi_cav, psi, error)
+subroutine cosmo_setup(params, constants, workspace, state, phi_cav, psi, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -140,7 +64,7 @@ subroutine ddcosmo_setup(params, constants, workspace, state, phi_cav, psi, erro
     state % phi = - state % phi
     state % phi_cav = phi_cav
     state % psi = psi
-end subroutine ddcosmo_setup
+end subroutine cosmo_setup
 
 !> Do a guess for the primal ddCOSMO linear system
 !!
@@ -151,7 +75,7 @@ end subroutine ddcosmo_setup
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[inout] error: ddX error
 !!
-subroutine ddcosmo_guess(params, constants, workspace, state, error)
+subroutine cosmo_guess(params, constants, workspace, state, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -162,7 +86,7 @@ subroutine ddcosmo_guess(params, constants, workspace, state, error)
     ! apply the diagonal preconditioner as a guess
     call ldm1x(params, constants, workspace, state % phi, state % xs, error)
 
-end subroutine ddcosmo_guess
+end subroutine cosmo_guess
 
 !> Do a guess for the adjoint ddCOSMO linear system
 !!
@@ -173,7 +97,7 @@ end subroutine ddcosmo_guess
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[inout] error: ddX error
 !!
-subroutine ddcosmo_guess_adjoint(params, constants, workspace, state, error)
+subroutine cosmo_guess_adjoint(params, constants, workspace, state, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -184,7 +108,7 @@ subroutine ddcosmo_guess_adjoint(params, constants, workspace, state, error)
     ! apply the diagonal preconditioner as a guess
     call ldm1x(params, constants, workspace, state % psi, state % s, error)
 
-end subroutine ddcosmo_guess_adjoint
+end subroutine cosmo_guess_adjoint
 
 !> Solve the primal ddCOSMO linear system
 !!
@@ -196,7 +120,7 @@ end subroutine ddcosmo_guess_adjoint
 !! @param[in] tol: Tolerance for the linear system solver
 !! @param[inout] error: ddX error
 !!
-subroutine ddcosmo_solve(params, constants, workspace, state, tol, error)
+subroutine cosmo_solve(params, constants, workspace, state, tol, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -215,7 +139,7 @@ subroutine ddcosmo_solve(params, constants, workspace, state, tol, error)
     finish_time = omp_get_wtime()
     state % xs_time = finish_time - start_time
 
-end subroutine ddcosmo_solve
+end subroutine cosmo_solve
 
 !> Solve the adjoint ddCOSMO linear system
 !!
@@ -227,7 +151,7 @@ end subroutine ddcosmo_solve
 !! @param[in] tol: Tolerance for the linear system solver
 !! @param[inout] error: ddX error
 !!
-subroutine ddcosmo_solve_adjoint(params, constants, workspace, state, tol, &
+subroutine cosmo_solve_adjoint(params, constants, workspace, state, tol, &
         & error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -249,9 +173,9 @@ subroutine ddcosmo_solve_adjoint(params, constants, workspace, state, tol, &
 
     state % q = state % s
 
-    call ddcosmo_derivative_setup(params, constants, workspace, state)
+    call cosmo_derivative_setup(params, constants, workspace, state)
 
-end subroutine ddcosmo_solve_adjoint
+end subroutine cosmo_solve_adjoint
 
 !> Compute the solvation term of the forces (solute aspecific). This must
 !> be summed to the solute specific term to get the full forces.
@@ -265,7 +189,7 @@ end subroutine ddcosmo_solve_adjoint
 !! @param[inout] force: force term
 !! @param[inout] error: ddX error
 !!
-subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
+subroutine cosmo_solvation_force_terms(params, constants, workspace, &
         & state, e_cav, force, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -299,7 +223,7 @@ subroutine ddcosmo_solvation_force_terms(params, constants, workspace, &
     finish_time = omp_get_wtime()
     state % force_time = finish_time - start_time
 
-end subroutine ddcosmo_solvation_force_terms
+end subroutine cosmo_solvation_force_terms
 
 !> This routines precomputes the intermediates to be used in the evaluation
 !! of ddCOSMO analytical derivatives.
@@ -309,7 +233,7 @@ end subroutine ddcosmo_solvation_force_terms
 !! @param[inout] workspace: ddx workspaces
 !! @param[inout] state: ddx state
 !!
-subroutine ddcosmo_derivative_setup(params, constants, workspace, state)
+subroutine cosmo_derivative_setup(params, constants, workspace, state)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -341,7 +265,7 @@ subroutine ddcosmo_derivative_setup(params, constants, workspace, state)
         end do
     end do
 
-end subroutine ddcosmo_derivative_setup
+end subroutine cosmo_derivative_setup
 
 end module ddx_cosmo
 

@@ -14,6 +14,7 @@ use ddx_core
 use ddx_operators
 use ddx_solvers
 use ddx
+use ddx_legacy
 implicit none
 
 character(len=255) :: finname, foutname, tmpstr
@@ -36,7 +37,7 @@ read(tmpstr, *) threshold
 ! Init input from a file
 call ddfromfile(finname, ddx_data, tol, charges, error)
 call check_error(error)
-call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call allocate_state(ddx_data % params, ddx_data % constants, state, error)
 call check_error(error)
 
 ! Allocate resources
@@ -49,7 +50,7 @@ if(istatus .ne. 0) call test_error(-1, "Allocation failed")
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
     & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
 ! Use the solver
-call ddsolve(ddx_data, state, phi_cav, -gradphi_cav, hessianphi_cav, psi, tol, esolv, force, error)
+call ddsolve_legacy(ddx_data, state, phi_cav, -gradphi_cav, hessianphi_cav, psi, tol, esolv, force, error)
 call check_error(error)
 ! compute the second contribution to the forces
 call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
@@ -85,8 +86,8 @@ end if
 close(100)
 deallocate(phi_cav, gradphi_cav, psi, force, charges, stat=istatus)
 if(istatus .ne. 0) call test_error(-1, "Deallocation failed")
-call ddx_free_state(state, error)
-call ddfree(ddx_data, error)
+call deallocate_state(state, error)
+call deallocate_model(ddx_data, error)
 
 contains
 !> Print error message and exit with provided error code

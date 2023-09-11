@@ -12,7 +12,54 @@ contains
 !> @defgroup Fortran_interface_multipolar Fortran interface: multipolar terms
 !! Exposed multipolar modules in the Fortran API
 
+!> Given a multipolar distribution, compute the required electrostatic
+!! properties for the chosen model
+!!
 !> @ingroup Fortran_interface_multipolar
+!! @param[in] params: ddx parameters
+!! @param[in]  constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!     size ((mmax+1)**2, nsph)
+!! @param[in] mmax: maximum angular momentum of the multipoles
+!! @param[out] electrostatics, ddX electrostatic properties container
+!! @param[inout] error: ddX error
+!!
+subroutine multipole_electrostatics(params, constants, workspace, multipoles, &
+        & mmax, electrostatics, error)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_workspace_type), intent(inout) :: workspace
+    integer, intent(in) :: mmax
+    real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
+    type(ddx_electrostatics_type), intent(out) :: electrostatics
+    type(ddx_error_type), intent(inout) :: error
+
+    call allocate_electrostatics(params, constants, electrostatics, error)
+    if (error % flag .ne. 0) then
+        call update_error(error, &
+            & "allocate_electrostatics returned an error, exiting")
+        return
+    end if
+
+    ! Compute the required electrostatic properties
+    if (electrostatics % do_phi .and. electrostatics % do_e &
+            & .and. electrostatics % do_g) then
+        call multipole_electrostatics_2(params, constants, workspace, &
+            & multipoles, 0, electrostatics % phi_cav, &
+            & electrostatics % e_cav, electrostatics % g_cav, error)
+    else if (electrostatics % do_phi .and. electrostatics % do_e) then
+        call multipole_electrostatics_1(params, constants, workspace, &
+            & multipoles, 0, electrostatics % phi_cav, &
+            & electrostatics % e_cav, error)
+    else
+        call multipole_electrostatics_0(params, constants, workspace, &
+            & multipoles, 0, electrostatics % phi_cav, error)
+    end if
+
+end subroutine multipole_electrostatics
+
 !> Given a multipolar distribution, compute the potential, its gradient and
 !> its hessian at the target points this is done with or without FMMs depending
 !> on the relevant flag
@@ -30,7 +77,7 @@ contains
 !!     size (3, 3, ncav)
 !! @param[inout] error: ddX error
 !!
-subroutine build_g(params, constants, workspace, multipoles, &
+subroutine multipole_electrostatics_2(params, constants, workspace, multipoles, &
         & mmax, phi_cav, e_cav, g_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -51,7 +98,7 @@ subroutine build_g(params, constants, workspace, multipoles, &
         call build_g_fmm(params, constants, workspace, multipoles, &
             & mmax, phi_cav, e_cav, g_cav, error)
     end if
-end subroutine build_g
+end subroutine multipole_electrostatics_2
 
 !> Given a multipolar distribution, compute the potential, its gradient and
 !> its hessian at the target points using a N^2 code.
@@ -172,7 +219,6 @@ subroutine build_g_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     end if
 end subroutine build_g_dense
 
-!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution, compute the potential and its gradient
 !> at the target points this is done with or without FMMs depending on the
 !> relevant flag
@@ -188,7 +234,7 @@ end subroutine build_g_dense
 !!     size (3, ncav)
 !! @param[inout] error: ddX error
 !!
-subroutine build_e(params, constants, workspace, multipoles, &
+subroutine multipole_electrostatics_1(params, constants, workspace, multipoles, &
         & mmax, phi_cav, e_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -206,7 +252,7 @@ subroutine build_e(params, constants, workspace, multipoles, &
         call build_e_fmm(params, constants, workspace, multipoles, &
             & mmax, phi_cav, e_cav, error)
     end if
-end subroutine build_e
+end subroutine multipole_electrostatics_1
 
 !> Given a multipolar distribution, compute the potential and its gradient
 !> at the target points using a N^2 code. 
@@ -287,7 +333,6 @@ subroutine build_e_dense(multipoles, cm, mmax, nm, phi_cav, ccav, ncav, &
     end if
 end subroutine build_e_dense
 
-!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution, compute the potential at the target points
 !> this is done with or without FMMs depending on the relevant flag
 !> The multipoles must be centered on the ddx spheres.
@@ -300,7 +345,7 @@ end subroutine build_e_dense
 !! @param[out] phi_cav: electric potential at the target points, size (ncav)
 !! @param[inout] error: ddX error
 !!
-subroutine build_phi(params, constants, workspace, multipoles, &
+subroutine multipole_electrostatics_0(params, constants, workspace, multipoles, &
         & mmax, phi_cav, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -317,7 +362,7 @@ subroutine build_phi(params, constants, workspace, multipoles, &
         call build_phi_fmm(params, constants, workspace, multipoles, mmax, &
             & phi_cav)
     end if
-end subroutine build_phi
+end subroutine multipole_electrostatics_0
 
 !> Given a multipolar distribution, compute the potential at the target points
 !> using a N^2 code.
@@ -790,7 +835,7 @@ end subroutine build_phi_fmm
 !! @param[out] psi: RHS for adjoint linear systems,
 !!     size ((lmax+1)**2,nsph), the internal lmax should be >= mmax
 !!
-subroutine build_psi(params, multipoles, mmax, psi)
+subroutine multipole_psi(params, multipoles, mmax, psi)
     implicit none
     type(ddx_params_type), intent(in) :: params
     integer, intent(in) :: mmax
@@ -809,7 +854,7 @@ subroutine build_psi(params, multipoles, mmax, psi)
             end do
         end do
     end do
-end subroutine build_psi
+end subroutine multipole_psi
 
 !> Given a multipolar distribution, load it into workspace % tmp_sph
 !> and workspace % tmp_node_m to be used by the FMM
@@ -986,7 +1031,6 @@ subroutine grad_phi_for_charges(params, constants, workspace, state, &
 
 end subroutine grad_phi_for_charges
 
-!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution in real spherical harmonics and
 !> centered on the spheres, compute the contributions to the forces
 !> stemming from its electrostatic interactions.
@@ -1300,7 +1344,6 @@ subroutine grad_e_for_charges(params, constants, workspace, state, &
 
 end subroutine grad_e_for_charges
 
-!> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution in real spherical harmonics and
 !> centered on the spheres, compute the contributions to the forces
 !> stemming from its electrostatic interactions in case of ddLPB F RHS.
@@ -1429,7 +1472,7 @@ end subroutine grad_e
 !! @param[inout] forces: forces array, size (3, nsph)
 !! @param[inout] error: ddX error
 !!
-subroutine multipole_forces(params, constants, workspace, state, mmax, &
+subroutine multipole_force_terms(params, constants, workspace, state, mmax, &
         & multipoles, forces, error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -1444,8 +1487,8 @@ subroutine multipole_forces(params, constants, workspace, state, mmax, &
     call grad_phi(params, constants, workspace, state, mmax, multipoles, &
         & forces, error)
     if (error % flag .ne. 0) then
-        call update_error(error, "multipole_forces: grad_phi returned an " // &
-            & "error, exiting")
+        call update_error(error, &
+            & "multipole_force_terms: grad_phi returned an error, exiting")
         return
     end if
 
@@ -1453,11 +1496,11 @@ subroutine multipole_forces(params, constants, workspace, state, mmax, &
         call grad_e(params, constants, workspace, state, mmax, multipoles, &
             & forces, error)
         if (error % flag .ne. 0) then
-            call update_error(error, "multipole_forces: grad_phi " // &
-                & "returned an error, exiting")
+            call update_error(error, &
+                & "multipole_force_terms: grad_e returned an error, exiting")
             return
         end if
     end if
-end subroutine multipole_forces
+end subroutine multipole_force_terms
 
 end module ddx_multipolar_solutes

@@ -15,7 +15,7 @@ set(SRC
     ddx_pcm.f90
     ddx_lpb.f90
     ddx.f90
-    ddx_mkrhs.f90
+    ddx_legacy.f90
     ddx_multipolar_solutes.f90
     llgnew.f
     cbessel.f90

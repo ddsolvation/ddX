@@ -15,6 +15,7 @@ use ddx_operators
 use ddx_solvers
 use ddx
 use ddx_lpb
+use ddx_legacy
 implicit none
 
 character(len=255) :: fname
@@ -36,7 +37,7 @@ call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol, charges, error)
 call check_error(error)
-call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call allocate_state(ddx_data % params, ddx_data % constants, state, error)
 call check_error(error)
 
 ! Allocation for variable vectors
@@ -80,9 +81,9 @@ do isph = 1, ddx_data % params % nsph
     esolv_plus_h = zero
     esolv_minus_h = zero
     ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) + step
-    call solve(ddx_data, esolv_plus_h, tol, charges)
+    call test_solve(ddx_data, esolv_plus_h, tol, charges)
     ddx_data % params % csph(i, isph) = ddx_data % params % csph(i, isph) - step
-    !call solve(ddx_data, esolv_minus_h)
+    !call test_solve(ddx_data, esolv_minus_h)
     !write(*,*) 'esolv  :', esolv, 'esolv+h  : ', esolv_plus_h, ' , esolv : ', esolv_minus_h, ' , step :', step
     force_num(i, isph) = (esolv_plus_h - esolv) / step
     if(abs(force_num(i,isph)) .le. 1.d-8) force_num(i,isph) = zero
@@ -101,14 +102,14 @@ end do
 
 deallocate(phi_cav, gradphi_cav, hessianphi_cav, psi, force, force_num, charges)
 
-call ddx_free_state(state, error)
-call ddfree(ddx_data, error)
+call deallocate_state(state, error)
+call deallocate_model(ddx_data, error)
 
 write(*, *) "Rel.error of forces:", relerr
 if (relerr .gt. 1.d-5) stop 1
 contains
 
-subroutine solve(ddx_data, esolv_in, tol, charges)
+subroutine test_solve(ddx_data, esolv_in, tol, charges)
     implicit none
     type(ddx_type), intent(inout) :: ddx_data
     real(dp), intent(inout) :: esolv_in
@@ -124,7 +125,7 @@ subroutine solve(ddx_data, esolv_in, tol, charges)
     real(dp), allocatable :: psi2(:,:)
     real(dp), allocatable :: force2(:,:)
 
-    call ddinit(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
+    call allocate_model(ddx_data % params % nsph, ddx_data % params % csph(1, :), &
         & ddx_data % params % csph(2, :), ddx_data % params % csph(3, :), ddx_data % params % rsph, &
         & ddx_data % params % model, ddx_data % params % lmax, ddx_data % params % ngrid, 0, &
         & ddx_data % params % fmm, ddx_data % params % pm, ddx_data % params % pl, &
@@ -135,7 +136,7 @@ subroutine solve(ddx_data, esolv_in, tol, charges)
         & ddx_data % params % nproc, dummy_file_name, ddx_data2, error2)
     call check_error(error2)
 
-    call ddx_init_state(ddx_data2 % params, ddx_data2 % constants, state, error2)
+    call allocate_state(ddx_data2 % params, ddx_data2 % constants, state, error2)
     call check_error(error2)
 
     allocate(phi_cav2(ddx_data2 % constants % ncav), gradphi_cav2(3, ddx_data2 % constants % ncav), &
@@ -149,14 +150,14 @@ subroutine solve(ddx_data, esolv_in, tol, charges)
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
         & 1, phi_cav2, 1, gradphi_cav2, 1, hessianphi_cav2, psi2, charges)
     gradphi_cav2 = - gradphi_cav2
-    call ddsolve(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
+    call ddsolve_legacy(ddx_data2, state, phi_cav2, gradphi_cav2, hessianphi_cav2, &
         & psi2, tol, esolv_in, force2, error2)
     call check_error(error2)
 
-    call ddx_free_state(state, error2)
-    call ddfree(ddx_data2, error2)
+    call deallocate_state(state, error2)
+    call deallocate_model(ddx_data2, error2)
     deallocate(phi_cav2, gradphi_cav2, hessianphi_cav2, psi2, force2)
-end subroutine solve
+end subroutine test_solve
 
 end program main
 

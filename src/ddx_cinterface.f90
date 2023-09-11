@@ -1,23 +1,13 @@
 module ddx_cinterface
     use, intrinsic :: iso_c_binding
-    use ddx_core
-    use ddx_definitions
-    use ddx_errors
-    use ddx_constants
-    use ddx_parameters
-    use ddx_workspace
-    use ddx_multipolar_solutes
-    !
-    use ddx_cosmo
-    use ddx_pcm
-    use ddx_lpb
+    use ddx
     implicit none
 
-    type ddx_setup
+    type ddx_setup_type
         type(ddx_params_type)    :: params
         type(ddx_constants_type) :: constants
         type(ddx_workspace_type) :: workspace
-    end type ddx_setup
+    end type ddx_setup_type
 
 contains
 !
@@ -68,7 +58,7 @@ subroutine ddx_scaled_ylm(c_ddx, lmax, x, sphere, ylm) bind(C)
     real(dp) :: vplm((lmax+1)**2), vcos(lmax+1), vsin(lmax+1)
     double precision, external :: dnrm2
     integer :: ind, m, l
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     call c_f_pointer(c_ddx, ddx)
 
     associate(rsph => ddx%params%rsph, lmax => ddx%params%lmax, vscales => ddx%constants%vscales)
@@ -136,6 +126,51 @@ subroutine ddx_get_error_message(c_error, message, maxlen) bind(C)
 end
 
 !
+! Electrostatics container
+!
+function ddx_allocate_electrostatics(c_ddx, c_error) result(c_electrostatics) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_error
+    type(ddx_setup_type), pointer :: ddx
+    type(ddx_error_type), pointer :: error
+    type(c_ptr) :: c_electrostatics
+    type(ddx_electrostatics_type), pointer :: electrostatics
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_error, error)
+    allocate(electrostatics)
+    call allocate_electrostatics(ddx%params, ddx%constants, electrostatics, error)
+    c_electrostatics = c_loc(electrostatics)
+end function
+
+subroutine ddx_deallocate_electrostatics(c_electrostatics, c_error) bind(C)
+    type(c_ptr), intent(in), value :: c_electrostatics, c_error
+    type(ddx_electrostatics_type), pointer :: electrostatics
+    type(ddx_error_type), pointer :: error
+    call c_f_pointer(c_electrostatics, electrostatics)
+    call c_f_pointer(c_error, error)
+    call deallocate_electrostatics(electrostatics, error)
+    deallocate(electrostatics)
+end
+
+subroutine ddx_multipole_electrostatics(c_ddx, nsph, nmultipoles, multipoles, &
+        & c_electrostatics, c_error) bind(C)
+    implicit none
+    type(c_ptr), intent(in), value :: c_ddx, c_electrostatics, c_error
+    integer(c_int), intent(in), value :: nsph, nmultipoles
+    real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
+    type(ddx_setup_type), pointer :: ddx
+    type(ddx_error_type), pointer :: error
+    type(ddx_electrostatics_type), pointer :: electrostatics
+    integer :: mmax
+
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_error, error)
+    call c_f_pointer(c_electrostatics, electrostatics)
+    mmax = int(sqrt(dble(nmultipoles)) - 1d0)
+
+    call multipole_electrostatics(ddx%params, ddx%constants, ddx%workspace, &
+        & multipoles, mmax, electrostatics, error)
+end
+!
 ! Setup object
 !
 function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
@@ -151,7 +186,7 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
     !type(c_funptr), value :: printfctn
     type(c_ptr) :: c_ddx
     integer :: passproc, i
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     character(len=1, kind=C_char), intent(in) :: c_logfile(length_logfile)
     character(len=255) :: logfile
 
@@ -189,7 +224,7 @@ end function
 
 subroutine ddx_deallocate_model(c_ddx, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_error
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
@@ -203,7 +238,7 @@ subroutine ddx_get_logfile(c_ddx, message, maxlen) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
     integer(c_int), intent(in), value :: maxlen
     character(len=1, kind=C_char), intent(out) :: message(maxlen)
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer :: length, i
     call c_f_pointer(c_ddx, ddx)
     ! Convert to C message
@@ -225,7 +260,7 @@ end
 ! Generated block, see scripts/generate_cinterface.py
 function ddx_get_enable_fmm(c_ddx) result(c_fmm) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_fmm
     call c_f_pointer(c_ddx, ddx)
     c_fmm = ddx % params % fmm
@@ -233,7 +268,7 @@ end function
 
 function ddx_get_enable_force(c_ddx) result(c_force) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_force
     call c_f_pointer(c_ddx, ddx)
     c_force = ddx % params % force
@@ -241,7 +276,7 @@ end function
 
 function ddx_get_jacobi_n_diis(c_ddx) result(c_jacobi_ndiis) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_jacobi_ndiis
     call c_f_pointer(c_ddx, ddx)
     c_jacobi_ndiis = ddx % params % jacobi_ndiis
@@ -249,7 +284,7 @@ end function
 
 function ddx_get_lmax(c_ddx) result(c_lmax) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_lmax
     call c_f_pointer(c_ddx, ddx)
     c_lmax = ddx % params % lmax
@@ -257,7 +292,7 @@ end function
 
 function ddx_get_incore(c_ddx) result(c_matvecmem) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_matvecmem
     call c_f_pointer(c_ddx, ddx)
     c_matvecmem = ddx % params % matvecmem
@@ -265,7 +300,7 @@ end function
 
 function ddx_get_maxiter(c_ddx) result(c_maxiter) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_maxiter
     call c_f_pointer(c_ddx, ddx)
     c_maxiter = ddx % params % maxiter
@@ -273,7 +308,7 @@ end function
 
 function ddx_get_model(c_ddx) result(c_model) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_model
     call c_f_pointer(c_ddx, ddx)
     c_model = ddx % params % model
@@ -281,7 +316,7 @@ end function
 
 function ddx_get_n_lebedev(c_ddx) result(c_ngrid) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_ngrid
     call c_f_pointer(c_ddx, ddx)
     c_ngrid = ddx % params % ngrid
@@ -289,7 +324,7 @@ end function
 
 function ddx_get_n_spheres(c_ddx) result(c_nsph) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_nsph
     call c_f_pointer(c_ddx, ddx)
     c_nsph = ddx % params % nsph
@@ -297,7 +332,7 @@ end function
 
 function ddx_get_n_proc(c_ddx) result(c_nproc) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_nproc
     call c_f_pointer(c_ddx, ddx)
     c_nproc = ddx % params % nproc
@@ -305,7 +340,7 @@ end function
 
 function ddx_get_fmm_local_lmax(c_ddx) result(c_pl) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_pl
     call c_f_pointer(c_ddx, ddx)
     c_pl = ddx % params % pl
@@ -313,7 +348,7 @@ end function
 
 function ddx_get_fmm_multipole_lmax(c_ddx) result(c_pm) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_pm
     call c_f_pointer(c_ddx, ddx)
     c_pm = ddx % params % pm
@@ -321,7 +356,7 @@ end function
 
 function ddx_get_solvent_epsilon(c_ddx) result(c_eps) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     real(c_double) :: c_eps
     call c_f_pointer(c_ddx, ddx)
     c_eps = ddx % params % eps
@@ -329,7 +364,7 @@ end function
 
 function ddx_get_eta(c_ddx) result(c_eta) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     real(c_double) :: c_eta
     call c_f_pointer(c_ddx, ddx)
     c_eta = ddx % params % eta
@@ -337,7 +372,7 @@ end function
 
 function ddx_get_solvent_kappa(c_ddx) result(c_kappa) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     real(c_double) :: c_kappa
     call c_f_pointer(c_ddx, ddx)
     c_kappa = ddx % params % kappa
@@ -345,7 +380,7 @@ end function
 
 function ddx_get_shift(c_ddx) result(c_se) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     real(c_double) :: c_se
     call c_f_pointer(c_ddx, ddx)
     c_se = ddx % params % se
@@ -355,7 +390,7 @@ subroutine ddx_get_sphere_centres(c_ddx, nsph, c_csph) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
     integer(c_int), intent(in), value :: nsph
     real(c_double), intent(out) :: c_csph(3, nsph)
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     call c_f_pointer(c_ddx, ddx)
     c_csph(:, :) = ddx % params % csph(:, :)
 end subroutine
@@ -364,14 +399,14 @@ subroutine ddx_get_sphere_radii(c_ddx, nsph, c_rsph) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
     integer(c_int), intent(in), value :: nsph
     real(c_double), intent(out) :: c_rsph(nsph)
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     call c_f_pointer(c_ddx, ddx)
     c_rsph(:) = ddx % params % rsph(:)
 end subroutine
 
 function ddx_get_n_basis(c_ddx) result(c_nbasis) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_nbasis
     call c_f_pointer(c_ddx, ddx)
     c_nbasis = ddx % constants % nbasis
@@ -379,7 +414,7 @@ end function
 
 function ddx_get_n_cav(c_ddx) result(c_ncav) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int) :: c_ncav
     call c_f_pointer(c_ddx, ddx)
     c_ncav = ddx % constants % ncav
@@ -389,7 +424,7 @@ subroutine ddx_get_cavity(c_ddx, ncav, c_ccav) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
     integer(c_int), intent(in), value :: ncav
     real(c_double), intent(out) :: c_ccav(3, ncav)
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     call c_f_pointer(c_ddx, ddx)
     c_ccav(:, :) = ddx % constants % ccav(:, :)
 end subroutine
@@ -400,14 +435,14 @@ end subroutine
 !
 function ddx_allocate_state(c_ddx, c_error) result(c_state) bind(C)
     type(c_ptr), intent(in), value :: c_ddx, c_error
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(c_ptr) :: c_state
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     allocate(state)
-    call ddx_init_state(ddx%params, ddx%constants, state, error)
+    call allocate_state(ddx%params, ddx%constants, state, error)
     c_state = c_loc(state)
 end function
 
@@ -417,7 +452,7 @@ subroutine ddx_deallocate_state(c_state, c_error) bind(C)
     type(ddx_error_type), pointer :: error
     call c_f_pointer(c_state, state)
     call c_f_pointer(c_error, error)
-    call ddx_free_state(state, error)
+    call deallocate_state(state, error)
     deallocate(state)
 end subroutine
 
@@ -475,7 +510,7 @@ end function
 subroutine ddx_get_xi(c_state, c_ddx, ncav, xi) bind(C)
     type(c_ptr), intent(in), value :: c_state, c_ddx
     type(ddx_state_type), pointer :: state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int), intent(in), value :: ncav
     real(c_double), intent(out)  :: xi(ncav)
     call c_f_pointer(c_ddx, ddx)
@@ -486,7 +521,7 @@ end subroutine
 subroutine ddx_get_zeta_dip(c_state, c_ddx, ncav, zeta_dip) bind(C)
     type(c_ptr), intent(in), value :: c_state, c_ddx
     type(ddx_state_type), pointer :: state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int), intent(in), value :: ncav
     real(c_double), intent(out)  :: zeta_dip(3, ncav)
     call c_f_pointer(c_ddx, ddx)
@@ -499,6 +534,158 @@ subroutine ddx_get_zeta_dip(c_state, c_ddx, ncav, zeta_dip) bind(C)
 end subroutine
 
 !
+! High level APIs (model nonspecific)
+!
+function ddx_ddrun(c_ddx, c_state, c_electrostatics, nbasis, nsph, &
+        & psi, tol, force, read_guess, c_error) result(c_energy) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state, c_electrostatics, &
+        & c_error
+    integer(c_int), intent(in), value :: nbasis, nsph
+    real(c_double), intent(in) :: psi(nbasis, nsph)
+    real(c_double), intent(in), value :: tol
+    real(c_double), intent(out) :: force(3, nsph)
+    real(c_double) :: c_energy
+    integer(c_int), intent(in), value :: read_guess
+    type(ddx_setup_type), pointer :: ddx
+    logical :: do_guess
+
+    ! setup
+    do_guess = read_guess.ne.0
+    call c_f_pointer(c_ddx, ddx)
+    call ddx_setup(c_ddx, c_state, c_electrostatics, nbasis, nsph, psi, c_error)
+    if (ddx_get_error_flag(c_error) .ne. 0) return
+
+    ! primal linear system
+    if (do_guess) then
+        call ddx_fill_guess(c_ddx, c_state, tol, c_error)
+        if (ddx_get_error_flag(c_error) .ne. 0) return
+    end if
+    call ddx_solve(c_ddx, c_state, tol, c_error)
+    if (ddx_get_error_flag(c_error) .ne. 0) return
+
+    ! energy
+    c_energy = ddx_energy(c_ddx, c_state, c_error)
+    if (ddx_get_error_flag(c_error) .ne. 0) return
+
+    ! adjoint linear system
+    if (ddx%params%force .eq. 1) then
+        if (do_guess) then
+            call ddx_fill_guess(c_ddx, c_state, tol, c_error)
+        end if
+        if (ddx_get_error_flag(c_error) .ne. 0) return
+        call ddx_solve_adjoint(c_ddx, c_state, tol, c_error)
+        if (ddx_get_error_flag(c_error) .ne. 0) return
+    end if
+
+    ! forces
+    if (ddx%params%force .eq. 1) then
+        call ddx_solvation_force_terms(c_ddx, c_state, c_electrostatics, &
+            & nsph, force, c_error)
+        if (ddx_get_error_flag(c_error) .ne. 0) return
+    end if
+
+end function
+
+subroutine ddx_setup(c_ddx, c_state, c_electrostatics, nbasis, nsph, psi, c_error) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state, c_electrostatics, &
+        & c_error
+    integer(c_int), intent(in), value :: nbasis, nsph
+    real(c_double), intent(in) :: psi(nbasis, nsph)
+    type(ddx_setup_type), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    type(ddx_electrostatics_type), pointer :: electrostatics
+    type(ddx_error_type), pointer :: error
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call c_f_pointer(c_electrostatics, electrostatics)
+    call c_f_pointer(c_error, error)
+    call setup(ddx%params, ddx%constants, ddx%workspace, state, &
+        & electrostatics, psi, error)
+end subroutine
+
+subroutine ddx_fill_guess(c_ddx, c_state, tol, c_error) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state, c_error
+    real(c_double), intent(in), value :: tol
+    type(ddx_setup_type), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    type(ddx_error_type), pointer :: error
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call c_f_pointer(c_error, error)
+    call fill_guess(ddx%params, ddx%constants, ddx%workspace, state, &
+        & tol, error)
+end subroutine
+
+subroutine ddx_fill_guess_adjoint(c_ddx, c_state, tol, c_error) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state, c_error
+    real(c_double), intent(in), value :: tol
+    type(ddx_setup_type), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    type(ddx_error_type), pointer :: error
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call c_f_pointer(c_error, error)
+    call fill_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, &
+        & tol, error)
+end subroutine
+
+subroutine ddx_solve(c_ddx, c_state, tol, c_error) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state, c_error
+    real(c_double), intent(in), value :: tol
+    type(ddx_setup_type), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    type(ddx_error_type), pointer :: error
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call c_f_pointer(c_error, error)
+    call solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+end subroutine
+
+subroutine ddx_solve_adjoint(c_ddx, c_state, tol, c_error) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state, c_error
+    real(c_double), intent(in), value :: tol
+    type(ddx_setup_type), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    type(ddx_error_type), pointer :: error
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call c_f_pointer(c_error, error)
+    call solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, &
+        & tol, error)
+end subroutine
+
+function ddx_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state, c_error
+    type(ddx_setup_type), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    type(ddx_error_type), pointer :: error
+    real(c_double) :: c_energy
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call c_f_pointer(c_error, error)
+    call energy(ddx%params, ddx%constants, ddx%workspace, state, &
+        & c_energy, error)
+end function
+
+subroutine ddx_solvation_force_terms(c_ddx, c_state, c_electrostatics, &
+        & nsph, forces, c_error) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx, c_state, c_electrostatics, &
+        & c_error
+    integer(c_int), intent(in), value :: nsph
+    real(c_double), intent(out) :: forces(3, nsph)
+    type(ddx_setup_type), pointer :: ddx
+    type(ddx_state_type), pointer :: state
+    type(ddx_electrostatics_type), pointer :: electrostatics
+    type(ddx_error_type), pointer :: error
+    call c_f_pointer(c_ddx, ddx)
+    call c_f_pointer(c_state, state)
+    call c_f_pointer(c_electrostatics, electrostatics)
+    call c_f_pointer(c_error, error)
+    call solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, &
+        & state, electrostatics, forces, error)
+end subroutine
+
+!
 ! Cosmo
 !
 ! Setup the problem in the state
@@ -507,88 +694,88 @@ subroutine ddx_cosmo_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav, c_e
     type(c_ptr), intent(in), value :: c_ddx, c_state
     integer(c_int), intent(in), value :: ncav, nbasis, nsph
     real(c_double), intent(in) :: phi_cav(ncav), psi(nbasis, nsph)
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, psi, error)
+    call cosmo_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, psi, error)
 end subroutine
 
 ! Put a guess for the problem into the state (optional)
 subroutine ddx_cosmo_guess(c_ddx, c_state, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_guess(ddx%params, ddx%constants, ddx%workspace, state, error)
+    call cosmo_guess(ddx%params, ddx%constants, ddx%workspace, state, error)
 end
 
 ! Solve the problem
 subroutine ddx_cosmo_solve(c_ddx, c_state, tol, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     real(c_double), intent(in), value :: tol
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call cosmo_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end subroutine
 
 ! Put a guess for the adjoint problem into the state (optional)
 subroutine ddx_cosmo_guess_adjoint(c_ddx, c_state, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, error)
+    call cosmo_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, error)
 end
 
 ! Solve the adjoint problem inside the state
 subroutine ddx_cosmo_solve_adjoint(c_ddx, c_state, tol, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     real(c_double), intent(in), value :: tol
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call cosmo_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end
 
 ! Compute the ddCOSMO energy
 function ddx_cosmo_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     real(c_double) :: c_energy
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_energy(ddx%constants, state, c_energy, error)
+    call cosmo_energy(ddx%constants, state, c_energy, error)
 end function
 
 ! Compute the forces
 subroutine ddx_cosmo_solvation_force_terms(c_ddx, c_state, nsph, ncav, e_cav, forces, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     integer(c_int), intent(in), value :: nsph, ncav
@@ -597,7 +784,7 @@ subroutine ddx_cosmo_solvation_force_terms(c_ddx, c_state, nsph, ncav, e_cav, fo
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddcosmo_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, e_cav, forces, error)
+    call cosmo_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, e_cav, forces, error)
 end
 
 !
@@ -608,82 +795,82 @@ subroutine ddx_pcm_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav, c_err
     type(c_ptr), intent(in), value :: c_ddx, c_state
     integer(c_int), intent(in), value :: ncav, nbasis, nsph
     real(c_double), intent(in) :: phi_cav(ncav), psi(nbasis, nsph)
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, psi, error)
+    call pcm_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, psi, error)
 end subroutine
 
 subroutine ddx_pcm_guess(c_ddx, c_state, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_guess(ddx%params, ddx%constants, ddx%workspace, state, error)
+    call pcm_guess(ddx%params, ddx%constants, ddx%workspace, state, error)
 end
 
 subroutine ddx_pcm_solve(c_ddx, c_state, tol, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     real(c_double), intent(in), value :: tol
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call pcm_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end subroutine
 
 subroutine ddx_pcm_guess_adjoint(c_ddx, c_state, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, error)
+    call pcm_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, error)
 end
 
 subroutine ddx_pcm_solve_adjoint(c_ddx, c_state, tol, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     real(c_double), intent(in), value :: tol
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call pcm_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end
 
 function ddx_pcm_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     real(c_double) :: c_energy
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_energy(ddx%constants, state, c_energy, error)
+    call pcm_energy(ddx%constants, state, c_energy, error)
 end function
 
 subroutine ddx_pcm_solvation_force_terms(c_ddx, c_state, nsph, ncav, e_cav, forces, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     integer(c_int), intent(in), value :: nsph, ncav
@@ -692,7 +879,7 @@ subroutine ddx_pcm_solvation_force_terms(c_ddx, c_state, nsph, ncav, e_cav, forc
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddpcm_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, e_cav, forces, error)
+    call pcm_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, e_cav, forces, error)
 end
 
 !
@@ -703,84 +890,84 @@ subroutine ddx_lpb_setup(c_ddx, c_state, ncav, nbasis, nsph, psi, phi_cav, gradp
     type(c_ptr), intent(in), value :: c_ddx, c_state
     integer(c_int), intent(in), value :: ncav, nbasis, nsph
     real(c_double), intent(in) :: phi_cav(ncav), psi(nbasis, nsph), gradphi_cav(3, ncav)
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, gradphi_cav, psi, error)
+    call lpb_setup(ddx%params, ddx%constants, ddx%workspace, state, phi_cav, gradphi_cav, psi, error)
 end subroutine
 
 subroutine ddx_lpb_guess(c_ddx, c_state, tol, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
     real(c_double), intent(in), value :: tol
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_guess(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call lpb_guess(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end
 
 subroutine ddx_lpb_solve(c_ddx, c_state, tol, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     real(c_double), intent(in), value :: tol
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call lpb_solve(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end subroutine
 
 subroutine ddx_lpb_guess_adjoint(c_ddx, c_state, tol, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
     real(c_double), intent(in), value :: tol
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call lpb_guess_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end
 
 subroutine ddx_lpb_solve_adjoint(c_ddx, c_state, tol, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     real(c_double), intent(in), value :: tol
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
+    call lpb_solve_adjoint(ddx%params, ddx%constants, ddx%workspace, state, tol, error)
 end
 
 function ddx_lpb_energy(c_ddx, c_state, c_error) result(c_energy) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     real(c_double) :: c_energy
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_energy(ddx%constants, state, c_energy, error)
+    call lpb_energy(ddx%constants, state, c_energy, error)
 end function
 
 subroutine ddx_lpb_solvation_force_terms(c_ddx, c_state, nsph, ncav, g_cav, forces, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     integer(c_int), intent(in), value :: nsph, ncav
@@ -789,7 +976,7 @@ subroutine ddx_lpb_solvation_force_terms(c_ddx, c_state, nsph, ncav, g_cav, forc
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
-    call ddlpb_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, g_cav, forces, error)
+    call lpb_solvation_force_terms(ddx%params, ddx%constants, ddx%workspace, state, g_cav, forces, error)
 end
 
 !
@@ -798,7 +985,7 @@ end
 subroutine ddx_multipole_electrostatics_0(c_ddx, nsph, ncav, nmultipoles, multipoles, &
         & phi_cav, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     integer(c_int), intent(in), value :: nsph, ncav, nmultipoles
     real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
     real(c_double), intent(out) :: phi_cav(ncav)
@@ -808,15 +995,15 @@ subroutine ddx_multipole_electrostatics_0(c_ddx, nsph, ncav, nmultipoles, multip
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_ddx, ddx)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
-    call build_phi(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-            & phi_cav, error)
+    call multipole_electrostatics_0(ddx%params, ddx%constants, &
+        & ddx%workspace, multipoles, mmax, phi_cav, error)
 end
 
 subroutine ddx_multipole_electrostatics_1(c_ddx, nsph, ncav, nmultipoles, multipoles, &
         & phi_cav, e_cav, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     integer(c_int), intent(in), value :: nsph, ncav, nmultipoles
     real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
@@ -825,15 +1012,15 @@ subroutine ddx_multipole_electrostatics_1(c_ddx, nsph, ncav, nmultipoles, multip
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
-    call build_e(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-            & phi_cav, e_cav, error)
+    call multipole_electrostatics_1(ddx%params, ddx%constants, &
+        & ddx%workspace, multipoles, mmax, phi_cav, e_cav, error)
 end
 
 subroutine ddx_multipole_electrostatics_2(c_ddx, nsph, ncav, nmultipoles, multipoles, &
         & phi_cav, e_cav, g_cav, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     integer(c_int), intent(in), value :: nsph, ncav, nmultipoles
     real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
@@ -842,14 +1029,14 @@ subroutine ddx_multipole_electrostatics_2(c_ddx, nsph, ncav, nmultipoles, multip
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
-    call build_g(ddx%params, ddx%constants, ddx%workspace, multipoles, mmax, &
-            & phi_cav, e_cav, g_cav, error)
+    call multipole_electrostatics_2(ddx%params, ddx%constants, &
+        & ddx%workspace, multipoles, mmax, phi_cav, e_cav, g_cav, error)
 end
 
 subroutine ddx_multipole_psi(c_ddx, nbasis, nsph, nmultipoles, multipoles, psi, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     integer(c_int), intent(in), value :: nmultipoles, nsph, nbasis
     real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
@@ -858,26 +1045,26 @@ subroutine ddx_multipole_psi(c_ddx, nbasis, nsph, nmultipoles, multipoles, psi, 
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
-    call build_psi(ddx%params, multipoles, mmax, psi)
+    call multipole_psi(ddx%params, multipoles, mmax, psi)
 end
 
-subroutine ddx_multipole_forces(c_ddx, c_state, nsph, nmultipoles, multipoles, &
+subroutine ddx_multipole_force_terms(c_ddx, c_state, nsph, nmultipoles, multipoles, &
         & forces, c_error) bind(C)
     type(c_ptr), intent(in), value :: c_error
     type(c_ptr), intent(in), value :: c_ddx, c_state
-    type(ddx_setup), pointer :: ddx
+    type(ddx_setup_type), pointer :: ddx
     type(ddx_error_type), pointer :: error
     type(ddx_state_type), pointer :: state
     integer(c_int), intent(in), value :: nmultipoles, nsph
     integer :: mmax
     real(c_double), intent(in) :: multipoles(nmultipoles, nsph)
-    real(c_double), intent(out) :: forces(3, nsph)
+    real(c_double), intent(inout) :: forces(3, nsph)
     call c_f_pointer(c_ddx, ddx)
     call c_f_pointer(c_error, error)
     call c_f_pointer(c_state, state)
     mmax = int(sqrt(dble(nmultipoles)) - 1d0)
     forces = zero
-    call multipole_forces(ddx%params, ddx%constants, ddx%workspace, state, mmax, &
+    call multipole_force_terms(ddx%params, ddx%constants, ddx%workspace, state, mmax, &
         & multipoles, forces, error)
 end
 

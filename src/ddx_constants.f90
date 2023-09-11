@@ -23,7 +23,6 @@ use omp_lib, only : omp_get_wtime
 
 implicit none
 
-!> @defgroup Fortran_interface_core Fortran interface: core routines
 
 !> Container for precomputed constants
 type ddx_constants_type
@@ -229,7 +228,6 @@ end type ddx_constants_type
 contains
 
 !> Compute all necessary constants
-!> @ingroup Fortran_interface_core
 !!
 !! @param[in] params: Object containing all inputs.
 !! @param[out] constants: Object containing all constants.
@@ -471,7 +469,7 @@ subroutine constants_init(params, constants, error)
                 & constants % SK_ri(:, isph), constants % DK_ri(:, isph), &
                 & bessel_work)
             ! Compute matrix PU_i^e(x_in)
-            ! Previous implementation in update_rhs. Made it in ddinit, so as to use
+            ! Previous implementation in update_rhs. Made it in allocate_model, so as to use
             ! it in Forces as well.
             call mkpmat(params, constants, isph, constants % Pchi(:, :, isph))
             ! Compute i'_l(r_i)/i_l(r_i)
@@ -1810,7 +1808,6 @@ subroutine tree_get_farnear(jwork, lwork, work, n, nnfar, nfar, sfar, far, &
 end subroutine tree_get_farnear
 
 !> Deallocate the constants
-!> @ingroup Fortran_interface_core
 !!
 !! @param[out] constants: Precomputed constants
 !! @param[inout] error: ddX error

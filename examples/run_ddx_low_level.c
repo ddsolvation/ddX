@@ -80,7 +80,9 @@ int main() {
 
   double* forces = (double*)malloc(sizeof(double) * 3 * nsph);
 
+  //
   // convert the charges to multipoles
+  //
   int nmultipoles = 1;
   double* solute_multipoles = (double*)malloc(sizeof(double) * nmultipoles * nsph);
   for (int i = 0; i < nmultipoles * nsph; ++i) {
@@ -112,31 +114,63 @@ int main() {
   }
 
   //
-  // Solve the PCM problem with energy and forces
+  // Solve the PCM problem step by step
   //
-  int read_guess = 0;
   double tol = 1e-9;
   double eref = -0.00017974013712832552;
 
-  double energy = ddx_ddrun(model, state, electrostatics, nbasis, nsph, psi,
-                            tol, forces, read_guess, error);
+  // Forward linear system
+  ddx_setup(model, state, electrostatics, nbasis, nsph, psi, error);
+  ddx_fill_guess(model, state, tol, error);
+  ddx_solve(model, state, tol, error);
   if (ddx_get_error_flag(error) != 0) {
-    print_error(state);
+    print_error(error);
+    return 1;
+  }
+  printf("Forward system solved after %i iterations.\n", ddx_get_x_niter(state));
+
+  // Adjoint linear system
+  ddx_fill_guess_adjoint(model, state, tol, error);
+  ddx_solve_adjoint(model, state, tol, error);
+  if (ddx_get_error_flag(error) != 0) {
+    print_error(error);
+    return 1;
+  }
+  printf("Adjoint system solved after %i iterations.\n", ddx_get_s_niter(state));
+
+  //
+  // Compute energy
+  //
+  double energy = ddx_energy(model, state, error);
+
+  //
+  // Compute forces
+  //
+
+  // Solute non specific contribution, this is mostly geometrical
+  // contributions and is the same for any charge distribution of the
+  // solute.
+  ddx_solvation_force_terms(model, state, electrostatics, nsph, forces, error);
+  if (ddx_get_error_flag(error) != 0) {
+    print_error(error);
     return 1;
   }
 
-  if (fabs(eref - energy) > 1e-6) {
-    printf("Large deviation:   %15.9g\n", eref - energy);
-    return 1;
-  }
-
-  // Add solute specific contribution to the forces, this is a
+  // Solute specific contribution to the forces, this is a
   // different function as it depends on the specific kind of solute.
   // This is the one for point multipolar charge distributions.
   ddx_multipole_force_terms(model, state, nsph, nmultipoles, solute_multipoles,
                             forces, error);
   if (ddx_get_error_flag(error) != 0) {
     print_error(error);
+    return 1;
+  }
+
+  //
+  // Check results
+  //
+  if (fabs(eref - energy) > 1e-6) {
+    printf("Large deviation:   %15.9g\n", eref - energy);
     return 1;
   }
 

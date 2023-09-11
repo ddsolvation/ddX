@@ -60,6 +60,22 @@ void ddx_get_error_message(const void* error, char* message, int maxlen);
 
 ///@}
 
+/** \name Allocate and manage the ddX electrostatics object */
+///@{
+
+/** Allocate the ddX electrostatics object. */
+void* ddx_allocate_electrostatics(void* ddx, void* error);
+
+/** Compute the electrostatic properties for a multipolar distribution **/
+void ddx_multipole_electrostatics(void* ddx, int nsph, int nmultipoles,
+                                  const double* multipoles,
+                                  void* electrostatics, void* error);
+
+/** Deallocate the ddX electrostatics object. */
+void ddx_deallocate_electrostatics(void* electrostatics, void* error);
+
+///@}
+
 /** \name Allocate and manage the ddx model object */
 ///@{
 
@@ -250,6 +266,101 @@ void ddx_get_xi(const void* state, const void* ddx, int ncav, double* xi);
  *  \param zeta_dip  Array to be filled with ncav
  */
 void ddx_get_zeta_dip(const void* state, const void* ddx, int ncav, double* zeta_dip);
+///@}
+
+/** \name Model nonspecific setup and solution routines */
+///@{
+
+/** Solve everything and return the energy.
+ *  \param ddx            DDX model
+ *  \param state          DDX state
+ *  \param electrostatics DDX electrostatic properties container
+ *  \param nbasis         Number of basis functions used by DDX
+ *  \param nsph           Number of cavity spheres
+ *  \param psi            Psi array (nbasis, nsph)-shaped array (in column-major ordering)
+ *  \param tol            Tolerance for the linear system solver
+ *  \param forces         Force array
+ *  \param read_guess     Flag for guess, if different from zero the guess is read from the state
+ *  \param error   DDX error
+ */
+double ddx_ddsolve(const void* ddx, void* state, const void* electrostatics,
+                   int nbasis, int nsph, const double* psi, double tol,
+                   double* forces, const int read_guess, void* error);
+
+/** In-place adjust the guess inside the state.
+ ** Setup a problem in the passed state.
+ *  \param ddx            DDX model
+ *  \param state          DDX state
+ *  \param electrostatics DDX electrostatic properties container
+ *  \param nbasis         Number of basis functions used by DDX
+ *  \param nsph           Number of cavity spheres
+ *  \param psi            Psi array (nbasis, nsph)-shaped array (in column-major ordering)
+ *  \param error   DDX error
+ */
+void ddx_setup(const void* ddx, void* state, const void* electrostatics,
+               int nbasis, int nsph, const double* psi, void* error);
+
+/** In-place adjust the guess inside the state.
+ *  Avoid calling this step if you want to use the currently stored solution as an
+ * initial guess */
+void ddx_fill_guess(const void* ddx, void* state, double tol, void* error);
+
+/** In-place adjust the adjoint guess inside the state.
+ *  problem. Avoid calling this step if you want to use the currently stored solution as
+ *  an initial guess */
+void ddx_fill_guess_adjoint(const void* ddx, void* state, double tol, void* error);
+
+/** Solve the forward problem.
+ *  \param state   DDX state
+ *  \param ddx     DDX model
+ *  \param tol     Tolerance up to which the problem is solved
+ *  \param error   DDX error */
+void ddx_solve(const void* ddx, void* state, double tol, void* error);
+
+/** Solve the adjoint COSMO problem.
+ *  \param state   DDX state
+ *  \param ddx     DDX model
+ *  \param tol     Tolerance up to which the problem is solved
+ *  \param error   DDX error */
+void ddx_solve_adjoint(const void* ddx, void* state, double tol, void* error);
+
+/** Compute the solvation energy.
+ *  \param state   DDX state
+ *  \param ddx     DDX model
+ *  \param error   DDX ERROR
+ */
+double ddx_energy(const void* ddx, void* state, void* error);
+
+/** Compute the solvation force terms.
+ *  \param ddx     DDX model
+ *  \param state   DDX state
+ *  \param electrostatics DDX electrostatic properties container
+ *  \param nsph    Number of cavity spheres
+ *  \param forces  Output force array (3, nsph) in column-major order
+ *  \param error   DDX error
+ */
+void ddx_solvation_force_terms(const void* ddx, void* state, void* electrostatics,
+                               int nsph, double* forces, void* error);
+
+/** Run all the steps of a ddX calculation and return energy and, if requested,
+ * forces.
+ *  \param ddx            DDX model
+ *  \param state          DDX state
+ *  \param electrostatics DDX electrostatic properties container
+ *  \param nbasis         Number of basis functions used by DDX
+ *  \param nsph           Number of cavity spheres
+ *  \param psi            Psi array (nbasis, nsph)-shaped array (in column-major ordering)
+ *  \param tol            Tolerance up to which the problem is solved
+ *  \param forces         Output force array (3, nsph) in column-major order
+ *  \param read_guess     Guess control flag: 0 for default guess, 1 for using the
+ *                        content of DDX state for the guess.
+ *  \param error          DDX error
+ *
+ */
+double ddx_ddrun(const void* ddx, void* state, void* electrostatics, int nbasis,
+                 int nsph, double* psi, const double tol, double* forces,
+                 int read_guess, void* error);
+
 ///@}
 
 /** \name Problem setup and solution routines */
@@ -512,9 +623,9 @@ void ddx_multipole_psi(const void* ddx, int nbasis, int nsph, int nmultipoles,
  *  \param forces  Output force array (3, nsph) in column-major order
  *  \param error   DDX error
  */
-void ddx_multipole_forces(const void* ddx, void* state, int nsph,
-                          int nmultipoles, const double* multipoles,
-                          double* forces, void* error);
+void ddx_multipole_force_terms(const void* ddx, void* state, int nsph,
+                               int nmultipoles, const double* multipoles,
+                               double* forces, void* error);
 
 ///@}
 ///@}

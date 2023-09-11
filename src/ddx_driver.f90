@@ -23,11 +23,10 @@ character(len=2047) :: banner
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
 type(ddx_error_type) :: error
-real(dp), allocatable :: phi_cav(:), e_cav(:, :), &
-    & g_cav(:, :, :), psi(:, :), force(:, :), charges(:), &
+type(ddx_electrostatics_type) :: electrostatics
+real(dp), allocatable :: psi(:, :), force(:, :), charges(:), &
     & multipoles(:, :)
 real(dp) :: tol, esolv, start_time, finish_time
-logical :: do_phi, do_e, do_g
 integer :: i, isph, info
 100 format(X,A,ES11.4E2,A)
 200 format(X,A,I4,A,ES20.14)
@@ -40,7 +39,7 @@ call getarg(1, fname)
 write(6, *) "Using provided file ", trim(fname), " as a config file"
 
 ! STEP 1: Initialization of the model.
-! Read the input file and call "ddinit" to initialize the model.
+! Read the input file and call "allocate_model" to initialize the model.
 ! The model is a container for all the parameters, precomputed constants
 ! and preallocated workspaces.
 start_time = omp_get_wtime()
@@ -55,7 +54,7 @@ call check_error(error)
 ! model (ddx_data). Different states can be used at the same time with
 ! a given model, for instance when solving for different solutes,
 ! or for different states of the solute.
-call ddx_init_state(ddx_data % params, ddx_data % constants, state, error)
+call allocate_state(ddx_data % params, ddx_data % constants, state, error)
 call check_error(error)
 
 ! Print the ddX banner
@@ -95,63 +94,9 @@ if (info .ne. 0) then
 end if
 multipoles(1, :) = charges/sqrt4pi
 
-! Get the required electrostatic properties.
-if (ddx_data % params % model .eq. 3) then
-    if (ddx_data % params % force .eq. 1) then
-        do_phi = .true.
-        do_e = .true.
-        do_g = .true.
-    else
-        do_phi = .true.
-        do_e = .true.
-        do_g = .false.
-    end if
-else
-    if (ddx_data % params % force .eq. 1) then
-        do_phi = .true.
-        do_e = .true.
-        do_g = .false.
-    else
-        do_phi = .true.
-        do_e = .false.
-        do_g = .false.
-    end if
-end if
-
-! Allocate the arrays for the required electrostatic properties.
-if (do_phi) then
-    allocate(phi_cav(ddx_data % constants % ncav), stat=info)
-    if (info .ne. 0) then
-        write(6, *) "Allocation failed in ddx_driver"
-        stop 1
-    end if
-end if
-if (do_e) then
-    allocate(e_cav(3, ddx_data % constants % ncav), stat=info)
-    if (info .ne. 0) then
-        write(6, *) "Allocation failed in ddx_driver"
-        stop 1
-    end if
-end if
-if (do_g) then
-    allocate(g_cav(3, 3, ddx_data % constants % ncav), stat=info)
-    if (info .ne. 0) then
-        write(6, *) "Allocation failed in ddx_driver"
-        stop 1
-    end if
-end if
-
-! Compute the required electrostatic properties.
-if (do_phi .and. do_e .and. do_g) then
-    call build_g(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, multipoles, 0, phi_cav, e_cav, g_cav, error)
-else if (do_phi .and. do_e) then
-    call build_e(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, multipoles, 0, phi_cav, e_cav, error)
-else
-    call build_phi(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, multipoles, 0, phi_cav, error)
-end if
+! compute the required electrostatics properties for a multipolar solute
+call multipole_electrostatics(ddx_data % params, ddx_data % constants, &
+    & ddx_data % workspace, multipoles, 0, electrostatics, error)
 
 finish_time = omp_get_wtime()
 write(*, 100) "Electrostatic properties time:", finish_time-start_time, &
@@ -165,89 +110,22 @@ if (info .ne. 0) then
     write(6, *) "Allocation failed in ddx_driver"
     stop 1
 end if
-call build_psi(ddx_data % params, multipoles, 0, psi)
+call multipole_psi(ddx_data % params, multipoles, 0, psi)
 finish_time = omp_get_wtime()
 write(*, 100) "Psi time:", finish_time-start_time, " seconds"
 
-! STEP 4: solve the primal linear system.
-if (ddx_data % params % model .eq. 1) then
-    call ddcosmo_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, psi, error)
-    call ddcosmo_guess(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, error)
-    call ddcosmo_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol, error)
-else if (ddx_data % params % model .eq. 2) then
-    call ddpcm_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, psi, error)
-    call ddpcm_guess(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, error)
-    call ddpcm_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol, error)
-else if (ddx_data % params % model .eq. 3) then
-    call ddlpb_setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, phi_cav, e_cav, psi, error)
-    call ddlpb_guess(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol, error)
-    call ddlpb_solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol, error)
-end if
-call check_error(error)
-
-! STEP 5: compute the solvation energy
-if (ddx_data % params % model .eq. 1) then
-    call ddcosmo_energy(ddx_data % constants, state, esolv, error)
-else if (ddx_data % params % model .eq. 2) then
-    call ddpcm_energy(ddx_data % constants, state, esolv, error)
-else if (ddx_data % params % model .eq. 3) then
-    call ddlpb_energy(ddx_data % constants, state, esolv, error)
-end if
-
-! STEP 6: if required solve the adjoint linear system. The adjoint
-! linear system is required whenever analytical derivatives are needed.
-! In this case the only analytical derivative that we compute are the
-! forces.
-if (ddx_data % params % force .eq. 1) then
-    if (ddx_data % params % model .eq. 1) then
-        call ddcosmo_guess_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, error)
-        call ddcosmo_solve_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol, error)
-    else if (ddx_data % params % model .eq. 2) then
-        call ddpcm_guess_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, error)
-        call ddpcm_solve_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol, error)
-    else if (ddx_data % params % model .eq. 3) then
-        call ddlpb_guess_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol, error)
-        call ddlpb_solve_adjoint(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, tol, error)
-    end if
-end if
-call check_error(error)
-
-! STEP 7: if required compute the solute aspecific contributions to the
-! forces.
 if (ddx_data % params % force .eq. 1) then
     allocate(force(3, ddx_data % params % nsph), stat=info)
     if (info .ne. 0) then
         write(6, *) "Allocation failed in ddx_driver"
         stop 1
     end if
-    force = zero
-
-    if (ddx_data % params % model .eq. 1) then
-        call ddcosmo_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, e_cav, force, error)
-    else if (ddx_data % params % model .eq. 2) then
-        call ddpcm_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, e_cav, force, error)
-    else if (ddx_data % params % model .eq. 3) then
-        call ddlpb_solvation_force_terms(ddx_data % params, &
-            & ddx_data % constants, ddx_data % workspace, state, g_cav, force, error)
-    end if
+    call ddrun(ddx_data, state, electrostatics, psi, tol, esolv, error, &
+        & force)
+else
+    call ddrun(ddx_data, state, electrostatics, psi, tol, esolv, error)
 end if
+call check_error(error)
 
 if (ddx_data % params % force .eq. 1) write(*, 100) &
     & "solvation force terms time:", state % force_time, " seconds"
@@ -256,17 +134,9 @@ if (ddx_data % params % force .eq. 1) write(*, 100) &
 ! forces.
 if (ddx_data % params % force .eq. 1) then
     start_time = omp_get_wtime()
-    call grad_phi_for_charges(ddx_data % params, &
-        & ddx_data % constants, ddx_data % workspace, state, &
-        & charges, force, error)
-    call check_error(error)
-    if (ddx_data % params % model .eq. 3) then
-        ! ddLPB has another term in the multipolar forces stemming
-        ! from the electric field in the RHS
-        call grad_e_for_charges(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, charges, force, error)
+    call multipole_force_terms(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, 0, multipoles, force, error)
         call check_error(error)
-    end if
     finish_time = omp_get_wtime()
     write(*, 100) "multipolar force terms time:", &
         & finish_time - start_time, " seconds"
@@ -372,24 +242,10 @@ end if
 
 ! Clean the workspace.
 
-deallocate(psi, phi_cav, multipoles, charges, stat=info)
+deallocate(psi, multipoles, charges, stat=info)
 if (info .ne. 0) then
     write(6, *) "Deallocation failed in ddx_driver"
     stop 1
-end if
-if (allocated(e_cav)) then
-    deallocate(e_cav, stat=info)
-    if (info .ne. 0) then
-        write(6, *) "Deallocation failed in ddx_driver"
-        stop 1
-    end if
-end if
-if (allocated(g_cav)) then
-    deallocate(g_cav, stat=info)
-    if (info .ne. 0) then
-        write(6, *) "Deallocation failed in ddx_driver"
-        stop 1
-    end if
 end if
 if (allocated(force)) then
     deallocate(force, stat=info)
@@ -399,7 +255,8 @@ if (allocated(force)) then
     end if
 end if
 
-call ddx_free_state(state, error)
-call ddfree(ddx_data, error)
+call deallocate_electrostatics(electrostatics, error)
+call deallocate_state(state, error)
+call deallocate_model(ddx_data, error)
 
 end program main
