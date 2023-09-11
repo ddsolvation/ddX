@@ -101,42 +101,496 @@ $(document).ready(function(){initNavTree('group___fortran__interface__ddcosmo.ht
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:gac1c57bb8a1b201ee7c88c727ad3de581"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#gac1c57bb8a1b201ee7c88c727ad3de581">ddx_cosmo::ddcosmo</a> (params, constants, workspace, state, phi_cav, psi, e_cav, tol, esolv, force, error)</td></tr>
-<tr class="memdesc:gac1c57bb8a1b201ee7c88c727ad3de581"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddCOSMO solver  <a href="group___fortran__interface__ddcosmo.html#gac1c57bb8a1b201ee7c88c727ad3de581">More...</a><br /></td></tr>
-<tr class="separator:gac1c57bb8a1b201ee7c88c727ad3de581"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1613c53f027e333c1521757049eb2a7d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga1613c53f027e333c1521757049eb2a7d">ddx_cosmo::ddcosmo_energy</a> (constants, state, esolv, error)</td></tr>
-<tr class="memdesc:ga1613c53f027e333c1521757049eb2a7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the ddCOSMO energy.  <a href="group___fortran__interface__ddcosmo.html#ga1613c53f027e333c1521757049eb2a7d">More...</a><br /></td></tr>
-<tr class="separator:ga1613c53f027e333c1521757049eb2a7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1e3403078eb1f6e42ae0b9e3785219a8"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga1e3403078eb1f6e42ae0b9e3785219a8">ddx_cosmo::ddcosmo_setup</a> (params, constants, workspace, state, phi_cav, psi, error)</td></tr>
-<tr class="memdesc:ga1e3403078eb1f6e42ae0b9e3785219a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given the potential at the cavity points, assemble the RHS for ddCOSMO or for ddPCM.  <a href="group___fortran__interface__ddcosmo.html#ga1e3403078eb1f6e42ae0b9e3785219a8">More...</a><br /></td></tr>
-<tr class="separator:ga1e3403078eb1f6e42ae0b9e3785219a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0a6dc077ddd022b89e7c5214766e1ca1"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga0a6dc077ddd022b89e7c5214766e1ca1">ddx_cosmo::ddcosmo_guess</a> (params, constants, workspace, state, error)</td></tr>
-<tr class="memdesc:ga0a6dc077ddd022b89e7c5214766e1ca1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the primal ddCOSMO linear system.  <a href="group___fortran__interface__ddcosmo.html#ga0a6dc077ddd022b89e7c5214766e1ca1">More...</a><br /></td></tr>
-<tr class="separator:ga0a6dc077ddd022b89e7c5214766e1ca1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf6346bdc766e34fb24057a67b3fac0fd"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#gaf6346bdc766e34fb24057a67b3fac0fd">ddx_cosmo::ddcosmo_guess_adjoint</a> (params, constants, workspace, state, error)</td></tr>
-<tr class="memdesc:gaf6346bdc766e34fb24057a67b3fac0fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the adjoint ddCOSMO linear system.  <a href="group___fortran__interface__ddcosmo.html#gaf6346bdc766e34fb24057a67b3fac0fd">More...</a><br /></td></tr>
-<tr class="separator:gaf6346bdc766e34fb24057a67b3fac0fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga52522f2d93664cccd575db59a8129809"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga52522f2d93664cccd575db59a8129809">ddx_cosmo::ddcosmo_solve</a> (params, constants, workspace, state, tol, error)</td></tr>
-<tr class="memdesc:ga52522f2d93664cccd575db59a8129809"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the primal ddCOSMO linear system.  <a href="group___fortran__interface__ddcosmo.html#ga52522f2d93664cccd575db59a8129809">More...</a><br /></td></tr>
-<tr class="separator:ga52522f2d93664cccd575db59a8129809"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1c9686af95c5d448b6ff1d2ac8f916b8"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga1c9686af95c5d448b6ff1d2ac8f916b8">ddx_cosmo::ddcosmo_solve_adjoint</a> (params, constants, workspace, state, tol, error)</td></tr>
-<tr class="memdesc:ga1c9686af95c5d448b6ff1d2ac8f916b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the adjoint ddCOSMO linear system.  <a href="group___fortran__interface__ddcosmo.html#ga1c9686af95c5d448b6ff1d2ac8f916b8">More...</a><br /></td></tr>
-<tr class="separator:ga1c9686af95c5d448b6ff1d2ac8f916b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae1d7cacc341e0d18f398910d86d08202"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#gae1d7cacc341e0d18f398910d86d08202">ddx_cosmo::ddcosmo_solvation_force_terms</a> (params, constants, workspace, state, e_cav, force, error)</td></tr>
-<tr class="memdesc:gae1d7cacc341e0d18f398910d86d08202"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the solvation term of the forces (solute aspecific). This must be summed to the solute specific term to get the full forces.  <a href="group___fortran__interface__ddcosmo.html#gae1d7cacc341e0d18f398910d86d08202">More...</a><br /></td></tr>
-<tr class="separator:gae1d7cacc341e0d18f398910d86d08202"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1dc65eb43c74c5a76d99f37d05fed68a"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga1dc65eb43c74c5a76d99f37d05fed68a">ddx_cosmo::cosmo_energy</a> (constants, state, esolv, error)</td></tr>
+<tr class="memdesc:ga1dc65eb43c74c5a76d99f37d05fed68a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the ddCOSMO energy.  <a href="group___fortran__interface__ddcosmo.html#ga1dc65eb43c74c5a76d99f37d05fed68a">More...</a><br /></td></tr>
+<tr class="separator:ga1dc65eb43c74c5a76d99f37d05fed68a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5b1a9cd9425c05f71ce9fba1df2f855a"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga5b1a9cd9425c05f71ce9fba1df2f855a">ddx_cosmo::cosmo_setup</a> (params, constants, workspace, state, phi_cav, psi, error)</td></tr>
+<tr class="memdesc:ga5b1a9cd9425c05f71ce9fba1df2f855a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given the potential at the cavity points, assemble the RHS for ddCOSMO or for ddPCM.  <a href="group___fortran__interface__ddcosmo.html#ga5b1a9cd9425c05f71ce9fba1df2f855a">More...</a><br /></td></tr>
+<tr class="separator:ga5b1a9cd9425c05f71ce9fba1df2f855a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga910d854a5cde052142d0b0fafe7a1206"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga910d854a5cde052142d0b0fafe7a1206">ddx_cosmo::cosmo_guess</a> (params, constants, workspace, state, error)</td></tr>
+<tr class="memdesc:ga910d854a5cde052142d0b0fafe7a1206"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the primal ddCOSMO linear system.  <a href="group___fortran__interface__ddcosmo.html#ga910d854a5cde052142d0b0fafe7a1206">More...</a><br /></td></tr>
+<tr class="separator:ga910d854a5cde052142d0b0fafe7a1206"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga398ff0292bd306a9fb139c1ef73b63a3"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga398ff0292bd306a9fb139c1ef73b63a3">ddx_cosmo::cosmo_guess_adjoint</a> (params, constants, workspace, state, error)</td></tr>
+<tr class="memdesc:ga398ff0292bd306a9fb139c1ef73b63a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the adjoint ddCOSMO linear system.  <a href="group___fortran__interface__ddcosmo.html#ga398ff0292bd306a9fb139c1ef73b63a3">More...</a><br /></td></tr>
+<tr class="separator:ga398ff0292bd306a9fb139c1ef73b63a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaaa91638f5a8ee08b856ef69f328b8cfc"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#gaaa91638f5a8ee08b856ef69f328b8cfc">ddx_cosmo::cosmo_solve</a> (params, constants, workspace, state, tol, error)</td></tr>
+<tr class="memdesc:gaaa91638f5a8ee08b856ef69f328b8cfc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the primal ddCOSMO linear system.  <a href="group___fortran__interface__ddcosmo.html#gaaa91638f5a8ee08b856ef69f328b8cfc">More...</a><br /></td></tr>
+<tr class="separator:gaaa91638f5a8ee08b856ef69f328b8cfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadcb4e795ba78a4d491f17ac31fd2e513"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#gadcb4e795ba78a4d491f17ac31fd2e513">ddx_cosmo::cosmo_solve_adjoint</a> (params, constants, workspace, state, tol, error)</td></tr>
+<tr class="memdesc:gadcb4e795ba78a4d491f17ac31fd2e513"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the adjoint ddCOSMO linear system.  <a href="group___fortran__interface__ddcosmo.html#gadcb4e795ba78a4d491f17ac31fd2e513">More...</a><br /></td></tr>
+<tr class="separator:gadcb4e795ba78a4d491f17ac31fd2e513"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2628ab5a5fcdad4d46140b096e20fa88"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga2628ab5a5fcdad4d46140b096e20fa88">ddx_cosmo::cosmo_solvation_force_terms</a> (params, constants, workspace, state, e_cav, force, error)</td></tr>
+<tr class="memdesc:ga2628ab5a5fcdad4d46140b096e20fa88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the solvation term of the forces (solute aspecific). This must be summed to the solute specific term to get the full forces.  <a href="group___fortran__interface__ddcosmo.html#ga2628ab5a5fcdad4d46140b096e20fa88">More...</a><br /></td></tr>
+<tr class="separator:ga2628ab5a5fcdad4d46140b096e20fa88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaba01d39290aca0a566a91a318bcf0260"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#gaba01d39290aca0a566a91a318bcf0260">ddx_legacy::ddcosmo</a> (params, constants, workspace, state, phi_cav, psi, e_cav, tol, esolv, force, error)</td></tr>
+<tr class="memdesc:gaba01d39290aca0a566a91a318bcf0260"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddCOSMO solver  <a href="group___fortran__interface__ddcosmo.html#gaba01d39290aca0a566a91a318bcf0260">More...</a><br /></td></tr>
+<tr class="separator:gaba01d39290aca0a566a91a318bcf0260"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p >Exposed ddcosmo modules in the Fortran API. </p>
 <h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="gac1c57bb8a1b201ee7c88c727ad3de581" name="gac1c57bb8a1b201ee7c88c727ad3de581"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gac1c57bb8a1b201ee7c88c727ad3de581">&#9670;&nbsp;</a></span>ddcosmo()</h2>
+<a id="ga1dc65eb43c74c5a76d99f37d05fed68a" name="ga1dc65eb43c74c5a76d99f37d05fed68a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1dc65eb43c74c5a76d99f37d05fed68a">&#9670;&nbsp;</a></span>cosmo_energy()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">subroutine ddx_cosmo::ddcosmo </td>
+          <td class="memname">subroutine ddx_cosmo::cosmo_energy </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(out)&#160;</td>
+          <td class="paramname"><em>esolv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the ddCOSMO energy. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">esolv</td><td>resulting energy </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00031">31</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+
+</div>
+</div>
+<a id="ga5b1a9cd9425c05f71ce9fba1df2f855a" name="ga5b1a9cd9425c05f71ce9fba1df2f855a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5b1a9cd9425c05f71ce9fba1df2f855a">&#9670;&nbsp;</a></span>cosmo_setup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_cosmo::cosmo_setup </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % ncav), intent(in)&#160;</td>
+          <td class="paramname"><em>phi_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>psi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Given the potential at the cavity points, assemble the RHS for ddCOSMO or for ddPCM. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>ddx constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspace </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">phi_cav</td><td>electrostatic potential at the cavity points </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">psi</td><td>representation of the solute density </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00053">53</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+
+</div>
+</div>
+<a id="ga910d854a5cde052142d0b0fafe7a1206" name="ga910d854a5cde052142d0b0fafe7a1206"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga910d854a5cde052142d0b0fafe7a1206">&#9670;&nbsp;</a></span>cosmo_guess()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_cosmo::cosmo_guess </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Do a guess for the primal ddCOSMO linear system. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00078">78</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+
+</div>
+</div>
+<a id="ga398ff0292bd306a9fb139c1ef73b63a3" name="ga398ff0292bd306a9fb139c1ef73b63a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga398ff0292bd306a9fb139c1ef73b63a3">&#9670;&nbsp;</a></span>cosmo_guess_adjoint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_cosmo::cosmo_guess_adjoint </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Do a guess for the adjoint ddCOSMO linear system. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00100">100</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+
+</div>
+</div>
+<a id="gaaa91638f5a8ee08b856ef69f328b8cfc" name="gaaa91638f5a8ee08b856ef69f328b8cfc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaaa91638f5a8ee08b856ef69f328b8cfc">&#9670;&nbsp;</a></span>cosmo_solve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_cosmo::cosmo_solve </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Solve the primal ddCOSMO linear system. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>Tolerance for the linear system solver </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00123">123</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+
+</div>
+</div>
+<a id="gadcb4e795ba78a4d491f17ac31fd2e513" name="gadcb4e795ba78a4d491f17ac31fd2e513"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gadcb4e795ba78a4d491f17ac31fd2e513">&#9670;&nbsp;</a></span>cosmo_solve_adjoint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_cosmo::cosmo_solve_adjoint </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Solve the adjoint ddCOSMO linear system. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>Tolerance for the linear system solver </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00154">154</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+
+</div>
+</div>
+<a id="ga2628ab5a5fcdad4d46140b096e20fa88" name="ga2628ab5a5fcdad4d46140b096e20fa88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2628ab5a5fcdad4d46140b096e20fa88">&#9670;&nbsp;</a></span>cosmo_solvation_force_terms()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_cosmo::cosmo_solvation_force_terms </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
+          <td class="paramname"><em>e_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the solvation term of the forces (solute aspecific). This must be summed to the solute specific term to get the full forces. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">e_cav</td><td>electric field, size (3, ncav) </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">force</td><td>force term </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00192">192</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+
+</div>
+</div>
+<a id="gaba01d39290aca0a566a91a318bcf0260" name="gaba01d39290aca0a566a91a318bcf0260"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaba01d39290aca0a566a91a318bcf0260">&#9670;&nbsp;</a></span>ddcosmo()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_legacy::ddcosmo </td>
           <td>(</td>
           <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
           <td class="paramname"><em>params</em>, </td>
@@ -227,461 +681,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00041">41</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
-
-</div>
-</div>
-<a id="ga1613c53f027e333c1521757049eb2a7d" name="ga1613c53f027e333c1521757049eb2a7d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga1613c53f027e333c1521757049eb2a7d">&#9670;&nbsp;</a></span>ddcosmo_energy()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_cosmo::ddcosmo_energy </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(out)&#160;</td>
-          <td class="paramname"><em>esolv</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Compute the ddCOSMO energy. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">esolv</td><td>resulting energy </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00107">107</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
-
-</div>
-</div>
-<a id="ga1e3403078eb1f6e42ae0b9e3785219a8" name="ga1e3403078eb1f6e42ae0b9e3785219a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga1e3403078eb1f6e42ae0b9e3785219a8">&#9670;&nbsp;</a></span>ddcosmo_setup()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_cosmo::ddcosmo_setup </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>phi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>psi</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Given the potential at the cavity points, assemble the RHS for ddCOSMO or for ddPCM. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>ddx constants </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspace </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">phi_cav</td><td>electrostatic potential at the cavity points </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">psi</td><td>representation of the solute density </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00129">129</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
-
-</div>
-</div>
-<a id="ga0a6dc077ddd022b89e7c5214766e1ca1" name="ga0a6dc077ddd022b89e7c5214766e1ca1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga0a6dc077ddd022b89e7c5214766e1ca1">&#9670;&nbsp;</a></span>ddcosmo_guess()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_cosmo::ddcosmo_guess </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Do a guess for the primal ddCOSMO linear system. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00154">154</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
-
-</div>
-</div>
-<a id="gaf6346bdc766e34fb24057a67b3fac0fd" name="gaf6346bdc766e34fb24057a67b3fac0fd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf6346bdc766e34fb24057a67b3fac0fd">&#9670;&nbsp;</a></span>ddcosmo_guess_adjoint()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_cosmo::ddcosmo_guess_adjoint </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Do a guess for the adjoint ddCOSMO linear system. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00176">176</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
-
-</div>
-</div>
-<a id="ga52522f2d93664cccd575db59a8129809" name="ga52522f2d93664cccd575db59a8129809"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga52522f2d93664cccd575db59a8129809">&#9670;&nbsp;</a></span>ddcosmo_solve()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_cosmo::ddcosmo_solve </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>tol</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Solve the primal ddCOSMO linear system. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>Tolerance for the linear system solver </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00199">199</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
-
-</div>
-</div>
-<a id="ga1c9686af95c5d448b6ff1d2ac8f916b8" name="ga1c9686af95c5d448b6ff1d2ac8f916b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga1c9686af95c5d448b6ff1d2ac8f916b8">&#9670;&nbsp;</a></span>ddcosmo_solve_adjoint()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_cosmo::ddcosmo_solve_adjoint </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>tol</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Solve the adjoint ddCOSMO linear system. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>Tolerance for the linear system solver </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00230">230</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
-
-</div>
-</div>
-<a id="gae1d7cacc341e0d18f398910d86d08202" name="gae1d7cacc341e0d18f398910d86d08202"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gae1d7cacc341e0d18f398910d86d08202">&#9670;&nbsp;</a></span>ddcosmo_solvation_force_terms()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_cosmo::ddcosmo_solvation_force_terms </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>e_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
-          <td class="paramname"><em>force</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Compute the solvation term of the forces (solute aspecific). This must be summed to the solute specific term to get the full forces. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">e_cav</td><td>electric field, size (3, ncav) </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">force</td><td>force term </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00268">268</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__legacy_8f90_source.html#l00342">342</a> of file <a class="el" href="ddx__legacy_8f90_source.html">ddx_legacy.f90</a>.</p>
 
 </div>
 </div>

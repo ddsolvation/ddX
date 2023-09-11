@@ -3,7 +3,7 @@ var searchData=
   ['parent_0',['parent',['../structddx__constants_1_1ddx__constants__type.html#a3134e17f8c0cbbaea8f85923b1680e76',1,'ddx_constants::ddx_constants_type']]],
   ['pchi_1',['pchi',['../structddx__constants_1_1ddx__constants__type.html#a06258b9104516a49cf531b12c9b3c014',1,'ddx_constants::ddx_constants_type']]],
   ['phi_2',['phi',['../structddx__core_1_1ddx__state__type.html#aee7846568db8bab39129c9cb946ddd2e',1,'ddx_core::ddx_state_type']]],
-  ['phi_5fcav_3',['phi_cav',['../structddx__core_1_1ddx__state__type.html#a160af68bec958a00f1c20bf28fbacb7e',1,'ddx_core::ddx_state_type']]],
+  ['phi_5fcav_3',['phi_cav',['../structddx__core_1_1ddx__state__type.html#a160af68bec958a00f1c20bf28fbacb7e',1,'ddx_core::ddx_state_type::phi_cav()'],['../structddx__core_1_1ddx__electrostatics__type.html#a236b0f22d1cb0e2f008f3fa18e67cd67',1,'ddx_core::ddx_electrostatics_type::phi_cav()']]],
   ['phi_5fgrid_4',['phi_grid',['../structddx__core_1_1ddx__state__type.html#a903ec491e30ffa2a5a4012bac9641900',1,'ddx_core::ddx_state_type']]],
   ['phieps_5',['phieps',['../structddx__core_1_1ddx__state__type.html#a85a9a635519db969914d9b977f2bf3b1',1,'ddx_core::ddx_state_type']]],
   ['phieps_5fniter_6',['phieps_niter',['../structddx__core_1_1ddx__state__type.html#a85b122812d525480a3f97c1891087441',1,'ddx_core::ddx_state_type']]],

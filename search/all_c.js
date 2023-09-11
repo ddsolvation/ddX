@@ -13,7 +13,13 @@ var searchData=
   ['maxiter_10',['maxiter',['../structddx__parameters_1_1ddx__params__type.html#a144db6ae7b0003dc11d822b59df51fbf',1,'ddx_parameters::ddx_params_type']]],
   ['mkpmat_11',['mkpmat',['../namespaceddx__constants.html#af5826bc847008b2eb36949c6b05b3e5d',1,'ddx_constants']]],
   ['mkprec_12',['mkprec',['../namespaceddx__constants.html#a3098a4f3cdfb6b9f5a11704e6d573c37',1,'ddx_constants']]],
-  ['model_13',['model',['../structddx__parameters_1_1ddx__params__type.html#a1c894bf3f401534f58322ee913f205f4',1,'ddx_parameters::ddx_params_type']]],
-  ['model_5fstr_14',['model_str',['../namespaceddx__definitions.html#a27faa3db3323ba2c6427084fcbf7b953',1,'ddx_definitions']]],
-  ['multipole_5fforces_15',['multipole_forces',['../group___fortran__interface__multipolar.html#ga15a5fdef855de5c989a3fa6de1cc1647',1,'ddx_multipolar_solutes']]]
+  ['mkrhs_13',['mkrhs',['../namespaceddx__legacy.html#aae5d5249fce08ad610ff745b4a865147',1,'ddx_legacy']]],
+  ['model_14',['model',['../structddx__parameters_1_1ddx__params__type.html#a1c894bf3f401534f58322ee913f205f4',1,'ddx_parameters::ddx_params_type']]],
+  ['model_5fstr_15',['model_str',['../namespaceddx__definitions.html#a27faa3db3323ba2c6427084fcbf7b953',1,'ddx_definitions']]],
+  ['multipole_5felectrostatics_16',['multipole_electrostatics',['../group___fortran__interface__multipolar.html#gaf7b6243053ec2fb87fbcf1a392883a98',1,'ddx_multipolar_solutes']]],
+  ['multipole_5felectrostatics_5f0_17',['multipole_electrostatics_0',['../namespaceddx__multipolar__solutes.html#a6215e4f3852383325ea31fd05b6b8e0e',1,'ddx_multipolar_solutes']]],
+  ['multipole_5felectrostatics_5f1_18',['multipole_electrostatics_1',['../namespaceddx__multipolar__solutes.html#af0afe4cb7fe689623551b996d97d44b2',1,'ddx_multipolar_solutes']]],
+  ['multipole_5felectrostatics_5f2_19',['multipole_electrostatics_2',['../namespaceddx__multipolar__solutes.html#a5b6fcb04205059933316bca1ad94e921',1,'ddx_multipolar_solutes']]],
+  ['multipole_5fforce_5fterms_20',['multipole_force_terms',['../group___fortran__interface__multipolar.html#ga4551876dd1ee789869ee1ef4894aef1e',1,'ddx_multipolar_solutes']]],
+  ['multipole_5fpsi_21',['multipole_psi',['../group___fortran__interface__multipolar.html#gab9f10b0657bf556a2cd1261a48088f46',1,'ddx_multipolar_solutes']]]
 ];

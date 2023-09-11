@@ -1,12 +1,11 @@
 var ddx__cosmo_8f90 =
 [
-    [ "ddcosmo", "ddx__cosmo_8f90.html#gac1c57bb8a1b201ee7c88c727ad3de581", null ],
-    [ "ddcosmo_energy", "ddx__cosmo_8f90.html#ga1613c53f027e333c1521757049eb2a7d", null ],
-    [ "ddcosmo_setup", "ddx__cosmo_8f90.html#ga1e3403078eb1f6e42ae0b9e3785219a8", null ],
-    [ "ddcosmo_guess", "ddx__cosmo_8f90.html#ga0a6dc077ddd022b89e7c5214766e1ca1", null ],
-    [ "ddcosmo_guess_adjoint", "ddx__cosmo_8f90.html#gaf6346bdc766e34fb24057a67b3fac0fd", null ],
-    [ "ddcosmo_solve", "ddx__cosmo_8f90.html#ga52522f2d93664cccd575db59a8129809", null ],
-    [ "ddcosmo_solve_adjoint", "ddx__cosmo_8f90.html#ga1c9686af95c5d448b6ff1d2ac8f916b8", null ],
-    [ "ddcosmo_solvation_force_terms", "ddx__cosmo_8f90.html#gae1d7cacc341e0d18f398910d86d08202", null ],
-    [ "ddcosmo_derivative_setup", "ddx__cosmo_8f90.html#a98f054f224e5a703e765830c76fbb713", null ]
+    [ "cosmo_energy", "ddx__cosmo_8f90.html#ga1dc65eb43c74c5a76d99f37d05fed68a", null ],
+    [ "cosmo_setup", "ddx__cosmo_8f90.html#ga5b1a9cd9425c05f71ce9fba1df2f855a", null ],
+    [ "cosmo_guess", "ddx__cosmo_8f90.html#ga910d854a5cde052142d0b0fafe7a1206", null ],
+    [ "cosmo_guess_adjoint", "ddx__cosmo_8f90.html#ga398ff0292bd306a9fb139c1ef73b63a3", null ],
+    [ "cosmo_solve", "ddx__cosmo_8f90.html#gaaa91638f5a8ee08b856ef69f328b8cfc", null ],
+    [ "cosmo_solve_adjoint", "ddx__cosmo_8f90.html#gadcb4e795ba78a4d491f17ac31fd2e513", null ],
+    [ "cosmo_solvation_force_terms", "ddx__cosmo_8f90.html#ga2628ab5a5fcdad4d46140b096e20fa88", null ],
+    [ "cosmo_derivative_setup", "ddx__cosmo_8f90.html#a50ff9ab9cd9522a209d6bc5d4edd079f", null ]
 ];

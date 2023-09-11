@@ -7,12 +7,13 @@ var searchData=
   ['ddx_5fdefinitions_4',['ddx_definitions',['../namespaceddx__definitions.html',1,'']]],
   ['ddx_5fgradients_5',['ddx_gradients',['../namespaceddx__gradients.html',1,'']]],
   ['ddx_5fharmonics_6',['ddx_harmonics',['../namespaceddx__harmonics.html',1,'']]],
-  ['ddx_5flpb_7',['ddx_lpb',['../namespaceddx__lpb.html',1,'']]],
-  ['ddx_5flpb_5fcore_8',['ddx_lpb_core',['../namespaceddx__lpb__core.html',1,'']]],
-  ['ddx_5fmultipolar_5fsolutes_9',['ddx_multipolar_solutes',['../namespaceddx__multipolar__solutes.html',1,'']]],
-  ['ddx_5foperators_10',['ddx_operators',['../namespaceddx__operators.html',1,'']]],
-  ['ddx_5fparameters_11',['ddx_parameters',['../namespaceddx__parameters.html',1,'']]],
-  ['ddx_5fpcm_12',['ddx_pcm',['../namespaceddx__pcm.html',1,'']]],
-  ['ddx_5fsolvers_13',['ddx_solvers',['../namespaceddx__solvers.html',1,'']]],
-  ['ddx_5fworkspace_14',['ddx_workspace',['../namespaceddx__workspace.html',1,'']]]
+  ['ddx_5flegacy_7',['ddx_legacy',['../namespaceddx__legacy.html',1,'']]],
+  ['ddx_5flpb_8',['ddx_lpb',['../namespaceddx__lpb.html',1,'']]],
+  ['ddx_5flpb_5fcore_9',['ddx_lpb_core',['../namespaceddx__lpb__core.html',1,'']]],
+  ['ddx_5fmultipolar_5fsolutes_10',['ddx_multipolar_solutes',['../namespaceddx__multipolar__solutes.html',1,'']]],
+  ['ddx_5foperators_11',['ddx_operators',['../namespaceddx__operators.html',1,'']]],
+  ['ddx_5fparameters_12',['ddx_parameters',['../namespaceddx__parameters.html',1,'']]],
+  ['ddx_5fpcm_13',['ddx_pcm',['../namespaceddx__pcm.html',1,'']]],
+  ['ddx_5fsolvers_14',['ddx_solvers',['../namespaceddx__solvers.html',1,'']]],
+  ['ddx_5fworkspace_15',['ddx_workspace',['../namespaceddx__workspace.html',1,'']]]
 ];

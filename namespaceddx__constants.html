@@ -108,9 +108,9 @@ Data Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:ga53ef995007b2d2d8d1613a0382ce32c1"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga53ef995007b2d2d8d1613a0382ce32c1">constants_init</a> (params, constants, error)</td></tr>
-<tr class="memdesc:ga53ef995007b2d2d8d1613a0382ce32c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute all necessary constants.  <a href="group___fortran__interface__core.html#ga53ef995007b2d2d8d1613a0382ce32c1">More...</a><br /></td></tr>
-<tr class="separator:ga53ef995007b2d2d8d1613a0382ce32c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53ef995007b2d2d8d1613a0382ce32c1"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__constants.html#a53ef995007b2d2d8d1613a0382ce32c1">constants_init</a> (params, constants, error)</td></tr>
+<tr class="memdesc:a53ef995007b2d2d8d1613a0382ce32c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute all necessary constants.  <a href="namespaceddx__constants.html#a53ef995007b2d2d8d1613a0382ce32c1">More...</a><br /></td></tr>
+<tr class="separator:a53ef995007b2d2d8d1613a0382ce32c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a023647f7faeb13a496b30e974e973b23"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__constants.html#a023647f7faeb13a496b30e974e973b23">build_itrnl</a> (constants, params, error)</td></tr>
 <tr class="memdesc:a023647f7faeb13a496b30e974e973b23"><td class="mdescLeft">&#160;</td><td class="mdescRight">Build the transposed neighbor list.  <a href="namespaceddx__constants.html#a023647f7faeb13a496b30e974e973b23">More...</a><br /></td></tr>
 <tr class="separator:a023647f7faeb13a496b30e974e973b23"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -153,13 +153,59 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:afa4961d4e2731a6ade2dd395d00a87d9"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__constants.html#afa4961d4e2731a6ade2dd395d00a87d9">tree_get_farnear</a> (jwork, lwork, work, n, nnfar, nfar, sfar, far, nnnear, nnear, snear, near)</td></tr>
 <tr class="memdesc:afa4961d4e2731a6ade2dd395d00a87d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get near and far admissible pairs from work array of tree_get_farnear_work Works only for binary tree.  <a href="namespaceddx__constants.html#afa4961d4e2731a6ade2dd395d00a87d9">More...</a><br /></td></tr>
 <tr class="separator:afa4961d4e2731a6ade2dd395d00a87d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga81884e9f5bdcd2a3f8e329211d237b20"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga81884e9f5bdcd2a3f8e329211d237b20">constants_free</a> (constants, error)</td></tr>
-<tr class="memdesc:ga81884e9f5bdcd2a3f8e329211d237b20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate the constants.  <a href="group___fortran__interface__core.html#ga81884e9f5bdcd2a3f8e329211d237b20">More...</a><br /></td></tr>
-<tr class="separator:ga81884e9f5bdcd2a3f8e329211d237b20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81884e9f5bdcd2a3f8e329211d237b20"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__constants.html#a81884e9f5bdcd2a3f8e329211d237b20">constants_free</a> (constants, error)</td></tr>
+<tr class="memdesc:a81884e9f5bdcd2a3f8e329211d237b20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate the constants.  <a href="namespaceddx__constants.html#a81884e9f5bdcd2a3f8e329211d237b20">More...</a><br /></td></tr>
+<tr class="separator:a81884e9f5bdcd2a3f8e329211d237b20"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Run-time constants. </p>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
+<a id="a53ef995007b2d2d8d1613a0382ce32c1" name="a53ef995007b2d2d8d1613a0382ce32c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53ef995007b2d2d8d1613a0382ce32c1">&#9670;&nbsp;</a></span>constants_init()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_constants::constants_init </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(out)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute all necessary constants. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>Object containing all inputs. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">constants</td><td>Object containing all constants. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00236">236</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+
+</div>
+</div>
 <a id="a023647f7faeb13a496b30e974e973b23" name="a023647f7faeb13a496b30e974e973b23"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a023647f7faeb13a496b30e974e973b23">&#9670;&nbsp;</a></span>build_itrnl()</h2>
 
@@ -194,7 +240,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Build the transposed neighbor list. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00557">557</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00555">555</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -232,7 +278,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Allocate and build the ddCOSMO sparse matrix, only if incore is set. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00582">582</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00580">580</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -270,7 +316,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Allocate and build the HSP sparse matrix, only if incore is set. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00650">650</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00648">648</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -314,7 +360,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Computation of P_chi. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00725">725</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00723">723</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -361,7 +407,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00761">761</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00759">759</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -399,7 +445,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Build the neighbor list using a N^2 code. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01064">1064</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01062">1062</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -437,7 +483,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Build the neighbor list using a linear scaling code (only if FMMs are enabled) </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01145">1145</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01143">1143</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -497,7 +543,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01258">1258</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01256">1256</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -556,7 +602,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01313">1313</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01311">1311</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -642,7 +688,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Compute preconditioner assemble the diagonal blocks of the reps matrix then invert them to build the preconditioner. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01339">1339</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01337">1337</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -745,7 +791,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01430">1430</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01428">1428</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -812,7 +858,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01557">1557</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01555">1555</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -921,7 +967,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01665">1665</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01663">1663</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1013,7 +1059,46 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Get near and far admissible pairs from work array of tree_get_farnear_work Works only for binary tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01758">1758</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01756">1756</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+
+</div>
+</div>
+<a id="a81884e9f5bdcd2a3f8e329211d237b20" name="a81884e9f5bdcd2a3f8e329211d237b20"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81884e9f5bdcd2a3f8e329211d237b20">&#9670;&nbsp;</a></span>constants_free()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_constants::constants_free </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(out)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Deallocate the constants. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01815">1815</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>

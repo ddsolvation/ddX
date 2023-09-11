@@ -4,9 +4,9 @@ var searchData=
   ['carttosph_1',['carttosph',['../namespaceddx__harmonics.html#a6c3357a53655c62372199bab90444412',1,'ddx_harmonics']]],
   ['cav_5fto_5fspherical_2',['cav_to_spherical',['../namespaceddx__core.html#a2ff2b3f242a701748d2ce58e54acdee5',1,'ddx_core']]],
   ['closest_5fsupported_5flebedev_5fgrid_3',['closest_supported_lebedev_grid',['../namespaceddx__parameters.html#a1b84e0732491759d44bb63d14f7c77a5',1,'ddx_parameters']]],
-  ['constants_5ffree_4',['constants_free',['../group___fortran__interface__core.html#ga81884e9f5bdcd2a3f8e329211d237b20',1,'ddx_constants']]],
+  ['constants_5ffree_4',['constants_free',['../namespaceddx__constants.html#a81884e9f5bdcd2a3f8e329211d237b20',1,'ddx_constants']]],
   ['constants_5fgeometry_5finit_5',['constants_geometry_init',['../namespaceddx__constants.html#af45649060526b628ec8d5aaed548818d',1,'ddx_constants']]],
-  ['constants_5finit_6',['constants_init',['../group___fortran__interface__core.html#ga53ef995007b2d2d8d1613a0382ce32c1',1,'ddx_constants']]],
+  ['constants_5finit_6',['constants_init',['../namespaceddx__constants.html#a53ef995007b2d2d8d1613a0382ce32c1',1,'ddx_constants']]],
   ['contract_5fgrad_5fb_7',['contract_grad_b',['../namespaceddx__gradients.html#a260eabcd4aae98089d7ef6d1857615e6',1,'ddx_gradients']]],
   ['contract_5fgrad_5fc_8',['contract_grad_c',['../namespaceddx__gradients.html#a31a5a22be24a7bef8c8862b8929a5b0a',1,'ddx_gradients']]],
   ['contract_5fgrad_5fc_5fworker1_9',['contract_grad_c_worker1',['../namespaceddx__gradients.html#a68053293af8b8d0c1bee08ad4af39b15',1,'ddx_gradients']]],
@@ -20,6 +20,14 @@ var searchData=
   ['contract_5fgradi_5flik_17',['contract_gradi_lik',['../namespaceddx__gradients.html#ae3c5219079e9f9275a8a481234d8bc00',1,'ddx_gradients']]],
   ['contract_5fgradi_5flji_18',['contract_gradi_lji',['../namespaceddx__gradients.html#a5da0a4096bea393102478a2fd1811391',1,'ddx_gradients']]],
   ['convert_5fddcosmo_19',['convert_ddcosmo',['../namespaceddx__lpb__core.html#ad6dc1419e83a09c20a07880df9d21d72',1,'ddx_lpb_core']]],
-  ['cstarx_20',['cstarx',['../namespaceddx__operators.html#af5b5e2e9c5ed6d4418af18395586bb4c',1,'ddx_operators']]],
-  ['cx_21',['cx',['../namespaceddx__operators.html#a21936835d34606e980a4ba4bee5649c6',1,'ddx_operators']]]
+  ['cosmo_5fderivative_5fsetup_20',['cosmo_derivative_setup',['../namespaceddx__cosmo.html#a50ff9ab9cd9522a209d6bc5d4edd079f',1,'ddx_cosmo']]],
+  ['cosmo_5fenergy_21',['cosmo_energy',['../group___fortran__interface__ddcosmo.html#ga1dc65eb43c74c5a76d99f37d05fed68a',1,'ddx_cosmo']]],
+  ['cosmo_5fguess_22',['cosmo_guess',['../group___fortran__interface__ddcosmo.html#ga910d854a5cde052142d0b0fafe7a1206',1,'ddx_cosmo']]],
+  ['cosmo_5fguess_5fadjoint_23',['cosmo_guess_adjoint',['../group___fortran__interface__ddcosmo.html#ga398ff0292bd306a9fb139c1ef73b63a3',1,'ddx_cosmo']]],
+  ['cosmo_5fsetup_24',['cosmo_setup',['../group___fortran__interface__ddcosmo.html#ga5b1a9cd9425c05f71ce9fba1df2f855a',1,'ddx_cosmo']]],
+  ['cosmo_5fsolvation_5fforce_5fterms_25',['cosmo_solvation_force_terms',['../group___fortran__interface__ddcosmo.html#ga2628ab5a5fcdad4d46140b096e20fa88',1,'ddx_cosmo']]],
+  ['cosmo_5fsolve_26',['cosmo_solve',['../group___fortran__interface__ddcosmo.html#gaaa91638f5a8ee08b856ef69f328b8cfc',1,'ddx_cosmo']]],
+  ['cosmo_5fsolve_5fadjoint_27',['cosmo_solve_adjoint',['../group___fortran__interface__ddcosmo.html#gadcb4e795ba78a4d491f17ac31fd2e513',1,'ddx_cosmo']]],
+  ['cstarx_28',['cstarx',['../namespaceddx__operators.html#af5b5e2e9c5ed6d4418af18395586bb4c',1,'ddx_operators']]],
+  ['cx_29',['cx',['../namespaceddx__operators.html#a21936835d34606e980a4ba4bee5649c6',1,'ddx_operators']]]
 ];

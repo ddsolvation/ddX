@@ -1,7 +1,7 @@
 var ddx__constants_8f90 =
 [
     [ "ddx_constants::ddx_constants_type", "structddx__constants_1_1ddx__constants__type.html", "structddx__constants_1_1ddx__constants__type" ],
-    [ "constants_init", "ddx__constants_8f90.html#ga53ef995007b2d2d8d1613a0382ce32c1", null ],
+    [ "constants_init", "ddx__constants_8f90.html#a53ef995007b2d2d8d1613a0382ce32c1", null ],
     [ "build_itrnl", "ddx__constants_8f90.html#a023647f7faeb13a496b30e974e973b23", null ],
     [ "build_l", "ddx__constants_8f90.html#ae1706324f9f69b4c925d828d29369655", null ],
     [ "build_b", "ddx__constants_8f90.html#a17b2783271cd39d4f10cdba0cfd8e861", null ],
@@ -16,5 +16,5 @@ var ddx__constants_8f90 =
     [ "tree_rib_node_bisect", "ddx__constants_8f90.html#a256a32824610d37b55ca5ec23b7048ba", null ],
     [ "tree_get_farnear_work", "ddx__constants_8f90.html#a3e9f0301398a1007b912f94c7239dffd", null ],
     [ "tree_get_farnear", "ddx__constants_8f90.html#afa4961d4e2731a6ade2dd395d00a87d9", null ],
-    [ "constants_free", "ddx__constants_8f90.html#ga81884e9f5bdcd2a3f8e329211d237b20", null ]
+    [ "constants_free", "ddx__constants_8f90.html#a81884e9f5bdcd2a3f8e329211d237b20", null ]
 ];

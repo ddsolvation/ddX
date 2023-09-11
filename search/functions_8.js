@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['jacobi_5fdiis_0',['jacobi_diis',['../namespaceddx__solvers.html#a90a43702b03216abfc160f024fae0eae',1,'ddx_solvers']]],
-  ['jacobi_5fdiis_5fexternal_1',['jacobi_diis_external',['../namespaceddx__solvers.html#a3d4e2962ec272bfc85c3d67a7fb36478',1,'ddx_solvers']]]
+  ['init_5fprinting_0',['init_printing',['../namespaceddx__parameters.html#ab3a8bd067ca61d5393f4b27b41f324b6',1,'ddx_parameters']]],
+  ['inthsp_1',['inthsp',['../namespaceddx__lpb__core.html#a969e1e3834acb86d777c83f1a8bbc75e',1,'ddx_lpb_core']]],
+  ['inthsp_5fadj_2',['inthsp_adj',['../namespaceddx__lpb__core.html#a0891fee1cda023a5caa40c8cf56a3a5e',1,'ddx_lpb_core']]],
+  ['intmlp_3',['intmlp',['../namespaceddx__core.html#af57c0e1c6dd13f71fee44d975a1080cd',1,'ddx_core']]]
 ];

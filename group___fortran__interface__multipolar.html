@@ -101,39 +101,27 @@ $(document).ready(function(){initNavTree('group___fortran__interface__multipolar
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:ga23cb89bd3f6a3cec65ab19bf6fca2edc"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga23cb89bd3f6a3cec65ab19bf6fca2edc">ddx_multipolar_solutes::build_g</a> (params, constants, workspace, multipoles, mmax, phi_cav, e_cav, g_cav, error)</td></tr>
-<tr class="memdesc:ga23cb89bd3f6a3cec65ab19bf6fca2edc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, compute the potential, its gradient and its hessian at the target points this is done with or without FMMs depending on the relevant flag The multipoles must be centered on the ddx spheres.  <a href="group___fortran__interface__multipolar.html#ga23cb89bd3f6a3cec65ab19bf6fca2edc">More...</a><br /></td></tr>
-<tr class="separator:ga23cb89bd3f6a3cec65ab19bf6fca2edc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga07f53341ec9c48e423b18ba05c06a32d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga07f53341ec9c48e423b18ba05c06a32d">ddx_multipolar_solutes::build_e</a> (params, constants, workspace, multipoles, mmax, phi_cav, e_cav, error)</td></tr>
-<tr class="memdesc:ga07f53341ec9c48e423b18ba05c06a32d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, compute the potential and its gradient at the target points this is done with or without FMMs depending on the relevant flag The multipoles must be centered on the ddx spheres.  <a href="group___fortran__interface__multipolar.html#ga07f53341ec9c48e423b18ba05c06a32d">More...</a><br /></td></tr>
-<tr class="separator:ga07f53341ec9c48e423b18ba05c06a32d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa81cbbc42efbd7a5ee0e3e1227e01b65"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#gaa81cbbc42efbd7a5ee0e3e1227e01b65">ddx_multipolar_solutes::build_phi</a> (params, constants, workspace, multipoles, mmax, phi_cav, error)</td></tr>
-<tr class="memdesc:gaa81cbbc42efbd7a5ee0e3e1227e01b65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, compute the potential at the target points this is done with or without FMMs depending on the relevant flag The multipoles must be centered on the ddx spheres.  <a href="group___fortran__interface__multipolar.html#gaa81cbbc42efbd7a5ee0e3e1227e01b65">More...</a><br /></td></tr>
-<tr class="separator:gaa81cbbc42efbd7a5ee0e3e1227e01b65"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf468ceaaf47ba9d96486ab064e6e57d9"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#gaf468ceaaf47ba9d96486ab064e6e57d9">ddx_multipolar_solutes::build_psi</a> (params, multipoles, mmax, psi)</td></tr>
-<tr class="memdesc:gaf468ceaaf47ba9d96486ab064e6e57d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, assemble the RHS psi. The multipoles must be centered on the ddx spheres.  <a href="group___fortran__interface__multipolar.html#gaf468ceaaf47ba9d96486ab064e6e57d9">More...</a><br /></td></tr>
-<tr class="separator:gaf468ceaaf47ba9d96486ab064e6e57d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga27b32a5fc447f41cd37ae211a7f0b0fd"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga27b32a5fc447f41cd37ae211a7f0b0fd">ddx_multipolar_solutes::grad_phi</a> (params, constants, workspace, state, mmax, multipoles, forces, error)</td></tr>
-<tr class="memdesc:ga27b32a5fc447f41cd37ae211a7f0b0fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions.  <a href="group___fortran__interface__multipolar.html#ga27b32a5fc447f41cd37ae211a7f0b0fd">More...</a><br /></td></tr>
-<tr class="separator:ga27b32a5fc447f41cd37ae211a7f0b0fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4e16c09a98ab5e297b601c6ed6d41fc3"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga4e16c09a98ab5e297b601c6ed6d41fc3">ddx_multipolar_solutes::grad_e</a> (params, constants, workspace, state, mmax, multipoles, force, error)</td></tr>
-<tr class="memdesc:ga4e16c09a98ab5e297b601c6ed6d41fc3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions in case of ddLPB F RHS.  <a href="group___fortran__interface__multipolar.html#ga4e16c09a98ab5e297b601c6ed6d41fc3">More...</a><br /></td></tr>
-<tr class="separator:ga4e16c09a98ab5e297b601c6ed6d41fc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga15a5fdef855de5c989a3fa6de1cc1647"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga15a5fdef855de5c989a3fa6de1cc1647">ddx_multipolar_solutes::multipole_forces</a> (params, constants, workspace, state, mmax, multipoles, forces, error)</td></tr>
-<tr class="memdesc:ga15a5fdef855de5c989a3fa6de1cc1647"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions.  <a href="group___fortran__interface__multipolar.html#ga15a5fdef855de5c989a3fa6de1cc1647">More...</a><br /></td></tr>
-<tr class="separator:ga15a5fdef855de5c989a3fa6de1cc1647"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf7b6243053ec2fb87fbcf1a392883a98"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#gaf7b6243053ec2fb87fbcf1a392883a98">ddx_multipolar_solutes::multipole_electrostatics</a> (params, constants, workspace, multipoles, mmax, electrostatics, error)</td></tr>
+<tr class="memdesc:gaf7b6243053ec2fb87fbcf1a392883a98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, compute the required electrostatic properties for the chosen model.  <a href="group___fortran__interface__multipolar.html#gaf7b6243053ec2fb87fbcf1a392883a98">More...</a><br /></td></tr>
+<tr class="separator:gaf7b6243053ec2fb87fbcf1a392883a98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab9f10b0657bf556a2cd1261a48088f46"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#gab9f10b0657bf556a2cd1261a48088f46">ddx_multipolar_solutes::multipole_psi</a> (params, multipoles, mmax, psi)</td></tr>
+<tr class="memdesc:gab9f10b0657bf556a2cd1261a48088f46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, assemble the RHS psi. The multipoles must be centered on the ddx spheres.  <a href="group___fortran__interface__multipolar.html#gab9f10b0657bf556a2cd1261a48088f46">More...</a><br /></td></tr>
+<tr class="separator:gab9f10b0657bf556a2cd1261a48088f46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4551876dd1ee789869ee1ef4894aef1e"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga4551876dd1ee789869ee1ef4894aef1e">ddx_multipolar_solutes::multipole_force_terms</a> (params, constants, workspace, state, mmax, multipoles, forces, error)</td></tr>
+<tr class="memdesc:ga4551876dd1ee789869ee1ef4894aef1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions.  <a href="group___fortran__interface__multipolar.html#ga4551876dd1ee789869ee1ef4894aef1e">More...</a><br /></td></tr>
+<tr class="separator:ga4551876dd1ee789869ee1ef4894aef1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p >Exposed multipolar modules in the Fortran API. </p>
 <h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="ga23cb89bd3f6a3cec65ab19bf6fca2edc" name="ga23cb89bd3f6a3cec65ab19bf6fca2edc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga23cb89bd3f6a3cec65ab19bf6fca2edc">&#9670;&nbsp;</a></span>build_g()</h2>
+<a id="gaf7b6243053ec2fb87fbcf1a392883a98" name="gaf7b6243053ec2fb87fbcf1a392883a98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf7b6243053ec2fb87fbcf1a392883a98">&#9670;&nbsp;</a></span>multipole_electrostatics()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">subroutine ddx_multipolar_solutes::build_g </td>
+          <td class="memname">subroutine ddx_multipolar_solutes::multipole_electrostatics </td>
           <td>(</td>
           <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
           <td class="paramname"><em>params</em>, </td>
@@ -165,20 +153,8 @@ Functions/Subroutines</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real(dp), dimension(constants % ncav), intent(out)&#160;</td>
-          <td class="paramname"><em>phi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(out)&#160;</td>
-          <td class="paramname"><em>e_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, 3, constants % ncav), intent(out)&#160;</td>
-          <td class="paramname"><em>g_cav</em>, </td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__electrostatics__type.html">ddx_electrostatics_type</a>), intent(out)&#160;</td>
+          <td class="paramname"><em>electrostatics</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -194,7 +170,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Given a multipolar distribution, compute the potential, its gradient and its hessian at the target points this is done with or without FMMs depending on the relevant flag The multipoles must be centered on the ddx spheres. </p>
+<p>Given a multipolar distribution, compute the required electrostatic properties for the chosen model. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
@@ -202,181 +178,24 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspace </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">multipoles</td><td>multipoles as real spherical harmonics, size ((mmax+1)**2, nsph) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">mmax</td><td>maximum angular momentum of the multipoles </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">phi_cav</td><td>electric potential at the target points, size (ncav) </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">e_cav</td><td>electric field at the target points, size (3, ncav) </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">g_cav</td><td>electric field gradient at the target points, size (3, 3, ncav) </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">electrostatics,ddX</td><td>electrostatic properties container </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00033">33</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00028">28</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
-<a id="ga07f53341ec9c48e423b18ba05c06a32d" name="ga07f53341ec9c48e423b18ba05c06a32d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga07f53341ec9c48e423b18ba05c06a32d">&#9670;&nbsp;</a></span>build_e()</h2>
+<a id="gab9f10b0657bf556a2cd1261a48088f46" name="gab9f10b0657bf556a2cd1261a48088f46"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab9f10b0657bf556a2cd1261a48088f46">&#9670;&nbsp;</a></span>multipole_psi()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">subroutine ddx_multipolar_solutes::build_e </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension((mmax + 1)**2, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>multipoles</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>mmax</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % ncav), intent(out)&#160;</td>
-          <td class="paramname"><em>phi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(out)&#160;</td>
-          <td class="paramname"><em>e_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Given a multipolar distribution, compute the potential and its gradient at the target points this is done with or without FMMs depending on the relevant flag The multipoles must be centered on the ddx spheres. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>ddx constants </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspace </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">multipoles</td><td>multipoles as real spherical harmonics, size ((mmax+1)**2, nsph) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">mmax</td><td>maximum angular momentum of the multipoles </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">phi_cav</td><td>electric potential at the target points, size (ncav) </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">e_cav</td><td>electric field at the target points, size (3, ncav) </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00191">191</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
-
-</div>
-</div>
-<a id="gaa81cbbc42efbd7a5ee0e3e1227e01b65" name="gaa81cbbc42efbd7a5ee0e3e1227e01b65"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaa81cbbc42efbd7a5ee0e3e1227e01b65">&#9670;&nbsp;</a></span>build_phi()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_multipolar_solutes::build_phi </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension((mmax + 1)**2, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>multipoles</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>mmax</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(constants % ncav), intent(out)&#160;</td>
-          <td class="paramname"><em>phi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Given a multipolar distribution, compute the potential at the target points this is done with or without FMMs depending on the relevant flag The multipoles must be centered on the ddx spheres. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>ddx constants </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspace </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">multipoles</td><td>multipoles as real spherical harmonics, size ((mmax+1)**2, nsph) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">mmax</td><td>maximum angular momentum of the multipoles </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">phi_cav</td><td>electric potential at the target points, size (ncav) </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00303">303</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
-
-</div>
-</div>
-<a id="gaf468ceaaf47ba9d96486ab064e6e57d9" name="gaf468ceaaf47ba9d96486ab064e6e57d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf468ceaaf47ba9d96486ab064e6e57d9">&#9670;&nbsp;</a></span>build_psi()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_multipolar_solutes::build_psi </td>
+          <td class="memname">subroutine ddx_multipolar_solutes::multipole_psi </td>
           <td>(</td>
           <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
           <td class="paramname"><em>params</em>, </td>
@@ -418,18 +237,18 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00793">793</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l00838">838</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>
-<a id="ga27b32a5fc447f41cd37ae211a7f0b0fd" name="ga27b32a5fc447f41cd37ae211a7f0b0fd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga27b32a5fc447f41cd37ae211a7f0b0fd">&#9670;&nbsp;</a></span>grad_phi()</h2>
+<a id="ga4551876dd1ee789869ee1ef4894aef1e" name="ga4551876dd1ee789869ee1ef4894aef1e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga4551876dd1ee789869ee1ef4894aef1e">&#9670;&nbsp;</a></span>multipole_force_terms()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">subroutine ddx_multipolar_solutes::grad_phi </td>
+          <td class="memname">subroutine ddx_multipolar_solutes::multipole_force_terms </td>
           <td>(</td>
           <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
           <td class="paramname"><em>params</em>, </td>
@@ -499,169 +318,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l01003">1003</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
-
-</div>
-</div>
-<a id="ga4e16c09a98ab5e297b601c6ed6d41fc3" name="ga4e16c09a98ab5e297b601c6ed6d41fc3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga4e16c09a98ab5e297b601c6ed6d41fc3">&#9670;&nbsp;</a></span>grad_e()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_multipolar_solutes::grad_e </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>mmax</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension((mmax+1)**2, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>multipoles</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
-          <td class="paramname"><em>force</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions in case of ddLPB F RHS. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>ddx constants </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspace </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">mmax</td><td>maximum angular momentum of the multipolar distribution </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">multipoles</td><td>multipoles as real spherical harmonics, size ((mmax+1)**2, nsph) </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">forces</td><td>forces array, size (3, nsph) </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l01317">1317</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
-
-</div>
-</div>
-<a id="ga15a5fdef855de5c989a3fa6de1cc1647" name="ga15a5fdef855de5c989a3fa6de1cc1647"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga15a5fdef855de5c989a3fa6de1cc1647">&#9670;&nbsp;</a></span>multipole_forces()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_multipolar_solutes::multipole_forces </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>mmax</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension((mmax + 1)**2, params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>multipoles</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
-          <td class="paramname"><em>forces</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>ddx constants </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>ddx workspace </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">mmax</td><td>maximum angular momentum of the multipolar distribution </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">multipoles</td><td>multipoles as real spherical harmonics, size ((mmax+1)**2, nsph) </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">forces</td><td>forces array, size (3, nsph) </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l01432">1432</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__multipolar__solutes_8f90_source.html#l01475">1475</a> of file <a class="el" href="ddx__multipolar__solutes_8f90_source.html">ddx_multipolar_solutes.f90</a>.</p>
 
 </div>
 </div>

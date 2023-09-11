@@ -108,16 +108,109 @@ Data Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:ga5e45526345bd21a2cf3588d1f4fc2786"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga5e45526345bd21a2cf3588d1f4fc2786">workspace_init</a> (params, constants, workspace, error)</td></tr>
-<tr class="memdesc:ga5e45526345bd21a2cf3588d1f4fc2786"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize and allocate the temporary workspaces.  <a href="group___fortran__interface__core.html#ga5e45526345bd21a2cf3588d1f4fc2786">More...</a><br /></td></tr>
-<tr class="separator:ga5e45526345bd21a2cf3588d1f4fc2786"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga94e563c16d1fb5edf6b37ae6a2676623"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga94e563c16d1fb5edf6b37ae6a2676623">workspace_free</a> (workspace, error)</td></tr>
-<tr class="memdesc:ga94e563c16d1fb5edf6b37ae6a2676623"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate the temporary workspaces.  <a href="group___fortran__interface__core.html#ga94e563c16d1fb5edf6b37ae6a2676623">More...</a><br /></td></tr>
-<tr class="separator:ga94e563c16d1fb5edf6b37ae6a2676623"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e45526345bd21a2cf3588d1f4fc2786"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__workspace.html#a5e45526345bd21a2cf3588d1f4fc2786">workspace_init</a> (params, constants, workspace, error)</td></tr>
+<tr class="memdesc:a5e45526345bd21a2cf3588d1f4fc2786"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize and allocate the temporary workspaces.  <a href="namespaceddx__workspace.html#a5e45526345bd21a2cf3588d1f4fc2786">More...</a><br /></td></tr>
+<tr class="separator:a5e45526345bd21a2cf3588d1f4fc2786"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a94e563c16d1fb5edf6b37ae6a2676623"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__workspace.html#a94e563c16d1fb5edf6b37ae6a2676623">workspace_free</a> (workspace, error)</td></tr>
+<tr class="memdesc:a94e563c16d1fb5edf6b37ae6a2676623"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate the temporary workspaces.  <a href="namespaceddx__workspace.html#a94e563c16d1fb5edf6b37ae6a2676623">More...</a><br /></td></tr>
+<tr class="separator:a94e563c16d1fb5edf6b37ae6a2676623"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Workspace for temporary buffers. </p>
-</div></div><!-- contents -->
+</div><h2 class="groupheader">Function/Subroutine Documentation</h2>
+<a id="a5e45526345bd21a2cf3588d1f4fc2786" name="a5e45526345bd21a2cf3588d1f4fc2786"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e45526345bd21a2cf3588d1f4fc2786">&#9670;&nbsp;</a></span>workspace_init()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_workspace::workspace_init </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(out)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Initialize and allocate the temporary workspaces. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00113">113</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
+
+</div>
+</div>
+<a id="a94e563c16d1fb5edf6b37ae6a2676623" name="a94e563c16d1fb5edf6b37ae6a2676623"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a94e563c16d1fb5edf6b37ae6a2676623">&#9670;&nbsp;</a></span>workspace_free()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_workspace::workspace_free </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(out)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Deallocate the temporary workspaces. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00285">285</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
+
+</div>
+</div>
+</div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

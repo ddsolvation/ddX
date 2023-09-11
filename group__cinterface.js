@@ -6,6 +6,9 @@ var group__cinterface =
     [ "ddx_allocate_error", "group__cinterface.html#gacfaf53bdb85077b58ec744c058068be7", null ],
     [ "ddx_get_error_flag", "group__cinterface.html#ga2c11a5cef84cb249165f9c901eef68b9", null ],
     [ "ddx_get_error_message", "group__cinterface.html#ga4ab4d1766042fe048c1b3ed9f6735de5", null ],
+    [ "ddx_allocate_electrostatics", "group__cinterface.html#gad09e1562475f568d22b966208fa611f7", null ],
+    [ "ddx_multipole_electrostatics", "group__cinterface.html#ga34cbb12a3797c215aa659fa5712eeeeb", null ],
+    [ "ddx_deallocate_electrostatics", "group__cinterface.html#ga9d1aa34ba5e219c3cd2f02d80721c0c2", null ],
     [ "ddx_allocate_model", "group__cinterface.html#gad6d6aee891c68a6eea2b4341c30adc3e", null ],
     [ "ddx_deallocate_model", "group__cinterface.html#ga9f6d8e4d59d1e673e278508c6e7771ce", null ],
     [ "ddx_get_logfile", "group__cinterface.html#ga0a32b39bbefb26523f30760e7ef6e91d", null ],
@@ -39,6 +42,15 @@ var group__cinterface =
     [ "ddx_get_s_niter", "group__cinterface.html#ga635415fc43a6c88bb0cdc0cc4c751458", null ],
     [ "ddx_get_xi", "group__cinterface.html#ga8ec332a45c75ba671624069486fc0885", null ],
     [ "ddx_get_zeta_dip", "group__cinterface.html#ga580d8754e3a50e3c244292f79b80b742", null ],
+    [ "ddx_ddsolve", "group__cinterface.html#ga72d3a74c9e1e4d8f6dc84a182af67b6c", null ],
+    [ "ddx_setup", "group__cinterface.html#gaab1525b733d216c45d4ddbe5436343a5", null ],
+    [ "ddx_fill_guess", "group__cinterface.html#ga16589cc46025c1a3baa35f782401511c", null ],
+    [ "ddx_fill_guess_adjoint", "group__cinterface.html#gad08f13195290263dcdf6f6f65e5cf0c7", null ],
+    [ "ddx_solve", "group__cinterface.html#gaecb6f78f880bc1c142a3c6b2d3d0d6fe", null ],
+    [ "ddx_solve_adjoint", "group__cinterface.html#ga1d867289755b6c126fec5f3cbf4728b8", null ],
+    [ "ddx_energy", "group__cinterface.html#ga9cec1a0fe9bd8919a0e16c2fdc669efc", null ],
+    [ "ddx_solvation_force_terms", "group__cinterface.html#ga3128977a14ec0830932d6a7e3dfbaf56", null ],
+    [ "ddx_ddrun", "group__cinterface.html#gac3d19aad6a6143ce316616db486cb438", null ],
     [ "ddx_cosmo_setup", "group__cinterface.html#ga3fb6dcee6fde518e2bc63048fe59011d", null ],
     [ "ddx_cosmo_guess", "group__cinterface.html#ga5122d465f8343d61df549c8ef6717990", null ],
     [ "ddx_cosmo_guess_adjoint", "group__cinterface.html#ga2f9b802ce3aaba75886f9a93ffc32a35", null ],
@@ -64,5 +76,5 @@ var group__cinterface =
     [ "ddx_multipole_electrostatics_1", "group__cinterface.html#gaf6fd9c9d13826f6063fcd3d9a4490e68", null ],
     [ "ddx_multipole_electrostatics_2", "group__cinterface.html#ga0659f96fca18455b366bcff1f009fff9", null ],
     [ "ddx_multipole_psi", "group__cinterface.html#ga50bf6f324e0e7f5df477bece4451f01b", null ],
-    [ "ddx_multipole_forces", "group__cinterface.html#ga4f6f4c3a911da17538965c5f9df42ba9", null ]
+    [ "ddx_multipole_force_terms", "group__cinterface.html#ga81f3131b630598ad731bba7c4d08d83d", null ]
 ];

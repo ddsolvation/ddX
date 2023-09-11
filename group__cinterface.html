@@ -110,6 +110,14 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="memitem:ga4ab4d1766042fe048c1b3ed9f6735de5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga4ab4d1766042fe048c1b3ed9f6735de5">ddx_get_error_message</a> (const void *error, char *message, int maxlen)</td></tr>
 <tr class="separator:ga4ab4d1766042fe048c1b3ed9f6735de5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader">Allocate and manage the ddX electrostatics object</h2></td></tr>
+<tr class="memitem:gad09e1562475f568d22b966208fa611f7"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gad09e1562475f568d22b966208fa611f7">ddx_allocate_electrostatics</a> (void *ddx, void *error)</td></tr>
+<tr class="separator:gad09e1562475f568d22b966208fa611f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga34cbb12a3797c215aa659fa5712eeeeb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga34cbb12a3797c215aa659fa5712eeeeb">ddx_multipole_electrostatics</a> (void *ddx, int nsph, int nmultipoles, const double *multipoles, void *electrostatics, void *error)</td></tr>
+<tr class="separator:ga34cbb12a3797c215aa659fa5712eeeeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9d1aa34ba5e219c3cd2f02d80721c0c2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga9d1aa34ba5e219c3cd2f02d80721c0c2">ddx_deallocate_electrostatics</a> (void *electrostatics, void *error)</td></tr>
+<tr class="separator:ga9d1aa34ba5e219c3cd2f02d80721c0c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Allocate and manage the ddx model object</h2></td></tr>
 <tr class="memitem:gad6d6aee891c68a6eea2b4341c30adc3e"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gad6d6aee891c68a6eea2b4341c30adc3e">ddx_allocate_model</a> (int model, int enable_force, double solvent_epsilon, double solvent_kappa, double eta, double shift, int lmax, int n_lebedev, int incore, int maxiter, int jacobi_n_diis, int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax, int n_proc, int n_spheres, const double *sphere_centres, const double *sphere_radii, int length_logfile, const char *logfile, void *error)</td></tr>
 <tr class="separator:gad6d6aee891c68a6eea2b4341c30adc3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -182,6 +190,26 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="memitem:ga580d8754e3a50e3c244292f79b80b742"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga580d8754e3a50e3c244292f79b80b742">ddx_get_zeta_dip</a> (const void *state, const void *ddx, int ncav, double *zeta_dip)</td></tr>
 <tr class="separator:ga580d8754e3a50e3c244292f79b80b742"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader">Model nonspecific setup and solution routines</h2></td></tr>
+<tr class="memitem:ga72d3a74c9e1e4d8f6dc84a182af67b6c"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga72d3a74c9e1e4d8f6dc84a182af67b6c">ddx_ddsolve</a> (const void *ddx, void *state, const void *electrostatics, int nbasis, int nsph, const double *psi, double tol, double *forces, const int read_guess, void *error)</td></tr>
+<tr class="separator:ga72d3a74c9e1e4d8f6dc84a182af67b6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaab1525b733d216c45d4ddbe5436343a5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaab1525b733d216c45d4ddbe5436343a5">ddx_setup</a> (const void *ddx, void *state, const void *electrostatics, int nbasis, int nsph, const double *psi, void *error)</td></tr>
+<tr class="separator:gaab1525b733d216c45d4ddbe5436343a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga16589cc46025c1a3baa35f782401511c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga16589cc46025c1a3baa35f782401511c">ddx_fill_guess</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
+<tr class="separator:ga16589cc46025c1a3baa35f782401511c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad08f13195290263dcdf6f6f65e5cf0c7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gad08f13195290263dcdf6f6f65e5cf0c7">ddx_fill_guess_adjoint</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
+<tr class="separator:gad08f13195290263dcdf6f6f65e5cf0c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaecb6f78f880bc1c142a3c6b2d3d0d6fe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaecb6f78f880bc1c142a3c6b2d3d0d6fe">ddx_solve</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
+<tr class="separator:gaecb6f78f880bc1c142a3c6b2d3d0d6fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1d867289755b6c126fec5f3cbf4728b8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga1d867289755b6c126fec5f3cbf4728b8">ddx_solve_adjoint</a> (const void *ddx, void *state, double tol, void *error)</td></tr>
+<tr class="separator:ga1d867289755b6c126fec5f3cbf4728b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9cec1a0fe9bd8919a0e16c2fdc669efc"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga9cec1a0fe9bd8919a0e16c2fdc669efc">ddx_energy</a> (const void *ddx, void *state, void *error)</td></tr>
+<tr class="separator:ga9cec1a0fe9bd8919a0e16c2fdc669efc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3128977a14ec0830932d6a7e3dfbaf56"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga3128977a14ec0830932d6a7e3dfbaf56">ddx_solvation_force_terms</a> (const void *ddx, void *state, void *electrostatics, int nsph, double *forces, void *error)</td></tr>
+<tr class="separator:ga3128977a14ec0830932d6a7e3dfbaf56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac3d19aad6a6143ce316616db486cb438"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gac3d19aad6a6143ce316616db486cb438">ddx_ddrun</a> (const void *ddx, void *state, void *electrostatics, int nbasis, int nsph, double *psi, const double tol, double *forces, int read_guess, void *error)</td></tr>
+<tr class="separator:gac3d19aad6a6143ce316616db486cb438"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Problem setup and solution routines</h2></td></tr>
 <tr class="memitem:ga3fb6dcee6fde518e2bc63048fe59011d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga3fb6dcee6fde518e2bc63048fe59011d">ddx_cosmo_setup</a> (const void *ddx, void *state, int ncav, int nbasis, int nsph, const double *psi, const double *phi_cav, void *error)</td></tr>
 <tr class="separator:ga3fb6dcee6fde518e2bc63048fe59011d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -235,8 +263,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="separator:ga0659f96fca18455b366bcff1f009fff9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga50bf6f324e0e7f5df477bece4451f01b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga50bf6f324e0e7f5df477bece4451f01b">ddx_multipole_psi</a> (const void *ddx, int nbasis, int nsph, int nmultipoles, const double *multipoles, double *psi, void *error)</td></tr>
 <tr class="separator:ga50bf6f324e0e7f5df477bece4451f01b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4f6f4c3a911da17538965c5f9df42ba9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga4f6f4c3a911da17538965c5f9df42ba9">ddx_multipole_forces</a> (const void *ddx, void *state, int nsph, int nmultipoles, const double *multipoles, double *forces, void *error)</td></tr>
-<tr class="separator:ga4f6f4c3a911da17538965c5f9df42ba9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga81f3131b630598ad731bba7c4d08d83d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga81f3131b630598ad731bba7c4d08d83d">ddx_multipole_force_terms</a> (const void *ddx, void *state, int nsph, int nmultipoles, const double *multipoles, double *forces, void *error)</td></tr>
+<tr class="separator:ga81f3131b630598ad731bba7c4d08d83d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p >Header file defining the C interface of ddx. </p>
@@ -418,6 +446,117 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
       </table>
 </div><div class="memdoc">
 <p >Store the error message corresponding to the most recent error inside the passed char array. at most maxlen characters are copied (so set this to the number of allocated characters in the passed array to avoid a buffer overflow. </p>
+
+</div>
+</div>
+<a id="gad09e1562475f568d22b966208fa611f7" name="gad09e1562475f568d22b966208fa611f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad09e1562475f568d22b966208fa611f7">&#9670;&nbsp;</a></span>ddx_allocate_electrostatics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void * ddx_allocate_electrostatics </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Allocate the ddX electrostatics object. </p>
+
+</div>
+</div>
+<a id="ga34cbb12a3797c215aa659fa5712eeeeb" name="ga34cbb12a3797c215aa659fa5712eeeeb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga34cbb12a3797c215aa659fa5712eeeeb">&#9670;&nbsp;</a></span>ddx_multipole_electrostatics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_multipole_electrostatics </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nsph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nmultipoles</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>multipoles</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>electrostatics</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Compute the electrostatic properties for a multipolar distribution </p>
+
+</div>
+</div>
+<a id="ga9d1aa34ba5e219c3cd2f02d80721c0c2" name="ga9d1aa34ba5e219c3cd2f02d80721c0c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9d1aa34ba5e219c3cd2f02d80721c0c2">&#9670;&nbsp;</a></span>ddx_deallocate_electrostatics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_deallocate_electrostatics </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>electrostatics</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Deallocate the ddX electrostatics object. </p>
 
 </div>
 </div>
@@ -1424,6 +1563,543 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
     <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
     <tr><td class="paramname">ncav</td><td>Number of cavity points </td></tr>
     <tr><td class="paramname">zeta_dip</td><td>Array to be filled with ncav </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga72d3a74c9e1e4d8f6dc84a182af67b6c" name="ga72d3a74c9e1e4d8f6dc84a182af67b6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga72d3a74c9e1e4d8f6dc84a182af67b6c">&#9670;&nbsp;</a></span>ddx_ddsolve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ddx_ddsolve </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>electrostatics</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nbasis</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nsph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>psi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>forces</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>read_guess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Solve everything and return the energy. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">electrostatics</td><td>DDX electrostatic properties container </td></tr>
+    <tr><td class="paramname">nbasis</td><td>Number of basis functions used by DDX </td></tr>
+    <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
+    <tr><td class="paramname">psi</td><td>Psi array (nbasis, nsph)-shaped array (in column-major ordering) </td></tr>
+    <tr><td class="paramname">tol</td><td>Tolerance for the linear system solver </td></tr>
+    <tr><td class="paramname">forces</td><td>Force array </td></tr>
+    <tr><td class="paramname">read_guess</td><td>Flag for guess, if different from zero the guess is read from the state </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gaab1525b733d216c45d4ddbe5436343a5" name="gaab1525b733d216c45d4ddbe5436343a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaab1525b733d216c45d4ddbe5436343a5">&#9670;&nbsp;</a></span>ddx_setup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_setup </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>electrostatics</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nbasis</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nsph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>psi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >In-place adjust the guess inside the state. Setup a problem in the passed state. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">electrostatics</td><td>DDX electrostatic properties container </td></tr>
+    <tr><td class="paramname">nbasis</td><td>Number of basis functions used by DDX </td></tr>
+    <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
+    <tr><td class="paramname">psi</td><td>Psi array (nbasis, nsph)-shaped array (in column-major ordering) </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga16589cc46025c1a3baa35f782401511c" name="ga16589cc46025c1a3baa35f782401511c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga16589cc46025c1a3baa35f782401511c">&#9670;&nbsp;</a></span>ddx_fill_guess()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_fill_guess </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >In-place adjust the guess inside the state. Avoid calling this step if you want to use the currently stored solution as an initial guess </p>
+
+</div>
+</div>
+<a id="gad08f13195290263dcdf6f6f65e5cf0c7" name="gad08f13195290263dcdf6f6f65e5cf0c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad08f13195290263dcdf6f6f65e5cf0c7">&#9670;&nbsp;</a></span>ddx_fill_guess_adjoint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_fill_guess_adjoint </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >In-place adjust the adjoint guess inside the state. problem. Avoid calling this step if you want to use the currently stored solution as an initial guess </p>
+
+</div>
+</div>
+<a id="gaecb6f78f880bc1c142a3c6b2d3d0d6fe" name="gaecb6f78f880bc1c142a3c6b2d3d0d6fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaecb6f78f880bc1c142a3c6b2d3d0d6fe">&#9670;&nbsp;</a></span>ddx_solve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_solve </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Solve the forward problem. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">tol</td><td>Tolerance up to which the problem is solved </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga1d867289755b6c126fec5f3cbf4728b8" name="ga1d867289755b6c126fec5f3cbf4728b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1d867289755b6c126fec5f3cbf4728b8">&#9670;&nbsp;</a></span>ddx_solve_adjoint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_solve_adjoint </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Solve the adjoint COSMO problem. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">tol</td><td>Tolerance up to which the problem is solved </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga9cec1a0fe9bd8919a0e16c2fdc669efc" name="ga9cec1a0fe9bd8919a0e16c2fdc669efc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9cec1a0fe9bd8919a0e16c2fdc669efc">&#9670;&nbsp;</a></span>ddx_energy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ddx_energy </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Compute the solvation energy. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">error</td><td>DDX ERROR </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga3128977a14ec0830932d6a7e3dfbaf56" name="ga3128977a14ec0830932d6a7e3dfbaf56"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3128977a14ec0830932d6a7e3dfbaf56">&#9670;&nbsp;</a></span>ddx_solvation_force_terms()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ddx_solvation_force_terms </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>electrostatics</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nsph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>forces</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Compute the solvation force terms. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">electrostatics</td><td>DDX electrostatic properties container </td></tr>
+    <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
+    <tr><td class="paramname">forces</td><td>Output force array (3, nsph) in column-major order </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gac3d19aad6a6143ce316616db486cb438" name="gac3d19aad6a6143ce316616db486cb438"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac3d19aad6a6143ce316616db486cb438">&#9670;&nbsp;</a></span>ddx_ddrun()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ddx_ddrun </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>electrostatics</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nbasis</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nsph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>psi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>forces</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>read_guess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Run all the steps of a ddX calculation and return energy and, if requested, forces. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ddx</td><td>DDX model </td></tr>
+    <tr><td class="paramname">state</td><td>DDX state </td></tr>
+    <tr><td class="paramname">electrostatics</td><td>DDX electrostatic properties container </td></tr>
+    <tr><td class="paramname">nbasis</td><td>Number of basis functions used by DDX </td></tr>
+    <tr><td class="paramname">nsph</td><td>Number of cavity spheres </td></tr>
+    <tr><td class="paramname">psi</td><td>Psi array (nbasis, nsph)-shaped array (in column-major ordering) </td></tr>
+    <tr><td class="paramname">tol</td><td>Tolerance up to which the problem is solved </td></tr>
+    <tr><td class="paramname">forces</td><td>Output force array (3, nsph) in column-major order </td></tr>
+    <tr><td class="paramname">read_guess</td><td>Guess control flag: 0 for default guess, 1 for using the content of DDX state for the guess. </td></tr>
+    <tr><td class="paramname">error</td><td>DDX error </td></tr>
   </table>
   </dd>
 </dl>
@@ -2817,14 +3493,14 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="ga4f6f4c3a911da17538965c5f9df42ba9" name="ga4f6f4c3a911da17538965c5f9df42ba9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga4f6f4c3a911da17538965c5f9df42ba9">&#9670;&nbsp;</a></span>ddx_multipole_forces()</h2>
+<a id="ga81f3131b630598ad731bba7c4d08d83d" name="ga81f3131b630598ad731bba7c4d08d83d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga81f3131b630598ad731bba7c4d08d83d">&#9670;&nbsp;</a></span>ddx_multipole_force_terms()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void ddx_multipole_forces </td>
+          <td class="memname">void ddx_multipole_force_terms </td>
           <td>(</td>
           <td class="paramtype">const void *&#160;</td>
           <td class="paramname"><em>ddx</em>, </td>

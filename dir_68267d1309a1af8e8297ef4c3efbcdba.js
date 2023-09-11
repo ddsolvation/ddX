@@ -1,7 +1,7 @@
 var dir_68267d1309a1af8e8297ef4c3efbcdba =
 [
     [ "cbessel.f90", "cbessel_8f90_source.html", null ],
-    [ "ddx.f90", "ddx_8f90.html", "ddx_8f90" ],
+    [ "ddx.f90", "ddx_8f90_source.html", null ],
     [ "ddx.h", "ddx_8h.html", "ddx_8h" ],
     [ "ddx_cinterface.f90", "ddx__cinterface_8f90_source.html", null ],
     [ "ddx_constants.f90", "ddx__constants_8f90.html", "ddx__constants_8f90" ],
@@ -12,9 +12,9 @@ var dir_68267d1309a1af8e8297ef4c3efbcdba =
     [ "ddx_errors.f90", "ddx__errors_8f90_source.html", null ],
     [ "ddx_gradients.f90", "ddx__gradients_8f90_source.html", null ],
     [ "ddx_harmonics.f90", "ddx__harmonics_8f90.html", "ddx__harmonics_8f90" ],
+    [ "ddx_legacy.f90", "ddx__legacy_8f90_source.html", null ],
     [ "ddx_lpb.f90", "ddx__lpb_8f90_source.html", null ],
     [ "ddx_lpb_core.f90", "ddx__lpb__core_8f90_source.html", null ],
-    [ "ddx_mkrhs.f90", "ddx__mkrhs_8f90_source.html", null ],
     [ "ddx_multipolar_solutes.f90", "ddx__multipolar__solutes_8f90_source.html", null ],
     [ "ddx_operators.f90", "ddx__operators_8f90.html", "ddx__operators_8f90" ],
     [ "ddx_parameters.f90", "ddx__parameters_8f90.html", "ddx__parameters_8f90" ],

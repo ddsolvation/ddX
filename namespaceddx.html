@@ -101,110 +101,40 @@ $(document).ready(function(){initNavTree('namespaceddx.html',''); initResizable(
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:a161536a9f484ed322f6fd92de8273bc0"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx.html#a161536a9f484ed322f6fd92de8273bc0">ddsolve</a> (ddx_data, state, phi_cav, e_cav, hessianphi_cav, psi, tol, esolv, force, error)</td></tr>
-<tr class="memdesc:a161536a9f484ed322f6fd92de8273bc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main solver routine.  <a href="namespaceddx.html#a161536a9f484ed322f6fd92de8273bc0">More...</a><br /></td></tr>
-<tr class="separator:a161536a9f484ed322f6fd92de8273bc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga082dbdd2a38d46eb8a3f4862b800cc9e"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga082dbdd2a38d46eb8a3f4862b800cc9e">ddfromfile</a> (fname, ddx_data, tol, charges, error)</td></tr>
+<tr class="memdesc:ga082dbdd2a38d46eb8a3f4862b800cc9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the configuration from ddX input file and return a ddx_data structure.  <a href="group___fortran__interface__core.html#ga082dbdd2a38d46eb8a3f4862b800cc9e">More...</a><br /></td></tr>
+<tr class="separator:ga082dbdd2a38d46eb8a3f4862b800cc9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8e299e7b4c12baafc8a251198bf47329"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga8e299e7b4c12baafc8a251198bf47329">ddinit</a> (model, nsph, coords, radii, eps, ddx_data, error, force, kappa, eta, shift, lmax, ngrid, incore, maxiter, jacobi_ndiis, enable_fmm, pm, pl, nproc, logfile, adjoint, eps_int)</td></tr>
+<tr class="memdesc:ga8e299e7b4c12baafc8a251198bf47329"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrapper to the initialization routine which supports optional arguments. This will make future maintenance easier.  <a href="group___fortran__interface__core.html#ga8e299e7b4c12baafc8a251198bf47329">More...</a><br /></td></tr>
+<tr class="separator:ga8e299e7b4c12baafc8a251198bf47329"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6ca0221e9553f2629968a97da131fe86"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga6ca0221e9553f2629968a97da131fe86">ddrun</a> (ddx_data, state, electrostatics, psi, tol, esolv, error, force, read_guess)</td></tr>
+<tr class="memdesc:ga6ca0221e9553f2629968a97da131fe86"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main solver routine.  <a href="group___fortran__interface__core.html#ga6ca0221e9553f2629968a97da131fe86">More...</a><br /></td></tr>
+<tr class="separator:ga6ca0221e9553f2629968a97da131fe86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae50afd67f17cee91945bf117463a0288"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gae50afd67f17cee91945bf117463a0288">setup</a> (params, constants, workspace, state, electrostatics, psi, error)</td></tr>
+<tr class="memdesc:gae50afd67f17cee91945bf117463a0288"><td class="mdescLeft">&#160;</td><td class="mdescRight">Setup the state for the different models.  <a href="group___fortran__interface__core.html#gae50afd67f17cee91945bf117463a0288">More...</a><br /></td></tr>
+<tr class="separator:gae50afd67f17cee91945bf117463a0288"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae509e9c05de186cb3588597b14c90b65"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gae509e9c05de186cb3588597b14c90b65">fill_guess</a> (params, constants, workspace, state, tol, error)</td></tr>
+<tr class="memdesc:gae509e9c05de186cb3588597b14c90b65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the primal linear system for the different models.  <a href="group___fortran__interface__core.html#gae509e9c05de186cb3588597b14c90b65">More...</a><br /></td></tr>
+<tr class="separator:gae509e9c05de186cb3588597b14c90b65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab234222b75e684877ea9eca93d4f3f4c"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gab234222b75e684877ea9eca93d4f3f4c">fill_guess_adjoint</a> (params, constants, workspace, state, tol, error)</td></tr>
+<tr class="memdesc:gab234222b75e684877ea9eca93d4f3f4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the adjoint linear system for the different models.  <a href="group___fortran__interface__core.html#gab234222b75e684877ea9eca93d4f3f4c">More...</a><br /></td></tr>
+<tr class="separator:gab234222b75e684877ea9eca93d4f3f4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga08900a3794c02f6debe2271c9cf3a44d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga08900a3794c02f6debe2271c9cf3a44d">solve</a> (params, constants, workspace, state, tol, error)</td></tr>
+<tr class="memdesc:ga08900a3794c02f6debe2271c9cf3a44d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the primal linear system for the different models.  <a href="group___fortran__interface__core.html#ga08900a3794c02f6debe2271c9cf3a44d">More...</a><br /></td></tr>
+<tr class="separator:ga08900a3794c02f6debe2271c9cf3a44d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga795d66b9248a3e250f18c02981548cea"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga795d66b9248a3e250f18c02981548cea">solve_adjoint</a> (params, constants, workspace, state, tol, error)</td></tr>
+<tr class="memdesc:ga795d66b9248a3e250f18c02981548cea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the adjoint linear system for the different models.  <a href="group___fortran__interface__core.html#ga795d66b9248a3e250f18c02981548cea">More...</a><br /></td></tr>
+<tr class="separator:ga795d66b9248a3e250f18c02981548cea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac2554dc6e87a1dbb9185545ed31020b2"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gac2554dc6e87a1dbb9185545ed31020b2">energy</a> (params, constants, workspace, state, solvation_energy, error)</td></tr>
+<tr class="memdesc:gac2554dc6e87a1dbb9185545ed31020b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the energy for the different models.  <a href="group___fortran__interface__core.html#gac2554dc6e87a1dbb9185545ed31020b2">More...</a><br /></td></tr>
+<tr class="separator:gac2554dc6e87a1dbb9185545ed31020b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad03f488ddb80486f9d5423e9b7eb561a"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gad03f488ddb80486f9d5423e9b7eb561a">solvation_force_terms</a> (params, constants, workspace, state, electrostatics, force, error)</td></tr>
+<tr class="memdesc:gad03f488ddb80486f9d5423e9b7eb561a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the solvation terms of the forces (solute aspecific) for the different models. This must be summed to the solute specific term to get the full forces.  <a href="group___fortran__interface__core.html#gad03f488ddb80486f9d5423e9b7eb561a">More...</a><br /></td></tr>
+<tr class="separator:gad03f488ddb80486f9d5423e9b7eb561a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >High-level module of the ddX software. </p>
-</div><h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="a161536a9f484ed322f6fd92de8273bc0" name="a161536a9f484ed322f6fd92de8273bc0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a161536a9f484ed322f6fd92de8273bc0">&#9670;&nbsp;</a></span>ddsolve()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx::ddsolve </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__type.html">ddx_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>ddx_data</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(ddx_data % constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>phi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, ddx_data % constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>e_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, ddx_data % constants % ncav), intent(in)&#160;</td>
-          <td class="paramname"><em>hessianphi_cav</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(ddx_data % constants % nbasis, ddx_data % params % nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>psi</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>tol</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(out)&#160;</td>
-          <td class="paramname"><em>esolv</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, ddx_data % params % nsph), intent(out)&#160;</td>
-          <td class="paramname"><em>force</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Main solver routine. </p>
-<p >Solves the problem within COSMO model using a domain decomposition approach.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">ddx_data</td><td>ddX object with all input information </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">phi_cav</td><td>Potential at cavity points </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">e_cav</td><td>Gradient of the eletric potential at cavity points </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">hessianphi_cav</td><td>Hessian of the eletric potential at cavity points </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains RHSs and solutions) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">psi</td><td>RHS of the adjoint problem </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td></td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">esolv</td><td>Solvation energy </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>Analytical forces </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00039">39</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
-
-</div>
-</div>
-</div><!-- contents -->
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

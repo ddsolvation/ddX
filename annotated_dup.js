@@ -1,12 +1,13 @@
 var annotated_dup =
 [
     [ "ddx_cinterface", null, [
-      [ "ddx_setup", "structddx__cinterface_1_1ddx__setup.html", null ]
+      [ "ddx_setup_type", "structddx__cinterface_1_1ddx__setup__type.html", null ]
     ] ],
     [ "ddx_constants", "namespaceddx__constants.html", [
       [ "ddx_constants_type", "structddx__constants_1_1ddx__constants__type.html", "structddx__constants_1_1ddx__constants__type" ]
     ] ],
     [ "ddx_core", "namespaceddx__core.html", [
+      [ "ddx_electrostatics_type", "structddx__core_1_1ddx__electrostatics__type.html", "structddx__core_1_1ddx__electrostatics__type" ],
       [ "ddx_state_type", "structddx__core_1_1ddx__state__type.html", "structddx__core_1_1ddx__state__type" ],
       [ "ddx_type", "structddx__core_1_1ddx__type.html", null ]
     ] ],

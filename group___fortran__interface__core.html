@@ -98,44 +98,395 @@ $(document).ready(function(){initNavTree('group___fortran__interface__core.html'
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:ga53ef995007b2d2d8d1613a0382ce32c1"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga53ef995007b2d2d8d1613a0382ce32c1">ddx_constants::constants_init</a> (params, constants, error)</td></tr>
-<tr class="memdesc:ga53ef995007b2d2d8d1613a0382ce32c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute all necessary constants.  <a href="group___fortran__interface__core.html#ga53ef995007b2d2d8d1613a0382ce32c1">More...</a><br /></td></tr>
-<tr class="separator:ga53ef995007b2d2d8d1613a0382ce32c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga81884e9f5bdcd2a3f8e329211d237b20"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga81884e9f5bdcd2a3f8e329211d237b20">ddx_constants::constants_free</a> (constants, error)</td></tr>
-<tr class="memdesc:ga81884e9f5bdcd2a3f8e329211d237b20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate the constants.  <a href="group___fortran__interface__core.html#ga81884e9f5bdcd2a3f8e329211d237b20">More...</a><br /></td></tr>
-<tr class="separator:ga81884e9f5bdcd2a3f8e329211d237b20"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab531c12369a8149f274a363ce16d142b"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gab531c12369a8149f274a363ce16d142b">ddx_core::ddx_init_state</a> (params, constants, state, error)</td></tr>
-<tr class="memdesc:gab531c12369a8149f274a363ce16d142b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the ddx_state object.  <a href="group___fortran__interface__core.html#gab531c12369a8149f274a363ce16d142b">More...</a><br /></td></tr>
-<tr class="separator:gab531c12369a8149f274a363ce16d142b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga66ae63e8f0f7cd98004519423685fa5b"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga66ae63e8f0f7cd98004519423685fa5b">ddx_core::ddx_free_state</a> (state, error)</td></tr>
-<tr class="memdesc:ga66ae63e8f0f7cd98004519423685fa5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate the ddx_state object.  <a href="group___fortran__interface__core.html#ga66ae63e8f0f7cd98004519423685fa5b">More...</a><br /></td></tr>
-<tr class="separator:ga66ae63e8f0f7cd98004519423685fa5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga082dbdd2a38d46eb8a3f4862b800cc9e"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga082dbdd2a38d46eb8a3f4862b800cc9e">ddx::ddfromfile</a> (fname, ddx_data, tol, charges, error)</td></tr>
+<tr class="memdesc:ga082dbdd2a38d46eb8a3f4862b800cc9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the configuration from ddX input file and return a ddx_data structure.  <a href="group___fortran__interface__core.html#ga082dbdd2a38d46eb8a3f4862b800cc9e">More...</a><br /></td></tr>
+<tr class="separator:ga082dbdd2a38d46eb8a3f4862b800cc9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8e299e7b4c12baafc8a251198bf47329"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga8e299e7b4c12baafc8a251198bf47329">ddx::ddinit</a> (model, nsph, coords, radii, eps, ddx_data, error, force, kappa, eta, shift, lmax, ngrid, incore, maxiter, jacobi_ndiis, enable_fmm, pm, pl, nproc, logfile, adjoint, eps_int)</td></tr>
+<tr class="memdesc:ga8e299e7b4c12baafc8a251198bf47329"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrapper to the initialization routine which supports optional arguments. This will make future maintenance easier.  <a href="group___fortran__interface__core.html#ga8e299e7b4c12baafc8a251198bf47329">More...</a><br /></td></tr>
+<tr class="separator:ga8e299e7b4c12baafc8a251198bf47329"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6ca0221e9553f2629968a97da131fe86"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga6ca0221e9553f2629968a97da131fe86">ddx::ddrun</a> (ddx_data, state, electrostatics, psi, tol, esolv, error, force, read_guess)</td></tr>
+<tr class="memdesc:ga6ca0221e9553f2629968a97da131fe86"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main solver routine.  <a href="group___fortran__interface__core.html#ga6ca0221e9553f2629968a97da131fe86">More...</a><br /></td></tr>
+<tr class="separator:ga6ca0221e9553f2629968a97da131fe86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae50afd67f17cee91945bf117463a0288"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gae50afd67f17cee91945bf117463a0288">ddx::setup</a> (params, constants, workspace, state, electrostatics, psi, error)</td></tr>
+<tr class="memdesc:gae50afd67f17cee91945bf117463a0288"><td class="mdescLeft">&#160;</td><td class="mdescRight">Setup the state for the different models.  <a href="group___fortran__interface__core.html#gae50afd67f17cee91945bf117463a0288">More...</a><br /></td></tr>
+<tr class="separator:gae50afd67f17cee91945bf117463a0288"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae509e9c05de186cb3588597b14c90b65"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gae509e9c05de186cb3588597b14c90b65">ddx::fill_guess</a> (params, constants, workspace, state, tol, error)</td></tr>
+<tr class="memdesc:gae509e9c05de186cb3588597b14c90b65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the primal linear system for the different models.  <a href="group___fortran__interface__core.html#gae509e9c05de186cb3588597b14c90b65">More...</a><br /></td></tr>
+<tr class="separator:gae509e9c05de186cb3588597b14c90b65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab234222b75e684877ea9eca93d4f3f4c"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gab234222b75e684877ea9eca93d4f3f4c">ddx::fill_guess_adjoint</a> (params, constants, workspace, state, tol, error)</td></tr>
+<tr class="memdesc:gab234222b75e684877ea9eca93d4f3f4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do a guess for the adjoint linear system for the different models.  <a href="group___fortran__interface__core.html#gab234222b75e684877ea9eca93d4f3f4c">More...</a><br /></td></tr>
+<tr class="separator:gab234222b75e684877ea9eca93d4f3f4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga08900a3794c02f6debe2271c9cf3a44d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga08900a3794c02f6debe2271c9cf3a44d">ddx::solve</a> (params, constants, workspace, state, tol, error)</td></tr>
+<tr class="memdesc:ga08900a3794c02f6debe2271c9cf3a44d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the primal linear system for the different models.  <a href="group___fortran__interface__core.html#ga08900a3794c02f6debe2271c9cf3a44d">More...</a><br /></td></tr>
+<tr class="separator:ga08900a3794c02f6debe2271c9cf3a44d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga795d66b9248a3e250f18c02981548cea"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga795d66b9248a3e250f18c02981548cea">ddx::solve_adjoint</a> (params, constants, workspace, state, tol, error)</td></tr>
+<tr class="memdesc:ga795d66b9248a3e250f18c02981548cea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the adjoint linear system for the different models.  <a href="group___fortran__interface__core.html#ga795d66b9248a3e250f18c02981548cea">More...</a><br /></td></tr>
+<tr class="separator:ga795d66b9248a3e250f18c02981548cea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac2554dc6e87a1dbb9185545ed31020b2"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gac2554dc6e87a1dbb9185545ed31020b2">ddx::energy</a> (params, constants, workspace, state, solvation_energy, error)</td></tr>
+<tr class="memdesc:gac2554dc6e87a1dbb9185545ed31020b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the energy for the different models.  <a href="group___fortran__interface__core.html#gac2554dc6e87a1dbb9185545ed31020b2">More...</a><br /></td></tr>
+<tr class="separator:gac2554dc6e87a1dbb9185545ed31020b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad03f488ddb80486f9d5423e9b7eb561a"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gad03f488ddb80486f9d5423e9b7eb561a">ddx::solvation_force_terms</a> (params, constants, workspace, state, electrostatics, force, error)</td></tr>
+<tr class="memdesc:gad03f488ddb80486f9d5423e9b7eb561a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the solvation terms of the forces (solute aspecific) for the different models. This must be summed to the solute specific term to get the full forces.  <a href="group___fortran__interface__core.html#gad03f488ddb80486f9d5423e9b7eb561a">More...</a><br /></td></tr>
+<tr class="separator:gad03f488ddb80486f9d5423e9b7eb561a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf3c53af8d073668d163022d790fa47f9"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gaf3c53af8d073668d163022d790fa47f9">ddx_core::allocate_electrostatics</a> (params, constants, electrostatics, error)</td></tr>
+<tr class="memdesc:gaf3c53af8d073668d163022d790fa47f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given the chosen model, find the required electrostatic properties, and allocate the arrays for them in the container.  <a href="group___fortran__interface__core.html#gaf3c53af8d073668d163022d790fa47f9">More...</a><br /></td></tr>
+<tr class="separator:gaf3c53af8d073668d163022d790fa47f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga911d96424a8ba8eef90287a3bd815720"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga911d96424a8ba8eef90287a3bd815720">ddx_core::deallocate_electrostatics</a> (electrostatics, error)</td></tr>
+<tr class="memdesc:ga911d96424a8ba8eef90287a3bd815720"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate the electrostatic properties.  <a href="group___fortran__interface__core.html#ga911d96424a8ba8eef90287a3bd815720">More...</a><br /></td></tr>
+<tr class="separator:ga911d96424a8ba8eef90287a3bd815720"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga398545715745f6d854b994caff3d7c16"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga398545715745f6d854b994caff3d7c16">ddx_core::allocate_state</a> (params, constants, state, error)</td></tr>
+<tr class="memdesc:ga398545715745f6d854b994caff3d7c16"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the ddx_state object.  <a href="group___fortran__interface__core.html#ga398545715745f6d854b994caff3d7c16">More...</a><br /></td></tr>
+<tr class="separator:ga398545715745f6d854b994caff3d7c16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4a0f7a3c559192f8fb7b21c806996619"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga4a0f7a3c559192f8fb7b21c806996619">ddx_core::deallocate_state</a> (state, error)</td></tr>
+<tr class="memdesc:ga4a0f7a3c559192f8fb7b21c806996619"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate the ddx_state object.  <a href="group___fortran__interface__core.html#ga4a0f7a3c559192f8fb7b21c806996619">More...</a><br /></td></tr>
+<tr class="separator:ga4a0f7a3c559192f8fb7b21c806996619"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf7818bc26493b4749c2b8656c9a772d5"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gaf7818bc26493b4749c2b8656c9a772d5">ddx_core::get_banner</a> (string)</td></tr>
 <tr class="memdesc:gaf7818bc26493b4749c2b8656c9a772d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print the ddX logo.  <a href="group___fortran__interface__core.html#gaf7818bc26493b4749c2b8656c9a772d5">More...</a><br /></td></tr>
 <tr class="separator:gaf7818bc26493b4749c2b8656c9a772d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2666802ba7ef1ba81fd27fa54f22d38a"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga2666802ba7ef1ba81fd27fa54f22d38a">ddx_parameters::params_init</a> (model, force, eps, kappa, eta, se, lmax, ngrid, matvecmem, maxiter, jacobi_ndiis, fmm, pm, pl, nproc, nsph, csph, rsph, output_filename, params, error)</td></tr>
-<tr class="memdesc:ga2666802ba7ef1ba81fd27fa54f22d38a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize and check input parameters.  <a href="group___fortran__interface__core.html#ga2666802ba7ef1ba81fd27fa54f22d38a">More...</a><br /></td></tr>
-<tr class="separator:ga2666802ba7ef1ba81fd27fa54f22d38a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa3a425e21c32870bd9a9f790f50f3b2d"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gaa3a425e21c32870bd9a9f790f50f3b2d">ddx_parameters::params_free</a> (params, error)</td></tr>
-<tr class="memdesc:gaa3a425e21c32870bd9a9f790f50f3b2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate the parameter object.  <a href="group___fortran__interface__core.html#gaa3a425e21c32870bd9a9f790f50f3b2d">More...</a><br /></td></tr>
-<tr class="separator:gaa3a425e21c32870bd9a9f790f50f3b2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5e45526345bd21a2cf3588d1f4fc2786"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga5e45526345bd21a2cf3588d1f4fc2786">ddx_workspace::workspace_init</a> (params, constants, workspace, error)</td></tr>
-<tr class="memdesc:ga5e45526345bd21a2cf3588d1f4fc2786"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize and allocate the temporary workspaces.  <a href="group___fortran__interface__core.html#ga5e45526345bd21a2cf3588d1f4fc2786">More...</a><br /></td></tr>
-<tr class="separator:ga5e45526345bd21a2cf3588d1f4fc2786"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga94e563c16d1fb5edf6b37ae6a2676623"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga94e563c16d1fb5edf6b37ae6a2676623">ddx_workspace::workspace_free</a> (workspace, error)</td></tr>
-<tr class="memdesc:ga94e563c16d1fb5edf6b37ae6a2676623"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocate the temporary workspaces.  <a href="group___fortran__interface__core.html#ga94e563c16d1fb5edf6b37ae6a2676623">More...</a><br /></td></tr>
-<tr class="separator:ga94e563c16d1fb5edf6b37ae6a2676623"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="ga53ef995007b2d2d8d1613a0382ce32c1" name="ga53ef995007b2d2d8d1613a0382ce32c1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga53ef995007b2d2d8d1613a0382ce32c1">&#9670;&nbsp;</a></span>constants_init()</h2>
+<a id="ga082dbdd2a38d46eb8a3f4862b800cc9e" name="ga082dbdd2a38d46eb8a3f4862b800cc9e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga082dbdd2a38d46eb8a3f4862b800cc9e">&#9670;&nbsp;</a></span>ddfromfile()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">subroutine ddx_constants::constants_init </td>
+          <td class="memname">subroutine ddx::ddfromfile </td>
+          <td>(</td>
+          <td class="paramtype">character(len=*), intent(in)&#160;</td>
+          <td class="paramname"><em>fname</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__type.html">ddx_type</a>), intent(out)&#160;</td>
+          <td class="paramname"><em>ddx_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(out)&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(:), intent(out), allocatable&#160;</td>
+          <td class="paramname"><em>charges</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read the configuration from ddX input file and return a ddx_data structure. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">fname</td><td>Filename containing all the required info </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ddx_data</td><td>Object containing all inputs </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">tol</td><td>tolerance for iterative solvers </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">charges</td><td>charge array, size(nsph) </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00025">25</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+
+</div>
+</div>
+<a id="ga8e299e7b4c12baafc8a251198bf47329" name="ga8e299e7b4c12baafc8a251198bf47329"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8e299e7b4c12baafc8a251198bf47329">&#9670;&nbsp;</a></span>ddinit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx::ddinit </td>
+          <td>(</td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>model</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in)&#160;</td>
+          <td class="paramname"><em>nsph</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>coords</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>radii</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>eps</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__type.html">ddx_type</a>), intent(out), target&#160;</td>
+          <td class="paramname"><em>ddx_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in), optional&#160;</td>
+          <td class="paramname"><em>force</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in), optional&#160;</td>
+          <td class="paramname"><em>kappa</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in), optional&#160;</td>
+          <td class="paramname"><em>eta</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in), optional&#160;</td>
+          <td class="paramname"><em>shift</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in), optional&#160;</td>
+          <td class="paramname"><em>lmax</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in), optional&#160;</td>
+          <td class="paramname"><em>ngrid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in), optional&#160;</td>
+          <td class="paramname"><em>incore</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in), optional&#160;</td>
+          <td class="paramname"><em>maxiter</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in), optional&#160;</td>
+          <td class="paramname"><em>jacobi_ndiis</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in), optional&#160;</td>
+          <td class="paramname"><em>enable_fmm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in), optional&#160;</td>
+          <td class="paramname"><em>pm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in), optional&#160;</td>
+          <td class="paramname"><em>pl</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in), optional&#160;</td>
+          <td class="paramname"><em>nproc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">character(len=255), intent(in), optional&#160;</td>
+          <td class="paramname"><em>logfile</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in), optional&#160;</td>
+          <td class="paramname"><em>adjoint</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in), optional&#160;</td>
+          <td class="paramname"><em>eps_int</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wrapper to the initialization routine which supports optional arguments. This will make future maintenance easier. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">model</td><td>1 for COSMO, 2 for PCM and 3 for LPB </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">nsph</td><td>number of spheres n &gt; 0 </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">coords</td><td>coordinates of the spheres, size (3, nsph) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">radii</td><td>radii of the spheres, size (nsph) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">eps</td><td>relative dielectric permittivity eps &gt; 1 </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ddx_data</td><td>Container for ddX data structures </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error</td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>force: 1 if forces are required and 0 otherwise </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>kappa: Debye-H"{u}ckel parameter </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>eta: regularization parameter 0 &lt; eta &lt;= 1 </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>shift: shift of characteristic function -1 for interior, 0 for centered and 1 for outer regularization </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>lmax: Maximal degree of modeling spherical harmonics, <code>lmax</code> &gt;= 0 </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>ngrid: Number of Lebedev grid points <code>ngrid</code> &gt;= 0 </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>incore: handling of the sparse matrices, 1 for precomputing them and keeping them in memory, 0 for assembling the matrix-vector products on-the-fly </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>maxiter: Maximum number of iterations for the iterative solver, maxiter &gt; 0 </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>jacobi_ndiis: Number of extrapolation points for the Jacobi/DIIS solver, ndiis &gt;= 0 </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>enable_fmm: 1 to use FMM acceleration and 0 otherwise </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>pm: Maximal degree of multipole spherical harmonics. Ignored in the case <code>fmm=0</code>. Value -1 means no far-field FMM interactions are computed, <code>pm</code> &gt;= -1 </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>pl: Maximal degree of local spherical harmonics. Ignored in the case <code>fmm=0</code>. Value -1 means no far-field FMM interactions are computed, <code>pl</code> &gt;= -1 </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>nproc: Number of OpenMP threads, nproc &gt;= 0. </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>logfile: file name for log information. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00243">243</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+
+</div>
+</div>
+<a id="ga6ca0221e9553f2629968a97da131fe86" name="ga6ca0221e9553f2629968a97da131fe86"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga6ca0221e9553f2629968a97da131fe86">&#9670;&nbsp;</a></span>ddrun()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx::ddrun </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__type.html">ddx_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>ddx_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__electrostatics__type.html">ddx_electrostatics_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>electrostatics</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(ddx_data % constants % nbasis,  ddx_data % params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>psi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(out)&#160;</td>
+          <td class="paramname"><em>esolv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, ddx_data % params % nsph), intent(out), optional&#160;</td>
+          <td class="paramname"><em>force</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">logical, intent(in), optional&#160;</td>
+          <td class="paramname"><em>read_guess</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Main solver routine. </p>
+<p >Solves the solvation problem, computes the energy, and if required computes the forces.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">ddx_data</td><td>ddX object with all input information </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains RHSs and solutions) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">electrostatics</td><td>electrostatic property container </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">psi</td><td>RHS of the adjoint problem </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>tolerance for the linear system solvers </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">esolv</td><td>solvation energy </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>Analytical forces (optional argument, only if required) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">read_guess</td><td>optional argument, if true read the guess from the state object </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00360">360</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+
+</div>
+</div>
+<a id="gae50afd67f17cee91945bf117463a0288" name="gae50afd67f17cee91945bf117463a0288"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae50afd67f17cee91945bf117463a0288">&#9670;&nbsp;</a></span>setup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx::setup </td>
           <td>(</td>
           <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
           <td class="paramname"><em>params</em>, </td>
@@ -143,8 +494,32 @@ Functions/Subroutines</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(out)&#160;</td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(inout)&#160;</td>
           <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__electrostatics__type.html">ddx_electrostatics_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>electrostatics</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(constants % nbasis, params % nsph), intent(in)&#160;</td>
+          <td class="paramname"><em>psi</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -160,31 +535,59 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Compute all necessary constants. </p>
+<p>Setup the state for the different models. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>Object containing all inputs. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">constants</td><td>Object containing all constants. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">electrostatics</td><td>electrostatic property container </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">psi</td><td>Representation of the solute potential in spherical harmonics, size (nbasis, nsph) </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00238">238</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00469">469</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
 
 </div>
 </div>
-<a id="ga81884e9f5bdcd2a3f8e329211d237b20" name="ga81884e9f5bdcd2a3f8e329211d237b20"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga81884e9f5bdcd2a3f8e329211d237b20">&#9670;&nbsp;</a></span>constants_free()</h2>
+<a id="gae509e9c05de186cb3588597b14c90b65" name="gae509e9c05de186cb3588597b14c90b65"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae509e9c05de186cb3588597b14c90b65">&#9670;&nbsp;</a></span>fill_guess()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">subroutine ddx_constants::constants_free </td>
+          <td class="memname">subroutine ddx::fill_guess </td>
           <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(out)&#160;</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(inout)&#160;</td>
           <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -200,27 +603,465 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Deallocate the constants. </p>
+<p>Do a guess for the primal linear system for the different models. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>tolerance </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01818">1818</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00507">507</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
 
 </div>
 </div>
-<a id="gab531c12369a8149f274a363ce16d142b" name="gab531c12369a8149f274a363ce16d142b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gab531c12369a8149f274a363ce16d142b">&#9670;&nbsp;</a></span>ddx_init_state()</h2>
+<a id="gab234222b75e684877ea9eca93d4f3f4c" name="gab234222b75e684877ea9eca93d4f3f4c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab234222b75e684877ea9eca93d4f3f4c">&#9670;&nbsp;</a></span>fill_guess_adjoint()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">subroutine ddx_core::ddx_init_state </td>
+          <td class="memname">subroutine ddx::fill_guess_adjoint </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Do a guess for the adjoint linear system for the different models. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>tolerance </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00539">539</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+
+</div>
+</div>
+<a id="ga08900a3794c02f6debe2271c9cf3a44d" name="ga08900a3794c02f6debe2271c9cf3a44d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga08900a3794c02f6debe2271c9cf3a44d">&#9670;&nbsp;</a></span>solve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx::solve </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Solve the primal linear system for the different models. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: General options </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>: Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>: Solutions, guesses and relevant quantities </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>: Tolerance for the iterative solvers </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00571">571</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+
+</div>
+</div>
+<a id="ga795d66b9248a3e250f18c02981548cea" name="ga795d66b9248a3e250f18c02981548cea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga795d66b9248a3e250f18c02981548cea">&#9670;&nbsp;</a></span>solve_adjoint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx::solve_adjoint </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Solve the adjoint linear system for the different models. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>: General options </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>: Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>: Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>: Solutions, guesses and relevant quantities </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tol</td><td>: Tolerance for the iterative solvers </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00603">603</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+
+</div>
+</div>
+<a id="gac2554dc6e87a1dbb9185545ed31020b2" name="gac2554dc6e87a1dbb9185545ed31020b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac2554dc6e87a1dbb9185545ed31020b2">&#9670;&nbsp;</a></span>energy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx::energy </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(out)&#160;</td>
+          <td class="paramname"><em>solvation_energy</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the energy for the different models. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>General options </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">solvation_energy</td><td>resulting energy </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00635">635</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+
+</div>
+</div>
+<a id="gad03f488ddb80486f9d5423e9b7eb561a" name="gad03f488ddb80486f9d5423e9b7eb561a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad03f488ddb80486f9d5423e9b7eb561a">&#9670;&nbsp;</a></span>solvation_force_terms()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx::solvation_force_terms </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__electrostatics__type.html">ddx_electrostatics_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>electrostatics</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(out)&#160;</td>
+          <td class="paramname"><em>force</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the solvation terms of the forces (solute aspecific) for the different models. This must be summed to the solute specific term to get the full forces. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>General options </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>Solutions and relevant quantities </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">electrostatics</td><td>Electrostatic properties container. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">force</td><td>Geometrical contribution to the forces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00670">670</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+
+</div>
+</div>
+<a id="gaf3c53af8d073668d163022d790fa47f9" name="gaf3c53af8d073668d163022d790fa47f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf3c53af8d073668d163022d790fa47f9">&#9670;&nbsp;</a></span>allocate_electrostatics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_core::allocate_electrostatics </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__electrostatics__type.html">ddx_electrostatics_type</a>), intent(out)&#160;</td>
+          <td class="paramname"><em>electrostatics</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Given the chosen model, find the required electrostatic properties, and allocate the arrays for them in the container. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>ddx parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>ddx constants </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">electrostatics,ddX</td><td>electrostatic properties container </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00339">339</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ga911d96424a8ba8eef90287a3bd815720" name="ga911d96424a8ba8eef90287a3bd815720"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga911d96424a8ba8eef90287a3bd815720">&#9670;&nbsp;</a></span>deallocate_electrostatics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_core::deallocate_electrostatics </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__electrostatics__type.html">ddx_electrostatics_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>electrostatics</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Deallocate the electrostatic properties. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">electrostatics,ddX</td><td>electrostatic properties container </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00405">405</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ga398545715745f6d854b994caff3d7c16" name="ga398545715745f6d854b994caff3d7c16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga398545715745f6d854b994caff3d7c16">&#9670;&nbsp;</a></span>allocate_state()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_core::allocate_state </td>
           <td>(</td>
           <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
           <td class="paramname"><em>params</em>, </td>
@@ -262,18 +1103,18 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00306">306</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00445">445</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
-<a id="ga66ae63e8f0f7cd98004519423685fa5b" name="ga66ae63e8f0f7cd98004519423685fa5b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga66ae63e8f0f7cd98004519423685fa5b">&#9670;&nbsp;</a></span>ddx_free_state()</h2>
+<a id="ga4a0f7a3c559192f8fb7b21c806996619" name="ga4a0f7a3c559192f8fb7b21c806996619"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga4a0f7a3c559192f8fb7b21c806996619">&#9670;&nbsp;</a></span>deallocate_state()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">subroutine ddx_core::ddx_free_state </td>
+          <td class="memname">subroutine ddx_core::deallocate_state </td>
           <td>(</td>
           <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
           <td class="paramname"><em>state</em>, </td>
@@ -301,7 +1142,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00840">840</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00773">773</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -329,310 +1170,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02855">2855</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
-
-</div>
-</div>
-<a id="ga2666802ba7ef1ba81fd27fa54f22d38a" name="ga2666802ba7ef1ba81fd27fa54f22d38a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga2666802ba7ef1ba81fd27fa54f22d38a">&#9670;&nbsp;</a></span>params_init()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_parameters::params_init </td>
-          <td>(</td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>model</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>force</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>eps</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>kappa</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>eta</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(in)&#160;</td>
-          <td class="paramname"><em>se</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>lmax</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>ngrid</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>matvecmem</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>maxiter</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>jacobi_ndiis</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>fmm</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>pm</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>pl</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>nproc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">integer, intent(in)&#160;</td>
-          <td class="paramname"><em>nsph</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(3, nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>csph</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(nsph), intent(in)&#160;</td>
-          <td class="paramname"><em>rsph</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">character(len=255)&#160;</td>
-          <td class="paramname"><em>output_filename</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(out)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Initialize and check input parameters. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">model</td><td>Choose model: 1 for COSMO, 2 for PCM and 3 for LPB. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">force</td><td>1 if forces will probably be required and 0 otherwise. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">eps</td><td>Relative dielectric permittivity. eps &gt; 1. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">kappa</td><td>Debye-H"{u}ckel parameter. kappa &gt; 0. Referenced only if the model is LPB. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">eta</td><td>Regularization parameter. 0 &lt; eta &lt;= 1. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">se</td><td>Shift of the regularization. -1 for interior, 0 for centered and 1 for outer regularization. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">lmax</td><td>Maximal degree of modeling spherical harmonics. <code>lmax</code> &gt;= 0. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">ngrid</td><td>Number of Lebedev grid points <code>ngrid</code> &gt;= 0. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">matvecmem</td><td>handling of sparse matrices. 1 for precomputing them and keeping them in memory, 0 for direct matrix-vector products. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">maxiter</td><td>Maximum number of iterations for an iterative solver. maxiter &gt; 0. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">jacobi_ndiis</td><td>Number of extrapolation points for Jacobi/DIIS solver. ndiis &gt;= 1. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">fmm</td><td>1 to use FMM acceleration and 0 otherwise. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">pm</td><td>Maximal degree of multipole spherical harmonics. Ignored in the case <code>fmm=0</code>. Value -1 means no far-field FMM interactions are computed. <code>pm</code> &gt;= -1. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">pl</td><td>Maximal degree of local spherical harmonics. Ignored in the case <code>fmm=0</code>. Value -1 means no far-field FMM interactions are computed. <code>pl</code> &gt;= -1. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">nproc</td><td>Number of OpenMP threads to be used where applicable. nproc &gt;= 0. If input nproc=0 then a default number of threads, controlled by the environment variable <code>OMP_NUM_THREADS</code> during runtime, will be used. If OpenMP support in ddX is disabled, only possible input values are 0 or 1 and both inputs lead to the same output nproc=1 since the library is not parallel. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">nsph</td><td>Number of atoms. nsph &gt; 0. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">csph</td><td>Coordinates of atoms. Dimension is <code>(3, nsph)</code>. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">rsph</td><td>Van-der-Waals radii of atoms. Dimension is <code>(nsph)</code>. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">output_filename</td><td>file name of log file. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">params</td><td>Object containing all inputs. </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00122">122</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
-
-</div>
-</div>
-<a id="gaa3a425e21c32870bd9a9f790f50f3b2d" name="gaa3a425e21c32870bd9a9f790f50f3b2d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaa3a425e21c32870bd9a9f790f50f3b2d">&#9670;&nbsp;</a></span>params_free()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_parameters::params_free </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Deallocate the parameter object. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__parameters_8f90_source.html#l00347">347</a> of file <a class="el" href="ddx__parameters_8f90_source.html">ddx_parameters.f90</a>.</p>
-
-</div>
-</div>
-<a id="ga5e45526345bd21a2cf3588d1f4fc2786" name="ga5e45526345bd21a2cf3588d1f4fc2786"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga5e45526345bd21a2cf3588d1f4fc2786">&#9670;&nbsp;</a></span>workspace_init()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_workspace::workspace_init </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
-          <td class="paramname"><em>constants</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(out)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Initialize and allocate the temporary workspaces. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00115">115</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
-
-</div>
-</div>
-<a id="ga94e563c16d1fb5edf6b37ae6a2676623" name="ga94e563c16d1fb5edf6b37ae6a2676623"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga94e563c16d1fb5edf6b37ae6a2676623">&#9670;&nbsp;</a></span>workspace_free()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx_workspace::workspace_free </td>
-          <td>(</td>
-          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(out)&#160;</td>
-          <td class="paramname"><em>workspace</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Deallocate the temporary workspaces. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx__workspace_8f90_source.html#l00288">288</a> of file <a class="el" href="ddx__workspace_8f90_source.html">ddx_workspace.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02788">2788</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
