@@ -1,3 +1,6 @@
 add_executable(${ddx_}run_ddx run_ddx.c)
+add_executable(${ddx_}run_ddx_low_level run_ddx_low_level.c)
 target_link_libraries(run_ddx ddx)
+target_link_libraries(run_ddx_low_level ddx)
 target_include_directories(${ddx_}run_ddx PUBLIC ${PROJECT_SOURCE_DIR}/src)
+target_include_directories(${ddx_}run_ddx_low_level PUBLIC ${PROJECT_SOURCE_DIR}/src)

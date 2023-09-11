@@ -39,6 +39,8 @@ jobs:
         make install
     - name: Run example
       run: ./build/examples/run_ddx
+    - name: Run example
+      run: ./build/examples/run_ddx_low_level
     - name: Test installation
       run: |
         mkdir /tmp/test
