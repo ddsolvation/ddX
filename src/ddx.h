@@ -79,9 +79,6 @@ void ddx_deallocate_electrostatics(void* electrostatics, void* error);
 /** \name Allocate and manage the ddx model object */
 ///@{
 
-/** \name Allocate and manage the ddx model object */
-///@{
-
 /** Allocate a ddx model object.
  *
  * \param model            Integer describing the model to use.
@@ -345,6 +342,21 @@ double ddx_energy(const void* ddx, void* state, void* error);
 void ddx_solvation_force_terms(const void* ddx, void* state, void* electrostatics,
                                int nsph, double* forces, void* error);
 
+/** Run all the steps of a ddX calculation and return energy and, if requested,
+ * forces.
+ *  \param ddx            DDX model
+ *  \param state          DDX state
+ *  \param electrostatics DDX electrostatic properties container
+ *  \param nbasis         Number of basis functions used by DDX
+ *  \param nsph           Number of cavity spheres
+ *  \param psi            Psi array (nbasis, nsph)-shaped array (in column-major ordering)
+ *  \param tol            Tolerance up to which the problem is solved
+ *  \param forces         Output force array (3, nsph) in column-major order
+ *  \param read_guess     Guess control flag: 0 for default guess, 1 for using the
+ *                        content of DDX state for the guess.
+ *  \param error          DDX error
+ *
+ */
 double ddx_ddrun(const void* ddx, void* state, void* electrostatics, int nbasis,
                  int nsph, double* psi, const double tol, double* forces,
                  int read_guess, void* error);
