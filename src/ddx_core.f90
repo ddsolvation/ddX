@@ -1424,7 +1424,6 @@ subroutine rmsvec(n, v, vrms, vmax)
     real(dp), dimension(n), intent(in) :: v
     real(dp), intent(inout) :: vrms, vmax
     integer :: i
-    real(dp), parameter :: zero=0.0d0
 
     vrms = zero
     vmax = zero

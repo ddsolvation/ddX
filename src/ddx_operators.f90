@@ -36,6 +36,9 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
     !! Local variables
     integer :: isph, jsph, ij, l, ind, iproc
 
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     !! Initialize
     y = zero
 !
@@ -95,6 +98,10 @@ subroutine lstarx(params, constants, workspace, x, y, ddx_error)
     type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
     integer :: isph, jsph, ij, indmat, igrid, l, ind, iproc
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     y = zero
     if (params % matvecmem .eq. 1) then
         !$omp parallel do default(none) shared(params,constants,x,y) &
@@ -157,6 +164,11 @@ subroutine ldm1x(params, constants, workspace, x, y, ddx_error)
     type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
     integer :: isph, l, ind
+
+    ! dummy operation on unused interface arguments
+    if ((ddx_error % flag .eq. 0) .or. &
+   &    (allocated(workspace % tmp_pot))) continue
+
     !! Loop over harmonics
     !$omp parallel do default(none) shared(params,constants,x,y) &
     !$omp private(isph,l,ind) schedule(dynamic)
@@ -210,6 +222,10 @@ subroutine dx_dense(params, constants, workspace, do_diag, x, y, ddx_error)
     real(dp) :: vvij, tij, tt, f, rho, ctheta, stheta, cphi, sphi
     integer :: its, isph, jsph, l, m, ind
     real(dp), external :: dnrm2
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     y = zero
     do isph = 1, params % nsph
         ! compute the "potential" from the other spheres
@@ -285,6 +301,10 @@ subroutine dx_fmm(params, constants, workspace, do_diag, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
     integer :: isph, inode, l, indl, indl1
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     !! Scale input harmonics at first
     workspace % tmp_sph(1, :) = zero
     indl = 2
@@ -376,6 +396,10 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y, ddx_error)
     real(dp) :: vvji, tji, tt, f, rho, ctheta, stheta, cphi, sphi
     integer :: its, isph, jsph, l, m, ind, iproc
     real(dp), external :: dnrm2
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0)continue
+
     y = zero
     !$omp parallel do default(none) shared(do_diag,params,constants, &
     !$omp workspace,x,y) private(isph,jsph,its,vji,vvji,tji,sji,rho, &
@@ -446,6 +470,10 @@ subroutine dstarx_fmm(params, constants, workspace, do_diag, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
     integer :: isph, inode, l, indl, indl1
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     ! Adjoint integration
     call dgemm('T', 'N', params % ngrid, params % nsph, constants % nbasis, &
         & one, constants % vwgrid, constants % vgrid_nbasis, x, &
@@ -618,6 +646,11 @@ subroutine prec_repsx(params, constants, workspace, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
     integer :: isph
+
+    ! dummy operation on unused interface arguments
+    if ((ddx_error % flag .eq. 0) .or. &
+   &    (allocated(workspace % tmp_pot))) continue
+
     ! simply do a matrix-vector product with the transposed preconditioner 
     !$omp parallel do default(shared) schedule(static,1) &
     !$omp private(isph)
@@ -642,6 +675,11 @@ subroutine prec_repsstarx(params, constants, workspace, x, y, ddx_error)
     type(ddx_error_type), intent(inout) :: ddx_error
     ! Local variables
     integer :: isph
+
+    ! dummy operation on unused interface arguments
+    if ((ddx_error % flag .eq. 0) .or. &
+   &    (allocated(workspace % tmp_pot))) continue
+
     ! simply do a matrix-vector product with the transposed preconditioner 
     !$omp parallel do default(shared) schedule(static,1) &
     !$omp private(isph)
@@ -663,6 +701,10 @@ subroutine bstarx(params, constants, workspace, x, y, ddx_error)
     type(ddx_error_type), intent(inout) :: ddx_error
     ! Local variables
     integer :: isph, jsph, ij, indmat, iproc
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     y = zero
     if (params % matvecmem .eq. 1) then
         !$omp parallel do default(none) shared(params,constants,x,y) &
@@ -710,6 +752,9 @@ subroutine bx(params, constants, workspace, x, y, ddx_error)
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
     type(ddx_error_type), intent(inout) :: ddx_error
     integer :: isph, jsph, ij, iproc
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
 
     y = zero
     if (params % matvecmem .eq. 1) then
@@ -780,6 +825,11 @@ subroutine bx_prec(params, constants, workspace, x, y, ddx_error)
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
     type(ddx_error_type), intent(inout) :: ddx_error
+
+    ! dummy operation on unused interface arguments
+    if ((ddx_error % flag .eq. 0) .or. &
+   &    (allocated(workspace % tmp_pot))) continue
+
     y = x
 end subroutine bx_prec
 
@@ -898,6 +948,9 @@ subroutine cstarx(params, constants, workspace, x, y, ddx_error)
     real(dp) :: val, epsilon_ratio
     real(dp), allocatable :: scratch(:,:), scratch0(:,:)
 
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     allocate(scratch(constants % nbasis, params % nsph), &
         & scratch0(constants % nbasis0, params % nsph))
 
@@ -1003,18 +1056,20 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
     type(ddx_error_type), intent(inout) :: ddx_error
 
     integer :: isph, jsph, igrid, ind, l, m, ind0
-    real(dp), dimension(3) :: sijn ,vij, vtij
-    real(dp) :: term, rho, ctheta, stheta, cphi, sphi, rijn, val
-    real(dp), dimension(constants % nbasis) :: basloc, vplm
-    real(dp), dimension(params % lmax + 1) :: vcos, vsin
-    real(dp), dimension(constants % lmax0 + 1) :: SK_rijn, DK_rijn
+    real(dp), dimension(3) :: vij, vtij
+    real(dp) :: val
     complex(dp) :: work_complex(constants % lmax0 + 1)
     real(dp) :: work(constants % lmax0 + 1)
-    integer :: indl, inode
+    integer :: indl, inode, info
 
     real(dp), allocatable :: diff_re(:,:), diff0(:,:)
+
     allocate(diff_re(constants % nbasis, params % nsph), &
-        & diff0(constants % nbasis0, params % nsph))
+        & diff0(constants % nbasis0, params % nsph), stat=info)
+    if (info.ne.0) then
+        call update_error(ddx_error, "Allocation failed in cx")
+        return
+    end if
 
     ! diff_re = params % epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
     diff_re = zero
@@ -1052,9 +1107,8 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
     y(:,:,1) = zero
     if (params % fmm .eq. 0) then
         !$omp parallel do default(none) shared(params,constants, &
-        !$omp diff0,y) private(isph,igrid,val,vij,rijn,sijn,SK_rijn, &
-        !$omp DK_rijn,work,rho,ctheta,stheta,cphi,sphi,basloc,vplm, &
-        !$omp vcos,vsin,term,ind0,ind,vtij,work_complex)
+        !$omp diff0,y) private(isph,igrid,val,vij,work, &
+        !$omp ind0,ind,vtij,work_complex)
         do isph = 1, params % nsph
             do igrid = 1, params % ngrid
                 if (constants % ui(igrid,isph).gt.zero) then
@@ -1128,7 +1182,12 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
     end if
 
     y(:,:,2) = y(:,:,1)
-    deallocate(diff_re, diff0)
+
+    deallocate(diff_re, diff0, stat=info)
+    if (info.ne.0) then
+        call update_error(ddx_error, "Deallocation failed in cx")
+        return
+    end if
 
 end subroutine cx
 

@@ -344,7 +344,7 @@ subroutine contract_grad_f(params, constants, workspace, sol_adj, sol_sgrid, &
         return
     end if
 
-    call contract_grad_f_worker2(params, constants, workspace, gradpsi, &
+    call contract_grad_f_worker2(params, constants, gradpsi, &
         & normal_hessian_cav, force, state, ddx_error)
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, &
@@ -1573,11 +1573,10 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
 end subroutine contract_grad_f_worker1
 
 !! @param[inout] ddx_error: ddX error
-subroutine contract_grad_f_worker2(params, constants, workspace, &
+subroutine contract_grad_f_worker2(params, constants, &
         & gradpsi, normal_hessian_cav, force, state, ddx_error)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), intent(in) :: gradpsi(3, constants % ncav), &
         & normal_hessian_cav(3, constants % ncav)
     real(dp), intent(inout) :: force(3, params % nsph)

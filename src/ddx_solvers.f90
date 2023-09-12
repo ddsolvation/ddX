@@ -170,7 +170,6 @@ subroutine diis(n, nmat, ndiis, x, e, b, xnew)
     integer :: j, k
     real(dp), allocatable :: bloc(:,:), cex(:)
     integer,  allocatable :: ipiv(:)
-    real(dp), parameter :: zero = 0.0d0, one = 1.0d0
     integer :: delta
 
     delta = min(10, ndiis-1)
@@ -220,7 +219,6 @@ subroutine makeb(n, nmat, ndiis, e, b)
 
     integer :: i
     real(dp) :: bij
-    real(dp), parameter :: zero = 0.0d0, one = 1.0d0
 
     ! 1st built
     if (nmat.eq.1) then

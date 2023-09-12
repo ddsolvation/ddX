@@ -35,6 +35,8 @@ subroutine pcm_energy(constants, state, esolv, ddx_error)
     type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
     esolv = pt5*ddot(constants % n, state % xs, 1, state % psi, 1)
 end subroutine pcm_energy
 
@@ -59,6 +61,10 @@ subroutine pcm_setup(params, constants, workspace, state, phi_cav, psi, ddx_erro
     type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     call cav_to_spherical(params, constants, workspace, phi_cav, &
         & state % phi)
     state % phi = - state % phi
@@ -244,6 +250,9 @@ subroutine pcm_solvation_force_terms(params, constants, workspace, &
     real(dp) :: start_time, finish_time
     integer :: isph
 
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     start_time = omp_get_wtime()
 
     call gradr(params, constants, workspace, state % g, state % ygrid, force)
@@ -282,6 +291,9 @@ subroutine pcm_derivative_setup(params, constants, workspace, state)
 
     real(dp), external :: ddot
     integer :: icav, isph, igrid
+
+    ! dummy operation on unused interface arguments
+    if (allocated(workspace % tmp_pot)) continue
 
     ! Get grid values of S and Y
     call dgemm('T', 'N', params % ngrid, params % nsph, &

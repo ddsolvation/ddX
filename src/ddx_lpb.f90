@@ -107,6 +107,10 @@ subroutine lpb_energy(constants, state, esolv, ddx_error)
     type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     esolv = pt5*ddot(constants % n, state % x_lpb(:,:,1), 1, state % psi, 1)
 end subroutine lpb_energy
 

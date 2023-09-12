@@ -259,7 +259,7 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
 
     ! local copies of the optional arguments with dummy default values
     integer :: local_force = 0
-    integer :: local_adjoint
+    integer :: local_adjoint = 0
     integer :: local_lmax = 6
     integer :: local_ngrid = 302
     integer :: local_incore = 0
@@ -272,7 +272,7 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
     real(dp) :: local_kappa = 0.0d0
     real(dp) :: local_eta = 0.1d0
     real(dp) :: local_shift
-    real(dp) :: local_eps_int
+    real(dp) :: local_eps_int = 1.0d0
     character(len=255) :: local_logfile = ""
 
     ! arrays for x, y, z coordinates
@@ -308,11 +308,13 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
 
     ! this are not yet supported, but they will probably
     if (present(adjoint)) then
+        local_adjoint = adjoint
         call update_error(ddx_error, &
             & "ddinit: adjoint argument is not yet supported")
         return
     end if
     if (present(eps_int)) then
+        local_eps_int = eps_int
         call update_error(ddx_error, &
             & "ddinit: eps_int argument is not yet supported")
         return
@@ -640,6 +642,9 @@ subroutine energy(params, constants, workspace, state, solvation_energy, ddx_err
     type(ddx_state_type), intent(in) :: state
     type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(out) :: solvation_energy
+
+    ! dummy operation on unused interface arguments
+    if (allocated(workspace % tmp_pot)) continue
 
     if (params % model .eq. 1) then
         call cosmo_energy(constants, state, solvation_energy, ddx_error)

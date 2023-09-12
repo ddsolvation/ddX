@@ -36,6 +36,10 @@ subroutine cosmo_energy(constants, state, esolv, ddx_error)
     type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     esolv = pt5*ddot(constants % n, state % xs, 1, state % psi, 1)
 end subroutine cosmo_energy
 
@@ -60,6 +64,10 @@ subroutine cosmo_setup(params, constants, workspace, state, phi_cav, psi, ddx_er
     type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     call cav_to_spherical(params, constants, workspace, phi_cav, &
         & state % phi)
     state % phi = - state % phi
@@ -204,6 +212,9 @@ subroutine cosmo_solvation_force_terms(params, constants, workspace, &
     real(dp) :: start_time, finish_time
     integer :: isph
 
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     start_time = omp_get_wtime()
 
     force = zero
@@ -242,6 +253,9 @@ subroutine cosmo_derivative_setup(params, constants, workspace, state)
 
     real(dp), external :: ddot
     integer :: icav, isph, igrid
+
+    ! dummy operation on unused interface arguments
+    if (allocated(workspace % tmp_pot)) continue
 
     ! Get values of S on the grid
     call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &
