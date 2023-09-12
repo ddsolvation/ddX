@@ -1229,7 +1229,6 @@ subroutine dbasis(params, constants, x, basloc, dbsloc, vplm, vcos, vsin)
         else
             dbsloc(:,ind) = zero
         end if
-        !dir$ simd
         do m = 1, l
             fln = constants % vscales(ind+m)
             plm = fln*vplm(ind+m)   

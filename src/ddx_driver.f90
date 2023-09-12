@@ -29,7 +29,7 @@ real(dp), allocatable :: psi(:, :), force(:, :), charges(:), &
 real(dp) :: tol, esolv, start_time, finish_time
 integer :: i, isph, info
 100 format(X,A,ES11.4E2,A)
-200 format(X,A,I4,A,ES20.14)
+200 format(X,A,I4,A,ES21.14)
 300 format(X,A,I4)
 400 format(X,A,ES25.16E3)
 500 format(X,I5,3ES25.16E3)

@@ -26,7 +26,7 @@ set(SRC
 set(SRC_PYDDX ${SRC} pyddx.cpp pyddx_classes.cpp pyddx_data.cpp)
 
 # Define source files for the ddx.so shared library
-set(SRC_DDX ${SRC} matrix_debug.f90)
+set(SRC_DDX ${SRC})
 
 #
 # Python build

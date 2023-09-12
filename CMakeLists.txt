@@ -24,12 +24,27 @@ endif()
 
 option(WARNING_FLAGS "Enable a larger set of warning flags" ON)
 if (WARNING_FLAGS)
-    set(CMAKE_CXX_FLAGS     "${CMAKE_CXX_FLAGS}     -Wall -Wextra")
-    set(CMAKE_C_FLAGS       "${CMAKE_C_FLAGS}       -Wall -Wextra")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -Wall -Wextra -Wno-compare-reals")
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -warn all")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+    endif()
+
+    if (CMAKE_C_COMPILER_ID MATCHES "Intel")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -warn all")
+    else()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
+    endif()
+
+    if (CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+        set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -warn all,noexternal")
+    else()
+        set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -Wall -Wextra -Wno-compare-reals -std=f90")
+    endif()
 endif()
 
-# Requirements: Blas and Lapack
+
+# Requirements: Blas, Lapack and OMP
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
 find_package(OpenMP REQUIRED)

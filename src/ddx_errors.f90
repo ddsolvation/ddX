@@ -25,7 +25,7 @@ subroutine check_error(ddx_error)
     type(ddx_error_type), intent(in) :: ddx_error
     if (ddx_error % flag .ne. 0) then
         call print_error(ddx_error)
-        stop ddx_error % flag
+        stop 1
     end if
 end subroutine check_error
 
