@@ -17,7 +17,7 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
-type(ddx_error_type) :: error
+type(ddx_error_type) :: ddx_error
 ! isph   : Index for number of spheres
 ! i      : Index for derivative components (i = 1,2,3)
 ! ibasis : Index for number of basis
@@ -79,8 +79,8 @@ real(dp), allocatable :: charges(:)
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file 12"
-call ddfromfile(fname, ddx_data, tol, charges, error)
-call check_error(error)
+call ddfromfile(fname, ddx_data, tol, charges, ddx_error)
+call check_error(ddx_error)
 
 ! lmax0 set to minimum of 6 or given lmax.
 ! nbasis0 set to minimum of 49 or given (lmax+1)^2.
@@ -236,66 +236,66 @@ random_vector_C_two(:,:,2) = random_vector_nbasis_nsph_four(:,:)
 
 ! Call for matrix A
 call lx(ddx_data % params, ddx_data % constants, &
-          & ddx_data % workspace, random_vector_n_one, vector_A_one, error)
+          & ddx_data % workspace, random_vector_n_one, vector_A_one, ddx_error)
 call lx(ddx_data % params, ddx_data % constants, &
-          & ddx_data % workspace, random_vector_n_two, vector_A_two, error)
+          & ddx_data % workspace, random_vector_n_two, vector_A_two, ddx_error)
 call lx(ddx_data % params, ddx_data % constants, &
-          & ddx_data % workspace, random_vector_n_three, vector_A_three, error)
+          & ddx_data % workspace, random_vector_n_three, vector_A_three, ddx_error)
 call lx(ddx_data % params, ddx_data % constants, &
-          & ddx_data % workspace, random_vector_n_four, vector_A_four, error)
+          & ddx_data % workspace, random_vector_n_four, vector_A_four, ddx_error)
 
 
 ! Call for matrix B
 call bx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
-      & random_vector_n_one, vector_B_one, error)
+      & random_vector_n_one, vector_B_one, ddx_error)
 call bx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
-      & random_vector_n_two, vector_B_two, error)
+      & random_vector_n_two, vector_B_two, ddx_error)
 call bx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
-      & random_vector_n_three, vector_B_three, error)
+      & random_vector_n_three, vector_B_three, ddx_error)
 call bx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
-      & random_vector_n_four, vector_B_four, error)
+      & random_vector_n_four, vector_B_four, ddx_error)
 
 ! Call for C1 and C2
 call cx(ddx_data % params, ddx_data % constants, &
                  & ddx_data % workspace, &
                  & random_vector_C_one, &
-                 & vector_C_one, error)
+                 & vector_C_one, ddx_error)
 
 call cx(ddx_data % params, ddx_data % constants, &
                  & ddx_data % workspace, &
                  & random_vector_C_two, &
-                 & vector_C_two, error)
+                 & vector_C_two, ddx_error)
 ! Call for matrix Astar
 call lstarx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
-      & random_vector_n_four, vector_A_star_one, error)
+      & random_vector_n_four, vector_A_star_one, ddx_error)
 call lstarx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
-      & random_vector_n_three, vector_A_star_two, error)
+      & random_vector_n_three, vector_A_star_two, ddx_error)
 call lstarx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
-      & random_vector_n_two, vector_A_star_three, error)
+      & random_vector_n_two, vector_A_star_three, ddx_error)
 call lstarx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
-      & random_vector_n_one, vector_A_star_four, error)
+      & random_vector_n_one, vector_A_star_four, ddx_error)
 
 ! Call for matrix Bstar
 call bstarx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
-      & random_vector_n_four, vector_B_star_one, error)
+      & random_vector_n_four, vector_B_star_one, ddx_error)
 call bstarx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
-      & random_vector_n_three, vector_B_star_two, error)
+      & random_vector_n_three, vector_B_star_two, ddx_error)
 call bstarx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
-      & random_vector_n_two, vector_B_star_three, error)
+      & random_vector_n_two, vector_B_star_three, ddx_error)
 call bstarx(ddx_data % params, ddx_data % constants, &
       & ddx_data % workspace, &
-      & random_vector_n_one, vector_B_star_four, error)
+      & random_vector_n_one, vector_B_star_four, ddx_error)
 
 ! Call for C1 and C2 star
 ! |C1* C1*||X3|
@@ -303,12 +303,12 @@ call bstarx(ddx_data % params, ddx_data % constants, &
 call cstarx(ddx_data % params, ddx_data % constants, &
                  & ddx_data % workspace, &
                  & random_vector_C_two, &
-                 & vector_C_star_one, error)
+                 & vector_C_star_one, ddx_error)
 
 call cstarx(ddx_data % params, ddx_data % constants, &
                  & ddx_data % workspace, &
                  & random_vector_C_one, &
-                 & vector_C_star_two, error)
+                 & vector_C_star_two, ddx_error)
 
 !Compute the contraction
 do i = 1, ddx_data % constants % n
@@ -403,7 +403,7 @@ deallocate(random_vector_nbasis_nsph_two, &
            & vector_C_star_two, &
            & zero_vector, &
            & charges)
-call deallocate_model(ddx_data, error)
+call deallocate_model(ddx_data, ddx_error)
 
 write(*, *) "y4(A)x1  :", check_A_one, ", x1(A*)y4  :", check_A_star_one
 write(*, *) "y3(A)x2  :", check_A_two, ", x2(A*)y3  :", check_A_star_two

@@ -7,7 +7,7 @@ integer, parameter :: natoms = 24
 character(len=255) :: dummy_file_name = ''
 
 type(ddx_type) :: nofmm, fmm
-type(ddx_error_type) :: error
+type(ddx_error_type) :: ddx_error
 
 real(dp) :: coordinates(3, natoms), radii(natoms), charges(natoms)
 real(dp) :: x(natoms), y(natoms), z(natoms)
@@ -108,13 +108,13 @@ z = coordinates(3, :)
 
 call allocate_model(natoms, x, y, z, radii, 1, 10, 302, 0, 0, 0, 0, 0.0d0, &
     & 0.1d0, 80.0d0, 0.104d0*tobohr, 0, 200, 25, nproc, &
-    & dummy_file_name, nofmm, error)
-call check_error(error)
+    & dummy_file_name, nofmm, ddx_error)
+call check_error(ddx_error)
 
 call allocate_model(natoms, x, y, z, radii,  1, 10, 302, 0, 1, 20, 20, 0.0d0, &
     & 0.1d0, 80.0d0, 0.104d0*tobohr, 0, 200, 25, nproc, &
-    & dummy_file_name, fmm, error)
-call check_error(error)
+    & dummy_file_name, fmm, ddx_error)
+call check_error(ddx_error)
 
 if (nofmm % constants % ncav .ne. fmm % constants % ncav) &
     & call test_error("Mismatch in geometry between FMM and no FMM.")
@@ -126,8 +126,8 @@ if (info .ne. 0) call test_error("Allocation failed in test_multipolar_solutes")
 multipoles(1, :) = charges / sqrt4pi
 
 write(6, *) "Testing up to charges"
-call test(fmm, nofmm, multipoles, 0, natoms, threshold, error)
-call check_error(error)
+call test(fmm, nofmm, multipoles, 0, natoms, threshold, ddx_error)
+call check_error(ddx_error)
 
 deallocate(multipoles, stat=info)
 if (info .ne. 0) call test_error("Deallocation failed in test_multipolar_solutes")
@@ -142,8 +142,8 @@ multipoles(3, :) = 0.1d0
 multipoles(4, :) = -0.1d0
 
 write(6, *) "Testing up to dipoles"
-call test(fmm, nofmm, multipoles, 1, natoms, threshold, error)
-call check_error(error)
+call test(fmm, nofmm, multipoles, 1, natoms, threshold, ddx_error)
+call check_error(ddx_error)
 
 deallocate(multipoles, stat=info)
 if (info .ne. 0) call test_error("Deallocation failed in test_multipolar_solutes")
@@ -164,27 +164,27 @@ multipoles(9, :) = -0.3d0
 multipoles(10, :) = 0.1d0
 
 write(6, *) "Testing up to quadrupoles"
-call test(fmm, nofmm, multipoles, 2, natoms, threshold, error)
-call check_error(error)
+call test(fmm, nofmm, multipoles, 2, natoms, threshold, ddx_error)
+call check_error(ddx_error)
 
 deallocate(multipoles, stat=info)
 if (info .ne. 0) call test_error("Deallocation failed in test_multipolar_solutes")
 
 ! deallocate
 
-call deallocate_model(nofmm, error)
-call check_error(error)
-call deallocate_model(fmm, error)
-call check_error(error)
+call deallocate_model(nofmm, ddx_error)
+call check_error(ddx_error)
+call deallocate_model(fmm, ddx_error)
+call check_error(ddx_error)
 
 contains
 
-subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold, error)
+subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold, ddx_error)
     type(ddx_type), intent(inout) :: fmm, nofmm
     integer, intent(in) :: mmax, nm
     real(dp), intent(in) :: multipoles((mmax+1)**2, nm)
     real(dp), intent(in) :: threshold
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), allocatable :: phi_nofmm(:), phi_fmm(:), e_nofmm(:, :), &
         & e_fmm(:, :), e_num(:, :), g_nofmm(:, :, :), g_fmm(:, :, :), &
         & g_num(:, :, :)
@@ -207,10 +207,10 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold, error)
     ! Compare the potential with and without FMMs
 
     call multipole_electrostatics_0(nofmm % params, nofmm % constants, &
-        & nofmm % workspace, multipoles, mmax, phi_nofmm, error)
+        & nofmm % workspace, multipoles, mmax, phi_nofmm, ddx_error)
 
     call multipole_electrostatics_0(fmm % params, fmm % constants, &
-        & fmm % workspace, multipoles, mmax, phi_fmm, error)
+        & fmm % workspace, multipoles, mmax, phi_fmm, ddx_error)
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
     if (diff .ge. threshold) &
@@ -220,7 +220,7 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold, error)
     ! potential with the previously obtained one
 
     call multipole_electrostatics_1(nofmm % params, nofmm % constants, &
-        & nofmm % workspace, multipoles, mmax, phi_nofmm, e_nofmm, error)
+        & nofmm % workspace, multipoles, mmax, phi_nofmm, e_nofmm, ddx_error)
 
     ! Note, here phi_fmm contains the one from the previous step, so we
     ! are actually comparing multipole_electrostatics_0 with multipole_electrostatics_1
@@ -230,7 +230,7 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold, error)
         & call test_error("multipole_electrostatics_1 multipole_electrostatics_0, phi: mismatch")
 
     call multipole_electrostatics_1(fmm % params, fmm % constants, fmm % workspace, &
-        & multipoles, mmax, phi_fmm, e_fmm, error)
+        & multipoles, mmax, phi_fmm, e_fmm, ddx_error)
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
     if (diff .ge. threshold) &
@@ -244,7 +244,7 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold, error)
 
     call numerical_field(multipoles, nofmm % params % csph, mmax, &
         & nofmm % params % nsph, nofmm % constants % ccav, &
-        & nofmm % constants % ncav, e_num, error)
+        & nofmm % constants % ncav, e_num, ddx_error)
 
     diff = norm_inf_2d(3, nofmm % constants % ncav, e_nofmm, e_num)
     if (diff .ge. threshold) &
@@ -254,7 +254,7 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold, error)
     ! the field and the potential with the previously obtained ones
 
     call multipole_electrostatics_2(nofmm % params, nofmm % constants, &
-        & nofmm % workspace, multipoles, mmax, phi_nofmm, e_nofmm, g_nofmm, error)
+        & nofmm % workspace, multipoles, mmax, phi_nofmm, e_nofmm, g_nofmm, ddx_error)
 
     ! Note, here phi_fmm and e_fmm contain the properties from the previous
     ! step, so we are actually comparing multipole_electrostatics_2 with multipole_electrostatics_1
@@ -268,7 +268,7 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold, error)
         & call test_error("multipole_electrostatics_2 multipole_electrostatics_1, e: mismatch")
 
     call multipole_electrostatics_2(fmm % params, fmm % constants, fmm % workspace, &
-        & multipoles, mmax, phi_fmm, e_fmm, g_fmm, error)
+        & multipoles, mmax, phi_fmm, e_fmm, g_fmm, ddx_error)
 
     diff = norm_inf_1d(nofmm % constants % ncav, phi_nofmm, phi_fmm)
     if (diff .ge. threshold) &
@@ -286,7 +286,7 @@ subroutine test(fmm, nofmm, multipoles, mmax, nm, threshold, error)
 
     call numerical_field_gradient(multipoles, nofmm % params % csph, mmax, &
         & nofmm % params % nsph, nofmm % constants % ccav, &
-        & nofmm % constants % ncav, g_num, error)
+        & nofmm % constants % ncav, g_num, ddx_error)
 
     diff = norm_inf_2d(3, nofmm % constants % ncav, g_nofmm, g_num)
     if (diff .ge. threshold) &
@@ -330,56 +330,56 @@ subroutine test_error(message)
 end subroutine test_error
 
 subroutine numerical_field(multipoles, cm, mmax, nm, coordinates, &
-        & npoints, num_field, error)
+        & npoints, num_field, ddx_error)
     implicit none
     integer, intent(in) :: mmax, nm, npoints
     real(dp), intent(in) :: cm(3, nm), coordinates(3, npoints), &
         & multipoles((mmax + 1)**2, nm)
     real(dp), intent(out) :: num_field(3, npoints)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp) :: local_coords(3, npoints), v_plus(npoints), v_minus(npoints)
     real(dp), parameter :: delta = 1d-5
 
     local_coords = coordinates
     local_coords(1, :) = local_coords(1, :) + delta
     call build_phi_dense(multipoles, cm, mmax, nm, v_plus, local_coords, &
-        & npoints, error)
+        & npoints, ddx_error)
 
     local_coords = coordinates
     local_coords(1, :) = local_coords(1, :) - delta
     call build_phi_dense(multipoles, cm, mmax, nm, v_minus, local_coords, &
-        & npoints, error)
+        & npoints, ddx_error)
 
     num_field(1, :) = - (v_plus - v_minus)/(2.0d0*delta)
 
     local_coords = coordinates
     local_coords(2, :) = local_coords(2, :) + delta
     call build_phi_dense(multipoles, cm, mmax, nm, v_plus, local_coords, &
-        & npoints, error)
+        & npoints, ddx_error)
 
     local_coords = coordinates
     local_coords(2, :) = local_coords(2, :) - delta
     call build_phi_dense(multipoles, cm, mmax, nm, v_minus, local_coords, &
-        & npoints, error)
+        & npoints, ddx_error)
 
     num_field(2, :) = - (v_plus - v_minus)/(2.0d0*delta)
 
     local_coords = coordinates
     local_coords(3, :) = local_coords(3, :) + delta
     call build_phi_dense(multipoles, cm, mmax, nm, v_plus, local_coords, &
-        & npoints, error)
+        & npoints, ddx_error)
 
     local_coords = coordinates
     local_coords(3, :) = local_coords(3, :) - delta
     call build_phi_dense(multipoles, cm, mmax, nm, v_minus, local_coords, &
-        & npoints, error)
+        & npoints, ddx_error)
 
     num_field(3, :) = - (v_plus - v_minus)/(2.0d0*delta)
 
 end subroutine numerical_field
 
 subroutine numerical_field_gradient(multipoles, cm, mmax, nm, coordinates, &
-        & npoints, num_field_gradient, error)
+        & npoints, num_field_gradient, ddx_error)
     implicit none
     integer, intent(in) :: mmax, nm, npoints
     real(dp), intent(in) :: cm(3, nm), coordinates(3, npoints), &
@@ -387,42 +387,42 @@ subroutine numerical_field_gradient(multipoles, cm, mmax, nm, coordinates, &
     real(dp), intent(out) :: num_field_gradient(3, 3, npoints)
     real(dp) :: local_coords(3, npoints), e_plus(3, npoints), &
         & e_minus(3, npoints), v_scratch(npoints)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), parameter :: delta = 1d-5
 
     local_coords = coordinates
     local_coords(1, :) = local_coords(1, :) + delta
     call build_e_dense(multipoles, cm, mmax, nm, v_scratch, local_coords, &
-        & npoints, e_plus, error)
+        & npoints, e_plus, ddx_error)
 
     local_coords = coordinates
     local_coords(1, :) = local_coords(1, :) - delta
     call build_e_dense(multipoles, cm, mmax, nm, v_scratch, local_coords, &
-        & npoints, e_minus, error)
+        & npoints, e_minus, ddx_error)
 
     num_field_gradient(1, :, :) = - (e_plus - e_minus)/(2.0d0*delta)
 
     local_coords = coordinates
     local_coords(2, :) = local_coords(2, :) + delta
     call build_e_dense(multipoles, cm, mmax, nm, v_scratch, local_coords, &
-        & npoints, e_plus, error)
+        & npoints, e_plus, ddx_error)
 
     local_coords = coordinates
     local_coords(2, :) = local_coords(2, :) - delta
     call build_e_dense(multipoles, cm, mmax, nm, v_scratch, local_coords, &
-        & npoints, e_minus, error)
+        & npoints, e_minus, ddx_error)
 
     num_field_gradient(2, :, :) = - (e_plus - e_minus)/(2.0d0*delta)
 
     local_coords = coordinates
     local_coords(3, :) = local_coords(3, :) + delta
     call build_e_dense(multipoles, cm, mmax, nm, v_scratch, local_coords, &
-        & npoints, e_plus, error)
+        & npoints, e_plus, ddx_error)
 
     local_coords = coordinates
     local_coords(3, :) = local_coords(3, :) - delta
     call build_e_dense(multipoles, cm, mmax, nm, v_scratch, local_coords, &
-        & npoints, e_minus, error)
+        & npoints, e_minus, ddx_error)
 
     num_field_gradient(3, :, :) = - (e_plus - e_minus)/(2.0d0*delta)
 
