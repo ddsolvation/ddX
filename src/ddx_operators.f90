@@ -22,7 +22,7 @@ implicit none
 contains
 
 !> Single layer operator matvec
-subroutine lx(params, constants, workspace, x, y, error)
+subroutine lx(params, constants, workspace, x, y, ddx_error)
     implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -32,7 +32,7 @@ subroutine lx(params, constants, workspace, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
     integer :: isph, jsph, ij, l, ind, iproc
 
@@ -82,7 +82,7 @@ subroutine lx(params, constants, workspace, x, y, error)
 end subroutine lx
 
 !> Adjoint single layer operator matvec 
-subroutine lstarx(params, constants, workspace, x, y, error)
+subroutine lstarx(params, constants, workspace, x, y, ddx_error)
     implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -92,7 +92,7 @@ subroutine lstarx(params, constants, workspace, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
     integer :: isph, jsph, ij, indmat, igrid, l, ind, iproc
     y = zero
@@ -144,7 +144,7 @@ end subroutine lstarx
 !> Diagonal preconditioning for Lx operator
 !!
 !! Applies inverse diagonal (block) of the L matrix
-subroutine ldm1x(params, constants, workspace, x, y, error)
+subroutine ldm1x(params, constants, workspace, x, y, ddx_error)
     implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -154,7 +154,7 @@ subroutine ldm1x(params, constants, workspace, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
     integer :: isph, l, ind
     !! Loop over harmonics
@@ -170,7 +170,7 @@ subroutine ldm1x(params, constants, workspace, x, y, error)
 end subroutine ldm1x
 
 !> Double layer operator matvec without diagonal blocks
-subroutine dx(params, constants, workspace, x, y, error)
+subroutine dx(params, constants, workspace, x, y, ddx_error)
     implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -179,7 +179,7 @@ subroutine dx(params, constants, workspace, x, y, error)
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     !! Local parameter
     integer :: do_diag
     !! initialize do_diag
@@ -187,14 +187,14 @@ subroutine dx(params, constants, workspace, x, y, error)
     if (constants % dodiag) do_diag = 1
     !! Select implementation
     if (params % fmm .eq. 0) then
-        call dx_dense(params, constants, workspace, do_diag, x, y, error)
+        call dx_dense(params, constants, workspace, do_diag, x, y, ddx_error)
     else
-        call dx_fmm(params, constants, workspace, do_diag, x, y, error)
+        call dx_fmm(params, constants, workspace, do_diag, x, y, ddx_error)
     end if
 end subroutine dx
 
 !> Baseline implementation of double layer operator
-subroutine dx_dense(params, constants, workspace, do_diag, x, y, error)
+subroutine dx_dense(params, constants, workspace, do_diag, x, y, ddx_error)
     implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -202,7 +202,7 @@ subroutine dx_dense(params, constants, workspace, do_diag, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
@@ -272,7 +272,7 @@ subroutine dx_dense(params, constants, workspace, do_diag, x, y, error)
 end subroutine dx_dense
 
 !> FMM-accelerated implementation of double layer operator
-subroutine dx_fmm(params, constants, workspace, do_diag, x, y, error)
+subroutine dx_fmm(params, constants, workspace, do_diag, x, y, ddx_error)
     implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -280,7 +280,7 @@ subroutine dx_fmm(params, constants, workspace, do_diag, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     integer, intent(in) :: do_diag
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     !! Local variables
@@ -334,7 +334,7 @@ subroutine dx_fmm(params, constants, workspace, do_diag, x, y, error)
 end subroutine dx_fmm
 
 !> Adjoint double layer operator matvec 
-subroutine dstarx(params, constants, workspace, x, y, error)
+subroutine dstarx(params, constants, workspace, x, y, ddx_error)
     implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -344,7 +344,7 @@ subroutine dstarx(params, constants, workspace, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
     integer :: do_diag
     !! initialize do_diag
@@ -352,14 +352,14 @@ subroutine dstarx(params, constants, workspace, x, y, error)
     if (constants % dodiag) do_diag = 1
     !! Select implementation
     if (params % fmm .eq. 0) then
-        call dstarx_dense(params, constants, workspace, do_diag, x, y, error)
+        call dstarx_dense(params, constants, workspace, do_diag, x, y, ddx_error)
     else
-        call dstarx_fmm(params, constants, workspace, do_diag, x, y, error)
+        call dstarx_fmm(params, constants, workspace, do_diag, x, y, ddx_error)
     end if
 end subroutine dstarx
 
 !> Baseline implementation of adjoint double layer operator
-subroutine dstarx_dense(params, constants, workspace, do_diag, x, y, error)
+subroutine dstarx_dense(params, constants, workspace, do_diag, x, y, ddx_error)
     implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -368,7 +368,7 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y, error)
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     ! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
@@ -432,7 +432,7 @@ subroutine dstarx_dense(params, constants, workspace, do_diag, x, y, error)
 end subroutine dstarx_dense
 
 !> FMM-accelerated implementation of adjoint double layer operator
-subroutine dstarx_fmm(params, constants, workspace, do_diag, x, y, error)
+subroutine dstarx_fmm(params, constants, workspace, do_diag, x, y, ddx_error)
     implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -441,7 +441,7 @@ subroutine dstarx_fmm(params, constants, workspace, do_diag, x, y, error)
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     ! Temporaries
     type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     ! Local variables
@@ -496,7 +496,7 @@ end subroutine dstarx_fmm
 !!
 !! Compute \f$ y = R_\varepsilon x = (2\pi(\varepsilon + 1) / (\varepsilon
 !! - 1) - D) x \f$.
-subroutine repsx(params, constants, workspace, x, y, error)
+subroutine repsx(params, constants, workspace, x, y, ddx_error)
     implicit none
     !! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -506,11 +506,11 @@ subroutine repsx(params, constants, workspace, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     !! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
     real(dp) :: fac
     !! Output `y` is cleaned here
-    call dx(params, constants, workspace, x, y, error)
+    call dx(params, constants, workspace, x, y, ddx_error)
     y = - y
     if (constants % dodiag) then
     ! Apply diagonal
@@ -524,7 +524,7 @@ end subroutine repsx
 !! Compute \f$ y = R^*_\varepsilon x = (2\pi(\varepsilon + 1) / (\varepsilon
 !! - 1) - D) x \f$.
 !!
-subroutine repsstarx(params, constants, workspace, x, y, error)
+subroutine repsstarx(params, constants, workspace, x, y, ddx_error)
     implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -534,11 +534,11 @@ subroutine repsstarx(params, constants, workspace, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     ! Local variables
     real(dp) :: fac
     ! Output `y` is cleaned here
-    call dstarx(params, constants, workspace, x, y, error)
+    call dstarx(params, constants, workspace, x, y, ddx_error)
     y = - y
     ! Apply diagonal
     if (constants % dodiag) then 
@@ -554,9 +554,9 @@ end subroutine repsstarx
 !! @param[in] ddx_data:
 !! @param[in] x:
 !! @param[out] y:
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX ddx_error
 !!
-subroutine rinfx(params, constants, workspace, x, y, error)
+subroutine rinfx(params, constants, workspace, x, y, ddx_error)
     implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -566,13 +566,13 @@ subroutine rinfx(params, constants, workspace, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     !! note do_diag hardcoded to 1.
     !! Select implementation
     if (params % fmm .eq. 0) then
-        call dx_dense(params, constants, workspace, 1, x, y, error)
+        call dx_dense(params, constants, workspace, 1, x, y, ddx_error)
     else
-        call dx_fmm(params, constants, workspace, 1, x, y, error)
+        call dx_fmm(params, constants, workspace, 1, x, y, ddx_error)
     end if
     ! Apply diagonal
     y = twopi*x - y
@@ -585,9 +585,9 @@ end subroutine rinfx
 !! @param[in] ddx_data:
 !! @param[in] x:
 !! @param[out] y:
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX ddx_error
 !!
-subroutine rstarinfx(params, constants, workspace, x, y, error)
+subroutine rstarinfx(params, constants, workspace, x, y, ddx_error)
     implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -597,16 +597,16 @@ subroutine rstarinfx(params, constants, workspace, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     ! Output `y` is cleaned here
-    call dstarx(params, constants, workspace, x, y, error)
+    call dstarx(params, constants, workspace, x, y, ddx_error)
     ! Apply diagonal
     y = twopi*x - y
 end subroutine rstarinfx
 
 !> Apply preconditioner for ddPCM primal linear system
-!! @param[inout] error: ddX error
-subroutine prec_repsx(params, constants, workspace, x, y, error)
+!! @param[inout] ddx_error: ddX ddx_error
+subroutine prec_repsx(params, constants, workspace, x, y, ddx_error)
     implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -616,7 +616,7 @@ subroutine prec_repsx(params, constants, workspace, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     integer :: isph
     ! simply do a matrix-vector product with the transposed preconditioner 
     !$omp parallel do default(shared) schedule(static,1) &
@@ -629,7 +629,7 @@ subroutine prec_repsx(params, constants, workspace, x, y, error)
 end subroutine prec_repsx
 
 !> Apply preconditioner for ddPCM adjoint linear system
-subroutine prec_repsstarx(params, constants, workspace, x, y, error)
+subroutine prec_repsstarx(params, constants, workspace, x, y, ddx_error)
     implicit none
     ! Inputs
     type(ddx_params_type), intent(in) :: params
@@ -639,7 +639,7 @@ subroutine prec_repsstarx(params, constants, workspace, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     ! Output
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     ! Local variables
     integer :: isph
     ! simply do a matrix-vector product with the transposed preconditioner 
@@ -653,14 +653,14 @@ subroutine prec_repsstarx(params, constants, workspace, x, y, error)
 end subroutine prec_repsstarx
 
 !> Adjoint HSP matrix vector product
-subroutine bstarx(params, constants, workspace, x, y, error)
+subroutine bstarx(params, constants, workspace, x, y, ddx_error)
     ! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), intent(in) :: x(constants % nbasis, params % nsph)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     ! Local variables
     integer :: isph, jsph, ij, indmat, iproc
     y = zero
@@ -701,14 +701,14 @@ subroutine bstarx(params, constants, workspace, x, y, error)
 end subroutine bstarx
 
 !> Primal HSP matrix vector product
-subroutine bx(params, constants, workspace, x, y, error)
+subroutine bx(params, constants, workspace, x, y, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     integer :: isph, jsph, ij, iproc
 
     y = zero
@@ -738,14 +738,14 @@ subroutine bx(params, constants, workspace, x, y, error)
 end subroutine bx
 
 !> Adjoint ddLPB matrix-vector product
-subroutine tstarx(params, constants, workspace, x, y, error)
+subroutine tstarx(params, constants, workspace, x, y, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     real(dp), dimension(constants % nbasis, params % nsph, 2) :: temp_vector
     y = zero
@@ -754,44 +754,44 @@ subroutine tstarx(params, constants, workspace, x, y, error)
     ! Compute AXr
     ! call LstarXr
     call lstarx(params, constants, workspace, x(:,:,1), temp_vector(:,:,1), &
-        & error)
+        & ddx_error)
     ! Remove the scaling factor
     call convert_ddcosmo(params, constants, 1, temp_vector(:,:,1))
     y(:,:,1) = y(:,:,1) + temp_vector(:,:,1)
     ! Compute BXe
     call bstarx(params, constants, workspace, x(:,:,2), temp_vector(:,:,2), &
-        & error)
+        & ddx_error)
     y(:,:,2) = y(:,:,2) + temp_vector(:,:,2)
 
     ! Reset temp_vector to zero
     temp_vector = zero
     ! Call CX
-    call cstarx(params, constants, workspace, x, temp_vector, error)
+    call cstarx(params, constants, workspace, x, temp_vector, ddx_error)
     y = y + temp_vector
 end subroutine tstarx
 
 !> Apply the preconditioner to the primal HSP linear system
-!! @param[inout] error: ddX error
-subroutine bx_prec(params, constants, workspace, x, y, error)
+!! @param[inout] ddx_error: ddX ddx_error
+subroutine bx_prec(params, constants, workspace, x, y, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: y
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     y = x
 end subroutine bx_prec
 
 !> Apply the preconditioner to the ddLPB adjoint linear system
-subroutine prec_tstarx(params, constants, workspace, x, y, error)
+subroutine prec_tstarx(params, constants, workspace, x, y, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
     real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     integer :: n_iter
     real(dp), dimension(params % maxiter) :: x_rel_diff
     real(dp) :: start_time
@@ -802,9 +802,9 @@ subroutine prec_tstarx(params, constants, workspace, x, y, error)
     n_iter = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % inner_tol, &
         & y(:,:,1), workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, &
-        & ldm1x, hnorm, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, 'prec_tstarx: ddCOSMO failed to ' // &
+        & ldm1x, hnorm, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, 'prec_tstarx: ddCOSMO failed to ' // &
             & 'converge, exiting')
         return
     end if
@@ -815,9 +815,9 @@ subroutine prec_tstarx(params, constants, workspace, x, y, error)
     n_iter = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % inner_tol, &
         & x(:,:,2), workspace % hsp_guess, n_iter, x_rel_diff, bstarx, &
-        & bx_prec, hnorm, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, 'prec_tstarx: HSP failed to ' // &
+        & bx_prec, hnorm, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, 'prec_tstarx: HSP failed to ' // &
             & 'converge, exiting')
         return
     end if
@@ -833,15 +833,15 @@ end subroutine prec_tstarx
 !! @param[in] ddx_data : dd Data
 !! @param[in] x        : Input array
 !! @param[out] y       : Linear system solution at current iteration
-!! @param[inout] error: ddX error
-subroutine prec_tx(params, constants, workspace, x, y, error)
+!! @param[inout] ddx_error: ddX ddx_error
+subroutine prec_tx(params, constants, workspace, x, y, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), intent(in) :: x(constants % nbasis, params % nsph, 2)
     real(dp), intent(inout) :: y(constants % nbasis, params % nsph, 2)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     integer :: n_iter
     real(dp), dimension(params % maxiter) :: x_rel_diff
     real(dp) :: start_time
@@ -851,9 +851,9 @@ subroutine prec_tx(params, constants, workspace, x, y, error)
     n_iter = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % inner_tol, &
         & x(:,:,1), workspace % ddcosmo_guess, n_iter, x_rel_diff, lx, &
-        & ldm1x, hnorm, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, 'prec_tx: ddCOSMO failed to ' // &
+        & ldm1x, hnorm, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, 'prec_tx: ddCOSMO failed to ' // &
             & 'converge, exiting')
         return
     end if
@@ -868,12 +868,12 @@ subroutine prec_tx(params, constants, workspace, x, y, error)
     n_iter = params % maxiter
     call jacobi_diis(params, constants, workspace, constants % inner_tol, &
         & x(:,:,2), workspace % hsp_guess, n_iter, x_rel_diff, bx, &
-        & bx_prec, hnorm, error)
+        & bx_prec, hnorm, ddx_error)
     y(:,:,2) = workspace % hsp_guess
     workspace % hsp_time = workspace % hsp_time + omp_get_wtime() - start_time
 
-    if (error % flag .ne. 0) then
-        call update_error(error, 'prec_tx: HSP failed to ' // &
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, 'prec_tx: HSP failed to ' // &
             & 'converge, exiting')
         return
     end if
@@ -881,7 +881,7 @@ subroutine prec_tx(params, constants, workspace, x, y, error)
 end subroutine prec_tx
 
 !> ddLPB adjoint matrix-vector product
-subroutine cstarx(params, constants, workspace, x, y, error)
+subroutine cstarx(params, constants, workspace, x, y, ddx_error)
     implicit none
     ! input/output
     type(ddx_params_type), intent(in) :: params
@@ -889,7 +889,7 @@ subroutine cstarx(params, constants, workspace, x, y, error)
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     ! local
     complex(dp) :: work_complex(constants % lmax0+1)
     real(dp) :: work(constants % lmax0+1)
@@ -993,14 +993,14 @@ subroutine cstarx(params, constants, workspace, x, y, error)
 end subroutine cstarx
 
 !> ddLPB matrix-vector product
-subroutine cx(params, constants, workspace, x, y, error)
+subroutine cx(params, constants, workspace, x, y, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(in) :: x
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     integer :: isph, jsph, igrid, ind, l, m, ind0
     real(dp), dimension(3) :: sijn ,vij, vtij

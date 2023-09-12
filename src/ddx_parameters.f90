@@ -116,10 +116,10 @@ contains
 !! @param[in] rsph: Van-der-Waals radii of atoms. Dimension is `(nsph)`.
 !! @param[in] output_filename: file name of log file.
 !! @param[out] params: Object containing all inputs.
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & matvecmem, maxiter, jacobi_ndiis, fmm, pm, pl, nproc, nsph, &
-        & csph, rsph, output_filename, params, error)
+        & csph, rsph, output_filename, params, ddx_error)
     !! Inputs
     ! Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
     integer, intent(in) :: model
@@ -168,12 +168,12 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     character(len=255) :: output_filename
     !! Outputs
     type(ddx_params_type), intent(out) :: params
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
     integer :: igrid, i, info
     !! The code
-    if (error % flag .ne. 0) then
-        call update_error(error, "params_init received input in error " // &
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, "params_init received input in ddx_error " // &
             & " state, exiting")
     end if
     ! parse the log file name
@@ -188,37 +188,37 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     end if
     ! Model, 1=COSMO, 2=PCM, 3=LPB
     if ((model .lt. 1) .or. (model .gt. 3)) then
-        call update_error(error, "params_init: invalid value of `model`")
+        call update_error(ddx_error, "params_init: invalid value of `model`")
     end if
     params % model = model
     ! Check if forces are needed
     if ((force .lt. 0) .or. (force .gt. 1)) then
-        call update_error(error, "params_init: invalid value of `force`")
+        call update_error(ddx_error, "params_init: invalid value of `force`")
     end if
     params % force = force
     ! Relative dielectric permittivity
     if (eps .le. one) then
-        call update_error(error, "params_init: invalid value of `eps`")
+        call update_error(ddx_error, "params_init: invalid value of `eps`")
     end if
     params % eps = eps
     ! Debye-H\"{u}ckel parameter (only used in ddLPB)
     if ((model .eq. 3) .and. (kappa .le. zero)) then
-        call update_error(error, "params_init: invalid value of `kappa`")
+        call update_error(ddx_error, "params_init: invalid value of `kappa`")
     end if
     params % kappa = kappa
     ! Regularization parameter
     if ((eta .lt. zero) .or. (eta .gt. one)) then
-        call update_error(error, "params_init: invalid value of `eta`")
+        call update_error(ddx_error, "params_init: invalid value of `eta`")
     end if
     params % eta = eta
     ! Shift of a regularization
     if ((se .lt. -one) .or. (se .gt. one)) then
-        call update_error(error, "params_init: invalid value of `se`")
+        call update_error(ddx_error, "params_init: invalid value of `se`")
     end if
     params % se = se
     ! Degree of modeling spherical harmonics
     if (lmax .lt. 0) then
-        call update_error(error, "params_init: invalid value of `lmax`")
+        call update_error(ddx_error, "params_init: invalid value of `lmax`")
     end if
     params % lmax = lmax
     ! Check number of Lebedev grid points
@@ -230,22 +230,22 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         end if
     end do
     if (igrid .eq. 0) then
-        call update_error(error, "params_init: Unsupported value of `ngrid`")
+        call update_error(ddx_error, "params_init: Unsupported value of `ngrid`")
     end if
     params % ngrid = ngrid
     ! Maximum number of iterations
     if (maxiter .le. 0) then
-        call update_error(error, "params_init: invalid value of `maxiter`")
+        call update_error(ddx_error, "params_init: invalid value of `maxiter`")
     end if
     params % maxiter = maxiter
     ! Number of Jacobi DIIS extrapolation points (ndiis=25 works)
     if (jacobi_ndiis .lt. 0) then
-        call update_error(error, "params_init: invalid value of `jacobi_ndiis`")
+        call update_error(ddx_error, "params_init: invalid value of `jacobi_ndiis`")
     end if
     params % jacobi_ndiis = jacobi_ndiis
     ! Check if FMM-acceleration is needed
     if ((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        call update_error(error, "params_init: invalid value of `fmm`")
+        call update_error(ddx_error, "params_init: invalid value of `fmm`")
     end if
     params % fmm = fmm
     ! Set FMM parameters if FMM is needed
@@ -254,13 +254,13 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         ! far-field interactions are to be computed, only near-field
         ! interactions are taken into account.
         if (pm .lt. -1) then
-            call update_error(error, "params_init: invalid value of `pm`")
+            call update_error(ddx_error, "params_init: invalid value of `pm`")
         end if
         ! Maximal degree of local spherical harmonics. Value -1 means no 
         ! far-field interactions are to be computed, only near-field
         ! interactions are taken into account.
         if (pl .lt. -1) then
-            call update_error(error, "params_init: invalid value of `pl`")
+            call update_error(ddx_error, "params_init: invalid value of `pl`")
         end if
         ! If far-field interactions are to be ignored
         if ((pl .eq. -1) .or. (pm .eq. -1)) then
@@ -279,7 +279,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     ! Number of OpenMP threads to be used
     ! available.
     if (nproc .lt. 0) then
-        call update_error(error, "params_init: invalid value of `nproc`")
+        call update_error(ddx_error, "params_init: invalid value of `nproc`")
         params % nproc = 1
     else if (nproc .eq. 0) then
         params % nproc = 1
@@ -289,12 +289,12 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     call omp_set_num_threads(params % nproc)
     ! Number of atoms
     if (nsph .le. 0) then
-        call update_error(error, "params_init: invalid value of `nsph`")
+        call update_error(ddx_error, "params_init: invalid value of `nsph`")
     end if
     params % nsph = nsph
     allocate(params % csph(3, nsph), params % rsph(nsph), stat=info)
     if (info .ne. 0) then
-        call update_error(error, "params_init: `csph` and `rsph` " // &
+        call update_error(ddx_error, "params_init: `csph` and `rsph` " // &
             & "allocations failed")
         return
     end if
@@ -303,15 +303,15 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     if (matvecmem.eq.0 .or. matvecmem.eq.1) then
         params % matvecmem = matvecmem
     else
-        call update_error(error, "params_init: invalid value of `matvecmem`")
+        call update_error(ddx_error, "params_init: invalid value of `matvecmem`")
     end if
 
-    if (error % flag .ne. 0) return
+    if (ddx_error % flag .ne. 0) return
 
     ! init log
-    call init_printing(params, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, "init_printing returned an error, exiting")
+    call init_printing(params, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, "init_printing returned an error, exiting")
         return
     end if
 end subroutine params_init
@@ -339,12 +339,12 @@ end subroutine
 !> Deallocate the parameter object
 !!
 !! @param[out] params: User specified parameters
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine params_free(params, error)
+subroutine params_free(params, ddx_error)
     implicit none
     type(ddx_params_type), intent(inout) :: params
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     integer :: istat
 
     call finalize_printing(params)
@@ -352,28 +352,28 @@ subroutine params_free(params, error)
     if (allocated(params % csph)) then
         deallocate(params % csph, stat=istat)
         if (istat .ne. 0) then
-            call update_error(error, "params_free: `csph` deallocation failed")
+            call update_error(ddx_error, "params_free: `csph` deallocation failed")
         end if
     end if
     if (allocated(params % rsph)) then
         deallocate(params % rsph, stat=istat)
         if (istat .ne. 0) then
-            call update_error(error, "params_free: `rsph` deallocation failed")
+            call update_error(ddx_error, "params_free: `rsph` deallocation failed")
         end if
     end if
 end subroutine params_free
 
 !> Open the log file.
-subroutine init_printing(params, error)
+subroutine init_printing(params, ddx_error)
     implicit none
     type(ddx_params_type), intent(inout) :: params
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     logical :: exists
     if (.not.params % verbose) return
     inquire(file=params % output_filename(1:params % len_output_filename), &
         & exist=exists)
     if (exists) then
-        call update_error(error, 'Log file already present')
+        call update_error(ddx_error, 'Log file already present')
         return
     else
         params % iunit = 100

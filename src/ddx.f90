@@ -20,13 +20,13 @@ contains
 !! @param[out] ddx_data: Object containing all inputs
 !! @param[out] tol: tolerance for iterative solvers
 !! @param[out] charges: charge array, size(nsph)
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine ddfromfile(fname, ddx_data, tol, charges, error)
+subroutine ddfromfile(fname, ddx_data, tol, charges, ddx_error)
     implicit none
     character(len=*), intent(in) :: fname
     type(ddx_type), intent(out) :: ddx_data
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(out) :: tol
     real(dp), allocatable, intent(out) :: charges(:)
     ! Local variables
@@ -44,54 +44,54 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, error)
     ! Number of OpenMP threads to be used
     read(100, *) nproc
     if(nproc .lt. 0) then
-        call update_error(error, "Error on the 2nd line of a config " // &
+        call update_error(ddx_error, "Error on the 2nd line of a config " // &
             & "file " // trim(fname) // ": `nproc` must be a positive " // &
             & "integer value.")
     end if
     ! Model to be used: 1 for COSMO, 2 for PCM and 3 for LPB
     read(100, *) model
     if((model .lt. 1) .or. (model .gt. 3)) then
-        call update_error(error, "Error on the 3rd line of a config file " // &
+        call update_error(ddx_error, "Error on the 3rd line of a config file " // &
             & trim(fname) // ": `model` must be an integer of a value " // &
             & "1, 2 or 3.")
     end if
     ! Max degree of modeling spherical harmonics
     read(100, *) lmax
     if(lmax .lt. 0) then
-        call update_error(error, "Error on the 4th line of a config file " // &
+        call update_error(ddx_error, "Error on the 4th line of a config file " // &
             & trim(fname) // ": `lmax` must be a non-negative integer value.")
     end if
     ! Approximate number of Lebedev points
     read(100, *) ngrid
     if(ngrid .lt. 0) then
-        call update_error(error, "Error on the 5th line of a config file " // &
+        call update_error(ddx_error, "Error on the 5th line of a config file " // &
             & trim(fname) // ": `ngrid` must be a non-negative integer value.")
     end if
     ! Dielectric permittivity constant of the solvent
     read(100, *) eps
     if(eps .lt. zero) then
-        call update_error(error, "Error on the 6th line of a config file " // &
+        call update_error(ddx_error, "Error on the 6th line of a config file " // &
             & trim(fname) // ": `eps` must be a non-negative floating " // &
             & "point value.")
     end if
     ! Shift of the regularized characteristic function
     read(100, *) se
     if((se .lt. -one) .or. (se .gt. one)) then
-        call update_error(error, "Error on the 7th line of a config file " // &
+        call update_error(ddx_error, "Error on the 7th line of a config file " // &
             & trim(fname) // ": `se` must be a floating point value in a " // &
             & " range [-1, 1].")
     end if
     ! Regularization parameter
     read(100, *) eta
     if((eta .lt. zero) .or. (eta .gt. one)) then
-        call update_error(error, "Error on the 8th line of a config file " // &
+        call update_error(ddx_error, "Error on the 8th line of a config file " // &
             & trim(fname) // ": `eta` must be a floating point value " // &
             & "in a range [0, 1].")
     end if
     ! Debye H\"{u}ckel parameter
     read(100, *) kappa
     if(kappa .lt. zero) then
-        call update_error(error, "Error on the 9th line of a config file " // &
+        call update_error(ddx_error, "Error on the 9th line of a config file " // &
             & trim(fname) // ": `kappa` must be a non-negative floating " // &
             & "point value.")
     end if
@@ -99,74 +99,74 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, error)
     ! or not (0).
     read(100, *) matvecmem 
     if((matvecmem.lt. 0) .or. (matvecmem .gt. 1)) then
-        call update_error(error, "Error on the 10th line of a config " // &
+        call update_error(ddx_error, "Error on the 10th line of a config " // &
             & "file " // trim(fname) // ": `matvecmem` must be an " // &
             & "integer value of a value 0 or 1.")
     end if
     ! Relative convergence threshold for the iterative solver
     read(100, *) tol
     if((tol .lt. 1d-14) .or. (tol .gt. one)) then
-        call update_error(error, "Error on the 12th line of a config " // &
+        call update_error(ddx_error, "Error on the 12th line of a config " // &
             & "file " // trim(fname) // ": `tol` must be a floating " // &
             & "point value in a range [1d-14, 1].")
     end if
     ! Maximum number of iterations for the iterative solver
     read(100, *) maxiter
     if((maxiter .le. 0)) then
-        call update_error(error, "Error on the 13th line of a config " // &
+        call update_error(ddx_error, "Error on the 13th line of a config " // &
             & "file " // trim(fname) // ": `maxiter` must be a positive " // &
             & " integer value.")
     end if
     ! Number of extrapolation points for Jacobi/DIIS solver
     read(100, *) jacobi_ndiis
     if((jacobi_ndiis .lt. 0)) then
-        call update_error(error, "Error on the 14th line of a config " // &
+        call update_error(ddx_error, "Error on the 14th line of a config " // &
             & "file " // trim(fname) // ": `jacobi_ndiis` must be a " // &
             & "non-negative integer value.")
     end if
     ! Whether to compute (1) or not (0) forces as analytical gradients
     read(100, *) force
     if((force .lt. 0) .or. (force .gt. 1)) then
-        call update_error(error, "Error on the 17th line of a config " // &
+        call update_error(ddx_error, "Error on the 17th line of a config " // &
             & "file " // trim(fname) // ": `force` must be an integer " // &
             "value of a value 0 or 1.")
     end if
     ! Whether to use (1) or not (0) the FMM to accelerate computations
     read(100, *) fmm
     if((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        call update_error(error, "Error on the 18th line of a config " // &
+        call update_error(ddx_error, "Error on the 18th line of a config " // &
             & "file " // trim(fname) // ": `fmm` must be an integer " // &
             & "value of a value 0 or 1.")
     end if
     ! Max degree of multipole spherical harmonics for the FMM
     read(100, *) pm
     if(pm .lt. 0) then
-        call update_error(error, "Error on the 19th line of a config " // &
+        call update_error(ddx_error, "Error on the 19th line of a config " // &
             & "file " // trim(fname) // ": `pm` must be a non-negative " // &
             & "integer value.")
     end if
     ! Max degree of local spherical harmonics for the FMM
     read(100, *) pl
     if(pl .lt. 0) then
-        call update_error(error, "Error on the 20th line of a config " // &
+        call update_error(ddx_error, "Error on the 20th line of a config " // &
             & "file " // trim(fname) // ": `pl` must be a non-negative " // &
             & "integer value.")
     end if
     ! Number of input spheres
     read(100, *) nsph
     if(nsph .le. 0) then
-        call update_error(error, "Error on the 21th line of a config " // &
+        call update_error(ddx_error, "Error on the 21th line of a config " // &
             & "file " // trim(fname) // ": `nsph` must be a positive " // &
             & "integer value.")
     end if
 
     ! return in case of errors in the parameters
-    if (error % flag .ne. 0) return
+    if (ddx_error % flag .ne. 0) return
 
     ! Coordinates, radii and charges
     allocate(charges(nsph), csph(3, nsph), radii(nsph), stat=istatus)
     if(istatus .ne. 0) then
-        call update_error(error, "Could not allocate space for " // &
+        call update_error(ddx_error, "Could not allocate space for " // &
             & "coordinates, radii and charges of atoms.")
         return
     end if
@@ -184,20 +184,20 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, error)
     call closest_supported_lebedev_grid(ngrid)
 
     !! Initialize ddx_data object
-    call ddinit(model, nsph, csph, radii, eps, ddx_data, error, &
+    call ddinit(model, nsph, csph, radii, eps, ddx_data, ddx_error, &
         & force=force, kappa=kappa, eta=eta, shift=se, lmax=lmax, &
         & ngrid=ngrid, incore=matvecmem, maxiter=maxiter, &
         & jacobi_ndiis=jacobi_ndiis, enable_fmm=fmm, pm=pm, pl=pl, &
         & nproc=nproc, logfile=output_filename)
 
-    if (error % flag .ne. 0) then
-        call update_error(error, "ddinit returned an error, exiting")
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, "ddinit returned an error, exiting")
         return
     end if
     !! Clean local temporary data
     deallocate(radii, csph, stat=istatus)
     if(istatus .ne. 0) then
-        call update_error(error, "Could not deallocate space for " // &
+        call update_error(ddx_error, "Could not deallocate space for " // &
             & "coordinates, radii and charges of atoms")
         return
     end if
@@ -213,7 +213,7 @@ end subroutine ddfromfile
 !! @param[in] radii: radii of the spheres, size (nsph)
 !! @param[in] eps: relative dielectric permittivity eps > 1
 !! @param[out] ddx_data: Container for ddX data structures
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
 !! @param[in,optional] force: 1 if forces are required and 0 otherwise
 !! @param[in,optional] kappa: Debye-H\"{u}ckel parameter
@@ -240,7 +240,7 @@ end subroutine ddfromfile
 !! @param[in,optional] nproc: Number of OpenMP threads, nproc >= 0.
 !! @param[in,optional] logfile: file name for log information.
 !!
-subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, error, &
+subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
         & force, kappa, eta, shift, lmax, ngrid, incore, maxiter, &
         & jacobi_ndiis, enable_fmm, pm, pl, nproc, logfile, adjoint, eps_int)
 
@@ -248,7 +248,7 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, error, &
     integer, intent(in) :: model, nsph
     real(dp), intent(in) :: coords(3, nsph), radii(nsph)
     type(ddx_type), target, intent(out) :: ddx_data
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(in) :: eps
 
     ! optional arguments
@@ -308,19 +308,19 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, error, &
 
     ! this are not yet supported, but they will probably
     if (present(adjoint)) then
-        call update_error(error, &
+        call update_error(ddx_error, &
             & "ddinit: adjoint argument is not yet supported")
         return
     end if
     if (present(eps_int)) then
-        call update_error(error, &
+        call update_error(ddx_error, &
             & "ddinit: eps_int argument is not yet supported")
         return
     end if
 
     allocate(x(nsph), y(nsph), z(nsph), stat=info)
     if (info .ne. 0) then
-        call update_error(error, "ddinit: allocation failed")
+        call update_error(ddx_error, "ddinit: allocation failed")
         return
     end if
     x = coords(1,:)
@@ -330,11 +330,11 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, error, &
     call allocate_model(nsph, x, y, z, radii, model, local_lmax, local_ngrid, &
         & local_force, local_enable_fmm, local_pm, local_pl, local_shift, &
         & local_eta, eps, local_kappa, local_incore, local_maxiter, &
-        & local_jacobi_ndiis, local_nproc, local_logfile, ddx_data, error)
+        & local_jacobi_ndiis, local_nproc, local_logfile, ddx_data, ddx_error)
 
     deallocate(x, y, z, stat=info)
     if (info.ne.0) then
-        call update_error(error, "ddinit: deallocation failed")
+        call update_error(ddx_error, "ddinit: deallocation failed")
         return
     end if
 end subroutine ddinit
@@ -351,14 +351,14 @@ end subroutine ddinit
 !! @param[in] psi: RHS of the adjoint problem
 !! @param[in] tol: tolerance for the linear system solvers
 !! @param[out] esolv: solvation energy
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !! @param[out] force: Analytical forces (optional argument, only if
 !!             required)
 !! @param[in] read_guess: optional argument, if true read the guess
 !!            from the state object
 !!
 subroutine ddrun(ddx_data, state, electrostatics, psi, tol, esolv, &
-        & error, force, read_guess)
+        & ddx_error, force, read_guess)
     type(ddx_type), intent(inout) :: ddx_data
     type(ddx_state_type), intent(inout) :: state
     type(ddx_electrostatics_type), intent(in) :: electrostatics
@@ -366,7 +366,7 @@ subroutine ddrun(ddx_data, state, electrostatics, psi, tol, esolv, &
         & ddx_data % params % nsph)
     real(dp), intent(in) :: tol
     real(dp), intent(out) :: esolv
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(out), optional :: force(3, ddx_data % params % nsph)
     logical, intent(in), optional :: read_guess
     ! local variables
@@ -382,41 +382,41 @@ subroutine ddrun(ddx_data, state, electrostatics, psi, tol, esolv, &
     ! if the forces are to be computed, but the array is not passed, raise
     ! an error
     if ((.not.present(force)) .and. (ddx_data % params % force .eq. 1)) then
-        call update_error(error, &
+        call update_error(ddx_error, &
             & "ddrun: forces are to be computed, but the optional force" // &
             & " array has not been passed.")
         return
     end if
 
     call setup(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, electrostatics, psi, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, "ddrun: setup returned an error, exiting")
+        & ddx_data % workspace, state, electrostatics, psi, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, "ddrun: setup returned an error, exiting")
         return
     end if
 
     ! solve the primal linear system
     if (do_guess) then
         call fill_guess(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, tol, error)
-        if (error % flag .ne. 0) then
-            call update_error(error, &
+            & ddx_data % workspace, state, tol, ddx_error)
+        if (ddx_error % flag .ne. 0) then
+            call update_error(ddx_error, &
                 & "ddrun: fill_guess returned an error, exiting")
             return
         end if
     end if
     call solve(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, tol, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, "ddrun: solve returned an error, exiting")
+        & ddx_data % workspace, state, tol, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, "ddrun: solve returned an error, exiting")
         return
     end if
 
     ! compute the energy
     call energy(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, esolv, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, "ddrun: energy returned an error, exiting")
+        & ddx_data % workspace, state, esolv, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, "ddrun: energy returned an error, exiting")
         return
     end if
 
@@ -424,17 +424,17 @@ subroutine ddrun(ddx_data, state, electrostatics, psi, tol, esolv, &
     if (ddx_data % params % force .eq. 1) then
         if (do_guess) then
             call fill_guess_adjoint(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, state, tol, error)
-            if (error % flag .ne. 0) then
-                call update_error(error, &
+                & ddx_data % workspace, state, tol, ddx_error)
+            if (ddx_error % flag .ne. 0) then
+                call update_error(ddx_error, &
                     & "ddrun: fill_guess_adjoint returned an error, exiting")
                 return
             end if
         end if
         call solve_adjoint(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, tol, error)
-        if (error % flag .ne. 0) then
-            call update_error(error, &
+            & ddx_data % workspace, state, tol, ddx_error)
+        if (ddx_error % flag .ne. 0) then
+            call update_error(ddx_error, &
                 & "ddrun: solve_adjoint returned an error, exiting")
             return
         end if
@@ -444,9 +444,9 @@ subroutine ddrun(ddx_data, state, electrostatics, psi, tol, esolv, &
     if (ddx_data % params % force .eq. 1) then
         force = zero
         call solvation_force_terms(ddx_data % params, ddx_data % constants, &
-            & ddx_data % workspace, state, electrostatics, force, error)
-        if (error % flag .ne. 0) then
-            call update_error(error, &
+            & ddx_data % workspace, state, electrostatics, force, ddx_error)
+        if (ddx_error % flag .ne. 0) then
+            call update_error(ddx_error, &
                 & "ddrun: solvation_force_terms returned an error, exiting")
             return
         end if
@@ -464,10 +464,10 @@ end subroutine ddrun
 !! @param[in] electrostatics: electrostatic property container
 !! @param[in] psi: Representation of the solute potential in spherical
 !!     harmonics, size (nbasis, nsph)
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
 subroutine setup(params, constants, workspace, state, electrostatics, &
-        & psi, error)
+        & psi, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -475,20 +475,20 @@ subroutine setup(params, constants, workspace, state, electrostatics, &
     type(ddx_state_type), intent(inout) :: state
     type(ddx_electrostatics_type), intent(in) :: electrostatics
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     if (params % model .eq. 1) then
         call cosmo_setup(params, constants, workspace, state, &
-            & electrostatics % phi_cav, psi, error)
+            & electrostatics % phi_cav, psi, ddx_error)
     else if (params % model .eq. 2) then
         call pcm_setup(params, constants, workspace, state, &
-            & electrostatics % phi_cav, psi, error)
+            & electrostatics % phi_cav, psi, ddx_error)
     else if (params % model .eq. 3) then
         call lpb_setup(params, constants, workspace, state, &
             & electrostatics % phi_cav, electrostatics % e_cav, &
-            & psi, error)
+            & psi, ddx_error)
     else
-        call update_error(error, "Unknow model in setup.")
+        call update_error(ddx_error, "Unknow model in setup.")
         return
     end if
 
@@ -502,25 +502,25 @@ end subroutine setup
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] tol: tolerance
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine fill_guess(params, constants, workspace, state, tol, error)
+subroutine fill_guess(params, constants, workspace, state, tol, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     if (params % model .eq. 1) then
-        call cosmo_guess(params, constants, workspace, state, error)
+        call cosmo_guess(params, constants, workspace, state, ddx_error)
     else if (params % model .eq. 2) then
-        call pcm_guess(params, constants, workspace, state, error)
+        call pcm_guess(params, constants, workspace, state, ddx_error)
     else if (params % model .eq. 3) then
-        call lpb_guess(params, constants, workspace, state, tol, error)
+        call lpb_guess(params, constants, workspace, state, tol, ddx_error)
     else
-        call update_error(error, "Unknow model in fill_guess.")
+        call update_error(ddx_error, "Unknow model in fill_guess.")
         return
     end if
 
@@ -534,25 +534,25 @@ end subroutine fill_guess
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] tol: tolerance
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine fill_guess_adjoint(params, constants, workspace, state, tol, error)
+subroutine fill_guess_adjoint(params, constants, workspace, state, tol, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     if (params % model .eq. 1) then
-        call cosmo_guess_adjoint(params, constants, workspace, state, error)
+        call cosmo_guess_adjoint(params, constants, workspace, state, ddx_error)
     else if (params % model .eq. 2) then
-        call pcm_guess_adjoint(params, constants, workspace, state, error)
+        call pcm_guess_adjoint(params, constants, workspace, state, ddx_error)
     else if (params % model .eq. 3) then
-        call lpb_guess_adjoint(params, constants, workspace, state, tol, error)
+        call lpb_guess_adjoint(params, constants, workspace, state, tol, ddx_error)
     else
-        call update_error(error, "Unknow model in fill_guess_adjoint.")
+        call update_error(ddx_error, "Unknow model in fill_guess_adjoint.")
         return
     end if
 
@@ -566,25 +566,25 @@ end subroutine fill_guess_adjoint
 !! @param[inout] workspace : Preallocated workspaces
 !! @param[inout] state     : Solutions, guesses and relevant quantities
 !! @param[in] tol          : Tolerance for the iterative solvers
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine solve(params, constants, workspace, state, tol, error)
+subroutine solve(params, constants, workspace, state, tol, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     if (params % model .eq. 1) then
-        call cosmo_solve(params, constants, workspace, state, tol, error)
+        call cosmo_solve(params, constants, workspace, state, tol, ddx_error)
     else if (params % model .eq. 2) then
-        call pcm_solve(params, constants, workspace, state, tol, error)
+        call pcm_solve(params, constants, workspace, state, tol, ddx_error)
     else if (params % model .eq. 3) then
-        call lpb_solve(params, constants, workspace, state, tol, error)
+        call lpb_solve(params, constants, workspace, state, tol, ddx_error)
     else
-        call update_error(error, "Unknow model in solve.")
+        call update_error(ddx_error, "Unknow model in solve.")
         return
     end if
 
@@ -598,25 +598,25 @@ end subroutine solve
 !! @param[inout] workspace : Preallocated workspaces
 !! @param[inout] state     : Solutions, guesses and relevant quantities
 !! @param[in] tol          : Tolerance for the iterative solvers
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine solve_adjoint(params, constants, workspace, state, tol, error)
+subroutine solve_adjoint(params, constants, workspace, state, tol, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     if (params % model .eq. 1) then
-        call cosmo_solve_adjoint(params, constants, workspace, state, tol, error)
+        call cosmo_solve_adjoint(params, constants, workspace, state, tol, ddx_error)
     else if (params % model .eq. 2) then
-        call pcm_solve_adjoint(params, constants, workspace, state, tol, error)
+        call pcm_solve_adjoint(params, constants, workspace, state, tol, ddx_error)
     else if (params % model .eq. 3) then
-        call lpb_solve_adjoint(params, constants, workspace, state, tol, error)
+        call lpb_solve_adjoint(params, constants, workspace, state, tol, ddx_error)
     else
-        call update_error(error, "Unknow model in solve_adjoint.")
+        call update_error(ddx_error, "Unknow model in solve_adjoint.")
         return
     end if
 
@@ -630,25 +630,25 @@ end subroutine solve_adjoint
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[in] state: ddx state (contains solutions and RHSs)
 !! @param[out] solvation_energy: resulting energy
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine energy(params, constants, workspace, state, solvation_energy, error)
+subroutine energy(params, constants, workspace, state, solvation_energy, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(in) :: workspace
     type(ddx_state_type), intent(in) :: state
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(out) :: solvation_energy
 
     if (params % model .eq. 1) then
-        call cosmo_energy(constants, state, solvation_energy, error)
+        call cosmo_energy(constants, state, solvation_energy, ddx_error)
     else if (params % model .eq. 2) then
-        call pcm_energy(constants, state, solvation_energy, error)
+        call pcm_energy(constants, state, solvation_energy, ddx_error)
     else if (params % model .eq. 3) then
-        call lpb_energy(constants, state, solvation_energy, error)
+        call lpb_energy(constants, state, solvation_energy, ddx_error)
     else
-        call update_error(error, "Unknow model in energy.")
+        call update_error(ddx_error, "Unknow model in energy.")
         return
     end if
 
@@ -665,10 +665,10 @@ end subroutine energy
 !! @param[inout] state: Solutions and relevant quantities
 !! @param[in] electrostatics: Electrostatic properties container.
 !! @param[out] force: Geometrical contribution to the forces
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
 subroutine solvation_force_terms(params, constants, workspace, &
-        & state, electrostatics, force, error)
+        & state, electrostatics, force, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -676,19 +676,19 @@ subroutine solvation_force_terms(params, constants, workspace, &
     type(ddx_state_type), intent(inout) :: state
     type(ddx_electrostatics_type), intent(in) :: electrostatics
     real(dp), intent(out) :: force(3, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     if (params % model .eq. 1) then
         call cosmo_solvation_force_terms(params, constants, workspace, &
-            & state, electrostatics % e_cav, force, error)
+            & state, electrostatics % e_cav, force, ddx_error)
     else if (params % model .eq. 2) then
         call pcm_solvation_force_terms(params, constants, workspace, &
-            & state, electrostatics % e_cav, force, error)
+            & state, electrostatics % e_cav, force, ddx_error)
     else if (params % model .eq. 3) then
         call lpb_solvation_force_terms(params, constants, workspace, &
-            & state, electrostatics % g_cav, force, error)
+            & state, electrostatics % g_cav, force, ddx_error)
     else
-        call update_error(error, "Unknow model in solvation_force_terms.")
+        call update_error(ddx_error, "Unknow model in solvation_force_terms.")
         return
     end if
 
