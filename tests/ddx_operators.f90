@@ -20,7 +20,7 @@ integer :: i, ngrid=590, nproc=1
 ! a*b*c into a*(b*c).
 real(dp) :: alpha(4)=(/1d0, -1d0, 1d-100, 1d+100/)
 type(ddx_type) :: ddx_data
-type(ddx_error_type) :: error
+type(ddx_error_type) :: ddx_error
 integer, parameter :: nsph=10, lmax=7, force=1, matvecmem=0, &
     & maxiter=1000, jacobi_ndiis=25
 real(dp), parameter :: se=0d0, eta=0.1d0, eps=78d0, kappa=0d0
@@ -48,7 +48,7 @@ do i = 1, size(alpha)
     call allocate_model(nsph, csph(1, :), csph(2, :), csph(3, :), rsph, 2, &
         lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
         & matvecmem, maxiter, jacobi_ndiis, &
-        & nproc, dummy_file_name, ddx_data, error)
+        & nproc, dummy_file_name, ddx_data, ddx_error)
     call check_mkrhs(ddx_data, 0, 0, 1d-1, charge)
     call check_mkrhs(ddx_data, 1, 1, 1d-2, charge)
     call check_mkrhs(ddx_data, 3, 3, 1d-3, charge)
@@ -59,7 +59,7 @@ do i = 1, size(alpha)
     call check_dx(ddx_data, lmax+1, lmax+1, 1d-4)
     call check_gradr(ddx_data, 40, 40, 1d-12)
     call check_gradr(ddx_data, lmax+2, lmax+2, 1d-3)
-    call deallocate_model(ddx_data, error)
+    call deallocate_model(ddx_data, ddx_error)
 end do
 
 contains
@@ -80,7 +80,7 @@ subroutine check_mkrhs(ddx_data, pm, pl, threshold, charges)
     real(dp), intent(in) :: charges(ddx_data % params % nsph)
     ! Local variables
     type(ddx_type) :: ddx_data_fmm
-    type(ddx_error_type) :: error
+    type(ddx_error_type) :: ddx_error
     integer :: info
     real(dp), allocatable :: phi_cav(:), phi2_cav(:), gradphi_cav(:, :), &
         & gradphi2_cav(:, :), hessianphi_cav(:, :, :), &
@@ -96,7 +96,7 @@ subroutine check_mkrhs(ddx_data, pm, pl, threshold, charges)
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % matvecmem, &
         & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, &
-        & dummy_file_name, ddx_data_fmm, error)
+        & dummy_file_name, ddx_data_fmm, ddx_error)
     ! Allocate resources
     allocate(phi_cav(ddx_data % constants % ncav), &
         & phi2_cav(ddx_data % constants % ncav), &
@@ -147,7 +147,7 @@ subroutine check_dx(ddx_data, pm, pl, threshold)
     real(dp), intent(in) :: threshold
     ! Local variables
     type(ddx_type) :: ddx_data_fmm
-    type(ddx_error_type) :: error
+    type(ddx_error_type) :: ddx_error
     integer :: irand, iseed(4)=(/0, 0, 0, 1/), do_diag
     integer, parameter :: nrand=10
     real(dp) :: x(ddx_data % constants % nbasis, ddx_data % params % nsph, nrand), &
@@ -163,7 +163,7 @@ subroutine check_dx(ddx_data, pm, pl, threshold)
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % matvecmem, &
         & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, &
-        & dummy_file_name, ddx_data_fmm, error)
+        & dummy_file_name, ddx_data_fmm, ddx_error)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.
     ! Get random x
@@ -174,59 +174,59 @@ subroutine check_dx(ddx_data, pm, pl, threshold)
         ! Random check of FMM dx operator against dense dx operator
         do irand = 1, nrand
             call dx_dense(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, do_diag, x(:, :, irand), y(:, :, irand), error)
+                & ddx_data % workspace, do_diag, x(:, :, irand), y(:, :, irand), ddx_error)
         end do
         full_norm = dnrm2(ddx_data % constants % n * nrand, y, 1)
         do irand = 1, nrand
             call dx_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
-                & ddx_data_fmm % workspace, do_diag, x(:, :, irand), z(:, :, irand), error)
+                & ddx_data_fmm % workspace, do_diag, x(:, :, irand), z(:, :, irand), ddx_error)
         end do
         diff_norm = dnrm2(ddx_data % constants % n * nrand, y-z, 1)
-        write(*, *) "dx_dense vs dx_fmm rel.error=", diff_norm/full_norm
+        write(*, *) "dx_dense vs dx_fmm rel.ddx_error=", diff_norm/full_norm
         if (diff_norm .gt. threshold*full_norm) then
             call test_error(-1, "FMM dstarx and dense dstarx are different")
         end if
         ! Check dense adjoint operator dstarx
         do irand = 1, nrand
             call dstarx_dense(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, do_diag, x(:, :, irand), y(:, :, irand), error)
+                & ddx_data % workspace, do_diag, x(:, :, irand), y(:, :, irand), ddx_error)
         end do
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, y, ddx_data % constants % n, &
             & y, ddx_data % constants % n, zero, xx, nrand)
         full_norm = dnrm2(nrand**2, xx, 1)
         do irand = 1, nrand
             call dx_dense(ddx_data % params, ddx_data % constants, &
-                & ddx_data % workspace, do_diag, y(:, :, irand), z(:, :, irand), error)
+                & ddx_data % workspace, do_diag, y(:, :, irand), z(:, :, irand), ddx_error)
         end do
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, z, ddx_data % constants % n, &
             & x, ddx_data % constants % n, zero, yy, nrand)
         diff_norm = dnrm2(nrand**2, xx-yy, 1)
-        write(*, *) "dstarx_dense vs dx_dense rel.error=", diff_norm/full_norm
+        write(*, *) "dstarx_dense vs dx_dense rel.ddx_error=", diff_norm/full_norm
         if (diff_norm .gt. threshold*full_norm) then
             call test_error(-1, "FMM dstarx and dense dstarx are different")
         end if
         ! Check FMM adjoint operator dstarx (without precomputed FMM matrices)
         do irand = 1, nrand
             call dstarx_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
-                & ddx_data_fmm % workspace, do_diag, x(:, :, irand), y(:, :, irand), error)
+                & ddx_data_fmm % workspace, do_diag, x(:, :, irand), y(:, :, irand), ddx_error)
         end do
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, y, ddx_data % constants % n, &
             & y, ddx_data % constants % n, zero, xx, nrand)
         full_norm = dnrm2(nrand**2, xx, 1)
         do irand = 1, nrand
             call dx_fmm(ddx_data_fmm % params, ddx_data_fmm % constants, &
-                & ddx_data_fmm % workspace, do_diag, y(:, :, irand), z(:, :, irand), error)
+                & ddx_data_fmm % workspace, do_diag, y(:, :, irand), z(:, :, irand), ddx_error)
         end do
         call dgemm('T', 'N', nrand, nrand, ddx_data % constants % n, one, z, ddx_data % constants % n, &
             & x, ddx_data % constants % n, zero, yy, nrand)
         diff_norm = dnrm2(nrand**2, xx-yy, 1)
-        write(*, *) "dstarx_fmm vs dx_fmm rel.error=", diff_norm/full_norm
+        write(*, *) "dstarx_fmm vs dx_fmm rel.ddx_error=", diff_norm/full_norm
         if (diff_norm .gt. threshold*full_norm) then
             call test_error(-1, "FMM dstarx and dense dstarx are different")
         end if
     end do
     ! Free temporary objects
-    call deallocate_model(ddx_data_fmm, error)
+    call deallocate_model(ddx_data_fmm, ddx_error)
 end subroutine check_dx
 
 subroutine check_gradr(ddx_data, pm, pl, threshold)
@@ -236,10 +236,9 @@ subroutine check_gradr(ddx_data, pm, pl, threshold)
     real(dp), intent(in) :: threshold
     ! Local variables
     type(ddx_type) :: ddx_data_fmm
-    type(ddx_error_type) :: error
+    type(ddx_error_type) :: ddx_error
     real(dp), allocatable :: ygrid(:,:), g(:,:)
     integer :: iseed(4)=(/0, 0, 0, 1/)
-    integer, parameter :: nrand=10
     real(dp) :: full_norm, diff_norm, forces(3, ddx_data % params % nsph), &
         & forces2(3, ddx_data % params % nsph)
     real(dp), external :: dnrm2
@@ -251,7 +250,7 @@ subroutine check_gradr(ddx_data, pm, pl, threshold)
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % matvecmem, &
         & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, &
-        & dummy_file_name, ddx_data_fmm, error)
+        & dummy_file_name, ddx_data_fmm, ddx_error)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.
     allocate(ygrid(ddx_data % params % ngrid, ddx_data % params % nsph), &
@@ -267,12 +266,12 @@ subroutine check_gradr(ddx_data, pm, pl, threshold)
         & ddx_data_fmm % workspace, g, ygrid, forces2)
     diff_norm = dnrm2(3*ddx_data % params % nsph, forces-forces2, 1)
     write(*, *) 'diff norm', diff_norm
-    write(*, *) "gradr dense vs fmm rel.error=", diff_norm / full_norm
+    write(*, *) "gradr dense vs fmm rel.ddx_error=", diff_norm / full_norm
     if (diff_norm .gt. threshold*full_norm) then
         call test_error(-1, "Forces are different")
     end if
     deallocate(ygrid, g)
-    call deallocate_model(ddx_data_fmm, error)
+    call deallocate_model(ddx_data_fmm, ddx_error)
 end subroutine check_gradr
 
 end program test_ddx_operators

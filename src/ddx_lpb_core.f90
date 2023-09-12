@@ -22,16 +22,16 @@ contains
 !! @param[in]  workspace  : Input workspace
 !! @param[in]  gradphi : Gradient of psi_0
 !! @param[out] f       : Intermediate calculation of F0
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine wghpot_f(params, constants, workspace, gradphi, f, error)
+subroutine wghpot_f(params, constants, workspace, gradphi, f, ddx_error)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     real(dp), intent(in) :: gradphi(3, constants % ncav)
     !! Temporary buffers
     type(ddx_workspace_type), intent(inout) :: workspace
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     !! Outputs
     real(dp), intent(out) :: f(params % ngrid, params % nsph)
     !! Local variables
@@ -48,7 +48,7 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f, error)
         & c0(constants % nbasis0, params % nsph), &
         & c1(constants % nbasis0, params % nsph), stat=istatus)
     if (istatus.ne.0) then
-        call update_error(error, 'Allocation in wghpot_f failed')
+        call update_error(ddx_error, 'Allocation in wghpot_f failed')
     end if
 
     ic = 0
@@ -138,7 +138,7 @@ subroutine wghpot_f(params, constants, workspace, gradphi, f, error)
 
     deallocate(SK_rijn, DK_rijn, c0, c1, stat=istatus)
     if (istatus.ne.0) then
-        call update_error(error, 'Deallocation in wghpot_f failed')
+        call update_error(ddx_error, 'Deallocation in wghpot_f failed')
     end if
 
 end subroutine wghpot_f

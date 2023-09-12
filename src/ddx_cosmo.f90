@@ -27,14 +27,19 @@ contains
 !! @param[in] constants: Precomputed constants
 !! @param[in] state: ddx state (contains solutions and RHSs)
 !! @param[out] esolv: resulting energy
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine cosmo_energy(constants, state, esolv, error)
+subroutine cosmo_energy(constants, state, esolv, ddx_error)
     implicit none
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_state_type), intent(in) :: state
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(out) :: esolv
     real(dp), external :: ddot
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     esolv = pt5*ddot(constants % n, state % xs, 1, state % psi, 1)
 end subroutine cosmo_energy
 
@@ -48,17 +53,21 @@ end subroutine cosmo_energy
 !! @param[inout] state: ddx state
 !! @param[in] phi_cav: electrostatic potential at the cavity points
 !! @param[in] psi: representation of the solute density
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine cosmo_setup(params, constants, workspace, state, phi_cav, psi, error)
+subroutine cosmo_setup(params, constants, workspace, state, phi_cav, psi, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(in) :: phi_cav(constants % ncav)
     real(dp), intent(in) :: psi(constants % nbasis, params % nsph)
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
+
     call cav_to_spherical(params, constants, workspace, phi_cav, &
         & state % phi)
     state % phi = - state % phi
@@ -73,18 +82,18 @@ end subroutine cosmo_setup
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine cosmo_guess(params, constants, workspace, state, error)
+subroutine cosmo_guess(params, constants, workspace, state, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     ! apply the diagonal preconditioner as a guess
-    call ldm1x(params, constants, workspace, state % phi, state % xs, error)
+    call ldm1x(params, constants, workspace, state % phi, state % xs, ddx_error)
 
 end subroutine cosmo_guess
 
@@ -95,18 +104,18 @@ end subroutine cosmo_guess
 !! @param[in] constants: Precomputed constants
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine cosmo_guess_adjoint(params, constants, workspace, state, error)
+subroutine cosmo_guess_adjoint(params, constants, workspace, state, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     ! apply the diagonal preconditioner as a guess
-    call ldm1x(params, constants, workspace, state % psi, state % s, error)
+    call ldm1x(params, constants, workspace, state % psi, state % s, ddx_error)
 
 end subroutine cosmo_guess_adjoint
 
@@ -118,16 +127,16 @@ end subroutine cosmo_guess_adjoint
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] tol: Tolerance for the linear system solver
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
-subroutine cosmo_solve(params, constants, workspace, state, tol, error)
+subroutine cosmo_solve(params, constants, workspace, state, tol, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     ! local variables
     real(dp) :: start_time, finish_time
 
@@ -135,7 +144,7 @@ subroutine cosmo_solve(params, constants, workspace, state, tol, error)
     start_time = omp_get_wtime()
     call jacobi_diis(params, constants, workspace, tol, state % phi, &
         & state % xs, state % xs_niter, state % xs_rel_diff, lx, ldm1x, &
-        & hnorm, error)
+        & hnorm, ddx_error)
     finish_time = omp_get_wtime()
     state % xs_time = finish_time - start_time
 
@@ -149,17 +158,17 @@ end subroutine cosmo_solve
 !! @param[inout] workspace: Preallocated workspaces
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] tol: Tolerance for the linear system solver
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
 subroutine cosmo_solve_adjoint(params, constants, workspace, state, tol, &
-        & error)
+        & ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
     real(dp), intent(in) :: tol
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     ! local variables
     real(dp) :: start_time, finish_time
 
@@ -167,7 +176,7 @@ subroutine cosmo_solve_adjoint(params, constants, workspace, state, tol, &
     start_time = omp_get_wtime()
     call jacobi_diis(params, constants, workspace, tol, state % psi, &
         & state % s, state % s_niter, state % s_rel_diff, lstarx, ldm1x, &
-        & hnorm, error)
+        & hnorm, ddx_error)
     finish_time = omp_get_wtime()
     state % s_time = finish_time - start_time
 
@@ -187,21 +196,24 @@ end subroutine cosmo_solve_adjoint
 !! @param[inout] state: ddx state (contains solutions and RHSs)
 !! @param[in] e_cav: electric field, size (3, ncav)
 !! @param[inout] force: force term
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
 subroutine cosmo_solvation_force_terms(params, constants, workspace, &
-        & state, e_cav, force, error)
+        & state, e_cav, force, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     real(dp), intent(inout) :: force(3, params % nsph)
     ! local variables
     real(dp) :: start_time, finish_time
     integer :: isph
+
+    ! dummy operation on unused interface arguments
+    if (ddx_error % flag .eq. 0) continue
 
     start_time = omp_get_wtime()
 
@@ -241,6 +253,9 @@ subroutine cosmo_derivative_setup(params, constants, workspace, state)
 
     real(dp), external :: ddot
     integer :: icav, isph, igrid
+
+    ! dummy operation on unused interface arguments
+    if (allocated(workspace % tmp_pot)) continue
 
     ! Get values of S on the grid
     call ddeval_grid_work(constants % nbasis, params % ngrid, params % nsph, &

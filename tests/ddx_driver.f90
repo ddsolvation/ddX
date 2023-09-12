@@ -19,7 +19,7 @@ implicit none
 
 character(len=255) :: finname, foutname, tmpstr
 type(ddx_type) :: ddx_data
-type(ddx_error_type) :: error
+type(ddx_error_type) :: ddx_error
 type(ddx_state_type) :: state
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
     & hessianphi_cav(:, :, :), psi(:, :), force(:, :), charges(:)
@@ -35,10 +35,10 @@ call getarg(2, foutname)
 call getarg(3, tmpstr)
 read(tmpstr, *) threshold
 ! Init input from a file
-call ddfromfile(finname, ddx_data, tol, charges, error)
-call check_error(error)
-call allocate_state(ddx_data % params, ddx_data % constants, state, error)
-call check_error(error)
+call ddfromfile(finname, ddx_data, tol, charges, ddx_error)
+call check_error(ddx_error)
+call allocate_state(ddx_data % params, ddx_data % constants, state, ddx_error)
+call check_error(ddx_error)
 
 ! Allocate resources
 allocate(phi_cav(ddx_data % constants % ncav), gradphi_cav(3, ddx_data % constants % ncav), &
@@ -50,12 +50,12 @@ if(istatus .ne. 0) call test_error(-1, "Allocation failed")
 call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
     & phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
 ! Use the solver
-call ddsolve_legacy(ddx_data, state, phi_cav, -gradphi_cav, hessianphi_cav, psi, tol, esolv, force, error)
-call check_error(error)
+call ddsolve_legacy(ddx_data, state, phi_cav, -gradphi_cav, hessianphi_cav, psi, tol, esolv, force, ddx_error)
+call check_error(ddx_error)
 ! compute the second contribution to the forces
 call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, charges, force, error)
-call check_error(error)
+    & ddx_data % workspace, state, charges, force, ddx_error)
+call check_error(ddx_error)
 ! Open output file for reading
 open(unit=100, file=foutname, form='formatted', access='sequential')
 ! Skip 
@@ -86,8 +86,8 @@ end if
 close(100)
 deallocate(phi_cav, gradphi_cav, psi, force, charges, stat=istatus)
 if(istatus .ne. 0) call test_error(-1, "Deallocation failed")
-call deallocate_state(state, error)
-call deallocate_model(ddx_data, error)
+call deallocate_state(state, ddx_error)
+call deallocate_model(ddx_data, ddx_error)
 
 contains
 !> Print error message and exit with provided error code

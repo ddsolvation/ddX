@@ -281,9 +281,9 @@ end subroutine contract_grad_B
 !! @param[inout] force     : Force
 !! @param[out] diff_re     : epsilon_1/epsilon_2 * l'/r_j[Xr]_jl'm'
 !!                         - (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 subroutine contract_grad_C(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
-    & Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re, error)
+    & Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re, ddx_error)
     !! input/output
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -293,19 +293,19 @@ subroutine contract_grad_C(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xadj_r, Xadj_e
     real(dp), dimension(3, params % nsph), intent(inout) :: force
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: diff_re
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     call contract_grad_C_worker2(params, constants, workspace, Xr, Xe, Xadj_r_sgrid, &
-        & Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+        & Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "contract_grad_C_worker2 returned an error, exiting")
         return
     end if
     call contract_grad_C_worker1(params, constants, workspace, Xadj_r_sgrid, &
-        & Xadj_e_sgrid, diff_re, force, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+        & Xadj_e_sgrid, diff_re, force, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "contract_grad_C_worker1 returned an error, exiting")
         return
     end if
@@ -322,9 +322,9 @@ end subroutine contract_grad_C
 !! @param[in]  normal_hessian_cav : Normal of the Hessian evaluated at cavity points
 !! @param[in]  icav_g             : Index of outside cavity point
 !! @param[out] force              : Force
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 subroutine contract_grad_f(params, constants, workspace, sol_adj, sol_sgrid, &
-    & gradpsi, normal_hessian_cav, force, state, error)
+    & gradpsi, normal_hessian_cav, force, state, ddx_error)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -334,20 +334,20 @@ subroutine contract_grad_f(params, constants, workspace, sol_adj, sol_sgrid, &
     real(dp), dimension(3, constants % ncav), intent(in) :: gradpsi
     real(dp), dimension(3, constants % ncav), intent(in) :: normal_hessian_cav
     real(dp), dimension(3, params % nsph), intent(inout) :: force
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     call contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sgrid, &
-        & gradpsi, force, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+        & gradpsi, force, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "contract_grad_f_worker1 returned an error, exiting")
         return
     end if
 
-    call contract_grad_f_worker2(params, constants, workspace, gradpsi, &
-        & normal_hessian_cav, force, state, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+    call contract_grad_f_worker2(params, constants, gradpsi, &
+        & normal_hessian_cav, force, state, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "contract_grad_f_worker2 returned an error, exiting")
         return
     end if
@@ -579,9 +579,9 @@ end subroutine contract_gradi_Bji
 !! @param[in]  Xadj_e_sgrid : Adjoint HSP solution evaluated at grid point
 !! @param[in]  diff_re      : l'/r_j[Xr]_jl'm' -(i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
 !! @param[out] force        : Force
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 subroutine contract_grad_C_worker1(params, constants, workspace, Xadj_r_sgrid, &
-    & Xadj_e_sgrid, diff_re, force, error)
+    & Xadj_e_sgrid, diff_re, force, ddx_error)
     !! Inputs
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -591,7 +591,7 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xadj_r_sgrid, &
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: &
         & Xadj_r_sgrid, Xadj_e_sgrid
     real(dp), dimension(3, params % nsph), intent(inout) :: force
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     ! Local variable
     ! igrid0: Index for grid point n0
     integer :: isph, jsph, igrid, l0, m0, ind0, igrid0, icav, &
@@ -632,7 +632,7 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xadj_r_sgrid, &
         & phi_n_e(params % ngrid, params % nsph), &
         & diff_re_sgrid(params % ngrid, params % nsph), stat=istat)
     if (istat.ne.0) then
-        call update_error(error, "allocation error in ddx_contract_grad_C_worker1")
+        call update_error(ddx_error, "allocation ddx_error in ddx_contract_grad_C_worker1")
         return
     end if
 !
@@ -654,7 +654,7 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xadj_r_sgrid, &
         allocate(coefY_d(constants % ncav, params % ngrid, params % nsph), &
             & stat=istat)
         if (istat.ne.0) then
-            call update_error(error, "allocation error in fmm ddx_contract_grad_C_worker1")
+            call update_error(ddx_error, "allocation ddx_error in fmm ddx_contract_grad_C_worker1")
             return
         end if
         coefY_d = zero
@@ -830,13 +830,13 @@ subroutine contract_grad_C_worker1(params, constants, workspace, Xadj_r_sgrid, &
 
     deallocate(phi_n_r, phi_n_e, diff_re_sgrid, stat=istat)
     if (istat.ne.0) then
-        call update_error(error, "deallocation error in ddx_contract_grad_C_worker1")
+        call update_error(ddx_error, "deallocation ddx_error in ddx_contract_grad_C_worker1")
         return
     end if
     if (allocated(coefY_d)) then
         deallocate(coefY_d, stat=istat)
         if (istat.ne.0) then
-            call update_error(error, "deallocation error in ddx_contract_grad_C_worker1")
+            call update_error(ddx_error, "deallocation ddx_error in ddx_contract_grad_C_worker1")
             return
         end if
     end if
@@ -860,9 +860,9 @@ end subroutine contract_grad_C_worker1
 !! @param[inout] force     : Force
 !! @param[out] diff_re     : epsilon_1/epsilon_2 * l'/r_j[Xr]_jl'm'
 !!                         - (i'_l'(r_j)/i_l'(r_j))[Xe]_jl'm'
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, &
-        & Xadj_r_sgrid, Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re, error)
+        & Xadj_r_sgrid, Xadj_e_sgrid, Xadj_r, Xadj_e, force, diff_re, ddx_error)
     !! input/output
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -875,7 +875,7 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, &
     real(dp), dimension(3, params % nsph), intent(inout) :: force
     real(dp), dimension(constants % nbasis, params % nsph), intent(out) :: &
         & diff_re
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), external :: dnrm2
     ! Local variable
     integer :: isph, jsph, igrid, l, m, ind, l0, ind0, icav, indl, inode, &
@@ -904,7 +904,7 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, &
         & diff1_grad((constants % lmax0+2)**2, 3, params % nsph), &
         & l2l_grad((params % pl+2)**2, 3, params % nsph), stat=istat)
     if (istat.ne.0) then
-        call update_error(error, "allocation error in ddx_contract_grad_C_worker2")
+        call update_error(ddx_error, "allocation ddx_error in ddx_contract_grad_C_worker2")
         return
     end if
 
@@ -1216,7 +1216,7 @@ subroutine contract_grad_C_worker2(params, constants, workspace, Xr, Xe, &
     deallocate(diff_ep_dim3, phi_in, sum_dim3, diff1_grad, l2l_grad, &
         & diff0, diff1, stat=istat)
     if (istat.ne.0) then
-        call update_error(error, "deallocation error in ddx_contract_grad_C_worker2")
+        call update_error(ddx_error, "deallocation ddx_error in ddx_contract_grad_C_worker2")
         return
     end if
 end subroutine contract_grad_C_worker2
@@ -1233,9 +1233,9 @@ end subroutine contract_grad_C_worker2
 !! @param[in] sol_adj      : Adjoint solution
 !! @param[in] gradpsi      : Gradient of Psi_0
 !! @param[inout] force     : Force
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sgrid, &
-    & gradpsi, force, error)
+    & gradpsi, force, ddx_error)
     ! input/output
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -1245,7 +1245,7 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: sol_sgrid
     real(dp), dimension(3, constants % ncav), intent(in) :: gradpsi
     real(dp), dimension(3, params % nsph), intent(inout) :: force
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     ! local
     real(dp), external :: dnrm2
@@ -1284,7 +1284,7 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
         & l2l_grad((params % pl+2)**2, 3, params % nsph), &
         & diff0(constants % nbasis0, params % nsph), stat=istat)
     if (istat.ne.0) then
-        call update_error(error, "allocation error in ddx_grad_f_worker1")
+        call update_error(ddx_error, "allocation ddx_error in ddx_grad_f_worker1")
         return
     end if
 
@@ -1566,23 +1566,22 @@ subroutine contract_grad_f_worker1(params, constants, workspace, sol_adj, sol_sg
     deallocate(phi_in, diff_ep_dim3, sum_dim3, c0_d, c0_d1, &
           & c0_d1_grad, sum_Sjin, l2l_grad, diff0, stat=istat)
     if (istat.ne.0) then
-        call update_error(error, "deallocation error in ddx_grad_f_worker1")
+        call update_error(ddx_error, "deallocation ddx_error in ddx_grad_f_worker1")
         return
     end if
 
 end subroutine contract_grad_f_worker1
 
-!! @param[inout] error: ddX error
-subroutine contract_grad_f_worker2(params, constants, workspace, &
-        & gradpsi, normal_hessian_cav, force, state, error)
+!! @param[inout] ddx_error: ddX error
+subroutine contract_grad_f_worker2(params, constants, &
+        & gradpsi, normal_hessian_cav, force, state, ddx_error)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-    type(ddx_workspace_type), intent(inout) :: workspace
     real(dp), intent(in) :: gradpsi(3, constants % ncav), &
         & normal_hessian_cav(3, constants % ncav)
     real(dp), intent(inout) :: force(3, params % nsph)
     type(ddx_state_type), intent(inout) :: state
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     integer :: icav, isph, igrid, istat
     real(dp) :: nderpsi
@@ -1590,7 +1589,7 @@ subroutine contract_grad_f_worker2(params, constants, workspace, &
 
     allocate(gradpsi_grid(params % ngrid, params % nsph), stat=istat)
     if (istat.ne.0) then
-        call update_error(error, "allocation error in ddx_grad_f_worker2")
+        call update_error(ddx_error, "allocation ddx_error in ddx_grad_f_worker2")
         return
     end if
 
@@ -1622,7 +1621,7 @@ subroutine contract_grad_f_worker2(params, constants, workspace, &
 
     deallocate(gradpsi_grid, stat=istat)
     if (istat.ne.0) then
-        call update_error(error, "deallocation error in ddx_grad_f_worker2")
+        call update_error(ddx_error, "deallocation ddx_error in ddx_grad_f_worker2")
         return
     end if
 

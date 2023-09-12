@@ -22,7 +22,7 @@ character(len=255) :: fname
 character(len=2047) :: banner
 type(ddx_type) :: ddx_data
 type(ddx_state_type) :: state
-type(ddx_error_type) :: error
+type(ddx_error_type) :: ddx_error
 type(ddx_electrostatics_type) :: electrostatics
 real(dp), allocatable :: psi(:, :), force(:, :), charges(:), &
     & multipoles(:, :)
@@ -43,10 +43,10 @@ write(6, *) "Using provided file ", trim(fname), " as a config file"
 ! The model is a container for all the parameters, precomputed constants
 ! and preallocated workspaces.
 start_time = omp_get_wtime()
-call ddfromfile(fname, ddx_data, tol, charges, error)
+call ddfromfile(fname, ddx_data, tol, charges, ddx_error)
 finish_time = omp_get_wtime()
 write(*, 100) "Initialization time:", finish_time - start_time, " seconds"
-call check_error(error)
+call check_error(ddx_error)
 
 ! STEP 2: Initialization of the state.
 ! The state is a high level object which is related to solving the
@@ -54,8 +54,8 @@ call check_error(error)
 ! model (ddx_data). Different states can be used at the same time with
 ! a given model, for instance when solving for different solutes,
 ! or for different states of the solute.
-call allocate_state(ddx_data % params, ddx_data % constants, state, error)
-call check_error(error)
+call allocate_state(ddx_data % params, ddx_data % constants, state, ddx_error)
+call check_error(ddx_error)
 
 ! Print the ddX banner
 call get_banner(banner)
@@ -96,7 +96,7 @@ multipoles(1, :) = charges/sqrt4pi
 
 ! compute the required electrostatics properties for a multipolar solute
 call multipole_electrostatics(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, multipoles, 0, electrostatics, error)
+    & ddx_data % workspace, multipoles, 0, electrostatics, ddx_error)
 
 finish_time = omp_get_wtime()
 write(*, 100) "Electrostatic properties time:", finish_time-start_time, &
@@ -120,12 +120,12 @@ if (ddx_data % params % force .eq. 1) then
         write(6, *) "Allocation failed in ddx_driver"
         stop 1
     end if
-    call ddrun(ddx_data, state, electrostatics, psi, tol, esolv, error, &
+    call ddrun(ddx_data, state, electrostatics, psi, tol, esolv, ddx_error, &
         & force)
 else
-    call ddrun(ddx_data, state, electrostatics, psi, tol, esolv, error)
+    call ddrun(ddx_data, state, electrostatics, psi, tol, esolv, ddx_error)
 end if
-call check_error(error)
+call check_error(ddx_error)
 
 if (ddx_data % params % force .eq. 1) write(*, 100) &
     & "solvation force terms time:", state % force_time, " seconds"
@@ -135,8 +135,8 @@ if (ddx_data % params % force .eq. 1) write(*, 100) &
 if (ddx_data % params % force .eq. 1) then
     start_time = omp_get_wtime()
     call multipole_force_terms(ddx_data % params, ddx_data % constants, &
-        & ddx_data % workspace, state, 0, multipoles, force, error)
-        call check_error(error)
+        & ddx_data % workspace, state, 0, multipoles, force, ddx_error)
+        call check_error(ddx_error)
     finish_time = omp_get_wtime()
     write(*, 100) "multipolar force terms time:", &
         & finish_time - start_time, " seconds"
@@ -255,8 +255,8 @@ if (allocated(force)) then
     end if
 end if
 
-call deallocate_electrostatics(electrostatics, error)
-call deallocate_state(state, error)
-call deallocate_model(ddx_data, error)
+call deallocate_electrostatics(electrostatics, ddx_error)
+call deallocate_state(state, ddx_error)
+call deallocate_model(ddx_data, ddx_error)
 
 end program main

@@ -280,10 +280,10 @@ end subroutine mkrhs
 !! @param[in] tol
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Analytical forces
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
 subroutine ddsolve_legacy(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
-        & psi, tol, esolv, force, error)
+        & psi, tol, esolv, force, ddx_error)
     ! Inputs
     type(ddx_type), intent(inout) :: ddx_data
     type(ddx_state_type), intent(inout) :: state
@@ -293,7 +293,7 @@ subroutine ddsolve_legacy(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
         & psi(ddx_data % constants % nbasis, ddx_data % params % nsph), tol
     ! Outputs
     real(dp), intent(out) :: esolv, force(3, ddx_data % params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     write(6, *) "Warning: subroutine ddsolve_legacy is deprecated"
 
@@ -303,20 +303,20 @@ subroutine ddsolve_legacy(ddx_data, state, phi_cav, e_cav, hessianphi_cav, &
         case (1)
             call ddcosmo(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, phi_cav, psi, e_cav, &
-                & tol, esolv, force, error)
+                & tol, esolv, force, ddx_error)
         ! PCM model
         case (2)
             call ddpcm(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, phi_cav, psi, e_cav, &
-                & tol, esolv, force, error)
+                & tol, esolv, force, ddx_error)
         ! LPB model
         case (3)
             call ddlpb(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, phi_cav, e_cav, &
-                & psi, tol, esolv, hessianphi_cav, force, error)
+                & psi, tol, esolv, hessianphi_cav, force, ddx_error)
         ! Error case
         case default
-            call update_error(error, "unsupported solvation " // &
+            call update_error(ddx_error, "unsupported solvation " // &
                 & " model in the dd solver.")
             return
     end select
@@ -337,10 +337,10 @@ end subroutine ddsolve_legacy
 !! @param[in] tol: Tolerance for the linear system solver
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Solvation contribution to the forces
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
 subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
-        & psi, e_cav, tol, esolv, force, error)
+        & psi, e_cav, tol, esolv, force, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
@@ -351,44 +351,44 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
     real(dp), intent(out) :: esolv
     real(dp), intent(in) :: e_cav(3, constants % ncav)
     real(dp), intent(out), optional :: force(3, params % nsph)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     write(6, *) "Warning: subroutine ddcosmo is deprecated"
 
-    call cosmo_setup(params, constants, workspace, state, phi_cav, psi, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+    call cosmo_setup(params, constants, workspace, state, phi_cav, psi, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "ddlpb: ddcosmo_setup returned an error, exiting")
         return
     end if
-    call cosmo_guess(params, constants, workspace, state, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+    call cosmo_guess(params, constants, workspace, state, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "ddlpb: ddcosmo_guess returned an error, exiting")
         return
     end if
-    call cosmo_solve(params, constants, workspace, state, tol, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+    call cosmo_solve(params, constants, workspace, state, tol, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "ddlpb: ddcosmo_solve returned an error, exiting")
         return
     end if
 
-    call cosmo_energy(constants, state, esolv, error)
+    call cosmo_energy(constants, state, esolv, ddx_error)
 
     ! Get forces if needed
     if (params % force .eq. 1) then
         ! solve the adjoint
-        call cosmo_guess_adjoint(params, constants, workspace, state, error)
-        if (error % flag .ne. 0) then
-            call update_error(error, &
+        call cosmo_guess_adjoint(params, constants, workspace, state, ddx_error)
+        if (ddx_error % flag .ne. 0) then
+            call update_error(ddx_error, &
                 & "ddlpb: ddcosmo_guess_adjoint returned an error, exiting")
             return
         end if
         call cosmo_solve_adjoint(params, constants, workspace, state, tol, &
-            & error)
-        if (error % flag .ne. 0) then
-            call update_error(error, &
+            & ddx_error)
+        if (ddx_error % flag .ne. 0) then
+            call update_error(ddx_error, &
                 & "ddlpb: ddcosmo_guess_adjoint returned an error, exiting")
             return
         end if
@@ -396,7 +396,7 @@ subroutine ddcosmo(params, constants, workspace, state, phi_cav, &
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
         call cosmo_solvation_force_terms(params, constants, workspace, &
-            & state, e_cav, force, error)
+            & state, e_cav, force, ddx_error)
     end if
 end subroutine ddcosmo
 
@@ -415,16 +415,16 @@ end subroutine ddcosmo
 !! @param[in] tol: Tolerance for the linear system solver
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Solvation contribution to the forces
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
 subroutine ddpcm(params, constants, workspace, state, phi_cav, &
-        & psi, e_cav, tol, esolv, force, error)
+        & psi, e_cav, tol, esolv, force, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_workspace_type), intent(inout) :: workspace
     type(ddx_state_type), intent(inout) :: state
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(in) :: phi_cav(constants % ncav), &
         & psi(constants % nbasis, params % nsph), tol
     real(dp), intent(out) :: esolv
@@ -433,40 +433,40 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
 
     write(6, *) "Warning: subroutine ddpcm is deprecated"
 
-    call pcm_setup(params, constants, workspace, state, phi_cav, psi, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+    call pcm_setup(params, constants, workspace, state, phi_cav, psi, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "ddlpb: ddpcm_setup returned an error, exiting")
         return
     end if
-    call pcm_guess(params, constants, workspace, state, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+    call pcm_guess(params, constants, workspace, state, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "ddlpb: ddpcm_guess returned an error, exiting")
         return
     end if
-    call pcm_solve(params, constants, workspace, state, tol, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+    call pcm_solve(params, constants, workspace, state, tol, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "ddlpb: ddpcm_solve returned an error, exiting")
         return
     end if
 
-    call pcm_energy(constants, state, esolv, error)
+    call pcm_energy(constants, state, esolv, ddx_error)
 
     ! Get forces if needed
     if (params % force .eq. 1) then
         ! solve the adjoint
-        call pcm_guess_adjoint(params, constants, workspace, state, error)
-        if (error % flag .ne. 0) then
-            call update_error(error, &
+        call pcm_guess_adjoint(params, constants, workspace, state, ddx_error)
+        if (ddx_error % flag .ne. 0) then
+            call update_error(ddx_error, &
                 & "ddlpb: ddpcm_guess_adjoint returned an error, exiting")
             return
         end if
         call pcm_solve_adjoint(params, constants, workspace, state, &
-            & tol, error)
-        if (error % flag .ne. 0) then
-            call update_error(error, &
+            & tol, ddx_error)
+        if (ddx_error % flag .ne. 0) then
+            call update_error(ddx_error, &
                 & "ddlpb: ddpcm_guess_adjoint returned an error, exiting")
             return
         end if
@@ -474,7 +474,7 @@ subroutine ddpcm(params, constants, workspace, state, phi_cav, &
         ! evaluate the solvent unspecific contribution analytical derivatives
         force = zero
         call pcm_solvation_force_terms(params, constants, workspace, &
-            & state, e_cav, force, error)
+            & state, e_cav, force, ddx_error)
     end if
 
 end subroutine ddpcm
@@ -494,10 +494,10 @@ end subroutine ddpcm
 !! @param[in] tol: Tolerance for the linear system solver
 !! @param[out] esolv: Solvation energy
 !! @param[out] force: Solvation contribution to the forces
-!! @param[inout] error: ddX error
+!! @param[inout] ddx_error: ddX error
 !!
 subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
-        & psi, tol, esolv, hessianphi_cav, force, error)
+        & psi, tol, esolv, hessianphi_cav, force, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(inout) :: constants
@@ -509,49 +509,49 @@ subroutine ddlpb(params, constants, workspace, state, phi_cav, e_cav, &
     real(dp), intent(out) :: esolv
     real(dp), intent(out), optional :: force(3, params % nsph)
     real(dp), intent(in), optional :: hessianphi_cav(3, 3, constants % ncav)
-    type(ddx_error_type), intent(inout) :: error
+    type(ddx_error_type), intent(inout) :: ddx_error
 
     write(6, *) "Warning: subroutine ddlpb is deprecated"
 
     call lpb_setup(params, constants, workspace, state, phi_cav, &
-        & e_cav, psi, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+        & e_cav, psi, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "ddlpb: ddlpb_setup returned an error, exiting")
         return
     end if
-    call lpb_guess(params, constants, workspace, state, tol, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+    call lpb_guess(params, constants, workspace, state, tol, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "ddlpb: ddlpb_guess returned an error, exiting")
         return
     end if
-    call lpb_solve(params, constants, workspace, state, tol, error)
-    if (error % flag .ne. 0) then
-        call update_error(error, &
+    call lpb_solve(params, constants, workspace, state, tol, ddx_error)
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, &
             & "ddlpb: ddlpb_solve returned an error, exiting")
         return
     end if
 
     ! Compute the solvation energy
-    call lpb_energy(constants, state, esolv, error)
+    call lpb_energy(constants, state, esolv, ddx_error)
 
     ! Get forces if needed
     if(params % force .eq. 1) then
-        call lpb_guess_adjoint(params, constants, workspace, state, tol, error)
-        if (error % flag .ne. 0) then
-            call update_error(error, &
+        call lpb_guess_adjoint(params, constants, workspace, state, tol, ddx_error)
+        if (ddx_error % flag .ne. 0) then
+            call update_error(ddx_error, &
                 & "ddlpb: ddlpb_guess_adjoint returned an error, exiting")
             return
         end if
-        call lpb_solve_adjoint(params, constants, workspace, state, tol, error)
-        if (error % flag .ne. 0) then
-            call update_error(error, &
+        call lpb_solve_adjoint(params, constants, workspace, state, tol, ddx_error)
+        if (ddx_error % flag .ne. 0) then
+            call update_error(ddx_error, &
                 & "ddlpb: ddlpb_solve_adjoint returned an error, exiting")
             return
         end if
         call lpb_solvation_force_terms(params, constants, workspace, &
-            & state, hessianphi_cav, force, error)
+            & state, hessianphi_cav, force, ddx_error)
     endif
 
 end subroutine ddlpb

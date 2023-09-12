@@ -23,7 +23,7 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
-type(ddx_error_type) :: error
+type(ddx_error_type) :: ddx_error
 type(ddx_state_type) :: state
 character(len=255) :: dummy_file_name = ''
 
@@ -36,10 +36,10 @@ real(dp), allocatable :: charges(:)
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
-call ddfromfile(fname, ddx_data, tol, charges, error)
-call check_error(error)
-call allocate_state(ddx_data % params, ddx_data % constants, state, error)
-call check_error(error)
+call ddfromfile(fname, ddx_data, tol, charges, ddx_error)
+call check_error(ddx_error)
+call allocate_state(ddx_data % params, ddx_data % constants, state, ddx_error)
+call check_error(ddx_error)
 
 ! Initial values
 default_value = zero
@@ -60,8 +60,8 @@ if(abs(esolv_one - esolv_two) .gt. 1e-8) then
   stop 1
 endif
 
-call deallocate_state(state, error)
-call deallocate_model(ddx_data, error)
+call deallocate_state(state, ddx_error)
+call deallocate_model(ddx_data, ddx_error)
 deallocate(charges)
 
 contains

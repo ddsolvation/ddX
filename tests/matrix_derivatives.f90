@@ -19,7 +19,7 @@ implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
-type(ddx_error_type) :: error
+type(ddx_error_type) :: ddx_error
 character(len=255) :: dummy_file_name = ''
 ! derivative_num_A  : Numerical derivatives for matrix A
 ! derivative_num_B  : Numerical derivatives for matrix B
@@ -78,8 +78,8 @@ real(dp), external :: dnrm2, ddot
 ! Read input file name
 call getarg(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file 12"
-call ddfromfile(fname, ddx_data, tol, charges, error)
-call check_error(error)
+call ddfromfile(fname, ddx_data, tol, charges, ddx_error)
+call check_error(ddx_error)
 
 ! lmax0 set to minimum of 6 or given lmax.
 ! nbasis0 set to minimum of 49 or given (lmax+1)^2.
@@ -164,7 +164,7 @@ call contract_grad_C(ddx_data % params, ddx_data % constants, &
              & random_vector_nbasis_nsph_two, &
              & random_vector_nbasis_nsph_two, &
              & derivative_C1_C2, &
-             & diff_re, error)
+             & diff_re, ddx_error)
 
 do isph = 1, ddx_data % params % nsph
     do i = 1, 3
@@ -247,12 +247,12 @@ deallocate(derivative_num_A, derivative_num_B, derivative_num_Ui, &
            & random_vector_two_evaluated_at_grid, &
            & derivative_C1_C2, &
            & derivative_A, derivative_B, diff_re, derivative_num_C, charges)
-call deallocate_model(ddx_data, error)
+call deallocate_model(ddx_data, ddx_error)
 
-write(*, *) "Rel.error of A     :", relerr_A
-write(*, *) "Rel.error of B     :", relerr_B
-write(*, *) "Rel.error of U_i^e :", relerr_Ui
-write(*, *) "Rel.error of C1_C2 :", relerr_C1_C2
+write(*, *) "Rel. error of A     :", relerr_A
+write(*, *) "Rel. error of B     :", relerr_B
+write(*, *) "Rel. error of U_i^e :", relerr_Ui
+write(*, *) "Rel. error of C1_C2 :", relerr_C1_C2
 
 if (relerr_A .gt. 1d-6) then
     write(*,*) 'Error in computing derivatives of A, Rel.Error : ', relerr_A
@@ -299,7 +299,7 @@ subroutine test_solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     ! igrid  : Index for grid points
     ! ibasis : Index for number of basis
     integer :: i, isph, igrid, ibasis
-    type(ddx_error_type) :: error
+    type(ddx_error_type) :: ddx_error
 
     ! Initialise new ddx_data with new centers coordinates
     call allocate_model(ddx_data % params % nsph, &
@@ -319,7 +319,7 @@ subroutine test_solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
         & ddx_data % params % kappa, 0, &
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, dummy_file_name, ddx_data2, error)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data2, ddx_error)
     ! Allocation
     allocate(random_vector_n_one(ddx_data2 % constants % n), &
              & random_vector_n_two(ddx_data2 % constants % n), &
@@ -356,15 +356,15 @@ subroutine test_solve(ddx_data, sum_der_A, sum_der_B, sum_der_Ui, sum_der_C1_C2)
     zero_vector = zero
     ! Call for matrix A
     call lx(ddx_data2 % params, ddx_data2 % constants, &
-          & ddx_data2 % workspace, random_vector_n_one, vector_cosmo, error)
+          & ddx_data2 % workspace, random_vector_n_one, vector_cosmo, ddx_error)
     ! Call for matrix B
     call bx(ddx_data2 % params, ddx_data2 % constants, &
               & ddx_data2 % workspace, &
-              & random_vector_n_one, vector_lpb, error)
+              & random_vector_n_one, vector_lpb, ddx_error)
     call cx(ddx_data2 % params, ddx_data2 % constants, &
                  & ddx_data2 % workspace, &
                  & random_vector_C_one, &
-                 & vector_c1_c2, error)
+                 & vector_c1_c2, ddx_error)
     ! Sum for U_i^e(x_in)
     do isph = 1,ddx_data2 %  params % nsph
       do igrid = 1,ddx_data2 %  params % ngrid
