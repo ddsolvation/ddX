@@ -354,7 +354,7 @@ end if
 !end if
 
 contains
-!> Print ddx_error message and exit with provided ddx_error code
+!> Print error message and exit with provided error code
 subroutine test_error(code, message)
     integer, intent(in) :: code
     character(len=*), intent(in) :: message
