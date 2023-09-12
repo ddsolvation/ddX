@@ -239,7 +239,6 @@ subroutine check_gradr(ddx_data, pm, pl, threshold)
     type(ddx_error_type) :: ddx_error
     real(dp), allocatable :: ygrid(:,:), g(:,:)
     integer :: iseed(4)=(/0, 0, 0, 1/)
-    integer, parameter :: nrand=10
     real(dp) :: full_norm, diff_norm, forces(3, ddx_data % params % nsph), &
         & forces2(3, ddx_data % params % nsph)
     real(dp), external :: dnrm2
