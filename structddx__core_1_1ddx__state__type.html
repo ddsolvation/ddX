@@ -130,7 +130,7 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a8180c3d20b4cb8effeb4f8b65f170445"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iterations to solve the primal ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#a8180c3d20b4cb8effeb4f8b65f170445">More...</a><br /></td></tr>
 <tr class="separator:a8180c3d20b4cb8effeb4f8b65f170445"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb77809d89986f4c02824d297fd966d7"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7">xs_rel_diff</a></td></tr>
-<tr class="memdesc:adb77809d89986f4c02824d297fd966d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of the iterative solver at each iteration of the primal ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7">More...</a><br /></td></tr>
+<tr class="memdesc:adb77809d89986f4c02824d297fd966d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative ddx_error of the iterative solver at each iteration of the primal ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#adb77809d89986f4c02824d297fd966d7">More...</a><br /></td></tr>
 <tr class="separator:adb77809d89986f4c02824d297fd966d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afea532fb7fd4160a2984ce1aca68934b"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#afea532fb7fd4160a2984ce1aca68934b">xs_time</a></td></tr>
 <tr class="memdesc:afea532fb7fd4160a2984ce1aca68934b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to solve the primal ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#afea532fb7fd4160a2984ce1aca68934b">More...</a><br /></td></tr>
@@ -145,7 +145,7 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:ae8b26ac0e03b0dd5fb4c5013723d982c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iterations required to solve the adjoint ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#ae8b26ac0e03b0dd5fb4c5013723d982c">More...</a><br /></td></tr>
 <tr class="separator:ae8b26ac0e03b0dd5fb4c5013723d982c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3ff8561962833ab28dcf5fdac281d9f7"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a3ff8561962833ab28dcf5fdac281d9f7">s_rel_diff</a></td></tr>
-<tr class="memdesc:a3ff8561962833ab28dcf5fdac281d9f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of the iterative solver at each iteration of the adjoint ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#a3ff8561962833ab28dcf5fdac281d9f7">More...</a><br /></td></tr>
+<tr class="memdesc:a3ff8561962833ab28dcf5fdac281d9f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative ddx_error of the iterative solver at each iteration of the adjoint ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#a3ff8561962833ab28dcf5fdac281d9f7">More...</a><br /></td></tr>
 <tr class="separator:a3ff8561962833ab28dcf5fdac281d9f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe53093bb83bd41277e53848474610a8"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#abe53093bb83bd41277e53848474610a8">s_time</a></td></tr>
 <tr class="memdesc:abe53093bb83bd41277e53848474610a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to solve the adjoint ddCOSMO linear system. Used by the COSMO (model=1) and PCM (model=2) models.  <a href="structddx__core_1_1ddx__state__type.html#abe53093bb83bd41277e53848474610a8">More...</a><br /></td></tr>
@@ -160,7 +160,7 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a85b122812d525480a3f97c1891087441"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iterations to solve the primal ddPCM linear system system. Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a85b122812d525480a3f97c1891087441">More...</a><br /></td></tr>
 <tr class="separator:a85b122812d525480a3f97c1891087441"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4dfbeb29f87cf4040d8633b0b1c54e33"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a4dfbeb29f87cf4040d8633b0b1c54e33">phieps_rel_diff</a></td></tr>
-<tr class="memdesc:a4dfbeb29f87cf4040d8633b0b1c54e33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of the iterative solver at each iteration of the primal ddPCM linear system, dimension (maxiter). Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a4dfbeb29f87cf4040d8633b0b1c54e33">More...</a><br /></td></tr>
+<tr class="memdesc:a4dfbeb29f87cf4040d8633b0b1c54e33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative ddx_error of the iterative solver at each iteration of the primal ddPCM linear system, dimension (maxiter). Allocated and used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a4dfbeb29f87cf4040d8633b0b1c54e33">More...</a><br /></td></tr>
 <tr class="separator:a4dfbeb29f87cf4040d8633b0b1c54e33"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a987b38d818104cabc9f7f3ba301b5235"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a987b38d818104cabc9f7f3ba301b5235">phieps_time</a></td></tr>
 <tr class="memdesc:a987b38d818104cabc9f7f3ba301b5235"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to solve the primal ddPCM linear system. Used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a987b38d818104cabc9f7f3ba301b5235">More...</a><br /></td></tr>
@@ -175,7 +175,7 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a0905754357c8025076591272cd88812f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of iteration to solve the adjoint ddPCM linear system. Used only by PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#a0905754357c8025076591272cd88812f">More...</a><br /></td></tr>
 <tr class="separator:a0905754357c8025076591272cd88812f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5a1f3314992f8aef6fcfe45abbb2f24"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ac5a1f3314992f8aef6fcfe45abbb2f24">y_rel_diff</a></td></tr>
-<tr class="memdesc:ac5a1f3314992f8aef6fcfe45abbb2f24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of the iterative solver at each iteration of the adjoint ddPCM linear system. Allocated and used only by the PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#ac5a1f3314992f8aef6fcfe45abbb2f24">More...</a><br /></td></tr>
+<tr class="memdesc:ac5a1f3314992f8aef6fcfe45abbb2f24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative ddx_error of the iterative solver at each iteration of the adjoint ddPCM linear system. Allocated and used only by the PCM (model=2) model.  <a href="structddx__core_1_1ddx__state__type.html#ac5a1f3314992f8aef6fcfe45abbb2f24">More...</a><br /></td></tr>
 <tr class="separator:ac5a1f3314992f8aef6fcfe45abbb2f24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7761162d404940bf9695d8d57124d58"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ae7761162d404940bf9695d8d57124d58">y_time</a></td></tr>
 <tr class="memdesc:ae7761162d404940bf9695d8d57124d58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to solve adjoint ddPCM system.  <a href="structddx__core_1_1ddx__state__type.html#ae7761162d404940bf9695d8d57124d58">More...</a><br /></td></tr>
@@ -220,10 +220,10 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a8a69492e0195fe9f56d681f8b72b2056"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time required to solve the adjoint ddLPB linear system. Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#a8a69492e0195fe9f56d681f8b72b2056">More...</a><br /></td></tr>
 <tr class="separator:a8a69492e0195fe9f56d681f8b72b2056"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaa3c249bd7e7820e3f3b9bbf36333ed6"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#aaa3c249bd7e7820e3f3b9bbf36333ed6">x_lpb_rel_diff</a></td></tr>
-<tr class="memdesc:aaa3c249bd7e7820e3f3b9bbf36333ed6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of the iterative solver at each iteration of the primal ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#aaa3c249bd7e7820e3f3b9bbf36333ed6">More...</a><br /></td></tr>
+<tr class="memdesc:aaa3c249bd7e7820e3f3b9bbf36333ed6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative ddx_error of the iterative solver at each iteration of the primal ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#aaa3c249bd7e7820e3f3b9bbf36333ed6">More...</a><br /></td></tr>
 <tr class="separator:aaa3c249bd7e7820e3f3b9bbf36333ed6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af51f9714898918d4824a8158e4c4b67b"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#af51f9714898918d4824a8158e4c4b67b">x_adj_lpb_rel_diff</a></td></tr>
-<tr class="memdesc:af51f9714898918d4824a8158e4c4b67b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative error of the iterative solver at each iteration of the adjoint ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#af51f9714898918d4824a8158e4c4b67b">More...</a><br /></td></tr>
+<tr class="memdesc:af51f9714898918d4824a8158e4c4b67b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative ddx_error of the iterative solver at each iteration of the adjoint ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#af51f9714898918d4824a8158e4c4b67b">More...</a><br /></td></tr>
 <tr class="separator:af51f9714898918d4824a8158e4c4b67b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7906f2fd69fb861e5e561addb1e56ec5"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a7906f2fd69fb861e5e561addb1e56ec5">zeta_dip</a></td></tr>
 <tr class="memdesc:a7906f2fd69fb861e5e561addb1e56ec5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zeta dipoles intermediate for the forces. Dimension (3, ncav). Allocated and used only by the LPB (model=3) model.  <a href="structddx__core_1_1ddx__state__type.html#a7906f2fd69fb861e5e561addb1e56ec5">More...</a><br /></td></tr>
@@ -420,7 +420,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Relative error of the iterative solver at each iteration of the primal ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
+<p>Relative ddx_error of the iterative solver at each iteration of the primal ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
 
 <p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00071">71</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
@@ -510,7 +510,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Relative error of the iterative solver at each iteration of the adjoint ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
+<p>Relative ddx_error of the iterative solver at each iteration of the adjoint ddCOSMO linear system, dimension (maxiter). Allocated and used by the COSMO (model=1) and PCM (model=2) models. </p>
 
 <p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00087">87</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
@@ -600,7 +600,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Relative error of the iterative solver at each iteration of the primal ddPCM linear system, dimension (maxiter). Allocated and used only by PCM (model=2) model. </p>
+<p>Relative ddx_error of the iterative solver at each iteration of the primal ddPCM linear system, dimension (maxiter). Allocated and used only by PCM (model=2) model. </p>
 
 <p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00107">107</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
@@ -690,7 +690,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Relative error of the iterative solver at each iteration of the adjoint ddPCM linear system. Allocated and used only by the PCM (model=2) model. </p>
+<p>Relative ddx_error of the iterative solver at each iteration of the adjoint ddPCM linear system. Allocated and used only by the PCM (model=2) model. </p>
 
 <p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00123">123</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
@@ -960,7 +960,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Relative error of the iterative solver at each iteration of the primal ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model. </p>
+<p>Relative ddx_error of the iterative solver at each iteration of the primal ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model. </p>
 
 <p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00174">174</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
@@ -978,7 +978,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Relative error of the iterative solver at each iteration of the adjoint ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model. </p>
+<p>Relative ddx_error of the iterative solver at each iteration of the adjoint ddLPB linear system, dimension (maxiter). Allocated and used only by the LPB (model=3) model. </p>
 
 <p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00178">178</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 

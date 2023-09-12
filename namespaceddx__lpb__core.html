@@ -101,9 +101,9 @@ $(document).ready(function(){initNavTree('namespaceddx__lpb__core.html',''); ini
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:ac0c97a64937277ab358f220f8dfdcf46"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#ac0c97a64937277ab358f220f8dfdcf46">wghpot_f</a> (params, constants, workspace, gradphi, f, error)</td></tr>
-<tr class="memdesc:ac0c97a64937277ab358f220f8dfdcf46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find intermediate F0 in the RHS of the ddLPB model given in Eq.(82)  <a href="namespaceddx__lpb__core.html#ac0c97a64937277ab358f220f8dfdcf46">More...</a><br /></td></tr>
-<tr class="separator:ac0c97a64937277ab358f220f8dfdcf46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae576dd571d6e7ffe8eb5c62199ea5673"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#ae576dd571d6e7ffe8eb5c62199ea5673">wghpot_f</a> (params, constants, workspace, gradphi, f, ddx_error)</td></tr>
+<tr class="memdesc:ae576dd571d6e7ffe8eb5c62199ea5673"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find intermediate F0 in the RHS of the ddLPB model given in Eq.(82)  <a href="namespaceddx__lpb__core.html#ae576dd571d6e7ffe8eb5c62199ea5673">More...</a><br /></td></tr>
+<tr class="separator:ae576dd571d6e7ffe8eb5c62199ea5673"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a151ae692cadf8e005a780c7fe2b32244"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__lpb__core.html#a151ae692cadf8e005a780c7fe2b32244">calcv2_lpb</a> (params, constants, isph, pot, x)</td></tr>
 <tr class="memdesc:a151ae692cadf8e005a780c7fe2b32244"><td class="mdescLeft">&#160;</td><td class="mdescRight">Intermediate computation of Bx.  <a href="namespaceddx__lpb__core.html#a151ae692cadf8e005a780c7fe2b32244">More...</a><br /></td></tr>
 <tr class="separator:a151ae692cadf8e005a780c7fe2b32244"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -128,8 +128,8 @@ Functions/Subroutines</h2></td></tr>
 <dl class="section author"><dt>Author</dt><dd>Abhinav Jha and Michele Nottoli </dd></dl>
 <dl class="section date"><dt>Date</dt><dd>2022-03-31 </dd></dl>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="ac0c97a64937277ab358f220f8dfdcf46" name="ac0c97a64937277ab358f220f8dfdcf46"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac0c97a64937277ab358f220f8dfdcf46">&#9670;&nbsp;</a></span>wghpot_f()</h2>
+<a id="ae576dd571d6e7ffe8eb5c62199ea5673" name="ae576dd571d6e7ffe8eb5c62199ea5673"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae576dd571d6e7ffe8eb5c62199ea5673">&#9670;&nbsp;</a></span>wghpot_f()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -168,7 +168,7 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
+          <td class="paramname"><em>ddx_error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -186,7 +186,7 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">workspace</td><td>: Input workspace </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">gradphi</td><td>: Gradient of psi_0 </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">f</td><td>: Intermediate calculation of F0 </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">ddx_error</td><td>ddX error </td></tr>
   </table>
   </dd>
 </dl>

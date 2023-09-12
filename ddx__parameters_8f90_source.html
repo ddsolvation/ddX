@@ -132,9 +132,9 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="keyword">contains</span></div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="namespaceddx__parameters.html#a2666802ba7ef1ba81fd27fa54f22d38a">  120</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#a2666802ba7ef1ba81fd27fa54f22d38a">params_init</a>(model, force, eps, kappa, eta, se, lmax, ngrid, &amp;</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="namespaceddx__parameters.html#ae789c1c100e377b19dd6b1d8b83effc5">  120</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#ae789c1c100e377b19dd6b1d8b83effc5">params_init</a>(model, force, eps, kappa, eta, se, lmax, ngrid, &amp;</div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>        &amp; matvecmem, maxiter, jacobi_ndiis, fmm, pm, pl, nproc, nsph, &amp;</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>        &amp; csph, rsph, output_filename, params, error)</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>        &amp; csph, rsph, output_filename, params, ddx_error)</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>    <span class="comment">!! Inputs</span></div>
 <div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    <span class="comment">! Model to use 1 for COSMO, 2 for PCM, 3 for LPB.</span></div>
 <div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(in)</span> :: model</div>
@@ -183,12 +183,12 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>    <span class="keywordtype">character(len=255)</span> :: output_filename</div>
 <div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>    <span class="comment">!! Outputs</span></div>
 <div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), <span class="keywordtype">intent(out)</span> :: params</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), <span class="keywordtype">intent(inout)</span> :: error</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), <span class="keywordtype">intent(inout)</span> :: ddx_error</div>
 <div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    <span class="comment">!! Local variables</span></div>
 <div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>    <span class="keywordtype">integer</span> :: igrid, i, info</div>
 <div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>    <span class="comment">!! The code</span></div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init received input in error &quot;</span> // &amp;</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>    <span class="keywordflow">if</span> (ddx_error % flag .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init received input in ddx_error &quot;</span> // &amp;</div>
 <div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>            &amp; <span class="stringliteral">&quot; state, exiting&quot;</span>)</div>
 <div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>    <span class="comment">! parse the log file name</span></div>
@@ -203,37 +203,37 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    <span class="comment">! Model, 1=COSMO, 2=PCM, 3=LPB</span></div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    <span class="keywordflow">if</span> ((model .lt. 1) .or. (model .gt. 3)) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `model`&quot;</span>)</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `model`&quot;</span>)</div>
 <div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>    params % model = model</div>
 <div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    <span class="comment">! Check if forces are needed</span></div>
 <div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>    <span class="keywordflow">if</span> ((force .lt. 0) .or. (force .gt. 1)) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `force`&quot;</span>)</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `force`&quot;</span>)</div>
 <div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    params % force = force</div>
 <div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>    <span class="comment">! Relative dielectric permittivity</span></div>
 <div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    <span class="keywordflow">if</span> (eps .le. one) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `eps`&quot;</span>)</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `eps`&quot;</span>)</div>
 <div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    params % eps = eps</div>
 <div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    <span class="comment">! Debye-H\&quot;{u}ckel parameter (only used in ddLPB)</span></div>
 <div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    <span class="keywordflow">if</span> ((model .eq. 3) .and. (kappa .le. zero)) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `kappa`&quot;</span>)</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `kappa`&quot;</span>)</div>
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    params % kappa = kappa</div>
 <div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    <span class="comment">! Regularization parameter</span></div>
 <div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    <span class="keywordflow">if</span> ((eta .lt. zero) .or. (eta .gt. one)) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `eta`&quot;</span>)</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `eta`&quot;</span>)</div>
 <div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    params % eta = eta</div>
 <div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    <span class="comment">! Shift of a regularization</span></div>
 <div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>    <span class="keywordflow">if</span> ((se .lt. -one) .or. (se .gt. one)) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `se`&quot;</span>)</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `se`&quot;</span>)</div>
 <div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    params % se = se</div>
 <div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    <span class="comment">! Degree of modeling spherical harmonics</span></div>
 <div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    <span class="keywordflow">if</span> (lmax .lt. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `lmax`&quot;</span>)</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `lmax`&quot;</span>)</div>
 <div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>    params % lmax = lmax</div>
 <div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    <span class="comment">! Check number of Lebedev grid points</span></div>
@@ -245,22 +245,22 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span><span class="keywordflow">        end if</span></div>
 <div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span><span class="keywordflow">    end do</span></div>
 <div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>    <span class="keywordflow">if</span> (igrid .eq. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: Unsupported value of `ngrid`&quot;</span>)</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: Unsupported value of `ngrid`&quot;</span>)</div>
 <div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>    params % ngrid = ngrid</div>
 <div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>    <span class="comment">! Maximum number of iterations</span></div>
 <div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>    <span class="keywordflow">if</span> (maxiter .le. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `maxiter`&quot;</span>)</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `maxiter`&quot;</span>)</div>
 <div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    params % maxiter = maxiter</div>
 <div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>    <span class="comment">! Number of Jacobi DIIS extrapolation points (ndiis=25 works)</span></div>
 <div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>    <span class="keywordflow">if</span> (jacobi_ndiis .lt. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `jacobi_ndiis`&quot;</span>)</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `jacobi_ndiis`&quot;</span>)</div>
 <div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    params % jacobi_ndiis = jacobi_ndiis</div>
 <div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>    <span class="comment">! Check if FMM-acceleration is needed</span></div>
 <div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    <span class="keywordflow">if</span> ((fmm .lt. 0) .or. (fmm .gt. 1)) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `fmm`&quot;</span>)</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `fmm`&quot;</span>)</div>
 <div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    params % fmm = fmm</div>
 <div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    <span class="comment">! Set FMM parameters if FMM is needed</span></div>
@@ -269,13 +269,13 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>        <span class="comment">! far-field interactions are to be computed, only near-field</span></div>
 <div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>        <span class="comment">! interactions are taken into account.</span></div>
 <div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>        <span class="keywordflow">if</span> (pm .lt. -1) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>            <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `pm`&quot;</span>)</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>            <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `pm`&quot;</span>)</div>
 <div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span><span class="keywordflow">        end if</span></div>
 <div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>        <span class="comment">! Maximal degree of local spherical harmonics. Value -1 means no </span></div>
 <div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>        <span class="comment">! far-field interactions are to be computed, only near-field</span></div>
 <div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>        <span class="comment">! interactions are taken into account.</span></div>
 <div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>        <span class="keywordflow">if</span> (pl .lt. -1) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>            <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `pl`&quot;</span>)</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>            <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `pl`&quot;</span>)</div>
 <div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span><span class="keywordflow">        end if</span></div>
 <div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>        <span class="comment">! If far-field interactions are to be ignored</span></div>
 <div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>        <span class="keywordflow">if</span> ((pl .eq. -1) .or. (pm .eq. -1)) <span class="keywordflow">then</span></div>
@@ -294,7 +294,7 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>    <span class="comment">! Number of OpenMP threads to be used</span></div>
 <div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>    <span class="comment">! available.</span></div>
 <div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>    <span class="keywordflow">if</span> (nproc .lt. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `nproc`&quot;</span>)</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `nproc`&quot;</span>)</div>
 <div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>        params % nproc = 1</div>
 <div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (nproc .eq. 0) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>        params % nproc = 1</div>
@@ -304,12 +304,12 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>    <span class="keyword">call </span>omp_set_num_threads(params % nproc)</div>
 <div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>    <span class="comment">! Number of atoms</span></div>
 <div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>    <span class="keywordflow">if</span> (nsph .le. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `nsph`&quot;</span>)</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `nsph`&quot;</span>)</div>
 <div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>    params % nsph = nsph</div>
 <div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>    <span class="keyword">allocate</span>(params % csph(3, nsph), params % rsph(nsph), stat=info)</div>
 <div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>    <span class="keywordflow">if</span> (info .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: `csph` and `rsph` &quot;</span> // &amp;</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: `csph` and `rsph` &quot;</span> // &amp;</div>
 <div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>            &amp; <span class="stringliteral">&quot;allocations failed&quot;</span>)</div>
 <div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>        <span class="keywordflow">return</span></div>
 <div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span><span class="keywordflow">    end if</span></div>
@@ -318,18 +318,18 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>    <span class="keywordflow">if</span> (matvecmem.eq.0 .or. matvecmem.eq.1) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>        params % matvecmem = matvecmem</div>
 <div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>    <span class="keywordflow">else</span></div>
-<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_init: invalid value of `matvecmem`&quot;</span>)</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_init: invalid value of `matvecmem`&quot;</span>)</div>
 <div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span> </div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">return</span></div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>    <span class="keywordflow">if</span> (ddx_error % flag .ne. 0) <span class="keywordflow">return</span></div>
 <div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span> </div>
 <div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>    <span class="comment">! init log</span></div>
-<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__parameters.html#ab3a8bd067ca61d5393f4b27b41f324b6">init_printing</a>(params, error)</div>
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>    <span class="keywordflow">if</span> (error % flag .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;init_printing returned an error, exiting&quot;</span>)</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__parameters.html#a63c2a66e292ae775501e941b08c6faa1">init_printing</a>(params, ddx_error)</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>    <span class="keywordflow">if</span> (ddx_error % flag .ne. 0) <span class="keywordflow">then</span></div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;init_printing returned an error, exiting&quot;</span>)</div>
 <div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>        <span class="keywordflow">return</span></div>
 <div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#a2666802ba7ef1ba81fd27fa54f22d38a">params_init</a></div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#ae789c1c100e377b19dd6b1d8b83effc5">params_init</a></div>
 <div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span> </div>
 <div class="line"><a id="l00323" name="l00323"></a><span class="lineno"><a class="line" href="namespaceddx__parameters.html#a1b84e0732491759d44bb63d14f7c77a5">  323</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#a1b84e0732491759d44bb63d14f7c77a5">closest_supported_lebedev_grid</a>(ngrid)</div>
 <div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>    <span class="keywordtype">integer</span>, <span class="keywordtype">intent(inout)</span> :: ngrid</div>
@@ -347,10 +347,10 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>    ngrid = <a class="code hl_variable" href="namespaceddx__definitions.html#a31904c9990cc087f2808a4c1c662800a">ng0</a>(igrid)</div>
 <div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span><span class="keyword">end subroutine</span></div>
 <div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span> </div>
-<div class="line"><a id="l00344" name="l00344"></a><span class="lineno"><a class="line" href="namespaceddx__parameters.html#aa3a425e21c32870bd9a9f790f50f3b2d">  344</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#aa3a425e21c32870bd9a9f790f50f3b2d">params_free</a>(params, error)</div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno"><a class="line" href="namespaceddx__parameters.html#a7c77867cd6eb7a281bc23f4206a223de">  344</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#a7c77867cd6eb7a281bc23f4206a223de">params_free</a>(params, ddx_error)</div>
 <div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>    <span class="keywordtype">implicit none</span></div>
 <div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), <span class="keywordtype">intent(inout)</span> :: params</div>
-<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), <span class="keywordtype">intent(inout)</span> :: error</div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), <span class="keywordtype">intent(inout)</span> :: ddx_error</div>
 <div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>    <span class="keywordtype">integer</span> :: istat</div>
 <div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span> </div>
 <div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__parameters.html#a74f7b18d32c86cd64e6b155a2cae2581">finalize_printing</a>(params)</div>
@@ -358,27 +358,27 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>    <span class="keywordflow">if</span> (<span class="keyword">allocated</span>(params % csph)) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>        <span class="keyword">deallocate</span>(params % csph, stat=istat)</div>
 <div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>        <span class="keywordflow">if</span> (istat .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>            <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_free: `csph` deallocation failed&quot;</span>)</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>            <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_free: `csph` deallocation failed&quot;</span>)</div>
 <div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span><span class="keywordflow">        end if</span></div>
 <div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>    <span class="keywordflow">if</span> (<span class="keyword">allocated</span>(params % rsph)) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>        <span class="keyword">deallocate</span>(params % rsph, stat=istat)</div>
 <div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>        <span class="keywordflow">if</span> (istat .ne. 0) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>            <span class="keyword">call </span>update_error(error, <span class="stringliteral">&quot;params_free: `rsph` deallocation failed&quot;</span>)</div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>            <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&quot;params_free: `rsph` deallocation failed&quot;</span>)</div>
 <div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span><span class="keywordflow">        end if</span></div>
 <div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#aa3a425e21c32870bd9a9f790f50f3b2d">params_free</a></div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#a7c77867cd6eb7a281bc23f4206a223de">params_free</a></div>
 <div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span> </div>
-<div class="line"><a id="l00367" name="l00367"></a><span class="lineno"><a class="line" href="namespaceddx__parameters.html#ab3a8bd067ca61d5393f4b27b41f324b6">  367</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#ab3a8bd067ca61d5393f4b27b41f324b6">init_printing</a>(params, error)</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno"><a class="line" href="namespaceddx__parameters.html#a63c2a66e292ae775501e941b08c6faa1">  367</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#a63c2a66e292ae775501e941b08c6faa1">init_printing</a>(params, ddx_error)</div>
 <div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>    <span class="keywordtype">implicit none</span></div>
 <div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), <span class="keywordtype">intent(inout)</span> :: params</div>
-<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), <span class="keywordtype">intent(inout)</span> :: error</div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), <span class="keywordtype">intent(inout)</span> :: ddx_error</div>
 <div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>    <span class="keywordtype">logical</span> :: exists</div>
 <div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>    <span class="keywordflow">if</span> (.not.params % verbose) <span class="keywordflow">return</span></div>
 <div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>    <span class="keyword">inquire</span>(file=params % output_filename(1:params % len_output_filename), &amp;</div>
 <div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>        &amp; exist=exists)</div>
 <div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>    <span class="keywordflow">if</span> (exists) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>        <span class="keyword">call </span>update_error(error, <span class="stringliteral">&#39;Log file already present&#39;</span>)</div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&#39;Log file already present&#39;</span>)</div>
 <div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>        <span class="keywordflow">return</span></div>
 <div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>    <span class="keywordflow">else</span></div>
 <div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>        params % iunit = 100</div>
@@ -386,7 +386,7 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>            &amp; file=params % output_filename(1: params % len_output_filename), &amp;</div>
 <div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>            &amp; form=<span class="stringliteral">&#39;formatted&#39;</span>)</div>
 <div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#ab3a8bd067ca61d5393f4b27b41f324b6">init_printing</a></div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span><span class="keyword">end subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#a63c2a66e292ae775501e941b08c6faa1">init_printing</a></div>
 <div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span> </div>
 <div class="line"><a id="l00387" name="l00387"></a><span class="lineno"><a class="line" href="namespaceddx__parameters.html#a74f7b18d32c86cd64e6b155a2cae2581">  387</a></span><span class="keyword">subroutine </span><a class="code hl_function" href="namespaceddx__parameters.html#a74f7b18d32c86cd64e6b155a2cae2581">finalize_printing</a>(params)</div>
 <div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>    <span class="keywordtype">implicit none</span></div>
@@ -406,11 +406,11 @@ $(document).ready(function(){initNavTree('ddx__parameters_8f90_source.html','');
 <div class="ttc" id="anamespaceddx__definitions_html_ae550955ff555b222abaed24c541cde67"><div class="ttname"><a href="namespaceddx__definitions.html#ae550955ff555b222abaed24c541cde67">ddx_definitions::nllg</a></div><div class="ttdeci">integer, parameter nllg</div><div class="ttdoc">Number of supported Lebedev grids.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__definitions_8f90_source.html#l00037">ddx_definitions.f90:37</a></div></div>
 <div class="ttc" id="anamespaceddx__parameters_html"><div class="ttname"><a href="namespaceddx__parameters.html">ddx_parameters</a></div><div class="ttdoc">Module to treat properly user input parameters.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__parameters_8f90_source.html#l00015">ddx_parameters.f90:15</a></div></div>
 <div class="ttc" id="anamespaceddx__parameters_html_a1b84e0732491759d44bb63d14f7c77a5"><div class="ttname"><a href="namespaceddx__parameters.html#a1b84e0732491759d44bb63d14f7c77a5">ddx_parameters::closest_supported_lebedev_grid</a></div><div class="ttdeci">subroutine closest_supported_lebedev_grid(ngrid)</div><div class="ttdoc">Adjust a guess for the number of Lebedev grid points.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__parameters_8f90_source.html#l00323">ddx_parameters.f90:324</a></div></div>
-<div class="ttc" id="anamespaceddx__parameters_html_a2666802ba7ef1ba81fd27fa54f22d38a"><div class="ttname"><a href="namespaceddx__parameters.html#a2666802ba7ef1ba81fd27fa54f22d38a">ddx_parameters::params_init</a></div><div class="ttdeci">subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, matvecmem, maxiter, jacobi_ndiis, fmm, pm, pl, nproc, nsph, csph, rsph, output_filename, params, error)</div><div class="ttdoc">Initialize and check input parameters.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__parameters_8f90_source.html#l00120">ddx_parameters.f90:123</a></div></div>
+<div class="ttc" id="anamespaceddx__parameters_html_a63c2a66e292ae775501e941b08c6faa1"><div class="ttname"><a href="namespaceddx__parameters.html#a63c2a66e292ae775501e941b08c6faa1">ddx_parameters::init_printing</a></div><div class="ttdeci">subroutine init_printing(params, ddx_error)</div><div class="ttdoc">Open the log file.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__parameters_8f90_source.html#l00367">ddx_parameters.f90:368</a></div></div>
 <div class="ttc" id="anamespaceddx__parameters_html_a74f7b18d32c86cd64e6b155a2cae2581"><div class="ttname"><a href="namespaceddx__parameters.html#a74f7b18d32c86cd64e6b155a2cae2581">ddx_parameters::finalize_printing</a></div><div class="ttdeci">subroutine finalize_printing(params)</div><div class="ttdoc">Close the log file.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__parameters_8f90_source.html#l00387">ddx_parameters.f90:388</a></div></div>
-<div class="ttc" id="anamespaceddx__parameters_html_aa3a425e21c32870bd9a9f790f50f3b2d"><div class="ttname"><a href="namespaceddx__parameters.html#aa3a425e21c32870bd9a9f790f50f3b2d">ddx_parameters::params_free</a></div><div class="ttdeci">subroutine params_free(params, error)</div><div class="ttdoc">Deallocate the parameter object.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__parameters_8f90_source.html#l00344">ddx_parameters.f90:345</a></div></div>
-<div class="ttc" id="anamespaceddx__parameters_html_ab3a8bd067ca61d5393f4b27b41f324b6"><div class="ttname"><a href="namespaceddx__parameters.html#ab3a8bd067ca61d5393f4b27b41f324b6">ddx_parameters::init_printing</a></div><div class="ttdeci">subroutine init_printing(params, error)</div><div class="ttdoc">Open the log file.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__parameters_8f90_source.html#l00367">ddx_parameters.f90:368</a></div></div>
-<div class="ttc" id="astructddx__errors_1_1ddx__error__type_html"><div class="ttname"><a href="structddx__errors_1_1ddx__error__type.html">ddx_errors::ddx_error_type</a></div><div class="ttdoc">ddX type for containing error information</div><div class="ttdef"><b>Definition:</b> <a href="ddx__errors_8f90_source.html#l00006">ddx_errors.f90:6</a></div></div>
+<div class="ttc" id="anamespaceddx__parameters_html_a7c77867cd6eb7a281bc23f4206a223de"><div class="ttname"><a href="namespaceddx__parameters.html#a7c77867cd6eb7a281bc23f4206a223de">ddx_parameters::params_free</a></div><div class="ttdeci">subroutine params_free(params, ddx_error)</div><div class="ttdoc">Deallocate the parameter object.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__parameters_8f90_source.html#l00344">ddx_parameters.f90:345</a></div></div>
+<div class="ttc" id="anamespaceddx__parameters_html_ae789c1c100e377b19dd6b1d8b83effc5"><div class="ttname"><a href="namespaceddx__parameters.html#ae789c1c100e377b19dd6b1d8b83effc5">ddx_parameters::params_init</a></div><div class="ttdeci">subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, matvecmem, maxiter, jacobi_ndiis, fmm, pm, pl, nproc, nsph, csph, rsph, output_filename, params, ddx_error)</div><div class="ttdoc">Initialize and check input parameters.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__parameters_8f90_source.html#l00120">ddx_parameters.f90:123</a></div></div>
+<div class="ttc" id="astructddx__errors_1_1ddx__error__type_html"><div class="ttname"><a href="structddx__errors_1_1ddx__error__type.html">ddx_errors::ddx_error_type</a></div><div class="ttdoc">ddX type for containing ddx_error information</div><div class="ttdef"><b>Definition:</b> <a href="ddx__errors_8f90_source.html#l00006">ddx_errors.f90:6</a></div></div>
 <div class="ttc" id="astructddx__parameters_1_1ddx__params__type_html"><div class="ttname"><a href="structddx__parameters_1_1ddx__params__type.html">ddx_parameters::ddx_params_type</a></div><div class="ttdoc">Type to check and store user input parameters.</div><div class="ttdef"><b>Definition:</b> <a href="ddx__parameters_8f90_source.html#l00025">ddx_parameters.f90:25</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

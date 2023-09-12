@@ -111,24 +111,24 @@ Data Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:a90a43702b03216abfc160f024fae0eae"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__solvers.html#a90a43702b03216abfc160f024fae0eae">jacobi_diis</a> (params, constants, workspace, tol, rhs, x, niter, x_rel_diff, matvec, dm1vec, norm_func, error)</td></tr>
-<tr class="memdesc:a90a43702b03216abfc160f024fae0eae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Jacobi iterative solver.  <a href="namespaceddx__solvers.html#a90a43702b03216abfc160f024fae0eae">More...</a><br /></td></tr>
-<tr class="separator:a90a43702b03216abfc160f024fae0eae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acdcf9f1c0ba8426d4a9b2ffad3de6efb"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__solvers.html#acdcf9f1c0ba8426d4a9b2ffad3de6efb">jacobi_diis</a> (params, constants, workspace, tol, rhs, x, niter, x_rel_diff, matvec, dm1vec, norm_func, ddx_error)</td></tr>
+<tr class="memdesc:acdcf9f1c0ba8426d4a9b2ffad3de6efb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Jacobi iterative solver.  <a href="namespaceddx__solvers.html#acdcf9f1c0ba8426d4a9b2ffad3de6efb">More...</a><br /></td></tr>
+<tr class="separator:acdcf9f1c0ba8426d4a9b2ffad3de6efb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae62dc7d3c0348bd8499c0f07b23ce47"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__solvers.html#aae62dc7d3c0348bd8499c0f07b23ce47">diis</a> (n, nmat, ndiis, x, e, b, xnew)</td></tr>
 <tr class="memdesc:aae62dc7d3c0348bd8499c0f07b23ce47"><td class="mdescLeft">&#160;</td><td class="mdescRight">DIIS helper routine.  <a href="namespaceddx__solvers.html#aae62dc7d3c0348bd8499c0f07b23ce47">More...</a><br /></td></tr>
 <tr class="separator:aae62dc7d3c0348bd8499c0f07b23ce47"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab078495566540e84394991dfd0506f6c"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__solvers.html#ab078495566540e84394991dfd0506f6c">makeb</a> (n, nmat, ndiis, e, b)</td></tr>
 <tr class="memdesc:ab078495566540e84394991dfd0506f6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">DIIS helper routine.  <a href="namespaceddx__solvers.html#ab078495566540e84394991dfd0506f6c">More...</a><br /></td></tr>
 <tr class="separator:ab078495566540e84394991dfd0506f6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d4e2962ec272bfc85c3d67a7fb36478"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__solvers.html#a3d4e2962ec272bfc85c3d67a7fb36478">jacobi_diis_external</a> (params, constants, workspace, n, tol, rhs, x, n_iter, x_rel_diff, matvec, dm1vec, norm_func, error)</td></tr>
-<tr class="memdesc:a3d4e2962ec272bfc85c3d67a7fb36478"><td class="mdescLeft">&#160;</td><td class="mdescRight">jacobi_diis_solver_external WARNING: code duplication is bad, but here it makes a very specific sense. in ddLPB, we are solving a linear system with Jacobi DIIS also to apply the preconditioner. As calling a solver recursively is a terrible idea, we create a copy of jacobi_diis that:  <a href="namespaceddx__solvers.html#a3d4e2962ec272bfc85c3d67a7fb36478">More...</a><br /></td></tr>
-<tr class="separator:a3d4e2962ec272bfc85c3d67a7fb36478"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c9249a133b775c0797782c115904e31"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__solvers.html#a2c9249a133b775c0797782c115904e31">jacobi_diis_external</a> (params, constants, workspace, n, tol, rhs, x, n_iter, x_rel_diff, matvec, dm1vec, norm_func, ddx_error)</td></tr>
+<tr class="memdesc:a2c9249a133b775c0797782c115904e31"><td class="mdescLeft">&#160;</td><td class="mdescRight">jacobi_diis_solver_external WARNING: code duplication is bad, but here it makes a very specific sense. in ddLPB, we are solving a linear system with Jacobi DIIS also to apply the preconditioner. As calling a solver recursively is a terrible idea, we create a copy of jacobi_diis that:  <a href="namespaceddx__solvers.html#a2c9249a133b775c0797782c115904e31">More...</a><br /></td></tr>
+<tr class="separator:a2c9249a133b775c0797782c115904e31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Core routines and parameters of ddX software. </p>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="a90a43702b03216abfc160f024fae0eae" name="a90a43702b03216abfc160f024fae0eae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a90a43702b03216abfc160f024fae0eae">&#9670;&nbsp;</a></span>jacobi_diis()</h2>
+<a id="acdcf9f1c0ba8426d4a9b2ffad3de6efb" name="acdcf9f1c0ba8426d4a9b2ffad3de6efb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acdcf9f1c0ba8426d4a9b2ffad3de6efb">&#9670;&nbsp;</a></span>jacobi_diis()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -203,7 +203,7 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
+          <td class="paramname"><em>ddx_error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -227,7 +227,7 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">matvec</td><td>Routine that performs </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dm1vec</td><td></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">norm_func</td><td></td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">ddx_error</td><td>ddX error </td></tr>
   </table>
   </dd>
 </dl>
@@ -344,12 +344,12 @@ Functions/Subroutines</h2></td></tr>
 
 <p>DIIS helper routine. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__solvers_8f90_source.html#l00215">215</a> of file <a class="el" href="ddx__solvers_8f90_source.html">ddx_solvers.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__solvers_8f90_source.html#l00214">214</a> of file <a class="el" href="ddx__solvers_8f90_source.html">ddx_solvers.f90</a>.</p>
 
 </div>
 </div>
-<a id="a3d4e2962ec272bfc85c3d67a7fb36478" name="a3d4e2962ec272bfc85c3d67a7fb36478"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3d4e2962ec272bfc85c3d67a7fb36478">&#9670;&nbsp;</a></span>jacobi_diis_external()</h2>
+<a id="a2c9249a133b775c0797782c115904e31" name="a2c9249a133b775c0797782c115904e31"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2c9249a133b775c0797782c115904e31">&#9670;&nbsp;</a></span>jacobi_diis_external()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -430,7 +430,7 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
+          <td class="paramname"><em>ddx_error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -446,7 +446,7 @@ Functions/Subroutines</h2></td></tr>
 <li>uses copies of the norm subroutine, so that it can also be called with a user-given size for arrays </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="ddx__solvers_8f90_source.html#l00265">265</a> of file <a class="el" href="ddx__solvers_8f90_source.html">ddx_solvers.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__solvers_8f90_source.html#l00263">263</a> of file <a class="el" href="ddx__solvers_8f90_source.html">ddx_solvers.f90</a>.</p>
 
 </div>
 </div>

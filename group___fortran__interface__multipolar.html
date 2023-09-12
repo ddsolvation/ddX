@@ -101,21 +101,21 @@ $(document).ready(function(){initNavTree('group___fortran__interface__multipolar
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:gaf7b6243053ec2fb87fbcf1a392883a98"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#gaf7b6243053ec2fb87fbcf1a392883a98">ddx_multipolar_solutes::multipole_electrostatics</a> (params, constants, workspace, multipoles, mmax, electrostatics, error)</td></tr>
-<tr class="memdesc:gaf7b6243053ec2fb87fbcf1a392883a98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, compute the required electrostatic properties for the chosen model.  <a href="group___fortran__interface__multipolar.html#gaf7b6243053ec2fb87fbcf1a392883a98">More...</a><br /></td></tr>
-<tr class="separator:gaf7b6243053ec2fb87fbcf1a392883a98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga76c0d6f26b8522d58e4c8cd425d38386"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga76c0d6f26b8522d58e4c8cd425d38386">ddx_multipolar_solutes::multipole_electrostatics</a> (params, constants, workspace, multipoles, mmax, electrostatics, ddx_error)</td></tr>
+<tr class="memdesc:ga76c0d6f26b8522d58e4c8cd425d38386"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, compute the required electrostatic properties for the chosen model.  <a href="group___fortran__interface__multipolar.html#ga76c0d6f26b8522d58e4c8cd425d38386">More...</a><br /></td></tr>
+<tr class="separator:ga76c0d6f26b8522d58e4c8cd425d38386"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab9f10b0657bf556a2cd1261a48088f46"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#gab9f10b0657bf556a2cd1261a48088f46">ddx_multipolar_solutes::multipole_psi</a> (params, multipoles, mmax, psi)</td></tr>
 <tr class="memdesc:gab9f10b0657bf556a2cd1261a48088f46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution, assemble the RHS psi. The multipoles must be centered on the ddx spheres.  <a href="group___fortran__interface__multipolar.html#gab9f10b0657bf556a2cd1261a48088f46">More...</a><br /></td></tr>
 <tr class="separator:gab9f10b0657bf556a2cd1261a48088f46"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4551876dd1ee789869ee1ef4894aef1e"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga4551876dd1ee789869ee1ef4894aef1e">ddx_multipolar_solutes::multipole_force_terms</a> (params, constants, workspace, state, mmax, multipoles, forces, error)</td></tr>
-<tr class="memdesc:ga4551876dd1ee789869ee1ef4894aef1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions.  <a href="group___fortran__interface__multipolar.html#ga4551876dd1ee789869ee1ef4894aef1e">More...</a><br /></td></tr>
-<tr class="separator:ga4551876dd1ee789869ee1ef4894aef1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9f368cd95af743ed341a78c5445c1ae1"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__multipolar.html#ga9f368cd95af743ed341a78c5445c1ae1">ddx_multipolar_solutes::multipole_force_terms</a> (params, constants, workspace, state, mmax, multipoles, forces, ddx_error)</td></tr>
+<tr class="memdesc:ga9f368cd95af743ed341a78c5445c1ae1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given a multipolar distribution in real spherical harmonics and centered on the spheres, compute the contributions to the forces stemming from its electrostatic interactions.  <a href="group___fortran__interface__multipolar.html#ga9f368cd95af743ed341a78c5445c1ae1">More...</a><br /></td></tr>
+<tr class="separator:ga9f368cd95af743ed341a78c5445c1ae1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p >Exposed multipolar modules in the Fortran API. </p>
 <h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="gaf7b6243053ec2fb87fbcf1a392883a98" name="gaf7b6243053ec2fb87fbcf1a392883a98"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf7b6243053ec2fb87fbcf1a392883a98">&#9670;&nbsp;</a></span>multipole_electrostatics()</h2>
+<a id="ga76c0d6f26b8522d58e4c8cd425d38386" name="ga76c0d6f26b8522d58e4c8cd425d38386"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga76c0d6f26b8522d58e4c8cd425d38386">&#9670;&nbsp;</a></span>multipole_electrostatics()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -160,7 +160,7 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
+          <td class="paramname"><em>ddx_error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -179,7 +179,7 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">multipoles</td><td>multipoles as real spherical harmonics, size ((mmax+1)**2, nsph) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">mmax</td><td>maximum angular momentum of the multipoles </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">electrostatics,ddX</td><td>electrostatic properties container </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">ddx_error</td><td>ddX error </td></tr>
   </table>
   </dd>
 </dl>
@@ -241,8 +241,8 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
-<a id="ga4551876dd1ee789869ee1ef4894aef1e" name="ga4551876dd1ee789869ee1ef4894aef1e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga4551876dd1ee789869ee1ef4894aef1e">&#9670;&nbsp;</a></span>multipole_force_terms()</h2>
+<a id="ga9f368cd95af743ed341a78c5445c1ae1" name="ga9f368cd95af743ed341a78c5445c1ae1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9f368cd95af743ed341a78c5445c1ae1">&#9670;&nbsp;</a></span>multipole_force_terms()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -293,7 +293,7 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>error</em>&#160;</td>
+          <td class="paramname"><em>ddx_error</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -313,7 +313,7 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">mmax</td><td>maximum angular momentum of the multipolar distribution </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">multipoles</td><td>multipoles as real spherical harmonics, size ((mmax+1)**2, nsph) </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">forces</td><td>forces array, size (3, nsph) </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>ddX error </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">ddx_error</td><td>ddX error </td></tr>
   </table>
   </dd>
 </dl>

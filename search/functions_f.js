@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['setup_0',['setup',['../group___fortran__interface__core.html#gae50afd67f17cee91945bf117463a0288',1,'ddx']]],
-  ['solvation_5fforce_5fterms_1',['solvation_force_terms',['../group___fortran__interface__core.html#gad03f488ddb80486f9d5423e9b7eb561a',1,'ddx']]],
-  ['solve_2',['solve',['../group___fortran__interface__core.html#ga08900a3794c02f6debe2271c9cf3a44d',1,'ddx']]],
-  ['solve_5fadjoint_3',['solve_adjoint',['../group___fortran__interface__core.html#ga795d66b9248a3e250f18c02981548cea',1,'ddx']]]
+  ['setup_0',['setup',['../group___fortran__interface__core.html#ga11cab72b7131d6813962c81a1c2cf231',1,'ddx']]],
+  ['solvation_5fforce_5fterms_1',['solvation_force_terms',['../group___fortran__interface__core.html#ga5e9dc5ac48fa369d47243490a5ddfdb0',1,'ddx']]],
+  ['solve_2',['solve',['../group___fortran__interface__core.html#gaeb639653db4877a4b84c0cb921c1aea6',1,'ddx']]],
+  ['solve_5fadjoint_3',['solve_adjoint',['../group___fortran__interface__core.html#ga5c34c305a9efa2f801f5bb4bc8a55933',1,'ddx']]]
 ];

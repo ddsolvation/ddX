@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['fill_5fguess_0',['fill_guess',['../group___fortran__interface__core.html#gae509e9c05de186cb3588597b14c90b65',1,'ddx']]],
-  ['fill_5fguess_5fadjoint_1',['fill_guess_adjoint',['../group___fortran__interface__core.html#gab234222b75e684877ea9eca93d4f3f4c',1,'ddx']]],
+  ['fill_5fguess_0',['fill_guess',['../group___fortran__interface__core.html#ga5eaf8d73e1bf0c0288757931c817759c',1,'ddx']]],
+  ['fill_5fguess_5fadjoint_1',['fill_guess_adjoint',['../group___fortran__interface__core.html#ga1b4f3cc49e2a69570b9ba360c773c4eb',1,'ddx']]],
   ['finalize_5fprinting_2',['finalize_printing',['../namespaceddx__parameters.html#a74f7b18d32c86cd64e6b155a2cae2581',1,'ddx_parameters']]],
   ['fmm_5fconstants_3',['fmm_constants',['../namespaceddx__harmonics.html#ad9d821757cc745908129ffb88fe2678b',1,'ddx_harmonics']]],
   ['fmm_5fl2l_5fbessel_5fderivative_5fztranslate_5fwork_4',['fmm_l2l_bessel_derivative_ztranslate_work',['../namespaceddx__harmonics.html#a13a059857ca8496d5eb98007a47bf8e4',1,'ddx_harmonics']]],
