@@ -39,10 +39,14 @@ if (WARNING_FLAGS)
     if (CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
         set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -warn all,noexternal")
     else()
-        set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -Wall -Wextra -Wno-compare-reals -std=f90")
+        set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -Wall -Wextra -Wno-compare-reals")
     endif()
 endif()
 
+# Set Fortran 90 standard for GNU Fortran
+if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -std=f2008")
+endif()
 
 # Requirements: Blas, Lapack and OMP
 find_package(BLAS REQUIRED)
