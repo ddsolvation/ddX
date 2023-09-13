@@ -1003,7 +1003,7 @@ subroutine print_spherical(iunit, label, nbasis, lmax, ncol, icol, x)
     integer :: l, m, ind, noff, nprt, ic, j
     ! Print header:
     if (ncol .eq. 1) then
-        write (iunit,'(3x,a,1x,"(column ",i4")")') label, icol
+        write (iunit,'(3x,a,1x,a,i4,a)') label, "(column ", icol, ")"
     else
         write (iunit,'(3x,a)') label
     endif
@@ -1060,7 +1060,7 @@ subroutine print_nodes(iunit, label, ngrid, ncol, icol, x)
     integer :: ig, noff, nprt, ic, j
     ! Print header :
     if (ncol .eq. 1) then
-        write (iunit,'(3x,a,1x,"(column ",i4")")') label, icol
+        write (iunit,'(3x,a,1x,a,i4,a)') label, "(column ", icol, ")"
     else
         write (iunit,'(3x,a)') label
     endif

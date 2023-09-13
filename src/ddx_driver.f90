@@ -28,11 +28,11 @@ real(dp), allocatable :: psi(:, :), force(:, :), charges(:), &
     & multipoles(:, :)
 real(dp) :: tol, esolv, start_time, finish_time
 integer :: i, isph, info
-100 format(X,A,ES11.4E2,A)
-200 format(X,A,I4,A,ES21.14)
-300 format(X,A,I4)
-400 format(X,A,ES25.16E3)
-500 format(X,I5,3ES25.16E3)
+100 format(1X,A,ES11.4E2,A)
+200 format(1X,A,I4,A,ES21.14)
+300 format(1X,A,I4)
+400 format(1X,A,ES25.16E3)
+500 format(1X,I5,3ES25.16E3)
 
 ! Get the input file from the command line arguments
 call getarg(1, fname)

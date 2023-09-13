@@ -25,6 +25,9 @@ set(SRC
 # llgnew is not compliant with the f2008 standard
 set_source_files_properties(llgnew.f PROPERTIES COMPILE_FLAGS "-std=gnu")
 
+# and this warning it is not real problem for cbesself.90
+set_source_files_properties(cbessel.f90 PROPERTIES COMPILE_FLAGS "-Wno-do-subscript")
+
 # Define source files to be build into the python version of ddx
 set(SRC_PYDDX ${SRC} pyddx.cpp pyddx_classes.cpp pyddx_data.cpp)
 

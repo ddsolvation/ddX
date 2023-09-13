@@ -141,7 +141,7 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
         end if
 
         if (params % verbose) then
-            write(params % iunit, '(A,I3,X,A,E10.2)') &
+            write(params % iunit, '(A,I3,1X,A,E10.2)') &
                 & 'Iteration:', it, 'Rel. diff:', rel_diff
             flush(params % iunit)
         end if
