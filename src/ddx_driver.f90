@@ -35,7 +35,7 @@ integer :: i, isph, info
 500 format(1X,I5,3ES25.16E3)
 
 ! Get the input file from the command line arguments
-call getarg(1, fname)
+call get_command_argument(1, fname)
 write(6, *) "Using provided file ", trim(fname), " as a config file"
 
 ! STEP 1: Initialization of the model.

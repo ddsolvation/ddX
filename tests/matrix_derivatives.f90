@@ -76,7 +76,7 @@ real(dp) :: sum_A_plus_h, sum_B_plus_h, sum_A_minus_h, sum_B_minus_h,&
 real(dp), external :: dnrm2, ddot
 
 ! Read input file name
-call getarg(1, fname)
+call get_command_argument(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file 12"
 call ddfromfile(fname, ddx_data, tol, charges, ddx_error)
 call check_error(ddx_error)

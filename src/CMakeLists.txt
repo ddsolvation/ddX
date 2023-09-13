@@ -23,7 +23,12 @@ set(SRC
 )
 
 # llgnew is not compliant with the f2008 standard
-set_source_files_properties(llgnew.f PROPERTIES COMPILE_FLAGS "-std=gnu")
+if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+    set_source_files_properties(llgnew.f PROPERTIES COMPILE_FLAGS "-std=gnu")
+endif()
+if (CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+    set_source_files_properties(llgnew.f PROPERTIES COMPILE_FLAGS "-stand none")
+endif()
 
 # and this warning it is not real problem for cbesself.90
 set_source_files_properties(cbessel.f90 PROPERTIES COMPILE_FLAGS "-Wno-do-subscript")

@@ -47,7 +47,9 @@ endif()
 if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -std=f2008 -fall-intrinsics")
 endif()
-
+if (CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -stand f08")
+endif()
 # Requirements: Blas, Lapack and OMP
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
