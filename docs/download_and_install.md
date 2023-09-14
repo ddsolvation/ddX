@@ -46,6 +46,10 @@ Copy the link shown by pwd and add /index.html in a web browser
 #### Hints and hacks
 1. For specifying compilers use
 ``` markdown
-cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_C_COMPILER=/usr/local/bin/gcc-11 ..
+cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_Fortran_COMPILER=/usr/local/bin/gcc-11 ..
+```
+or
+``` markdown
+cmake -D CMAKE_CXX_COMPILER=icx CMAKE_Fortran_COMPILER=ifort ..
 ```
 **NOTE**: Replace g++-11 and gcc-11 with the compilers you desire
