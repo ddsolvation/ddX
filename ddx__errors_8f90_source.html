@@ -117,7 +117,7 @@ $(document).ready(function(){initNavTree('ddx__errors_8f90_source.html',''); ini
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    <span class="keywordtype">type</span>(<a class="code hl_struct" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), <span class="keywordtype">intent(in)</span> :: ddx_error</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="keywordflow">if</span> (ddx_error % flag .ne. 0) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>        <span class="keyword">call </span>print_error(ddx_error)</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>        stop ddx_error % flag</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>        stop 1</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keyword">end subroutine </span>check_error</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>

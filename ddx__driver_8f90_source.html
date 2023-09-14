@@ -111,14 +111,14 @@ $(document).ready(function(){initNavTree('ddx__driver_8f90_source.html',''); ini
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    &amp; multipoles(:, :)</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keywordtype">real(dp)</span> :: tol, esolv, start_time, finish_time</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keywordtype">integer</span> :: i, isph, info</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>100 <span class="keyword">format</span>(x,a,es11.4e2,a)</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>200 <span class="keyword">format</span>(x,a,i4,a,es20.14)</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>300 <span class="keyword">format</span>(x,a,i4)</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>400 <span class="keyword">format</span>(x,a,es25.16e3)</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>500 <span class="keyword">format</span>(x,i5,3es25.16e3)</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>100 <span class="keyword">format</span>(1x,a,es11.4e2,a)</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>200 <span class="keyword">format</span>(1x,a,i4,a,es21.14)</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>300 <span class="keyword">format</span>(1x,a,i4)</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>400 <span class="keyword">format</span>(1x,a,es25.16e3)</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>500 <span class="keyword">format</span>(1x,i5,3es25.16e3)</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="comment">! Get the input file from the command line arguments</span></div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="keyword">call </span>getarg(1, fname)</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="keyword">call </span>get_command_argument(1, fname)</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="keyword">write</span>(6, *) <span class="stringliteral">&quot;Using provided file &quot;</span>, trim(fname), <span class="stringliteral">&quot; as a config file&quot;</span></div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="comment">! STEP 1: Initialization of the model.</span></div>

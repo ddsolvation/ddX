@@ -133,7 +133,6 @@ var NAVTREEINDEX1 =
 "label_references.html":[7],
 "label_run_as_standalone.html":[2],
 "llgnew_8f_source.html":[12,0,0,21],
-"matrix__debug_8f90_source.html":[12,0,0,22],
 "md_docs_ddstory.html":[5],
 "md_docs_theory.html":[4],
 "md_docs_theory.html#autotoc_md12":[4,0],
@@ -249,5 +248,6 @@ var NAVTREEINDEX1 =
 "namespaceddx__gradients.html#af8d17825330c3a1e528bf554c847df45":[10,0,5,13],
 "namespaceddx__gradients.html#afeba6e2eca193ec8272046ee9be64227":[10,0,5,11],
 "namespaceddx__harmonics.html":[10,0,6],
-"namespaceddx__harmonics.html#a00c5ff3e46e5eb64eba38eee2b5f0751":[10,0,6,0]
+"namespaceddx__harmonics.html#a00c5ff3e46e5eb64eba38eee2b5f0751":[10,0,6,0],
+"namespaceddx__harmonics.html#a01fc177160fca45173657a5e7e7d5c67":[10,0,6,13]
 };

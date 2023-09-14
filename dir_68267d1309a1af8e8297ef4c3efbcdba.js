@@ -21,6 +21,5 @@ var dir_68267d1309a1af8e8297ef4c3efbcdba =
     [ "ddx_pcm.f90", "ddx__pcm_8f90.html", "ddx__pcm_8f90" ],
     [ "ddx_solvers.f90", "ddx__solvers_8f90.html", "ddx__solvers_8f90" ],
     [ "ddx_workspace.f90", "ddx__workspace_8f90.html", "ddx__workspace_8f90" ],
-    [ "llgnew.f", "llgnew_8f_source.html", null ],
-    [ "matrix_debug.f90", "matrix__debug_8f90_source.html", null ]
+    [ "llgnew.f", "llgnew_8f_source.html", null ]
 ];

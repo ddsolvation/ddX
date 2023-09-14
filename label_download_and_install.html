@@ -119,8 +119,9 @@ Source code</h1>
 <h3><a class="anchor" id="autotoc_md3"></a>
 Hints and hacks</h3>
 <ol type="1">
-<li>For specifying compilers use <div class="fragment"><div class="line">cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_C_COMPILER=/usr/local/bin/gcc-11 ..</div>
-</div><!-- fragment --> <b>NOTE</b>: Replace g++-11 and gcc-11 with the compilers you desire </li>
+<li>For specifying compilers use <div class="fragment"><div class="line">cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_Fortran_COMPILER=/usr/local/bin/gfortran-11 ..</div>
+</div><!-- fragment --> or <div class="fragment"><div class="line">cmake -D CMAKE_CXX_COMPILER=icx CMAKE_Fortran_COMPILER=ifort ..</div>
+</div><!-- fragment --> <b>NOTE</b>: Replace with the compilers you desire. </li>
 </ol>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
