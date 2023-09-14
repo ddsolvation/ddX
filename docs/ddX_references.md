@@ -19,9 +19,9 @@ The relevant literature for the ddCOSMO, ddPCM and ddLPB method is listed below.
 
 [7] <a href="https://doi.org/10.1002/qua.25669" target="_blank">B. Stamm, L. Lagardère, G. Scalmani, P. Gatto, E. Cances, J. Piquemal, Y. Maday, B. Mennucci, F. Lipparini, How to make continuum solvation incredibly fast in a few simple steps: a practical guide to the domain decomposition paradigm for the Conductor-like Screening Model, Int. J. Quantum Chem. (2019)</a>
 
-[8] <a href="https://doi.org/10.1021/acs.jpcb.2c04579" target="_blank">M. Nottoli, A.Mikhalev, B. Stamm, F. Lipparini, Coarse-Graining ddCOSMO through an Interface between Tinker and the ddX Library, J. Phys. Chem. B, Vol. 157, (2022)</a>
+[8] <a href="https://doi.org/10.1021/acs.jpcb.2c04579" target="_blank">M. Nottoli, A. Mikhalev, B. Stamm, F. Lipparini, Coarse-Graining ddCOSMO through an Interface between Tinker and the ddX Library, J. Phys. Chem. B, Vol. 157, (2022)</a>
 
-[9] <a href="https://doi.org/10.1021/acs.jctc.1c00555" target="_blank">M. Nottoli, R. Nifosì, B. Mennucci, F. Lipparini, J. Chem. Theory Comput., Vol. 17, No. 9, pp. 5661--5672 (2021)</a>
+[9] <a href="https://doi.org/10.1021/acs.jctc.1c00555" target="_blank">M. Nottoli, R. Nifosì, B. Mennucci, F. Lipparini, Energy, Structures, and Response Properties with a Fully Coupled QM/AMOEBA/ddCOSMO Implementation, J. Chem. Theory Comput., Vol. 17, No. 9, pp. 5661--5672 (2021)</a>
 
 <br />
 #### ddPCM: 
@@ -31,11 +31,11 @@ The relevant literature for the ddCOSMO, ddPCM and ddLPB method is listed below.
 
 [12] <a href="https://doi.org/10.1021/acs.jctc.9b00640" target="_blank">M. Nottoli, B. Stamm, G. Scalmani, F. Lipparini, Quantum calculations in solution of energies, structures and properties with a domain decomposition polarizable continuum model, J. Chem. Theory Comput., Vol. 15, No. 11, pp. 6061–6073 (2019)</a>
 
-[13] <a href="https://doi.org/10.1063/5.0104536" target="_blank">A.Mikhalev, M. Nottoli, B. Stamm, Linearly scaling computation of ddPCM solvation energy and forces using the fast multipole method, J. Chem. Physics, Vol. 157, 114103 (2022)</a>
+[13] <a href="https://doi.org/10.1063/5.0104536" target="_blank">A. Mikhalev, M. Nottoli, B. Stamm, Linearly scaling computation of ddPCM solvation energy and forces using the fast multipole method, J. Chem. Physics, Vol. 157, 114103 (2022)</a>
 
 <br />
 #### ddLPB: 
 [14] <a href="https://doi.org/10.1137/18M119553X" target="_blank">Ch. Quan, B. Stamm, Y. Maday, A Domain Decomposition Method for the Poisson-Boltzmann Solvation Models, SIAM J. Sci. Comput., Vol. 41, No. 2, pp. B320-B350, (2019)</a>
 
-[15] <a href="https://doi.org/10.48550/arXiv.2203.00552" target="_blank">A. Jha, M. Nottoli, Ch. Quan, B. Stamm, Computation of forces arising from the linear Poisson--Boltzmann method in the domain-decomposition paradigm, arXiv 2203.00552 (2022)</a>
+[15] <a href="https://doi.org/10.1063/5.0141025" target="_blank">A. Jha, M. Nottoli, A. Mikhalev, Ch. Quan, B. Stamm, Linear scaling computation of forces for the domain-decomposition linear Poisson–Boltzmann method, J. Chem. Physics, Vol. 158, 104105 (2023)</a>
 
