@@ -33,7 +33,7 @@ real(dp), external :: dnrm2
 character(len=255) :: dummy_file_name = ''
 
 ! Read input file name
-call getarg(1, fname)
+call get_command_argument(1, fname)
 write(*, *) "Using provided file ", trim(fname), " as a config file"
 call ddfromfile(fname, ddx_data, tol, charges, ddx_error)
 call check_error(ddx_error)

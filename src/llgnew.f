@@ -7,7 +7,7 @@ c
       integer ngmax,ngrid
       parameter(ngmax=5810)
       integer n,i
-      real*8 w(*),grid(3,*), four
+      real*8 w(*),grid(3,*), one, four, pi
       real*8 wtemp(ngmax),x(ngmax),y(ngmax),z(ngmax)
       save one, four
       data one/1.0d0/, four /4.0d0/

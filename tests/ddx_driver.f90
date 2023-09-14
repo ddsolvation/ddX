@@ -28,11 +28,11 @@ integer :: i, isph, istatus
 real(dp), external :: dnrm2
 
 ! Read input file name
-call getarg(1, finname)
+call get_command_argument(1, finname)
 ! Read output file name
-call getarg(2, foutname)
+call get_command_argument(2, foutname)
 ! Read accuracy threshold
-call getarg(3, tmpstr)
+call get_command_argument(3, tmpstr)
 read(tmpstr, *) threshold
 ! Init input from a file
 call ddfromfile(finname, ddx_data, tol, charges, ddx_error)

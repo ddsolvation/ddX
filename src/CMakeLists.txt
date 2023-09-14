@@ -22,11 +22,22 @@ set(SRC
     ddx_cinterface.f90
 )
 
+# llgnew is not compliant with the f2008 standard
+if (CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+    set_source_files_properties(llgnew.f PROPERTIES COMPILE_FLAGS "-std=gnu")
+endif()
+if (CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+    set_source_files_properties(llgnew.f PROPERTIES COMPILE_FLAGS "-stand none")
+endif()
+
+# and this warning it is not real problem for cbesself.90
+set_source_files_properties(cbessel.f90 PROPERTIES COMPILE_FLAGS "-Wno-do-subscript")
+
 # Define source files to be build into the python version of ddx
 set(SRC_PYDDX ${SRC} pyddx.cpp pyddx_classes.cpp pyddx_data.cpp)
 
 # Define source files for the ddx.so shared library
-set(SRC_DDX ${SRC} matrix_debug.f90)
+set(SRC_DDX ${SRC})
 
 #
 # Python build
