@@ -46,7 +46,7 @@ Copy the link shown by pwd and add /index.html in a web browser
 #### Hints and hacks
 1. For specifying compilers use
 ```
-cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_Fortran_COMPILER=/usr/local/bin/gcc-11 ..
+cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_Fortran_COMPILER=/usr/local/bin/gfortran-11 ..
 ```
 or
 ```
