@@ -7,7 +7,7 @@ if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
         "directory. Example: mkdir build && cd build && cmake ..")
 endif()
 
-project(ddX VERSION 0.5.1 LANGUAGES Fortran CXX)
+project(ddX VERSION 0.6.0 LANGUAGES Fortran CXX)
 # If ddX is a subproject, append ddx_ prefix to all targets.
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(ddx_is_subproject false)
