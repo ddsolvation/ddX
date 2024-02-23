@@ -67,6 +67,7 @@ if (DDX_LIBRARY)
         ${BLAS_LIBRARIES}
         ${LAPACK_LIBRARIES}
         OpenMP::OpenMP_Fortran)
+    target_link_libraries(ddx PUBLIC ${EXTERNAL_INSTALL_LOCATION}/lib/libfmm/libfmm_lib.so)
     if(COVERAGE)
         target_link_libraries(ddx PRIVATE gcov)
     endif()

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.2.3)
+include(ExternalProject)
 
 # Restrict building in top-level directory
 if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
@@ -48,6 +49,18 @@ endif()
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
 find_package(OpenMP REQUIRED)
+
+
+# Automatically install the FMM library
+set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
+ExternalProject_Add(fmm_lib
+                    GIT_REPOSITORY git@molimen1.dcci.unipi.it:molecolab/fmm-lib.git
+                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
+                               -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
+                               -DCMAKE_Fortan_FLAGS=${CMAKE_Fortran_FLAGS}
+)
+include_directories(${EXTERNAL_INSTALL_LOCATION}/include/libfmm)
+link_directories(${EXTERNAL_INSTALL_LOCATION}/lib64/libfmm)
 
 # Coverage compiler flag setup
 option(COVERAGE "Generate code coverage report" OFF)
