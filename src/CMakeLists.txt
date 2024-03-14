@@ -20,6 +20,8 @@ set(SRC
     llgnew.f
     cbessel.f90
     ddx_cinterface.f90
+    mod_profiling.f90
+    ddx_fmm.f90
 )
 
 # llgnew is not compliant with the f2008 standard

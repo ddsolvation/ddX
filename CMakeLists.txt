@@ -54,7 +54,7 @@ find_package(OpenMP REQUIRED)
 # Automatically install the FMM library
 set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
 ExternalProject_Add(fmm_lib
-                    GIT_REPOSITORY git@molimen1.dcci.unipi.it:molecolab/fmm-lib.git
+                    GIT_REPOSITORY michele@localhost:git_repo/fmm_lib
                     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
                                -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
                                -DCMAKE_Fortan_FLAGS=${CMAKE_Fortran_FLAGS}

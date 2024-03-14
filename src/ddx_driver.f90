@@ -95,8 +95,10 @@ end if
 multipoles(1, :) = charges/sqrt4pi
 
 ! compute the required electrostatics properties for a multipolar solute
+call time_push()
 call multipole_electrostatics(ddx_data % params, ddx_data % constants, &
     & ddx_data % workspace, multipoles, 0, electrostatics, ddx_error)
+call time_pull("RHS")
 
 finish_time = omp_get_wtime()
 write(*, 100) "Electrostatic properties time:", finish_time-start_time, &

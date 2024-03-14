@@ -4,6 +4,8 @@ module ddx_multipolar_solutes
 use ddx_definitions
 use ddx_core
 use ddx_gradients
+use fmmlib_interface
+use ddx_fmm
 
 implicit none
 
@@ -355,12 +357,24 @@ subroutine multipole_electrostatics_0(params, constants, workspace, multipoles, 
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
     real(dp), intent(out) :: phi_cav(constants % ncav)
+    real(dp):: phi_ref(constants % ncav)
+    integer:: i
     if (params % fmm .eq. 0) then
         call build_phi_dense(multipoles, params % csph, mmax, params % nsph, &
             & phi_cav, constants % ccav, constants % ncav, ddx_error)
     else if (params % fmm .eq. 1) then
+        phi_cav = zero
         call build_phi_fmm(params, constants, workspace, multipoles, mmax, &
             & phi_cav)
+        phi_ref = phi_cav
+        phi_cav = zero
+        call build_phi_fmm_old(params, constants, workspace, multipoles, mmax, &
+            & phi_cav)
+
+        do i = 1, constants % ncav
+            write(6, *) phi_ref(i), phi_cav(i), phi_ref(i) - phi_cav(i)
+        end do
+        stop
     end if
 end subroutine multipole_electrostatics_0
 
@@ -779,12 +793,59 @@ end subroutine build_g_fmm
 !! @param[in] params: ddx parameters
 !! @param[in]  constants: ddx constants
 !! @param[inout] workspace: ddx workspace
+!! @param[in] multipoles: multipoles as real spherical harmonics, 
+!!     size ((mmax+1)**2, nsph)
+!! @param[in] mmax: maximum angular momentum of the multipoles
+!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!!
+subroutine build_phi_fmm(params, constants, workspace, multipoles, mmax, &
+        & phi_cav)
+    implicit none
+    type(ddx_params_type), intent(in):: params
+    type(ddx_constants_type), intent(in):: constants
+    type(ddx_workspace_type), intent(inout):: workspace
+    integer, intent(in):: mmax
+    real(dp), intent(in):: multipoles((mmax+1)**2, params % nsph)
+    real(dp), intent(out):: phi_cav(constants % ncav)
+    ! local variables
+    integer isph, igrid, icav
+    real(dp):: lebedev_v(params % ngrid), lebedev_e(3, params % ngrid), &
+        & lebedev_g(3, 3, params % ngrid)
+
+    call tree_p2m(workspace % fmm_obj, multipoles, mmax)
+    call tree_m2m(workspace % fmm_obj)
+    call tree_m2l(workspace % fmm_obj)
+    call tree_l2l(workspace % fmm_obj)
+
+    icav = 0
+    do isph = 1, params % nsph
+        lebedev_v = zero
+        call cart_propfar_lebedev(workspace % fmm_obj, params, constants, &
+            & isph, .true., lebedev_v, .false., lebedev_e, .false., lebedev_g)
+        call cart_propnear_lebedev(workspace % fmm_obj, params, constants, &
+            & isph, .true., lebedev_v, .false., lebedev_e, .false., lebedev_g, &
+            & .true.)
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .gt. zero) then
+                icav = icav+1
+                phi_cav(icav) = lebedev_v(igrid)
+            end if
+        end do
+    end do
+
+end subroutine build_phi_fmm
+
+!> Given a multipolar distribution, compute the potential at the target points
+!> using FMMs.
+!! @param[in] params: ddx parameters
+!! @param[in]  constants: ddx constants
+!! @param[inout] workspace: ddx workspace
 !! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2,nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
 !! @param[out] phi_cav: electric potential at the target points, size (ncav)
 !!
-subroutine build_phi_fmm(params, constants, workspace, multipoles, mmax, &
+subroutine build_phi_fmm_old(params, constants, workspace, multipoles, mmax, &
         & phi_cav)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -799,14 +860,14 @@ subroutine build_phi_fmm(params, constants, workspace, multipoles, mmax, &
     ! copy the multipoles in the right places
     call load_m(params, constants, workspace, multipoles, mmax)
 
-    ! perform the m2m, m2l and l2l steps
+    ! perform the m2m, m2l and l2l steps, far field
     call do_fmm(params, constants, workspace)
 
-    ! near field
+    ! near field without the diagonal
     call tree_m2p(params, constants, params % lmax, one, &
         & workspace % tmp_sph, one, workspace % tmp_grid)
 
-    ! Potential from each sphere to its own grid points (l2p)
+    ! near field diagonal
     call dgemm('T', 'N', params % ngrid, params % nsph, &
        & constants % nbasis, one, constants % vgrid2, &
        & constants % vgrid_nbasis, workspace % tmp_sph, &
@@ -823,7 +884,7 @@ subroutine build_phi_fmm(params, constants, workspace, multipoles, mmax, &
         end do
     end do
 
-end subroutine build_phi_fmm
+end subroutine build_phi_fmm_old
 
 !> @ingroup Fortran_interface_multipolar
 !> Given a multipolar distribution, assemble the RHS psi.
