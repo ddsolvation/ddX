@@ -12,7 +12,6 @@ contains
 
 subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
         & do_v, v, do_e, e, do_g, g)
-
     implicit none
 
     type(fmm_type), intent(in):: fmm_obj
@@ -26,7 +25,6 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
     integer:: inode
 
     inode = fmm_obj % tree % particle_to_node(isph)
-    write(6, *) "new fmm @ ", isph, fmm_obj % local_expansion(:, inode)
 
     call dgemv("T", (params % pl+1)**2, params % ngrid, one, &
         & constants % vgrid2, constants % vgrid_nbasis, &
@@ -72,22 +70,17 @@ subroutine cart_propnear_lebedev(fmm_obj, params, constants, isph, &
             r_t = t%node_dimension(i_node)
             c_st = t%node_centroid(:,j_node) - t%node_centroid(:,i_node) &
                 & - r_t*constants%cgrid(:,igrid)
-            call fmm_m2l(c_st, &
-                         r_s, &
-                         r_t, &
-                         fmm_obj%pmax_mm, &
-                         fmm_obj%pmax_le, &
-                         fmm_obj%multipoles(:,j_node), &
-                         local_tmp)
+            call fmm_m2l(c_st, r_s, r_t, fmm_obj%pmax_mm, fmm_obj%pmax_le, &
+                & fmm_obj%multipoles(:,j_node), local_tmp)
             if(do_v) then
                 v(igrid) = v(igrid) + sqrt(4.0*pi)*local_tmp(1)
             end if
 
-            !if(do_E) then
-            !    E(3) = E(3) - sqrt(4.0/3.0*pi) * local_tmp(3) 
-            !    E(1) = E(1) - sqrt(4.0/3.0*pi) * local_tmp(4) 
-            !    E(2) = E(2) - sqrt(4.0/3.0*pi) * local_tmp(2)
-            !end if
+            if(do_e) then
+                e(3,igrid) = e(3,igrid) - sqrt(4.0/3.0*pi) * local_tmp(3)/r_t
+                e(1,igrid) = e(1,igrid) - sqrt(4.0/3.0*pi) * local_tmp(4)/r_t
+                e(2,igrid) = e(2,igrid) - sqrt(4.0/3.0*pi) * local_tmp(2)/r_t
+            end if
 
             !if(do_grdE) then
             !    x2_y2 = sqrt(16.0*pi/15.0) * local_tmp(9) * 3.0
@@ -107,24 +100,18 @@ subroutine cart_propnear_lebedev(fmm_obj, params, constants, isph, &
         do igrid = 1, params % ngrid
             r_s = t%node_dimension(i_node)
             r_t = t%node_dimension(i_node)
-            c_st = t%node_centroid(:,i_node) - t%node_centroid(:,i_node) &
-                & - r_t*constants%cgrid(:,igrid)
-            call fmm_m2l(c_st, &
-                         r_s, &
-                         r_t, &
-                         fmm_obj%pmax_mm, &
-                         fmm_obj%pmax_le, &
-                         fmm_obj%multipoles(:,i_node), &
-                         local_tmp)
+            c_st = - r_t*constants%cgrid(:,igrid)
+            call fmm_m2l(c_st, r_s, r_t, fmm_obj%pmax_mm, fmm_obj%pmax_le, &
+                         fmm_obj%multipoles(:,i_node), local_tmp)
             if(do_v) then
                 v(igrid) = v(igrid) + sqrt(4.0*pi)*local_tmp(1)
             end if
 
-            !if(do_E) then
-            !    E(3) = E(3) - sqrt(4.0/3.0*pi) * local_tmp(3) 
-            !    E(1) = E(1) - sqrt(4.0/3.0*pi) * local_tmp(4) 
-            !    E(2) = E(2) - sqrt(4.0/3.0*pi) * local_tmp(2)
-            !end if
+            if(do_e) then
+                e(3,igrid) = e(3,igrid) - sqrt(4.0/3.0*pi) * local_tmp(3)/r_t
+                e(1,igrid) = e(1,igrid) - sqrt(4.0/3.0*pi) * local_tmp(4)/r_t
+                e(2,igrid) = e(2,igrid) - sqrt(4.0/3.0*pi) * local_tmp(2)/r_t
+            end if
 
             !if(do_grdE) then
             !    x2_y2 = sqrt(16.0*pi/15.0) * local_tmp(9) * 3.0

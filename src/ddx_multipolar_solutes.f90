@@ -6,6 +6,7 @@ use ddx_core
 use ddx_gradients
 use fmmlib_interface
 use ddx_fmm
+use mod_profiling
 
 implicit none
 
@@ -231,13 +232,13 @@ end subroutine build_g_dense
 !! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[out] v_cav: electric potential at the target points, size (ncav)
 !! @param[out] e_cav: electric field at the target points,
 !!     size (3, ncav)
 !! @param[inout] ddx_error: ddX error
 !!
 subroutine multipole_electrostatics_1(params, constants, workspace, multipoles, &
-        & mmax, phi_cav, e_cav, ddx_error)
+        & mmax, v_cav, e_cav, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -245,19 +246,42 @@ subroutine multipole_electrostatics_1(params, constants, workspace, multipoles, 
     type(ddx_error_type), intent(inout) :: ddx_error
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
-    real(dp), intent(out) :: phi_cav(constants % ncav)
+    real(dp), intent(out) :: v_cav(constants % ncav)
     real(dp), intent(out) :: e_cav(3, constants % ncav)
+    real(dp) :: e_ref(3, constants % ncav), v_ref(constants % ncav)
+    integer :: i
     if (params % fmm .eq. 0) then
         call build_e_dense(multipoles, params % csph, mmax, params % nsph, &
-            & phi_cav, constants % ccav, constants % ncav, e_cav, ddx_error)
+            & v_cav, constants % ccav, constants % ncav, e_cav, ddx_error)
     else if (params % fmm .eq. 1) then
-        call build_e_fmm(params, constants, workspace, multipoles, &
-            & mmax, phi_cav, e_cav, ddx_error)
+        e_cav = zero
+        call time_push()
+        call electrostatics_fmm(params, constants, workspace, multipoles, mmax, &
+            & .true., .true., .false., v_cav=v_cav, e_cav=e_cav)
+        call time_pull("NEW")
+        e_ref = e_cav
+        v_ref = v_cav
+
+        e_cav = zero
+        v_cav = zero
+        call time_push()
+        call build_e_fmm_old(params, constants, workspace, multipoles, &
+            & mmax, v_cav, e_cav, ddx_error)
+        call time_pull("OLD")
+
+        do i = 1, constants % ncav
+            write(6, "(3D15.5)") v_ref(i), v_cav(i), v_ref(i) - v_cav(i)
+        end do
+        write(6,*)
+        do i = 1, constants % ncav
+            write(6, "(9D15.5)") e_cav(:,i), e_ref(:,i), e_cav(:,i) - e_ref(:,i)
+        end do
+        stop
     end if
 end subroutine multipole_electrostatics_1
 
 !> Given a multipolar distribution, compute the potential and its gradient
-!> at the target points using a N^2 code. 
+!> at the target points using a N^2 code.
 !> As this routine does not use the FMM machinery it is more flexible and
 !> accepts arbitrary sources and targets.
 !! @param[in] multipoles: multipoles as real spherical harmonics,
@@ -344,11 +368,11 @@ end subroutine build_e_dense
 !! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[out] v_cav: electric potential at the target points, size (ncav)
 !! @param[inout] ddx_error: ddX error
 !!
 subroutine multipole_electrostatics_0(params, constants, workspace, multipoles, &
-        & mmax, phi_cav, ddx_error)
+        & mmax, v_cav, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -356,23 +380,27 @@ subroutine multipole_electrostatics_0(params, constants, workspace, multipoles, 
     type(ddx_error_type), intent(inout) :: ddx_error
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
-    real(dp), intent(out) :: phi_cav(constants % ncav)
-    real(dp):: phi_ref(constants % ncav)
-    integer:: i
+    real(dp), intent(out) :: v_cav(constants % ncav)
+    real(dp) :: v_ref(constants % ncav)
+    integer :: i
     if (params % fmm .eq. 0) then
         call build_phi_dense(multipoles, params % csph, mmax, params % nsph, &
-            & phi_cav, constants % ccav, constants % ncav, ddx_error)
+            & v_cav, constants % ccav, constants % ncav, ddx_error)
     else if (params % fmm .eq. 1) then
-        phi_cav = zero
-        call build_phi_fmm(params, constants, workspace, multipoles, mmax, &
-            & phi_cav)
-        phi_ref = phi_cav
-        phi_cav = zero
+        v_cav = zero
+        call time_push()
+        call electrostatics_fmm(params, constants, workspace, multipoles, mmax, &
+            & .true., .false., .false., v_cav=v_cav)
+        call time_pull("NEW")
+        v_ref = v_cav
+        v_cav = zero
+        call time_push()
         call build_phi_fmm_old(params, constants, workspace, multipoles, mmax, &
-            & phi_cav)
+            & v_cav)
+        call time_pull("OLD")
 
         do i = 1, constants % ncav
-            write(6, *) phi_ref(i), phi_cav(i), phi_ref(i) - phi_cav(i)
+            write(6, *) v_ref(i), v_cav(i), v_ref(i) - v_cav(i)
         end do
         stop
     end if
@@ -445,7 +473,7 @@ end subroutine build_phi_dense
 !!     size(3, ncav)
 !! @param[inout] ddx_error: ddX error
 !!
-subroutine build_e_fmm(params, constants, workspace, multipoles, &
+subroutine build_e_fmm_old(params, constants, workspace, multipoles, &
         & mmax, phi_cav, e_cav, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
@@ -479,13 +507,12 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
     call load_m(params, constants, workspace, multipoles, mmax)
 
     ! perform the m2m, m2l and l2l steps
+    ! including far field potential
     call do_fmm(params, constants, workspace)
 
-    ! near field potential (m2p)
+    ! near field potential
     call tree_m2p(params, constants, params % lmax, one, &
         & workspace % tmp_sph, one, workspace % tmp_grid)
-
-    ! far field potential, each sphere at its own points (l2p)
     call dgemm('T', 'N', params % ngrid, params % nsph, &
         & constants % nbasis, one, constants % vgrid2, &
         & constants % vgrid_nbasis, workspace % tmp_sph, &
@@ -519,14 +546,14 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
     end do
 
     ! far-field FMM gradients (only if pl > 0)
-    if (params % pl .gt. 0) then
-        call tree_grad_l2l(params, constants, workspace % tmp_node_l, &
-            & workspace % tmp_sph_l_grad, workspace % tmp_sph_l)
-        call dgemm('T', 'N', params % ngrid, 3*params % nsph, &
-            & (params % pl)**2, one, constants % vgrid2, &
-            & constants % vgrid_nbasis, workspace % tmp_sph_l_grad, &
-            & (params % pl+1)**2, one, grid_grad, params % ngrid)
-    end if
+    !if (params % pl .gt. 0) then
+    !    call tree_grad_l2l(params, constants, workspace % tmp_node_l, &
+    !        & workspace % tmp_sph_l_grad, workspace % tmp_sph_l)
+    !    call dgemm('T', 'N', params % ngrid, 3*params % nsph, &
+    !        & (params % pl)**2, one, constants % vgrid2, &
+    !        & constants % vgrid_nbasis, workspace % tmp_sph_l_grad, &
+    !        & (params % pl+1)**2, one, grid_grad, params % ngrid)
+    !end if
 
     ! discard the internal points
     icav = 0
@@ -545,7 +572,7 @@ subroutine build_e_fmm(params, constants, workspace, multipoles, &
         return
     end if
 
-end subroutine build_e_fmm
+end subroutine build_e_fmm_old
 
 !> Given a multipolar distribution, compute the potential, the field
 !> and the field gradient at the target points using FMMs.
@@ -793,20 +820,22 @@ end subroutine build_g_fmm
 !! @param[in] params: ddx parameters
 !! @param[in]  constants: ddx constants
 !! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics, 
+!! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
 !! @param[out] phi_cav: electric potential at the target points, size (ncav)
 !!
-subroutine build_phi_fmm(params, constants, workspace, multipoles, mmax, &
-        & phi_cav)
+subroutine electrostatics_fmm(params, constants, workspace, multipoles, mmax, &
+        & do_v, do_e, do_g, v_cav, e_cav, g_cav)
     implicit none
     type(ddx_params_type), intent(in):: params
     type(ddx_constants_type), intent(in):: constants
     type(ddx_workspace_type), intent(inout):: workspace
+    logical, intent(in) :: do_v, do_e, do_g
     integer, intent(in):: mmax
     real(dp), intent(in):: multipoles((mmax+1)**2, params % nsph)
-    real(dp), intent(out):: phi_cav(constants % ncav)
+    real(dp), optional, intent(out):: v_cav(constants % ncav), &
+        & e_cav(3, constants % ncav), g_cav(3, 3, constants % ncav)
     ! local variables
     integer isph, igrid, icav
     real(dp):: lebedev_v(params % ngrid), lebedev_e(3, params % ngrid), &
@@ -820,20 +849,22 @@ subroutine build_phi_fmm(params, constants, workspace, multipoles, mmax, &
     icav = 0
     do isph = 1, params % nsph
         lebedev_v = zero
+        lebedev_e = zero
         call cart_propfar_lebedev(workspace % fmm_obj, params, constants, &
-            & isph, .true., lebedev_v, .false., lebedev_e, .false., lebedev_g)
+            & isph, do_v, lebedev_v, .false., lebedev_e, do_g, lebedev_g)
         call cart_propnear_lebedev(workspace % fmm_obj, params, constants, &
-            & isph, .true., lebedev_v, .false., lebedev_e, .false., lebedev_g, &
-            & .true.)
+            & isph, do_v, lebedev_v, do_e, lebedev_e, do_g, lebedev_g, .true.)
         do igrid = 1, params % ngrid
             if (constants % ui(igrid, isph) .gt. zero) then
                 icav = icav+1
-                phi_cav(icav) = lebedev_v(igrid)
+                if (do_v) v_cav(icav) = lebedev_v(igrid)
+                if (do_e) e_cav(:, icav) = lebedev_e(:, igrid)
+                if (do_g) g_cav(:, :, icav) = lebedev_g(:, :, igrid)
             end if
         end do
     end do
 
-end subroutine build_phi_fmm
+end subroutine electrostatics_fmm
 
 !> Given a multipolar distribution, compute the potential at the target points
 !> using FMMs.
