@@ -14,22 +14,29 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
         & do_v, v, do_e, e, do_g, g)
     implicit none
 
-    type(fmm_type), intent(in):: fmm_obj
-    type(ddx_params_type), intent(in):: params
-    type(ddx_constants_type), intent(in):: constants
-    integer, intent(in):: isph
-    logical, intent(in):: do_v, do_e, do_g
-    real(dp), intent(inout):: v(params % ngrid), e(3, params % ngrid), &
+    type(fmm_type), intent(in) :: fmm_obj
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph
+    logical, intent(in) :: do_v, do_e, do_g
+    real(dp), intent(inout) :: v(params % ngrid), e(3, params % ngrid), &
         & g(3, 3, params % ngrid)
 
-    integer:: inode
+    real(dp) :: r_t, local_expansion((params % pl+1)**2), fac
+    integer :: inode, l, m, ind
 
     inode = fmm_obj % tree % particle_to_node(isph)
+    r_t = fmm_obj % tree % node_dimension(inode)
+    local_expansion = fmm_obj % local_expansion(:, inode)
+
+    do l = 0, params % pl
+        ind = l*l + l + 1
+        local_expansion(ind-l:ind+l) = local_expansion(ind-l:ind+l)*r_t**l
+    end do
 
     call dgemv("T", (params % pl+1)**2, params % ngrid, one, &
         & constants % vgrid2, constants % vgrid_nbasis, &
-        & fmm_obj % local_expansion(:, inode), 1, one, &
-        & v, 1)
+        & local_expansion, 1, one, v, 1)
 
 end subroutine
 
@@ -70,16 +77,16 @@ subroutine cart_propnear_lebedev(fmm_obj, params, constants, isph, &
             r_t = t%node_dimension(i_node)
             c_st = t%node_centroid(:,j_node) - t%node_centroid(:,i_node) &
                 & - r_t*constants%cgrid(:,igrid)
-            call fmm_m2l(c_st, r_s, r_t, fmm_obj%pmax_mm, fmm_obj%pmax_le, &
+            call fmm_m2l(c_st, 1.0d0, 1.0d0, fmm_obj%pmax_mm, fmm_obj%pmax_le, &
                 & fmm_obj%multipoles(:,j_node), local_tmp)
             if(do_v) then
                 v(igrid) = v(igrid) + sqrt(4.0*pi)*local_tmp(1)
             end if
 
             if(do_e) then
-                e(3,igrid) = e(3,igrid) - sqrt(4.0/3.0*pi) * local_tmp(3)/r_t
-                e(1,igrid) = e(1,igrid) - sqrt(4.0/3.0*pi) * local_tmp(4)/r_t
-                e(2,igrid) = e(2,igrid) - sqrt(4.0/3.0*pi) * local_tmp(2)/r_t
+                e(3,igrid) = e(3,igrid) - sqrt(4.0/3.0*pi) * local_tmp(3)
+                e(1,igrid) = e(1,igrid) - sqrt(4.0/3.0*pi) * local_tmp(4)
+                e(2,igrid) = e(2,igrid) - sqrt(4.0/3.0*pi) * local_tmp(2)
             end if
 
             !if(do_grdE) then
@@ -101,16 +108,16 @@ subroutine cart_propnear_lebedev(fmm_obj, params, constants, isph, &
             r_s = t%node_dimension(i_node)
             r_t = t%node_dimension(i_node)
             c_st = - r_t*constants%cgrid(:,igrid)
-            call fmm_m2l(c_st, r_s, r_t, fmm_obj%pmax_mm, fmm_obj%pmax_le, &
+            call fmm_m2l(c_st, 1.0d0, 1.0d0, fmm_obj%pmax_mm, fmm_obj%pmax_le, &
                          fmm_obj%multipoles(:,i_node), local_tmp)
             if(do_v) then
                 v(igrid) = v(igrid) + sqrt(4.0*pi)*local_tmp(1)
             end if
 
             if(do_e) then
-                e(3,igrid) = e(3,igrid) - sqrt(4.0/3.0*pi) * local_tmp(3)/r_t
-                e(1,igrid) = e(1,igrid) - sqrt(4.0/3.0*pi) * local_tmp(4)/r_t
-                e(2,igrid) = e(2,igrid) - sqrt(4.0/3.0*pi) * local_tmp(2)/r_t
+                e(3,igrid) = e(3,igrid) - sqrt(4.0/3.0*pi) * local_tmp(3)
+                e(1,igrid) = e(1,igrid) - sqrt(4.0/3.0*pi) * local_tmp(4)
+                e(2,igrid) = e(2,igrid) - sqrt(4.0/3.0*pi) * local_tmp(2)
             end if
 
             !if(do_grdE) then
