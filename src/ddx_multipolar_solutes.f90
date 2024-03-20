@@ -103,7 +103,8 @@ subroutine multipole_electrostatics_2(params, constants, workspace, multipoles, 
         g_cav = zero
         call time_push()
         call sphere_to_cav_cart(params, constants, workspace, multipoles, mmax, &
-            & .true., .true., .true., .true., v_cav=v_cav, e_cav=e_cav, g_cav=g_cav)
+            & ddx_error, .true., .true., .true., .true., v_cav=v_cav, &
+            & e_cav=e_cav, g_cav=g_cav)
         call time_pull("NEW")
         g_ref = g_cav
 
@@ -273,8 +274,9 @@ subroutine multipole_electrostatics_1(params, constants, workspace, multipoles, 
     else if (params % fmm .eq. 1) then
         e_cav = zero
         call time_push()
-        call sphere_to_cav_cart(params, constants, workspace, multipoles, mmax, &
-            & .true., .true., .false., .true., v_cav=v_cav, e_cav=e_cav)
+        call sphere_to_cav_cart(params, constants, workspace, multipoles, &
+            & mmax, ddx_error, .true., .true., .false., .true., v_cav=v_cav, &
+            & e_cav=e_cav)
         call time_pull("NEW")
         e_ref = e_cav
         v_ref = v_cav
@@ -407,7 +409,7 @@ subroutine multipole_electrostatics_0(params, constants, workspace, multipoles, 
         v_cav = zero
         call time_push()
         call sphere_to_cav_cart(params, constants, workspace, multipoles, mmax, &
-            & .true., .false., .false., .true., v_cav=v_cav)
+            & ddx_error, .true., .false., .false., .true., v_cav=v_cav)
         call time_pull("NEW")
         v_ref = v_cav
         v_cav = zero
