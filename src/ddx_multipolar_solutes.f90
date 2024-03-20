@@ -702,45 +702,45 @@ subroutine build_g_fmm(params, constants, workspace, multipoles, &
     end do
 
     ! near field hessians
-    do isph = 1, params % nsph
-        do igrid = 1, params % ngrid
-            if(constants % ui(igrid, isph) .eq. zero) cycle
-            inode = constants % snode(isph)
-            gxx = zero
-            gxy = zero
-            gxz = zero
-            gyy = zero
-            gyz = zero
-            gzz = zero
-            do jnear = constants % snear(inode), constants % snear(inode+1) - 1
-                jnode = constants % near(jnear)
-                jsph = constants % order(constants % cluster(1, jnode))
-                c = params % csph(:, isph) + constants % cgrid(:, igrid) &
-                    & *params % rsph(isph) - params % csph(:, jsph)
-                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
-                    & one, m_hess_x(:, 1, jsph), one, gxx)
-                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
-                    & one, m_hess_x(:, 2, jsph), one, gxy)
-                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
-                    & one, m_hess_x(:, 3, jsph), one, gxz)
-                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
-                    & one, m_hess_y(:, 2, jsph), one, gyy)
-                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
-                    & one, m_hess_y(:, 3, jsph), one, gyz)
-                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
-                    & one, m_hess_z(:, 3, jsph), one, gzz)
-            end do
-            grid_hess_x(igrid, 1, isph) = gxx
-            grid_hess_x(igrid, 2, isph) = gxy
-            grid_hess_x(igrid, 3, isph) = gxz
-            grid_hess_y(igrid, 1, isph) = gxy
-            grid_hess_y(igrid, 2, isph) = gyy
-            grid_hess_y(igrid, 3, isph) = gyz
-            grid_hess_z(igrid, 1, isph) = gxz
-            grid_hess_z(igrid, 2, isph) = gyz
-            grid_hess_z(igrid, 3, isph) = gzz
-        end do
-    end do
+    !do isph = 1, params % nsph
+    !    do igrid = 1, params % ngrid
+    !        if(constants % ui(igrid, isph) .eq. zero) cycle
+    !        inode = constants % snode(isph)
+    !        gxx = zero
+    !        gxy = zero
+    !        gxz = zero
+    !        gyy = zero
+    !        gyz = zero
+    !        gzz = zero
+    !        do jnear = constants % snear(inode), constants % snear(inode+1) - 1
+    !            jnode = constants % near(jnear)
+    !            jsph = constants % order(constants % cluster(1, jnode))
+    !            c = params % csph(:, isph) + constants % cgrid(:, igrid) &
+    !                & *params % rsph(isph) - params % csph(:, jsph)
+    !            call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+    !                & one, m_hess_x(:, 1, jsph), one, gxx)
+    !            call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+    !                & one, m_hess_x(:, 2, jsph), one, gxy)
+    !            call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+    !                & one, m_hess_x(:, 3, jsph), one, gxz)
+    !            call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+    !                & one, m_hess_y(:, 2, jsph), one, gyy)
+    !            call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+    !                & one, m_hess_y(:, 3, jsph), one, gyz)
+    !            call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+    !                & one, m_hess_z(:, 3, jsph), one, gzz)
+    !        end do
+    !        grid_hess_x(igrid, 1, isph) = gxx
+    !        grid_hess_x(igrid, 2, isph) = gxy
+    !        grid_hess_x(igrid, 3, isph) = gxz
+    !        grid_hess_y(igrid, 1, isph) = gxy
+    !        grid_hess_y(igrid, 2, isph) = gyy
+    !        grid_hess_y(igrid, 3, isph) = gyz
+    !        grid_hess_z(igrid, 1, isph) = gxz
+    !        grid_hess_z(igrid, 2, isph) = gyz
+    !        grid_hess_z(igrid, 3, isph) = gzz
+    !    end do
+    !end do
 
     ! far-field FMM gradients (only if pl > 0)
     if (params % pl .gt. 0) then
@@ -755,8 +755,7 @@ subroutine build_g_fmm(params, constants, workspace, multipoles, &
     end if
 
     ! Far field FMM hessians
-    if (.false.) then
-    !if (params % pl .gt. 1) then
+    if (params % pl .gt. 1) then
         ! Load previously computed gradient into leaves, since
         ! tree_grad_l2l currently takes local expansions of entire
         ! tree. In future it might be changed.
@@ -858,6 +857,7 @@ subroutine electrostatics_fmm(params, constants, workspace, multipoles, mmax, &
     integer isph, igrid, icav
     real(dp):: lebedev_v(params % ngrid), lebedev_e(3, params % ngrid), &
         & lebedev_g(3, 3, params % ngrid)
+    logical :: do_diag = .true.
 
     call tree_p2m(workspace % fmm_obj, multipoles, mmax)
     call tree_m2m(workspace % fmm_obj)
@@ -870,9 +870,9 @@ subroutine electrostatics_fmm(params, constants, workspace, multipoles, mmax, &
         lebedev_e = zero
         lebedev_g = zero
         call cart_propfar_lebedev(workspace % fmm_obj, params, constants, &
-            & isph, do_v, lebedev_v, do_e, lebedev_e, .false., lebedev_g)
+            & isph, do_v, lebedev_v, do_e, lebedev_e, .true., lebedev_g)
         call cart_propnear_lebedev(workspace % fmm_obj, params, constants, &
-            & isph, do_v, lebedev_v, do_e, lebedev_e, do_g, lebedev_g, .true.)
+            & isph, do_v, lebedev_v, do_e, lebedev_e, .false., lebedev_g, do_diag)
         do igrid = 1, params % ngrid
             if (constants % ui(igrid, isph) .gt. zero) then
                 icav = icav+1
