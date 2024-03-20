@@ -102,8 +102,8 @@ subroutine multipole_electrostatics_2(params, constants, workspace, multipoles, 
     else if (params % fmm .eq. 1) then
         g_cav = zero
         call time_push()
-        call electrostatics_fmm(params, constants, workspace, multipoles, mmax, &
-            & .true., .true., .true., v_cav=v_cav, e_cav=e_cav, g_cav=g_cav)
+        call sphere_to_cav_cart(params, constants, workspace, multipoles, mmax, &
+            & .true., .true., .true., .true., v_cav=v_cav, e_cav=e_cav, g_cav=g_cav)
         call time_pull("NEW")
         g_ref = g_cav
 
@@ -273,8 +273,8 @@ subroutine multipole_electrostatics_1(params, constants, workspace, multipoles, 
     else if (params % fmm .eq. 1) then
         e_cav = zero
         call time_push()
-        call electrostatics_fmm(params, constants, workspace, multipoles, mmax, &
-            & .true., .true., .false., v_cav=v_cav, e_cav=e_cav)
+        call sphere_to_cav_cart(params, constants, workspace, multipoles, mmax, &
+            & .true., .true., .false., .true., v_cav=v_cav, e_cav=e_cav)
         call time_pull("NEW")
         e_ref = e_cav
         v_ref = v_cav
@@ -287,11 +287,11 @@ subroutine multipole_electrostatics_1(params, constants, workspace, multipoles, 
         call time_pull("OLD")
 
         do i = 1, constants % ncav
-            write(6, "(3D15.5)") v_ref(i), v_cav(i), v_ref(i) - v_cav(i)
+            write(6, "(D15.5)") v_ref(i) - v_cav(i)
         end do
         write(6,*)
         do i = 1, constants % ncav
-            write(6, "(9D15.5)") e_cav(:,i), e_ref(:,i), e_cav(:,i) - e_ref(:,i)
+            write(6, "(3D15.5)") e_cav(:,i) - e_ref(:,i)
         end do
         stop
     end if
@@ -406,8 +406,8 @@ subroutine multipole_electrostatics_0(params, constants, workspace, multipoles, 
     else if (params % fmm .eq. 1) then
         v_cav = zero
         call time_push()
-        call electrostatics_fmm(params, constants, workspace, multipoles, mmax, &
-            & .true., .false., .false., v_cav=v_cav)
+        call sphere_to_cav_cart(params, constants, workspace, multipoles, mmax, &
+            & .true., .false., .false., .true., v_cav=v_cav)
         call time_pull("NEW")
         v_ref = v_cav
         v_cav = zero
@@ -417,7 +417,7 @@ subroutine multipole_electrostatics_0(params, constants, workspace, multipoles, 
         call time_pull("OLD")
 
         do i = 1, constants % ncav
-            write(6, *) v_ref(i), v_cav(i), v_ref(i) - v_cav(i)
+            write(6, *) v_ref(i) - v_cav(i)
         end do
         stop
     end if
@@ -702,45 +702,45 @@ subroutine build_g_fmm(params, constants, workspace, multipoles, &
     end do
 
     ! near field hessians
-    !do isph = 1, params % nsph
-    !    do igrid = 1, params % ngrid
-    !        if(constants % ui(igrid, isph) .eq. zero) cycle
-    !        inode = constants % snode(isph)
-    !        gxx = zero
-    !        gxy = zero
-    !        gxz = zero
-    !        gyy = zero
-    !        gyz = zero
-    !        gzz = zero
-    !        do jnear = constants % snear(inode), constants % snear(inode+1) - 1
-    !            jnode = constants % near(jnear)
-    !            jsph = constants % order(constants % cluster(1, jnode))
-    !            c = params % csph(:, isph) + constants % cgrid(:, igrid) &
-    !                & *params % rsph(isph) - params % csph(:, jsph)
-    !            call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
-    !                & one, m_hess_x(:, 1, jsph), one, gxx)
-    !            call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
-    !                & one, m_hess_x(:, 2, jsph), one, gxy)
-    !            call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
-    !                & one, m_hess_x(:, 3, jsph), one, gxz)
-    !            call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
-    !                & one, m_hess_y(:, 2, jsph), one, gyy)
-    !            call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
-    !                & one, m_hess_y(:, 3, jsph), one, gyz)
-    !            call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
-    !                & one, m_hess_z(:, 3, jsph), one, gzz)
-    !        end do
-    !        grid_hess_x(igrid, 1, isph) = gxx
-    !        grid_hess_x(igrid, 2, isph) = gxy
-    !        grid_hess_x(igrid, 3, isph) = gxz
-    !        grid_hess_y(igrid, 1, isph) = gxy
-    !        grid_hess_y(igrid, 2, isph) = gyy
-    !        grid_hess_y(igrid, 3, isph) = gyz
-    !        grid_hess_z(igrid, 1, isph) = gxz
-    !        grid_hess_z(igrid, 2, isph) = gyz
-    !        grid_hess_z(igrid, 3, isph) = gzz
-    !    end do
-    !end do
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if(constants % ui(igrid, isph) .eq. zero) cycle
+            inode = constants % snode(isph)
+            gxx = zero
+            gxy = zero
+            gxz = zero
+            gyy = zero
+            gyz = zero
+            gzz = zero
+            do jnear = constants % snear(inode), constants % snear(inode+1) - 1
+                jnode = constants % near(jnear)
+                jsph = constants % order(constants % cluster(1, jnode))
+                c = params % csph(:, isph) + constants % cgrid(:, igrid) &
+                    & *params % rsph(isph) - params % csph(:, jsph)
+                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+                    & one, m_hess_x(:, 1, jsph), one, gxx)
+                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+                    & one, m_hess_x(:, 2, jsph), one, gxy)
+                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+                    & one, m_hess_x(:, 3, jsph), one, gxz)
+                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+                    & one, m_hess_y(:, 2, jsph), one, gyy)
+                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+                    & one, m_hess_y(:, 3, jsph), one, gyz)
+                call fmm_m2p(c, one, mmax + 2, constants % vscales_rel, &
+                    & one, m_hess_z(:, 3, jsph), one, gzz)
+            end do
+            grid_hess_x(igrid, 1, isph) = gxx
+            grid_hess_x(igrid, 2, isph) = gxy
+            grid_hess_x(igrid, 3, isph) = gxz
+            grid_hess_y(igrid, 1, isph) = gxy
+            grid_hess_y(igrid, 2, isph) = gyy
+            grid_hess_y(igrid, 3, isph) = gyz
+            grid_hess_z(igrid, 1, isph) = gxz
+            grid_hess_z(igrid, 2, isph) = gyz
+            grid_hess_z(igrid, 3, isph) = gzz
+        end do
+    end do
 
     ! far-field FMM gradients (only if pl > 0)
     if (params % pl .gt. 0) then
@@ -831,59 +831,6 @@ subroutine build_g_fmm(params, constants, workspace, multipoles, &
     end if
 
 end subroutine build_g_fmm
-
-!> Given a multipolar distribution, compute the potential at the target points
-!> using FMMs.
-!! @param[in] params: ddx parameters
-!! @param[in]  constants: ddx constants
-!! @param[inout] workspace: ddx workspace
-!! @param[in] multipoles: multipoles as real spherical harmonics,
-!!     size ((mmax+1)**2, nsph)
-!! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points, size (ncav)
-!!
-subroutine electrostatics_fmm(params, constants, workspace, multipoles, mmax, &
-        & do_v, do_e, do_g, v_cav, e_cav, g_cav)
-    implicit none
-    type(ddx_params_type), intent(in):: params
-    type(ddx_constants_type), intent(in):: constants
-    type(ddx_workspace_type), intent(inout):: workspace
-    logical, intent(in) :: do_v, do_e, do_g
-    integer, intent(in):: mmax
-    real(dp), intent(in):: multipoles((mmax+1)**2, params % nsph)
-    real(dp), optional, intent(out):: v_cav(constants % ncav), &
-        & e_cav(3, constants % ncav), g_cav(3, 3, constants % ncav)
-    ! local variables
-    integer isph, igrid, icav
-    real(dp):: lebedev_v(params % ngrid), lebedev_e(3, params % ngrid), &
-        & lebedev_g(3, 3, params % ngrid)
-    logical :: do_diag = .true.
-
-    call tree_p2m(workspace % fmm_obj, multipoles, mmax)
-    call tree_m2m(workspace % fmm_obj)
-    call tree_m2l(workspace % fmm_obj)
-    call tree_l2l(workspace % fmm_obj)
-
-    icav = 0
-    do isph = 1, params % nsph
-        lebedev_v = zero
-        lebedev_e = zero
-        lebedev_g = zero
-        call cart_propfar_lebedev(workspace % fmm_obj, params, constants, &
-            & isph, do_v, lebedev_v, do_e, lebedev_e, .true., lebedev_g)
-        call cart_propnear_lebedev(workspace % fmm_obj, params, constants, &
-            & isph, do_v, lebedev_v, do_e, lebedev_e, .false., lebedev_g, do_diag)
-        do igrid = 1, params % ngrid
-            if (constants % ui(igrid, isph) .gt. zero) then
-                icav = icav+1
-                if (do_v) v_cav(icav) = lebedev_v(igrid)
-                if (do_e) e_cav(:, icav) = lebedev_e(:, igrid)
-                if (do_g) g_cav(:, :, icav) = lebedev_g(:, :, igrid)
-            end if
-        end do
-    end do
-
-end subroutine electrostatics_fmm
 
 !> Given a multipolar distribution, compute the potential at the target points
 !> using FMMs.

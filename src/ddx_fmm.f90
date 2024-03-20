@@ -1,4 +1,5 @@
-!> Module for additional FMM functionality
+!> Module for integrating the FMM library with additional operation
+!! to deal with the Lebedev points and various ddX requirements.
 module ddx_fmm
 
 use ddx_constants
@@ -11,8 +12,160 @@ implicit none
 
 contains
 
+!> Given multipolar distributions at the center of the spheres,
+!! compute some electrostatic properties at the cavity (exposed Lebedev
+!! points).
+!!
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!                        size ((mmax+1)**2, nsph)
+!! @param[in] mmax: maximum angular momentum of the multipoles
+!! @param[in] do_v: logical to enable the computation of the electric potential
+!! @param[in] do_e: logical to enable the computation of the electric field
+!! @param[in] do_v: logical to enable the computation of the electric field
+!!                  gradient
+!! @param[in] do_diag: logical to enable the computation of properties
+!!                     of a multipolar distribution to its own Lebedev points
+!! @param[out,optional] v_cav: electric potential at the cavity point,
+!!                             size (ncav)
+!! @param[out,optional] e_cav: electric field at the cavity point,
+!!                             size (3, ncav)
+!! @param[out,optional] g_cav: electric field gradient at the cavity point,
+!!                             size (3, 3, ncav)
+!!
+subroutine sphere_to_cav_cart(params, constants, workspace, multipoles, mmax, &
+        & do_v, do_e, do_g, do_diag, v_cav, e_cav, g_cav)
+    implicit none
+    type(ddx_params_type), intent(in):: params
+    type(ddx_constants_type), intent(in):: constants
+    type(ddx_workspace_type), intent(inout):: workspace
+    logical, intent(in) :: do_v, do_e, do_g, do_diag
+    integer, intent(in):: mmax
+    real(dp), intent(in):: multipoles((mmax+1)**2, params % nsph)
+    real(dp), optional, intent(out):: v_cav(constants % ncav), &
+        & e_cav(3, constants % ncav), g_cav(3, 3, constants % ncav)
+    integer :: isph, icav, igrid
+    real(dp), allocatable :: v_grid(:, :), e_grid(:, :, :), g_grid(:, :, :, :)
+
+    if (do_v) allocate(v_grid(params % ngrid, params % nsph))
+    if (do_e) allocate(e_grid(3, params % ngrid, params % nsph))
+    if (do_g) allocate(g_grid(3, 3, params % ngrid, params % nsph))
+
+    ! compute the properties at the grid
+    call sphere_to_grid_cart(params, constants, workspace, multipoles, mmax, &
+        & do_v, do_e, do_g, do_diag, v_grid=v_grid, e_grid=e_grid, &
+        & g_grid=g_grid)
+
+    ! discard the internal points
+    icav = 0
+    do isph = 1, params % nsph
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .gt. zero) then
+                icav = icav + 1
+                if (do_v) v_cav(icav) = v_grid(igrid, isph)
+                if (do_e) e_cav(:, icav) = e_grid(:, igrid, isph)
+                if (do_g) g_cav(:, :, icav) = g_grid(:, :, igrid, isph)
+            end if
+        end do
+    end do
+
+    if (allocated(v_grid)) deallocate(v_grid)
+    if (allocated(e_grid)) deallocate(e_grid)
+    if (allocated(g_grid)) deallocate(g_grid)
+end subroutine sphere_to_cav_cart
+
+!> Given multipolar distributions at the center of the spheres,
+!! compute some electrostatic properties at the grid (all the Lebedev
+!! points).
+!!
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[inout] workspace: ddx workspace
+!! @param[in] multipoles: multipoles as real spherical harmonics,
+!!                        size ((mmax+1)**2, nsph)
+!! @param[in] mmax: maximum angular momentum of the multipoles
+!! @param[in] do_v: logical to enable the computation of the electric potential
+!! @param[in] do_e: logical to enable the computation of the electric field
+!! @param[in] do_v: logical to enable the computation of the electric field
+!!                  gradient
+!! @param[in] do_diag: logical to enable the computation of properties
+!!                     of a multipolar distribution to its own Lebedev points
+!! @param[out,optional] v_grid: electric potential at the grid points,
+!!                              size (ncav, nsph)
+!! @param[out,optional] e_grid: electric field at the grid points,
+!!                              size (3, ncav, nsph)
+!! @param[out,optional] g_grid: electric field gradient at the grid points,
+!!                              size (3, 3, ncav, nsph)
+!!
+subroutine sphere_to_grid_cart(params, constants, workspace, multipoles, mmax, &
+        & do_v, do_e, do_g, do_diag, v_grid, e_grid, g_grid)
+    implicit none
+    type(ddx_params_type), intent(in):: params
+    type(ddx_constants_type), intent(in):: constants
+    type(ddx_workspace_type), intent(inout):: workspace
+    logical, intent(in) :: do_v, do_e, do_g, do_diag
+    integer, intent(in) :: mmax
+    real(dp), intent(in) :: multipoles((mmax+1)**2, params % nsph)
+    real(dp), optional, intent(out) :: v_grid(params % ngrid, params % nsph), &
+        & e_grid(3, params % ngrid, params % nsph), &
+        & g_grid(3, 3, params % ngrid, params % nsph)
+    real(dp), allocatable :: v(:), e(:, :), g(:, :, :)
+    integer :: isph
+
+    if (present(v_grid)) v_grid = zero
+    if (present(e_grid)) e_grid = zero
+    if (present(g_grid)) g_grid = zero
+
+    if (do_v) allocate(v(params % ngrid))
+    if (do_e) allocate(e(3, params % ngrid))
+    if (do_g) allocate(g(3, 3, params % ngrid))
+
+    call tree_p2m(workspace % fmm_obj, multipoles, mmax)
+    call tree_m2m(workspace % fmm_obj)
+    call tree_m2l(workspace % fmm_obj)
+    call tree_l2l(workspace % fmm_obj)
+
+    do isph = 1, params % nsph
+        if (do_v) v = zero
+        if (do_e) e = zero
+        if (do_g) g = zero
+        call cart_propfar_lebedev(workspace % fmm_obj, params, constants, &
+            & isph, do_v, do_e, do_g, v=v, e=e, g=g)
+        call cart_propnear_lebedev(workspace % fmm_obj, params, constants, &
+            & isph, do_v, do_e, do_g, do_diag, v=v, e=e, g=g)
+        if (do_v) v_grid(:, isph) = v
+        if (do_e) e_grid(:, :, isph) = e
+        if (do_g) g_grid(:, :, :, isph) = g
+    end do
+
+    if (allocated(v)) deallocate(v)
+    if (allocated(e)) deallocate(e)
+    if (allocated(g)) deallocate(g)
+
+end subroutine sphere_to_grid_cart
+
+!> Compute the electrostatic properties due to the far field at
+!! the Lebedev points of sphere isph.
+!!
+!! @param[in] fmm_obj: FMM object
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[in] isph: index of the sphere
+!! @param[in] do_v: logical to enable the computation of the electric potential
+!! @param[in] do_e: logical to enable the computation of the electric field
+!! @param[in] do_v: logical to enable the computation of the electric field
+!!                  gradient
+!! @param[out,optional] v: electric potential at the sphere Lebedev points,
+!!                         size(ngrid)
+!! @param[out,optional] e: electric field at the sphere Lebedev points,
+!!                         size(3, ngrid)
+!! @param[out,optional] g: electric field gradient at the sphere Lebedev points,
+!!                         size(3, 3, ngrid)
+!!
 subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
-        & do_v, v, do_e, e, do_g, g)
+        & do_v, do_e, do_g, v, e, g)
     implicit none
 
     type(fmm_type), intent(in) :: fmm_obj
@@ -20,8 +173,8 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
     type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: isph
     logical, intent(in) :: do_v, do_e, do_g
-    real(dp), intent(inout) :: v(params % ngrid), e(3, params % ngrid), &
-        & g(3, 3, params % ngrid)
+    real(dp), optional, intent(inout) :: v(params % ngrid), &
+        & e(3, params % ngrid), g(3, 3, params % ngrid)
 
     real(dp) :: r_t, local_expansion((params % pl+1)**2)
     integer :: inode, l, ind, igrid, i
@@ -97,8 +250,28 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
 
 end subroutine
 
+!> Compute the electrostatic properties due to the near field at
+!! the Lebedev points of sphere isph.
+!!
+!! @param[in] fmm_obj: FMM object
+!! @param[in] params: ddx parameters
+!! @param[in] constants: ddx constants
+!! @param[in] isph: index of the sphere
+!! @param[in] do_v: logical to enable the computation of the electric potential
+!! @param[in] do_e: logical to enable the computation of the electric field
+!! @param[in] do_v: logical to enable the computation of the electric field
+!!                  gradient
+!! @param[in] do_v: logical to enable the computation of the properties of
+!!                  a given sphere at its own Lebedev points
+!! @param[out,optional] v: electric potential at the sphere Lebedev points,
+!!                         size(ngrid)
+!! @param[out,optional] e: electric field at the sphere Lebedev points,
+!!                         size(3, ngrid)
+!! @param[out,optional] g: electric field gradient at the sphere Lebedev points,
+!!                         size(3, 3, ngrid)
+!!
 subroutine cart_propnear_lebedev(fmm_obj, params, constants, isph, &
-        & do_v, v, do_e, e, do_g, g, do_diag)
+        & do_v, do_e, do_g, do_diag, v, e, g)
     implicit none
 
     type(fmm_type), intent(in):: fmm_obj
@@ -106,8 +279,8 @@ subroutine cart_propnear_lebedev(fmm_obj, params, constants, isph, &
     type(ddx_constants_type), intent(in):: constants
     integer, intent(in):: isph
     logical, intent(in):: do_v, do_e, do_g, do_diag
-    real(dp), intent(inout):: v(params % ngrid), e(3, params % ngrid), &
-        & g(3, 3, params % ngrid)
+    real(dp), optional, intent(inout):: v(params % ngrid), &
+        & e(3, params % ngrid), g(3, 3, params % ngrid)
 
     integer:: i_part, igrid
 
@@ -196,14 +369,15 @@ subroutine cart_propnear_lebedev(fmm_obj, params, constants, isph, &
 
 end subroutine
 
-!> Given a multipolar distribution compute the action of dP on it, this
-!> is required in the computation of the forces.
-!! @param[in] local_expansion: local_expansion as real spherical harmonics,
-!!     size ((pl+1)**2, nsph)
+!> Given a multipolar distribution compute the action of dL on it.
+!!
+!! @param[in] local_expansion: local multipolar expansions,
+!!                             size ((pl+1)**2, nl)
 !! @param[in] pl: maximum angular momentum of the multipolar distribution
-!! @param[in] nl: number of local_expansion
-!! @param[out] l_grad: gradient of the M2M operator,
-!!     size ((pl + 1)**2, 3, nl)
+!! @param[in] nl: number of local expansions
+!! @param[out] l_grad: action of dL on the local expansions,
+!!                     size ((pl+1)**2, 3, nl)
+!! @param[in] radii: radii of the multipolar expansions, size(nl)
 !!
 subroutine grad_l2l(local_expansion, pl, nl, l_grad, radii)
     implicit none
