@@ -202,6 +202,7 @@ subroutine sphere_to_grid_cart(params, constants, workspace, multipoles, mmax, &
         call update_error(ddx_error, &
             & "Deallocation failed in `sphere_to_grid_cart`")
     end if
+
 end subroutine sphere_to_grid_cart
 
 !> Compute the electrostatic properties due to the far field at
@@ -265,7 +266,6 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
             & "Allocation failed in `cart_propfar_lebedev`")
         return
     end if
-
 
     inode = fmm_obj % tree % particle_to_node(isph)
     r_t = fmm_obj % tree % node_dimension(inode)
@@ -367,12 +367,11 @@ subroutine cart_propnear_lebedev(fmm_obj, params, constants, isph, &
     logical, intent(in):: do_v, do_e, do_g, do_diag
     real(dp), optional, intent(inout):: v(params % ngrid), &
         & e(3, params % ngrid), g(3, 3, params % ngrid)
-    integer:: i_part, igrid
     real(dp), allocatable:: local_tmp(:)
     type(fmm_tree_type), pointer:: t
-    integer :: i, i_node, j, j_node, n_targets, stat
+    integer :: igrid, i, i_node, j, j_node, n_targets, stat
     integer, allocatable :: targets(:)
-    real(dp):: r_s, r_t, c_st(3), x2_y2, z2, x2z_y2z, z3, xz2, yz2, x3_3xy2, y3_3x2y
+    real(dp):: r_s, r_t, c_st(3), x2_y2, z2
 
     if (do_v .and. (.not.present(v))) then
         call update_error(ddx_error, &

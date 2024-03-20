@@ -106,6 +106,7 @@ subroutine multipole_electrostatics_2(params, constants, workspace, multipoles, 
             & ddx_error, .true., .true., .true., .true., v_cav=v_cav, &
             & e_cav=e_cav, g_cav=g_cav)
         call time_pull("NEW")
+        call check_error(ddx_error)
         g_ref = g_cav
 
         g_cav = zero
@@ -114,9 +115,6 @@ subroutine multipole_electrostatics_2(params, constants, workspace, multipoles, 
             & mmax, v_cav, e_cav, g_cav, ddx_error)
         call time_pull("OLD")
 
-        do i = 1, constants % ncav
-            write(6, "(9D15.5)") g_cav(:,:,i) - g_ref(:,:,i)
-        end do
         stop 0
     end if
 end subroutine multipole_electrostatics_2
@@ -278,6 +276,7 @@ subroutine multipole_electrostatics_1(params, constants, workspace, multipoles, 
             & mmax, ddx_error, .true., .true., .false., .true., v_cav=v_cav, &
             & e_cav=e_cav)
         call time_pull("NEW")
+        call check_error(ddx_error)
         e_ref = e_cav
         v_ref = v_cav
 
@@ -288,14 +287,7 @@ subroutine multipole_electrostatics_1(params, constants, workspace, multipoles, 
             & mmax, v_cav, e_cav, ddx_error)
         call time_pull("OLD")
 
-        do i = 1, constants % ncav
-            write(6, "(D15.5)") v_ref(i) - v_cav(i)
-        end do
-        write(6,*)
-        do i = 1, constants % ncav
-            write(6, "(3D15.5)") e_cav(:,i) - e_ref(:,i)
-        end do
-        stop
+        stop 0
     end if
 end subroutine multipole_electrostatics_1
 
@@ -411,16 +403,13 @@ subroutine multipole_electrostatics_0(params, constants, workspace, multipoles, 
         call sphere_to_cav_cart(params, constants, workspace, multipoles, mmax, &
             & ddx_error, .true., .false., .false., .true., v_cav=v_cav)
         call time_pull("NEW")
+        call check_error(ddx_error)
         v_ref = v_cav
         v_cav = zero
         call time_push()
         call build_phi_fmm_old(params, constants, workspace, multipoles, mmax, &
             & v_cav)
         call time_pull("OLD")
-
-        do i = 1, constants % ncav
-            write(6, *) v_ref(i) - v_cav(i)
-        end do
         stop
     end if
 end subroutine multipole_electrostatics_0
