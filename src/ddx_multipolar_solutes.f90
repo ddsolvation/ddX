@@ -73,7 +73,7 @@ end subroutine multipole_electrostatics
 !! @param[in] multipoles: multipoles as real spherical harmonics,
 !!     size ((mmax+1)**2, nsph)
 !! @param[in] mmax: maximum angular momentum of the multipoles
-!! @param[out] phi_cav: electric potential at the target points, size (ncav)
+!! @param[out] v_cav: electric potential at the target points, size (ncav)
 !! @param[out] e_cav: electric field at the target points,
 !!     size (3, ncav)
 !! @param[out] g_cav: electric field gradient at the target points,
@@ -81,7 +81,7 @@ end subroutine multipole_electrostatics
 !! @param[inout] ddx_error: ddX error
 !!
 subroutine multipole_electrostatics_2(params, constants, workspace, multipoles, &
-        & mmax, phi_cav, e_cav, g_cav, ddx_error)
+        & mmax, v_cav, e_cav, g_cav, ddx_error)
     implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_workspace_type), intent(inout) :: workspace
@@ -89,17 +89,34 @@ subroutine multipole_electrostatics_2(params, constants, workspace, multipoles, 
     type(ddx_error_type), intent(inout) :: ddx_error
     integer, intent(in) :: mmax
     real(dp), intent(in) :: multipoles((mmax + 1)**2, params % nsph)
-    real(dp), intent(out) :: phi_cav(constants % ncav)
+    real(dp), intent(out) :: v_cav(constants % ncav)
     real(dp), intent(out) :: e_cav(3, constants % ncav)
     real(dp), intent(out) :: g_cav(3, 3, constants % ncav)
+    real(dp) :: g_ref(3, 3, constants % ncav)
+    integer :: i
 
     if (params % fmm .eq. 0) then
         call build_g_dense(multipoles, params % csph, mmax, params % nsph, &
-            & phi_cav, constants % ccav, constants % ncav, e_cav, g_cav, &
+            & v_cav, constants % ccav, constants % ncav, e_cav, g_cav, &
             & ddx_error)
     else if (params % fmm .eq. 1) then
+        g_cav = zero
+        call time_push()
+        call electrostatics_fmm(params, constants, workspace, multipoles, mmax, &
+            & .true., .true., .true., v_cav=v_cav, e_cav=e_cav, g_cav=g_cav)
+        call time_pull("NEW")
+        g_ref = g_cav
+
+        g_cav = zero
+        call time_push()
         call build_g_fmm(params, constants, workspace, multipoles, &
-            & mmax, phi_cav, e_cav, g_cav, ddx_error)
+            & mmax, v_cav, e_cav, g_cav, ddx_error)
+        call time_pull("OLD")
+
+        do i = 1, constants % ncav
+            write(6, "(9D15.5)") g_cav(:,:,i) - g_ref(:,:,i)
+        end do
+        stop 0
     end if
 end subroutine multipole_electrostatics_2
 
@@ -738,7 +755,8 @@ subroutine build_g_fmm(params, constants, workspace, multipoles, &
     end if
 
     ! Far field FMM hessians
-    if (params % pl .gt. 1) then
+    if (.false.) then
+    !if (params % pl .gt. 1) then
         ! Load previously computed gradient into leaves, since
         ! tree_grad_l2l currently takes local expansions of entire
         ! tree. In future it might be changed.
@@ -850,8 +868,9 @@ subroutine electrostatics_fmm(params, constants, workspace, multipoles, mmax, &
     do isph = 1, params % nsph
         lebedev_v = zero
         lebedev_e = zero
+        lebedev_g = zero
         call cart_propfar_lebedev(workspace % fmm_obj, params, constants, &
-            & isph, do_v, lebedev_v, do_e, lebedev_e, do_g, lebedev_g)
+            & isph, do_v, lebedev_v, do_e, lebedev_e, .false., lebedev_g)
         call cart_propnear_lebedev(workspace % fmm_obj, params, constants, &
             & isph, do_v, lebedev_v, do_e, lebedev_e, do_g, lebedev_g, .true.)
         do igrid = 1, params % ngrid

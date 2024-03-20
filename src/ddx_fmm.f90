@@ -36,6 +36,9 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
     r_t = fmm_obj % tree % node_dimension(inode)
     local_expansion = fmm_obj % local_expansion(:, inode)
 
+    ! the next transformations assume spherical harmonics scaled by
+    ! their radius, so if we were working without, we need to put it
+    ! back on
     if (.not.fmm_obj%radii_scaling) then
         do l = 0, params % pl
             ind = l*l + l + 1
@@ -43,10 +46,12 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
         end do
     end if
 
+    ! far field potential
     call dgemv("T", (params % pl+1)**2, params % ngrid, one, &
         & constants % vgrid2, constants % vgrid_nbasis, &
         & local_expansion, 1, one, v, 1)
 
+    ! far field electric field
     if (do_e) then
         radii(1) = params % rsph(isph)
         call grad_l2l(local_expansion, params % pl, 1, local_expansion_grad, &
@@ -56,6 +61,7 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
             & constants % vgrid_nbasis, one, e, 3)
     end if
 
+    ! far field electric field gradient
     if (allocated(local_expansion_grad)) deallocate(local_expansion_grad)
 
 end subroutine
@@ -76,7 +82,8 @@ subroutine cart_propnear_lebedev(fmm_obj, params, constants, isph, &
 
     real(dp), allocatable:: local_tmp(:)
     type(fmm_tree_type), pointer:: t
-    integer:: i_node, j, j_node, j_particle
+    integer :: i, i_node, j, j_node, n_targets
+    integer, allocatable :: targets(:)
     real(dp):: r_s, r_t, c_st(3), x2_y2, z2, x2z_y2z, z3, xz2, yz2, x3_3xy2, y3_3x2y
 
     t => fmm_obj%tree
@@ -86,21 +93,40 @@ subroutine cart_propnear_lebedev(fmm_obj, params, constants, isph, &
         call fmm_error("A node has more than one particle!")
     end if
 
-    allocate(local_tmp(ntot_sph_harm(fmm_obj%pmax_le)))
+    n_targets = t%near_nl%ri(i_node+1) - t%near_nl%ri(i_node)
 
+    allocate(local_tmp(ntot_sph_harm(fmm_obj%pmax_le)), &
+        & targets(n_targets+1))
+
+    ! Define the targets as the neighbors, and if requested the
+    ! diagonal case.
+    i = 1
     do j = t%near_nl%ri(i_node), t%near_nl%ri(i_node+1)-1
         j_node = t%near_nl%ci(j)
-        j_particle = t%particle_list%ci(t%particle_list%ri(j_node))
+        targets(i) = j_node
+        i = i + 1
+    end do
+    if (do_diag) then
+        targets(i) = i_node
+        n_targets = n_targets + 1
+    end if
+
+    do j = 1, n_targets
+        j_node = targets(j)
 
         do igrid = 1, params % ngrid
             r_s = t%node_dimension(j_node)
             r_t = t%node_dimension(i_node)
             c_st = t%node_centroid(:,j_node) - t%node_centroid(:,i_node) &
                 & - r_t*constants%cgrid(:,igrid)
+
+            ! after using the radii to find the relative displacement,
+            ! if they are disabled in the transformations, we set them to 1.0
             if (.not.fmm_obj%radii_scaling) then
                 r_s = 1.0
                 r_t = 1.0
             end if
+
             call fmm_m2l(c_st, r_s, r_t, fmm_obj%pmax_mm, fmm_obj%pmax_le, &
                 & fmm_obj%multipoles(:,j_node), local_tmp)
             if(do_v) then
@@ -113,53 +139,29 @@ subroutine cart_propnear_lebedev(fmm_obj, params, constants, isph, &
                 e(2,igrid) = e(2,igrid) - sqrt(4.0/3.0*pi) * local_tmp(2)/r_t
             end if
 
-            !if(do_grdE) then
-            !    x2_y2 = sqrt(16.0*pi/15.0) * local_tmp(9) * 3.0
-            !    z2 = sqrt(16.0*pi/5.0) * local_tmp(7)
-            !    grdE(6) = grdE(6) + z2  ! zz
-            !    grdE(1) = grdE(1) + (x2_y2-z2) / 2.0
-            !    grdE(3) = grdE(3) - (x2_y2+z2) / 2.0
-            !    grdE(2) = grdE(2) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(5)  ! xy
-            !    grdE(4) = grdE(4) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(8)  ! xz
-            !    grdE(5) = grdE(5) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(6)  ! yz
-            !end if
+            if(do_g) then
+                x2_y2 = sqrt(16.0*pi/15.0) * local_tmp(9) * 3.0
+                z2 = sqrt(16.0*pi/5.0) * local_tmp(7)
+                !g(6) = g(6) + z2  ! zz
+                g(3,3,igrid) = g(3,3,igrid) + z2/(r_t**2)
+                !g(1) = g(1) + (x2_y2-z2) / 2.0
+                g(1,1,igrid) = g(1,1,igrid)  + (x2_y2-z2) / 2.0/(r_t**2)
+                !g(3) = g(3) - (x2_y2+z2) / 2.0
+                g(2,2,igrid) = g(2,2,igrid) - (x2_y2+z2) / 2.0/(r_t**2)
+                !g(2) = g(2) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(5)  ! xy
+                g(2,1,igrid) = g(2,1,igrid) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(5)/(r_t**2)  ! xy
+                g(1,2,igrid) = g(1,2,igrid) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(5)/(r_t**2)  ! xy
+                !g(4) = g(4) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(8)  ! xz
+                g(3,1,igrid) = g(3,1,igrid) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(8)/(r_t**2)  ! xz
+                g(1,3,igrid) = g(1,3,igrid) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(8)/(r_t**2)  ! xz
+                !g(5) = g(5) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(6)  ! yz
+                g(3,2,igrid) = g(3,2,igrid) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(6)/(r_t**2)  ! yz
+                g(2,3,igrid) = g(2,3,igrid) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(6)/(r_t**2)  ! yz
+            end if
         end do
     end do
 
-    ! add the diagonal
-    if (do_diag) then
-        do igrid = 1, params % ngrid
-            r_s = t%node_dimension(i_node)
-            r_t = t%node_dimension(i_node)
-            c_st = - r_t*constants%cgrid(:,igrid)
-            if (.not.fmm_obj%radii_scaling) then
-                r_s = 1.0
-                r_t = 1.0
-            end if
-            call fmm_m2l(c_st, r_s, r_t, fmm_obj%pmax_mm, fmm_obj%pmax_le, &
-                         fmm_obj%multipoles(:,i_node), local_tmp)
-            if(do_v) then
-                v(igrid) = v(igrid) + sqrt(4.0*pi)*local_tmp(1)
-            end if
-
-            if(do_e) then
-                e(3,igrid) = e(3,igrid) - sqrt(4.0/3.0*pi) * local_tmp(3)/r_t
-                e(1,igrid) = e(1,igrid) - sqrt(4.0/3.0*pi) * local_tmp(4)/r_t
-                e(2,igrid) = e(2,igrid) - sqrt(4.0/3.0*pi) * local_tmp(2)/r_t
-            end if
-
-            !if(do_grdE) then
-            !    x2_y2 = sqrt(16.0*pi/15.0) * local_tmp(9) * 3.0
-            !    z2 = sqrt(16.0*pi/5.0) * local_tmp(7)
-            !    grdE(6) = grdE(6) + z2  ! zz
-            !    grdE(1) = grdE(1) + (x2_y2-z2) / 2.0
-            !    grdE(3) = grdE(3) - (x2_y2+z2) / 2.0
-            !    grdE(2) = grdE(2) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(5)  ! xy
-            !    grdE(4) = grdE(4) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(8)  ! xz
-            !    grdE(5) = grdE(5) + 3.0*sqrt(4.0*pi/15.0) * local_tmp(6)  ! yz
-            !end if
-        end do
-    end if
+    deallocate(local_tmp, targets)
 
 end subroutine
 
