@@ -48,11 +48,7 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
         & local_expansion, 1, one, v, 1)
 
     if (do_e) then
-        if (fmm_obj%radii_scaling) then
-            radii(1) = params % rsph(isph)
-        else
-            radii(1) = one
-        end if
+        radii(1) = params % rsph(isph)
         call grad_l2l(local_expansion, params % pl, 1, local_expansion_grad, &
             radii)
         call dgemm("T", "N", 3, params % ngrid, (params % pl)**2, &

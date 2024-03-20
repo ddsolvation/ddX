@@ -285,7 +285,7 @@ subroutine workspace_init(params, constants, workspace, ddx_error)
         call time_push()
         call init_as_rib_tree(workspace % fmm_tree, params % csph, params % rsph)
         call fmm_init(workspace % fmm_obj, params % pm, workspace % fmm_tree, &
-            & radii_scaling=.true.)
+            & radii_scaling=.false.)
         call time_pull("Tree and FMM init")
     end if
 end subroutine workspace_init
