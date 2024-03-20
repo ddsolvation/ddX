@@ -25,16 +25,11 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
 
     real(dp) :: r_t, local_expansion((params % pl+1)**2), fac
     integer :: inode, l, m, ind, igrid
-    real(dp), allocatable :: grad(:, :, :), work(:, :), tmp_local(:, :), &
-        & grid_grad(:, :, :), local_expansion_grad(:, :), radii(:)
+    real(dp), allocatable :: local_expansion_grad(:, :)
+    real(dp) :: radii(1)
 
     if (do_e) then
-        allocate(grad((params % pl + 1)**2, 3, params % nsph), &
-            & work((params % pl + 1)**2, params % nsph), &
-            & tmp_local((params % pl + 1)**2, constants % nclusters), &
-            & grid_grad(params % ngrid, 3, params % nsph), &
-            & local_expansion_grad((params % pl + 1)**2, 3), &
-            & radii(1))
+        allocate(local_expansion_grad((params % pl + 1)**2, 3))
     end if
 
     inode = fmm_obj % tree % particle_to_node(isph)
@@ -53,47 +48,18 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
         & local_expansion, 1, one, v, 1)
 
     if (do_e) then
-        tmp_local = zero
-        inode = constants % snode(isph)
-        tmp_local(:, inode) = local_expansion
-
-        ! old version for all the spheres
-        call tree_grad_l2l(params, constants, tmp_local, grad, work)
-        !call dgemm('T', 'N', params % ngrid, 3*params % nsph, &
-        !    & (params % pl)**2, one, constants % vgrid2, &
-        !    & constants % vgrid_nbasis, grad, &
-        !    & (params % pl+1)**2, zero, grid_grad, params % ngrid)
-        !do igrid = 1, params % ngrid
-        !    e(:, igrid) = e(:, igrid) + grid_grad(igrid, :, isph)
-        !    write(6,*) igrid, grid_grad(igrid, :, isph)
-        !end do
-
-        ! old version for one sphere
-        call dgemm('T', 'N', params % ngrid, 3, &
-            & (params % pl)**2, one, constants % vgrid2, &
-            & constants % vgrid_nbasis, grad(:, :, isph), &
-            & (params % pl+1)**2, zero, grid_grad(:, :, 1), params % ngrid)
-        !do igrid = 1, params % ngrid
-        !    e(:, igrid) = e(:, igrid) + grid_grad(igrid, :, 1)
-        !end do
-
-        ! new version
-        radii(1) = params % rsph(isph)
-        grid_grad = zero
+        if (fmm_obj%radii_scaling) then
+            radii(1) = params % rsph(isph)
+        else
+            radii(1) = one
+        end if
         call grad_l2l(local_expansion, params % pl, 1, local_expansion_grad, &
             radii)
-        !do l = 1, (params % pl + 1)**2
-        !    write(6,*) l, local_expansion_grad(l, :), "-", grad(l, :, isph)
-        !end do
         call dgemm("T", "N", 3, params % ngrid, (params % pl)**2, &
             & one, local_expansion_grad, (params % pl+1)**2, constants % vgrid2, &
             & constants % vgrid_nbasis, one, e, 3)
     end if
 
-    if (allocated(grad)) deallocate(grad)
-    if (allocated(work)) deallocate(work)
-    if (allocated(tmp_local)) deallocate(tmp_local)
-    if (allocated(grid_grad)) deallocate(grid_grad)
     if (allocated(local_expansion_grad)) deallocate(local_expansion_grad)
 
 end subroutine
