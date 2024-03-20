@@ -23,8 +23,8 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
     real(dp), intent(inout) :: v(params % ngrid), e(3, params % ngrid), &
         & g(3, 3, params % ngrid)
 
-    real(dp) :: r_t, local_expansion((params % pl+1)**2), fac
-    integer :: inode, l, m, ind, igrid
+    real(dp) :: r_t, local_expansion((params % pl+1)**2)
+    integer :: inode, l, ind
     real(dp), allocatable :: local_expansion_grad(:, :)
     real(dp) :: radii(1)
 
