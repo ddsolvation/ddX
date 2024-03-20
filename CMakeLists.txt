@@ -55,6 +55,7 @@ find_package(OpenMP REQUIRED)
 set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
 ExternalProject_Add(fmm_lib
                     GIT_REPOSITORY michele@localhost:git_repo/fmm_lib
+                    GIT_TAG radii
                     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
                                -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
                                -DCMAKE_Fortan_FLAGS=${CMAKE_Fortran_FLAGS}

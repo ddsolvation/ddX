@@ -546,14 +546,14 @@ subroutine build_e_fmm_old(params, constants, workspace, multipoles, &
     end do
 
     ! far-field FMM gradients (only if pl > 0)
-    !if (params % pl .gt. 0) then
-    !    call tree_grad_l2l(params, constants, workspace % tmp_node_l, &
-    !        & workspace % tmp_sph_l_grad, workspace % tmp_sph_l)
-    !    call dgemm('T', 'N', params % ngrid, 3*params % nsph, &
-    !        & (params % pl)**2, one, constants % vgrid2, &
-    !        & constants % vgrid_nbasis, workspace % tmp_sph_l_grad, &
-    !        & (params % pl+1)**2, one, grid_grad, params % ngrid)
-    !end if
+    if (params % pl .gt. 0) then
+        call tree_grad_l2l(params, constants, workspace % tmp_node_l, &
+            & workspace % tmp_sph_l_grad, workspace % tmp_sph_l)
+        call dgemm('T', 'N', params % ngrid, 3*params % nsph, &
+            & (params % pl)**2, one, constants % vgrid2, &
+            & constants % vgrid_nbasis, workspace % tmp_sph_l_grad, &
+            & (params % pl+1)**2, one, grid_grad, params % ngrid)
+    end if
 
     ! discard the internal points
     icav = 0
@@ -851,7 +851,7 @@ subroutine electrostatics_fmm(params, constants, workspace, multipoles, mmax, &
         lebedev_v = zero
         lebedev_e = zero
         call cart_propfar_lebedev(workspace % fmm_obj, params, constants, &
-            & isph, do_v, lebedev_v, .false., lebedev_e, do_g, lebedev_g)
+            & isph, do_v, lebedev_v, do_e, lebedev_e, do_g, lebedev_g)
         call cart_propnear_lebedev(workspace % fmm_obj, params, constants, &
             & isph, do_v, lebedev_v, do_e, lebedev_e, do_g, lebedev_g, .true.)
         do igrid = 1, params % ngrid
