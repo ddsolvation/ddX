@@ -24,16 +24,16 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
         & g(3, 3, params % ngrid)
 
     real(dp) :: r_t, local_expansion((params % pl+1)**2)
-    integer :: inode, l, ind, igrid
+    integer :: inode, l, ind, igrid, i
     real(dp), allocatable :: local_expansion_grad(:, :), &
-        & local_expansion_hess(:, :, :), grid_hess_component(:, :)
+        & local_expansion_hess(:, :), grid_hess_component(:, :)
     real(dp) :: radii(1)
 
     if (do_e.or.do_g) then
         allocate(local_expansion_grad((params % pl + 1)**2, 3))
     end if
     if (do_g) then
-        allocate(local_expansion_hess((params % pl + 1)**2, 3, 3), &
+        allocate(local_expansion_hess((params % pl + 1)**2, 3), &
             & grid_hess_component(3, params % ngrid))
     end if
 
@@ -51,20 +51,21 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
         end do
     end if
 
-    ! far field potential
+    ! far field potential (L2P)
     call dgemv("T", (params % pl+1)**2, params % ngrid, one, &
         & constants % vgrid2, constants % vgrid_nbasis, &
         & local_expansion, 1, one, v, 1)
 
     ! if needed assemble the gradient of the L2L
-    ! if ((do_e.or.do_g) .and. params % pl.gt.0) then
-    ! end if
-
-    ! far field electric field
-    if (do_e .and. params % pl.gt.0) then
+     if ((do_e.or.do_g) .and. params % pl.gt.0) then
         radii(1) = params % rsph(isph)
         call grad_l2l(local_expansion, params % pl, 1, local_expansion_grad, &
             & radii)
+     end if
+
+    ! far field electric field
+    if (do_e .and. params % pl.gt.0) then
+        ! L2P
         call dgemm("T", "N", 3, params % ngrid, (params % pl)**2, &
             & one, local_expansion_grad, (params % pl+1)**2, constants % vgrid2, &
             & constants % vgrid_nbasis, one, e, 3)
@@ -73,40 +74,24 @@ subroutine cart_propfar_lebedev(fmm_obj, params, constants, isph, &
     ! far field electric field gradient
     if (do_g .and. params % pl.gt.1) then
         radii(1) = params % rsph(isph)
-        call grad_l2l(local_expansion, params % pl, 1, local_expansion_grad, &
-            & radii)
-        ! compute the hessian of the L2L
-        call grad_l2l(local_expansion_grad(:, 1), params % pl, 1, &
-            & local_expansion_hess(:, :, 1), radii)
-        call grad_l2l(local_expansion_grad(:, 2), params % pl, 1, &
-            & local_expansion_hess(:, :, 2), radii)
-        call grad_l2l(local_expansion_grad(:, 3), params % pl, 1, &
-            & local_expansion_hess(:, :, 3), radii)
-
-        call dgemm("T", "N", 3, params % ngrid, (params % pl)**2, &
-            & one, local_expansion_hess(:, :, 1), (params % pl+1)**2, &
-            & constants % vgrid2, constants % vgrid_nbasis, zero, &
-            & grid_hess_component, 3)
-        do igrid = 1, params % ngrid
-            g(:, 1, igrid) = g(:, 1, igrid) + grid_hess_component(:, igrid)
-        end do
-        call dgemm("T", "N", 3, params % ngrid, (params % pl)**2, &
-            & one, local_expansion_hess(:, :, 2), (params % pl+1)**2, &
-            & constants % vgrid2, constants % vgrid_nbasis, zero, &
-            & grid_hess_component, 3)
-        do igrid = 1, params % ngrid
-            g(:, 2, igrid) = g(:, 2, igrid) + grid_hess_component(:, igrid)
-        end do
-        call dgemm("T", "N", 3, params % ngrid, (params % pl)**2, &
-            & one, local_expansion_hess(:, :, 3), (params % pl+1)**2, &
-            & constants % vgrid2, constants % vgrid_nbasis, zero, &
-            & grid_hess_component, 3)
-        do igrid = 1, params % ngrid
-            g(:, 3, igrid) = g(:, 3, igrid) + grid_hess_component(:, igrid)
+        ! component by component
+        do i = 1, 3
+            ! compute the hessian of the L2L (just one component)
+            call grad_l2l(local_expansion_grad(:, i), params % pl, 1, &
+                & local_expansion_hess, radii)
+            ! L2P
+            call dgemm("T", "N", 3, params % ngrid, (params % pl)**2, &
+                & one, local_expansion_hess, (params % pl+1)**2, &
+                & constants % vgrid2, constants % vgrid_nbasis, zero, &
+                & grid_hess_component, 3)
+            ! transpose the result
+            do igrid = 1, params % ngrid
+                g(:, i, igrid) = g(:, i, igrid) + grid_hess_component(:, igrid)
+            end do
         end do
     end if
 
-    ! far field electric field gradient
+    ! deallocate gradient and hessian of the L2L
     if (allocated(local_expansion_grad)) deallocate(local_expansion_grad)
     if (allocated(local_expansion_hess)) deallocate(local_expansion_hess)
 
