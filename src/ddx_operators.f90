@@ -62,20 +62,19 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
         do isph = 1, params % nsph
             iproc = omp_get_thread_num() + 1
             ! Compute NEGATIVE action of off-digonal blocks
-            call calcv(params, constants, isph, workspace % tmp_pot(:, iproc), x, &
+            call calcv(params, constants, isph, workspace % tmp_grid(:, isph), x, &
                 & workspace % tmp_work(:, iproc))
-            call ddintegrate(1, constants % nbasis, params % ngrid, &
-                & constants % vwgrid, constants % vgrid_nbasis, &
-                & workspace % tmp_pot(:, iproc), y(:, isph))
-            ! now, fix the sign.
-            y(:, isph) = - y(:, isph)
         end do
+        call ddintegrate(params % nsph, constants % nbasis, params % ngrid, &
+            & constants % vwgrid, constants % vgrid_nbasis, &
+            & workspace % tmp_grid, y)
+        y = - y
         call time_pull("lx")
     end if
 !
 !   if required, add the diagonal.
 !
-    if (constants % dodiag) then 
+    if (constants % dodiag) then
         do isph = 1, params % nsph
             do l = 0, params % lmax
                 ind = l*l + l + 1
@@ -776,11 +775,11 @@ subroutine bx(params, constants, workspace, x, y, ddx_error)
         !$omp private(isph,iproc) schedule(dynamic)
         do isph = 1, params % nsph
           iproc = omp_get_thread_num() + 1
-          call calcv2_lpb(params, constants, isph, workspace % tmp_pot(:, iproc), x)
-          call ddintegrate(1, constants % nbasis, params % ngrid, constants % vwgrid, &
-              & constants % vgrid_nbasis, workspace % tmp_pot(:, iproc), y(:,isph))
-          y(:,isph) = - y(:,isph) 
+          call calcv2_lpb(params, constants, isph, workspace % tmp_grid(:,isph), x)
         end do
+        call ddintegrate(params % nsph, constants % nbasis, params % ngrid, constants % vwgrid, &
+            & constants % vgrid_nbasis, workspace % tmp_grid, y)
+        y = - y
         call time_pull("bx")
     end if
     if (constants % dodiag) y = y + x

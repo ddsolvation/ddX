@@ -1391,15 +1391,22 @@ real(dp) function hnorm(lmax, nbasis, nsph, x)
     implicit none
     integer, intent(in) :: lmax, nbasis, nsph
     real(dp),  dimension(nbasis, nsph), intent(in) :: x
-    integer :: isph
-    real(dp) :: vrms, fac
+    integer :: isph, l, ind, m
+    real(dp) :: vrms, fac, tmp
 
-    vrms = 0.0_dp
+    vrms = 0.0d0
     !$omp parallel do default(none) shared(nsph,lmax,nbasis,x) &
-    !$omp private(isph,fac) schedule(dynamic) reduction(+:vrms)
+    !$omp private(isph,tmp,l,ind,fac,m) schedule(static,1) reduction(+:vrms)
     do isph = 1, nsph
-        call hsnorm(lmax, nbasis, x(:,isph), fac)
-        vrms = vrms + fac*fac
+        tmp = 0.0d0
+        do l = 0, lmax
+            ind = l*l + l + 1
+            fac = 1.0d0/(1.0d0 + dble(l))
+            do m = -l, l
+                tmp = tmp + fac*x(ind+m,isph)*x(ind+m,isph)
+            end do
+        end do
+        vrms = vrms + tmp
     enddo
     hnorm = sqrt(vrms/dble(nsph))
 end function hnorm
