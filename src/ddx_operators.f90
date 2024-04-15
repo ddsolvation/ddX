@@ -56,6 +56,7 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
             end do
         end do
     else
+        call time_push()
         !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
         !$omp private(isph,iproc) schedule(dynamic)
         do isph = 1, params % nsph
@@ -69,6 +70,7 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
             ! now, fix the sign.
             y(:, isph) = - y(:, isph)
         end do
+        call time_pull("lx")
     end if
 !
 !   if required, add the diagonal.
@@ -768,7 +770,8 @@ subroutine bx(params, constants, workspace, x, y, ddx_error)
                     & one, y(:,isph), 1)
             end do
         end do
-    else 
+    else
+        call time_push()
         !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
         !$omp private(isph,iproc) schedule(dynamic)
         do isph = 1, params % nsph
@@ -778,6 +781,7 @@ subroutine bx(params, constants, workspace, x, y, ddx_error)
               & constants % vgrid_nbasis, workspace % tmp_pot(:, iproc), y(:,isph))
           y(:,isph) = - y(:,isph) 
         end do
+        call time_pull("bx")
     end if
     if (constants % dodiag) y = y + x
 end subroutine bx

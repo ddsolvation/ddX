@@ -21,6 +21,7 @@ use ddx_workspace
 use ddx_harmonics
 ! Enable OpenMP
 use omp_lib
+use ddx_profiling
 implicit none
 
 !> @defgroup Fortran_interface_core Fortran interface: core routines
