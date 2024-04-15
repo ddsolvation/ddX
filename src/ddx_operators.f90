@@ -36,11 +36,14 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
     !! Local variables
     integer :: isph, jsph, ij, l, ind, iproc
 
+    call time_push()
     ! dummy operation on unused interface arguments
     if (ddx_error % flag .eq. 0) continue
 
     !! Initialize
+    call time_push()
     y = zero
+    call time_pull("zero")
 !
 !   incore code:
 !
@@ -65,11 +68,16 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
             call calcv(params, constants, isph, workspace % tmp_grid(:, isph), x, &
                 & workspace % tmp_work(:, iproc))
         end do
+        call time_pull("calcv")
+
+        call time_push()
         call ddintegrate(params % nsph, constants % nbasis, params % ngrid, &
             & constants % vwgrid, constants % vgrid_nbasis, &
             & workspace % tmp_grid, y)
+        call time_pull("integrate")
+        call time_push()
         y = - y
-        call time_pull("lx")
+        call time_pull("sign")
     end if
 !
 !   if required, add the diagonal.
@@ -83,6 +91,7 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
             end do
         end do
     end if
+    call time_pull("lx")
 end subroutine lx
 
 !> Adjoint single layer operator matvec 
@@ -1067,6 +1076,7 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
 
     real(dp), allocatable :: diff_re(:,:), diff0(:,:)
 
+    call time_push()
     allocate(diff_re(constants % nbasis, params % nsph), &
         & diff0(constants % nbasis0, params % nsph), stat=info)
     if (info.ne.0) then
@@ -1191,6 +1201,7 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
         call update_error(ddx_error, "Deallocation failed in cx")
         return
     end if
+    call time_pull("cx")
 
 end subroutine cx
 

@@ -38,7 +38,7 @@ module ddx_profiling
             elap = omp_get_wtime() - times(tcnt-1)
             tcnt = tcnt-1
             write(msg, "(3a, ': ', e14.6E2, ' s')") repeat('-', tcnt), '> ', s, elap
-            write(*, *) '[fmm-time]', trim(msg)
+            write(*, *) '[ddX-time]', trim(msg)
         else
             write(*, *) 'time_pull Cannot pull any value.'
             stop 1
