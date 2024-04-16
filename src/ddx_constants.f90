@@ -223,6 +223,12 @@ type ddx_constants_type
     !> Whether the diagonal of the matrices has to be used in the mvp for
     !! ddCOSMO, ddPCM or inner ddLPB iterations
     logical  :: dodiag
+    !> List of exposed points in a CSR format.
+    integer, allocatable :: iexposed(:)
+    integer, allocatable :: exposed(:)
+    !> List of buried points in a CSR format.
+    integer, allocatable :: iburied(:)
+    integer, allocatable :: buried(:)
 end type ddx_constants_type
 
 contains
@@ -423,7 +429,7 @@ subroutine constants_init(params, constants, ddx_error)
         end do
     end if
 
-    ! Generate geometry-related constants (required by the LPB code)
+    ! Generate geometry-related constants
     call constants_geometry_init(params, constants, ddx_error)
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, "constants_geometry_init returned an " // &
@@ -992,6 +998,37 @@ subroutine constants_geometry_init(params, constants, ddx_error)
             end if
         enddo
     enddo
+
+    allocate(constants % iburied(params % nsph + 1), &
+         & constants % iexposed(params % nsph + 1), &
+         & constants % buried(params % nsph * params % ngrid), &
+         & constants % exposed(params % nsph * params % ngrid), stat=info)
+    if (info .ne. 0) then
+        call update_error(ddx_error, "Buried exposed lists allocation failed")
+        return
+    endif
+    iwork = 1
+    do isph = 1, params % nsph
+        constants % iburied(isph) = iwork
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .lt. one) then
+                write(7, *) isph, igrid
+                constants % buried(iwork) = igrid
+                iwork = iwork + 1
+            end if
+        end do
+    end do
+    constants % iburied(params % nsph + 1) = iwork
+
+    !!do isph = 1, params % nsph
+    !!    write(6,*) isph, constants % iburied(isph), constants % iburied(isph + 1) - 1
+    !!    do iwork = constants % iburied(isph), constants % iburied(isph + 1) - 1
+    !!        igrid = constants % buried(iwork)
+    !!        write(8, *) isph, igrid
+    !!    end do
+    !!end do
+    !!stop 0
+
     ! Build cavity array. At first get total count for each sphere
     allocate(constants % ncav_sph(params % nsph), stat=info)
     if (info .ne. 0) then
@@ -2141,6 +2178,34 @@ subroutine constants_free(constants, ddx_error)
         deallocate(constants % m2l_ztranslate_adj_coef, stat=istat)
         if (istat .ne. 0) then
             call update_error(ddx_error, "`m2l_ztranslate_adj_coef` " // &
+                & "deallocation failed!")
+        end if
+    end if
+    if (allocated(constants % iburied)) then
+        deallocate(constants % iburied, stat=istat)
+        if (istat .ne. 0) then
+            call update_error(ddx_error, "`iburied` " // &
+                & "deallocation failed!")
+        end if
+    end if
+    if (allocated(constants % buried)) then
+        deallocate(constants % buried, stat=istat)
+        if (istat .ne. 0) then
+            call update_error(ddx_error, "`buried` " // &
+                & "deallocation failed!")
+        end if
+    end if
+    if (allocated(constants % iexposed)) then
+        deallocate(constants % iexposed, stat=istat)
+        if (istat .ne. 0) then
+            call update_error(ddx_error, "`iexposed` " // &
+                & "deallocation failed!")
+        end if
+    end if
+    if (allocated(constants % exposed)) then
+        deallocate(constants % exposed, stat=istat)
+        if (istat .ne. 0) then
+            call update_error(ddx_error, "`exposed` " // &
                 & "deallocation failed!")
         end if
     end if
