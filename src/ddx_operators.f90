@@ -34,7 +34,8 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
-    integer :: isph, jsph, ij, l, ind, iproc
+    integer :: isph, jsph, ij, l, ind, iproc, its
+    real(dp) :: vij(3), tij, vvij, xij, oij, thigh
 
     call time_push()
     ! dummy operation on unused interface arguments
@@ -60,13 +61,38 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
         end do
     else
         call time_push()
-        !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-        !$omp private(isph,iproc) schedule(dynamic)
+        thigh = one + pt5*(params % se + one)*params % eta
+        !$omp parallel do collapse(2) default(none) shared(params,constants,workspace,x,y,thigh) &
+        !$omp private(isph,iproc,its,ij,jsph,vij,vvij,tij,xij,oij) schedule(static,1)
         do isph = 1, params % nsph
-            iproc = omp_get_thread_num() + 1
-            ! Compute NEGATIVE action of off-digonal blocks
-            call calcv(params, constants, isph, workspace % tmp_grid(:, isph), x, &
-                & workspace % tmp_work(:, iproc))
+            do its = 1, params % ngrid
+                workspace % tmp_grid(its, isph) = zero
+                iproc = omp_get_thread_num() + 1
+                ! contribution from integration point present
+                if (constants % ui(its,isph).lt.one) then
+                    ! loop over neighbors of i-sphere
+                    do ij = constants % inl(isph), constants % inl(isph+1)-1
+                        jsph = constants % nl(ij)
+                        ! compute t_n^ij = | r_i + \rho_i s_n - r_j | / \rho_j
+                        vij  = params % csph(:,isph) + params % rsph(isph)* &
+                            & constants % cgrid(:,its) - params % csph(:,jsph)
+                        vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) + vij(3)*vij(3))
+                        tij  = vvij / params % rsph(jsph)
+                        ! point is INSIDE j-sphere
+                        if (tij.lt.thigh .and. tij.gt.zero) then
+                            xij = fsw(tij, params % se, params % eta)
+                            if (constants % fi(its,isph).gt.one) then
+                                oij = xij / constants % fi(its,isph)
+                            else
+                                oij = xij
+                            end if
+                            call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
+                                & constants % vscales_rel, oij, x(:, jsph), one, &
+                                & workspace % tmp_grid(its, isph), workspace % tmp_work(:, iproc))
+                        end if
+                    end do
+                end if
+            end do
         end do
         call time_pull("calcv")
 
