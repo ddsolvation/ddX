@@ -34,21 +34,22 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
-    integer :: isph, jsph, ij, l, ind, iproc, its, i
+    integer :: isph, jsph, ij, l, ind, its, i
     real(dp) :: vij(3), tij, vvij, xij, oij, thigh
+
+    integer :: vgrid_nbasis, nbasis, ngrid, nsph, lmax
+    real(dp), allocatable :: tmp_grid(:)
+    real(dp) :: se, eta, work(params % lmax + 1)
+
+    allocate(tmp_grid(params % ngrid))
 
     call time_push()
     ! dummy operation on unused interface arguments
     if (ddx_error % flag .eq. 0) continue
+    if (workspace % xs_time .eq. 0) continue
 
-    !! Initialize
-    call time_push()
-    y = zero
-    call time_pull("zero")
-!
-!   incore code:
-!
     if (params % matvecmem .eq. 1) then
+        y = zero
         !$omp parallel do default(none) shared(params,constants,x,y) &
         !$omp private(isph,ij,jsph) schedule(dynamic)
         do isph = 1, params % nsph
@@ -61,48 +62,57 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
         end do
     else
         call time_push()
-        thigh = one + pt5*(params % se + one)*params % eta
-        workspace % tmp_grid = zero
-        !$omp parallel do default(none) shared(params, &
-        !$omp constants,workspace,x,y,thigh) private(isph,iproc,its,ij, &
-        !$omp jsph,vij,vvij,tij,xij,oij,i) schedule(static,1)
-        do isph = 1, params % nsph
-            do i = constants % iburied(isph), constants % iburied(isph + 1) - 1
-                its = constants % buried(i)
-                iproc = omp_get_thread_num() + 1
-                write(6,*) "thread", iproc, "working on", isph, its
-                do ij = constants % inl(isph), constants % inl(isph+1)-1
-                    jsph = constants % nl(ij)
-                    ! compute t_n^ij = | r_i + \rho_i s_n - r_j | / \rho_j
-                    vij  = params % csph(:,isph) + params % rsph(isph)* &
-                        & constants % cgrid(:,its) - params % csph(:,jsph)
-                    vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) + vij(3)*vij(3))
-                    tij  = vvij / params % rsph(jsph)
-                    ! point is INSIDE j-sphere
-                    if (tij.lt.thigh .and. tij.gt.zero) then
-                        xij = fsw(tij, params % se, params % eta)
-                        if (constants % fi(its,isph).gt.one) then
-                            oij = xij / constants % fi(its,isph)
-                        else
-                            oij = xij
-                        end if
-                        call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
-                            & constants % vscales_rel, oij, x(:, jsph), one, &
-                            & workspace % tmp_grid(its, isph), workspace % tmp_work(:, iproc))
-                    end if
-                end do
-            end do
-        end do
-        call time_pull("calcv")
 
-        call time_push()
-        call ddintegrate(params % nsph, constants % nbasis, params % ngrid, &
-            & constants % vwgrid, constants % vgrid_nbasis, &
-            & workspace % tmp_grid, y)
-        call time_pull("integrate")
-        call time_push()
-        y = - y
-        call time_pull("sign")
+        ! set up the environment for a good usage of open mp
+        thigh = one + pt5*(params % se + one)*params % eta
+        nsph = params % nsph
+        se = params % se
+        eta = params % eta
+        lmax = params % lmax
+        nbasis = constants % nbasis
+        ngrid = params % ngrid
+        vgrid_nbasis = constants % vgrid_nbasis
+
+        associate(iburied => constants % iburied, buried => constants % buried, &
+                & inl => constants % inl, nl => constants % nl, &
+                & csph => params % csph, rsph => params % rsph, &
+                & cgrid => constants % cgrid, fi => constants % fi, &
+                & vscales_rel => constants % vscales_rel, &
+                & vwgrid => constants % vwgrid)
+
+            !$omp parallel do default(none) &
+            !$omp firstprivate(nsph,thigh,se,eta,lmax,nbasis,ngrid,vgrid_nbasis) &
+            !$omp shared(iburied,buried,inl,nl,csph,rsph,fi,x,y,vscales_rel,vwgrid) &
+            !$omp private(isph,its,ij,jsph,vij,vvij,tij,xij,oij,i,work,tmp_grid) &
+            !$omp schedule(dynamic,1)
+            do isph = 1, nsph
+                tmp_grid(:) = 0.0d0
+                do i = iburied(isph), iburied(isph + 1) - 1
+                    its = buried(i)
+                    do ij = inl(isph), inl(isph+1)-1
+                        jsph = nl(ij)
+                        vij  = csph(:,isph) + rsph(isph)*cgrid(:,its) - csph(:,jsph)
+                        vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) + vij(3)*vij(3))
+                        tij  = vvij / rsph(jsph)
+                        if (tij.lt.thigh .and. tij.gt.0.0d0) then
+                            xij = fsw(tij, se, eta)
+                            if (fi(its, isph).gt.1.0d0) then
+                                oij = xij / fi(its, isph)
+                            else
+                                oij = xij
+                            end if
+                            call fmm_l2p_work(vij, rsph(jsph), lmax, &
+                                & vscales_rel, oij, x(:, jsph), 1.0d0, &
+                                & tmp_grid(its), work)
+                        end if
+                    end do
+                end do
+                call ddintegrate(1, nbasis, ngrid, vwgrid, vgrid_nbasis, &
+                    & tmp_grid, y(:, isph))
+                y(:, isph) = - y(:, isph)
+            end do
+        end associate
+        call time_pull("calcv+integrate+sign")
     end if
 !
 !   if required, add the diagonal.
@@ -117,6 +127,7 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
         end do
     end if
     call time_pull("lx")
+    deallocate(tmp_grid)
 end subroutine lx
 
 !> Adjoint single layer operator matvec 
