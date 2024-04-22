@@ -82,8 +82,8 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
 
             !$omp parallel do default(none) &
             !$omp firstprivate(nsph,thigh,se,eta,lmax,nbasis,ngrid,vgrid_nbasis) &
-            !$omp shared(iburied,buried,inl,nl,csph,rsph,fi,x,y,vscales_rel,vwgrid) &
-            !$omp private(isph,its,ij,jsph,vij,vvij,tij,xij,oij,i,work,tmp_grid) &
+            !$omp shared(buried,iburied,inl,nl,csph,rsph,cgrid,fi,vscales_rel,x,y,vwgrid) &
+            !$omp private(isph,tmp_grid,i,its,ij,jsph,vij,vvij,tij,xij,oij,work) &
             !$omp schedule(dynamic,1)
             do isph = 1, nsph
                 tmp_grid(:) = 0.0d0
