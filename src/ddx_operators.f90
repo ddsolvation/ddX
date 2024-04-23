@@ -41,35 +41,36 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
     real(dp), allocatable :: tmp_grid(:)
     real(dp) :: se, eta, work(params % lmax + 1)
 
+    call time_push()
     allocate(tmp_grid(params % ngrid))
 
-    call time_push()
     ! dummy operation on unused interface arguments
     if (ddx_error % flag .eq. 0) continue
     if (workspace % xs_time .eq. 0) continue
 
-    if (params % matvecmem .eq. 1) then
-        y = zero
-        !$omp parallel do default(none) shared(params,constants,x,y) &
-        !$omp private(isph,ij,jsph) schedule(dynamic)
-        do isph = 1, params % nsph
-            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
-                jsph = constants % nl(ij)
-                call dgemv('n', constants % nbasis, constants % nbasis, one, &
-                    & constants % l(:,:,ij), constants % nbasis, x(:,jsph), 1, &
-                    & one, y(:,isph), 1)
-            end do
-        end do
-    else
-        call time_push()
+    nsph = params % nsph
+    nbasis = constants % nbasis
+    lmax = params % lmax
 
-        ! set up the environment for a good usage of open mp
+    if (params % matvecmem .eq. 1) then
+        associate(inl => constants % inl, nl => constants % nl, &
+                & l => constants % l)
+            !$omp parallel do default(none) shared(inl,nl,l,x,y) &
+            !$omp firstprivate(nsph,nbasis) &
+            !$omp private(isph,ij,jsph) schedule(dynamic,1)
+            do isph = 1, nsph
+                y(:,isph) = 0.0d0
+                do ij = inl(isph), inl(isph + 1) - 1
+                    jsph = nl(ij)
+                    call dgemv('n', nbasis, nbasis, 1.0d0, l(:,:,ij), &
+                        & nbasis, x(:,jsph), 1, 1.0d0, y(:,isph), 1)
+                end do
+            end do
+        end associate
+    else
         thigh = one + pt5*(params % se + one)*params % eta
-        nsph = params % nsph
         se = params % se
         eta = params % eta
-        lmax = params % lmax
-        nbasis = constants % nbasis
         ngrid = params % ngrid
         vgrid_nbasis = constants % vgrid_nbasis
 
@@ -80,10 +81,10 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
                 & vscales_rel => constants % vscales_rel, &
                 & vwgrid => constants % vwgrid)
 
-            !$omp parallel do default(none) &
-            !$omp firstprivate(nsph,thigh,se,eta,lmax,nbasis,ngrid,vgrid_nbasis) &
-            !$omp shared(buried,iburied,inl,nl,csph,rsph,cgrid,fi,vscales_rel,x,y,vwgrid) &
-            !$omp private(isph,tmp_grid,i,its,ij,jsph,vij,vvij,tij,xij,oij,work) &
+            !$omp parallel do default(none) firstprivate(nsph,thigh,se,eta, &
+            !$omp lmax,nbasis,ngrid,vgrid_nbasis) shared(buried,iburied,inl, &
+            !$omp nl,csph,rsph,cgrid,fi,vscales_rel,x,y,vwgrid) private( &
+            !$omp isph,tmp_grid,i,its,ij,jsph,vij,vvij,tij,xij,oij,work) &
             !$omp schedule(dynamic,1)
             do isph = 1, nsph
                 tmp_grid(:) = 0.0d0
@@ -91,8 +92,10 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
                     its = buried(i)
                     do ij = inl(isph), inl(isph+1)-1
                         jsph = nl(ij)
-                        vij  = csph(:,isph) + rsph(isph)*cgrid(:,its) - csph(:,jsph)
-                        vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) + vij(3)*vij(3))
+                        vij = csph(:,isph) + rsph(isph)*cgrid(:,its) &
+                            & - csph(:,jsph)
+                        vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) &
+                            & + vij(3)*vij(3))
                         tij  = vvij / rsph(jsph)
                         if (tij.lt.thigh .and. tij.gt.0.0d0) then
                             xij = fsw(tij, se, eta)
@@ -112,19 +115,21 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
                 y(:, isph) = - y(:, isph)
             end do
         end associate
-        call time_pull("calcv+integrate+sign")
     end if
-!
-!   if required, add the diagonal.
-!
+
+    ! if required, add the diagonal.
     if (constants % dodiag) then
-        do isph = 1, params % nsph
-            do l = 0, params % lmax
-                ind = l*l + l + 1
-                y(ind-l:ind+l, isph) = y(ind-l:ind+l, isph) + &
-                     x(ind-l:ind+l, isph) / (constants % vscales(ind)**2)
+        associate(vscales => constants % vscales)
+            !$omp parallel do default(none) private(isph,l,ind) &
+            !$omp firstprivate(nsph,lmax) shared(x,y,vscales)
+            do isph = 1, nsph
+                do l = 0, lmax
+                    ind = l*l + l + 1
+                    y(ind-l:ind+l, isph) = y(ind-l:ind+l, isph) &
+                         & + x(ind-l:ind+l, isph) / (vscales(ind)**2)
+                end do
             end do
-        end do
+        end associate
     end if
     call time_pull("lx")
     deallocate(tmp_grid)
