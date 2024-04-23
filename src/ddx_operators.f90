@@ -210,6 +210,7 @@ subroutine lstarx(params, constants, workspace, x, y, ddx_error)
             !$omp firstprivate(nsph,ngrid,thigh,se,eta,lmax) &
             !$omp private(isph,ij,jsph,igrid,vji,vvji,tji,xji,oji,fac,work)
             do isph = 1, nsph
+                y(:,isph) = 0.0d0
                 do ij = inl(isph), inl(isph+1)-1
                     jsph = nl(ij)
                     do igrid = 1, ngrid

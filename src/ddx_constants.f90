@@ -229,6 +229,9 @@ type ddx_constants_type
     !> List of buried points in a CSR format.
     integer, allocatable :: iburied(:)
     integer, allocatable :: buried(:)
+    !> List of points in overlapped balls
+    integer, allocatable :: igrid_overlap(:,:,:)
+    integer, allocatable :: grid_overlap(:)
 end type ddx_constants_type
 
 contains
