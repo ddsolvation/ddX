@@ -34,8 +34,8 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
-    integer :: isph, jsph, ij, l, ind, its, i
-    real(dp) :: vij(3), tij, vvij, xij, oij, thigh
+    integer :: isph, jsph, ij, l, ind, its, i, m
+    real(dp) :: vij(3), tij, vvij, xij, oij, thigh, fac
 
     integer :: vgrid_nbasis, nbasis, ngrid, nsph, lmax
     real(dp), allocatable :: tmp_grid(:)
@@ -120,13 +120,16 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
     ! if required, add the diagonal.
     if (constants % dodiag) then
         associate(vscales => constants % vscales)
-            !$omp parallel do default(none) private(isph,l,ind) &
-            !$omp firstprivate(nsph,lmax) shared(x,y,vscales)
+            !$omp parallel do collapse(2) default(none) &
+            !$omp shared(vscales,x,y) firstprivate(nsph,lmax) &
+            !$omp private(isph,l,ind,m,fac) schedule(static,10)
             do isph = 1, nsph
                 do l = 0, lmax
                     ind = l*l + l + 1
-                    y(ind-l:ind+l, isph) = y(ind-l:ind+l, isph) &
-                         & + x(ind-l:ind+l, isph) / (vscales(ind)**2)
+                    fac = vscales(ind)**2
+                    do m = -l, l
+                        y(ind+m, isph) = y(ind+m, isph) + x(ind+m, isph)/fac
+                    end do
                 end do
             end do
         end associate
@@ -135,7 +138,7 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
     deallocate(tmp_grid)
 end subroutine lx
 
-!> Adjoint single layer operator matvec 
+!> Adjoint single layer operator matvec
 subroutine lstarx(params, constants, workspace, x, y, ddx_error)
     implicit none
     !! Inputs
@@ -148,55 +151,105 @@ subroutine lstarx(params, constants, workspace, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
-    integer :: isph, jsph, ij, indmat, igrid, l, ind, iproc
+    integer :: isph, jsph, ij, indmat, igrid, l, ind, m
+    real(dp) :: vji(3), vvji, tji, xji, oji, fac
+
+    integer :: nsph, ngrid, nbasis, lmax
+    real(dp) :: thigh, se, eta, work(params % lmax + 1)
+
+    call time_push()
 
     ! dummy operation on unused interface arguments
     if (ddx_error % flag .eq. 0) continue
 
-    y = zero
+    nsph = params % nsph
+    nbasis = constants % nbasis
+
     if (params % matvecmem .eq. 1) then
-        !$omp parallel do default(none) shared(params,constants,x,y) &
-        !$omp private(isph,ij,jsph,indmat) schedule(dynamic)
-        do isph = 1, params % nsph
-            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
-                jsph = constants % nl(ij)
-                indmat = constants % itrnl(ij)
-                call dgemv('t', constants % nbasis, constants % nbasis, one, &
-                    & constants % l(:,:,indmat), constants % nbasis, x(:,jsph), 1, &
-                    & one, y(:,isph), 1)
+        associate(inl => constants % inl, nl => constants % nl, &
+                & itrnl => constants % itrnl, l => constants % l)
+            !$omp parallel do default(none) schedule(dynamic,1) &
+            !$omp firstprivate(nsph,nbasis) shared(x,y,inl,nl,itrnl,l) &
+            !$omp private(isph,ij,jsph,indmat)
+            do isph = 1, nsph
+                y(:,isph) = 0.0d0
+                do ij = inl(isph), inl(isph + 1) - 1
+                    jsph = nl(ij)
+                    indmat = itrnl(ij)
+                    call dgemv('t', nbasis, nbasis, 1.0d0, &
+                        & l(:,:,indmat), nbasis, x(:,jsph), 1, &
+                        & 1.0d0, y(:,isph), 1)
+                end do
             end do
-        end do
+        end associate
     else
+        ngrid = params % ngrid
+        thigh = one + (params % se+one)/two*params % eta
+        se = params % se
+        eta = params % eta
+        lmax = params % lmax
         ! Expand x over spherical harmonics
-        !$omp parallel do default(none) shared(params,constants,workspace,x) &
-        !$omp private(isph,igrid) schedule(dynamic)
-        do isph = 1, params % nsph
-            do igrid = 1, params % ngrid
-                workspace % tmp_grid(igrid, isph) = dot_product(x(:, isph), &
-                    & constants % vgrid(:constants % nbasis, igrid))
+        associate(vgrid => constants % vgrid, tmp_grid => workspace % tmp_grid)
+            !$omp parallel do collapse(2) default(none) shared(x,tmp_grid) &
+            !$omp firstprivate(nsph,ngrid,nbasis) &
+            !$omp private(isph,igrid) schedule(static,100)
+            do isph = 1, nsph
+                do igrid = 1, ngrid
+                    tmp_grid(igrid,isph) = dot_product(x(:, isph), vgrid(:nbasis, igrid))
+                end do
             end do
-        end do
-        ! Compute (negative) action
-        !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-        !$omp private(isph,iproc) schedule(dynamic)
-        do isph = 1, params % nsph
-            iproc = omp_get_thread_num() + 1
-            call adjrhs(params, constants, isph, workspace % tmp_grid, &
-                & y(:, isph), workspace % tmp_work(:, iproc))
-            ! fix the sign
-            y(:, isph) = - y(:, isph)
-        end do
+        end associate
+        associate(inl => constants % inl, nl => constants % nl, &
+                & csph => params % csph, rsph => params % rsph, &
+                & cgrid => constants % cgrid, fi => constants % fi, &
+                & wgrid => constants % wgrid, &
+                & tmp_grid => workspace % tmp_grid, &
+                & vscales_rel => constants % vscales_rel)
+            !$omp parallel do default(none) schedule(dynamic,1) &
+            !$omp shared(inl,nl,csph,rsph,cgrid,fi,wgrid,tmp_grid,y) &
+            !$omp firstprivate(nsph,ngrid,thigh,se,eta,lmax) &
+            !$omp private(isph,ij,jsph,igrid,vji,vvji,tji,xji,oji,fac,work)
+            do isph = 1, nsph
+                do ij = inl(isph), inl(isph+1)-1
+                    jsph = nl(ij)
+                    do igrid = 1, ngrid
+                        vji = csph(:,jsph) + rsph(jsph)*cgrid(:,igrid) - csph(:,isph)
+                        vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) + vji(3)*vji(3))
+                        tji  = vvji/rsph(isph)
+                        if (tji.lt.thigh) then
+                            xji = fsw(tji, se, eta)
+                            if (fi(igrid,jsph).gt.1.0d0) then
+                                oji = xji/fi(igrid,jsph)
+                            else
+                                oji = xji
+                            endif
+                            fac = wgrid(igrid) * tmp_grid(igrid, jsph) * oji
+                            call fmm_l2p_adj_work(vji, fac, rsph(isph), &
+                                & lmax, vscales_rel, 1.0d0, y(:, isph), work)
+                        endif
+                    end do
+                end do
+                y(:, isph) = - y(:, isph)
+            end do
+        end associate
     end if
     if (constants % dodiag) then
-    ! Loop over harmonics
-        do isph = 1, params % nsph
-            do l = 0, params % lmax
-                ind = l*l + l + 1
-                y(ind-l:ind+l, isph) = y(ind-l:ind+l, isph) + &
-                    & x(ind-l:ind+l, isph) / (constants % vscales(ind)**2)
+        associate(vscales => constants % vscales)
+            !$omp parallel do collapse(2) default(none) &
+            !$omp shared(vscales,x,y) firstprivate(nsph,lmax) &
+            !$omp private(isph,l,ind,m,fac) schedule(static,10)
+            do isph = 1, nsph
+                do l = 0, lmax
+                    ind = l*l + l + 1
+                    fac = vscales(ind)**2
+                    do m = -l, l
+                        y(ind+m, isph) = y(ind+m, isph) + x(ind+m, isph)/fac
+                    end do
+                end do
             end do
-        end do
+        end associate
     end if
+    call time_pull("lstarx")
 end subroutine lstarx
 
 !> Diagonal preconditioning for Lx operator
@@ -214,22 +267,30 @@ subroutine ldm1x(params, constants, workspace, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
-    integer :: isph, l, ind
+    integer :: isph, l, ind, nsph, lmax, m
+    real(dp) :: fac
 
     ! dummy operation on unused interface arguments
     if ((ddx_error % flag .eq. 0) .or. &
-   &    (allocated(workspace % tmp_pot))) continue
+        & (allocated(workspace % tmp_pot))) continue
 
-    !! Loop over harmonics
-    !$omp parallel do default(none) shared(params,constants,x,y) &
-    !$omp private(isph,l,ind) schedule(dynamic)
-    do isph = 1, params % nsph
-        do l = 0, params % lmax
-            ind = l*l + l + 1
-            y(ind-l:ind+l, isph) = x(ind-l:ind+l, isph) &
-                & *(constants % vscales(ind)**2)
+    nsph = params % nsph
+    lmax = params % lmax
+
+    associate(vscales => constants % vscales)
+        !$omp parallel do collapse(2) default(none) &
+        !$omp shared(vscales,x,y) firstprivate(nsph,lmax) &
+        !$omp private(isph,l,ind,m,fac) schedule(static,10)
+        do isph = 1, nsph
+            do l = 0, lmax
+                ind = l*l + l + 1
+                fac = vscales(ind)**2
+                do m = -l, l
+                    y(ind+m, isph) = x(ind+m, isph)*fac
+                end do
+            end do
         end do
-    end do
+    end associate
 end subroutine ldm1x
 
 !> Double layer operator matvec without diagonal blocks

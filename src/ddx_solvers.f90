@@ -207,7 +207,7 @@ subroutine diis(n, nmat, ndiis, x, e, b, xnew)
     end do
     nmat = nmat + 1
 
-    deallocate (bloc, cex, stat=istatus)
+    deallocate (bloc, cex, ipiv, stat=istatus)
 end subroutine diis
 
 !> DIIS helper routine

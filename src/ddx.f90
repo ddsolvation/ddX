@@ -411,6 +411,7 @@ subroutine ddrun(ddx_data, state, electrostatics, psi, tol, esolv, &
             return
         end if
     end if
+
     call time_push()
     call solve(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, tol, ddx_error)
