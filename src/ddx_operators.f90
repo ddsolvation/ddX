@@ -97,7 +97,7 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
                         vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) &
                             & + vij(3)*vij(3))
                         tij  = vvij / rsph(jsph)
-                        if (tij.lt.thigh .and. tij.gt.0.0d0) then
+                        if (tij.lt.thigh) then
                             xij = fsw(tij, se, eta)
                             if (fi(its, isph).gt.1.0d0) then
                                 oij = xij / fi(its, isph)
@@ -151,7 +151,7 @@ subroutine lstarx(params, constants, workspace, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
-    integer :: isph, jsph, ij, indmat, igrid, l, ind, m
+    integer :: isph, jsph, ij, indmat, igrid, l, ind, m, i
     real(dp) :: vji(3), vvji, tji, xji, oji, fac
 
     integer :: nsph, ngrid, nbasis, lmax
@@ -204,16 +204,19 @@ subroutine lstarx(params, constants, workspace, x, y, ddx_error)
                 & cgrid => constants % cgrid, fi => constants % fi, &
                 & wgrid => constants % wgrid, &
                 & tmp_grid => workspace % tmp_grid, &
-                & vscales_rel => constants % vscales_rel)
+                & vscales_rel => constants % vscales_rel, &
+                & iburied => constants % iburied, &
+                & buried => constants % buried)
             !$omp parallel do default(none) schedule(dynamic,1) &
-            !$omp shared(inl,nl,csph,rsph,cgrid,fi,wgrid,tmp_grid,y) &
+            !$omp shared(inl,nl,csph,rsph,cgrid,fi,wgrid,tmp_grid,y,buried,iburied) &
             !$omp firstprivate(nsph,ngrid,thigh,se,eta,lmax) &
-            !$omp private(isph,ij,jsph,igrid,vji,vvji,tji,xji,oji,fac,work)
+            !$omp private(isph,ij,jsph,igrid,vji,vvji,tji,xji,oji,fac,work,i)
             do isph = 1, nsph
                 y(:,isph) = 0.0d0
                 do ij = inl(isph), inl(isph+1)-1
                     jsph = nl(ij)
-                    do igrid = 1, ngrid
+                    do i = iburied(jsph), iburied(jsph + 1) - 1
+                        igrid = buried(i)
                         vji = csph(:,jsph) + rsph(jsph)*cgrid(:,igrid) - csph(:,isph)
                         vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) + vji(3)*vji(3))
                         tji  = vvji/rsph(isph)

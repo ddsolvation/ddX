@@ -229,9 +229,6 @@ type ddx_constants_type
     !> List of buried points in a CSR format.
     integer, allocatable :: iburied(:)
     integer, allocatable :: buried(:)
-    !> List of points in overlapped balls
-    integer, allocatable :: igrid_overlap(:,:,:)
-    integer, allocatable :: grid_overlap(:)
 end type ddx_constants_type
 
 contains
@@ -1015,7 +1012,7 @@ subroutine constants_geometry_init(params, constants, ddx_error)
         constants % iburied(isph) = iwork
         do igrid = 1, params % ngrid
             if (constants % ui(igrid, isph) .lt. one) then
-                write(7, *) isph, igrid
+                !write(7, *) isph, igrid
                 constants % buried(iwork) = igrid
                 iwork = iwork + 1
             end if
