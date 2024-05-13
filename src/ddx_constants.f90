@@ -229,6 +229,9 @@ type ddx_constants_type
     !> List of buried points in a CSR format.
     integer, allocatable :: iburied(:)
     integer, allocatable :: buried(:)
+    !> List of overlapped points in a CSR format.
+    integer, allocatable :: ioverlap(:)
+    integer, allocatable :: overlap(:)
 end type ddx_constants_type
 
 contains
@@ -779,9 +782,9 @@ subroutine constants_geometry_init(params, constants, ddx_error)
     !! Local variables
     real(dp) :: swthr, v(3), maxv, ssqv, vv, t
     integer :: i, isph, jsph, inear, igrid, iwork, jwork, lwork, &
-        & old_lwork, icav, info
+        & old_lwork, icav, info, ij, ijgrid
     integer, allocatable :: work(:, :), tmp_work(:, :)
-    real(dp) :: start_time
+    real(dp) :: start_time, thigh, vij(3), vvij, tij
     !! The code
     ! Prepare FMM structures if needed
     start_time = omp_get_wtime()
@@ -1028,6 +1031,48 @@ subroutine constants_geometry_init(params, constants, ddx_error)
     !!    end do
     !!end do
     !!stop 0
+
+    allocate(constants % ioverlap(constants % inl(params % nsph+1)), &
+        & constants % overlap(constants % inl(params % nsph+1) &
+        & *params % ngrid), stat=info)
+    if (info .ne. 0) then
+        call update_error(ddx_error, "Overlapped grid lists allocation failed")
+        return
+    end if
+    thigh = one + pt5*(params % se + one)*params % eta
+    iwork = 1
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph+1) - 1
+            jsph = constants % nl(ij)
+            constants % ioverlap(ij) = iwork
+            do igrid = 1, params % ngrid
+                if (constants % ui(igrid, isph) .lt. one) then
+                    vij = params % csph(:,isph) &
+                        & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                        & - params % csph(:,jsph)
+                    vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) &
+                        & + vij(3)*vij(3))
+                    tij  = vvij / params % rsph(jsph)
+                    if (tij.lt.thigh) then
+                        constants % overlap(iwork) = igrid
+                        iwork = iwork + 1
+                    end if
+                end if
+            end do
+        end do
+    end do
+    constants % ioverlap(ij) = iwork
+
+    !do isph = 1, params % nsph
+    !    do ij = constants % inl(isph), constants % inl(isph+1) - 1
+    !        jsph = constants % nl(ij)
+    !        do ijgrid = constants % ioverlap(ij), constants % ioverlap(ij+1) - 1
+    !            igrid = constants % overlap(ijgrid)
+    !            write(6,*) isph, jsph, igrid
+    !        end do
+    !    end do
+    !end do
+    !stop 0
 
     ! Build cavity array. At first get total count for each sphere
     allocate(constants % ncav_sph(params % nsph), stat=info)

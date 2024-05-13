@@ -34,7 +34,7 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
-    integer :: isph, jsph, ij, l, ind, its, i, m
+    integer :: isph, jsph, ij, l, ind, its, i, m, ijgrid
     real(dp) :: vij(3), tij, vvij, xij, oij, thigh, fac
 
     integer :: vgrid_nbasis, nbasis, ngrid, nsph, lmax
@@ -79,35 +79,37 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
                 & csph => params % csph, rsph => params % rsph, &
                 & cgrid => constants % cgrid, fi => constants % fi, &
                 & vscales_rel => constants % vscales_rel, &
-                & vwgrid => constants % vwgrid)
+                & vwgrid => constants % vwgrid, &
+                & ioverlap => constants % ioverlap, &
+                & overlap => constants % overlap)
 
             !$omp parallel do default(none) firstprivate(nsph,thigh,se,eta, &
             !$omp lmax,nbasis,ngrid,vgrid_nbasis) shared(buried,iburied,inl, &
             !$omp nl,csph,rsph,cgrid,fi,vscales_rel,x,y,vwgrid) private( &
-            !$omp isph,tmp_grid,i,its,ij,jsph,vij,vvij,tij,xij,oij,work) &
+            !$omp isph,tmp_grid,i,its,ij,jsph,vij,vvij,tij,xij,oij,work,ijgrid) &
             !$omp schedule(dynamic,1)
             do isph = 1, nsph
                 tmp_grid(:) = 0.0d0
-                do i = iburied(isph), iburied(isph + 1) - 1
-                    its = buried(i)
-                    do ij = inl(isph), inl(isph+1)-1
-                        jsph = nl(ij)
+                do ij = inl(isph), inl(isph+1)-1
+                    jsph = nl(ij)
+                !do i = iburied(isph), iburied(isph + 1) - 1
+                !its = buried(i)
+                    do ijgrid = ioverlap(ij), ioverlap(ij+1) - 1
+                        its = overlap(ijgrid)
                         vij = csph(:,isph) + rsph(isph)*cgrid(:,its) &
                             & - csph(:,jsph)
                         vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) &
                             & + vij(3)*vij(3))
                         tij  = vvij / rsph(jsph)
-                        if (tij.lt.thigh) then
-                            xij = fsw(tij, se, eta)
-                            if (fi(its, isph).gt.1.0d0) then
-                                oij = xij / fi(its, isph)
-                            else
-                                oij = xij
-                            end if
-                            call fmm_l2p_work(vij, rsph(jsph), lmax, &
-                                & vscales_rel, oij, x(:, jsph), 1.0d0, &
-                                & tmp_grid(its), work)
+                        xij = fsw(tij, se, eta)
+                        if (fi(its, isph).gt.1.0d0) then
+                            oij = xij / fi(its, isph)
+                        else
+                            oij = xij
                         end if
+                        call fmm_l2p_work(vij, rsph(jsph), lmax, &
+                            & vscales_rel, oij, x(:, jsph), 1.0d0, &
+                            & tmp_grid(its), work)
                     end do
                 end do
                 call ddintegrate(1, nbasis, ngrid, vwgrid, vgrid_nbasis, &
