@@ -232,6 +232,10 @@ type ddx_constants_type
     !> List of overlapped points in a CSR format.
     integer, allocatable :: ioverlap(:)
     integer, allocatable :: overlap(:)
+    !> Adjoint list of overlapped points (the relation is not self
+    ! adjoint) in a CSR format.
+    integer, allocatable :: adj_ioverlap(:)
+    integer, allocatable :: adj_overlap(:)
 end type ddx_constants_type
 
 contains
@@ -782,7 +786,7 @@ subroutine constants_geometry_init(params, constants, ddx_error)
     !! Local variables
     real(dp) :: swthr, v(3), maxv, ssqv, vv, t
     integer :: i, isph, jsph, inear, igrid, iwork, jwork, lwork, &
-        & old_lwork, icav, info, ij, ijgrid
+        & old_lwork, icav, info, ij, adj_iwork
     integer, allocatable :: work(:, :), tmp_work(:, :)
     real(dp) :: start_time, thigh, vij(3), vvij, tij
     !! The code
@@ -1033,18 +1037,22 @@ subroutine constants_geometry_init(params, constants, ddx_error)
     !!stop 0
 
     allocate(constants % ioverlap(constants % inl(params % nsph+1)), &
-        & constants % overlap(constants % inl(params % nsph+1) &
-        & *params % ngrid), stat=info)
+        & constants % adj_ioverlap(constants % inl(params % nsph+1)), &
+        & constants % overlap(constants % inl(params % nsph+1)*params % ngrid), &
+        & constants % adj_overlap(constants % inl(params % nsph+1)*params % ngrid), &
+        & stat=info)
     if (info .ne. 0) then
         call update_error(ddx_error, "Overlapped grid lists allocation failed")
         return
     end if
     thigh = one + pt5*(params % se + one)*params % eta
     iwork = 1
+    adj_iwork = 1
     do isph = 1, params % nsph
         do ij = constants % inl(isph), constants % inl(isph+1) - 1
             jsph = constants % nl(ij)
             constants % ioverlap(ij) = iwork
+            constants % adj_ioverlap(ij) = adj_iwork
             do igrid = 1, params % ngrid
                 if (constants % ui(igrid, isph) .lt. one) then
                     vij = params % csph(:,isph) &
@@ -1058,16 +1066,31 @@ subroutine constants_geometry_init(params, constants, ddx_error)
                         iwork = iwork + 1
                     end if
                 end if
+                if (constants % ui(igrid, jsph) .lt. one) then
+                    vij = params % csph(:,jsph) &
+                        & + params % rsph(jsph)*constants % cgrid(:,igrid) &
+                        & - params % csph(:,isph)
+                    vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) &
+                        & + vij(3)*vij(3))
+                    tij  = vvij / params % rsph(isph)
+                    if (tij.lt.thigh) then
+                        constants % adj_overlap(adj_iwork) = igrid
+                        adj_iwork = adj_iwork + 1
+                    end if
+                end if
             end do
         end do
     end do
     constants % ioverlap(ij) = iwork
+    constants % adj_ioverlap(ij) = adj_iwork
 
     !do isph = 1, params % nsph
     !    do ij = constants % inl(isph), constants % inl(isph+1) - 1
     !        jsph = constants % nl(ij)
-    !        do ijgrid = constants % ioverlap(ij), constants % ioverlap(ij+1) - 1
-    !            igrid = constants % overlap(ijgrid)
+    !        !do ijgrid = constants % ioverlap(ij), constants % ioverlap(ij+1) - 1
+    !        !    igrid = constants % overlap(ijgrid)
+    !        do ijgrid = constants % adj_ioverlap(ij), constants % adj_ioverlap(ij+1) - 1
+    !            igrid = constants % adj_overlap(ijgrid)
     !            write(6,*) isph, jsph, igrid
     !        end do
     !    end do

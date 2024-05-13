@@ -34,7 +34,7 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
-    integer :: isph, jsph, ij, l, ind, its, i, m, ijgrid
+    integer :: isph, jsph, ij, l, ind, its, i, m, ijits
     real(dp) :: vij(3), tij, vvij, xij, oij, thigh, fac
 
     integer :: vgrid_nbasis, nbasis, ngrid, nsph, lmax
@@ -74,8 +74,7 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
         ngrid = params % ngrid
         vgrid_nbasis = constants % vgrid_nbasis
 
-        associate(iburied => constants % iburied, buried => constants % buried, &
-                & inl => constants % inl, nl => constants % nl, &
+        associate(inl => constants % inl, nl => constants % nl, &
                 & csph => params % csph, rsph => params % rsph, &
                 & cgrid => constants % cgrid, fi => constants % fi, &
                 & vscales_rel => constants % vscales_rel, &
@@ -83,19 +82,18 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
                 & ioverlap => constants % ioverlap, &
                 & overlap => constants % overlap)
 
-            !$omp parallel do default(none) firstprivate(nsph,thigh,se,eta, &
-            !$omp lmax,nbasis,ngrid,vgrid_nbasis) shared(buried,iburied,inl, &
-            !$omp nl,csph,rsph,cgrid,fi,vscales_rel,x,y,vwgrid) private( &
-            !$omp isph,tmp_grid,i,its,ij,jsph,vij,vvij,tij,xij,oij,work,ijgrid) &
-            !$omp schedule(dynamic,1)
+            !$omp parallel do default(none) schedule(dynamic,1) &
+            !$omp firstprivate(nsph,thigh,se,eta,lmax,nbasis,ngrid, &
+            !$omp vgrid_nbasis) shared(inl,nl,csph,rsph,cgrid,fi, &
+            !$omp vscales_rel,x,y,vwgrid,ioverlap,overlap) private( &
+            !$omp isph,tmp_grid,i,its,ij,jsph,vij,vvij,tij,xij,oij, &
+            !$omp work,ijits)
             do isph = 1, nsph
                 tmp_grid(:) = 0.0d0
                 do ij = inl(isph), inl(isph+1)-1
                     jsph = nl(ij)
-                !do i = iburied(isph), iburied(isph + 1) - 1
-                !its = buried(i)
-                    do ijgrid = ioverlap(ij), ioverlap(ij+1) - 1
-                        its = overlap(ijgrid)
+                    do ijits = ioverlap(ij), ioverlap(ij+1) - 1
+                        its = overlap(ijits)
                         vij = csph(:,isph) + rsph(isph)*cgrid(:,its) &
                             & - csph(:,jsph)
                         vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) &
@@ -153,7 +151,7 @@ subroutine lstarx(params, constants, workspace, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
     !! Local variables
-    integer :: isph, jsph, ij, indmat, igrid, l, ind, m, i
+    integer :: isph, jsph, ij, indmat, igrid, l, ind, m, i, ijigrid
     real(dp) :: vji(3), vvji, tji, xji, oji, fac
 
     integer :: nsph, ngrid, nbasis, lmax
@@ -207,32 +205,32 @@ subroutine lstarx(params, constants, workspace, x, y, ddx_error)
                 & wgrid => constants % wgrid, &
                 & tmp_grid => workspace % tmp_grid, &
                 & vscales_rel => constants % vscales_rel, &
-                & iburied => constants % iburied, &
-                & buried => constants % buried)
+                & adj_ioverlap => constants % adj_ioverlap, &
+                & adj_overlap => constants % adj_overlap)
             !$omp parallel do default(none) schedule(dynamic,1) &
-            !$omp shared(inl,nl,csph,rsph,cgrid,fi,wgrid,tmp_grid,y,buried,iburied) &
-            !$omp firstprivate(nsph,ngrid,thigh,se,eta,lmax) &
-            !$omp private(isph,ij,jsph,igrid,vji,vvji,tji,xji,oji,fac,work,i)
+            !$omp shared(inl,nl,csph,rsph,cgrid,fi,wgrid,tmp_grid,y, &
+            !$omp adj_overlap,adj_ioverlap) firstprivate(nsph,ngrid, &
+            !$omp thigh,se,eta,lmax) private(isph,ij,jsph,igrid,vji, &
+            !$omp vvji,tji,xji,oji,fac,work,i,ijigrid)
             do isph = 1, nsph
                 y(:,isph) = 0.0d0
                 do ij = inl(isph), inl(isph+1)-1
                     jsph = nl(ij)
-                    do i = iburied(jsph), iburied(jsph + 1) - 1
-                        igrid = buried(i)
+                    do ijigrid = adj_ioverlap(ij), adj_ioverlap(ij+1) - 1
+                        igrid = adj_overlap(ijigrid)
+
                         vji = csph(:,jsph) + rsph(jsph)*cgrid(:,igrid) - csph(:,isph)
                         vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) + vji(3)*vji(3))
                         tji  = vvji/rsph(isph)
-                        if (tji.lt.thigh) then
-                            xji = fsw(tji, se, eta)
-                            if (fi(igrid,jsph).gt.1.0d0) then
-                                oji = xji/fi(igrid,jsph)
-                            else
-                                oji = xji
-                            endif
-                            fac = wgrid(igrid) * tmp_grid(igrid, jsph) * oji
-                            call fmm_l2p_adj_work(vji, fac, rsph(isph), &
-                                & lmax, vscales_rel, 1.0d0, y(:, isph), work)
+                        xji = fsw(tji, se, eta)
+                        if (fi(igrid,jsph).gt.1.0d0) then
+                            oji = xji/fi(igrid,jsph)
+                        else
+                            oji = xji
                         endif
+                        fac = wgrid(igrid) * tmp_grid(igrid, jsph) * oji
+                        call fmm_l2p_adj_work(vji, fac, rsph(isph), &
+                            & lmax, vscales_rel, 1.0d0, y(:, isph), work)
                     end do
                 end do
                 y(:, isph) = - y(:, isph)
