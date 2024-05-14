@@ -189,7 +189,7 @@ subroutine lstarx(params, constants, workspace, x, y, ddx_error)
         lmax = params % lmax
         ! Expand x over spherical harmonics
         associate(vgrid => constants % vgrid, &
-                 & tmp_grid => workspace % tmp_grid)
+                & tmp_grid => workspace % tmp_grid)
             !$omp parallel do collapse(2) default(none) &
             !$omp firstprivate(nsph,ngrid,nbasis) shared(x,tmp_grid,vgrid) &
             !$omp private(isph,igrid) schedule(static,100)
@@ -819,17 +819,15 @@ subroutine bstarx(params, constants, workspace, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
     ! Local variables
-    integer :: isph, jsph, ij, indmat, ind, ijigrid, igrid, l, m
-
-    real(dp) :: thigh, se, eta, kappa, vji(3), vvji, sji(3), tji
-    real(dp) :: rho, ctheta, stheta, cphi, sphi, xji, oji, fac, &
+    integer :: isph, jsph, ij, indmat, ind, ijigrid, igrid, l, m, &
+        & nsph, nbasis, lmax, ngrid
+    real(dp) :: thigh, se, eta, kappa, vji(3), vvji, sji(3), tji, &
+        & rho, ctheta, stheta, cphi, sphi, xji, oji, fac, &
         & basloc((params % lmax + 1)**2), vcos(params % lmax + 1), &
         & vsin(params % lmax + 1), vplm((params % lmax + 1)**2), &
-        & tmp(constants % nbasis)
-    real(dp), dimension(constants % nbasis) :: fac_hsp
-    real(dp), dimension(0:params % lmax) :: SI_rjin, DI_rjin
+        & tmp(constants % nbasis), fac_hsp(constants % nbasis), &
+        & si_rjin(0:params % lmax), di_rjin(0:params % lmax) 
     complex(dp) :: work_complex(max(2, params % lmax+1))
-    integer :: nsph, nbasis, lmax, ngrid
 
     call time_push()
 
@@ -840,33 +838,42 @@ subroutine bstarx(params, constants, workspace, x, y, ddx_error)
     if (ddx_error % flag .eq. 0) continue
 
     if (params % matvecmem .eq. 1) then
-        !$omp parallel do default(none) shared(params,constants,x,y) &
-        !$omp private(isph,ij,jsph,indmat) schedule(dynamic)
-        do isph = 1, params % nsph
-            y(:,isph) = zero
-            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
-                jsph = constants % nl(ij)
-                indmat = constants % itrnl(ij)
-                call dgemv('t', constants % nbasis, constants % nbasis, one, &
-                    & constants % b(:,:,indmat), constants % nbasis, x(:,jsph), 1, &
-                    & one, y(:,isph), 1)
+        associate(inl => constants % inl, nl => constants % nl, &
+                & itrnl => constants % itrnl, b => constants % b)
+            !$omp parallel do default(none) schedule(dynamic,1) &
+            !$omp firstprivate(nsph,nbasis) shared(x,y,inl,nl,itrnl,b) &
+            !$omp private(isph,ij,jsph,indmat)
+            do isph = 1, nsph
+                y(:,isph) = zero
+                do ij = inl(isph), inl(isph + 1) - 1
+                    jsph = nl(ij)
+                    indmat = itrnl(ij)
+                    call dgemv('t', nbasis, nbasis, 1.0d0, &
+                        & b(:,:,indmat), nbasis, x(:,jsph), 1, &
+                        & 1.0d0, y(:,isph), 1)
+                end do
             end do
-        end do
+        end associate
     else
-        !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-        !$omp private(isph) schedule(static,1)
-        do isph = 1, params % nsph
-            call dgemv('t', constants % nbasis, params % ngrid, one, constants % vgrid, &
-                & constants % vgrid_nbasis, x(:, isph), 1, zero, &
-                & workspace % tmp_grid(:, isph), 1)
-        end do
-
         ngrid = params % ngrid
         thigh = one + (params % se+one)/two*params % eta
         se = params % se
         eta = params % eta
         lmax = params % lmax
         kappa = params % kappa
+
+        associate(vgrid => constants % vgrid, &
+                & tmp_grid => workspace % tmp_grid)
+            !$omp parallel do collapse(2) default(none) &
+            !$omp firstprivate(nsph,ngrid,nbasis) shared(x,tmp_grid,vgrid) &
+            !$omp private(isph,igrid) schedule(static,100)
+            do isph = 1, nsph
+                do igrid = 1, ngrid
+                    tmp_grid(igrid,isph) = dot_product(x(:, isph), &
+                        & vgrid(:nbasis, igrid))
+                end do
+            end do
+        end associate
 
         associate(inl => constants % inl, nl => constants % nl, &
                 & csph => params % csph, rsph => params % rsph, &
@@ -1104,9 +1111,12 @@ subroutine prec_tstarx(params, constants, workspace, x, y, ddx_error)
     y(:,:,1) = x(:,:,1)
     call convert_ddcosmo(params, constants, 1, y(:,:,1))
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, constants % inner_tol, &
-        & y(:,:,1), workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, &
+    ! the empirical 10^-2 factor reduces the number of macro iterations
+    call jacobi_diis(params, constants, workspace, &
+        & constants % inner_tol*1.0d-2, y(:,:,1), &
+        & workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, &
         & ldm1x, hnorm, ddx_error)
+    write(6,*) "lstarx", x_rel_diff(1:n_iter)
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, 'prec_tstarx: ddCOSMO failed to ' // &
             & 'converge, exiting')
@@ -1117,9 +1127,10 @@ subroutine prec_tstarx(params, constants, workspace, x, y, ddx_error)
 
     start_time = omp_get_wtime()
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, constants % inner_tol, &
-        & x(:,:,2), workspace % hsp_guess, n_iter, x_rel_diff, bstarx, &
-        & bx_prec, hnorm, ddx_error)
+    call jacobi_diis(params, constants, workspace, &
+        & constants % inner_tol*1.0d1, x(:,:,2), workspace % hsp_guess, &
+        & n_iter, x_rel_diff, bstarx, bx_prec, hnorm, ddx_error)
+    write(6,*) "bstarx", x_rel_diff(1:n_iter)
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, 'prec_tstarx: HSP failed to ' // &
             & 'converge, exiting')
@@ -1153,14 +1164,15 @@ subroutine prec_tx(params, constants, workspace, x, y, ddx_error)
     ! perform A^-1 * Yr
     start_time = omp_get_wtime()
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, constants % inner_tol, &
-        & x(:,:,1), workspace % ddcosmo_guess, n_iter, x_rel_diff, lx, &
-        & ldm1x, hnorm, ddx_error)
+    call jacobi_diis(params, constants, workspace, &
+        & constants % inner_tol, x(:,:,1), workspace % ddcosmo_guess, &
+        & n_iter, x_rel_diff, lx, ldm1x, hnorm, ddx_error)
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, 'prec_tx: ddCOSMO failed to ' // &
             & 'converge, exiting')
         return
     end if
+    write(6,*) "lx", x_rel_diff(1:n_iter)
 
     ! Scale by the factor of (2l+1)/4Pi
     y(:,:,1) = workspace % ddcosmo_guess
@@ -1170,11 +1182,12 @@ subroutine prec_tx(params, constants, workspace, x, y, ddx_error)
     ! perform B^-1 * Ye
     start_time = omp_get_wtime()
     n_iter = params % maxiter
-    call jacobi_diis(params, constants, workspace, constants % inner_tol, &
-        & x(:,:,2), workspace % hsp_guess, n_iter, x_rel_diff, bx, &
-        & bx_prec, hnorm, ddx_error)
+    call jacobi_diis(params, constants, workspace, &
+        & constants % inner_tol, x(:,:,2), workspace % hsp_guess, &
+        & n_iter, x_rel_diff, bx, bx_prec, hnorm, ddx_error)
     y(:,:,2) = workspace % hsp_guess
     workspace % hsp_time = workspace % hsp_time + omp_get_wtime() - start_time
+    write(6,*) "bx", x_rel_diff(1:n_iter)
 
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, 'prec_tx: HSP failed to ' // &
@@ -1201,6 +1214,8 @@ subroutine cstarx(params, constants, workspace, x, y, ddx_error)
     real(dp), dimension(3) :: vij, vtij
     real(dp) :: val, epsilon_ratio
     real(dp), allocatable :: scratch(:,:), scratch0(:,:)
+
+    call time_push()
 
     ! dummy operation on unused interface arguments
     if (ddx_error % flag .eq. 0) continue
@@ -1296,6 +1311,8 @@ subroutine cstarx(params, constants, workspace, x, y, ddx_error)
           end do
         end do
     end do
+
+    call time_pull("cstarx")
 
 end subroutine cstarx
 
