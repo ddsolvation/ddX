@@ -38,11 +38,9 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
     real(dp) :: vij(3), tij, vvij, xij, oij, fac
 
     integer :: vgrid_nbasis, nbasis, ngrid, nsph, lmax
-    real(dp), allocatable :: tmp_grid(:)
-    real(dp) :: se, eta, work(params % lmax + 1)
+    real(dp) :: se, eta, work(params % lmax + 1), tmp_grid(params % ngrid)
 
     call time_push()
-    allocate(tmp_grid(params % ngrid))
 
     ! dummy operation on unused interface arguments
     if (ddx_error % flag .eq. 0) continue
@@ -134,7 +132,6 @@ subroutine lx(params, constants, workspace, x, y, ddx_error)
         end associate
     end if
     call time_pull("lx")
-    deallocate(tmp_grid)
 end subroutine lx
 
 !> Adjoint single layer operator matvec
@@ -962,12 +959,9 @@ subroutine bx(params, constants, workspace, x, y, ddx_error)
     integer :: nsph, nbasis, lmax, ngrid, vgrid_nbasis
     real(dp) :: se, eta, vij(3), vvij, tij, xij, oij, vtij(3), kappa
     complex(dp) :: work_complex(params % lmax+1)
-    real(dp) :: work(params % lmax+1)
-
-    real(dp), allocatable :: tmp_grid(:)
+    real(dp) :: work(params % lmax+1), tmp_grid(params % ngrid)
 
     call time_push()
-    allocate(tmp_grid(params % ngrid))
 
     ! dummy operation on unused interface arguments
     if (ddx_error % flag .eq. 0) continue
