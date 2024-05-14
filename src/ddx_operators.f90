@@ -824,13 +824,12 @@ subroutine bstarx(params, constants, workspace, x, y, ddx_error)
     real(dp) :: thigh, se, eta, kappa, vji(3), vvji, sji(3), tji
     real(dp) :: rho, ctheta, stheta, cphi, sphi, xji, oji, fac, &
         & basloc((params % lmax + 1)**2), vcos(params % lmax + 1), &
-        & vsin(params % lmax + 1), vplm((params % lmax + 1)**2)
+        & vsin(params % lmax + 1), vplm((params % lmax + 1)**2), &
+        & tmp(constants % nbasis)
     real(dp), dimension(constants % nbasis) :: fac_hsp
     real(dp), dimension(0:params % lmax) :: SI_rjin, DI_rjin
     complex(dp) :: work_complex(max(2, params % lmax+1))
     integer :: nsph, nbasis, lmax, ngrid
-
-    real(dp) :: y_copy(constants % nbasis, params % nsph)
 
     call time_push()
 
@@ -840,7 +839,7 @@ subroutine bstarx(params, constants, workspace, x, y, ddx_error)
     ! dummy operation on unused interface arguments
     if (ddx_error % flag .eq. 0) continue
 
-    !if (params % matvecmem .eq. 1) then
+    if (params % matvecmem .eq. 1) then
         !$omp parallel do default(none) shared(params,constants,x,y) &
         !$omp private(isph,ij,jsph,indmat) schedule(dynamic)
         do isph = 1, params % nsph
@@ -853,9 +852,7 @@ subroutine bstarx(params, constants, workspace, x, y, ddx_error)
                     & one, y(:,isph), 1)
             end do
         end do
-    y_copy(:,:) = y(:,:)
-    y = zero
-    !else
+    else
         !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
         !$omp private(isph) schedule(static,1)
         do isph = 1, params % nsph
@@ -878,22 +875,21 @@ subroutine bstarx(params, constants, workspace, x, y, ddx_error)
                 & tmp_grid => workspace % tmp_grid, &
                 & vscales => constants % vscales, &
                 & adj_ioverlap => constants % adj_ioverlap, &
-                & adj_overlap => constants % adj_overlap)
+                & adj_overlap => constants % adj_overlap, &
+                & si_ri => constants % si_ri)
+            !$omp parallel do default(none) schedule(dynamic,1) &
+            !$omp firstprivate(nsph,ngrid,thigh,se,eta,lmax,kappa) &
+            !$omp shared(inl,nl,csph,rsph,cgrid,fi,wgrid,tmp_grid,y, &
+            !$omp adj_overlap,adj_ioverlap,vscales,si_ri) &
+            !$omp private(isph,ij,jsph,ijigrid,igrid,vji,vvji,tji,sji, &
+            !$omp rho,ctheta,stheta,cphi,sphi,basloc,vplm,vcos,vsin,tmp, &
+            !$omp si_rjin,di_rjin,work_complex,fac_hsp,xji,oji,fac,ind)
             do isph = 1, nsph
-                !y_copy(:, isph) = 0.0d0
-                !call adjrhs_lpb(params, constants, isph, workspace % tmp_grid, &
-                !    & y_copy(:, isph), workspace % tmp_vylm(:, 1), &
-                !    & workspace % tmp_vplm(:, 1), &
-                !    & workspace % tmp_vcos(:, 1), workspace % tmp_vsin(:, 1), &
-                !    & workspace % tmp_bessel(:, 1))
-                !y_copy(:, isph) = - y_copy(:, isph)
-
-                y(:, isph) = 0.0d0
+                tmp = 0.0d0
                 do ij = inl(isph), inl(isph+1)-1
                     jsph = nl(ij)
                     do ijigrid = adj_ioverlap(ij), adj_ioverlap(ij+1) - 1
-                       igrid = adj_overlap(ijigrid)
-                    !do igrid = 1, params % ngrid
+                        igrid = adj_overlap(ijigrid)
 
                         vji = csph(:,jsph) + rsph(jsph)*cgrid(:,igrid) &
                             & - csph(:,isph)
@@ -902,13 +898,8 @@ subroutine bstarx(params, constants, workspace, x, y, ddx_error)
                         tji = vvji/rsph(isph)
                         sji = vji/vvji
 
-                        !if ( tji.gt.( one + (se+one)/two*eta ) ) continue
-
                         call ylmbas(sji, rho, ctheta, stheta, cphi, sphi, &
                             & lmax, vscales, basloc, vplm, vcos, vsin)
-
-                        !call inthsp_adj(params, constants, vvji, isph, basloc, fac_hsp, &
-                        !    & work_complex)
 
                         si_rjin = 0.0d0
                         di_rjin = 0.0d0
@@ -917,47 +908,37 @@ subroutine bstarx(params, constants, workspace, x, y, ddx_error)
                             & vvji*kappa, si_rjin, di_rjin, work_complex)
 
                         do l = 0, lmax
+                            ind = l*l + l + 1
                             do  m = -l, l
-                                ind = l*l + l + 1 + m
-                                fac_hsp(ind) = SI_rjin(l)/constants % SI_ri(l,isph)*basloc(ind)
+                                fac_hsp(ind+m) = SI_rjin(l)/SI_ri(l,isph)*basloc(ind+m)
                             end do
                         end do
 
                         xji = fsw(tji, se, eta)
-
                         if (fi(igrid,jsph).gt.1.0d0) then
                             oji = xji/fi(igrid,jsph)
                         else
                             oji = xji
                         end if
+
                         fac = wgrid(igrid) * tmp_grid(igrid,jsph) * oji
                         do l = 0, lmax
                             ind = l*l + l + 1
-                            do m = -l,l
-                                y(ind+m, isph) = y(ind+m, isph) + fac*fac_hsp(ind+m)
+                            do m = -l, l
+                                tmp(ind+m) = tmp(ind+m) + fac*fac_hsp(ind+m)
                             end do
                         end do
-                        !                            vji
-                        !call fmm_l2p_adj_bessel_work(vtij, lmax, vscales, &
-                        !    & si_ri(:, isph), oij, y(:, jsph), 1.0d0, &
-                        !    & tmp_grid(its), work_complex, work)
                     end do
                 end do
-                y(:, isph)  = - y(:, isph)
+                y(:, isph) = - tmp
             end do
         end associate
-    !end if
+    end if
 
     ! add the diagonal if required
     if (constants % dodiag) y = y + x
     call time_pull("bstarx")
 
-    do isph = 1, params % nsph
-        do l = 1, constants % nbasis
-            write(6,*) y(l, isph), y_copy(l, isph), y(l, isph) - y_copy(l, isph)
-        end do
-    end do
-    !stop 0
 end subroutine bstarx
 
 !> Primal HSP matrix vector product

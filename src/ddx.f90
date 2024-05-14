@@ -455,8 +455,6 @@ subroutine ddrun(ddx_data, state, electrostatics, psi, tol, esolv, &
         end if
     end if
 
-    stop 0
-
     ! compute the forces
     if (ddx_data % params % force .eq. 1) then
         force = zero
