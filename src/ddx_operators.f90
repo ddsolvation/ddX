@@ -152,9 +152,9 @@ subroutine lstarx(params, constants, workspace, x, y, ddx_error)
     !! Local variables
     integer :: isph, jsph, ij, indmat, igrid, l, ind, m, i, ijigrid
     real(dp) :: vji(3), vvji, tji, xji, oji, fac
-
     integer :: nsph, ngrid, nbasis, lmax
-    real(dp) :: thigh, se, eta, work(params % lmax + 1)
+    real(dp) :: thigh, se, eta, work(params % lmax + 1), &
+        & tmp(constants % nbasis)
 
     call time_push()
 
@@ -188,13 +188,15 @@ subroutine lstarx(params, constants, workspace, x, y, ddx_error)
         eta = params % eta
         lmax = params % lmax
         ! Expand x over spherical harmonics
-        associate(vgrid => constants % vgrid, tmp_grid => workspace % tmp_grid)
-            !$omp parallel do collapse(2) default(none) shared(x,tmp_grid,vgrid) &
-            !$omp firstprivate(nsph,ngrid,nbasis) &
+        associate(vgrid => constants % vgrid, &
+                 & tmp_grid => workspace % tmp_grid)
+            !$omp parallel do collapse(2) default(none) &
+            !$omp firstprivate(nsph,ngrid,nbasis) shared(x,tmp_grid,vgrid) &
             !$omp private(isph,igrid) schedule(static,100)
             do isph = 1, nsph
                 do igrid = 1, ngrid
-                    tmp_grid(igrid,isph) = dot_product(x(:, isph), vgrid(:nbasis, igrid))
+                    tmp_grid(igrid,isph) = dot_product(x(:, isph), &
+                        & vgrid(:nbasis, igrid))
                 end do
             end do
         end associate
@@ -210,29 +212,31 @@ subroutine lstarx(params, constants, workspace, x, y, ddx_error)
             !$omp shared(inl,nl,csph,rsph,cgrid,fi,wgrid,tmp_grid,y, &
             !$omp adj_overlap,adj_ioverlap,vscales_rel) firstprivate( &
             !$omp nsph,ngrid,thigh,se,eta,lmax) private(isph,ij,jsph, &
-            !$omp igrid,vji,vvji,tji,xji,oji,fac,work,i,ijigrid)
+            !$omp igrid,vji,vvji,tji,xji,oji,fac,work,i,ijigrid,tmp)
             do isph = 1, nsph
-                y(:,isph) = 0.0d0
+                tmp = 0.0d0
                 do ij = inl(isph), inl(isph+1)-1
                     jsph = nl(ij)
                     do ijigrid = adj_ioverlap(ij), adj_ioverlap(ij+1) - 1
                         igrid = adj_overlap(ijigrid)
 
-                        vji = csph(:,jsph) + rsph(jsph)*cgrid(:,igrid) - csph(:,isph)
-                        vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) + vji(3)*vji(3))
+                        vji = csph(:,jsph) + rsph(jsph)*cgrid(:,igrid) &
+                            & - csph(:,isph)
+                        vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) &
+                            & + vji(3)*vji(3))
                         tji  = vvji/rsph(isph)
                         xji = fsw(tji, se, eta)
                         if (fi(igrid,jsph).gt.1.0d0) then
                             oji = xji/fi(igrid,jsph)
                         else
                             oji = xji
-                        endif
+                        end if
                         fac = wgrid(igrid) * tmp_grid(igrid, jsph) * oji
                         call fmm_l2p_adj_work(vji, fac, rsph(isph), &
-                            & lmax, vscales_rel, 1.0d0, y(:, isph), work)
+                            & lmax, vscales_rel, 1.0d0, tmp, work)
                     end do
                 end do
-                y(:, isph) = - y(:, isph)
+                y(:, isph) = - tmp
             end do
         end associate
     end if
@@ -815,16 +819,32 @@ subroutine bstarx(params, constants, workspace, x, y, ddx_error)
     real(dp), intent(out) :: y(constants % nbasis, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
     ! Local variables
-    integer :: isph, jsph, ij, indmat, iproc
+    integer :: isph, jsph, ij, indmat, ind, ijigrid, igrid, l, m
+
+    real(dp) :: thigh, se, eta, kappa, vji(3), vvji, sji(3), tji
+    real(dp) :: rho, ctheta, stheta, cphi, sphi, xji, oji, fac, &
+        & basloc((params % lmax + 1)**2), vcos(params % lmax + 1), &
+        & vsin(params % lmax + 1), vplm((params % lmax + 1)**2)
+    real(dp), dimension(constants % nbasis) :: fac_hsp
+    real(dp), dimension(0:params % lmax) :: SI_rjin, DI_rjin
+    complex(dp) :: work_complex(max(2, params % lmax+1))
+    integer :: nsph, nbasis, lmax, ngrid
+
+    real(dp) :: y_copy(constants % nbasis, params % nsph)
+
+    call time_push()
+
+    nsph = params % nsph
+    nbasis = constants % nbasis
 
     ! dummy operation on unused interface arguments
     if (ddx_error % flag .eq. 0) continue
 
-    y = zero
-    if (params % matvecmem .eq. 1) then
+    !if (params % matvecmem .eq. 1) then
         !$omp parallel do default(none) shared(params,constants,x,y) &
         !$omp private(isph,ij,jsph,indmat) schedule(dynamic)
         do isph = 1, params % nsph
+            y(:,isph) = zero
             do ij = constants % inl(isph), constants % inl(isph + 1) - 1
                 jsph = constants % nl(ij)
                 indmat = constants % itrnl(ij)
@@ -833,7 +853,9 @@ subroutine bstarx(params, constants, workspace, x, y, ddx_error)
                     & one, y(:,isph), 1)
             end do
         end do
-    else
+    y_copy(:,:) = y(:,:)
+    y = zero
+    !else
         !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
         !$omp private(isph) schedule(static,1)
         do isph = 1, params % nsph
@@ -841,20 +863,101 @@ subroutine bstarx(params, constants, workspace, x, y, ddx_error)
                 & constants % vgrid_nbasis, x(:, isph), 1, zero, &
                 & workspace % tmp_grid(:, isph), 1)
         end do
-        !$omp parallel do default(none) shared(params,constants,workspace,x,y) &
-        !$omp private(isph,iproc) schedule(dynamic)
-        do isph = 1, params % nsph
-            iproc = omp_get_thread_num() + 1
-            call adjrhs_lpb(params, constants, isph, workspace % tmp_grid, &
-                & y(:, isph), workspace % tmp_vylm(:, iproc), workspace % tmp_vplm(:, iproc), &
-                & workspace % tmp_vcos(:, iproc), workspace % tmp_vsin(:, iproc), &
-                & workspace % tmp_bessel(:, iproc))
-            y(:,isph)  = - y(:,isph)
-        end do
-    end if
+
+        ngrid = params % ngrid
+        thigh = one + (params % se+one)/two*params % eta
+        se = params % se
+        eta = params % eta
+        lmax = params % lmax
+        kappa = params % kappa
+
+        associate(inl => constants % inl, nl => constants % nl, &
+                & csph => params % csph, rsph => params % rsph, &
+                & cgrid => constants % cgrid, fi => constants % fi, &
+                & wgrid => constants % wgrid, &
+                & tmp_grid => workspace % tmp_grid, &
+                & vscales => constants % vscales, &
+                & adj_ioverlap => constants % adj_ioverlap, &
+                & adj_overlap => constants % adj_overlap)
+            do isph = 1, nsph
+                !y_copy(:, isph) = 0.0d0
+                !call adjrhs_lpb(params, constants, isph, workspace % tmp_grid, &
+                !    & y_copy(:, isph), workspace % tmp_vylm(:, 1), &
+                !    & workspace % tmp_vplm(:, 1), &
+                !    & workspace % tmp_vcos(:, 1), workspace % tmp_vsin(:, 1), &
+                !    & workspace % tmp_bessel(:, 1))
+                !y_copy(:, isph) = - y_copy(:, isph)
+
+                y(:, isph) = 0.0d0
+                do ij = inl(isph), inl(isph+1)-1
+                    jsph = nl(ij)
+                    do ijigrid = adj_ioverlap(ij), adj_ioverlap(ij+1) - 1
+                       igrid = adj_overlap(ijigrid)
+                    !do igrid = 1, params % ngrid
+
+                        vji = csph(:,jsph) + rsph(jsph)*cgrid(:,igrid) &
+                            & - csph(:,isph)
+                        vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) &
+                            & + vji(3)*vji(3))
+                        tji = vvji/rsph(isph)
+                        sji = vji/vvji
+
+                        !if ( tji.gt.( one + (se+one)/two*eta ) ) continue
+
+                        call ylmbas(sji, rho, ctheta, stheta, cphi, sphi, &
+                            & lmax, vscales, basloc, vplm, vcos, vsin)
+
+                        !call inthsp_adj(params, constants, vvji, isph, basloc, fac_hsp, &
+                        !    & work_complex)
+
+                        si_rjin = 0.0d0
+                        di_rjin = 0.0d0
+
+                        call modified_spherical_bessel_first_kind(lmax, &
+                            & vvji*kappa, si_rjin, di_rjin, work_complex)
+
+                        do l = 0, lmax
+                            do  m = -l, l
+                                ind = l*l + l + 1 + m
+                                fac_hsp(ind) = SI_rjin(l)/constants % SI_ri(l,isph)*basloc(ind)
+                            end do
+                        end do
+
+                        xji = fsw(tji, se, eta)
+
+                        if (fi(igrid,jsph).gt.1.0d0) then
+                            oji = xji/fi(igrid,jsph)
+                        else
+                            oji = xji
+                        end if
+                        fac = wgrid(igrid) * tmp_grid(igrid,jsph) * oji
+                        do l = 0, lmax
+                            ind = l*l + l + 1
+                            do m = -l,l
+                                y(ind+m, isph) = y(ind+m, isph) + fac*fac_hsp(ind+m)
+                            end do
+                        end do
+                        !                            vji
+                        !call fmm_l2p_adj_bessel_work(vtij, lmax, vscales, &
+                        !    & si_ri(:, isph), oij, y(:, jsph), 1.0d0, &
+                        !    & tmp_grid(its), work_complex, work)
+                    end do
+                end do
+                y(:, isph)  = - y(:, isph)
+            end do
+        end associate
+    !end if
 
     ! add the diagonal if required
     if (constants % dodiag) y = y + x
+    call time_pull("bstarx")
+
+    do isph = 1, params % nsph
+        do l = 1, constants % nbasis
+            write(6,*) y(l, isph), y_copy(l, isph), y(l, isph) - y_copy(l, isph)
+        end do
+    end do
+    !stop 0
 end subroutine bstarx
 
 !> Primal HSP matrix vector product
@@ -890,6 +993,7 @@ subroutine bx(params, constants, workspace, x, y, ddx_error)
         !$omp parallel do default(none) shared(params,constants,x,y) &
         !$omp private(isph,ij,jsph) schedule(dynamic)
         do isph = 1, params % nsph
+            y(:, isph) = 0.0d0
             do ij = constants % inl(isph), constants % inl(isph + 1) - 1
                 jsph = constants % nl(ij)
                 call dgemv('n', constants % nbasis, constants % nbasis, one, &
