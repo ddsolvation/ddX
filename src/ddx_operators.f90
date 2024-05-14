@@ -1110,7 +1110,6 @@ subroutine prec_tstarx(params, constants, workspace, x, y, ddx_error)
         & constants % inner_tol*1.0d-2, y(:,:,1), &
         & workspace % ddcosmo_guess, n_iter, x_rel_diff, lstarx, &
         & ldm1x, hnorm, ddx_error)
-    write(6,*) "lstarx", x_rel_diff(1:n_iter)
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, 'prec_tstarx: ddCOSMO failed to ' // &
             & 'converge, exiting')
@@ -1124,7 +1123,6 @@ subroutine prec_tstarx(params, constants, workspace, x, y, ddx_error)
     call jacobi_diis(params, constants, workspace, &
         & constants % inner_tol*1.0d1, x(:,:,2), workspace % hsp_guess, &
         & n_iter, x_rel_diff, bstarx, bx_prec, hnorm, ddx_error)
-    write(6,*) "bstarx", x_rel_diff(1:n_iter)
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, 'prec_tstarx: HSP failed to ' // &
             & 'converge, exiting')
@@ -1166,7 +1164,6 @@ subroutine prec_tx(params, constants, workspace, x, y, ddx_error)
             & 'converge, exiting')
         return
     end if
-    write(6,*) "lx", x_rel_diff(1:n_iter)
 
     ! Scale by the factor of (2l+1)/4Pi
     y(:,:,1) = workspace % ddcosmo_guess
@@ -1181,7 +1178,6 @@ subroutine prec_tx(params, constants, workspace, x, y, ddx_error)
         & n_iter, x_rel_diff, bx, bx_prec, hnorm, ddx_error)
     y(:,:,2) = workspace % hsp_guess
     workspace % hsp_time = workspace % hsp_time + omp_get_wtime() - start_time
-    write(6,*) "bx", x_rel_diff(1:n_iter)
 
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, 'prec_tx: HSP failed to ' // &
@@ -1326,6 +1322,8 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
     complex(dp) :: work_complex(constants % lmax0 + 1)
     real(dp) :: work(constants % lmax0 + 1)
     integer :: indl, inode, info
+    real(dp) :: epsp, eps, fac
+    integer :: nsph, lmax, nbasis, nbasis0, lmax0, ngrid
 
     real(dp), allocatable :: diff_re(:,:), diff0(:,:)
 
@@ -1337,44 +1335,65 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
         return
     end if
 
-    ! diff_re = params % epsp/eps*l1/ri*Xr - i'(ri)/i(ri)*Xe,
-    diff_re = zero
-    !$omp parallel do default(none) shared(params,diff_re, &
-    !$omp constants,x) private(jsph,l,m,ind)
-    do jsph = 1, params % nsph
-      do l = 0, params % lmax
-        do m = -l,l
-          ind = l**2 + l + m + 1
-          diff_re(ind,jsph) = (params % epsp/params % eps)* &
-              & (l/params % rsph(jsph))*x(ind,jsph,1) &
-              & - constants % termimat(l,jsph)*x(ind,jsph,2)
+    nsph = params % nsph
+    lmax = params % lmax
+    lmax0 = constants % lmax0
+    epsp = params % epsp
+    eps = params % eps
+    nbasis = constants % nbasis
+    nbasis0 = constants % nbasis0
+    ngrid = params % ngrid
+
+    call time_push()
+    associate(rsph => params % rsph, termimat => constants % termimat)
+        !$omp parallel do collapse(2) default(none) schedule(static,100) &
+        !$omp firstprivate(nsph,lmax,epsp,eps) private(jsph,l,ind,m) &
+        !$omp shared(diff_re,rsph,x,termimat)
+        do jsph = 1, nsph
+            do l = 0, lmax
+                ind = l**2 + l + 1
+                do m = -l, l
+                    diff_re(ind+m,jsph) = (epsp/eps)*(l/rsph(jsph)) &
+                        & *x(ind+m,jsph,1) - termimat(l,jsph)*x(ind+m,jsph,2)
+                end do
+            end do
         end do
-      end do
-    end do
+    end associate
+    call time_pull("cx1")
+    call time_push()
 
     ! diff0 = Pchi * diff_er, linear scaling
-    !$omp parallel do default(none) shared(constants,params, &
-    !$omp diff_re,diff0) private(jsph)
-    do jsph = 1, params % nsph
-      call dgemv('t', constants % nbasis, constants % nbasis0, one, &
-          & constants % pchi(1,1,jsph), constants % nbasis, &
-          & diff_re(1,jsph), 1, zero, diff0(1,jsph), 1)
-    end do
-
-    ! Multiply diff0 by C_ik inplace
-    do isph = 1, params % nsph
-        do l = 0, constants % lmax0
-            ind0 = l*l+l+1
-            diff0(ind0-l:ind0+l, isph) = diff0(ind0-l:ind0+l, isph) * &
-                & constants % C_ik(l, isph)
+    associate(pchi => constants % pchi)
+        !$omp parallel do default(none) schedule(static,10) &
+        !$omp firstprivate(nsph,nbasis,nbasis0) private(jsph) &
+        !$omp shared(pchi,diff_re,diff0)
+        do jsph = 1, nsph
+            call dgemv('t', nbasis, nbasis0, 1.0d0, pchi(1,1,jsph), nbasis, &
+                & diff_re(1,jsph), 1, 0.0d0, diff0(1,jsph), 1)
         end do
-    end do
+    end associate
+    call time_pull("cx2")
+
+    call time_push()
+    ! Multiply diff0 by C_ik inplace
+    associate(c_ik => constants % c_ik)
+        !$omp parallel do collapse(2) schedule(static,100) &
+        !$omp firstprivate(nsph,lmax0) private(isph,l,ind,fac,m) &
+        !$omp shared(diff0,c_ik)
+        do isph = 1, nsph
+            do l = 0, lmax0
+                ind = l*l+l+1
+                fac = c_ik(l, isph)
+                do m = -l, l
+                    diff0(ind+m, isph) = diff0(ind+m, isph) * fac
+                end do
+            end do
+        end do
+    end associate
+    call time_pull("cx3")
     ! avoiding N^2 storage, this code does not use the cached coefY
     y(:,:,1) = zero
     if (params % fmm .eq. 0) then
-        !$omp parallel do default(none) shared(params,constants, &
-        !$omp diff0,y) private(isph,igrid,val,vij,work, &
-        !$omp ind0,ind,vtij,work_complex)
         do isph = 1, params % nsph
             do igrid = 1, params % ngrid
                 if (constants % ui(igrid,isph).gt.zero) then
@@ -1400,6 +1419,7 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
         end do
     else
         ! Load input harmonics into tree data
+        call time_push()
         workspace % tmp_node_m = zero
         workspace % tmp_node_l = zero
         workspace % tmp_sph = zero
@@ -1424,37 +1444,55 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
                 workspace % tmp_node_m(:, inode) = workspace % tmp_sph(1:indl, isph)
             end do
         end if
+        call time_pull("cx-fmmprep")
+        call time_push()
         ! Do FMM operations
         call tree_m2m_bessel_rotation(params, constants, workspace % tmp_node_m)
+        call time_pull("cx-m2m")
+        call time_push()
         call tree_m2l_bessel_rotation(params, constants, workspace % tmp_node_m, &
             & workspace % tmp_node_l)
+        call time_pull("cx-m2l")
+        call time_push()
         call tree_l2l_bessel_rotation(params, constants, workspace % tmp_node_l)
+        call time_pull("cx-l2l")
+        call time_push()
         workspace % tmp_grid = zero
         call tree_l2p_bessel(params, constants, one, workspace % tmp_node_l, zero, &
             & workspace % tmp_grid)
+        call time_pull("cx-l2p")
+        call time_push()
         call tree_m2p_bessel(params, constants, constants % lmax0, one, &
             & params % lmax, workspace % tmp_sph, one, &
             & workspace % tmp_grid)
+        call time_pull("cx-m2p")
+        call time_push()
 
-        do isph = 1, params % nsph
-            do igrid = 1, params % ngrid
-                do ind = 1, constants % nbasis
-                    y(ind,isph,1) = y(ind,isph,1) + workspace % tmp_grid(igrid, isph)*&
-                        & constants % vwgrid(ind, igrid)*&
-                        & constants % ui(igrid,isph)
+        associate(tmp_grid => workspace % tmp_grid, &
+                 & vwgrid => constants % vwgrid, ui => constants % ui)
+            !$omp parallel do collapse(2) schedule(static,100) &
+            !$omp firstprivate(nsph,ngrid,nbasis), shared(y,tmp_grid, &
+            !$omp vwgrid,ui) private(isph,igrid,ind)
+            do isph = 1, nsph
+                do ind = 1, nbasis
+                    do igrid = 1, ngrid
+                        y(ind,isph,1) = y(ind,isph,1) + tmp_grid(igrid, isph)*&
+                            & vwgrid(ind, igrid)*ui(igrid,isph)
+                    end do
                 end do
             end do
-        end do
+        end associate
+        call time_pull("cx-fmmend")
     end if
 
     y(:,:,2) = y(:,:,1)
 
+    call time_pull("cx")
     deallocate(diff_re, diff0, stat=info)
     if (info.ne.0) then
         call update_error(ddx_error, "Deallocation failed in cx")
         return
     end if
-    call time_pull("cx")
 
 end subroutine cx
 
