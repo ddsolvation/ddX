@@ -1316,15 +1316,11 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
     real(dp), dimension(constants % nbasis, params % nsph, 2), intent(out) :: y
     type(ddx_error_type), intent(inout) :: ddx_error
 
-    integer :: isph, jsph, igrid, ind, l, m, ind0
-    real(dp), dimension(3) :: vij, vtij
-    real(dp) :: val
+    integer :: isph, jsph, igrid, ind, l, m, indl, inode, info, &
+        & nsph, lmax, nbasis, nbasis0, lmax0, ngrid
+    real(dp) :: vij(3), vtij(3), val, epsp, eps, fac, &
+        & work(constants % lmax0 + 1)
     complex(dp) :: work_complex(constants % lmax0 + 1)
-    real(dp) :: work(constants % lmax0 + 1)
-    integer :: indl, inode, info
-    real(dp) :: epsp, eps, fac
-    integer :: nsph, lmax, nbasis, nbasis0, lmax0, ngrid
-
     real(dp), allocatable :: diff_re(:,:), diff0(:,:)
 
     call time_push()
@@ -1360,9 +1356,9 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
         end do
     end associate
     call time_pull("cx1")
-    call time_push()
 
     ! diff0 = Pchi * diff_er, linear scaling
+    call time_push()
     associate(pchi => constants % pchi)
         !$omp parallel do default(none) schedule(static,10) &
         !$omp firstprivate(nsph,nbasis,nbasis0) private(jsph) &
@@ -1374,8 +1370,8 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
     end associate
     call time_pull("cx2")
 
-    call time_push()
     ! Multiply diff0 by C_ik inplace
+    call time_push()
     associate(c_ik => constants % c_ik)
         !$omp parallel do collapse(2) schedule(static,100) &
         !$omp firstprivate(nsph,lmax0) private(isph,l,ind,fac,m) &
@@ -1391,10 +1387,11 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
         end do
     end associate
     call time_pull("cx3")
+
     ! avoiding N^2 storage, this code does not use the cached coefY
-    y(:,:,1) = zero
     if (params % fmm .eq. 0) then
         do isph = 1, params % nsph
+            y(:,isph,1) = zero
             do igrid = 1, params % ngrid
                 if (constants % ui(igrid,isph).gt.zero) then
                     val = zero
@@ -1422,27 +1419,33 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
         call time_push()
         workspace % tmp_node_m = zero
         workspace % tmp_node_l = zero
-        workspace % tmp_sph = zero
-        do isph = 1, params % nsph
-            do l = 0, constants % lmax0
-                ind0 = l*l+l+1
-                workspace % tmp_sph(ind0-l:ind0+l, isph) = &
-                    & diff0(ind0-l:ind0+l, isph)
-            end do
-        end do
         if(constants % lmax0 .lt. params % pm) then
-            do isph = 1, params % nsph
-                inode = constants % snode(isph)
-                workspace % tmp_node_m(1:constants % nbasis0, inode) = &
-                    & workspace % tmp_sph(1:constants % nbasis0, isph)
-                workspace % tmp_node_m(constants % nbasis0+1:, inode) = zero
-            end do
+            associate(tmp_node_m => workspace % tmp_node_m, &
+                    & snode => constants % snode)
+                !$omp parallel do schedule(static,1) default(none) &
+                !$omp firstprivate(nsph,nbasis0) &
+                !$omp shared(snode,tmp_node_m,diff0) &
+                !$omp private(isph,inode)
+                do isph = 1, nsph
+                    inode = snode(isph)
+                    tmp_node_m(1:nbasis0, inode) = &
+                        & diff0(1:nbasis0, isph)
+                    tmp_node_m(nbasis0+1:, inode) = 0.0d0
+                end do
+            end associate
         else
             indl = (params % pm+1)**2
-            do isph = 1, params % nsph
-                inode = constants % snode(isph)
-                workspace % tmp_node_m(:, inode) = workspace % tmp_sph(1:indl, isph)
-            end do
+            associate(tmp_node_m => workspace % tmp_node_m, &
+                    & snode => constants % snode)
+                !$omp parallel do schedule(static,1) default(none) &
+                !$omp firstprivate(nsph,nbasis0) &
+                !$omp shared(snode,tmp_node_m,diff0) &
+                !$omp private(isph,inode,indl)
+                do isph = 1, nsph
+                    inode = snode(isph)
+                    tmp_node_m(:, inode) = diff0(1:indl, isph)
+                end do
+            end associate
         end if
         call time_pull("cx-fmmprep")
         call time_push()
@@ -1472,13 +1475,15 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
                  & vwgrid => constants % vwgrid, ui => constants % ui)
             !$omp parallel do collapse(2) schedule(static,100) &
             !$omp firstprivate(nsph,ngrid,nbasis), shared(y,tmp_grid, &
-            !$omp vwgrid,ui) private(isph,igrid,ind)
+            !$omp vwgrid,ui) private(isph,igrid,ind,val)
             do isph = 1, nsph
                 do ind = 1, nbasis
+                    val = 0.0d0
                     do igrid = 1, ngrid
-                        y(ind,isph,1) = y(ind,isph,1) + tmp_grid(igrid, isph)*&
+                         val = val + tmp_grid(igrid, isph)*&
                             & vwgrid(ind, igrid)*ui(igrid,isph)
                     end do
+                    y(ind,isph,1) = val
                 end do
             end do
         end associate

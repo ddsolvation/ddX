@@ -2314,7 +2314,7 @@ subroutine tree_l2p_bessel(params, constants, alpha, node_l, beta, grid_v)
     real(dp), intent(inout) :: grid_v(params % ngrid, params % nsph)
     ! Local variables
     real(dp) :: sph_l((params % pl+1)**2, params % nsph)
-    integer :: isph
+    integer :: isph, nsph
     external :: dgemm
     ! Init output
     if (beta .eq. zero) then
@@ -2322,12 +2322,15 @@ subroutine tree_l2p_bessel(params, constants, alpha, node_l, beta, grid_v)
     else
         grid_v = beta * grid_v
     end if
+    nsph = params % nsph
     ! Get data from all clusters to spheres
-    !$omp parallel do default(none) shared(params,constants,node_l,sph_l) &
-    !$omp private(isph) schedule(dynamic)
-    do isph = 1, params % nsph
-        sph_l(:, isph) = node_l(:, constants % snode(isph))
-    end do
+    associate(snode => constants % snode)
+        !$omp parallel do default(none) schedule(static,100) &
+        !$omp shared(node_l,sph_l,snode) private(isph) firstprivate(nsph)
+        do isph = 1, nsph
+            sph_l(:, isph) = node_l(:, snode(isph))
+        end do
+    end associate
     ! Get values at grid points
     call dgemm('T', 'N', params % ngrid, params % nsph, &
         & (params % pl+1)**2, alpha, constants % vgrid, &
