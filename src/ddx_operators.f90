@@ -1419,6 +1419,18 @@ subroutine cx(params, constants, workspace, x, y, ddx_error)
         call time_push()
         workspace % tmp_node_m = zero
         workspace % tmp_node_l = zero
+        workspace % tmp_sph = zero
+        associate(tmp_sph => workspace % tmp_sph)
+            !$omp parallel do collapse(2) schedule(static,100) &
+            !$omp firstprivate(nsph,lmax0), shared(tmp_sph,diff0) &
+            !$omp private(isph,l,ind)
+            do isph = 1, nsph
+                do l = 0, lmax0
+                    ind = l*l+l+1
+                    tmp_sph(ind-l:ind+l, isph) = diff0(ind-l:ind+l, isph)
+                end do
+            end do
+        end associate
         if(constants % lmax0 .lt. params % pm) then
             associate(tmp_node_m => workspace % tmp_node_m, &
                     & snode => constants % snode)

@@ -2499,9 +2499,9 @@ subroutine tree_m2p_bessel(params, constants, p, alpha, sph_p, sph_m, beta, grid
             & sk_ri => constants % sk_ri)
         !$omp parallel do schedule(dynamic,1) default(none) &
         !$omp firstprivate(nsph,ngrid,kappa,alpha,p) &
-        !$omp private(isph,inode,jnear,jnode,jsph,igrid,c,work_complex, &
-        !$omp work) shared(snode,snear,near,order,cluster,ui,cgrid,rsph, &
-        !$omp vscales,sk_ri,sph_m,grid_v)
+        !$omp private(isph,inode,jnear,jnode,jsph,igrid,c, &
+        !$omp work_complex,work) shared(snode,snear,near,order, &
+        !$omp csph,cluster,ui,cgrid,rsph,vscales,sk_ri,sph_m,grid_v)
         do isph = 1, nsph
             ! Cycle over all near-field admissible pairs of spheres
             inode = snode(isph)
