@@ -12,15 +12,88 @@ project('ddX',
 
 install = not (meson.is_subproject() and get_option('default_library') == 'static')
 has_cc = add_languages('c', required: get_option('api') or get_option('python'), native: false)
+fc = meson.get_compiler('fortran')
+cc = fc
+fc_id = fc.get_id()
 
 # Retrieve Fortran and C++ compiler objects
 fortran_compiler = meson.get_compiler('fortran')
 cxx_compiler = meson.get_compiler('cpp')
 
 # Find dependencies: BLAS, LAPACK, OpenMP
-blas_dep = dependency('blas', required: true)
-lapack_dep = dependency('lapack', required: true)
+# blas_dep = dependency('openblas', required: true)
+# lapack_dep = dependency('lapack', required: true)
+
+lapack_vendor = get_option('lapack')
+if lapack_vendor == 'auto'
+  if fc_id == 'intel'
+    lapack_vendor = 'mkl'
+  endif
+endif
+
+lib_deps = []
+if lapack_vendor == 'mkl'
+  mkl_dep = []
+  if fc_id == 'intel'
+    mkl_dep += cc.find_library('mkl_intel_lp64')
+    if get_option('openmp')
+      mkl_dep += cc.find_library('mkl_intel_thread')
+    endif
+  elif fc_id == 'gcc'
+    mkl_dep += cc.find_library('mkl_gf_lp64')
+    if get_option('openmp')
+      mkl_dep += cc.find_library('mkl_gnu_thread')
+    endif
+  else
+    error('MKL not supported for this compiler')
+  endif
+  if not get_option('openmp')
+    mkl_dep += cc.find_library('mkl_tbb_thread')
+  endif
+  mkl_dep += cc.find_library('mkl_core')
+  lib_deps += mkl_dep
+  add_project_arguments(['-DWITH_MKL'], language: 'fortran')
+elif lapack_vendor == 'mkl-rt'
+  mkl_dep = cc.find_library('mkl_rt')
+  lib_deps += mkl_dep
+  add_project_arguments(['-DWITH_MKL'], language: 'fortran')
+elif lapack_vendor == 'openblas'
+  blas_dep = dependency('openblas', required: false)
+  if not blas_dep.found()
+    blas_dep = cc.find_library('openblas')
+  endif
+  lib_deps += blas_dep
+  if not fc.links('external dsytrs; call dsytrs(); end', dependencies: blas_dep)
+    lapack_dep = dependency('lapack', required: false)
+    if not lapack_dep.found()
+      lapack_dep = cc.find_library('lapack')
+    endif
+    lib_deps += lapack_dep
+  endif
+
+elif lapack_vendor == 'custom'
+  foreach lib: get_option('custom_libraries')
+    lib_deps += cc.find_library(lib)
+  endforeach
+
+else
+  lapack_dep = dependency('lapack', required: false)
+  if not lapack_dep.found()
+    lapack_dep = cc.find_library('lapack')
+  endif
+  lib_deps += lapack_dep
+  blas_dep = dependency('blas', required: false)
+  if not blas_dep.found()
+    blas_dep = cc.find_library('blas')
+  endif
+  lib_deps += blas_dep
+endif
+
 openmp_dep = dependency('openmp', required: true)
+lib_deps += openmp_dep
+
+
+# dependency('openblas', required: false)
 
 subdir('config')
 
@@ -50,7 +123,7 @@ ddx_library = library(
     'src/ddx_legacy.f90',
     'src/ddx_solvers.f90'
   ],
-  dependencies: [blas_dep, lapack_dep, openmp_dep],
+  dependencies: lib_deps
 )
 
 # Export dependency for other projects and test suite
@@ -61,7 +134,7 @@ executable_target = executable(
   'ddX_exec',
   sources: ['src/ddx_driver.f90'],
   link_with: [ddx_library, ],
-  dependencies: [blas_dep, lapack_dep, openmp_dep]
+  dependencies: lib_deps
 )
 
 # add the testsuite
