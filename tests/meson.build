@@ -1,5 +1,5 @@
 
-project_dir = meson.source_root()
+project_dir = meson.current_source_dir()
 
 # Test sources with their arguments
 # Test sources with their arguments
@@ -8,14 +8,14 @@ test_sources = [
   ['ddx_operators.f90', []],
   ['bessel.f90', []],
   ['ddx_driver.f90', [
-    join_paths(project_dir, 'tests/data/ddpcm_force_fmm.in') + ' ' + join_paths(project_dir, 'tests/data/ddpcm_force_fmm.out') + ' 1E-12',
-    join_paths(project_dir, 'tests/data/ddcosmo_force_fmm.in') + ' ' + join_paths(project_dir, 'tests/data/ddcosmo_force_fmm.out') + ' 1E-12'
+    join_paths(project_dir, 'data/ddpcm_force_fmm.in') + ' ' + join_paths(project_dir, 'data/ddpcm_force_fmm.out') + ' 1E-12',
+    join_paths(project_dir, 'data/ddcosmo_force_fmm.in') + ' ' + join_paths(project_dir, 'data/ddcosmo_force_fmm.out') + ' 1E-12'
   ]],
-  ['force_ddlpb.f90', [join_paths(project_dir, 'tests/data/ddlpb_force.txt')]],
-  ['ddlpb_esolv.f90', [join_paths(project_dir, 'tests/data/ddlpb_force.txt')]],
-  ['matrix_derivatives.f90', [join_paths(project_dir, 'tests/data/ddlpb_force.txt')]],
-  ['matrix_adjoint.f90', [join_paths(project_dir, 'tests/data/ddlpb_force.txt')]],
-  ['matrix_solvers.f90', [join_paths(project_dir, 'tests/data/ddlpb_force.txt')]],
+  ['force_ddlpb.f90', [join_paths(project_dir, 'data/ddlpb_force.txt')]],
+  ['ddlpb_esolv.f90', [join_paths(project_dir, 'data/ddlpb_force.txt')]],
+  ['matrix_derivatives.f90', [join_paths(project_dir, 'data/ddlpb_force.txt')]],
+  ['matrix_adjoint.f90', [join_paths(project_dir, 'data/ddlpb_force.txt')]],
+  ['matrix_solvers.f90', [join_paths(project_dir, 'data/ddlpb_force.txt')]],
   ['m2l.f90', []],
   ['multipolar_solutes.f90', []],
   ['error.f90', []]
