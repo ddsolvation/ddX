@@ -15,33 +15,26 @@
 # along with tblite.  If not, see <https://www.gnu.org/licenses/>.
 
 option(
-  'lapack',
-  type: 'combo',
-  value: 'auto',
-  yield: true,
-  choices: ['auto', 'mkl', 'mkl-rt', 'openblas', 'netlib', 'custom'],
-  description : 'linear algebra backend',
+   'lapack',
+   type: 'combo',
+   value: 'auto',
+   yield: true,
+   choices: ['auto', 'mkl', 'mkl-rt', 'openblas', 'netlib', 'custom'],
+   description : 'linear algebra backend',
 )
 
 option(
-  'custom_libraries',
-  type: 'array',
-  value: [],
-  yield: true,
-  description: 'libraries to load for custom linear algebra backend',
+   'custom_libraries',
+   type: 'array',
+   value: [],
+   yield: true,
+   description: 'libraries to load for custom linear algebra backend',
 )
 
 option(
-  'openmp',
-  type: 'boolean',
-  value: true,
-  yield: true,
-  description: 'use OpenMP parallelisation',
-)
-
-option(
-  'api',
-  type: 'boolean',
-  value: true,
-  description: 'Build C API using iso_c_binding module',
+   'openmp',
+   type: 'boolean',
+   value: true,
+   yield: true,
+   description: 'use OpenMP parallelisation',
 )
