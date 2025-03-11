@@ -83,6 +83,9 @@ cmake -D CMAKE_CXX_COMPILER=icx CMAKE_Fortran_COMPILER=ifort ..
 
 ## Building with Meson
 
+[meson](https://mesonbuild.com) version 0.61 or newer, with
+  a build-system backend, *i.e.* [ninja](https://ninja-build.org) version 1.10 or newer, are required.
+
 1. Set up a build directory:
    ```bash
    meson setup build
