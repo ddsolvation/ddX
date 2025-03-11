@@ -1,15 +1,3 @@
-# Build ddx_driver_testing (if needed)
-ddx_driver_testing_exe = executable(
-   'ddx_driver_testing',
-   'ddx_driver_testing.f90',
-   dependencies: [
-      ddx_dep,       # your ddX library dependency
-      openmp_dep     # OpenMP dependency
-   ],               # or whatever Fortran deps you have
-   include_directories: include_directories('.'),
-   install: false
-)
-
 # Copy run_test.py to the build directory
 # (If run_test.py already has +x permission, this copy should preserve it on most OS.)
 configure_file(
