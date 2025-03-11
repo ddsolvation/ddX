@@ -1,4 +1,3 @@
-
 project_dir = meson.current_source_dir()
 
 # Test sources with their arguments
