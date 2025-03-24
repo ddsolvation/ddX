@@ -14,8 +14,8 @@ install = not (meson.is_subproject() and get_option('default_library') == 'stati
 fc = meson.get_compiler('fortran')
 fc_id = fc.get_id()
 
-# Retrieve Fortran and C++ compiler objects
-fortran_compiler = meson.get_compiler('fortran')
+# Retrieve Fortran compiler object
+fortran_compiler = fc
 
 # Find dependencies: BLAS, LAPACK, OpenMP
 lapack_vendor = get_option('lapack')
@@ -44,13 +44,18 @@ if lapack_vendor == 'mkl'
    if not get_option('openmp')
       mkl_dep += fc.find_library('mkl_tbb_thread')
    endif
-   mkl_dep += fc.find_library('mkl_core')
+   # Ensure we add the MKL core library and assign it as blas_dep since it provides BLAS functionality.
+   mkl_core = fc.find_library('mkl_core')
+   mkl_dep += mkl_core
    lib_deps += mkl_dep
    add_project_arguments(['-DWITH_MKL'], language: 'fortran')
+   blas_dep = mkl_core
 elif lapack_vendor == 'mkl-rt'
    mkl_dep = fc.find_library('mkl_rt')
    lib_deps += mkl_dep
    add_project_arguments(['-DWITH_MKL'], language: 'fortran')
+   # In this case we assume mkl_rt also provides BLAS functionality:
+   blas_dep = mkl_dep
 elif lapack_vendor == 'openblas'
    blas_dep = dependency('openblas', required: false)
    if not blas_dep.found()
@@ -68,6 +73,11 @@ elif lapack_vendor == 'custom'
    foreach lib: get_option('custom_libraries')
       lib_deps += fc.find_library(lib)
    endforeach
+   # Provide a blas_dep even for custom libraries
+   blas_dep = dependency('blas', required: false)
+   if not blas_dep.found()
+      blas_dep = fc.find_library('blas')
+   endif
 else
    lapack_dep = dependency('lapack', required: false)
    if not lapack_dep.found()
@@ -124,7 +134,7 @@ ddx_dep = declare_dependency(link_with: ddx_library)
 executable_target = executable(
    'ddX_exec',
    sources: ['src/ddx_driver.f90'],
-   link_with: [ddx_library, ],
+   link_with: [ddx_library],
    dependencies: lib_deps
 )
 
