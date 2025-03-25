@@ -6,6 +6,7 @@ The relevant literature for the ddX and the individual ddCOSMO, ddPCM and ddLPB 
 #### ddX library
 [1]  <a href="https://doi.org/10.1002/wcms.1726" target="_blank">M. Nottoli, M. F. Herbst, A. Mikhalev, A. Jha, F. Lipparini, B. Stamm,  ddX: Polarizable continuum solvation from small molecules to proteins, WIREs Computational Molecular Science, Vol. 14, No. 4, pp. e1726 (2024)</a>
 
+<br />
 #### ddCOSMO: 
 
 [2] <a href="https://doi.org/10.1063/1.4816767" target="_blank">E. Cancès, Y. Maday, B. Stamm, Domain decomposition for implicit solvation models, Journal of Chemical Physics, Vol. 139, No. 5, pp. 054111 (2013)</a>
