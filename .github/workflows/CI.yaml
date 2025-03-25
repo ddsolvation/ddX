@@ -32,8 +32,10 @@ jobs:
       run: cmake -E make_directory build
     - name: build, test and install
       run: |
+        sudo apt-get update
+        sudo apt-get install libblas-dev liblapack-dev
         cd build
-        cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran-10" -DCMAKE_INSTALL_PREFIX="/tmp/libddx" -DCMAKE_BUILD_TYPE=Release ..
+        cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran" -DCMAKE_INSTALL_PREFIX="/tmp/libddx" -DCMAKE_BUILD_TYPE=Release ..
         make
         ctest -VV
         make install
@@ -63,7 +65,7 @@ jobs:
       matrix:
         include:
           - {os: ubuntu-latest}
-          - {os: macos-11}
+          - {os: macos-latest}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -78,6 +80,11 @@ jobs:
       - name: Install system dependencies on macOS
         run:  brew install ninja
         if: contains( matrix.os, 'macos')
+      - name: Install BLAS and LAPACK
+        run: |
+          sudo apt-get update
+          sudo apt-get install libblas-dev liblapack-dev
+        if: contains( matrix.os, 'ubuntu')
       - name: Install python dependencies
         run: |
           python -m pip install --user wheel pybind11
