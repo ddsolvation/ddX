@@ -29,7 +29,7 @@ foreach source_entry : test_sources
    test_executable = executable(
       executable_name,
       src,
-      dependencies: [blas_dep, lapack_dep, openmp_dep, ddx_dep],  # Link to ddx_dep
+      dependencies: [lib_deps, ddx_dep],  # Link to ddx_dep
       install: false
   )
 
