@@ -50,12 +50,21 @@ if lapack_vendor == 'mkl'
    lib_deps += mkl_dep
    add_project_arguments(['-DWITH_MKL'], language: 'fortran')
    blas_dep = mkl_core
+   # Define lapack_dep even though MKL supplies LAPACK functionality:
+   lapack_dep = dependency('lapack', required: false)
+   if not lapack_dep.found()
+      lapack_dep = fc.find_library('lapack')
+   endif
 elif lapack_vendor == 'mkl-rt'
    mkl_dep = fc.find_library('mkl_rt')
    lib_deps += mkl_dep
    add_project_arguments(['-DWITH_MKL'], language: 'fortran')
-   # In this case we assume mkl_rt also provides BLAS functionality:
+   # Assume mkl_rt provides both LAPACK and BLAS functionality:
    blas_dep = mkl_dep
+   lapack_dep = dependency('lapack', required: false)
+   if not lapack_dep.found()
+      lapack_dep = fc.find_library('lapack')
+   endif
 elif lapack_vendor == 'openblas'
    blas_dep = dependency('openblas', required: false)
    if not blas_dep.found()
@@ -68,6 +77,12 @@ elif lapack_vendor == 'openblas'
          lapack_dep = fc.find_library('lapack')
       endif
       lib_deps += lapack_dep
+   else
+      # Even if the test passes the link check, define lapack_dep for consistency.
+      lapack_dep = dependency('lapack', required: false)
+      if not lapack_dep.found()
+         lapack_dep = fc.find_library('lapack')
+      endif
    endif
 elif lapack_vendor == 'custom'
    foreach lib: get_option('custom_libraries')
@@ -77,6 +92,11 @@ elif lapack_vendor == 'custom'
    blas_dep = dependency('blas', required: false)
    if not blas_dep.found()
       blas_dep = fc.find_library('blas')
+   endif
+   # Also define lapack_dep for tests:
+   lapack_dep = dependency('lapack', required: false)
+   if not lapack_dep.found()
+      lapack_dep = fc.find_library('lapack')
    endif
 else
    lapack_dep = dependency('lapack', required: false)
