@@ -956,7 +956,11 @@ subroutine constants_geometry_init(params, constants, ddx_error)
                 v = params % csph(:, isph) - params % csph(:, jsph) + &
                     & params % rsph(isph)*constants % cgrid(:, igrid)
                 maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
-                ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
+                if (maxv .gt. zero) then
+                    ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
+                else
+                    ssqv = zero
+                end if
                 vv = maxv * sqrt(ssqv)
                 t = vv / params % rsph(jsph)
                 ! Accumulate characteristic function \chi(t_n^ij)
@@ -1084,7 +1088,11 @@ subroutine neighbor_list_init(params, constants, ddx_error)
             if (isph .ne. jsph) then
                 v = params % csph(:, isph)-params % csph(:, jsph)
                 maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
-                ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
+                if (maxv .gt. zero) then
+                    ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
+                else
+                    ssqv = zero
+                end if
                 vv = maxv * sqrt(ssqv)
                 ! Take regularization parameter into account with respect to
                 ! shift se. It is described properly by the upper bound of a
@@ -1171,7 +1179,11 @@ subroutine neighbor_list_init_fmm(params, constants, ddx_error)
                 if (isph .ne. jsph) then
                     v = params % csph(:, isph)-params % csph(:, jsph)
                     maxv = max(abs(v(1)), abs(v(2)), abs(v(3)))
-                    ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
+                    if (maxv .gt. zero) then
+                        ssqv = (v(1)/maxv)**2 + (v(2)/maxv)**2 + (v(3)/maxv)**2
+                    else
+                        ssqv = zero
+                    end if
                     vv = maxv * sqrt(ssqv)
                     ! Take regularization parameter into account with respect to
                     ! shift se. It is described properly by the upper bound of a
@@ -1685,7 +1697,7 @@ subroutine tree_get_farnear_work(n, children, cnode, rnode, lwork, iwork, &
         r = rnode(j(1)) + rnode(j(2)) + max(rnode(j(1)), rnode(j(2)))
         !r = rnode(j(1)) + rnode(j(2))
         dmax = max(abs(c(1)), abs(c(2)), abs(c(3)))
-        if (dmax .gt. 0) then
+        if (dmax .gt. zero) then
             dssq = (c(1)/dmax)**2 + (c(2)/dmax)**2 + (c(3)/dmax)**2
         else
             dssq = zero
