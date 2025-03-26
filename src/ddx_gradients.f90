@@ -56,14 +56,14 @@ subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc
           vij  = params % csph(:,isph) + &
               & params % rsph(isph)*constants % cgrid(:,ig) - &
               & params % csph(:,jsph)
-          !vvij = sqrt(dot_product(vij,vij))
           vvij = dnrm2(3, vij, 1)
           tij  = vvij/params % rsph(jsph)
-
           if (tij.ge.thigh) cycle
-
-          sij  = vij/vvij
-          !call dbasis(sij,basloc,dbsloc,vplm,vcos,vsin)
+          if (tij.ne.zero) then
+              sij = vij/vvij
+          else
+              sij = one
+          end if
           call dbasis(params, constants, sij, basloc, dbsloc, vplm, vcos, vsin)
           alp  = zero
           t    = one
@@ -130,16 +130,15 @@ subroutine contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc
           vji  = params % csph(:,jsph) + &
               & params % rsph(jsph)*constants % cgrid(:,ig) - &
               & params % csph(:,isph)
-          !vvji = sqrt(dot_product(vji,vji))
           vvji = dnrm2(3, vji, 1)
           tji  = vvji/params % rsph(isph)
-
           if (tji.gt.thigh) cycle
-
-          sji  = vji/vvji
-          !call dbasis(sji,basloc,dbsloc,vplm,vcos,vsin)
+          if (tji.ne.zero) then
+              sji = vji/vvji
+          else
+              sji = one
+          end if
           call dbasis(params, constants, sji, basloc, dbsloc, vplm, vcos, vsin)
-
           alp = zero
           t   = one
           do l = 1, params % lmax

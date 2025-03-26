@@ -615,8 +615,12 @@ subroutine build_l(constants, params, ddx_error)
                     & - params % csph(:, jsph)
                 vvij = sqrt(dot_product(vij, vij))
                 tij = vvij/params % rsph(jsph)
-                if (tij.lt.thigh .and. tij.gt.zero) then
-                    sij = vij/vvij
+                if (tij.lt.thigh) then
+                    if (tij.ne.zero) then
+                        sij = vij/vvij
+                    else
+                        sij = one
+                    end if
                     xij = fsw(tij, params % se, params % eta)
                     if (constants % fi(igrid, isph).gt.one) then
                         oij = xij/constants % fi(igrid, isph)

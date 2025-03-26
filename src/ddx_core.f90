@@ -1168,6 +1168,7 @@ subroutine dbasis(params, constants, x, basloc, dbsloc, vplm, vcos, vsin)
     integer :: l, m, ind
     real(dp)  :: cthe, sthe, cphi, sphi, plm, fln, pp1, pm1, pp, VC, VS
     real(dp)  :: et(3), ep(3)
+
     !     get cos(\theta), sin(\theta), cos(\phi) and sin(\phi) from the cartesian
     !     coordinates of x.
     cthe = x(3)
@@ -1496,7 +1497,7 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
                 vvij = sqrt( dot_product( vij, vij ) )
                 tij  = vvij / params % rsph(jsph)
                 ! point is INSIDE j-sphere
-                if (tij.lt.thigh .and. tij.gt.zero) then
+                if (tij.lt.thigh) then
                     xij = fsw(tij, params % se, params % eta)
                     if (constants % fi(its,isph).gt.one) then
                         oij = xij / constants % fi(its,isph)
