@@ -44,27 +44,20 @@ if lapack_vendor == 'mkl'
    if not get_option('openmp')
       mkl_dep += fc.find_library('mkl_tbb_thread')
    endif
-   # Ensure we add the MKL core library and assign it as blas_dep since it provides BLAS functionality.
+   # Add the MKL core library; MKL supplies LAPACK routines.
    mkl_core = fc.find_library('mkl_core')
    mkl_dep += mkl_core
    lib_deps += mkl_dep
    add_project_arguments(['-DWITH_MKL'], language: 'fortran')
    blas_dep = mkl_core
-   # Define lapack_dep even though MKL supplies LAPACK functionality:
-   lapack_dep = dependency('lapack', required: false)
-   if not lapack_dep.found()
-      lapack_dep = fc.find_library('lapack')
-   endif
+   # Instead of looking for a separate lapack library, create a dependency using MKL.
+   lapack_dep = declare_dependency(link_with: mkl_dep)
 elif lapack_vendor == 'mkl-rt'
    mkl_dep = fc.find_library('mkl_rt')
    lib_deps += mkl_dep
    add_project_arguments(['-DWITH_MKL'], language: 'fortran')
-   # Assume mkl_rt provides both LAPACK and BLAS functionality:
    blas_dep = mkl_dep
-   lapack_dep = dependency('lapack', required: false)
-   if not lapack_dep.found()
-      lapack_dep = fc.find_library('lapack')
-   endif
+   lapack_dep = declare_dependency(link_with: mkl_dep)
 elif lapack_vendor == 'openblas'
    blas_dep = dependency('openblas', required: false)
    if not blas_dep.found()
@@ -78,7 +71,6 @@ elif lapack_vendor == 'openblas'
       endif
       lib_deps += lapack_dep
    else
-      # Even if the test passes the link check, define lapack_dep for consistency.
       lapack_dep = dependency('lapack', required: false)
       if not lapack_dep.found()
          lapack_dep = fc.find_library('lapack')
@@ -88,12 +80,10 @@ elif lapack_vendor == 'custom'
    foreach lib: get_option('custom_libraries')
       lib_deps += fc.find_library(lib)
    endforeach
-   # Provide a blas_dep even for custom libraries
    blas_dep = dependency('blas', required: false)
    if not blas_dep.found()
       blas_dep = fc.find_library('blas')
    endif
-   # Also define lapack_dep for tests:
    lapack_dep = dependency('lapack', required: false)
    if not lapack_dep.found()
       lapack_dep = fc.find_library('lapack')
