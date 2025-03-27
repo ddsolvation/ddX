@@ -863,6 +863,7 @@ subroutine prec_tstarx(params, constants, workspace, x, y, ddx_error)
 
     start_time = omp_get_wtime()
     n_iter = params % maxiter
+    workspace % hsp_guess  = zero
     call jacobi_diis(params, constants, workspace, constants % inner_tol, &
         & x(:,:,2), workspace % hsp_guess, n_iter, x_rel_diff, bstarx, &
         & bx_prec, hnorm, ddx_error)
