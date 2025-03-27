@@ -161,7 +161,7 @@ subroutine calcv2_lpb (params, constants, isph, pot, x)
     real(dp) :: work(params % lmax+1)
     real(dp), dimension(params % ngrid) :: pot2
     integer :: its, ij, jsph
-    real(dp) :: vij(3), sij(3), vtij(3)
+    real(dp) :: vij(3), vtij(3)
     real(dp) :: vvij, tij, xij, oij
 
     pot = zero
@@ -177,7 +177,6 @@ subroutine calcv2_lpb (params, constants, isph, pot, x)
                 tij  = vvij/params % rsph(jsph)
 
                 if ( tij.lt.( one + (params % se+one)/two*params % eta ) ) then
-                    sij = vij/vvij
                     xij = fsw(tij, params % se, params % eta)
                     if (constants % fi(its,isph).gt.one) then
                         oij = xij/constants % fi(its, isph)
@@ -306,7 +305,11 @@ subroutine adjrhs_lpb(params, constants, isph, xi, vlm, basloc, &
         !point is INSIDE i-sphere (+ transition layer)
         if ( tji.lt.( one + (params % se+one)/two*params % eta ) ) then
           !compute s_n^ji
-          sji = vji/vvji
+          if (tji.ne.zero) then
+              sji = vji/vvji
+          else
+              sji = one
+          end if
           call ylmbas(sji, rho, ctheta, stheta, cphi, &
                         & sphi, params % lmax, &
                         & constants % vscales, basloc, &
