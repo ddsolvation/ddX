@@ -482,7 +482,11 @@ subroutine lpb_derivative_setup(params, constants, workspace, state, ddx_error)
                                 & *constants % cgrid(:,igrid) &
                                 & - params % csph(:,jsph)
                             rijn = sqrt(dot_product(vij,vij))
-                            sij = vij/rijn
+                            if (rijn.ne.zero) then
+                                sij = vij/rijn
+                            else
+                                sij = one
+                            end if
                             do l0 = 0, constants % lmax0
                                 do m0 = -l0, l0
                                     ind0 = l0**2 + l0 + m0 + 1
