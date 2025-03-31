@@ -1,0 +1,24 @@
+option(
+   'lapack',
+   type: 'combo',
+   value: 'auto',
+   yield: true,
+   choices: ['auto', 'mkl', 'mkl-rt', 'openblas', 'netlib', 'custom'],
+   description : 'linear algebra backend',
+)
+
+option(
+   'custom_libraries',
+   type: 'array',
+   value: [],
+   yield: true,
+   description: 'libraries to load for custom linear algebra backend',
+)
+
+option(
+   'openmp',
+   type: 'boolean',
+   value: true,
+   yield: true,
+   description: 'use OpenMP parallelisation',
+)
