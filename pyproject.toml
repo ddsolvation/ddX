@@ -12,7 +12,7 @@ authors = [
     {name = "ddX developers", email = "best@ians.uni-stuttgart.de"}
 ]
 requires-python = ">=3.8"
-license = "LGPL-3.0-only"
+license = {file = "LICENSE.txt"}
 
 [project.urls]
 Homepage = "https://ddsolvation.github.io/ddX"
