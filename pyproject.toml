@@ -2,5 +2,22 @@
 requires = ["setuptools>=42", "wheel", "pybind11>=2.6.1", "oldest-supported-numpy", "cmake"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "pyddx"
+version = "0.6.0"
+description = "ddX continuum solvation library"
+readme = "README.md"
+dependencies = ["numpy>=1.14", "scipy>=1.8"]
+authors = [
+    {name = "ddX developers", email = "best@ians.uni-stuttgart.de"}
+]
+requires-python = ">=3.8"
+license = "LGPL-3.0-only"
+
+[project.urls]
+Homepage = "https://ddsolvation.github.io/ddX"
+Source = "https://github.com/ddsolvation/ddX"
+Issues = "https://github.com/ddsolvation/ddX/issues"
+
 [project.optional-dependencies]
 test = ["pytest"]
