@@ -7,7 +7,6 @@ import pybind11
 import subprocess
 
 from setuptools import Extension, setup
-from setuptools.command.test import test as TestCommand
 from setuptools.command.build_ext import build_ext
 
 # A CMakeExtension needs a sourcedir instead of a file list.
@@ -68,26 +67,6 @@ class CMakeBuild(build_ext):
         )
 
 
-class PyTest(TestCommand):
-    user_options = [
-        ("pytest-args=", "a", "Arguments to pass to pytest"),
-    ]
-
-    def initialize_options(self):
-        TestCommand.initialize_options(self)
-        self.pytest_args = ""
-
-    def finalize_options(self):
-        pass
-
-    def run_tests(self):
-        # import here, cause outside the eggs aren't loaded
-        import pytest
-
-        errno = pytest.main(["src"] + shlex.split(self.pytest_args))
-        sys.exit(errno)
-
-
 def read_readme():
     with open("README.md") as fp:
         return "".join([line for line in fp if not line.startswith("<img")])
@@ -121,5 +100,5 @@ setup(
     python_requires=">=3.8",
     install_requires=["numpy >= 1.14", "scipy >= 1.8"],
     tests_require=["pytest", "numpy", "scipy"],
-    cmdclass={"build_ext": CMakeBuild, "pytest": PyTest, },
+    cmdclass={"build_ext": CMakeBuild,}
 )

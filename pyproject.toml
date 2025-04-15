@@ -1,3 +1,6 @@
 [build-system]
 requires = ["setuptools>=42", "wheel", "pybind11>=2.6.1", "oldest-supported-numpy", "cmake"]
 build-backend = "setuptools.build_meta"
+
+[project.optional-dependencies]
+test = ["pytest"]
