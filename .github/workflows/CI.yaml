@@ -91,6 +91,6 @@ jobs:
           python -m pip install --user -e .[test]
       - name: Run python tests
         run: |
-          pytest src
+          python -m pytest src
       - name: Run example
         run: python examples/run_ddx.py
