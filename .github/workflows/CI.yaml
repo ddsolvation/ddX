@@ -71,7 +71,7 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.8'
-      - uses: awvwgk/setup-fortran@main
+      - uses: fortran-lang/setup-fortran@main
         id: setup-fortran
         with:
           compiler: gcc
