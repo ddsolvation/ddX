@@ -162,8 +162,8 @@ $(document).ready(function(){initNavTree('ddx__solvers_8f90_source.html',''); in
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">intent(out)</span> :: x_rel_diff(niter)</div>
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: ddx_error</div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="comment">!! External procedures</span></div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    <span class="keywordtype">procedure</span>(<a class="code hl_interface" href="interfaceddx__solvers_1_1matvec__interface.html">matvec_interface</a>) :: matvec, dm1vec</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    <span class="keywordtype">procedure</span>(<a class="code hl_interface" href="interfaceddx__solvers_1_1norm__interface.html">norm_interface</a>) :: norm_func</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    <span class="keywordtype">external</span> :: matvec, dm1vec</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span><span class="keywordtype">    real</span>(dp), <span class="keywordtype">external</span> :: norm_func</div>
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    <span class="comment">!! Local variables</span></div>
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    <span class="keywordtype">integer</span> :: it, nmat</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span><span class="keywordtype">    real</span>(dp) :: diff, norm, rel_diff</div>
@@ -330,8 +330,8 @@ $(document).ready(function(){initNavTree('ddx__solvers_8f90_source.html',''); in
 <div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>      <span class="keywordtype">integer</span>,                  <span class="keywordtype">intent(inout)</span> :: n_iter</div>
 <div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>      <span class="keywordtype">type</span>(ddx_error_type), <span class="keywordtype">intent(inout)</span> :: ddx_error</div>
 <div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span><span class="keywordtype">      real</span>(dp), <span class="keywordtype">intent(out)</span> :: x_rel_diff(n_iter)</div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>      <span class="keywordtype">external</span>                                :: matvec, dm1vec</div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>      <span class="keywordtype">procedure</span>(<a class="code hl_interface" href="interfaceddx__solvers_1_1norm__interface.html">norm_interface</a>)               :: norm_func</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>      <span class="keywordtype">external</span> :: matvec, dm1vec</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span><span class="keywordtype">      real</span>(dp), <span class="keywordtype">external</span> :: norm_func</div>
 <div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>      <span class="comment">! Local variables</span></div>
 <div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>      <span class="keywordtype">integer</span>  :: it, nmat, istatus, lenb, nsph_u</div>
 <div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span><span class="keywordtype">      real</span>(dp) :: diff, norm, rel_diff = zero</div>
