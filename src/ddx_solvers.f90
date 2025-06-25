@@ -95,8 +95,8 @@ subroutine jacobi_diis(params, constants, workspace, tol, rhs, x, niter, &
     real(dp), intent(out) :: x_rel_diff(niter)
     type(ddx_error_type), intent(inout) :: ddx_error
     !! External procedures
-    procedure(matvec_interface) :: matvec, dm1vec
-    procedure(norm_interface) :: norm_func
+    external :: matvec, dm1vec
+    real(dp), external :: norm_func
     !! Local variables
     integer :: it, nmat
     real(dp) :: diff, norm, rel_diff
@@ -274,8 +274,8 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
       integer,                  intent(inout) :: n_iter
       type(ddx_error_type), intent(inout) :: ddx_error
       real(dp), intent(out) :: x_rel_diff(n_iter)
-      external                                :: matvec, dm1vec
-      procedure(norm_interface)               :: norm_func
+      external :: matvec, dm1vec
+      real(dp), external :: norm_func
       ! Local variables
       integer  :: it, nmat, istatus, lenb, nsph_u
       real(dp) :: diff, norm, rel_diff = zero
