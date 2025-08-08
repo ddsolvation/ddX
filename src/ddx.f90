@@ -515,6 +515,12 @@ subroutine fill_guess(params, constants, workspace, state, tol, ddx_error)
     real(dp), intent(in) :: tol
     type(ddx_error_type), intent(inout) :: ddx_error
 
+    if (.not.state % rhs_done) then
+        call update_error(ddx_error, &
+            & "In fill_guess, the RHS is not initialized")
+        return
+    end if
+
     if (params % model .eq. 1) then
         call cosmo_guess(params, constants, workspace, state, ddx_error)
     else if (params % model .eq. 2) then
@@ -524,6 +530,11 @@ subroutine fill_guess(params, constants, workspace, state, tol, ddx_error)
     else
         call update_error(ddx_error, "Unknow model in fill_guess.")
         return
+    end if
+
+    if (ddx_error % flag .eq. 0) then
+        state % guess_done = .true.
+        state % solved = .false.
     end if
 
 end subroutine fill_guess
@@ -547,6 +558,12 @@ subroutine fill_guess_adjoint(params, constants, workspace, state, tol, ddx_erro
     real(dp), intent(in) :: tol
     type(ddx_error_type), intent(inout) :: ddx_error
 
+    if (.not.state % adjoint_rhs_done) then
+        call update_error(ddx_error, &
+            & "In fill_guess_adjoint, the adjoint RHS is not initialized")
+        return
+    end if
+
     if (params % model .eq. 1) then
         call cosmo_guess_adjoint(params, constants, workspace, state, ddx_error)
     else if (params % model .eq. 2) then
@@ -556,6 +573,11 @@ subroutine fill_guess_adjoint(params, constants, workspace, state, tol, ddx_erro
     else
         call update_error(ddx_error, "Unknow model in fill_guess_adjoint.")
         return
+    end if
+
+    if (ddx_error % flag .eq. 0) then
+        state % adjoint_guess_done = .true.
+        state % adjoint_solved = .false.
     end if
 
 end subroutine fill_guess_adjoint
@@ -579,6 +601,16 @@ subroutine solve(params, constants, workspace, state, tol, ddx_error)
     real(dp), intent(in) :: tol
     type(ddx_error_type), intent(inout) :: ddx_error
 
+    if (.not.state % rhs_done) then
+        call update_error(ddx_error, "In solve, the RHS is not initialized")
+        return
+    end if
+    if (.not.(state % solved .or. state % guess_done)) then
+        call update_error(ddx_error, &
+            & "In solve, no guess or previous solution is provided")
+        return
+    end if
+
     if (params % model .eq. 1) then
         call cosmo_solve(params, constants, workspace, state, tol, ddx_error)
     else if (params % model .eq. 2) then
@@ -588,6 +620,10 @@ subroutine solve(params, constants, workspace, state, tol, ddx_error)
     else
         call update_error(ddx_error, "Unknow model in solve.")
         return
+    end if
+
+    if (ddx_error % flag .eq. 0) then
+        state % solved = .true.
     end if
 
 end subroutine solve
@@ -611,6 +647,17 @@ subroutine solve_adjoint(params, constants, workspace, state, tol, ddx_error)
     real(dp), intent(in) :: tol
     type(ddx_error_type), intent(inout) :: ddx_error
 
+    if (.not.state % adjoint_rhs_done) then
+        call update_error(ddx_error, &
+            & "In solve_adjoint, the RHS is not initialized")
+        return
+    end if
+    if (.not.(state % adjoint_solved .or. state % adjoint_guess_done)) then
+        call update_error(ddx_error, &
+            & "In solve_adjoint, no guess or previous solution is provided")
+        return
+    end if
+
     if (params % model .eq. 1) then
         call cosmo_solve_adjoint(params, constants, workspace, state, tol, ddx_error)
     else if (params % model .eq. 2) then
@@ -620,6 +667,10 @@ subroutine solve_adjoint(params, constants, workspace, state, tol, ddx_error)
     else
         call update_error(ddx_error, "Unknow model in solve_adjoint.")
         return
+    end if
+
+    if (ddx_error % flag .eq. 0) then
+        state % adjoint_solved = .true.
     end if
 
 end subroutine solve_adjoint
@@ -645,6 +696,18 @@ subroutine energy(params, constants, workspace, state, solvation_energy, ddx_err
 
     ! dummy operation on unused interface arguments
     if (allocated(workspace % tmp_pot)) continue
+
+    if (.not.state % solved) then
+        call update_error(ddx_error, &
+            & "In energy, the solution is not available.")
+        return
+    end if
+    if (.not.state % adjoint_rhs_done) then
+        call update_error(ddx_error, &
+            & "In energy, the adjoint RHS is not initialized")
+        return
+    end if
+
 
     if (params % model .eq. 1) then
         call cosmo_energy(constants, state, solvation_energy, ddx_error)
@@ -682,6 +745,27 @@ subroutine solvation_force_terms(params, constants, workspace, &
     type(ddx_electrostatics_type), intent(in) :: electrostatics
     real(dp), intent(out) :: force(3, params % nsph)
     type(ddx_error_type), intent(inout) :: ddx_error
+
+    if (.not.state % solved) then
+        call update_error(ddx_error, &
+            & "In solvation_force_terms, the solution is not available.")
+        return
+    end if
+    if (.not.state % adjoint_solved) then
+        call update_error(ddx_error, &
+            & "In solvation_force_terms, the adjoint solution is not available.")
+        return
+    end if
+    if (.not.state % rhs_done) then
+        call update_error(ddx_error, &
+            & "In solvation_force_terms, the RHS is not initialized")
+        return
+    end if
+    if (.not.state % adjoint_rhs_done) then
+        call update_error(ddx_error, &
+            & "In solvation_force_terms, the adjoint RHS is not initialized")
+        return
+    end if
 
     if (params % model .eq. 1) then
         call cosmo_solvation_force_terms(params, constants, workspace, &

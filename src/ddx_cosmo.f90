@@ -73,6 +73,8 @@ subroutine cosmo_setup(params, constants, workspace, state, phi_cav, psi, ddx_er
     state % phi = - state % phi
     state % phi_cav = phi_cav
     state % psi = psi
+    state % rhs_done = .true.
+    state % adjoint_rhs_done = .true.
 end subroutine cosmo_setup
 
 !> Do a guess for the primal ddCOSMO linear system

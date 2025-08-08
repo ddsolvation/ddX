@@ -90,6 +90,11 @@ subroutine lpb_setup(params, constants, workspace, state, phi_cav, &
         & constants % vgrid_nbasis, state % f_lpb, state % rhs_lpb(:,:,2))
     state % rhs_lpb(:,:,1) = state % rhs_lpb(:,:,1) + state % rhs_lpb(:,:,2)
 
+    if (ddx_error % flag .eq. 0) then
+        state % rhs_done = .true.
+        state % adjoint_rhs_done = .true.
+    end if
+
 end subroutine lpb_setup
 
 !> Compute the ddLPB energy
@@ -168,8 +173,8 @@ subroutine lpb_guess_adjoint(params, constants, workspace, state, tol, &
     constants % inner_tol =  sqrt(tol)
 
     ! guess
-    workspace % ddcosmo_guess = zero
-    workspace % hsp_guess = zero
+    workspace % ddcosmo_adj_guess = zero
+    workspace % hsp_adj_guess = zero
     call prec_tstarx(params, constants, workspace, state % rhs_adj_lpb, &
         & state % x_adj_lpb, ddx_error)
 
