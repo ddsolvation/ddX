@@ -173,8 +173,8 @@ subroutine lpb_guess_adjoint(params, constants, workspace, state, tol, &
     constants % inner_tol =  sqrt(tol)
 
     ! guess
-    workspace % ddcosmo_guess = zero
-    workspace % hsp_guess = zero
+    workspace % ddcosmo_adj_guess = zero
+    workspace % hsp_adj_guess = zero
     call prec_tstarx(params, constants, workspace, state % rhs_adj_lpb, &
         & state % x_adj_lpb, ddx_error)
 
