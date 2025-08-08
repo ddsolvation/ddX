@@ -15,36 +15,60 @@ setup.py test
 ```
 
 <br />
-## Source code
 
-**Download the ddX source code** at: 
+## Source Code
+
+**Download the ddX source code** from GitHub:
+
 ```
-git@github.com:ddsolvation/ddX.git
+git clone git@github.com:ddsolvation/ddX.git
 ```
-**Download and install** ddX as follows:
+
+Then change into the cloned directory:
+
 ```
-> git clone git@github.com:ddsolvation/ddX.git
-> cd ddX
-> mkdir build
-> cd build
-> cmake ..
-> make
+cd ddX
 ```
-Per default, the library is located in /src.
+
+The main Fortran sources for ddX reside in the `src/` folder. You can build ddX using either **CMake** or **Meson**, as outlined below.
+
+---
+
+## Building with CMake
+
+1. Create a build directory and enter it:
+   ```bash
+   mkdir build
+   cd build
+   ```
+2. Run CMake to configure:
+   ```bash
+   cmake ..
+   ```
+3. Compile the library and executables:
+   ```bash
+   make
+   ```
+4. (Optional) Run the test suite:
+   ```bash
+   make test
+   ```
+
+By default, the compiled library and executables will appear in the `build` folder. The original sources remain in `src/`.
 
 **Build the documentation** as follows (after you have done the above process):
-```
-> cd build
-> make docs
+```bash
+cd build
+make docs
 ```
 **To see the documentation**
-```
-> cd ../doxygen
-> pwd
+```bash
+cd ../doxygen
+pwd
 ```
 Copy the link shown by pwd and add /index.html in a web browser
-#### Hints and hacks
-1. For specifying compilers use
+
+**Specifying compilers** can be done by passing the desired compilers to CMake:
 ```
 cmake -D CMAKE_CXX_COMPILER=/usr/local/bin/g++-11 CMAKE_Fortran_COMPILER=/usr/local/bin/gfortran-11 ..
 ```
@@ -53,3 +77,28 @@ or
 cmake -D CMAKE_CXX_COMPILER=icx CMAKE_Fortran_COMPILER=ifort ..
 ```
 **NOTE**: Replace with the compilers you desire.
+
+
+---
+
+## Building with Meson
+
+[meson](https://mesonbuild.com) version 0.61 or newer, with
+  a build-system backend, *i.e.* [ninja](https://ninja-build.org) version 1.10 or newer, are required.
+
+1. Set up a build directory:
+   ```bash
+   meson setup build
+   ```
+2. Compile:
+   ```bash
+   meson compile -C build
+   ```
+3. Run the test suite (and print any error logs):
+   ```bash
+   meson test -C build
+   ```
+
+Again, the built library and any executables will appear in the `build` folder, while the ddX source remains in `src/`.
+
+
