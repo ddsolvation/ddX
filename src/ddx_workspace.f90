@@ -97,6 +97,7 @@ type ddx_workspace_type
     real(dp), allocatable :: tmp_bmat(:, :)
     !> ddLPB solutions for the microiterations
     real(dp), allocatable :: ddcosmo_guess(:,:), hsp_guess(:,:)
+    real(dp), allocatable :: ddcosmo_adj_guess(:,:), hsp_adj_guess(:,:)
     !> ddLPB temporary timings
     real(dp) :: xs_time, s_time, hsp_time, hsp_adj_time
 end type ddx_workspace_type
@@ -267,8 +268,11 @@ subroutine workspace_init(params, constants, workspace, ddx_error)
     ! Allocations for LPB model
     if (params % model .eq. 3) then
         allocate(workspace % tmp_bessel(max(2, params % lmax+1), &
-            & params % nproc), workspace % ddcosmo_guess(constants % nbasis, params % nsph), &
-            & workspace % hsp_guess(constants % nbasis, params % nsph), stat=info)
+            & params % nproc), &
+            & workspace % ddcosmo_guess(constants % nbasis, params % nsph), &
+            & workspace % ddcosmo_adj_guess(constants % nbasis, params % nsph), &
+            & workspace % hsp_guess(constants % nbasis, params % nsph), &
+            & workspace % hsp_adj_guess(constants % nbasis, params % nsph), stat=info)
         if (info .ne. 0) then
             call update_error(ddx_error, "workspace_init: `tmp_bessel` " // &
                 & "allocation failed")
@@ -450,6 +454,18 @@ subroutine workspace_free(workspace, ddx_error)
         deallocate(workspace % hsp_guess, stat=istat)
         if (istat .ne. 0) then
             call update_error(ddx_error, "`hsp_guess` deallocation failed!")
+        end if
+    end if
+    if (allocated(workspace % ddcosmo_adj_guess)) then
+        deallocate(workspace % ddcosmo_adj_guess, stat=istat)
+        if (istat .ne. 0) then
+            call update_error(ddx_error, "`ddcosmo_adj_guess` deallocation failed!")
+        end if
+    end if
+    if (allocated(workspace % hsp_adj_guess)) then
+        deallocate(workspace % hsp_adj_guess, stat=istat)
+        if (istat .ne. 0) then
+            call update_error(ddx_error, "`hsp_adj_guess` deallocation failed!")
         end if
     end if
     if (allocated(workspace % tmp_rhs)) then
