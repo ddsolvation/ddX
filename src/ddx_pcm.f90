@@ -70,6 +70,8 @@ subroutine pcm_setup(params, constants, workspace, state, phi_cav, psi, ddx_erro
     state % phi = - state % phi
     state % phi_cav = phi_cav
     state % psi = psi
+    state % rhs_done = .true.
+    state % adjoint_rhs_done = .true.
 end subroutine pcm_setup
 
 !> Do a guess for the primal ddPCM linear system

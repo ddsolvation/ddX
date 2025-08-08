@@ -359,59 +359,27 @@ class State {
   }
 
   void fill_guess(double tol) {
-    if (model()->model() == "cosmo") {
-      ddx_cosmo_guess(model()->holder(), holder(), model()->error());
-    } else if (model()->model() == "pcm") {
-      ddx_pcm_guess(model()->holder(), holder(), model()->error());
-    } else if (model()->model() == "lpb") {
-      ddx_lpb_guess(model()->holder(), holder(), tol, model()->error());
-    } else {
-      throw py::value_error("Model " + model()->model() + " not yet implemented.");
-    }
+    ddx_fill_guess(model()->holder(), holder(), tol, model()->error());
     throw_if_error();
     m_solved = false;
   }
 
   void fill_guess_adjoint(double tol) {
-    if (model()->model() == "cosmo") {
-      ddx_cosmo_guess_adjoint(model()->holder(), holder(), model()->error());
-    } else if (model()->model() == "pcm") {
-      ddx_pcm_guess_adjoint(model()->holder(), holder(), model()->error());
-    } else if (model()->model() == "lpb") {
-      ddx_lpb_guess_adjoint(model()->holder(), holder(), tol, model()->error());
-    } else {
-      throw py::value_error("Model " + model()->model() + " not yet implemented.");
-    }
+    ddx_fill_guess_adjoint(model()->holder(), holder(), tol, model()->error());
     throw_if_error();
     m_solved_adjoint = false;
   }
 
   // Solve the forward COSMO / PCM / LPB System. The state is modified in-place.
   void solve(double tol) {
-    if (model()->model() == "cosmo") {
-      ddx_cosmo_solve(model()->holder(), holder(), tol, model()->error());
-    } else if (model()->model() == "pcm") {
-      ddx_pcm_solve(model()->holder(), holder(), tol, model()->error());
-    } else if (model()->model() == "lpb") {
-      ddx_lpb_solve(model()->holder(), holder(), tol, model()->error());
-    } else {
-      throw py::value_error("Model " + model()->model() + " not yet implemented.");
-    }
+    ddx_solve(model()->holder(), holder(), tol, model()->error());
     throw_if_error();
     m_solved = true;
   }
 
   // Solve the adjoint COSMO / PCM / LPB System. The state is modified in-place.
   void solve_adjoint(double tol) {
-    if (model()->model() == "cosmo") {
-      ddx_cosmo_solve_adjoint(model()->holder(), holder(), tol, model()->error());
-    } else if (model()->model() == "pcm") {
-      ddx_pcm_solve_adjoint(model()->holder(), holder(), tol, model()->error());
-    } else if (model()->model() == "lpb") {
-      ddx_lpb_solve_adjoint(model()->holder(), holder(), tol, model()->error());
-    } else {
-      throw py::value_error("Model " + model()->model() + " not yet implemented.");
-    }
+    ddx_solve_adjoint(model()->holder(), holder(), tol, model()->error());
     throw_if_error();
     m_solved_adjoint = true;
   }
@@ -420,15 +388,7 @@ class State {
   double energy() {
     check_solved();
     double ret = 0.0;
-    if (model()->model() == "cosmo") {
-      ret = ddx_cosmo_energy(model()->holder(), holder(), model()->error());
-    } else if (model()->model() == "pcm") {
-      ret = ddx_pcm_energy(model()->holder(), holder(), model()->error());
-    } else if (model()->model() == "lpb") {
-      ret = ddx_lpb_energy(model()->holder(), holder(), model()->error());
-    } else {
-      throw py::value_error("Model " + model()->model() + " not yet implemented.");
-    }
+    ret = ddx_energy(model()->holder(), holder(), model()->error());
     throw_if_error();
     return ret;
   }
