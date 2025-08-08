@@ -186,6 +186,14 @@ type ddx_state_type
     real(dp) :: hsp_time
     real(dp) :: hsp_adj_time
 
+    !! Some flags to see if quantities are properly initialized
+    logical :: rhs_done
+    logical :: adjoint_rhs_done
+    logical :: guess_done
+    logical :: solved
+    logical :: adjoint_guess_done
+    logical :: adjoint_solved
+
 end type ddx_state_type
 
 !> Container for the electrostatic properties. Since different methods
@@ -450,6 +458,13 @@ subroutine allocate_state(params, constants, state, ddx_error)
     type(ddx_state_type), intent(out) :: state
     type(ddx_error_type), intent(inout) :: ddx_error
     integer :: istatus
+
+    state % rhs_done = .false.
+    state % adjoint_rhs_done = .false.
+    state % guess_done = .false.
+    state % solved = .false.
+    state % adjoint_guess_done = .false.
+    state % adjoint_solved = .false.
 
     allocate(state % psi(constants % nbasis, params % nsph), stat=istatus, source=0.0_dp)
     if (istatus .ne. 0) then
