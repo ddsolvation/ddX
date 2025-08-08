@@ -553,7 +553,7 @@ function ddx_ddrun(c_ddx, c_state, c_electrostatics, nbasis, nsph, &
     c_energy = zero
 
     ! setup
-    do_guess = read_guess.ne.0
+    do_guess = read_guess.eq.0
     call c_f_pointer(c_ddx, ddx_model)
     call ddx_setup(c_ddx, c_state, c_electrostatics, nbasis, nsph, psi, c_error)
     if (ddx_get_error_flag(c_error) .ne. 0) return
@@ -573,7 +573,7 @@ function ddx_ddrun(c_ddx, c_state, c_electrostatics, nbasis, nsph, &
     ! adjoint linear system
     if (ddx_model%params%force .eq. 1) then
         if (do_guess) then
-            call ddx_fill_guess(c_ddx, c_state, tol, c_error)
+            call ddx_fill_guess_adjoint(c_ddx, c_state, tol, c_error)
         end if
         if (ddx_get_error_flag(c_error) .ne. 0) return
         call ddx_solve_adjoint(c_ddx, c_state, tol, c_error)
