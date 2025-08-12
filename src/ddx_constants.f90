@@ -223,6 +223,19 @@ type ddx_constants_type
     !> Whether the diagonal of the matrices has to be used in the mvp for
     !! ddCOSMO, ddPCM or inner ddLPB iterations
     logical  :: dodiag
+    !> List of exposed points in a CSR format.
+    integer, allocatable :: iexposed(:)
+    integer, allocatable :: exposed(:)
+    !> List of buried points in a CSR format.
+    integer, allocatable :: iburied(:)
+    integer, allocatable :: buried(:)
+    !> List of overlapped points in a CSR format.
+    integer, allocatable :: ioverlap(:)
+    integer, allocatable :: overlap(:)
+    !> Adjoint list of overlapped points (the relation is not self
+    ! adjoint) in a CSR format.
+    integer, allocatable :: adj_ioverlap(:)
+    integer, allocatable :: adj_overlap(:)
 end type ddx_constants_type
 
 contains
@@ -423,7 +436,7 @@ subroutine constants_init(params, constants, ddx_error)
         end do
     end if
 
-    ! Generate geometry-related constants (required by the LPB code)
+    ! Generate geometry-related constants
     call constants_geometry_init(params, constants, ddx_error)
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, "constants_geometry_init returned an " // &
@@ -773,9 +786,9 @@ subroutine constants_geometry_init(params, constants, ddx_error)
     !! Local variables
     real(dp) :: swthr, v(3), maxv, ssqv, vv, t
     integer :: i, isph, jsph, inear, igrid, iwork, jwork, lwork, &
-        & old_lwork, icav, info
+        & old_lwork, icav, info, ij, adj_iwork
     integer, allocatable :: work(:, :), tmp_work(:, :)
-    real(dp) :: start_time
+    real(dp) :: start_time, thigh, vij(3), vvij, tij
     !! The code
     ! Prepare FMM structures if needed
     start_time = omp_get_wtime()
@@ -992,6 +1005,98 @@ subroutine constants_geometry_init(params, constants, ddx_error)
             end if
         enddo
     enddo
+
+    allocate(constants % iburied(params % nsph + 1), &
+         & constants % iexposed(params % nsph + 1), &
+         & constants % buried(params % nsph * params % ngrid), &
+         & constants % exposed(params % nsph * params % ngrid), stat=info)
+    if (info .ne. 0) then
+        call update_error(ddx_error, "Buried exposed lists allocation failed")
+        return
+    endif
+    iwork = 1
+    do isph = 1, params % nsph
+        constants % iburied(isph) = iwork
+        do igrid = 1, params % ngrid
+            if (constants % ui(igrid, isph) .lt. one) then
+                !write(7, *) isph, igrid
+                constants % buried(iwork) = igrid
+                iwork = iwork + 1
+            end if
+        end do
+    end do
+    constants % iburied(params % nsph + 1) = iwork
+
+    !!do isph = 1, params % nsph
+    !!    write(6,*) isph, constants % iburied(isph), constants % iburied(isph + 1) - 1
+    !!    do iwork = constants % iburied(isph), constants % iburied(isph + 1) - 1
+    !!        igrid = constants % buried(iwork)
+    !!        write(8, *) isph, igrid
+    !!    end do
+    !!end do
+    !!stop 0
+
+    allocate(constants % ioverlap(constants % inl(params % nsph+1)), &
+        & constants % adj_ioverlap(constants % inl(params % nsph+1)), &
+        & constants % overlap(constants % inl(params % nsph+1)*params % ngrid), &
+        & constants % adj_overlap(constants % inl(params % nsph+1)*params % ngrid), &
+        & stat=info)
+    if (info .ne. 0) then
+        call update_error(ddx_error, "Overlapped grid lists allocation failed")
+        return
+    end if
+    thigh = one + pt5*(params % se + one)*params % eta
+    iwork = 1
+    adj_iwork = 1
+    do isph = 1, params % nsph
+        do ij = constants % inl(isph), constants % inl(isph+1) - 1
+            jsph = constants % nl(ij)
+            constants % ioverlap(ij) = iwork
+            constants % adj_ioverlap(ij) = adj_iwork
+            do igrid = 1, params % ngrid
+                if (constants % ui(igrid, isph) .lt. one) then
+                    vij = params % csph(:,isph) &
+                        & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                        & - params % csph(:,jsph)
+                    vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) &
+                        & + vij(3)*vij(3))
+                    tij  = vvij / params % rsph(jsph)
+                    if (tij.lt.thigh) then
+                        constants % overlap(iwork) = igrid
+                        iwork = iwork + 1
+                    end if
+                end if
+                if (constants % ui(igrid, jsph) .lt. one) then
+                    vij = params % csph(:,jsph) &
+                        & + params % rsph(jsph)*constants % cgrid(:,igrid) &
+                        & - params % csph(:,isph)
+                    vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) &
+                        & + vij(3)*vij(3))
+                    tij  = vvij / params % rsph(isph)
+                    if (tij.lt.thigh) then
+                        constants % adj_overlap(adj_iwork) = igrid
+                        adj_iwork = adj_iwork + 1
+                    end if
+                end if
+            end do
+        end do
+    end do
+    constants % ioverlap(ij) = iwork
+    constants % adj_ioverlap(ij) = adj_iwork
+
+    !do isph = 1, params % nsph
+    !    do ij = constants % inl(isph), constants % inl(isph+1) - 1
+    !        jsph = constants % nl(ij)
+    !        !do ijgrid = constants % ioverlap(ij), constants % ioverlap(ij+1) - 1
+    !        !    igrid = constants % overlap(ijgrid)
+    !        do ijgrid = constants % adj_ioverlap(ij), constants % adj_ioverlap(ij+1) - 1
+    !            igrid = constants % adj_overlap(ijgrid)
+    !            write(6,*) isph, jsph, igrid
+    !        end do
+    !    end do
+    !end do
+    !stop 0
+
     ! Build cavity array. At first get total count for each sphere
     allocate(constants % ncav_sph(params % nsph), stat=info)
     if (info .ne. 0) then
@@ -2141,6 +2246,34 @@ subroutine constants_free(constants, ddx_error)
         deallocate(constants % m2l_ztranslate_adj_coef, stat=istat)
         if (istat .ne. 0) then
             call update_error(ddx_error, "`m2l_ztranslate_adj_coef` " // &
+                & "deallocation failed!")
+        end if
+    end if
+    if (allocated(constants % iburied)) then
+        deallocate(constants % iburied, stat=istat)
+        if (istat .ne. 0) then
+            call update_error(ddx_error, "`iburied` " // &
+                & "deallocation failed!")
+        end if
+    end if
+    if (allocated(constants % buried)) then
+        deallocate(constants % buried, stat=istat)
+        if (istat .ne. 0) then
+            call update_error(ddx_error, "`buried` " // &
+                & "deallocation failed!")
+        end if
+    end if
+    if (allocated(constants % iexposed)) then
+        deallocate(constants % iexposed, stat=istat)
+        if (istat .ne. 0) then
+            call update_error(ddx_error, "`iexposed` " // &
+                & "deallocation failed!")
+        end if
+    end if
+    if (allocated(constants % exposed)) then
+        deallocate(constants % exposed, stat=istat)
+        if (istat .ne. 0) then
+            call update_error(ddx_error, "`exposed` " // &
                 & "deallocation failed!")
         end if
     end if

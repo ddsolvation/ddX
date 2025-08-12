@@ -114,6 +114,7 @@ call multipole_psi(ddx_data % params, multipoles, 0, psi)
 finish_time = omp_get_wtime()
 write(*, 100) "Psi time:", finish_time-start_time, " seconds"
 
+call time_push()
 if (ddx_data % params % force .eq. 1) then
     allocate(force(3, ddx_data % params % nsph), stat=info)
     if (info .ne. 0) then
@@ -126,6 +127,7 @@ else
     call ddrun(ddx_data, state, electrostatics, psi, tol, esolv, ddx_error)
 end if
 call check_error(ddx_error)
+call time_pull("ddrun")
 
 if (ddx_data % params % force .eq. 1) write(*, 100) &
     & "solvation force terms time:", state % force_time, " seconds"
@@ -134,9 +136,11 @@ if (ddx_data % params % force .eq. 1) write(*, 100) &
 ! forces.
 if (ddx_data % params % force .eq. 1) then
     start_time = omp_get_wtime()
+    call time_push()
     call multipole_force_terms(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, 0, multipoles, force, ddx_error)
-        call check_error(ddx_error)
+    call time_pull("solute forces")
+    call check_error(ddx_error)
     finish_time = omp_get_wtime()
     write(*, 100) "multipolar force terms time:", &
         & finish_time - start_time, " seconds"

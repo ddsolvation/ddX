@@ -207,7 +207,7 @@ subroutine diis(n, nmat, ndiis, x, e, b, xnew)
     end do
     nmat = nmat + 1
 
-    deallocate (bloc, cex, stat=istatus)
+    deallocate (bloc, cex, ipiv, stat=istatus)
 end subroutine diis
 
 !> DIIS helper routine
@@ -331,7 +331,7 @@ subroutine jacobi_diis_external(params, constants, workspace, n, tol, rhs, x, n_
             rel_diff = diff / norm
         end if
         x_rel_diff(it) = rel_diff
-        constants % inner_tol = max(rel_diff*sqrt(tol), tol/100.0d0)
+        constants % inner_tol = max(rel_diff*1d-2, tol*1d-2)
         ! update
         x = x_new
         ! EXIT Jacobi loop here

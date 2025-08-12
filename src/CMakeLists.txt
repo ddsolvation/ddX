@@ -17,6 +17,7 @@ set(SRC
     ddx.f90
     ddx_legacy.f90
     ddx_multipolar_solutes.f90
+    ddx_profiling.f90
     llgnew.f
     cbessel.f90
     ddx_cinterface.f90

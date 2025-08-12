@@ -390,8 +390,10 @@ subroutine ddrun(ddx_data, state, electrostatics, psi, tol, esolv, &
         return
     end if
 
+    call time_push()
     call setup(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, electrostatics, psi, ddx_error)
+    call time_pull("setup")
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, "ddrun: setup returned an error, exiting")
         return
@@ -399,24 +401,31 @@ subroutine ddrun(ddx_data, state, electrostatics, psi, tol, esolv, &
 
     ! solve the primal linear system
     if (do_guess) then
+        call time_push()
         call fill_guess(ddx_data % params, ddx_data % constants, &
             & ddx_data % workspace, state, tol, ddx_error)
+        call time_pull("guess")
         if (ddx_error % flag .ne. 0) then
             call update_error(ddx_error, &
                 & "ddrun: fill_guess returned an error, exiting")
             return
         end if
     end if
+
+    call time_push()
     call solve(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, tol, ddx_error)
+    call time_pull("solve")
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, "ddrun: solve returned an error, exiting")
         return
     end if
 
     ! compute the energy
+    call time_push()
     call energy(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, esolv, ddx_error)
+    call time_pull("energy")
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, "ddrun: energy returned an error, exiting")
         return
@@ -425,16 +434,20 @@ subroutine ddrun(ddx_data, state, electrostatics, psi, tol, esolv, &
     ! solve the primal linear system
     if (ddx_data % params % force .eq. 1) then
         if (do_guess) then
+            call time_push()
             call fill_guess_adjoint(ddx_data % params, ddx_data % constants, &
                 & ddx_data % workspace, state, tol, ddx_error)
+            call time_pull("guess adjoint")
             if (ddx_error % flag .ne. 0) then
                 call update_error(ddx_error, &
                     & "ddrun: fill_guess_adjoint returned an error, exiting")
                 return
             end if
         end if
+        call time_push()
         call solve_adjoint(ddx_data % params, ddx_data % constants, &
             & ddx_data % workspace, state, tol, ddx_error)
+        call time_pull("solve adjoint")
         if (ddx_error % flag .ne. 0) then
             call update_error(ddx_error, &
                 & "ddrun: solve_adjoint returned an error, exiting")
@@ -445,8 +458,10 @@ subroutine ddrun(ddx_data, state, electrostatics, psi, tol, esolv, &
     ! compute the forces
     if (ddx_data % params % force .eq. 1) then
         force = zero
+        call time_push()
         call solvation_force_terms(ddx_data % params, ddx_data % constants, &
             & ddx_data % workspace, state, electrostatics, force, ddx_error)
+        call time_pull("solvation forces")
         if (ddx_error % flag .ne. 0) then
             call update_error(ddx_error, &
                 & "ddrun: solvation_force_terms returned an error, exiting")
