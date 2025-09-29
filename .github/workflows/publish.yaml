@@ -21,7 +21,8 @@ jobs:
           python -m pip install --user wheel pybind11
           python -m pip install --user -r requirements.txt
       - name: Run tests
-        run: python setup.py test
+        run: |
+          python -m pytest src
       - name: Build a source tarball
         run: python setup.py sdist
       - name: Publish distribution 📦 to PyPI
