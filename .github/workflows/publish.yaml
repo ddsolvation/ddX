@@ -16,6 +16,8 @@ jobs:
           python-version: '3.10'
       - name: Install dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install libblas-dev liblapack-dev
           python -m pip install --user wheel pybind11
           python -m pip install --user -r requirements.txt
       - name: Run tests
