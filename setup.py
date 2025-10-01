@@ -77,7 +77,6 @@ if not os.path.isfile("src/pyddx.cpp"):
                        "from top level of repository as './setup.py <command>'")
 
 setup(
-    packages=["pyddx"],
     ext_modules=[CMakeExtension("pyddx")],
     zip_safe=False,
     platforms=["Linux", "Mac OS-X"],
