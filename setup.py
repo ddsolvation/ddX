@@ -35,6 +35,7 @@ class CMakeBuild(build_ext):
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(extdir),
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
             "-DCMAKE_BUILD_TYPE={}".format(cfg),  # not used on MSVC, but no harm
+            "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
             "-DCMAKE_CXX_STANDARD=14"
         ]
         build_args = []
