@@ -78,7 +78,7 @@ if not os.path.isfile("src/pyddx.cpp"):
 
 setup(
     packages=["pyddx"],
-    ext_modules=[CMakeExtension("pyddx/pyddx")],
+    ext_modules=[CMakeExtension("pyddx")],
     zip_safe=False,
     platforms=["Linux", "Mac OS-X"],
     cmdclass={"build_ext": CMakeBuild,}
