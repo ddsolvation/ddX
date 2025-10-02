@@ -55,6 +55,9 @@ if (PYTHON)
         ${LAPACK_LIBRARIES}
         OpenMP::OpenMP_Fortran
     )
+    if(PYTHON_EXT_SUFFIX)
+        set_target_properties(pyddx PROPERTIES SUFFIX "${PYTHON_EXT_SUFFIX}")
+    endif()
 endif()
 
 #
