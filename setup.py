@@ -4,9 +4,16 @@ import os
 import sys
 import pybind11
 import subprocess
+import sysconfig
 
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
+
+def get_ext_suffix():
+    # Prefer conda-forge provided suffix (cross-compile safe)
+    if "PYTHON_EXT_SUFFIX" in os.environ:
+        return os.environ["PYTHON_EXT_SUFFIX"]
+    return sysconfig.get_config_var("EXT_SUFFIX")
 
 # A CMakeExtension needs a sourcedir instead of a file list.
 # The name must be the _single_ output extension from the CMake build.
@@ -28,6 +35,8 @@ class CMakeBuild(build_ext):
         cfg = "Debug" if self.debug else "Release"
         # cfg = "Debug"
 
+        ext_suffix = get_ext_suffix()
+
         # Set Python_EXECUTABLE instead if you use PYBIND11_FINDPYTHON
         # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
         # from Python.
@@ -36,7 +45,8 @@ class CMakeBuild(build_ext):
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
             "-DCMAKE_BUILD_TYPE={}".format(cfg),  # not used on MSVC, but no harm
             "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
-            "-DCMAKE_CXX_STANDARD=14"
+            "-DCMAKE_CXX_STANDARD=14",
+            "-DPYTHON_EXT_SUFFIX={}".format(ext_suffix)
         ]
         build_args = []
 
@@ -46,6 +56,10 @@ class CMakeBuild(build_ext):
 
         # Add Pybind11 info
         cmake_args += [f"-DPYBIND11_DIR={pybind11.get_cmake_dir()}"]
+
+        # Handle cross-compilation on conda
+        if "CMAKE_ARGS" in os.environ:
+            cmake_args += os.environ["CMAKE_ARGS"].split()
 
         # Set CMAKE_BUILD_PARALLEL_LEVEL to control the parallel build level
         # across all generators.
