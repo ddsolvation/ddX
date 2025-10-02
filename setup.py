@@ -48,10 +48,8 @@ class CMakeBuild(build_ext):
         cmake_args += [f"-DPYBIND11_DIR={pybind11.get_cmake_dir()}"]
 
         # Handle cross-compilation on conda
-        if os.environ.get('CONDA_BUILD_CROSS_COMPILATION') == '1':
-            cmake_args.extend([
-                f"-DCMAKE_TOOLCHAIN_FILE={os.environ.get('CMAKE_TOOLCHAIN_FILE')}",
-            ])
+        if "CMAKE_ARGS" in os.environ:
+            cmake_args += os.environ["CMAKE_ARGS"].split()
 
         # Set CMAKE_BUILD_PARALLEL_LEVEL to control the parallel build level
         # across all generators.
