@@ -240,6 +240,18 @@ Public Attributes</h2></td></tr>
 <tr class="separator:ad9e495f8ef8a2b9fc658d5aa0796005e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0545662a55a0e6c91055bfb1a747256b"><td class="memItemLeft" align="right" valign="top">real(dp)&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a0545662a55a0e6c91055bfb1a747256b">hsp_adj_time</a></td></tr>
 <tr class="separator:a0545662a55a0e6c91055bfb1a747256b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64ecd8c7aecd12e32d3e3553585ecf85"><td class="memItemLeft" align="right" valign="top">logical&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a64ecd8c7aecd12e32d3e3553585ecf85">rhs_done</a></td></tr>
+<tr class="separator:a64ecd8c7aecd12e32d3e3553585ecf85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5144bf463181f4e60cac790c08b7a94a"><td class="memItemLeft" align="right" valign="top">logical&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#a5144bf463181f4e60cac790c08b7a94a">adjoint_rhs_done</a></td></tr>
+<tr class="separator:a5144bf463181f4e60cac790c08b7a94a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef0e1c824037ae937aacceb5dfe8f3e2"><td class="memItemLeft" align="right" valign="top">logical&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#aef0e1c824037ae937aacceb5dfe8f3e2">guess_done</a></td></tr>
+<tr class="separator:aef0e1c824037ae937aacceb5dfe8f3e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab542830e2f56f0fa4d6a1c6140f3c69"><td class="memItemLeft" align="right" valign="top">logical&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#aab542830e2f56f0fa4d6a1c6140f3c69">solved</a></td></tr>
+<tr class="separator:aab542830e2f56f0fa4d6a1c6140f3c69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac82ca791b2f6cd86c5d293cce59b6f9b"><td class="memItemLeft" align="right" valign="top">logical&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#ac82ca791b2f6cd86c5d293cce59b6f9b">adjoint_guess_done</a></td></tr>
+<tr class="separator:ac82ca791b2f6cd86c5d293cce59b6f9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af98bc7e9a38115402df3608ed9bda19a"><td class="memItemLeft" align="right" valign="top">logical&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__core_1_1ddx__state__type.html#af98bc7e9a38115402df3608ed9bda19a">adjoint_solved</a></td></tr>
+<tr class="separator:af98bc7e9a38115402df3608ed9bda19a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >This defined type contains the primal and adjoint RHSs, the solution of the primal and adjoint linear systems, useful intermediates for the computation of the forces, and the information about the convergence of the linear system solver (time, number of iterations, relative difference at each iteration). </p>
@@ -1095,6 +1107,102 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00187">187</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a64ecd8c7aecd12e32d3e3553585ecf85" name="a64ecd8c7aecd12e32d3e3553585ecf85"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64ecd8c7aecd12e32d3e3553585ecf85">&#9670;&nbsp;</a></span>rhs_done</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">logical ddx_core::ddx_state_type::rhs_done</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00190">190</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="a5144bf463181f4e60cac790c08b7a94a" name="a5144bf463181f4e60cac790c08b7a94a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5144bf463181f4e60cac790c08b7a94a">&#9670;&nbsp;</a></span>adjoint_rhs_done</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">logical ddx_core::ddx_state_type::adjoint_rhs_done</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00191">191</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="aef0e1c824037ae937aacceb5dfe8f3e2" name="aef0e1c824037ae937aacceb5dfe8f3e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef0e1c824037ae937aacceb5dfe8f3e2">&#9670;&nbsp;</a></span>guess_done</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">logical ddx_core::ddx_state_type::guess_done</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00192">192</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="aab542830e2f56f0fa4d6a1c6140f3c69" name="aab542830e2f56f0fa4d6a1c6140f3c69"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab542830e2f56f0fa4d6a1c6140f3c69">&#9670;&nbsp;</a></span>solved</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">logical ddx_core::ddx_state_type::solved</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00193">193</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="ac82ca791b2f6cd86c5d293cce59b6f9b" name="ac82ca791b2f6cd86c5d293cce59b6f9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac82ca791b2f6cd86c5d293cce59b6f9b">&#9670;&nbsp;</a></span>adjoint_guess_done</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">logical ddx_core::ddx_state_type::adjoint_guess_done</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00194">194</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="af98bc7e9a38115402df3608ed9bda19a" name="af98bc7e9a38115402df3608ed9bda19a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af98bc7e9a38115402df3608ed9bda19a">&#9670;&nbsp;</a></span>adjoint_solved</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">logical ddx_core::ddx_state_type::adjoint_solved</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00195">195</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>

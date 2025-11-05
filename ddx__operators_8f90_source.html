@@ -889,27 +889,27 @@ $(document).ready(function(){initNavTree('ddx__operators_8f90_source.html',''); 
 <div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span>    <span class="keyword">call </span>convert_ddcosmo(params, constants, 1, y(:,:,1))</div>
 <div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span>    n_iter = params % maxiter</div>
 <div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__solvers.html#acdcf9f1c0ba8426d4a9b2ffad3de6efb">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, &amp;</div>
-<div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span>        &amp; y(:,:,1), workspace % ddcosmo_guess, n_iter, x_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#ae22d255af3e4a582ec90426c5dbbdfb3">lstarx</a>, &amp;</div>
+<div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span>        &amp; y(:,:,1), workspace % ddcosmo_adj_guess, n_iter, x_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#ae22d255af3e4a582ec90426c5dbbdfb3">lstarx</a>, &amp;</div>
 <div class="line"><a id="l00855" name="l00855"></a><span class="lineno">  855</span>        &amp; <a class="code hl_function" href="namespaceddx__operators.html#ab6198dbb4f7e98709113a21a168ecba0">ldm1x</a>, hnorm, ddx_error)</div>
 <div class="line"><a id="l00856" name="l00856"></a><span class="lineno">  856</span>    <span class="keywordflow">if</span> (ddx_error % flag .ne. 0) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00857" name="l00857"></a><span class="lineno">  857</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&#39;prec_tstarx: ddCOSMO failed to &#39;</span> // &amp;</div>
 <div class="line"><a id="l00858" name="l00858"></a><span class="lineno">  858</span>            &amp; <span class="stringliteral">&#39;converge, exiting&#39;</span>)</div>
 <div class="line"><a id="l00859" name="l00859"></a><span class="lineno">  859</span>        <span class="keywordflow">return</span></div>
 <div class="line"><a id="l00860" name="l00860"></a><span class="lineno">  860</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00861" name="l00861"></a><span class="lineno">  861</span>    y(:,:,1) = workspace % ddcosmo_guess</div>
+<div class="line"><a id="l00861" name="l00861"></a><span class="lineno">  861</span>    y(:,:,1) = workspace % ddcosmo_adj_guess</div>
 <div class="line"><a id="l00862" name="l00862"></a><span class="lineno">  862</span>    workspace % s_time = workspace % s_time + omp_get_wtime() - start_time</div>
 <div class="line"><a id="l00863" name="l00863"></a><span class="lineno">  863</span> </div>
 <div class="line"><a id="l00864" name="l00864"></a><span class="lineno">  864</span>    start_time = omp_get_wtime()</div>
 <div class="line"><a id="l00865" name="l00865"></a><span class="lineno">  865</span>    n_iter = params % maxiter</div>
 <div class="line"><a id="l00866" name="l00866"></a><span class="lineno">  866</span>    <span class="keyword">call </span><a class="code hl_function" href="namespaceddx__solvers.html#acdcf9f1c0ba8426d4a9b2ffad3de6efb">jacobi_diis</a>(params, constants, workspace, constants % inner_tol, &amp;</div>
-<div class="line"><a id="l00867" name="l00867"></a><span class="lineno">  867</span>        &amp; x(:,:,2), workspace % hsp_guess, n_iter, x_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#a5bb2bf2fa55bd100783e4c616feb2bda">bstarx</a>, &amp;</div>
+<div class="line"><a id="l00867" name="l00867"></a><span class="lineno">  867</span>        &amp; x(:,:,2), workspace % hsp_adj_guess, n_iter, x_rel_diff, <a class="code hl_function" href="namespaceddx__operators.html#a5bb2bf2fa55bd100783e4c616feb2bda">bstarx</a>, &amp;</div>
 <div class="line"><a id="l00868" name="l00868"></a><span class="lineno">  868</span>        &amp; <a class="code hl_function" href="namespaceddx__operators.html#a2800ec46e3a0d5b494d18ba81686d74f">bx_prec</a>, hnorm, ddx_error)</div>
 <div class="line"><a id="l00869" name="l00869"></a><span class="lineno">  869</span>    <span class="keywordflow">if</span> (ddx_error % flag .ne. 0) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00870" name="l00870"></a><span class="lineno">  870</span>        <span class="keyword">call </span>update_error(ddx_error, <span class="stringliteral">&#39;prec_tstarx: HSP failed to &#39;</span> // &amp;</div>
 <div class="line"><a id="l00871" name="l00871"></a><span class="lineno">  871</span>            &amp; <span class="stringliteral">&#39;converge, exiting&#39;</span>)</div>
 <div class="line"><a id="l00872" name="l00872"></a><span class="lineno">  872</span>        <span class="keywordflow">return</span></div>
 <div class="line"><a id="l00873" name="l00873"></a><span class="lineno">  873</span><span class="keywordflow">    end if</span></div>
-<div class="line"><a id="l00874" name="l00874"></a><span class="lineno">  874</span>    y(:,:,2) = workspace % hsp_guess</div>
+<div class="line"><a id="l00874" name="l00874"></a><span class="lineno">  874</span>    y(:,:,2) = workspace % hsp_adj_guess</div>
 <div class="line"><a id="l00875" name="l00875"></a><span class="lineno">  875</span>    workspace % hsp_adj_time = workspace % hsp_adj_time &amp;</div>
 <div class="line"><a id="l00876" name="l00876"></a><span class="lineno">  876</span>        &amp; + omp_get_wtime() - start_time</div>
 <div class="line"><a id="l00877" name="l00877"></a><span class="lineno">  877</span> </div>

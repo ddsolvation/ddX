@@ -648,7 +648,7 @@ $(document).ready(function(){initNavTree('ddx__cinterface_8f90_source.html','');
 <div class="line"><a id="l00553" name="l00553"></a><span class="lineno">  553</span>    c_energy = zero</div>
 <div class="line"><a id="l00554" name="l00554"></a><span class="lineno">  554</span> </div>
 <div class="line"><a id="l00555" name="l00555"></a><span class="lineno">  555</span>    <span class="comment">! setup</span></div>
-<div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span>    do_guess = read_guess.ne.0</div>
+<div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span>    do_guess = read_guess.eq.0</div>
 <div class="line"><a id="l00557" name="l00557"></a><span class="lineno">  557</span>    <span class="keyword">call </span>c_f_pointer(c_ddx, ddx_model)</div>
 <div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span>    <span class="keyword">call </span><a class="code hl_function" href="group__cinterface.html#gaab1525b733d216c45d4ddbe5436343a5">ddx_setup</a>(c_ddx, c_state, c_electrostatics, nbasis, nsph, psi, c_error)</div>
 <div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="group__cinterface.html#ga2c11a5cef84cb249165f9c901eef68b9">ddx_get_error_flag</a>(c_error) .ne. 0) <span class="keywordflow">return</span></div>
@@ -668,7 +668,7 @@ $(document).ready(function(){initNavTree('ddx__cinterface_8f90_source.html','');
 <div class="line"><a id="l00573" name="l00573"></a><span class="lineno">  573</span>    <span class="comment">! adjoint linear system</span></div>
 <div class="line"><a id="l00574" name="l00574"></a><span class="lineno">  574</span>    <span class="keywordflow">if</span> (ddx_model%params%force .eq. 1) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00575" name="l00575"></a><span class="lineno">  575</span>        <span class="keywordflow">if</span> (do_guess) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00576" name="l00576"></a><span class="lineno">  576</span>            <span class="keyword">call </span><a class="code hl_function" href="group__cinterface.html#ga16589cc46025c1a3baa35f782401511c">ddx_fill_guess</a>(c_ddx, c_state, tol, c_error)</div>
+<div class="line"><a id="l00576" name="l00576"></a><span class="lineno">  576</span>            <span class="keyword">call </span><a class="code hl_function" href="group__cinterface.html#gad08f13195290263dcdf6f6f65e5cf0c7">ddx_fill_guess_adjoint</a>(c_ddx, c_state, tol, c_error)</div>
 <div class="line"><a id="l00577" name="l00577"></a><span class="lineno">  577</span><span class="keywordflow">        end if</span></div>
 <div class="line"><a id="l00578" name="l00578"></a><span class="lineno">  578</span>        <span class="keywordflow">if</span> (<a class="code hl_function" href="group__cinterface.html#ga2c11a5cef84cb249165f9c901eef68b9">ddx_get_error_flag</a>(c_error) .ne. 0) <span class="keywordflow">return</span></div>
 <div class="line"><a id="l00579" name="l00579"></a><span class="lineno">  579</span>        <span class="keyword">call </span><a class="code hl_function" href="group__cinterface.html#ga1d867289755b6c126fec5f3cbf4728b8">ddx_solve_adjoint</a>(c_ddx, c_state, tol, c_error)</div>
