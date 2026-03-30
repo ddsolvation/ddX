@@ -122,6 +122,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:ga8e423e077764cda1d5845bc92155bd3a"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga8e423e077764cda1d5845bc92155bd3a">ddx_cosmo::cosmo_solvation_force_terms</a> (params, constants, workspace, state, e_cav, force, ddx_error)</td></tr>
 <tr class="memdesc:ga8e423e077764cda1d5845bc92155bd3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the solvation term of the forces (solute aspecific). This must be summed to the solute specific term to get the full forces.  <a href="group___fortran__interface__ddcosmo.html#ga8e423e077764cda1d5845bc92155bd3a">More...</a><br /></td></tr>
 <tr class="separator:ga8e423e077764cda1d5845bc92155bd3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6c9cc6bbfbe84ae7d00e9a66fde4645f"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#ga6c9cc6bbfbe84ae7d00e9a66fde4645f">ddx_cosmo::cosmo_solvation_force_dr_terms</a> (params, constants, workspace, state, e_cav, force, dr, ddx_error)</td></tr>
+<tr class="memdesc:ga6c9cc6bbfbe84ae7d00e9a66fde4645f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the solvation term of the forces and the radial derivatives (solute aspecific). This must be summed to the solute specific term to get the full forces.  <a href="group___fortran__interface__ddcosmo.html#ga6c9cc6bbfbe84ae7d00e9a66fde4645f">More...</a><br /></td></tr>
+<tr class="separator:ga6c9cc6bbfbe84ae7d00e9a66fde4645f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac8c193c08839ec86d9be498e2be2235e"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__ddcosmo.html#gac8c193c08839ec86d9be498e2be2235e">ddx_legacy::ddcosmo</a> (params, constants, workspace, state, phi_cav, psi, e_cav, tol, esolv, force, ddx_error)</td></tr>
 <tr class="memdesc:gac8c193c08839ec86d9be498e2be2235e"><td class="mdescLeft">&#160;</td><td class="mdescRight">ddCOSMO solver  <a href="group___fortran__interface__ddcosmo.html#gac8c193c08839ec86d9be498e2be2235e">More...</a><br /></td></tr>
 <tr class="separator:gac8c193c08839ec86d9be498e2be2235e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -581,6 +584,86 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00203">203</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
+
+</div>
+</div>
+<a id="ga6c9cc6bbfbe84ae7d00e9a66fde4645f" name="ga6c9cc6bbfbe84ae7d00e9a66fde4645f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga6c9cc6bbfbe84ae7d00e9a66fde4645f">&#9670;&nbsp;</a></span>cosmo_solvation_force_dr_terms()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_cosmo::cosmo_solvation_force_dr_terms </td>
+          <td>(</td>
+          <td class="paramtype">type(<a class="el" href="structddx__parameters_1_1ddx__params__type.html">ddx_params_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__constants_1_1ddx__constants__type.html">ddx_constants_type</a>), intent(in)&#160;</td>
+          <td class="paramname"><em>constants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__workspace_1_1ddx__workspace__type.html">ddx_workspace_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>workspace</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__state__type.html">ddx_state_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, constants % ncav), intent(in)&#160;</td>
+          <td class="paramname"><em>e_cav</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(3, params % nsph), intent(inout)&#160;</td>
+          <td class="paramname"><em>force</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(params % nsph), intent(inout)&#160;</td>
+          <td class="paramname"><em>dr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>ddx_error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the solvation term of the forces and the radial derivatives (solute aspecific). This must be summed to the solute specific term to get the full forces. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">params</td><td>User specified parameters </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">constants</td><td>Precomputed constants </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">workspace</td><td>Preallocated workspaces </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>ddx state (contains solutions and RHSs) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">e_cav</td><td>electric field, size (3, ncav) </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">force</td><td>force term </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">ddx_error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__cosmo_8f90_source.html#l00255">255</a> of file <a class="el" href="ddx__cosmo_8f90_source.html">ddx_cosmo.f90</a>.</p>
 
 </div>
 </div>

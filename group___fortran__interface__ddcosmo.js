@@ -7,5 +7,6 @@ var group___fortran__interface__ddcosmo =
     [ "ddx_cosmo::cosmo_solve", "group___fortran__interface__ddcosmo.html#ga2aebea0b604a04c734989304a94a1b31", null ],
     [ "ddx_cosmo::cosmo_solve_adjoint", "group___fortran__interface__ddcosmo.html#ga306988a6c78972f73d3682299092b0b7", null ],
     [ "ddx_cosmo::cosmo_solvation_force_terms", "group___fortran__interface__ddcosmo.html#ga8e423e077764cda1d5845bc92155bd3a", null ],
+    [ "ddx_cosmo::cosmo_solvation_force_dr_terms", "group___fortran__interface__ddcosmo.html#ga6c9cc6bbfbe84ae7d00e9a66fde4645f", null ],
     [ "ddx_legacy::ddcosmo", "group___fortran__interface__ddcosmo.html#gac8c193c08839ec86d9be498e2be2235e", null ]
 ];

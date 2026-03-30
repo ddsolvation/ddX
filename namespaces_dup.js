@@ -22,6 +22,7 @@ var namespaces_dup =
       [ "cosmo_solve", "group___fortran__interface__ddcosmo.html#ga2aebea0b604a04c734989304a94a1b31", null ],
       [ "cosmo_solve_adjoint", "group___fortran__interface__ddcosmo.html#ga306988a6c78972f73d3682299092b0b7", null ],
       [ "cosmo_solvation_force_terms", "group___fortran__interface__ddcosmo.html#ga8e423e077764cda1d5845bc92155bd3a", null ],
+      [ "cosmo_solvation_force_dr_terms", "group___fortran__interface__ddcosmo.html#ga6c9cc6bbfbe84ae7d00e9a66fde4645f", null ],
       [ "cosmo_derivative_setup", "namespaceddx__cosmo.html#a50ff9ab9cd9522a209d6bc5d4edd079f", null ]
     ] ],
     [ "ddx_definitions", "namespaceddx__definitions.html", [
@@ -31,10 +32,10 @@ var namespaces_dup =
       [ "model_str", "namespaceddx__definitions.html#a27faa3db3323ba2c6427084fcbf7b953", null ]
     ] ],
     [ "ddx_gradients", "namespaceddx__gradients.html", [
-      [ "contract_grad_l", "namespaceddx__gradients.html#a3052d20ce14479c1ae9edbd03decf475", null ],
-      [ "contract_gradi_lik", "namespaceddx__gradients.html#ae3c5219079e9f9275a8a481234d8bc00", null ],
-      [ "contract_gradi_lji", "namespaceddx__gradients.html#a5da0a4096bea393102478a2fd1811391", null ],
-      [ "contract_grad_u", "namespaceddx__gradients.html#aefec7f2fa9ee7ac358d0eb9476fcef2d", null ],
+      [ "contract_grad_l", "namespaceddx__gradients.html#a1b0c7d55a3c5d8b0730ea030ef36b082", null ],
+      [ "contract_gradi_lik", "namespaceddx__gradients.html#acd7d53a294e0df7cd158e05709f41c29", null ],
+      [ "contract_gradi_lji", "namespaceddx__gradients.html#a8adb774f8e43a1130ab00e464b110764", null ],
+      [ "contract_grad_u", "namespaceddx__gradients.html#a4e977c1dd87b6d18f3c43dda430ede6e", null ],
       [ "contract_grad_b", "namespaceddx__gradients.html#a260eabcd4aae98089d7ef6d1857615e6", null ],
       [ "contract_grad_c", "namespaceddx__gradients.html#a16de7fddb1b67f1fa73aa3adccb7a288", null ],
       [ "contract_grad_f", "namespaceddx__gradients.html#a3a9612c199c37d48e0572ad868475ddf", null ],
@@ -47,7 +48,8 @@ var namespaces_dup =
       [ "gradr_fmm", "namespaceddx__gradients.html#af8d17825330c3a1e528bf554c847df45", null ],
       [ "gradr", "namespaceddx__gradients.html#a590caca0108d9dfa9f2b7ec68015ccbd", null ],
       [ "gradr_dense", "namespaceddx__gradients.html#a0992df69c893c3febf16dd28cbac2c7d", null ],
-      [ "zeta_grad", "namespaceddx__gradients.html#a4fabae3a616233473710abf5635d0e4d", null ]
+      [ "zeta_grad", "namespaceddx__gradients.html#a4fabae3a616233473710abf5635d0e4d", null ],
+      [ "zeta_grad_dr", "namespaceddx__gradients.html#a6a449dde84f847de47a4f2017601f27e", null ]
     ] ],
     [ "ddx_harmonics", "namespaceddx__harmonics.html", [
       [ "ylmscale", "namespaceddx__harmonics.html#a00c5ff3e46e5eb64eba38eee2b5f0751", null ],

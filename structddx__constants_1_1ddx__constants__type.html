@@ -216,6 +216,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ab187a03291e91804b98939559bb30fd4"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__constants_1_1ddx__constants__type.html#ab187a03291e91804b98939559bb30fd4">zi</a></td></tr>
 <tr class="memdesc:ab187a03291e91804b98939559bb30fd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Derivative of the characteristic function U at all grid points of all spheres. Dimension is (3, ngrid, nsph).  <a href="structddx__constants_1_1ddx__constants__type.html#ab187a03291e91804b98939559bb30fd4">More...</a><br /></td></tr>
 <tr class="separator:ab187a03291e91804b98939559bb30fd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74ca97edfd898bf26ef9fd6950b3a382"><td class="memItemLeft" align="right" valign="top">real(dp), dimension(:, :), allocatable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__constants_1_1ddx__constants__type.html#a74ca97edfd898bf26ef9fd6950b3a382">zi_dr</a></td></tr>
+<tr class="memdesc:a74ca97edfd898bf26ef9fd6950b3a382"><td class="mdescLeft">&#160;</td><td class="mdescRight">Derivative of the characteristic function U at all grid points of all spheres wrt to radii. Dimension is (ngrid, nsph).  <a href="structddx__constants_1_1ddx__constants__type.html#a74ca97edfd898bf26ef9fd6950b3a382">More...</a><br /></td></tr>
+<tr class="separator:a74ca97edfd898bf26ef9fd6950b3a382"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add3c7d4e74091716b78971187c57ca51"><td class="memItemLeft" align="right" valign="top">integer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structddx__constants_1_1ddx__constants__type.html#add3c7d4e74091716b78971187c57ca51">ncav</a></td></tr>
 <tr class="memdesc:add3c7d4e74091716b78971187c57ca51"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of external Lebedev grid points on a molecular surface.  <a href="structddx__constants_1_1ddx__constants__type.html#add3c7d4e74091716b78971187c57ca51">More...</a><br /></td></tr>
 <tr class="separator:add3c7d4e74091716b78971187c57ca51"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -996,6 +999,24 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a74ca97edfd898bf26ef9fd6950b3a382" name="a74ca97edfd898bf26ef9fd6950b3a382"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a74ca97edfd898bf26ef9fd6950b3a382">&#9670;&nbsp;</a></span>zi_dr</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp), dimension(:, :), allocatable ddx_constants::ddx_constants_type::zi_dr</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Derivative of the characteristic function U at all grid points of all spheres wrt to radii. Dimension is (ngrid, nsph). </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00143">143</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+
+</div>
+</div>
 <a id="add3c7d4e74091716b78971187c57ca51" name="add3c7d4e74091716b78971187c57ca51"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#add3c7d4e74091716b78971187c57ca51">&#9670;&nbsp;</a></span>ncav</h2>
 
@@ -1010,7 +1031,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of external Lebedev grid points on a molecular surface. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00142">142</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00145">145</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1028,7 +1049,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of external Lebedev grid points on each sphere. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00144">144</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00147">147</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1046,7 +1067,7 @@ Public Attributes</h2></td></tr>
 
 <p>Coordinates of external Lebedev grid points. Dimension is (3, ncav). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00146">146</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00149">149</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1064,7 +1085,7 @@ Public Attributes</h2></td></tr>
 
 <p>Row indexes in CSR format of all cavity points. Dimension is (nsph+1). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00148">148</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00151">151</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1082,7 +1103,7 @@ Public Attributes</h2></td></tr>
 
 <p>Column indexes in CSR format of all cavity points. Dimension is (ncav). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00150">150</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00153">153</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1100,7 +1121,7 @@ Public Attributes</h2></td></tr>
 
 <p>Preconditioner for an operator R_eps. Allocated and computed only for the PCM model (model=3). Dimension is (nbasis, nbasis, nsph). </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00153">153</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00156">156</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1118,7 +1139,7 @@ Public Attributes</h2></td></tr>
 
 <p>Reordering of spheres for better locality. This array has a dimension (nsph) and is allocated/used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00157">157</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00160">160</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1136,7 +1157,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of clusters. Defined only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00159">159</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00162">162</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1154,7 +1175,7 @@ Public Attributes</h2></td></tr>
 
 <p>The first and the last spheres of each node. Dimension of this array is (2, nclusters) and it is allocated/used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00162">162</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00165">165</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1172,7 +1193,7 @@ Public Attributes</h2></td></tr>
 
 <p>Children of each cluster. Dimension is (2, nclusters). Allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00165">165</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00168">168</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1190,7 +1211,7 @@ Public Attributes</h2></td></tr>
 
 <p>Parent of each cluster. Dimension is (nclusters). Allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00168">168</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00171">171</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1208,7 +1229,7 @@ Public Attributes</h2></td></tr>
 
 <p>Center of bounding sphere of each cluster. Dimension is (3, nclusters). This array is allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00171">171</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00174">174</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1226,7 +1247,7 @@ Public Attributes</h2></td></tr>
 
 <p>Radius of bounding sphere of each cluster. Dimension is (nclusters). This array is allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00174">174</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00177">177</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1244,7 +1265,7 @@ Public Attributes</h2></td></tr>
 
 <p>Which leaf node contains only given input sphere. Dimension is (nsph). This array is allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00177">177</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00180">180</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1262,7 +1283,7 @@ Public Attributes</h2></td></tr>
 
 <p>Bessel function for bounding sphere of each cluster. Dimension is (pm, nclusters). This array is allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00180">180</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00183">183</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1280,7 +1301,7 @@ Public Attributes</h2></td></tr>
 
 <p>Bessel function for bounding sphere of each cluster. Dimension is (pm, nclusters). This array is allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00183">183</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00186">186</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1298,7 +1319,7 @@ Public Attributes</h2></td></tr>
 
 <p>Total number of far admissible pairs. Defined only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00185">185</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00188">188</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1316,7 +1337,7 @@ Public Attributes</h2></td></tr>
 
 <p>Total number of near admissible pairs. Defined only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00187">187</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00190">190</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1334,7 +1355,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of admissible far pairs for each node. Dimension is (nclusters). This array is allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00190">190</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00193">193</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1352,7 +1373,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of admissible near pairs for each node. Dimension is (nclusters). This array is allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00193">193</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00196">196</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1370,7 +1391,7 @@ Public Attributes</h2></td></tr>
 
 <p>Arrays of admissible far pairs. Dimension is (nnfar). This array is allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00196">196</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00199">199</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1388,7 +1409,7 @@ Public Attributes</h2></td></tr>
 
 <p>Arrays of admissible near pairs. Dimension is (nnnear). This array is allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00199">199</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00202">202</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1406,7 +1427,7 @@ Public Attributes</h2></td></tr>
 
 <p>Index of the first element of array of all admissible far pairs stored in the array <code>far</code>. Dimension is (nclusters+1). This array is allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00203">203</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00206">206</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1424,7 +1445,7 @@ Public Attributes</h2></td></tr>
 
 <p>Index of the first element of array of all admissible near pairs stored in the array <code>near</code>. Dimension is (nclusters+1). This array is allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00207">207</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00210">210</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1442,7 +1463,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of near-field M2P interactions with cavity points. Defined only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00210">210</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00213">213</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1460,7 +1481,7 @@ Public Attributes</h2></td></tr>
 
 <p>Maximal degree of near-field M2P spherical harmonics. Defined only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00213">213</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00216">216</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1478,7 +1499,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of spherical harmonics used for near-field M2P. Defined only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00216">216</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00219">219</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1496,7 +1517,7 @@ Public Attributes</h2></td></tr>
 
 <p>Number of spherical harmonics of degree up to lmax+1 used for computation of forces (gradients). Allocated and used only if fmm=1. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00220">220</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00223">223</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1514,7 +1535,7 @@ Public Attributes</h2></td></tr>
 
 <p>Inner tolerance for microiterations done when using ddLPB. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00222">222</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00225">225</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1532,7 +1553,7 @@ Public Attributes</h2></td></tr>
 
 <p>Whether the diagonal of the matrices has to be used in the mvp for ddCOSMO, ddPCM or inner ddLPB iterations. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00225">225</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l00228">228</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>

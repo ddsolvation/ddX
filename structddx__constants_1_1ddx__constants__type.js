@@ -38,6 +38,7 @@ var structddx__constants_1_1ddx__constants__type =
     [ "ui", "structddx__constants_1_1ddx__constants__type.html#a8c1f869c414c1f883795c59b5d7966a6", null ],
     [ "ui_cav", "structddx__constants_1_1ddx__constants__type.html#a6a8f167b15bbb36b1133e04bb7bda9e4", null ],
     [ "zi", "structddx__constants_1_1ddx__constants__type.html#ab187a03291e91804b98939559bb30fd4", null ],
+    [ "zi_dr", "structddx__constants_1_1ddx__constants__type.html#a74ca97edfd898bf26ef9fd6950b3a382", null ],
     [ "ncav", "structddx__constants_1_1ddx__constants__type.html#add3c7d4e74091716b78971187c57ca51", null ],
     [ "ncav_sph", "structddx__constants_1_1ddx__constants__type.html#a8d79ada7961c89312b4454df7e43c245", null ],
     [ "ccav", "structddx__constants_1_1ddx__constants__type.html#a3922d7e505e296ba217b97fd2ceefe48", null ],

@@ -7,5 +7,6 @@ var ddx__cosmo_8f90 =
     [ "cosmo_solve", "ddx__cosmo_8f90.html#ga2aebea0b604a04c734989304a94a1b31", null ],
     [ "cosmo_solve_adjoint", "ddx__cosmo_8f90.html#ga306988a6c78972f73d3682299092b0b7", null ],
     [ "cosmo_solvation_force_terms", "ddx__cosmo_8f90.html#ga8e423e077764cda1d5845bc92155bd3a", null ],
+    [ "cosmo_solvation_force_dr_terms", "ddx__cosmo_8f90.html#ga6c9cc6bbfbe84ae7d00e9a66fde4645f", null ],
     [ "cosmo_derivative_setup", "ddx__cosmo_8f90.html#a50ff9ab9cd9522a209d6bc5d4edd079f", null ]
 ];
