@@ -17,7 +17,8 @@ test_sources = [
    ['matrix_solvers.f90', [join_paths(project_dir, 'data/ddlpb_force.txt')]],
    ['m2l.f90', []],
    ['multipolar_solutes.f90', []],
-   ['error.f90', []]
+   ['error.f90', []],
+   ['test_gradients.f90', [join_paths(project_dir, 'Input_cosmo_small.txt')]]
 ]
 
 # Create test executables and add tests
@@ -30,7 +31,7 @@ foreach source_entry : test_sources
       executable_name,
       src,
       dependencies: [lib_deps, ddx_dep],  # Link to ddx_dep
-      install: false
+      install: false,
   )
 
    # If the executable is ddx_driver, store it for the extra test
@@ -39,7 +40,7 @@ foreach source_entry : test_sources
    endif
 
    if args.length() == 0
-      test(executable_name, test_executable)
+      test(executable_name, test_executable, timeout: 240)
    else
       idx = 0
       foreach arg_set : args
