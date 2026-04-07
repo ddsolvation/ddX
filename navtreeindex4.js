@@ -1,5 +1,7 @@
 var NAVTREEINDEX4 =
 {
+"structddx__workspace_1_1ddx__workspace__type.html":[10,0,15,0],
+"structddx__workspace_1_1ddx__workspace__type.html":[11,0,6,0],
 "structddx__workspace_1_1ddx__workspace__type.html#a0a126d032134efd59ce573ff00d2692a":[10,0,15,0,22],
 "structddx__workspace_1_1ddx__workspace__type.html#a0a126d032134efd59ce573ff00d2692a":[11,0,6,0,22],
 "structddx__workspace_1_1ddx__workspace__type.html#a0efb558356fe2e2d6cd26cdecfe9a910":[10,0,15,0,16],

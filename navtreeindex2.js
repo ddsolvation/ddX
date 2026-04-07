@@ -1,5 +1,7 @@
 var NAVTREEINDEX2 =
 {
+"namespaceddx__gradients.html#afeba6e2eca193ec8272046ee9be64227":[10,0,5,11],
+"namespaceddx__harmonics.html":[10,0,6],
 "namespaceddx__harmonics.html#a00c5ff3e46e5eb64eba38eee2b5f0751":[10,0,6,0],
 "namespaceddx__harmonics.html#a01fc177160fca45173657a5e7e7d5c67":[10,0,6,13],
 "namespaceddx__harmonics.html#a02d5736e15ad31da5e0a6b349fdacac1":[10,0,6,23],
@@ -166,8 +168,8 @@ var NAVTREEINDEX2 =
 "namespacemembers_d.html":[10,1,0,3],
 "namespacemembers_e.html":[10,1,0,4],
 "namespacemembers_f.html":[10,1,0,5],
-"namespacemembers_func.html":[10,1,1,0],
 "namespacemembers_func.html":[10,1,1],
+"namespacemembers_func.html":[10,1,1,0],
 "namespacemembers_func_b.html":[10,1,1,1],
 "namespacemembers_func_c.html":[10,1,1,2],
 "namespacemembers_func_d.html":[10,1,1,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX2 =
 "structddx__constants_1_1ddx__constants__type.html#a3ba0787e4d4385c85881028952905383":[10,0,1,0,27],
 "structddx__constants_1_1ddx__constants__type.html#a421e9644e3034c34b1f904096a644909":[11,0,1,0,42],
 "structddx__constants_1_1ddx__constants__type.html#a421e9644e3034c34b1f904096a644909":[10,0,1,0,42],
-"structddx__constants_1_1ddx__constants__type.html#a453afadb38216fad9dedc10cead99226":[11,0,1,0,6],
-"structddx__constants_1_1ddx__constants__type.html#a453afadb38216fad9dedc10cead99226":[10,0,1,0,6],
-"structddx__constants_1_1ddx__constants__type.html#a4567cc4f3c43fb8d86f0ccbfb40ef60a":[10,0,1,0,34]
+"structddx__constants_1_1ddx__constants__type.html#a453afadb38216fad9dedc10cead99226":[11,0,1,0,6]
 };
