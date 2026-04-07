@@ -54,6 +54,33 @@ jobs:
         cmake -DddX_DIR="/tmp/libddx/lib/ddX" ..
         make
 
+  meson-test:
+    name: Meson Build and Standalone Tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y meson ninja-build libblas-dev liblapack-dev
+    - name: Configure and build with Meson
+      run: |
+        meson setup build
+        ninja -C build
+    - name: Run standalone tests
+      run: |
+        meson test -C build --no-rebuild \
+          ddX:cosmo \
+          ddX:cosmo_fmm \
+          ddX:cosmo_incore \
+          ddX:pcm_fmm \
+          ddX:pcm \
+          ddX:pcm_incore \
+          ddX:lpb \
+          ddX:lpb_fmm \
+          ddX:lpb_incore
+
   #
   # Python-side tests
   #
