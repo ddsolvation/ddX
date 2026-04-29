@@ -91,7 +91,6 @@ ddx_library = library(
   sources: [
     'src/ddx.f90',
     'src/cbessel.f90',
-    'src/ddx_driver.f90',
     'src/ddx_lpb_core.f90',
     'src/ddx_workspace.f90',
     'src/ddx_errors.f90',
