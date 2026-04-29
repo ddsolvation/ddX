@@ -1,0 +1,104 @@
+name = "ddx"
+version = "0.7.0"
+license = "LGPL-3.0-or-later"
+author = "The ddX Developers"
+maintainer = "The ddX Developers"
+copyright = "Copyright (c) 2022 The ddX Developers"
+description = "Continuum solvation models based on the domain decomposition paradigm"
+homepage = "https://github.com/ddsolvation/ddX"
+keywords = ["fortran", "solvation", "cosmo", "pcm", "lpb"]
+
+[build]
+auto-executables = false
+auto-examples = false
+auto-tests = false
+external-modules = ["omp_lib"]
+link = ["gomp", "lapack", "blas"]
+
+[fortran]
+implicit-typing = true
+implicit-external = true
+source-form = "default"
+
+[[executable]]
+name = "ddx_driver"
+source-dir = "src"
+main = "ddx_driver.f90"
+
+[[test]]
+name = "bessel"
+source-dir = "tests"
+main = "bessel.f90"
+
+[[test]]
+name = "ddlpb_esolv"
+source-dir = "tests"
+main = "ddlpb_esolv.f90"
+
+[[test]]
+name = "ddx_core"
+source-dir = "tests"
+main = "ddx_core.f90"
+
+[[test]]
+name = "ddx_driver"
+source-dir = "tests"
+main = "ddx_driver.f90"
+
+[[test]]
+name = "ddx_operators"
+source-dir = "tests"
+main = "ddx_operators.f90"
+
+[[test]]
+name = "error"
+source-dir = "tests"
+main = "error.f90"
+
+[[test]]
+name = "force_ddlpb"
+source-dir = "tests"
+main = "force_ddlpb.f90"
+
+[[test]]
+name = "force"
+source-dir = "tests"
+main = "force.f90"
+
+[[test]]
+name = "m2l"
+source-dir = "tests"
+main = "m2l.f90"
+
+[[test]]
+name = "matrix_adjoint"
+source-dir = "tests"
+main = "matrix_adjoint.f90"
+
+[[test]]
+name = "matrix_derivatives"
+source-dir = "tests"
+main = "matrix_derivatives.f90"
+
+[[test]]
+name = "matrix_solvers"
+source-dir = "tests"
+main = "matrix_solvers.f90"
+
+[[test]]
+name = "multipolar_solutes"
+source-dir = "tests"
+main = "multipolar_solutes.f90"
+
+[[test]]
+name = "test_gradients"
+source-dir = "tests"
+main = "test_gradients.f90"
+
+[[test]]
+name = "ddx_driver_testing"
+source-dir = "tests/standalone_tests"
+main = "ddx_driver_testing.f90"
+
+[install]
+library = true
