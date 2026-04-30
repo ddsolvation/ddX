@@ -102,3 +102,42 @@ cmake -D CMAKE_CXX_COMPILER=icx CMAKE_Fortran_COMPILER=ifort ..
 Again, the built library and any executables will appear in the `build` folder, while the ddX source remains in `src/`.
 
 
+---
+
+## Building with FPM
+
+[Fortran Package Manager (FPM)](https://fpm.fortran-lang.org/) version 0.8.0 or newer is required.
+
+1. Build and compile:
+   ```bash
+   fpm build
+   ```
+2. Run the standalone with an input file:
+   ```bash
+   fpm run -- [path/to/input].txt
+   ```
+   *For instance:*
+   ```bash
+   fpm run -- tests/Input-example.txt
+   ```
+3. Run the test suite:
+   *Do not* run the usual
+   ```bash
+   fpm test 
+   ```
+   as a general test command. Currently, FPM does not cleanly support the structure of ddX's test suite,
+   since there are several tests which require individual command line arguments.
+   Instead, we provide a Python wrapper, which runs all unit and standalone tests via FPM and analyzes their output:
+   ```bash
+   python tests/fpm_tester.py    
+   ```
+   For more options, including output verbosity, run:
+   ```bash
+   python tests/fpm_tester.py --help
+   ```
+
+ 
+
+
+
+
