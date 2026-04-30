@@ -11,10 +11,12 @@ from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+LOG_DIR = PROJECT_ROOT / "build" / "fpm-logs"
 STANDALONE_TEST_DIR = PROJECT_ROOT / "tests" / "standalone_tests"
-STANDALONE_LOG_DIR = PROJECT_ROOT / "build" / "fpm_standalone_tests"
+STANDALONE_LOG_DIR = LOG_DIR / "fpm_standalone_tests"
 STANDALONE_THRESHOLD = 1e-4
-DEFAULT_LOG_FILE = PROJECT_ROOT / "tests" / "fpm_test.log"
+DEFAULT_LOG_FILE = LOG_DIR / "fpm_test.log"
+
 FILTERED_LINES = {"Project is up to date"}
 
 TESTS = [
@@ -331,10 +333,10 @@ def main() -> int:
     print_status(f"  Total:      {len(results)}")
     print_status(f"  Passed:     {passed}")
     print_status(f"  Failed:     {len(failures)}")
-    print_status(f"  Unit:       {sum(1 for kind, *_ in results if kind == 'fpm')}")
-    print_status(
-        f"  standalone: {sum(1 for kind, *_ in results if kind == 'standalone')}"
-    )
+   #  print_status(f"  Unit:       {sum(1 for kind, *_ in results if kind == 'fpm')}")
+   #  print_status(
+   #      f"  standalone: {sum(1 for kind, *_ in results if kind == 'standalone')}"
+   #  )
     print_status(f"  log file:   {log_path}")
 
     if failures:
