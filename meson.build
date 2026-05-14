@@ -29,7 +29,7 @@ endif
 
 if lapack_vendor == 'mkl'
   mkl_dep = []
-  if fc_id == 'intel'
+  if fc_id == 'intel' or fc_id == 'intel-llvm'
     mkl_dep += fc.find_library('mkl_intel_lp64')
     if get_option('openmp')
       mkl_dep += fc.find_library('mkl_intel_thread')
