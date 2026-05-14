@@ -22,7 +22,7 @@ endif
 
 lapack_vendor = get_option('lapack')
 if lapack_vendor == 'auto'
-  if fc_id == 'intel'
+  if fc_id == 'intel' or fc_id == 'intel-llvm'
     lapack_vendor = 'mkl'
   endif
 endif
