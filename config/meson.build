@@ -10,7 +10,7 @@ if fc_id == 'gcc'
     '-fbacktrace',
     language: 'fortran',
   )
-elif fc_id == 'intel'
+elif fc_id == 'intel' or fc_id == 'intel-llvm'
   add_project_arguments(
     '-traceback',
     language: 'fortran',
