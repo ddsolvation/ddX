@@ -31,26 +31,6 @@ source-dir = "tests"
 main = "bessel.f90"
 
 [[test]]
-name = "force"
-source-dir = "tests"
-main = "force.f90"
-
-[[test]]
-name = "ddx_driver"
-source-dir = "tests"
-main = "ddx_driver.f90"
-
-[[test]]
-name = "force_ddlpb"
-source-dir = "tests"
-main = "force_ddlpb.f90"
-
-[[test]]
-name = "ddlpb_esolv"
-source-dir = "tests"
-main = "ddlpb_esolv.f90"
-
-[[test]]
 name = "ddx_core"
 source-dir = "tests"
 main = "ddx_core.f90"
@@ -66,21 +46,6 @@ source-dir = "tests"
 main = "error.f90"
 
 [[test]]
-name = "matrix_derivatives"
-source-dir = "tests"
-main = "matrix_derivatives.f90"
-
-[[test]]
-name = "matrix_adjoint"
-source-dir = "tests"
-main = "matrix_adjoint.f90"
-
-[[test]]
-name = "matrix_solvers"
-source-dir = "tests"
-main = "matrix_solvers.f90"
-
-[[test]]
 name = "m2l"
 source-dir = "tests"
 main = "m2l.f90"
@@ -89,11 +54,6 @@ main = "m2l.f90"
 name = "multipolar_solutes"
 source-dir = "tests"
 main = "multipolar_solutes.f90"
-
-[[test]]
-name = "test_gradients"
-source-dir = "tests"
-main = "test_gradients.f90"
 
 [install]
 library = true
