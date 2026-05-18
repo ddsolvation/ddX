@@ -22,14 +22,14 @@ endif
 
 lapack_vendor = get_option('lapack')
 if lapack_vendor == 'auto'
-  if fc_id == 'intel'
+  if fc_id == 'intel' or fc_id == 'intel-llvm'
     lapack_vendor = 'mkl'
   endif
 endif
 
 if lapack_vendor == 'mkl'
   mkl_dep = []
-  if fc_id == 'intel'
+  if fc_id == 'intel' or fc_id == 'intel-llvm'
     mkl_dep += fc.find_library('mkl_intel_lp64')
     if get_option('openmp')
       mkl_dep += fc.find_library('mkl_intel_thread')
@@ -91,7 +91,6 @@ ddx_library = library(
   sources: [
     'src/ddx.f90',
     'src/cbessel.f90',
-    'src/ddx_driver.f90',
     'src/ddx_lpb_core.f90',
     'src/ddx_workspace.f90',
     'src/ddx_errors.f90',
