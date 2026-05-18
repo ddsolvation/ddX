@@ -49,7 +49,7 @@ if (PYTHON)
         message(FATAL_ERROR "Pybind11 not found. Please install it.")
     endif()
     pybind11_add_module(pyddx ${SRC_PYDDX})
-    target_compile_definitions(pyddx PRIVATE VERSION_INFO=${PROJECT_VERSION})
+    target_compile_definitions(pyddx PRIVATE VERSION_INFO=${PROJECT_VERSION} BUILD_PYBIND11)
     target_link_libraries(pyddx PUBLIC
         ${BLAS_LIBRARIES}
         ${LAPACK_LIBRARIES}
