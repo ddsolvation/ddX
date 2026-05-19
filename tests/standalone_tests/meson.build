@@ -48,3 +48,9 @@ foreach t : standalone_tests
    # This call has exactly two arguments: the test name, and the wrapper "File".
    test(t, meson_test_wrapper)
 endforeach
+
+ddx_driver_testing = executable('ddx_driver_testing',
+    'ddx_driver_testing.f90',
+    dependencies: [lib_deps, ddx_dep],
+    install: false
+)
