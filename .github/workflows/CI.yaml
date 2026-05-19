@@ -81,6 +81,27 @@ jobs:
           ddX:lpb_fmm \
           ddX:lpb_incore
 
+  fpm-test:
+    name: Fortran package manager build and standalone tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libblas-dev liblapack-dev
+    - name: Install fpm
+      run: |
+        curl -L https://github.com/fortran-lang/fpm/releases/download/v0.13.0/fpm-0.13.0-linux-x86_64-gcc-12 -o fpm
+        chmod +x fpm
+    - name: Configure and build with FPM
+      run: |
+        ./fpm build
+    - name: Run a selection of standalone tests
+      run: |
+        ./fpm test --target fpm_wrapper_standalone
+
   #
   # Python-side tests
   #
