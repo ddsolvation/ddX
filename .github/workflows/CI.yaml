@@ -95,12 +95,13 @@ jobs:
       run: |
         curl -L https://github.com/fortran-lang/fpm/releases/download/v0.13.0/fpm-0.13.0-linux-x86_64-gcc-12 -o fpm
         chmod +x fpm
+        sudo mv fpm /usr/local/bin/fpm
     - name: Configure and build with FPM
       run: |
-        ./fpm build
+        fpm build
     - name: Run a selection of standalone tests
       run: |
-        ./fpm test --target fpm_wrapper_standalone
+        fpm test --target fpm_wrapper_standalone
 
   #
   # Python-side tests
