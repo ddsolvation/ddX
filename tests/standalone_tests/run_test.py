@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 import sys
 import os
+import argparse
+import subprocess
 
 threshold = 1e-4
 
@@ -39,12 +41,28 @@ def read_log(path):
                 section = 'forces'
     return energy, forces
 
-basename = sys.argv[1]
-input_file = basename + ".txt"
-output_file = basename + ".log"
-ref_file = basename + ".ref"
 
-os.system(f"./ddx_driver_testing {input_file} > {output_file}")
+parser = argparse.ArgumentParser()
+parser.add_argument("basename")
+parser.add_argument("--fpm", action="store_true")
+args = parser.parse_args()
+
+basename = args.basename
+script_dir = os.path.dirname(os.path.abspath(__file__))
+input_file = os.path.join(script_dir, basename + ".txt")
+output_file = os.path.join(script_dir, basename + ".log")
+ref_file = os.path.join(script_dir, basename + ".ref")
+
+if args.fpm:
+    cmd = f"fpm run --target ddx_driver_testing -- {input_file} > {output_file}"
+else:
+    driver = os.path.join(script_dir, "ddx_driver_testing")
+    cmd = f"{driver} {input_file} > {output_file}"
+
+status = subprocess.run(cmd, shell=True)
+if status.returncode != 0:
+    print(f"ERROR: command failed with exit code {status.returncode}")
+    sys.exit(status.returncode)
 
 energy, forces = read_log(output_file)
 ref_energy, ref_forces = read_log(ref_file)
