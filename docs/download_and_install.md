@@ -121,23 +121,6 @@ Again, the built library and any executables will appear in the `build` folder, 
    fpm run -- tests/Input-example.txt
    ```
 3. Run the test suite:
-   *Do not* run the usual
    ```bash
-   fpm test 
+   fpm test
    ```
-   as a general test command. Currently, FPM does not cleanly support the structure of ddX's test suite,
-   since there are several tests which require individual command line arguments.
-   Instead, we provide a Python wrapper, which runs all unit and standalone tests via FPM and analyzes their output:
-   ```bash
-   python tests/fpm_tester.py    
-   ```
-   For more options, including output verbosity, run:
-   ```bash
-   python tests/fpm_tester.py --help
-   ```
-
- 
-
-
-
-
