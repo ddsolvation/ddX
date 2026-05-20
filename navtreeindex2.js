@@ -1,5 +1,6 @@
 var NAVTREEINDEX2 =
 {
+"namespaceddx__gradients.html#af8d17825330c3a1e528bf554c847df45":[10,0,5,13],
 "namespaceddx__gradients.html#afeba6e2eca193ec8272046ee9be64227":[10,0,5,11],
 "namespaceddx__harmonics.html":[10,0,6],
 "namespaceddx__harmonics.html#a00c5ff3e46e5eb64eba38eee2b5f0751":[10,0,6,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX2 =
 "structddx__constants_1_1ddx__constants__type.html#a3ba0787e4d4385c85881028952905383":[11,0,1,0,27],
 "structddx__constants_1_1ddx__constants__type.html#a3ba0787e4d4385c85881028952905383":[10,0,1,0,27],
 "structddx__constants_1_1ddx__constants__type.html#a421e9644e3034c34b1f904096a644909":[11,0,1,0,42],
-"structddx__constants_1_1ddx__constants__type.html#a421e9644e3034c34b1f904096a644909":[10,0,1,0,42],
-"structddx__constants_1_1ddx__constants__type.html#a453afadb38216fad9dedc10cead99226":[11,0,1,0,6]
+"structddx__constants_1_1ddx__constants__type.html#a421e9644e3034c34b1f904096a644909":[10,0,1,0,42]
 };

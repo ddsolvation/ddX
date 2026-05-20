@@ -143,7 +143,20 @@ Building with Meson</h1>
 <li>Run the test suite (and print any error logs): <div class="fragment"><div class="line">meson test -C build</div>
 </div><!-- fragment --></li>
 </ol>
-<p >Again, the built library and any executables will appear in the <code>build</code> folder, while the ddX source remains in <code>src/</code>. </p>
+<p >Again, the built library and any executables will appear in the <code>build</code> folder, while the ddX source remains in <code>src/</code>.</p>
+<hr  />
+<h1><a class="anchor" id="autotoc_md8"></a>
+Building with FPM</h1>
+<p ><a href="https://fpm.fortran-lang.org/">Fortran Package Manager (FPM)</a> version 0.8.0 or newer is required.</p>
+<ol type="1">
+<li>Build and compile: <div class="fragment"><div class="line">fpm build</div>
+</div><!-- fragment --></li>
+<li>Run the standalone with an input file: <div class="fragment"><div class="line">fpm run -- [path/to/input].txt</div>
+</div><!-- fragment --> <em>For instance:</em> <div class="fragment"><div class="line">fpm run -- tests/Input-example.txt</div>
+</div><!-- fragment --></li>
+<li>Run the test suite: <div class="fragment"><div class="line">fpm test</div>
+</div><!-- fragment --> </li>
+</ol>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

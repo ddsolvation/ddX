@@ -1,5 +1,6 @@
 var NAVTREEINDEX4 =
 {
+"structddx__parameters_1_1ddx__params__type.html#aff335b17a4bd5435a7d7ef8ea618e19a":[11,0,4,0,18],
 "structddx__workspace_1_1ddx__workspace__type.html":[10,0,15,0],
 "structddx__workspace_1_1ddx__workspace__type.html":[11,0,6,0],
 "structddx__workspace_1_1ddx__workspace__type.html#a0a126d032134efd59ce573ff00d2692a":[10,0,15,0,22],

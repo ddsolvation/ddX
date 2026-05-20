@@ -30,41 +30,42 @@ var NAVTREE =
       [ "Python package", "label_download_and_install.html#autotoc_md1", null ],
       [ "Source Code", "label_download_and_install.html#autotoc_md2", null ],
       [ "Building with CMake", "label_download_and_install.html#autotoc_md4", null ],
-      [ "Building with Meson", "label_download_and_install.html#autotoc_md6", null ]
+      [ "Building with Meson", "label_download_and_install.html#autotoc_md6", null ],
+      [ "Building with FPM", "label_download_and_install.html#autotoc_md8", null ]
     ] ],
     [ "Run as standalone", "label_run_as_standalone.html", null ],
     [ "Python interface", "label_python_interface.html", [
-      [ "Download the python package pyddx", "label_python_interface.html#autotoc_md7", [
-        [ "Using conda", "label_python_interface.html#autotoc_md8", null ],
-        [ "Using pip", "label_python_interface.html#autotoc_md9", null ]
+      [ "Download the python package pyddx", "label_python_interface.html#autotoc_md9", [
+        [ "Using conda", "label_python_interface.html#autotoc_md10", null ],
+        [ "Using pip", "label_python_interface.html#autotoc_md11", null ]
       ] ],
-      [ "Example", "label_python_interface.html#autotoc_md10", null ],
-      [ "Use ddX in python", "label_python_interface.html#autotoc_md11", [
-        [ "Model constructor", "label_python_interface.html#autotoc_md12", null ],
-        [ "Functions", "label_python_interface.html#autotoc_md13", null ]
+      [ "Example", "label_python_interface.html#autotoc_md12", null ],
+      [ "Use ddX in python", "label_python_interface.html#autotoc_md13", [
+        [ "Model constructor", "label_python_interface.html#autotoc_md14", null ],
+        [ "Functions", "label_python_interface.html#autotoc_md15", null ]
       ] ]
     ] ],
     [ "Theory", "md_docs_theory.html", [
-      [ "Introduction", "md_docs_theory.html#autotoc_md15", null ],
-      [ "Cavity and solute density", "md_docs_theory.html#autotoc_md16", [
-        [ "Fundamental solutions and free-space potentials", "md_docs_theory.html#autotoc_md17", null ]
+      [ "Introduction", "md_docs_theory.html#autotoc_md17", null ],
+      [ "Cavity and solute density", "md_docs_theory.html#autotoc_md18", [
+        [ "Fundamental solutions and free-space potentials", "md_docs_theory.html#autotoc_md19", null ]
       ] ],
-      [ "Models", "md_docs_theory.html#autotoc_md18", [
-        [ "Linearized Poisson-Boltzmann model (LPB)", "md_docs_theory.html#autotoc_md19", null ],
-        [ "Polarizable Continuum Model (PCM)", "md_docs_theory.html#autotoc_md20", null ],
-        [ "COnductor-like Screening MOdel (COSMO)", "md_docs_theory.html#autotoc_md21", [
-          [ "General remarks", "md_docs_theory.html#autotoc_md22", null ]
+      [ "Models", "md_docs_theory.html#autotoc_md20", [
+        [ "Linearized Poisson-Boltzmann model (LPB)", "md_docs_theory.html#autotoc_md21", null ],
+        [ "Polarizable Continuum Model (PCM)", "md_docs_theory.html#autotoc_md22", null ],
+        [ "COnductor-like Screening MOdel (COSMO)", "md_docs_theory.html#autotoc_md23", [
+          [ "General remarks", "md_docs_theory.html#autotoc_md24", null ]
         ] ]
       ] ],
-      [ "Discrete equations in a general framework - overview", "md_docs_theory.html#autotoc_md23", [
-        [ "ddCOSMO:", "md_docs_theory.html#autotoc_md24", null ],
-        [ "ddPCM:", "md_docs_theory.html#autotoc_md25", null ],
-        [ "ddLPB:", "md_docs_theory.html#autotoc_md26", null ]
+      [ "Discrete equations in a general framework - overview", "md_docs_theory.html#autotoc_md25", [
+        [ "ddCOSMO:", "md_docs_theory.html#autotoc_md26", null ],
+        [ "ddPCM:", "md_docs_theory.html#autotoc_md27", null ],
+        [ "ddLPB:", "md_docs_theory.html#autotoc_md28", null ]
       ] ],
-      [ "Gradient computations", "md_docs_theory.html#autotoc_md27", [
-        [ "ddCOSMO:", "md_docs_theory.html#autotoc_md28", null ],
-        [ "ddPCM:", "md_docs_theory.html#autotoc_md29", null ],
-        [ "ddLPB:", "md_docs_theory.html#autotoc_md30", null ]
+      [ "Gradient computations", "md_docs_theory.html#autotoc_md29", [
+        [ "ddCOSMO:", "md_docs_theory.html#autotoc_md30", null ],
+        [ "ddPCM:", "md_docs_theory.html#autotoc_md31", null ],
+        [ "ddLPB:", "md_docs_theory.html#autotoc_md32", null ]
       ] ]
     ] ],
     [ "The dd-story", "md_docs_ddstory.html", null ],
@@ -102,9 +103,9 @@ var NAVTREEINDEX =
 [
 "annotated.html",
 "group___fortran__interface__core.html#gaf040e2fffef9eed7da72621ec2f172a3",
-"namespaceddx__gradients.html#afeba6e2eca193ec8272046ee9be64227",
+"namespaceddx__gradients.html#af8d17825330c3a1e528bf554c847df45",
 "structddx__constants_1_1ddx__constants__type.html#a453afadb38216fad9dedc10cead99226",
-"structddx__workspace_1_1ddx__workspace__type.html"
+"structddx__parameters_1_1ddx__params__type.html#aff335b17a4bd5435a7d7ef8ea618e19a"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
