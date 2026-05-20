@@ -1,7 +1,7 @@
 project('ddX',
   'fortran',
   'cpp',
-  version: '0.7.0',
+  version: '0.8.0',
   license: 'LGPL-3.0-or-later',
   meson_version: '>=0.57.2',
   default_options: [
