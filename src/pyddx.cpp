@@ -1,3 +1,4 @@
+#ifdef BUILD_PYBIND11
 #include "ddx.h"
 #include <pybind11/eval.h>
 #include <pybind11/pybind11.h>
@@ -60,3 +61,4 @@ solvent_kappa.__doc__ = (
 ))",
            m.attr("__dict__"));
 }
+#endif

@@ -1,3 +1,4 @@
+#ifdef BUILD_PYBIND11
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -357,3 +358,4 @@ void export_pyddx_data(py::module& m) {
         {"water", 1.776},                //
   };
 }
+#endif
