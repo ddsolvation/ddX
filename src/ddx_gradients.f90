@@ -376,12 +376,10 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
             alp_rad = alp_rad + fac*phi(ig,jsph)*xi(ig,jsph) * dtji_rad
           end if
         end do
-      !   fx = fx - constants % wgrid(ig)*alp
+        fx = fx - constants % wgrid(ig)*alp
         if (present(dr)) then
          dr = dr - constants % wgrid(ig)*alp_rad
-        else 
-         fx = fx - constants % wgrid(ig)*alp
-      end if
+        end if
 
       end do
 end subroutine contract_grad_U

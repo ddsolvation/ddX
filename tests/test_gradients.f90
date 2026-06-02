@@ -35,7 +35,7 @@ real(dp) :: xpsi, slx, sphi, diff
 real(dp), allocatable :: grad_xpsi(:,:), grad_slx(:,:), &
     & grad_sphi(:,:), grad_xpsi_num(:,:), grad_slx_num(:,:), &
     & grad_sphi_num(:,:), dr_xpsi(:), dr_slx(:), dr_sphi(:), &
-    & dr_xpsi_num(:), dr_slx_num(:), dr_sphi_num(:)
+    & dr_xpsi_num(:), dr_slx_num(:), dr_sphi_num(:), scratch_force(:, :)
 real(dp), external :: ddot
 real(dp), parameter :: threshold = 1e-8
 
@@ -65,6 +65,7 @@ allocate( &
     & s(ddx_data%constants%nbasis,ddx_data%params%nsph), &
     & tmp_lx(ddx_data%constants%nbasis,ddx_data%params%nsph), &
     & force(3, ddx_data % params % nsph), &
+    & scratch_force(3, ddx_data % params % nsph), &
     & dr(ddx_data % params % nsph), &
     & numforce(3, ddx_data % params % nsph), &
     & numdr(ddx_data % params % nsph), &
@@ -123,11 +124,13 @@ call sgradlx(ddx_data%params,ddx_data%constants,ddx_data%workspace, &
 call sgradphi(ddx_data%params,ddx_data%constants,ddx_data%workspace, &
     & state,grad_sphi,ddx_error,electrostatics%e_cav,multipoles)
 
+scratch_force = zero
 call sdrlx(ddx_data%params,ddx_data%constants,ddx_data%workspace, &
-    & state,grad_slx,dr_slx,ddx_error)
+    & state,scratch_force,dr_slx,ddx_error)
 
+scratch_force = zero
 call sdrphi(ddx_data%params,ddx_data%constants,ddx_data%workspace, &
-    & state,grad_sphi,dr_sphi,ddx_error,electrostatics%e_cav,multipoles)
+    & state,scratch_force,dr_sphi,ddx_error,electrostatics%e_cav,multipoles)
 
 do isph = 1, ddx_data%params%nsph
     do j = 1, 3
@@ -206,7 +209,7 @@ if (diff.gt.threshold) then
     stop 1
 end if
 
-deallocate(psi, multipoles, charges, force, numforce, dr, numdr,&
+deallocate(psi, multipoles, charges, force, scratch_force, numforce, dr, numdr,&
     & x, s, tmp_lx, &
     & grad_xpsi, grad_slx, grad_sphi, &
     & grad_xpsi_num, grad_slx_num, grad_sphi_num, &

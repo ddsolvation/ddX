@@ -273,6 +273,7 @@ subroutine cosmo_solvation_force_dr_terms(params, constants, workspace, &
     start_time = omp_get_wtime()
 
     force = zero
+    dr = zero
     do isph = 1, params % nsph
         call contract_grad_l(params, constants, isph, state % xs, &
             & state % sgrid, workspace % tmp_vylm(:, 1), &
@@ -284,8 +285,10 @@ subroutine cosmo_solvation_force_dr_terms(params, constants, workspace, &
     end do
 
     force = -pt5*force
+    dr = -pt5*dr
 
     call zeta_grad(params, constants, state, e_cav, force)
+    call zeta_grad_dr(params, constants, state, e_cav, dr)
 
     finish_time = omp_get_wtime()
     state % force_time = finish_time - start_time
@@ -347,4 +350,3 @@ subroutine cosmo_derivative_setup(params, constants, workspace, state)
 end subroutine cosmo_derivative_setup
 
 end module ddx_cosmo
-
