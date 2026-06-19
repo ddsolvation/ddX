@@ -47,15 +47,15 @@ subroutine multipole_electrostatics(params, constants, workspace, multipoles, &
     if (electrostatics % do_phi .and. electrostatics % do_e &
             & .and. electrostatics % do_g) then
         call multipole_electrostatics_2(params, constants, workspace, &
-            & multipoles, 0, electrostatics % phi_cav, &
+            & multipoles, mmax, electrostatics % phi_cav, &
             & electrostatics % e_cav, electrostatics % g_cav, ddx_error)
     else if (electrostatics % do_phi .and. electrostatics % do_e) then
         call multipole_electrostatics_1(params, constants, workspace, &
-            & multipoles, 0, electrostatics % phi_cav, &
+            & multipoles, mmax, electrostatics % phi_cav, &
             & electrostatics % e_cav, ddx_error)
     else
         call multipole_electrostatics_0(params, constants, workspace, &
-            & multipoles, 0, electrostatics % phi_cav, ddx_error)
+            & multipoles, mmax, electrostatics % phi_cav, ddx_error)
     end if
 
 end subroutine multipole_electrostatics
