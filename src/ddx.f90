@@ -239,10 +239,12 @@ end subroutine ddfromfile
 !!                     far-field FMM interactions are computed, `pl` >= -1
 !! @param[in,optional] nproc: Number of OpenMP threads, nproc >= 0.
 !! @param[in,optional] logfile: file name for log information.
+!! @param[in,optional] switching: kind of switching, 0 legacy, 1 new version.
 !!
 subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
         & force, kappa, eta, shift, lmax, ngrid, incore, maxiter, &
-        & jacobi_ndiis, enable_fmm, pm, pl, nproc, logfile, adjoint, eps_int)
+        & jacobi_ndiis, enable_fmm, pm, pl, nproc, logfile, adjoint, &
+        & eps_int, switching)
 
     ! mandatory arguments
     integer, intent(in) :: model, nsph
@@ -253,7 +255,7 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
 
     ! optional arguments
     integer, intent(in), optional :: force, adjoint, lmax, ngrid, incore, &
-        & maxiter, jacobi_ndiis, enable_fmm, pm, pl, nproc
+        & maxiter, jacobi_ndiis, enable_fmm, pm, pl, nproc, switching
     real(dp), intent(in), optional :: kappa, eta, shift, eps_int
     character(len=255), intent(in), optional :: logfile
 
@@ -274,6 +276,7 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
     real(dp) :: local_shift
     real(dp) :: local_eps_int = 1.0d0
     character(len=255) :: local_logfile = ""
+    real(dp) :: local_switching = 0
 
     ! arrays for x, y, z coordinates
     real(dp), allocatable :: x(:), y(:), z(:)

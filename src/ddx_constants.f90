@@ -24,7 +24,11 @@ use omp_lib, only : omp_get_wtime
 implicit none
 
 type ddx_switching_type
-    real(dp), allocatable :: uin(:,:)
+    integer :: ncav
+    real(dp), allocatable :: u_ni(:,:)
+    real(dp), allocatable :: u_i_cav(:)
+    real(dp), allocatable :: d_ni(:,:)
+    real(dp), allocatable :: f_ni(:,:)
 end type ddx_switching_type
 
 !> Container for precomputed constants
@@ -559,12 +563,6 @@ subroutine constants_init(params, constants, ddx_error)
         end if
     end if
 
-    call switching_init(params, constants, constants%switching, ddx_error)
-    if (ddx_error % flag .ne. 0) then
-        call update_error(ddx_error, "switching_init returned an " // &
-            & "error, exiting")
-        return
-    end if
 end subroutine constants_init
 
 !> Build the transposed neighbor list
@@ -974,6 +972,7 @@ subroutine constants_geometry_init(params, constants, ddx_error)
         endif
         constants % zi_dr = zero
     end if
+
     ! Build arrays fi, ui, zi
     !$omp parallel do default(none) shared(params,constants,swthr) &
     !$omp private(isph,igrid,jsph,v,maxv,ssqv,vv,t) schedule(dynamic)
@@ -1018,6 +1017,17 @@ subroutine constants_geometry_init(params, constants, ddx_error)
             end if
         enddo
     enddo
+
+    if (.true.) then
+        call switching_init(params, constants, constants%switching, ddx_error)
+        constants % ui = constants%switching%u_ni
+    end if
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, "switching_init returned an " // &
+            & "error, exiting")
+        return
+    end if
+
     ! Build cavity array. At first get total count for each sphere
     allocate(constants % ncav_sph(params % nsph), stat=info)
     if (info .ne. 0) then
@@ -2186,8 +2196,13 @@ subroutine switching_init(params, constants, switching, ddx_error)
     type(ddx_constants_type), intent(in) :: constants
     type(ddx_switching_type), intent(inout) :: switching
     type(ddx_error_type), intent(inout) :: ddx_error
-    integer :: info, isph, n
-    allocate(switching%uin(params%ngrid, params%nsph), stat=info)
+    integer :: info, isph, n, icav, ncav
+    real(dp) :: d_ni, f_ni, u_ni
+
+    allocate(switching%u_ni(params%ngrid, params%nsph), &
+        & switching%d_ni(params%ngrid, params%nsph), &
+        & switching%f_ni(params%ngrid, params%nsph), &
+        & stat=info)
     if (info.ne.0) then
         call update_error(ddx_error, &
             & "Allocation failed in switching_init")
@@ -2196,8 +2211,40 @@ subroutine switching_init(params, constants, switching, ddx_error)
 
     do isph = 1, params%nsph
         do n = 1, params%ngrid
-            switching%uin(n, isph) = compute_u(params, constants, isph, n)
-            write(6,*) isph, n, switching%uin(n, isph), constants%ui(n, isph)
+            call compute_d_and_f(params, constants, isph, n, d_ni, f_ni)
+            switching%d_ni(n, isph) = d_ni
+            switching%f_ni(n, isph) = f_ni
+        end do
+    end do
+
+    ncav = 0
+    do isph = 1, params%nsph
+        do n = 1, params%ngrid
+            u_ni = compute_u(params, constants, isph, n)
+            write(6,*) isph, n, u_ni, constants%ui(n, isph)
+            if (u_ni.ne.zero) ncav = ncav + 1
+        end do
+    end do
+    switching%ncav = ncav
+
+    write(6,*) "NCAV NCAV", switching%ncav
+
+    allocate(switching%u_i_cav(switching%ncav), stat=info)
+    if (info.ne.0) then
+        call update_error(ddx_error, &
+            & "Allocation failed in switching_init")
+        return
+    end if
+
+    icav = 0
+    do isph = 1, params%nsph
+        do n = 1, params%ngrid
+            u_ni = compute_u(params, constants, isph, n)
+            switching%u_ni(n, isph) = u_ni
+            if (u_ni.ne.zero) then
+                icav = icav + 1
+                switching%u_i_cav(icav) = u_ni
+            end if
         end do
     end do
 
@@ -2207,8 +2254,32 @@ subroutine switching_free(switching, ddx_error)
     type(ddx_switching_type), intent(inout) :: switching
     type(ddx_error_type), intent(inout) :: ddx_error
     integer :: info
-    if (allocated(switching%uin)) then
-        deallocate(switching%uin, stat=info)
+    if (allocated(switching%u_ni)) then
+        deallocate(switching%u_ni, stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Deallocation failed in switching_free")
+            return
+        end if
+    end if
+    if (allocated(switching%u_i_cav)) then
+        deallocate(switching%u_i_cav, stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Deallocation failed in switching_free")
+            return
+        end if
+    end if
+    if (allocated(switching%d_ni)) then
+        deallocate(switching%d_ni, stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Deallocation failed in switching_free")
+            return
+        end if
+   end if
+    if (allocated(switching%f_ni)) then
+        deallocate(switching%f_ni, stat=info)
         if (info.ne.0) then
             call update_error(ddx_error, &
                 & "Deallocation failed in switching_free")
@@ -2239,6 +2310,23 @@ real(dp) function compute_chi(params, constants, isph, jsph, n)
     t_ijn = compute_t(params, constants, isph, jsph, n)
     compute_chi = fsw(t_ijn, params%se, params%eta)
 end function compute_chi
+
+subroutine compute_d_and_f(params, constants, isph, n, d, f)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph, n
+    real(dp), intent(out) :: d, f
+    integer :: ij, jsph
+    real(dp) :: chi_ijn
+    d = one
+    f = zero
+    do ij = constants%inl(isph), constants%inl(isph + 1) - 1
+        jsph = constants%nl(ij)
+        chi_ijn = compute_chi(params, constants, isph, jsph, n)
+        d = d*(one - chi_ijn)
+        f = f + chi_ijn
+    end do
+end subroutine compute_d_and_f
 
 real(dp) function compute_d(params, constants, isph, n)
     type(ddx_params_type), intent(in) :: params
@@ -2271,12 +2359,14 @@ real(dp) function compute_omega(params, constants, isph, jsph, n)
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
     integer, intent(in) :: isph, jsph, n
-    real(dp) :: chi_ijn, d_in, f_in
+    real(dp) :: chi_nij, d_ni, f_ni
 
-    chi_ijn = compute_chi(params, constants, isph, jsph, n)
-    d_in = compute_d(params, constants, isph, n)
-    f_in = compute_f(params, constants, isph, n)
-    compute_omega = chi_ijn/(d_in + f_in)
+    chi_nij = compute_chi(params, constants, isph, jsph, n)
+    d_ni = compute_d(params, constants, isph, n)
+    f_ni = compute_f(params, constants, isph, n)
+    d_ni = constants%switching%d_ni(n, isph)
+    f_ni = constants%switching%f_ni(n, isph)
+    compute_omega = chi_nij/(d_ni + f_ni)
 end function compute_omega
 
 real(dp) function compute_u(params, constants, isph, n)
