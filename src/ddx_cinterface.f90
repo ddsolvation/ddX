@@ -173,12 +173,16 @@ end
 !
 ! Setup object
 !
-function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
-        & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, fmm_multipole_lmax, fmm_local_lmax, &
-        & n_proc, n_spheres, sphere_centres, sphere_radii, length_logfile, c_logfile, c_error) result(c_ddx) bind(C)
-    integer(c_int), intent(in), value :: model, enable_force, lmax, n_lebedev, maxiter, &
-        & incore, jacobi_n_diis, enable_fmm, fmm_multipole_lmax, fmm_local_lmax, n_proc, &
-        & n_spheres, length_logfile
+function ddx_allocate_model(model, enable_force, solvent_epsilon, &
+        & solvent_kappa, eta, se, lmax, n_lebedev, incore, maxiter, &
+        & jacobi_n_diis, enable_fmm, fmm_multipole_lmax, &
+        & fmm_local_lmax, n_proc, n_spheres, sphere_centres, &
+        & sphere_radii, length_logfile, c_logfile, switching, c_error) &
+        & result(c_ddx) bind(C)
+    integer(c_int), intent(in), value :: model, enable_force, lmax, &
+        & n_lebedev, maxiter, incore, jacobi_n_diis, enable_fmm, &
+        & fmm_multipole_lmax, fmm_local_lmax, n_proc, n_spheres, &
+        & length_logfile, switching
     real(c_double), intent(in) :: sphere_centres(3, n_spheres), sphere_radii(n_spheres)
     real(c_double), intent(in), value :: eta, se, solvent_epsilon, solvent_kappa
     type(c_ptr), intent(in), value :: c_error
@@ -205,10 +209,11 @@ function ddx_allocate_model(model, enable_force, solvent_epsilon, solvent_kappa,
         endif
     enddo
 
-    call params_init(model, enable_force, solvent_epsilon, solvent_kappa, eta, se, lmax, &
-        & n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm, &
-        & fmm_multipole_lmax, fmm_local_lmax, passproc, n_spheres, &
-        & sphere_centres, sphere_radii, logfile, ddx_model%params, ddx_error)
+    call params_init(model, enable_force, solvent_epsilon, &
+        & solvent_kappa, eta, se, lmax, n_lebedev, incore, maxiter, &
+        & jacobi_n_diis, enable_fmm, fmm_multipole_lmax, &
+        & fmm_local_lmax, passproc, n_spheres, sphere_centres, &
+        & sphere_radii, logfile, switching, ddx_model%params, ddx_error)
     if (ddx_error%flag .ne. 0) then
         return
     endif
@@ -352,6 +357,14 @@ function ddx_get_fmm_multipole_lmax(c_ddx) result(c_pm) bind(C)
     integer(c_int) :: c_pm
     call c_f_pointer(c_ddx, ddx_model)
     c_pm = ddx_model % params % pm
+end function
+
+function ddx_get_switching(c_ddx) result(c_switching) bind(C)
+    type(c_ptr), intent(in), value :: c_ddx
+    type(ddx_setup_type), pointer :: ddx_model
+    integer(c_int) :: c_switching
+    call c_f_pointer(c_ddx, ddx_model)
+    c_switching = ddx_model % params % switching
 end function
 
 function ddx_get_solvent_epsilon(c_ddx) result(c_eps) bind(C)

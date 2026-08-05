@@ -1018,7 +1018,7 @@ subroutine constants_geometry_init(params, constants, ddx_error)
         enddo
     enddo
 
-    if (.true.) then
+    if (params%switching.eq.1) then
         call switching_init(params, constants, constants%switching, ddx_error)
         constants % ui = constants%switching%u_ni
     end if
@@ -2226,8 +2226,6 @@ subroutine switching_init(params, constants, switching, ddx_error)
         end do
     end do
     switching%ncav = ncav
-
-    write(6,*) "NCAV NCAV", switching%ncav
 
     allocate(switching%u_i_cav(switching%ncav), stat=info)
     if (info.ne.0) then

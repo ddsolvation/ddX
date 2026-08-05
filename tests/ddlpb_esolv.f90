@@ -195,7 +195,7 @@ subroutine test_solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax
         & eta, epsilon_solv, kappa, 0,&
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, dummy_file_name, ddx_data2, error2)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data % params % switching, ddx_data2, error2)
     call check_error(error2)
 
     ! the state depends on lmax, so it is allocated here

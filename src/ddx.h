@@ -117,7 +117,7 @@ void* ddx_allocate_model(int model, int enable_force, double solvent_epsilon,
                          int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax,
                          int n_proc, int n_spheres, const double* sphere_centres,
                          const double* sphere_radii, int length_logfile,
-                         const char* logfile, void* error);
+                         const char* logfile, int switching, void* error);
 
 /** Deallocate the model object */
 void ddx_deallocate_model(void* ddx, void* error);
@@ -167,6 +167,9 @@ int ddx_get_fmm_local_lmax(const void* ddx);
 
 /** Return the current value of fmm_multipole_lmax stored in the model. */
 int ddx_get_fmm_multipole_lmax(const void* ddx);
+
+/** Return the current value of switching stored in the model. */
+int ddx_get_switching(const void* ddx);
 
 /** Return the current value of solvent_epsilon stored in the model. */
 double ddx_get_solvent_epsilon(const void* ddx);

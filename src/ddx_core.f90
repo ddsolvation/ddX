@@ -260,17 +260,19 @@ contains
 !! @param[in] ndiis: Number of extrapolation points for Jacobi/DIIS solver.
 !!      ndiis >= 0.
 !! @param[inout] nproc: Number of OpenMP threads to be used where applicable.
+!! @param[in] output_filename: filename for logging information.
+!! @param[in] switching: kind of switching, 0 legacy, 1 new version.
 !! @param[out] ddx_data: Object containing all inputs
 !! @param[inout] ddx_error: ddX error
 !------------------------------------------------------------------------------
 subroutine allocate_model(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, maxiter, jacobi_ndiis, nproc, &
-        & output_filename, ddx_data, ddx_error)
+        & output_filename, switching, ddx_data, ddx_error)
     ! Inputs
     implicit none
     integer, intent(in) :: nsph, model, lmax, force, fmm, pm, pl, &
         & matvecmem, maxiter, jacobi_ndiis, &
-        & ngrid, nproc
+        & ngrid, nproc, switching
     real(dp), intent(in):: x(nsph), y(nsph), z(nsph), &
         & rvdw(nsph), se, eta, eps, kappa
     character(len=255), intent(in) :: output_filename
@@ -296,7 +298,8 @@ subroutine allocate_model(nsph, x, y, z, rvdw, model, lmax, ngrid, force, fmm, p
     csph(3, :) = z
     call params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & matvecmem, maxiter, jacobi_ndiis, fmm, pm, pl, nproc, nsph, &
-        & csph, rvdw, output_filename, ddx_data % params, ddx_error)
+        & csph, rvdw, output_filename, switching, ddx_data % params, &
+        & ddx_error)
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, "params_init returned an error, exiting")
         return

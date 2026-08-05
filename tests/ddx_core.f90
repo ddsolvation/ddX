@@ -367,7 +367,7 @@ subroutine check_allocate_model_args()
     ! Example of correct args
     integer :: n=1, model=1, lmax=1, ngrid=1202, force=1, fmm=1, pm=0, pl=0, &
         & matvecmem=0, maxiter=10, &
-        & jacobi_ndiis=10, nproc=1
+        & jacobi_ndiis=10, nproc=1, switching=0
     real(dp) :: x(10), y(10), z(10), rvdw(10), se=zero, eta=1d-1, &
         & eps=1.1d1, kappa=1d0
     type(ddx_type) :: ddx_data
@@ -385,7 +385,8 @@ subroutine check_allocate_model_args()
     ! Check correct input
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "correct test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -395,7 +396,7 @@ subroutine check_allocate_model_args()
         call allocate_model(i, x, y, z, rvdw, model, lmax, ngrid, force, fmm, &
             & pm, pl, se, eta, eps, kappa, matvecmem, &
             & maxiter, jacobi_ndiis, nproc, &
-            & dummy_file_name, ddx_data, ddx_error)
+            & dummy_file_name, switching, ddx_data, ddx_error)
         if (ddx_error % flag .ne. 0) call test_error(-1, "`nsph` test failed in " // &
             & "check_allocate_model_args()")
         call deallocate_model(ddx_data, ddx_error)
@@ -405,7 +406,8 @@ subroutine check_allocate_model_args()
     i = 0
     call allocate_model(i, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`nsph` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -413,7 +415,8 @@ subroutine check_allocate_model_args()
     i = -1
     call allocate_model(i, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`nsph` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -423,7 +426,8 @@ subroutine check_allocate_model_args()
         write(*, *) "model=", i, n
         call allocate_model(n, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
             & pl, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+            & ddx_data, ddx_error)
         call print_error(ddx_error)
         if (ddx_error % flag .ne. 0) call test_error(-1, "`model` test failed in " // &
             & "check_allocate_model_args()")
@@ -434,7 +438,8 @@ subroutine check_allocate_model_args()
     i = -1
     call allocate_model(n, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`model` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -442,7 +447,8 @@ subroutine check_allocate_model_args()
     i = 4
     call allocate_model(n, x, y, z, rvdw, i, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`model` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -453,7 +459,7 @@ subroutine check_allocate_model_args()
         call allocate_model(n, x, y, z, rvdw, model, i, ngrid, force, fmm, &
             & pm, pl, se, eta, eps, kappa, &
             & matvecmem, maxiter, jacobi_ndiis, &
-            & nproc, dummy_file_name, ddx_data, ddx_error)
+            & nproc, dummy_file_name, switching, ddx_data, ddx_error)
         if (ddx_error % flag .ne. 0) call test_error(-1, "`lmax` test failed in " // &
             & "check_allocate_model_args()")
         call deallocate_model(ddx_data, ddx_error)
@@ -463,7 +469,8 @@ subroutine check_allocate_model_args()
     i = -1
     call allocate_model(n, x, y, z, rvdw, model, i, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`lmax` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -473,7 +480,8 @@ subroutine check_allocate_model_args()
         j = ng0(i)
         call allocate_model(n, x, y, z, rvdw, model, lmax, j, force, fmm, pm, &
             & pl, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+            & ddx_data, ddx_error)
         if (ddx_error % flag .ne. 0) call test_error(-1, "`ngrid` test failed in " // &
             & "check_allocate_model_args()")
         call deallocate_model(ddx_data, ddx_error)
@@ -483,7 +491,8 @@ subroutine check_allocate_model_args()
     i = -1
     call allocate_model(n, x, y, z, rvdw, model, lmax, i, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`ngrid` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -492,7 +501,8 @@ subroutine check_allocate_model_args()
     do i = 0, 1
         call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
             & pl, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+            & ddx_data, ddx_error)
         if (ddx_error % flag .ne. 0) call test_error(-1, "`force` test failed in " // &
             & "check_allocate_model_args()")
         call deallocate_model(ddx_data, ddx_error)
@@ -502,7 +512,8 @@ subroutine check_allocate_model_args()
     i = -1
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`force` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -510,7 +521,8 @@ subroutine check_allocate_model_args()
     i = 2
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, i, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`force` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -519,7 +531,8 @@ subroutine check_allocate_model_args()
     do i = 0, 1
         call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, i, &
             & pm, pl, se, eta, eps, kappa, &
-            & matvecmem, maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+            & matvecmem, maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+            & ddx_data, ddx_error)
         if (ddx_error % flag .ne. 0) call test_error(-1, "`fmm` test failed in " // &
             & "check_allocate_model_args()")
         call deallocate_model(ddx_data, ddx_error)
@@ -529,7 +542,8 @@ subroutine check_allocate_model_args()
     i = -1
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`fmm` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -537,7 +551,8 @@ subroutine check_allocate_model_args()
     i = 2
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, i, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`fmm` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -547,7 +562,8 @@ subroutine check_allocate_model_args()
     do i = -2, 2
         call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & i, pl, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+            & ddx_data, ddx_error)
         if (ddx_error % flag .ne. 0) call test_error(-1, "`pm` test failed in " // &
             & "check_allocate_model_args()")
         call deallocate_model(ddx_data, ddx_error)
@@ -558,7 +574,8 @@ subroutine check_allocate_model_args()
     do i = 0, 20, 5
         call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & i, pl, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+            & ddx_data, ddx_error)
         if (ddx_error % flag .ne. 0) call test_error(-1, "`pm` test failed in " // &
             & "check_allocate_model_args()")
         call deallocate_model(ddx_data, ddx_error)
@@ -567,7 +584,8 @@ subroutine check_allocate_model_args()
     i = -1
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
         & i, pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`pm` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -577,7 +595,8 @@ subroutine check_allocate_model_args()
     i = -2
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, j, i, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`pm` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -587,7 +606,8 @@ subroutine check_allocate_model_args()
     do i = -2, 2
         call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & pm, i, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+            & ddx_data, ddx_error)
         if (ddx_error % flag .ne. 0) call test_error(-1, "`pl` test failed in " // &
             & "check_allocate_model_args()")
         call deallocate_model(ddx_data, ddx_error)
@@ -598,7 +618,8 @@ subroutine check_allocate_model_args()
     do i = 0, 20, 5
         call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
             & pm, i, se, eta, eps, kappa, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+            & ddx_data, ddx_error)
         if (ddx_error % flag .ne. 0) call test_error(-1, "`pl` test failed in " // &
             & "check_allocate_model_args()")
         call deallocate_model(ddx_data, ddx_error)
@@ -607,7 +628,8 @@ subroutine check_allocate_model_args()
     i = -1
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, j, &
         & pm, i, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`pl` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -617,7 +639,8 @@ subroutine check_allocate_model_args()
     i = -2
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, j, pm, &
         & i, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`pl` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -626,7 +649,8 @@ subroutine check_allocate_model_args()
     tmp = -one
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`se` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -634,7 +658,8 @@ subroutine check_allocate_model_args()
     tmp = zero
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`se` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -642,7 +667,8 @@ subroutine check_allocate_model_args()
     tmp = one
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`se` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -651,7 +677,8 @@ subroutine check_allocate_model_args()
     tmp = 1.01d0
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`se` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -659,7 +686,8 @@ subroutine check_allocate_model_args()
     tmp = -1.01d0
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, tmp, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`se` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -668,7 +696,8 @@ subroutine check_allocate_model_args()
     tmp = pt5
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -676,7 +705,8 @@ subroutine check_allocate_model_args()
     tmp = one
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -685,7 +715,8 @@ subroutine check_allocate_model_args()
     tmp = -0.0000005
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -693,7 +724,8 @@ subroutine check_allocate_model_args()
     tmp = 1.01d0
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -701,7 +733,8 @@ subroutine check_allocate_model_args()
     tmp = -1d-2
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, tmp, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`eta` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -710,7 +743,8 @@ subroutine check_allocate_model_args()
     tmp = 1.01d0
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -718,7 +752,8 @@ subroutine check_allocate_model_args()
     tmp = dble(1000)
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -727,7 +762,8 @@ subroutine check_allocate_model_args()
     tmp = zero
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -735,7 +771,8 @@ subroutine check_allocate_model_args()
     tmp = pt5
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -743,7 +780,8 @@ subroutine check_allocate_model_args()
     tmp = one
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -751,7 +789,8 @@ subroutine check_allocate_model_args()
     tmp = -1d-2
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, tmp, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`eps` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -761,7 +800,8 @@ subroutine check_allocate_model_args()
     j = 3 ! only referenced in case of LPB model
     call allocate_model(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, tmp, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`kappa` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -770,7 +810,8 @@ subroutine check_allocate_model_args()
     do j = 1, 2
         call allocate_model(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
             & pl, se, eta, eps, tmp, matvecmem, &
-            & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+            & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+            & ddx_data, ddx_error)
         if (ddx_error % flag .ne. 0) call test_error(-1, "`kappa` test failed in " // &
             & "check_allocate_model_args()")
         call deallocate_model(ddx_data, ddx_error)
@@ -781,7 +822,8 @@ subroutine check_allocate_model_args()
     tmp = -1d-2
     call allocate_model(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, tmp, matvecmem, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`kappa` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -790,7 +832,8 @@ subroutine check_allocate_model_args()
     i = 0
     call allocate_model(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, i, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`matvecmem` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -798,7 +841,8 @@ subroutine check_allocate_model_args()
     i = 1
     call allocate_model(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, i, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`matvecmem` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -806,7 +850,8 @@ subroutine check_allocate_model_args()
     i = -1
     call allocate_model(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, i, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`matvecmem` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -814,7 +859,8 @@ subroutine check_allocate_model_args()
     i = 2
     call allocate_model(n, x, y, z, rvdw, j, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, i, &
-        & maxiter, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`matvecmem` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -823,7 +869,8 @@ subroutine check_allocate_model_args()
     i = 1
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & i, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & i, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`maxiter` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -831,7 +878,8 @@ subroutine check_allocate_model_args()
     i = 1000000
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & i, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & i, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`maxiter` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -840,7 +888,8 @@ subroutine check_allocate_model_args()
     i = 0
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & i, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & i, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`maxiter` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -848,7 +897,8 @@ subroutine check_allocate_model_args()
     i = -1
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & i, jacobi_ndiis, nproc, dummy_file_name, ddx_data, ddx_error)
+        & i, jacobi_ndiis, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`maxiter` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -857,7 +907,8 @@ subroutine check_allocate_model_args()
     i = 0
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, i, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, i, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -865,7 +916,8 @@ subroutine check_allocate_model_args()
     i = 1
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, i, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, i, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -873,7 +925,8 @@ subroutine check_allocate_model_args()
     i = 1000
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, i, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, i, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -882,7 +935,8 @@ subroutine check_allocate_model_args()
     i = -1
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, i, nproc, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, i, nproc, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`jacobi_ndiis` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -891,7 +945,8 @@ subroutine check_allocate_model_args()
     i = 0
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, i, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, i, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`nproc` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -899,7 +954,8 @@ subroutine check_allocate_model_args()
     i = 1
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, i, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, i, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`nproc` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -908,7 +964,8 @@ subroutine check_allocate_model_args()
     i = 2
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, i, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, i, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .ne. 0) call test_error(-1, "`nproc` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)
@@ -916,7 +973,8 @@ subroutine check_allocate_model_args()
     i = -1
     call allocate_model(n, x, y, z, rvdw, model, lmax, ngrid, force, fmm, pm, &
         & pl, se, eta, eps, kappa, matvecmem, &
-        & maxiter, jacobi_ndiis, i, dummy_file_name, ddx_data, ddx_error)
+        & maxiter, jacobi_ndiis, i, dummy_file_name, switching, &
+        & ddx_data, ddx_error)
     if (ddx_error % flag .eq. 0) call test_error(-1, "`nproc` test failed in " // &
         & "check_allocate_model_args()")
     call deallocate_model(ddx_data, ddx_error)

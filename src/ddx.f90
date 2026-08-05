@@ -276,7 +276,7 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
     real(dp) :: local_shift
     real(dp) :: local_eps_int = 1.0d0
     character(len=255) :: local_logfile = ""
-    real(dp) :: local_switching = 0
+    integer :: local_switching = 0
 
     ! arrays for x, y, z coordinates
     real(dp), allocatable :: x(:), y(:), z(:)
@@ -296,6 +296,7 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
     if (present(kappa)) local_kappa = kappa
     if (present(eta)) local_eta = eta
     if (present(logfile)) local_logfile = logfile
+    if (present(switching)) local_switching = switching
 
     ! for the shift eta the default value depends on the model
     ! ddCOSMO has an interal shift, ddPCM and ddLPB a symmetric shift
@@ -335,7 +336,8 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
     call allocate_model(nsph, x, y, z, radii, model, local_lmax, local_ngrid, &
         & local_force, local_enable_fmm, local_pm, local_pl, local_shift, &
         & local_eta, eps, local_kappa, local_incore, local_maxiter, &
-        & local_jacobi_ndiis, local_nproc, local_logfile, ddx_data, ddx_error)
+        & local_jacobi_ndiis, local_nproc, local_logfile, local_switching, &
+        & ddx_data, ddx_error)
 
     deallocate(x, y, z, stat=info)
     if (info.ne.0) then
