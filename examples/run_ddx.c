@@ -55,6 +55,7 @@ int main() {
   int fmm_local_lmax     = 6;
   int n_proc             = 1;
   int length_logfile     = 0;
+  int switching          = 0;
   char logfile[1]        = {'\0'};
 
   void* error = ddx_allocate_error();
@@ -65,7 +66,7 @@ int main() {
   void* model = ddx_allocate_model(pcm, enable_forces, epsilon, kappa, eta, shift, lmax,
                                    n_lebedev, incore, maxiter, jacobi_n_diis, enable_fmm,
                                    fmm_multipole_lmax, fmm_local_lmax, n_proc, n_spheres,
-                                   centres, radii, length_logfile, logfile, error);
+                                   centres, radii, length_logfile, logfile, switching, error);
   if (ddx_get_error_flag(error) != 0) {
     print_error(error);
     return 1;
