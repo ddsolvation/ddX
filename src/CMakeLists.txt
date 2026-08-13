@@ -42,8 +42,7 @@ set(SRC_DDX ${SRC})
 #
 # Python build
 #
-option(PYTHON "Build python module (Generally you want to use ./setup.py build_ext for this)" OFF)
-if (PYTHON)
+if (DDX_USE_PYTHON)
     find_package(pybind11 CONFIG PATHS "${PYBIND11_DIR}")
     if (NOT pybind11_FOUND)
         message(FATAL_ERROR "Pybind11 not found. Please install it.")
@@ -51,7 +50,6 @@ if (PYTHON)
     pybind11_add_module(pyddx ${SRC_PYDDX})
     target_compile_definitions(pyddx PRIVATE VERSION_INFO=${PROJECT_VERSION} BUILD_PYBIND11)
     target_link_libraries(pyddx PUBLIC
-        ${BLAS_LIBRARIES}
         ${LAPACK_LIBRARIES}
         OpenMP::OpenMP_Fortran
     )
@@ -63,36 +61,61 @@ endif()
 #
 # Library build
 #
-option(DDX_LIBRARY "Build ddx library" ON)
-if (DDX_LIBRARY)
-    add_library(ddx SHARED ${SRC_DDX})
+if (DDX_BUILD_LIBRARY)
+    add_library(ddx ${SRC_DDX})
+    add_library(ddx::ddx ALIAS ddx)
+    set_target_properties(ddx PROPERTIES
+	VERSION ${PROJECT_VERSION}
+	SOVERSION ${PROJECT_VERSION_MAJOR}
+	POSITION_INDEPENDENT_CODE ON
+	Fortran_MODULE_DIRECTORY "modules")
+    target_include_directories(ddx PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/modules>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ddX>)
     target_link_libraries(ddx PUBLIC
-        ${BLAS_LIBRARIES}
         ${LAPACK_LIBRARIES}
         OpenMP::OpenMP_Fortran)
-    if(COVERAGE)
+    if(DDX_COVERAGE)
         target_link_libraries(ddx PRIVATE gcov)
     endif()
 
     add_executable(ddx_driver ddx_driver.f90)
+    set_target_properties(ddx_driver PROPERTIES
+        Fortran_MODULE_DIRECTORY "modules")
     target_link_libraries(ddx_driver PUBLIC ddx)
 
-    #
     # Installation rules
-    #
     include(GNUInstallDirs)
 
     # Install library, binaries and headers
     install(TARGETS ddx EXPORT ddXTargets)
     install(TARGETS ddx_driver)
-    install(FILES ddx.h TYPE INCLUDE)
-    install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/" TYPE INCLUDE FILES_MATCHING PATTERN "*.mod")
-    target_include_directories(ddx INTERFACE $<INSTALL_INTERFACE:include>)
+    install(FILES ddx.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ddX")
 
-    set(install_configdir "${CMAKE_INSTALL_LIBDIR}/ddX")
-    install(EXPORT ddXTargets DESTINATION "${install_configdir}")
-    export(EXPORT ddXTargets FILE ddXTargets.cmake)
-    install(FILES "${PROJECT_SOURCE_DIR}/cmake/ddXConfig.cmake"
-        DESTINATION "${install_configdir}"
+    set(DDX_INSTALL_MODULEDIR "${CMAKE_INSTALL_INCLUDEDIR}/ddX" CACHE PATH
+        "Installation directory for Fortran module files")
+    install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/modules/"
+      DESTINATION "${DDX_INSTALL_MODULEDIR}"
+      FILES_MATCHING PATTERN "*.mod")
+
+    include(CMakePackageConfigHelpers)
+    set(install_configdir "${CMAKE_INSTALL_LIBDIR}/cmake/ddX")
+    configure_package_config_file(
+      "${PROJECT_SOURCE_DIR}/cmake/ddXConfig.cmake.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/ddXConfig.cmake"
+      INSTALL_DESTINATION "${install_configdir}"
+    )
+    write_basic_package_version_file(
+      "${CMAKE_CURRENT_BINARY_DIR}/ddXConfigVersion.cmake"
+      VERSION "${PROJECT_VERSION}"
+      COMPATIBILITY SameMinorVersion
+    )
+    install(EXPORT ddXTargets
+      NAMESPACE ddx::
+      DESTINATION "${install_configdir}")
+    install(FILES
+      "${CMAKE_CURRENT_BINARY_DIR}/ddXConfig.cmake"
+      "${CMAKE_CURRENT_BINARY_DIR}/ddXConfigVersion.cmake"
+      DESTINATION "${install_configdir}"
     )
 endif()

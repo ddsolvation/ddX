@@ -27,7 +27,7 @@ function(ddx_add_test src)
     # Set name of executable file
     set_target_properties(${ddx_}${logical} PROPERTIES OUTPUT_NAME ${exec})
     # Add dependency to the global coverage target
-    if(COVERAGE)
+    if(DDX_COVERAGE)
         add_dependencies(${ddx_}coverage ${ddx_}${logical})
     endif()
     # Try to set environment for a test on Apple MacOS
@@ -37,7 +37,7 @@ function(ddx_add_test src)
     endif()
     # Link to ddx
     target_link_libraries(${ddx_}${logical} ddx)
-    if(COVERAGE)
+    if(DDX_COVERAGE)
         # Add coverage for all tests together (they have ${logical}_${i} names)
         setup_target_for_coverage_lcov(NAME ${ddx_}coverage_${logical}
             EXECUTABLE ctest -R ${ddx_}${logical}
