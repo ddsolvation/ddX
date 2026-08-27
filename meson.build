@@ -110,20 +110,46 @@ ddx_library = library(
     'src/ddx_legacy.f90',
     'src/ddx_solvers.f90'
   ],
-  dependencies: lib_deps
+  version: meson.project_version(),
+  dependencies: lib_deps,
+  install: install,
+  link_language: 'fortran',
 )
 
+ddx_inc = [include_directories('src'), ddx_library.private_dir_include()]
 ddx_dep = declare_dependency(
   link_with: ddx_library,
-  dependencies: lib_deps
+  include_directories: ddx_inc,
+  dependencies: lib_deps,
+  version: meson.project_version(),
 )
 
 executable_target = executable(
   'ddX_exec',
   sources: ['src/ddx_driver.f90'],
-  link_with: [ddx_library],
-  dependencies: lib_deps
+  dependencies: ddx_dep,
+  install: install,
+  link_language: 'fortran',
 )
+
+if install
+  install_headers('src/ddx.h')
+
+  module_id = meson.project_name() / fc_id + '-' + fc.version()
+  meson.add_install_script(
+    find_program(files('config'/'install-mod.py')),
+    get_option('includedir') / module_id,
+  )
+
+  pkg = import('pkgconfig')
+  pkg.generate(
+    ddx_library,
+    filebase: meson.project_name(),
+    name: meson.project_name(),
+    description: 'Domain decomposition continuum solvation library',
+    subdirs: ['', module_id],
+  )
+endif
 
 subdir('tests')
 subdir('tests/standalone_tests')
