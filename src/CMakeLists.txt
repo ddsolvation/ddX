@@ -99,11 +99,10 @@ if (DDX_BUILD_LIBRARY)
       FILES_MATCHING PATTERN "*.mod")
 
     include(CMakePackageConfigHelpers)
-    set(install_configdir "${CMAKE_INSTALL_LIBDIR}/cmake/ddX")
     configure_package_config_file(
       "${PROJECT_SOURCE_DIR}/cmake/ddXConfig.cmake.in"
       "${CMAKE_CURRENT_BINARY_DIR}/ddXConfig.cmake"
-      INSTALL_DESTINATION "${install_configdir}"
+      INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
     )
     write_basic_package_version_file(
       "${CMAKE_CURRENT_BINARY_DIR}/ddXConfigVersion.cmake"
@@ -112,10 +111,34 @@ if (DDX_BUILD_LIBRARY)
     )
     install(EXPORT ddXTargets
       NAMESPACE ddx::
-      DESTINATION "${install_configdir}")
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
     install(FILES
       "${CMAKE_CURRENT_BINARY_DIR}/ddXConfig.cmake"
       "${CMAKE_CURRENT_BINARY_DIR}/ddXConfigVersion.cmake"
-      DESTINATION "${install_configdir}"
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
     )
+
+    # Pkg-config
+    if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+      set(DDX_PC_LIBDIR "${CMAKE_INSTALL_LIBDIR}")
+    else()
+      set(DDX_PC_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
+    endif()
+    if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+      set(DDX_PC_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}")
+    else()
+      set(DDX_PC_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+    endif()
+    if(IS_ABSOLUTE "${DDX_INSTALL_MODULEDIR}")
+      set(DDX_PC_FMODDIR "${DDX_INSTALL_MODULEDIR}")
+    else()
+      set(DDX_PC_FMODDIR "\${prefix}/${DDX_INSTALL_MODULEDIR}")
+    endif()
+    configure_file(
+      ${PROJECT_SOURCE_DIR}/cmake/ddX.pc.in
+      ${CMAKE_CURRENT_BINARY_DIR}/ddX.pc
+      @ONLY)
+    install(FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/ddX.pc
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endif()

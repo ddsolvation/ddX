@@ -1,0 +1,9 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@DDX_PC_LIBDIR@
+includedir=@DDX_PC_INCLUDEDIR@
+
+Name: @PROJECT_NAME@
+Description: @PROJECT_DESCRIPTION@
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -lddx
+Cflags: -I${includedir} -I@DDX_PC_FMODDIR@
