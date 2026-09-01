@@ -116,15 +116,15 @@ jobs:
           - {os: ubuntu-latest}
           - {os: macos-latest}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
-      - uses: fortran-lang/setup-fortran@main
+          python-version: '3.11'
+      - uses: fortran-lang/setup-fortran@v1
         id: setup-fortran
         with:
           compiler: gcc
-          version: 11
+          version: 15
         if: contains( matrix.os, 'macos')
       - name: Install system dependencies on macOS
         run:  brew install ninja
