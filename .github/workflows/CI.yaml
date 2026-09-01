@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.0.0
+      uses: actions/checkout@v6
     - name: create build dir
       run: cmake -E make_directory build
     - name: build, test and install
@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.0.0
+      uses: actions/checkout@v6
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.0.0
+      uses: actions/checkout@v6
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -116,8 +116,8 @@ jobs:
           - {os: ubuntu-latest}
           - {os: macos-latest}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
       - uses: fortran-lang/setup-fortran@v1
