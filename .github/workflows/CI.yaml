@@ -36,7 +36,7 @@ jobs:
         sudo apt-get install libblas-dev liblapack-dev
         cd build
         cmake -G "Unix Makefiles" -DCMAKE_Fortran_COMPILER="gfortran" -DCMAKE_INSTALL_PREFIX="/tmp/libddx" -DCMAKE_BUILD_TYPE=Release ..
-        make
+        make -j $(nproc)
         ctest -VV
         make install
     - name: Run example
@@ -51,7 +51,7 @@ jobs:
         cd /tmp/test
         mkdir build
         cd build
-        cmake -DddX_DIR="/tmp/libddx/lib/ddX" ..
+        cmake -DCMAKE_PREFIX_PATH="/tmp/libddx" ..
         make
 
   meson-test:

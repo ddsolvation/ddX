@@ -51,8 +51,10 @@ class CMakeBuild(build_ext):
         build_args = []
 
         # Enable required feature set in DDXspecial case for DDX:
-        cmake_args += ["-DPYTHON=ON", "-DTESTS=OFF", "-DEXAMPLES=OFF",
-                       "-DDDX_LIBRARY=OFF"]
+        cmake_args += ["-DDDX_USE_PYTHON=ON",
+                       "-DBUILD_TESTING=OFF",
+                       "-DDDX_BUILD_EXAMPLES=OFF",
+                       "-DDDX_BUILD_LIBRARY=OFF"]
 
         # Add Pybind11 info
         cmake_args += [f"-DPYBIND11_DIR={pybind11.get_cmake_dir()}"]
