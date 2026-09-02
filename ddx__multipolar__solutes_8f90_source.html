@@ -127,15 +127,15 @@ $(document).ready(function(){initNavTree('ddx__multipolar__solutes_8f90_source.h
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordflow">if</span> (electrostatics % do_phi .and. electrostatics % do_e &amp;</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>            &amp; .and. electrostatics % do_g) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>        <span class="keyword">call </span>multipole_electrostatics_2(params, constants, workspace, &amp;</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>            &amp; multipoles, 0, electrostatics % phi_cav, &amp;</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>            &amp; multipoles, mmax, electrostatics % phi_cav, &amp;</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>            &amp; electrostatics % e_cav, electrostatics % g_cav, ddx_error)</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (electrostatics % do_phi .and. electrostatics % do_e) <span class="keywordflow">then</span></div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keyword">call </span>multipole_electrostatics_1(params, constants, workspace, &amp;</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>            &amp; multipoles, 0, electrostatics % phi_cav, &amp;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>            &amp; multipoles, mmax, electrostatics % phi_cav, &amp;</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>            &amp; electrostatics % e_cav, ddx_error)</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keywordflow">else</span></div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        <span class="keyword">call </span>multipole_electrostatics_0(params, constants, workspace, &amp;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>            &amp; multipoles, 0, electrostatics % phi_cav, ddx_error)</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>            &amp; multipoles, mmax, electrostatics % phi_cav, ddx_error)</div>
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="keywordflow">    end if</span></div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="keyword">end subroutine </span><a class="code hl_function" href="group___fortran__interface__multipolar.html#ga76c0d6f26b8522d58e4c8cd425d38386">multipole_electrostatics</a></div>
