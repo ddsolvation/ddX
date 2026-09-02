@@ -36,7 +36,7 @@ type(ddx_params_type), intent(in) :: params
           do_dr = .false.
       end if
 
-      dr_local = 0.0d0
+      dr_local = zero
 
       call contract_gradi_Lik(params, constants, isph, sigma, xi(:, isph), basloc, dbsloc, vplm, vcos, vsin, fx, dr_local)
       call contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx, dr_local)
@@ -350,6 +350,7 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
           do_dr = .false.
       end if
 
+      dr_local = zero
       do ig = 1, params % ngrid
         alp = zero
         alp_rad = zero
@@ -362,7 +363,6 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
           vji   = params % csph(:,jsph) + &
               & params % rsph(jsph)*constants % cgrid(:,ig) - &
               & params % csph(:,isph)
-          !vvji  = sqrt(dot_product(vji,vji))
           vvji = dnrm2(3, vji, 1)
           tji   = vvji/params % rsph(isph)
           swthr = one + (params % se + 1.d0)*params % eta / 2.d0
@@ -370,20 +370,17 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
             sji = vji/vvji
             dtji = - sji / params % rsph(isph)
             dtji_rad = - vvji/(params%rsph(isph)**2)
-            ! dtji_rad = dot_product(vji, constants%cgrid(:,ig)) / (vvji* params%rsph(isph)) 
             fac = dfsw(tji, params % se, params % eta) 
             alp = alp + fac*phi(ig,jsph)*xi(ig,jsph) * dtji 
             alp_rad = alp_rad + fac*phi(ig,jsph)*xi(ig,jsph) * dtji_rad
           end if
         end do
-      !   fx = fx - constants % wgrid(ig)*alp
-        if (present(dr)) then
-         dr = dr - constants % wgrid(ig)*alp_rad
-        else 
-         fx = fx - constants % wgrid(ig)*alp
-      end if
+        fx = fx - constants % wgrid(ig)*alp
+        dr_local = dr_local - constants % wgrid(ig)*alp_rad
 
       end do
+
+    if (do_dr) dr = dr_local
 end subroutine contract_grad_U
 
 !> Subroutine to compute contraction of B matrix
