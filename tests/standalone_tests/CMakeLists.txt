@@ -2,16 +2,11 @@ function(ddx_add_executable_test basename)
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${basename}.txt DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${basename}.ref DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
     add_test(NAME ${basename}
-             COMMAND $<TARGET_FILE_DIR:ddx_driver_testing>/run_test.py ${basename})
+             COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/run_test.py
+                     ${basename} --exe $<TARGET_FILE:ddx_driver>)
 endfunction(ddx_add_executable_test)
 
-add_executable("ddx_driver_testing" "ddx_driver_testing.f90")
-target_include_directories("ddx_driver_testing" PUBLIC ${PROJECT_BINARY_DIR}/src)
-target_link_libraries("ddx_driver_testing" ddx)
-add_custom_command(TARGET "ddx_driver_testing" POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_CURRENT_SOURCE_DIR}/run_test.py
-            $<TARGET_FILE_DIR:ddx_driver_testing>)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/run_test.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 ddx_add_executable_test("cosmo")
 ddx_add_executable_test("cosmo_fmm")

@@ -1,10 +1,10 @@
-# Copy run_test.py to the build directory
-# (If run_test.py already has +x permission, this copy should preserve it on most OS.)
-configure_file(
+run_test_py = configure_file(
    input: 'run_test.py',
    output: 'run_test.py',
    copy: true
 )
+
+python3 = find_program('python3')
 
 # Define a list of test basenames.
 standalone_tests = [
@@ -32,25 +32,5 @@ foreach t : standalone_tests
       copy: true
    )
 
-   # Generate a small shell wrapper from meson_test_wrapper.in
-   # We replace the placeholders with the actual test name and build directory.
-   meson_test_wrapper = configure_file(
-      input: 'meson_test_wrapper.in',
-      output: t + '_wrapper.sh',
-      configuration: {
-         'BUILD_DIR': meson.project_build_root(),
-         'TESTNAME': t
-      },
-      copy: false
-   )
-
-   # Finally, register the wrapper script as a test with Meson.
-   # This call has exactly two arguments: the test name, and the wrapper "File".
-   test(t, meson_test_wrapper)
+   test(t, python3, args: [run_test_py, t, '--exe', executable_target], timeout: 240)
 endforeach
-
-ddx_driver_testing = executable('ddx_driver_testing',
-    'ddx_driver_testing.f90',
-    dependencies: [lib_deps, ddx_dep],
-    install: false
-)

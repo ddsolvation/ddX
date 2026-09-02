@@ -22,3 +22,10 @@ option(
    yield: true,
    description: 'use OpenMP parallelisation',
 )
+
+option(
+   'tests',
+   type: 'boolean',
+   value: true,
+   description: 'build the test suite',
+)

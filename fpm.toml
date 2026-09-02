@@ -68,11 +68,6 @@ name = "test_gradients"
 source-dir = "tests"
 main = "test_gradients.f90"
 
-[[executable]]
-name = "ddx_driver_testing"
-source-dir = "tests/standalone_tests"
-main = "ddx_driver_testing.f90"
-
 # tests without command arguments are declared as tests
 
 [[test]]

@@ -87,7 +87,7 @@ endif
 subdir('config')
 
 ddx_library = library(
-  'ddX',
+  'ddx',
   sources: [
     'src/ddx.f90',
     'src/cbessel.f90',
@@ -151,5 +151,7 @@ if install
   )
 endif
 
-subdir('tests')
-subdir('tests/standalone_tests')
+if get_option('tests')
+  subdir('tests')
+  subdir('tests/standalone_tests')
+endif
