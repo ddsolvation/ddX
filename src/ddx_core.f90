@@ -1502,33 +1502,55 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
 
     thigh = one + pt5*(params % se + one)*params % eta
     pot(:) = zero
-    ! loop over grid points
-    do its = 1, params % ngrid
-        ! contribution from integration point present
-        if (constants % ui(its,isph).lt.one) then
-            ! loop over neighbors of i-sphere
-            do ij = constants % inl(isph), constants % inl(isph+1)-1
-                jsph = constants % nl(ij)
-                ! compute t_n^ij = | r_i + \rho_i s_n - r_j | / \rho_j
-                vij  = params % csph(:,isph) + params % rsph(isph)* &
-                    & constants % cgrid(:,its) - params % csph(:,jsph)
-                vvij = sqrt( dot_product( vij, vij ) )
-                tij  = vvij / params % rsph(jsph)
-                ! point is INSIDE j-sphere
-                if (tij.lt.thigh) then
-                    xij = fsw(tij, params % se, params % eta)
-                    if (constants % fi(its,isph).gt.one) then
-                        oij = xij / constants % fi(its,isph)
-                    else
-                        oij = xij
+
+    if (params%switching.eq.0) then
+        ! loop over grid points
+        do its = 1, params % ngrid
+            ! contribution from integration point present
+            if (constants % ui(its,isph).lt.one) then
+                ! loop over neighbors of i-sphere
+                do ij = constants % inl(isph), constants % inl(isph+1)-1
+                    jsph = constants % nl(ij)
+                    ! compute t_n^ij = | r_i + \rho_i s_n - r_j | / \rho_j
+                    vij  = params % csph(:,isph) + params % rsph(isph)* &
+                        & constants % cgrid(:,its) - params % csph(:,jsph)
+                    vvij = sqrt( dot_product( vij, vij ) )
+                    tij  = vvij / params % rsph(jsph)
+                    ! point is INSIDE j-sphere
+                    if (tij.lt.thigh) then
+                        xij = fsw(tij, params % se, params % eta)
+                        if (constants % fi(its,isph).gt.one) then
+                            oij = xij / constants % fi(its,isph)
+                        else
+                            oij = xij
+                        end if
+                        call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
+                            & constants % vscales_rel, oij, sigma(:, jsph), one, &
+                            & pot(its), work)
                     end if
-                    call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
-                        & constants % vscales_rel, oij, sigma(:, jsph), one, &
-                        & pot(its), work)
-                end if
-            end do
-        end if
-    end do
+                end do
+            end if
+        end do
+    else
+        ! loop over grid points
+        do its = 1, params % ngrid
+            ! contribution from integration point present
+            if (constants % ui(its,isph).lt.one) then
+                ! loop over neighbors of i-sphere
+                do ij = constants % inl(isph), constants % inl(isph+1)-1
+                    jsph = constants % nl(ij)
+                    oij = compute_omega(params, constants, isph, jsph, its)
+                    if (oij.ne.zero) then
+                        vij  = params % csph(:,isph) + params % rsph(isph)* &
+                            & constants % cgrid(:,its) - params % csph(:,jsph)
+                        call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
+                            & constants % vscales_rel, oij, sigma(:, jsph), one, &
+                            & pot(its), work)
+                    end if
+                end do
+            end if
+        end do
+    end if
 end subroutine calcv
 
 !------------------------------------------------------------------------------

@@ -2221,7 +2221,7 @@ subroutine switching_init(params, constants, switching, ddx_error)
     do isph = 1, params%nsph
         do n = 1, params%ngrid
             u_ni = compute_u(params, constants, isph, n)
-            write(6,*) isph, n, u_ni, constants%ui(n, isph)
+            !write(6,*) isph, n, u_ni, constants%ui(n, isph)
             if (u_ni.ne.zero) ncav = ncav + 1
         end do
     end do
