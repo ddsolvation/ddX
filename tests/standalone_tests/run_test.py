@@ -44,7 +44,9 @@ def read_log(path):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("basename")
-parser.add_argument("--fpm", action="store_true")
+parser.add_argument("--exe", help="path to the ddx_driver executable to run")
+parser.add_argument("--fpm", action="store_true",
+                     help="invoke via 'fpm run' instead of a direct executable path")
 args = parser.parse_args()
 
 basename = args.basename
@@ -54,10 +56,11 @@ output_file = os.path.join(script_dir, basename + ".log")
 ref_file = os.path.join(script_dir, basename + ".ref")
 
 if args.fpm:
-    cmd = f"fpm run --target ddx_driver_testing -- {input_file} > {output_file}"
+    cmd = f"fpm run --target ddx_driver -- {input_file} > {output_file}"
+elif args.exe:
+    cmd = f'"{args.exe}" {input_file} > {output_file}'
 else:
-    driver = os.path.join(script_dir, "ddx_driver_testing")
-    cmd = f"{driver} {input_file} > {output_file}"
+    parser.error("either --exe PATH or --fpm must be given")
 
 status = subprocess.run(cmd, shell=True)
 if status.returncode != 0:
