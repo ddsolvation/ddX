@@ -209,7 +209,8 @@ if (diff.gt.threshold) then
     stop 1
 end if
 
-deallocate(psi, multipoles, charges, force, scratch_force, numforce, dr, numdr,&
+deallocate(psi, multipoles, charges, force, scratch_force, &
+    & numforce, dr, numdr, &
     & x, s, tmp_lx, &
     & grad_xpsi, grad_slx, grad_sphi, &
     & grad_xpsi_num, grad_slx_num, grad_sphi_num, &
