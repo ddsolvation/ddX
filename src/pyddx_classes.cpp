@@ -21,7 +21,7 @@ class Model {
         double solvent_epsilon, double solvent_kappa, double eta, double shift, int lmax,
         int n_lebedev, bool incore, int maxiter, int jacobi_n_diis, bool enable_fmm,
         int fmm_multipole_lmax, int fmm_local_lmax, int n_proc, std::string logfile,
-        bool enable_force)
+        int switching, bool enable_force)
         : m_holder(nullptr), m_model(model) {
     int model_id = 0;
     if (model == "cosmo") {
@@ -127,7 +127,7 @@ class Model {
           model_id, intforce, solvent_epsilon, solvent_kappa, eta, shift, lmax,
           n_lebedev, intincore, maxiter, jacobi_n_diis, intfmm, fmm_multipole_lmax,
           fmm_local_lmax, n_proc, n_spheres, sphere_centres.data(), sphere_radii.data(),
-          logfile.size(), logfile.c_str(), m_error);
+          logfile.size(), logfile.c_str(), switching, m_error);
     throw_if_error();
   }
 
@@ -175,6 +175,7 @@ class Model {
   }
   int fmm_local_lmax() const { return ddx_get_fmm_local_lmax(m_holder); }
   int fmm_multipole_lmax() const { return ddx_get_fmm_multipole_lmax(m_holder); }
+  int switching() const { return ddx_get_switching(m_holder); }
   double solvent_epsilon() const { return ddx_get_solvent_epsilon(m_holder); }
   double eta() const { return ddx_get_eta(m_holder); }
   double shift() const { return ddx_get_shift(m_holder); }
@@ -201,7 +202,7 @@ class Model {
           "jacobi_n_diis"_a = jacobi_n_diis(), "enable_fmm"_a = has_fmm_enabled(),
           "fmm_multipole_lmax"_a = fmm_multipole_lmax(),
           "fmm_local_lmax"_a = fmm_local_lmax(), "n_proc"_a = n_proc(),
-          "logfile"_a = logfile());
+          "logfile"_a = logfile(), "switching"_a = switching());
   }
 
   int required_phi_derivative_order(bool compute_forces) const {
@@ -645,13 +646,14 @@ void export_pyddx_classes(py::module& m) {
   py::class_<Model, std::shared_ptr<Model>>(m, "Model",
                                             "Solvation model using ddX library.")
         .def(py::init<std::string, array_f_t, array_f_t, double, double, double, double,
-                      int, int, int, int, int, bool, int, int, int, std::string, bool>(),
+                      int, int, int, int, int, bool, int, int, int, std::string, int,
+                      bool>(),
              init_docstring, "model"_a, "sphere_centres"_a, "sphere_radii"_a,
              "solvent_epsilon"_a, "solvent_kappa"_a = 0.0, "eta"_a = 0.1,
              "shift"_a = -100, "lmax"_a = 9, "n_lebedev"_a = 302, "incore"_a = false,
              "maxiter"_a = 100, "jacobi_n_diis"_a = 20, "enable_fmm"_a = true,
              "fmm_multipole_lmax"_a = 9, "fmm_local_lmax"_a = 6, "n_proc"_a = 1,
-             "logfile"_a = "", "enable_force"_a = true)
+             "logfile"_a = "", "switching"_a = 0, "enable_force"_a = true)
         //
         .def_property_readonly("has_fmm_enabled", &Model::has_fmm_enabled)
         .def_property_readonly("has_force_enabled", &Model::has_force_enabled)
@@ -666,6 +668,7 @@ void export_pyddx_classes(py::module& m) {
         .def_property_readonly("logfile", &Model::logfile)
         .def_property_readonly("fmm_local_lmax", &Model::fmm_local_lmax)
         .def_property_readonly("fmm_multipole_lmax", &Model::fmm_multipole_lmax)
+        .def_property_readonly("switching", &Model::switching)
         .def_property_readonly("solvent_epsilon", &Model::solvent_epsilon)
         .def_property_readonly("eta", &Model::eta)
         .def_property_readonly("shift", &Model::shift)

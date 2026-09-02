@@ -239,10 +239,12 @@ end subroutine ddfromfile
 !!                     far-field FMM interactions are computed, `pl` >= -1
 !! @param[in,optional] nproc: Number of OpenMP threads, nproc >= 0.
 !! @param[in,optional] logfile: file name for log information.
+!! @param[in,optional] switching: kind of switching, 0 legacy, 1 new version.
 !!
 subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
         & force, kappa, eta, shift, lmax, ngrid, incore, maxiter, &
-        & jacobi_ndiis, enable_fmm, pm, pl, nproc, logfile, adjoint, eps_int)
+        & jacobi_ndiis, enable_fmm, pm, pl, nproc, logfile, adjoint, &
+        & eps_int, switching)
 
     ! mandatory arguments
     integer, intent(in) :: model, nsph
@@ -253,7 +255,7 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
 
     ! optional arguments
     integer, intent(in), optional :: force, adjoint, lmax, ngrid, incore, &
-        & maxiter, jacobi_ndiis, enable_fmm, pm, pl, nproc
+        & maxiter, jacobi_ndiis, enable_fmm, pm, pl, nproc, switching
     real(dp), intent(in), optional :: kappa, eta, shift, eps_int
     character(len=255), intent(in), optional :: logfile
 
@@ -274,6 +276,7 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
     real(dp) :: local_shift
     real(dp) :: local_eps_int = 1.0d0
     character(len=255) :: local_logfile = ""
+    integer :: local_switching = 0
 
     ! arrays for x, y, z coordinates
     real(dp), allocatable :: x(:), y(:), z(:)
@@ -293,6 +296,7 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
     if (present(kappa)) local_kappa = kappa
     if (present(eta)) local_eta = eta
     if (present(logfile)) local_logfile = logfile
+    if (present(switching)) local_switching = switching
 
     ! for the shift eta the default value depends on the model
     ! ddCOSMO has an interal shift, ddPCM and ddLPB a symmetric shift
@@ -332,7 +336,8 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
     call allocate_model(nsph, x, y, z, radii, model, local_lmax, local_ngrid, &
         & local_force, local_enable_fmm, local_pm, local_pl, local_shift, &
         & local_eta, eps, local_kappa, local_incore, local_maxiter, &
-        & local_jacobi_ndiis, local_nproc, local_logfile, ddx_data, ddx_error)
+        & local_jacobi_ndiis, local_nproc, local_logfile, local_switching, &
+        & ddx_data, ddx_error)
 
     deallocate(x, y, z, stat=info)
     if (info.ne.0) then

@@ -108,12 +108,12 @@ z = coordinates(3, :)
 
 call allocate_model(natoms, x, y, z, radii, 1, 10, 302, 0, 0, 0, 0, 0.0d0, &
     & 0.1d0, 80.0d0, 0.104d0*tobohr, 0, 200, 25, nproc, &
-    & dummy_file_name, nofmm, ddx_error)
+    & dummy_file_name, 0, nofmm, ddx_error)
 call check_error(ddx_error)
 
 call allocate_model(natoms, x, y, z, radii,  1, 10, 302, 0, 1, 20, 20, 0.0d0, &
     & 0.1d0, 80.0d0, 0.104d0*tobohr, 0, 200, 25, nproc, &
-    & dummy_file_name, fmm, ddx_error)
+    & dummy_file_name, 0, fmm, ddx_error)
 call check_error(ddx_error)
 
 if (nofmm % constants % ncav .ne. fmm % constants % ncav) &
