@@ -330,26 +330,23 @@ end subroutine contract_gradi_Lji
 
 !> Gradient of the characteristic function U
 subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
+    implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-      integer,                        intent(in)    :: isph
-      real(dp),  dimension(params % ngrid, params % nsph), intent(in)    :: xi, phi
-      real(dp),  dimension(3),          intent(inout) :: fx
-      real(dp),  optional, intent(inout) :: dr
-      integer :: ig, ji, jsph
-      real(dp)  :: vvji, tji, fac, swthr
-      real(dp)  :: alp(3), vji(3), sji(3), dtji(3)
-      real(dp) :: dtji_rad, alp_rad
-      real(dp), external :: dnrm2
-      logical :: do_dr
-      real(dp) :: dr_local
+    integer, intent(in) :: isph
+    real(dp), dimension(params % ngrid, params % nsph), intent(in)    :: xi, phi
+    real(dp), dimension(3), intent(inout) :: fx
+    real(dp), optional, intent(inout) :: dr
+    integer :: ig, ji, jsph
+    real(dp) :: vvji, tji, fac, swthr
+    real(dp) :: alp(3), vji(3), sji(3), dtji(3)
+    real(dp) :: dtji_rad, alp_rad
+    real(dp), external :: dnrm2
+    real(dp) :: dr_local
+    real(dp) :: xi_w_v_i, d_i, f_i, xi_w_v_j, d_j, f_j, grad_p, &
+        & chi_ij, chi_ji, grad_t(3), a, vij(3), vvij, tij, sij(3), dr_t
 
-      if (present(dr)) then
-          do_dr = .true.
-      else
-          do_dr = .false.
-      end if
-
+    if (params%switching.eq.0) then
       dr_local = zero
       do ig = 1, params % ngrid
         alp = zero
@@ -379,8 +376,64 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
         dr_local = dr_local - constants % wgrid(ig)*alp_rad
 
       end do
+    else
+        fx = zero
+        dr_local = zero
+        do ig = 1, params % ngrid
+            xi_w_v_i = xi(ig,isph)*constants%wgrid(ig)*phi(ig,isph)
+            d_i = constants%switching%d_ni(ig,isph)
+            f_i = constants%switching%f_ni(ig,isph)
+            do ji = constants % inl(isph), constants % inl(isph+1) - 1
+                jsph = constants % nl(ji)
+                vji = params % csph(:,jsph) + &
+                    & params % rsph(jsph)*constants % cgrid(:,ig) - &
+                    & params % csph(:,isph)
+                vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) + vji(3)*vji(3))
+                sji = vji/vvji
+                tji = vvji/params % rsph(isph)
 
-    if (do_dr) dr = dr_local
+                vij = params % csph(:,isph) + &
+                    & params % rsph(isph)*constants % cgrid(:,ig) - &
+                    & params % csph(:,jsph)
+                vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) + vij(3)*vij(3))
+                sij = vij/vvij
+                tij = vvij/params % rsph(jsph)
+
+                swthr = one + (params % se + one)*params % eta/two
+
+                xi_w_v_j = xi(ig,jsph)*constants%wgrid(ig)*phi(ig,jsph)
+                d_j = constants%switching%d_ni(ig,jsph)
+                f_j = constants%switching%f_ni(ig,jsph)
+
+                if (tij.lt.swthr .and. tij.gt.swthr-params % eta) then
+                    ! \partial \chi_{ij} / \partial x_i
+                    grad_p = dfsw(tij, params % se, params % eta)
+                    chi_ij = fsw(tij, params % se, params % eta)
+                    grad_t = sij/params%rsph(jsph)
+                    dr_t = (constants%cgrid(1,ig)*sij(1) &
+                        & + constants%cgrid(2,ig)*sij(2) &
+                        & + constants%cgrid(3,ig)*sij(3))/params%rsph(jsph)
+                    a = xi_w_v_i/(f_i+d_i)**2*(-d_i - f_i*d_i/(one-chi_ij))*grad_p
+                    fx = fx + a*grad_t
+                    dr_local = dr_local + a*dr_t
+                end if
+
+                if (tji.lt.swthr .and. tji.gt.swthr-params % eta) then
+                    ! off-diagonal terms (neighbors of i)
+                    ! \partial \chi_{ij} / \partial x_j
+                    grad_p = dfsw(tji, params % se, params % eta)
+                    chi_ji = fsw(tji, params % se, params % eta)
+                    grad_t = -sji/params%rsph(isph)
+                    dr_t = -tji/params%rsph(isph)
+                    a = xi_w_v_j/(f_j+d_j)**2*(-d_j - f_j*d_j/(one-chi_ji))*grad_p
+                    fx = fx + a*grad_t
+                    dr_local = dr_local + a*dr_t
+                end if
+            end do
+        end do
+    end if
+
+    if (present(dr)) dr = dr_local
 end subroutine contract_grad_U
 
 !> Subroutine to compute contraction of B matrix

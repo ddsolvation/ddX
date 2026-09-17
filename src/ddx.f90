@@ -22,13 +22,14 @@ contains
 !! @param[out] charges: charge array, size(nsph)
 !! @param[inout] ddx_error: ddX error
 !!
-subroutine ddfromfile(fname, ddx_data, tol, charges, ddx_error)
+subroutine ddfromfile(fname, ddx_data, tol, charges, ddx_error, switching)
     implicit none
     character(len=*), intent(in) :: fname
     type(ddx_type), intent(out) :: ddx_data
-    type(ddx_error_type), intent(inout) :: ddx_error
     real(dp), intent(out) :: tol
     real(dp), allocatable, intent(out) :: charges(:)
+    type(ddx_error_type), intent(inout) :: ddx_error
+    integer, intent(in), optional :: switching
     ! Local variables
     integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
         & nsph, i, matvecmem, maxiter, jacobi_ndiis, &
@@ -36,6 +37,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, ddx_error)
     real(dp) :: eps, se, eta, kappa
     real(dp), allocatable :: csph(:, :), radii(:)
     character(len=255) :: output_filename
+    integer :: local_switching
     !! Read all the parameters from the file
     ! Open a configuration file
     open(unit=100, file=fname, form='formatted', access='sequential')
@@ -183,12 +185,15 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, ddx_error)
     ! adjust ngrid
     call closest_supported_lebedev_grid(ngrid)
 
+    local_switching = 0
+    if (present(switching)) local_switching = switching
+
     !! Initialize ddx_data object
     call ddinit(model, nsph, csph, radii, eps, ddx_data, ddx_error, &
         & force=force, kappa=kappa, eta=eta, shift=se, lmax=lmax, &
         & ngrid=ngrid, incore=matvecmem, maxiter=maxiter, &
         & jacobi_ndiis=jacobi_ndiis, enable_fmm=fmm, pm=pm, pl=pl, &
-        & nproc=nproc, logfile=output_filename)
+        & nproc=nproc, logfile=output_filename, switching=local_switching)
 
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, "ddinit returned an error, exiting")
