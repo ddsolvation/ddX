@@ -388,14 +388,16 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
                 vji = params % csph(:,jsph) + &
                     & params % rsph(jsph)*constants % cgrid(:,ig) - &
                     & params % csph(:,isph)
-                vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) + vji(3)*vji(3))
+                vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) &
+                    & + vji(3)*vji(3))
                 sji = vji/vvji
                 tji = vvji/params % rsph(isph)
 
                 vij = params % csph(:,isph) + &
                     & params % rsph(isph)*constants % cgrid(:,ig) - &
                     & params % csph(:,jsph)
-                vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) + vij(3)*vij(3))
+                vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) &
+                    & + vij(3)*vij(3))
                 sij = vij/vvij
                 tij = vvij/params % rsph(jsph)
 
@@ -412,8 +414,10 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
                     grad_t = sij/params%rsph(jsph)
                     dr_t = (constants%cgrid(1,ig)*sij(1) &
                         & + constants%cgrid(2,ig)*sij(2) &
-                        & + constants%cgrid(3,ig)*sij(3))/params%rsph(jsph)
-                    a = xi_w_v_i/(f_i+d_i)**2*(-d_i - f_i*d_i/(one-chi_ij))*grad_p
+                        & + constants%cgrid(3,ig)*sij(3)) &
+                        & /params%rsph(jsph)
+                    a = xi_w_v_i/(f_i+d_i)**2 &
+                        & *(-d_i - f_i*d_i/(one-chi_ij))*grad_p
                     fx = fx + a*grad_t
                     dr_local = dr_local + a*dr_t
                 end if
@@ -425,7 +429,8 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
                     chi_ji = fsw(tji, params % se, params % eta)
                     grad_t = -sji/params%rsph(isph)
                     dr_t = -tji/params%rsph(isph)
-                    a = xi_w_v_j/(f_j+d_j)**2*(-d_j - f_j*d_j/(one-chi_ji))*grad_p
+                    a = xi_w_v_j/(f_j+d_j)**2 &
+                        & *(-d_j - f_j*d_j/(one-chi_ji))*grad_p
                     fx = fx + a*grad_t
                     dr_local = dr_local + a*dr_t
                 end if
