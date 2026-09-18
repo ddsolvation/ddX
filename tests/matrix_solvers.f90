@@ -90,7 +90,8 @@ subroutine test_solve(ddx_data, state, matvecmem, esolv, charges)
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, matvecmem,&
         & ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, dummy_file_name, ddx_data2, error2)
+        & ddx_data % params % nproc, dummy_file_name, &
+        & ddx_data % params % switching, ddx_data2, error2)
 
     allocate(phi_cav2(ddx_data2 % constants % ncav), &
             & gradphi_cav2(3, ddx_data2 % constants % ncav), &

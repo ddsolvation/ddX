@@ -102,7 +102,7 @@ subroutine test_solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, &
         & ddx_data % params % matvecmem, ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, dummy_file_name, ddx_data2, error2)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data % params % switching, ddx_data2, error2)
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
         & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
     call ddsolve_legacy(ddx_data2, state, phi_cav, -gradphi_cav, hessianphi_cav, psi, tol, esolv, &

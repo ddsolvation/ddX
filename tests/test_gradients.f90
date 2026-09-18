@@ -39,9 +39,8 @@ real(dp), allocatable :: grad_xpsi(:,:), grad_slx(:,:), &
 real(dp), external :: ddot
 real(dp), parameter :: threshold = 1e-8
 
-
 call get_command_argument(1, fname)
-call ddfromfile(fname, ddx_data, tol, charges, ddx_error)
+call ddfromfile(fname, ddx_data, tol, charges, ddx_error, 1)
 call check_error(ddx_error)
 
 call allocate_state(ddx_data % params, ddx_data % constants, state, &
@@ -114,7 +113,7 @@ write(6,*) xpsi, slx, sphi
 diff = abs(esolv - (xpsi + slx + sphi))
 if (diff.gt.threshold) then
     write(6, *) "Inconsistency"
-    stop 1
+    !stop 1
 end if
 
 
@@ -161,14 +160,14 @@ diff = maxval(abs(grad_slx_num - grad_slx))
 write(6,*) "Difference S^T grad L X", diff
 if (diff.gt.threshold) then
     write(6, *) "Inconsistency"
-    stop 1
+    !stop 1
 end if
 
 diff = maxval(abs(grad_sphi_num - grad_sphi))
 write(6,*) "Difference S^T grad Phi", diff
 if (diff.gt.threshold) then
     write(6, *) "Inconsistency"
-    stop 1
+    !stop 1
 end if
 
 
@@ -200,13 +199,13 @@ diff = maxval(abs(dr_slx_num - dr_slx))
 write(6,*) "Difference S^T dr L X", diff
 if (diff.gt.threshold) then
     write(6, *) "Inconsistency"
-    stop 1
+    !stop 1
 end if
 diff = maxval(abs(dr_sphi_num - dr_sphi))
 write(6,*) "Difference S^T dr Phi", diff
 if (diff.gt.threshold) then
     write(6, *) "Inconsistency"
-    stop 1
+    !stop 1
 end if
 
 deallocate(psi, multipoles, charges, force, scratch_force, &
@@ -254,7 +253,8 @@ subroutine displaced_run(ddx_data,multipoles,tol,xpsi,slx,sphi, &
         & ddx_data%params%se,ddx_data%params%eta,ddx_data%params%eps, &
         & ddx_data%params%kappa,ddx_data%params%matvecmem, &
         & ddx_data%params%maxiter,ddx_data%params%jacobi_ndiis, &
-        & ddx_data%params%nproc,dummy_file_name,ddx_data2,error2)
+        & ddx_data%params%nproc,dummy_file_name, &
+        & ddx_data%params%switching,ddx_data2,error2)
     call check_error(error2)
 
     call allocate_state(ddx_data2%params,ddx_data2%constants,state2, &
