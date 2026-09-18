@@ -14,6 +14,7 @@ use ddx_core
 !
 contains
 
+
 !> Compute the gradients of the ddCOSMO matrix
 subroutine contract_grad_L(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx, dr)
 type(ddx_params_type), intent(in) :: params
@@ -38,12 +39,171 @@ type(ddx_params_type), intent(in) :: params
 
       dr_local = zero
 
-      call contract_gradi_Lik(params, constants, isph, sigma, xi(:, isph), basloc, dbsloc, vplm, vcos, vsin, fx, dr_local)
-      call contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx, dr_local)
+      if (params%switching.eq.0) then
+          call contract_gradi_Lik(params, constants, isph, sigma, xi(:, isph), basloc, dbsloc, vplm, vcos, vsin, fx, dr_local)
+          call contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx, dr_local)
+      else
+          call contract_grad_L_new(params, constants, isph, sigma, xi, &
+              & basloc, dbsloc, vplm, vcos, vsin, fx, dr_local)
+      end if
 
       if (do_dr) dr = dr_local
 
 end subroutine contract_grad_L
+
+subroutine contract_grad_L_new(params, constants, isph, x, xi, &
+        & basloc, dbsloc, vplm, vcos, vsin, fx, dr)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(params % ngrid, params % nsph), intent(in) :: xi
+    real(dp), dimension(3), intent(inout) :: fx
+    real(dp), intent(inout) :: dr
+    ! passed scratch TODO: find a better solution
+    real(dp), dimension(constants % nbasis), intent(inout) :: basloc, vplm
+    real(dp), dimension(3, constants % nbasis), intent(inout) :: dbsloc
+    real(dp), dimension(params % lmax+1), intent(inout) :: vcos, vsin
+    ! local variables
+    real(dp) :: tlow, thigh
+    integer :: ig, ij, ji, jsph, icomp, jcomp, l, m, ind
+    real(dp) :: vij(3), vvij, sij(3), tij, oij, qij, grad_tij(3)
+    real(dp) :: vji(3), vvji, sji(3), tji, oji, qji, grad_tji(3)
+    real(dp) :: t, fl, a, b, c, d1, d2, tmp_fx(3), sjac_dylm(3), sjac(3,3)
+
+    tlow  = one - pt5*(one - params % se)*params % eta
+    thigh = one + pt5*(one + params % se)*params % eta
+
+    do ig = 1, params % ngrid
+        do ij = constants % inl(isph), constants % inl(isph+1) - 1
+            jsph = constants % nl(ij)
+
+            ! compute the geometrical quantites required
+            oij = compute_omega(params, constants, isph, jsph, ig)
+            if (oij.eq.zero) cycle
+            vij = params % csph(:,isph) + &
+                & params % rsph(isph)*constants % cgrid(:,ig) - &
+                & params % csph(:,jsph)
+            vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) + vij(3)*vij(3))
+            tij = vvij/params % rsph(jsph)
+            sij = vij/vvij
+
+            ! computed the differentiated geometrical quantities
+            grad_tij(:) = sij(:)/params%rsph(jsph)
+
+            sjac = zero
+            sjac(1,1) = one
+            sjac(2,2) = one
+            sjac(3,3) = one
+            qij = one/vvij
+            do icomp = 1, 3
+                do jcomp = 1, 3
+                sjac(icomp,jcomp) = qij*(sjac(icomp,jcomp) &
+                    & - sij(icomp)*sij(jcomp))
+                end do
+            end do
+
+            ! compute the basis of spherical harmonics and its gradient
+            call dbasis(params, constants, sij, basloc, dbsloc, vplm, &
+                & vcos, vsin)
+
+            ! accumulate the derivative
+            a = xi(ig,isph)*constants%wgrid(ig)*oij
+            t = one
+            tmp_fx(:) = zero
+            do l = 1, params % lmax
+                ind = l*l + l + 1
+                fl = dble(l)
+                b = a*fourpi/(two*fl + one)*t
+                do m = -l, l
+                    ! product of the jacobian with the spherical
+                    ! harmonics gradient
+                    sjac_dylm(1) = sjac(1,1)*dbsloc(1,ind+m) + &
+                        & sjac(1,2)*dbsloc(2,ind+m)+sjac(1,3) &
+                        & *dbsloc(3,ind+m)
+                    sjac_dylm(2) = sjac(2,1)*dbsloc(1,ind+m) + &
+                        & sjac(2,2)*dbsloc(2,ind+m)+sjac(2,3)* &
+                        & dbsloc(3,ind+m)
+                    sjac_dylm(3) = sjac(3,1)*dbsloc(1,ind+m) + &
+                        & sjac(3,2)*dbsloc(2,ind+m)+sjac(3,3) &
+                        & *dbsloc(3,ind+m)
+
+                    c = b*x(ind+m,jsph)
+                    d1 = c*fl*basloc(ind+m)
+                    d2 = c*tij
+                    tmp_fx(:) = tmp_fx(:) &
+                        & - c*fl*basloc(ind+m)*grad_tij(:) &
+                        & - c*tij*sjac_dylm(:)
+                end do
+                t = t*tij
+            end do
+            fx(:) = fx(:) + tmp_fx(:)
+        end do
+    end do
+
+    do ig = 1, params % ngrid
+        do ji = constants % inl(isph), constants % inl(isph+1) - 1
+            jsph = constants % nl(ji)
+
+            ! compute the geometrical quantites required
+            oji = compute_omega(params, constants, jsph, isph, ig)
+            if (oji.eq.zero) cycle
+            vji  = params % csph(:,jsph) + &
+                & params % rsph(jsph)*constants % cgrid(:,ig) - &
+                & params % csph(:,isph)
+            vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) + vji(3)*vji(3))
+            tji = vvji/params % rsph(isph)
+            sji = vji/vvji
+
+            ! computed the differentiated geometrical quantities
+            grad_tji(:) = -sji/params % rsph(isph)
+            sjac = zero
+            sjac(1,1) = - one
+            sjac(2,2) = - one
+            sjac(3,3) = - one
+            qji = one/vvji
+            do icomp = 1, 3
+                do jcomp = 1, 3
+                    sjac(icomp,jcomp) = qji*(sjac(icomp,jcomp) &
+                        & + sji(icomp)*sji(jcomp))
+                end do
+            end do
+
+            ! compute the basis of spherical harmonics and its gradient
+            call dbasis(params, constants, sji, basloc, dbsloc, vplm, &
+                & vcos, vsin)
+
+            ! accumulate the derivative
+            a = xi(ig,jsph)*constants%wgrid(ig)*oji
+            t = one
+            tmp_fx(:) = zero
+            do l = 1, params % lmax
+                ind = l*l + l + 1
+                fl = dble(l)
+                b = a*fourpi/(two*fl + one)*t
+                do m = -l, l
+                    sjac_dylm(1) = sjac(1,1)*dbsloc(1,ind+m) + &
+                        & sjac(1,2)*dbsloc(2,ind+m)+sjac(1,3)*dbsloc(3,ind+m)
+                    sjac_dylm(2) = sjac(2,1)*dbsloc(1,ind+m) + &
+                        & sjac(2,2)*dbsloc(2,ind+m)+sjac(2,3)*dbsloc(3,ind+m)
+                    sjac_dylm(3) = sjac(3,1)*dbsloc(1,ind+m) + &
+                        & sjac(3,2)*dbsloc(2,ind+m)+sjac(3,3)*dbsloc(3,ind+m)
+
+                    c = b*x(ind+m,isph)
+                    d1 = c*fl*basloc(ind+m)
+                    d2 = c*tji
+                    tmp_fx(:) = tmp_fx(:) &
+                        & - c*fl*basloc(ind+m)*grad_tji(:) &
+                        & - c*tji*sjac_dylm(:)
+                end do
+                t = t*tji
+            end do
+            fx(:) = fx(:) + tmp_fx(:)
+        end do
+    end do
+
+end subroutine contract_grad_L_new
 
 !> Contribution to the gradients of the ddCOSMO matrix
 subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx, dr)
@@ -408,6 +568,7 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
                 f_j = constants%switching%f_ni(ig,jsph)
 
                 if (tij.lt.swthr .and. tij.gt.swthr-params % eta) then
+                    ! diagonal terms (i with its neighbors j)
                     ! \partial \chi_{ij} / \partial x_i
                     grad_p = dfsw(tij, params % se, params % eta)
                     chi_ij = fsw(tij, params % se, params % eta)
