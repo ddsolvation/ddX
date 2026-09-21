@@ -68,9 +68,12 @@ subroutine contract_grad_L_new(params, constants, isph, x, xi, &
     ! local variables
     real(dp) :: tlow, thigh
     integer :: ig, ij, ji, jsph, icomp, jcomp, l, m, ind
-    real(dp) :: vij(3), vvij, sij(3), tij, oij, qij, grad_tij(3)
-    real(dp) :: vji(3), vvji, sji(3), tji, oji, qji, grad_tji(3)
-    real(dp) :: t, fl, a, b, c, d1, d2, tmp_fx(3), sjac_dylm(3), sjac(3,3)
+    real(dp) :: vij(3), vvij, sij(3), tij, oij, qij, grad_tij(3), &
+        & dr_sij(3), dr_tij
+    real(dp) :: vji(3), vvji, sji(3), tji, oji, qji, grad_tji(3), &
+        & dr_sji(3), dr_tji
+    real(dp) :: t, fl, a, b, c, d1, d2, e, tmp_fx(3), sjac_dylm(3), &
+        & sjac(3,3), tmp_dr, dr_s_dylm
 
     tlow  = one - pt5*(one - params % se)*params % eta
     thigh = one + pt5*(one + params % se)*params % eta
@@ -90,8 +93,8 @@ subroutine contract_grad_L_new(params, constants, isph, x, xi, &
             sij = vij/vvij
 
             ! computed the differentiated geometrical quantities
+            ! wrt the nuclear position
             grad_tij(:) = sij(:)/params%rsph(jsph)
-
             sjac = zero
             sjac(1,1) = one
             sjac(2,2) = one
@@ -104,20 +107,30 @@ subroutine contract_grad_L_new(params, constants, isph, x, xi, &
                 end do
             end do
 
+            ! computed the differentiated geometrical quantities
+            ! wrt the radius
+            dr_sij = constants%cgrid(:,ig)/vvij &
+               & - vij*dot_product(vij, constants%cgrid(:,ig))/(vvij**3)
+            dr_tij = dot_product(vij, constants%cgrid(:,ig)) &
+                & /(vvij*params%rsph(jsph))
+
             ! compute the basis of spherical harmonics and its gradient
             call dbasis(params, constants, sij, basloc, dbsloc, vplm, &
                 & vcos, vsin)
 
             ! accumulate the derivative
+            e = zero
             a = xi(ig,isph)*constants%wgrid(ig)*oij
             t = one
             tmp_fx(:) = zero
+            tmp_dr = zero
             do l = 1, params % lmax
                 ind = l*l + l + 1
                 fl = dble(l)
                 b = a*fourpi/(two*fl + one)*t
                 do m = -l, l
-                    ! product of the jacobian with the spherical
+
+                    ! product of the jacobian of sij with the spherical
                     ! harmonics gradient
                     sjac_dylm(1) = sjac(1,1)*dbsloc(1,ind+m) + &
                         & sjac(1,2)*dbsloc(2,ind+m)+sjac(1,3) &
@@ -129,16 +142,32 @@ subroutine contract_grad_L_new(params, constants, isph, x, xi, &
                         & sjac(3,2)*dbsloc(2,ind+m)+sjac(3,3) &
                         & *dbsloc(3,ind+m)
 
+                    ! product of the radial derivative of sij
+                    ! with the spherical harmonics gradient
+                    dr_s_dylm = dr_sij(1)*dbsloc(1,ind+m) &
+                        & + dr_sij(2)*dbsloc(2,ind+m) &
+                        & + dr_sij(3)*dbsloc(3,ind+m)
+
                     c = b*x(ind+m,jsph)
                     d1 = c*fl*basloc(ind+m)
                     d2 = c*tij
                     tmp_fx(:) = tmp_fx(:) &
                         & - c*fl*basloc(ind+m)*grad_tij(:) &
                         & - c*tij*sjac_dylm(:)
+                    dr = dr - c*fl*basloc(ind+m)*dr_tij &
+                        & - c*tij*dr_s_dylm
+                    e = e + d2
                 end do
                 t = t*tij
             end do
             fx(:) = fx(:) + tmp_fx(:)
+            dr = dr + tmp_dr
+            e = e/oij
+
+            ! add the switching derivative for the ij case
+            if (tij.ge.tlow .and. tij.le.thigh) then
+                continue
+            end if
         end do
     end do
 
@@ -157,6 +186,7 @@ subroutine contract_grad_L_new(params, constants, isph, x, xi, &
             sji = vji/vvji
 
             ! computed the differentiated geometrical quantities
+            ! wrt the nuclear position
             grad_tji(:) = -sji/params % rsph(isph)
             sjac = zero
             sjac(1,1) = - one
@@ -170,6 +200,11 @@ subroutine contract_grad_L_new(params, constants, isph, x, xi, &
                 end do
             end do
 
+            ! computed the differentiated geometrical quantities
+            ! wrt the radius
+            dr_sji = zero
+            dr_tji = -tji/params%rsph(isph)
+
             ! compute the basis of spherical harmonics and its gradient
             call dbasis(params, constants, sji, basloc, dbsloc, vplm, &
                 & vcos, vsin)
@@ -178,11 +213,15 @@ subroutine contract_grad_L_new(params, constants, isph, x, xi, &
             a = xi(ig,jsph)*constants%wgrid(ig)*oji
             t = one
             tmp_fx(:) = zero
+            tmp_dr = zero
             do l = 1, params % lmax
                 ind = l*l + l + 1
                 fl = dble(l)
                 b = a*fourpi/(two*fl + one)*t
                 do m = -l, l
+
+                    ! product of the jacobian of sji with the spherical
+                    ! harmonics gradient
                     sjac_dylm(1) = sjac(1,1)*dbsloc(1,ind+m) + &
                         & sjac(1,2)*dbsloc(2,ind+m)+sjac(1,3)*dbsloc(3,ind+m)
                     sjac_dylm(2) = sjac(2,1)*dbsloc(1,ind+m) + &
@@ -190,16 +229,25 @@ subroutine contract_grad_L_new(params, constants, isph, x, xi, &
                     sjac_dylm(3) = sjac(3,1)*dbsloc(1,ind+m) + &
                         & sjac(3,2)*dbsloc(2,ind+m)+sjac(3,3)*dbsloc(3,ind+m)
 
+                    ! product of the radial derivative of sji
+                    ! with the spherical harmonics gradient
+                    dr_s_dylm = dr_sji(1)*dbsloc(1,ind+m) &
+                        & + dr_sji(2)*dbsloc(2,ind+m) &
+                        & + dr_sji(3)*dbsloc(3,ind+m)
+
                     c = b*x(ind+m,isph)
                     d1 = c*fl*basloc(ind+m)
                     d2 = c*tji
                     tmp_fx(:) = tmp_fx(:) &
                         & - c*fl*basloc(ind+m)*grad_tji(:) &
                         & - c*tji*sjac_dylm(:)
+                    tmp_dr = tmp_dr - c*fl*basloc(ind+m)*dr_tji &
+                        & - c*tji*dr_s_dylm
                 end do
                 t = t*tji
             end do
             fx(:) = fx(:) + tmp_fx(:)
+            dr = dr + tmp_dr
         end do
     end do
 
