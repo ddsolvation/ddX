@@ -1,6 +1,7 @@
 # Define common source files
 set(SRC
     ddx_definitions.f90
+    ddx_defaults.f90
     ddx_errors.f90
     ddx_parameters.f90
     ddx_constants.f90
@@ -15,6 +16,7 @@ set(SRC
     ddx_pcm.f90
     ddx_lpb.f90
     ddx.f90
+    ddx_input.f90
     ddx_legacy.f90
     ddx_multipolar_solutes.f90
     llgnew.f

@@ -14,6 +14,7 @@
 !! relevant steps are here outlined.
 program main
 use ddx
+use ddx_input
 use ddx_multipolar_solutes
 use omp_lib
 implicit none

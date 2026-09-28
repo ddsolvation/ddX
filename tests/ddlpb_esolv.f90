@@ -7,7 +7,7 @@
 !! values of input parameter
 !! NOTE: This test is not a definitive test. If the values are different
 !!       maybe the new ones are correct as they might be improved values.
-!!       But, the default values should be used as a benchmark
+!!       But, the default_test values should be used as a benchmark
 !!
 !! @version 1.0.0
 !! @author Abhinav Jha
@@ -20,18 +20,19 @@ use ddx_solvers
 use ddx_lpb
 use ddx_legacy
 use ddx
+use ddx_input
 implicit none
 
 character(len=255) :: fname
 type(ddx_type) :: ddx_data
 type(ddx_error_type) :: error
 
-real(dp) :: esolv, default_value, tol
-integer :: i, istatus, default_lmax_val, n_iter
-real(dp), allocatable :: default_epsilon(:), default_eta(:), &
-                       & default_kappa(:), default_lmax(:)
-integer, allocatable :: default_iter_epsilon(:), default_iter_eta(:), &
-                       & default_iter_kappa(:), default_iter_lmax(:)
+real(dp) :: esolv, default_test_value, tol
+integer :: i, istatus, default_test_lmax_val, n_iter
+real(dp), allocatable :: default_test_epsilon(:), default_test_eta(:), &
+                       & default_test_kappa(:), default_test_lmax(:)
+integer, allocatable :: default_test_iter_epsilon(:), default_test_iter_eta(:), &
+                       & default_test_iter_kappa(:), default_test_iter_lmax(:)
 real(dp), allocatable :: charges(:)
 
 real(dp), external :: dnrm2
@@ -44,59 +45,59 @@ call ddfromfile(fname, ddx_data, tol, charges, error)
 call check_error(error)
 
 ! Allocation for variable vectors
-! default_"variable_name" : These are the precomputed values
+! default_test_"variable_name" : These are the precomputed values
 ! computed_"variable_name" : These are the computed values
-allocate(default_epsilon(4), default_eta(4), &
-       & default_kappa(4), default_lmax(4), &
-       & default_iter_epsilon(4), default_iter_eta(4), &
-       & default_iter_kappa(4), default_iter_lmax(4), stat=istatus)
+allocate(default_test_epsilon(4), default_test_eta(4), &
+       & default_test_kappa(4), default_test_lmax(4), &
+       & default_test_iter_epsilon(4), default_test_iter_eta(4), &
+       & default_test_iter_kappa(4), default_test_iter_lmax(4), stat=istatus)
 
 if (istatus.ne.0) write(6,*) 'Allocation failed'
 
-!Default values precomputed
+!default_test values precomputed
 !epsilon_solv : 2, 20, 200, 2000
 
-default_epsilon = (/ -5.3280230267698165E-004, -9.7406452041931936E-004, &
+default_test_epsilon = (/ -5.3280230267698165E-004, -9.7406452041931936E-004, &
                    & -1.0243211234919017E-003, -1.0294180585685288E-003 /)
 
 ! obsolete case: lmax0 = min(6, lmax), ngrid ~ 200
-! default_epsilon = (/ -5.3518110117345332E-004, -9.7393853923451006E-004, &
+! default_test_epsilon = (/ -5.3518110117345332E-004, -9.7393853923451006E-004, &
 !                    & -1.0237954253809903E-003, -1.0288501533655906E-003 /)
 
 !eta : 0.0001, 0.001, 0.01, 0.1
-default_eta = (/ -1.0151699327713233E-003, -1.0152224349631500E-003, &
+default_test_eta = (/ -1.0151699327713233E-003, -1.0152224349631500E-003, &
                & -1.0153111171958898E-003, -1.0155598899696948E-003 /)
 
 ! obsolete case: lmax0 = min(6, lmax), ngrid ~ 200
-! default_eta = (/ -1.0144763156304426E-003, -1.0144763156304426E-003, &
+! default_test_eta = (/ -1.0144763156304426E-003, -1.0144763156304426E-003, &
 !                & -1.0144761325115853E-003, -1.0151060052969220E-003 /)
 
 !kappa : 0.5, 0.25, 0.16667, 0.125
-default_kappa = (/ -1.0233753433615445E-003, -1.0197139938641997E-003, &
+default_test_kappa = (/ -1.0233753433615445E-003, -1.0197139938641997E-003, &
                  & -1.0175938367002952E-003, -1.0162805489436332E-003 /)
 
 ! obsolete case: lmax0 = min(6, lmax), ngrid ~ 200
-! default_kappa = (/ -1.0228739915625511E-003, -1.0192321310712657E-003,&
+! default_test_kappa = (/ -1.0228739915625511E-003, -1.0192321310712657E-003,&
 !                  & -1.0171251065945882E-003, -1.0158211256043079E-003 /)
 
 !lmax : 2, 4, 8, 16
-default_lmax = (/ -1.0000499299268406E-003, -1.0131496803324205E-003, &
+default_test_lmax = (/ -1.0000499299268406E-003, -1.0131496803324205E-003, &
                 & -1.0163417969913872E-003, -1.0180392518042718E-003 /)
 
 ! obsolete case: lmax0 = min(6, lmax), ngrid ~ 200
-! default_lmax = (/ -9.9977268971430206E-004, -1.0128441259120659E-003, &
+! default_test_lmax = (/ -9.9977268971430206E-004, -1.0128441259120659E-003, &
 !               & -1.0157913843224611E-003, -1.0177420746553952E-003 /)
 
-!Default values precomputed
+!default_test values precomputed
 !epsilon_solv : 2, 20, 200, 2000
-default_iter_epsilon = (/ 7, 8, 7, 7 /)
+default_test_iter_epsilon = (/ 7, 8, 7, 7 /)
 
 !eta : 0.0001, 0.001, 0.01, 0.1
-default_iter_eta = (/ 8, 8, 8, 8 /)
+default_test_iter_eta = (/ 8, 8, 8, 8 /)
 !kappa : 0.5, 0.25, 0.16667, 0.125
-default_iter_kappa = (/ 7, 7, 8, 8 /)
+default_test_iter_kappa = (/ 7, 7, 8, 8 /)
 !lmax : 2, 4, 8, 16
-default_iter_lmax = (/ 7, 7, 8, 8 /)
+default_test_iter_lmax = (/ 7, 7, 8, 8 /)
 
 ! Initial values
 esolv = zero
@@ -104,60 +105,60 @@ n_iter = zero
 ! Computation for different eps_solv
 write(*,*) 'Varying values of epsilon_solv'
 do i = 1, 4
-  default_value = 0.2*(10**i)
-  write(*,*) 'epsilon_solv : ', default_value
+  default_test_value = 0.2*(10**i)
+  write(*,*) 'epsilon_solv : ', default_test_value
   esolv = zero
-  call test_solve(ddx_data, esolv, n_iter, default_value, &
+  call test_solve(ddx_data, esolv, n_iter, default_test_value, &
            & ddx_data % params % eta, ddx_data % params % kappa, &
            & ddx_data % params % lmax, tol, charges)
-  call check_values(default_epsilon(i), esolv)
-  call check_iter_values(default_iter_epsilon(i), n_iter)
+  call check_values(default_test_epsilon(i), esolv)
+  call check_iter_values(default_test_iter_epsilon(i), n_iter)
 end do
 
 
 ! Computation for different eta
 write(*,*) 'Varying values of eta'
 do i = 1, 4
-  default_value = 0.00001*(10**i)
-  write(*,*) 'eta : ', default_value
+  default_test_value = 0.00001*(10**i)
+  write(*,*) 'eta : ', default_test_value
   esolv = zero
   call test_solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
-           & default_value, ddx_data % params % kappa, &
+           & default_test_value, ddx_data % params % kappa, &
            & ddx_data % params % lmax, tol, charges)
-  call check_values(default_eta(i), esolv)
-  call check_iter_values(default_iter_eta(i), n_iter)
+  call check_values(default_test_eta(i), esolv)
+  call check_iter_values(default_test_iter_eta(i), n_iter)
 end do
 
 ! Computation for different kappa
 write(*,*) 'Varying values of kappa'
 do i = 1, 4
-  default_value = 1.0/(2.0*i)
-  write(*,*) 'kappa : ', default_value
+  default_test_value = 1.0/(2.0*i)
+  write(*,*) 'kappa : ', default_test_value
   esolv = zero
   call test_solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
-           & ddx_data % params % eta, default_value, &
+           & ddx_data % params % eta, default_test_value, &
            & ddx_data % params % lmax, tol, charges)
-  call check_values(default_kappa(i), esolv)
-  call check_iter_values(default_iter_kappa(i), n_iter)
+  call check_values(default_test_kappa(i), esolv)
+  call check_iter_values(default_test_iter_kappa(i), n_iter)
 end do
 
 ! Computation for different lmax
 write(*,*) 'Varying values of lmax'
 do i = 1, 4
-  default_lmax_val = 2**i
-  write(*,*) 'lmax : ', default_lmax_val
+  default_test_lmax_val = 2**i
+  write(*,*) 'lmax : ', default_test_lmax_val
   esolv = zero
   call test_solve(ddx_data, esolv, n_iter, ddx_data % params % eps, &
            & ddx_data % params % eta, &
-           & ddx_data % params % kappa, default_lmax_val, tol, charges)
-  call check_values(default_lmax(i), esolv)
-  call check_iter_values(default_iter_lmax(i), n_iter)
+           & ddx_data % params % kappa, default_test_lmax_val, tol, charges)
+  call check_values(default_test_lmax(i), esolv)
+  call check_iter_values(default_test_iter_lmax(i), n_iter)
 end do
 
-deallocate(default_epsilon, default_eta, &
-       & default_kappa, default_lmax, &
-       & default_iter_epsilon, default_iter_eta, &
-       & default_iter_kappa, default_iter_lmax, charges, stat = istatus)
+deallocate(default_test_epsilon, default_test_eta, &
+       & default_test_kappa, default_test_lmax, &
+       & default_test_iter_epsilon, default_test_iter_eta, &
+       & default_test_iter_kappa, default_test_iter_lmax, charges, stat = istatus)
 
 if (istatus.ne.0) write(6,*) 'Deallocation failed'
 
@@ -224,23 +225,23 @@ subroutine test_solve(ddx_data, esolv_in, n_iter, epsilon_solv, eta, kappa, lmax
     call deallocate_model(ddx_data2, error2)
 end subroutine test_solve
 
-! This subroutine checks if the default and computed values are same
-subroutine check_values(default_value, computed_value)
-    real(dp), intent(in) :: default_value
+! This subroutine checks if the default_test and computed values are same
+subroutine check_values(default_test_value, computed_value)
+    real(dp), intent(in) :: default_test_value
     real(dp), intent(in) :: computed_value
-    if(abs(default_value - computed_value) .gt. 1d-9) then
-      write(*,*) 'Issue in value, default : ', default_value, ', computed : ',&
+    if(abs(default_test_value - computed_value) .gt. 1d-9) then
+      write(*,*) 'Issue in value, default_test : ', default_test_value, ', computed : ',&
                 & computed_value
       stop 1
     endif
 end subroutine check_values
 
-! This subroutine checks if the default and computed values are same
-subroutine check_iter_values(default_value, computed_value)
-    integer, intent(in) :: default_value
+! This subroutine checks if the default_test and computed values are same
+subroutine check_iter_values(default_test_value, computed_value)
+    integer, intent(in) :: default_test_value
     integer, intent(in) :: computed_value
-    if(default_value .ne. computed_value) then
-      write(*,*) 'Issue in iterative value, default : ', default_value, ', computed : ',&
+    if(default_test_value .ne. computed_value) then
+      write(*,*) 'Issue in iterative value, default_test : ', default_test_value, ', computed : ',&
                 & computed_value
       stop 1
     endif

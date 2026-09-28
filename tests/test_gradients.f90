@@ -15,7 +15,7 @@
 program test_gradients
 use ddx
 use ddx_multipolar_solutes
-use omp_lib
+use ddx_input
 implicit none
 
 real(dp), parameter :: step = 1d-6
@@ -40,7 +40,7 @@ real(dp), external :: ddot
 real(dp), parameter :: threshold = 1e-8
 
 call get_command_argument(1, fname)
-call ddfromfile(fname, ddx_data, tol, charges, ddx_error, 1)
+call ddfromfile(fname, ddx_data, tol, charges, ddx_error)
 call check_error(ddx_error)
 
 call allocate_state(ddx_data % params, ddx_data % constants, state, &

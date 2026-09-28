@@ -15,6 +15,7 @@ use ddx_operators
 use ddx_solvers
 use ddx
 use ddx_legacy
+use ddx_input
 implicit none
 
 character(len=255) :: finname, foutname, tmpstr
