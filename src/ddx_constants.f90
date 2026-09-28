@@ -2360,8 +2360,6 @@ real(dp) function compute_omega(params, constants, isph, jsph, n)
     real(dp) :: chi_nij, d_ni, f_ni
 
     chi_nij = compute_chi(params, constants, isph, jsph, n)
-    d_ni = compute_d(params, constants, isph, n)
-    f_ni = compute_f(params, constants, isph, n)
     d_ni = constants%switching%d_ni(n, isph)
     f_ni = constants%switching%f_ni(n, isph)
     compute_omega = chi_nij/(d_ni + f_ni)

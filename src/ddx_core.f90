@@ -1498,7 +1498,7 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
 
     integer :: its, ij, jsph
     real(dp) :: vij(3)
-    real(dp) :: vvij, tij, xij, oij, thigh
+    real(dp) :: vvij, tij, xij, oij, thigh, d_i, f_i
 
     thigh = one + pt5*(params % se + one)*params % eta
     pot(:) = zero
@@ -1536,16 +1536,25 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
         do its = 1, params % ngrid
             ! contribution from integration point present
             if (constants % ui(its,isph).lt.one) then
+                d_i = constants%switching%d_ni(its,isph)
+                f_i = constants%switching%f_ni(its,isph)
                 ! loop over neighbors of i-sphere
                 do ij = constants % inl(isph), constants % inl(isph+1)-1
                     jsph = constants % nl(ij)
-                    oij = compute_omega(params, constants, isph, jsph, its)
-                    if (oij.ne.zero) then
-                        vij  = params % csph(:,isph) + params % rsph(isph)* &
-                            & constants % cgrid(:,its) - params % csph(:,jsph)
-                        call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
-                            & constants % vscales_rel, oij, sigma(:, jsph), one, &
-                            & pot(its), work)
+
+                    vij  = params % csph(:,isph) + params % rsph(isph)* &
+                        & constants % cgrid(:,its) - params % csph(:,jsph)
+                    vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) + vij(3)*vij(3))
+                    tij  = vvij / params % rsph(jsph)
+
+                    if (tij.lt.thigh) then
+                        xij = fsw(tij, params % se, params % eta)
+                        oij = xij/(d_i + f_i)
+                        if (oij.ne.zero) then
+                            call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
+                                & constants % vscales_rel, oij, sigma(:, jsph), one, &
+                                & pot(its), work)
+                        end if
                     end if
                 end do
             end if
