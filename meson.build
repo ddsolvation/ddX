@@ -108,7 +108,9 @@ ddx_library = library(
     'src/ddx_pcm.f90',
     'src/ddx_definitions.f90',
     'src/ddx_legacy.f90',
-    'src/ddx_solvers.f90'
+    'src/ddx_solvers.f90',
+    'src/ddx_input.f90',
+    'src/ddx_defaults.f90'
   ],
   version: meson.project_version(),
   dependencies: lib_deps,
