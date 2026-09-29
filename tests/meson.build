@@ -19,6 +19,7 @@ test_sources = [
    ['multipolar_solutes.f90', []],
    ['error.f90', []],
    ['test_gradients.f90', [join_paths(project_dir, 'Input_cosmo_small.txt')]]
+   ['test_gradients.f90', [join_paths(project_dir, 'Input_cosmo_small_new_switching.txt')]]
 ]
 
 # Create test executables and add tests

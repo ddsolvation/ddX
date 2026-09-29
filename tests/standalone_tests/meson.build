@@ -11,6 +11,7 @@ standalone_tests = [
    'cosmo',
    'cosmo_fmm',
    'cosmo_incore',
+   'cosmo_new_switching',
    'pcm',
    'pcm_fmm',
    'pcm_incore',

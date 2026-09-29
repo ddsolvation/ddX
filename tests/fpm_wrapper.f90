@@ -1,7 +1,7 @@
 program fpm_wrapper
 implicit none
 integer :: i, status, failed
-integer, parameter :: ncommands = 9
+integer, parameter :: ncommands = 10
 character(len=1000) :: commands(ncommands)
 character(len=8) :: status_string
 integer :: results(ncommands)
@@ -15,7 +15,8 @@ commands = [character(len=1000) :: &
     "fpm run --target matrix_derivatives -- tests/data/ddlpb_force.txt", &
     "fpm run --target matrix_adjoint -- tests/data/ddlpb_force.txt", &
     "fpm run --target matrix_solvers -- tests/data/ddlpb_force.txt", &
-    "fpm run --target test_gradients -- tests/Input_cosmo_small.txt"]
+    "fpm run --target test_gradients -- tests/Input_cosmo_small.txt", &
+    "fpm run --target test_gradients -- tests/Input_cosmo_small_new_switching.txt"]
 
 
 results(:) = 0

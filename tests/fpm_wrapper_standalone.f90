@@ -1,7 +1,7 @@
 program fpm_wrapper_standalone
 implicit none
 integer :: i, status, failed
-integer, parameter :: ncommands = 8
+integer, parameter :: ncommands = 9
 character(len=1000) :: commands(ncommands)
 character(len=8) :: status_string
 integer :: results(ncommands)
@@ -10,6 +10,7 @@ commands = [character(len=1000) :: &
     "./tests/standalone_tests/run_test.py cosmo --fpm", &
     "./tests/standalone_tests/run_test.py cosmo_fmm --fpm", &
     "./tests/standalone_tests/run_test.py cosmo_incore --fpm", &
+    "./tests/standalone_tests/run_test.py cosmo_new_switching --fpm", &
     "./tests/standalone_tests/run_test.py pcm --fpm", &
     "./tests/standalone_tests/run_test.py pcm_fmm --fpm", &
     "./tests/standalone_tests/run_test.py pcm_incore --fpm", &

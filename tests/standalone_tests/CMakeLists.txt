@@ -11,6 +11,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/run_test.py DESTINATION ${CMAKE_CURRENT_BI
 ddx_add_executable_test("cosmo")
 ddx_add_executable_test("cosmo_fmm")
 ddx_add_executable_test("cosmo_incore")
+ddx_add_executable_test("cosmo_new_switching")
 ddx_add_executable_test("pcm")
 ddx_add_executable_test("pcm_fmm")
 ddx_add_executable_test("pcm_incore")

@@ -19,16 +19,19 @@ contains
 !! @param[out] charges: charge array, size(nsph)
 !! @param[inout] ddx_error: ddX error
 !!
-!> Read a ddX input file, either in the legacy line-based format or in the
-!! keyword format.
+!> Read a ddX input file, either in the legacy line-based format or in
+!! the keyword format.
 !!
 !! The format is detected from the first non-blank, non-comment line: a
-!! legacy file starts with a single value (the output filename), a keyword
-!! file starts with a `key value` pair.
+!! legacy file starts with a single value (the output filename), a
+!! keyword file starts with a `key value` pair.
 !!
-!! Keyword format: `key value` or `key = value`, `#` starts a comment,
-!! keys are case-insensitive, unknown keys are errors. Everything after the
-!! `atoms` leader is one sphere per line: charge x y z radius.
+!! Keyword format: `key value`, `key = value` (with or without spaces).
+!! `#` or `!` start a comment, keys are case-insensitive, unknown keys
+!! are errors. Everything after the `atoms` leader is one sphere
+!! per line:
+!! charge x y z radius.
+!!
 !! Lengths are in Angstrom, kappa in inverse Angstrom.
 !!
 subroutine ddfromfile(fname, ddx_data, tol, charges, ddx_error)
@@ -39,43 +42,44 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, ddx_error)
     real(dp), allocatable, intent(out) :: charges(:)
     type(ddx_error_type), intent(inout) :: ddx_error
     ! Local variables
-    character(len=512) :: line, key, val, msg, probe, errtxt
+    character(len=512) :: line, key, val, msg, probe, error_text
     character(len=255) :: output_filename
-    integer :: unit, ios, lineno, ic, ie, k, nsph, natoms
-    integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, matvecmem, &
-        & maxiter, jacobi_ndiis, switching
+    integer :: unit, io_info, lineno, index_comment, index_splitting, &
+        & k, nsph, natoms
+    integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
+        & matvecmem, maxiter, jacobi_ndiis, switching
     real(dp) :: eps, se, eta, kappa
     real(dp), allocatable :: csph(:, :), radii(:)
     logical :: in_atoms, have_model, have_eps, have_se
 
-    ! ---- detect the format from the first meaningful line ----
-    open(newunit=unit, file=fname, status='old', action='read', &
-        & form='formatted', iostat=ios)
-    if (ios .ne. 0) then
-        call update_error(ddx_error, "Cannot open input file " // trim(fname))
+    open(newunit=unit, file=fname, status="old", action="read", &
+        & form="formatted", iostat=io_info)
+    if (io_info .ne. 0) then
+        call update_error(ddx_error, "Cannot open input file " // &
+            & trim(fname))
         return
     end if
     do
-        read(unit, '(a)', iostat=ios) line
-        ic = scan(line, '#!')
-        if (ic .gt. 0) line(ic:) = ' '
-        if (ios .ne. 0) exit
+        read(unit, "(a)", iostat=io_info) line
+        index_comment = scan(line, "#!")
+        if (index_comment .gt. 0) line(index_comment:) = " "
+        if (io_info .ne. 0) exit
         line = adjustl(line)
-        if (len_trim(line) .eq. 0 .or. line(1:1) .eq. '#') cycle
+        if (len_trim(line) .eq. 0 .or. line(1:1) .eq. "#") cycle
         exit
     end do
-    ie = 0
-    if (ios .eq. 0) then
+    index_splitting = 0
+    if (io_info .eq. 0) then
         ! `key=val`, `key = val` and `key val` all count as two tokens
         probe = line
         do k = 1, len(probe)
-            if (probe(k:k) .eq. achar(9) .or. probe(k:k) .eq. '=') &
-                & probe(k:k) = ' '
+            if (probe(k:k) .eq. achar(9) .or. probe(k:k) .eq. "=") &
+                & probe(k:k) = " "
         end do
         probe = adjustl(probe)
-        ie = index(trim(probe), ' ')
+        index_splitting = index(trim(probe), " ")
     end if
-    if (ie .eq. 0) then
+    if (index_splitting .eq. 0) then
         ! single token (or empty file): legacy format
         close(unit)
         call ddfromfile_legacy(fname, ddx_data, tol, charges, ddx_error)
@@ -83,7 +87,7 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, ddx_error)
     end if
     rewind(unit)
 
-    output_filename = ''
+    output_filename = ""
     nproc = default_nproc
     lmax = default_lmax
     ngrid = default_ngrid
@@ -109,110 +113,115 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, ddx_error)
 
     lineno = 0
     do
-        read(unit, '(a)', iostat=ios) line
-        if (ios .ne. 0) exit
+        read(unit, "(a)", iostat=io_info) line
+        if (io_info .ne. 0) exit
         lineno = lineno + 1
-        ic = index(line, '#')
-        if (ic .gt. 0) line(ic:) = ' '
+        index_comment = scan(line, "#!")
+        if (index_comment .gt. 0) line(index_comment:) = " "
         do k = 1, len(line)
-            if (line(k:k) .eq. achar(9)) line(k:k) = ' '
+            if (line(k:k) .eq. achar(9)) line(k:k) = " "
         end do
         line = adjustl(line)
         if (len_trim(line) .eq. 0) cycle
 
-        errtxt = ''
-        ios = 0
+        error_text = ""
+        io_info = 0
         if (in_atoms) then
             natoms = natoms + 1
-            read(line, *, iostat=ios) charges(natoms), csph(1, natoms), &
-                & csph(2, natoms), csph(3, natoms), radii(natoms)
-            if (ios .ne. 0) errtxt = "expected `charge x y z radius`"
+            read(line, *, iostat=io_info) charges(natoms), &
+                & csph(1, natoms), csph(2, natoms), csph(3, natoms), &
+                & radii(natoms)
+            if (io_info .ne. 0) &
+                & error_text = "expected `charge x y z radius`"
         else
-            ! split into key and value: `key val`, `key=val`, `key = val`
-            ie = scan(line, ' =')
-            if (ie .eq. 0) then
+            index_splitting = scan(line, " =")
+            if (index_splitting .eq. 0) then
                 key = line
-                val = ''
+                val = ""
             else
-                key = line(1:ie-1)
-                val = adjustl(line(ie+1:))
-                if (val(1:1) .eq. '=') val = adjustl(val(2:))
+                key = line(1:index_splitting-1)
+                val = adjustl(line(index_splitting+1:))
+                if (val(1:1) .eq. "=") val = adjustl(val(2:))
             end if
             do k = 1, len_trim(key)
-                if (key(k:k) .ge. 'A' .and. key(k:k) .le. 'Z') &
+                if (key(k:k) .ge. "A" .and. key(k:k) .le. "Z") &
                     & key(k:k) = achar(iachar(key(k:k)) + 32)
             end do
 
             select case (key)
-            case ('output', 'logfile')
+            case ("output", "logfile")
                 output_filename = trim(val)
-            case ('nproc')
-                read(val, *, iostat=ios) nproc
-            case ('model')
+            case ("nproc")
+                read(val, *, iostat=io_info) nproc
+            case ("model")
                 do k = 1, len_trim(val)
-                    if (val(k:k) .ge. 'A' .and. val(k:k) .le. 'Z') &
+                    if (val(k:k) .ge. "A" .and. val(k:k) .le. "Z") &
                         & val(k:k) = achar(iachar(val(k:k)) + 32)
                 end do
                 select case (trim(val))
-                case ('cosmo'); model = 1
-                case ('pcm');   model = 2
-                case ('lpb');   model = 3
-                case default;   read(val, *, iostat=ios) model
+                case ("cosmo")
+                    model = 1
+                case ("pcm")
+                    model = 2
+                case ("lpb")
+                    model = 3
+                case default
+                    read(val, *, iostat=io_info) model
                 end select
                 have_model = .true.
-            case ('lmax')
-                read(val, *, iostat=ios) lmax
-            case ('ngrid')
-                read(val, *, iostat=ios) ngrid
-            case ('eps')
-                read(val, *, iostat=ios) eps
+            case ("lmax")
+                read(val, *, iostat=io_info) lmax
+            case ("ngrid")
+                read(val, *, iostat=io_info) ngrid
+            case ("eps")
+                read(val, *, iostat=io_info) eps
                 have_eps = .true.
-            case ('se', 'shift')
-                read(val, *, iostat=ios) se
+            case ("se", "shift")
+                read(val, *, iostat=io_info) se
                 have_se = .true.
-            case ('eta')
-                read(val, *, iostat=ios) eta
-            case ('kappa')
-                read(val, *, iostat=ios) kappa
-            case ('matvecmem', 'incore')
-                read(val, *, iostat=ios) matvecmem
-            case ('tol')
-                read(val, *, iostat=ios) tol
-            case ('maxiter')
-                read(val, *, iostat=ios) maxiter
-            case ('jacobi_ndiis')
-                read(val, *, iostat=ios) jacobi_ndiis
-            case ('force')
-                read(val, *, iostat=ios) force
-            case ('fmm')
-                read(val, *, iostat=ios) fmm
-            case ('pm')
-                read(val, *, iostat=ios) pm
-            case ('pl')
-                read(val, *, iostat=ios) pl
-            case ('switching')
-                read(val, *, iostat=ios) switching
-            case ('nsph')
-                read(val, *, iostat=ios) nsph
-                if (ios .eq. 0 .and. nsph .le. 0) &
-                    & errtxt = "`nsph` must be positive"
-            case ('atoms')
+            case ("eta")
+                read(val, *, iostat=io_info) eta
+            case ("kappa")
+                read(val, *, iostat=io_info) kappa
+            case ("matvecmem", "incore")
+                read(val, *, iostat=io_info) matvecmem
+            case ("tol")
+                read(val, *, iostat=io_info) tol
+            case ("maxiter")
+                read(val, *, iostat=io_info) maxiter
+            case ("jacobi_ndiis")
+                read(val, *, iostat=io_info) jacobi_ndiis
+            case ("force")
+                read(val, *, iostat=io_info) force
+            case ("fmm")
+                read(val, *, iostat=io_info) fmm
+            case ("pm")
+                read(val, *, iostat=io_info) pm
+            case ("pl")
+                read(val, *, iostat=io_info) pl
+            case ("switching")
+                read(val, *, iostat=io_info) switching
+            case ("nsph")
+                read(val, *, iostat=io_info) nsph
+                if (io_info .eq. 0 .and. nsph .le. 0) &
+                    & error_text = "`nsph` must be positive"
+            case ("atoms")
                 if (nsph .le. 0) then
-                    errtxt = "`nsph` must be given before `atoms`"
+                    error_text = "`nsph` must be given before `atoms`"
                 else
                     allocate(charges(nsph), csph(3, nsph), radii(nsph))
                     in_atoms = .true.
                 end if
             case default
-                errtxt = "unknown key `" // trim(key) // "`"
+                error_text = "unknown key `" // trim(key) // "`"
             end select
-            if (ios .ne. 0 .and. len_trim(errtxt) .eq. 0) &
-                & errtxt = "invalid value for `" // trim(key) // "`"
+            if (io_info .ne. 0 .and. len_trim(error_text) .eq. 0) &
+                & error_text = "invalid value for `" // trim(key) // "`"
         end if
 
-        if (len_trim(errtxt) .gt. 0) then
-            write(msg, '(a,a,i0,a,a)') trim(fname), ", line ", lineno, &
-                & ": ", trim(errtxt)
+        if (len_trim(error_text) .gt. 0) then
+            write(msg, "(a,a,i0,a,a)") trim(fname), ", line ", lineno, &
+                & ": ", trim(error_text)
             call update_error(ddx_error, trim(msg))
             exit
         end if
@@ -222,41 +231,50 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, ddx_error)
     close(unit)
     if (ddx_error % flag .ne. 0) return
 
-    if (.not. have_model) call update_error(ddx_error, "missing key `model`")
+    if (.not. have_model) &
+        & call update_error(ddx_error, "missing key `model`")
     if (have_model .and. (model .lt. 1 .or. model .gt. 3)) &
-        & call update_error(ddx_error, "`model` must be cosmo, pcm, lpb or 1..3")
-
-    if (.not. have_eps) call update_error(ddx_error, "missing key `eps`")
+        & call update_error(ddx_error, "`model` must be cosmo," // &
+            & " pcm, lpb or 1..3")
+    if (.not. have_eps) &
+        & call update_error(ddx_error, "missing key `eps`")
     if (.not. in_atoms) then
         call update_error(ddx_error, "missing `atoms` section")
     else if (natoms .lt. nsph) then
-        write(msg, '(a,i0,a,i0,a)') "`nsph` is ", nsph, " but only ", &
+        write(msg, "(a,i0,a,i0,a)") "`nsph` is ", nsph, " but only ", &
             & natoms, " atom lines were found"
         call update_error(ddx_error, trim(msg))
     end if
-    if (nproc .lt. 0) call update_error(ddx_error, "`nproc` must be non-negative")
-    if (lmax .lt. 0) call update_error(ddx_error, "`lmax` must be non-negative")
-    if (ngrid .lt. 0) call update_error(ddx_error, "`ngrid` must be non-negative")
+    if (nproc .lt. 0) &
+        & call update_error(ddx_error, "`nproc` must be non-negative")
+    if (lmax .lt. 0) &
+        & call update_error(ddx_error, "`lmax` must be non-negative")
+    if (ngrid .lt. 0) &
+        & call update_error(ddx_error, "`ngrid` must be non-negative")
     if (have_eps .and. eps .lt. zero) &
         & call update_error(ddx_error, "`eps` must be non-negative")
     if (se .lt. -one .or. se .gt. one) &
         & call update_error(ddx_error, "`se` must be in [-1, 1]")
     if (eta .lt. zero .or. eta .gt. one) &
         & call update_error(ddx_error, "`eta` must be in [0, 1]")
-    if (kappa .lt. zero) call update_error(ddx_error, "`kappa` must be non-negative")
+    if (kappa .lt. zero) &
+        & call update_error(ddx_error, "`kappa` must be non-negative")
     if (matvecmem .lt. 0 .or. matvecmem .gt. 1) &
         & call update_error(ddx_error, "`matvecmem` must be 0 or 1")
     if (tol .lt. 1d-14 .or. tol .gt. one) &
         & call update_error(ddx_error, "`tol` must be in [1d-14, 1]")
-    if (maxiter .le. 0) call update_error(ddx_error, "`maxiter` must be positive")
+    if (maxiter .le. 0) &
+        & call update_error(ddx_error, "`maxiter` must be positive")
     if (jacobi_ndiis .lt. 0) &
-        & call update_error(ddx_error, "`jacobi_ndiis` must be non-negative")
+        & call update_error(ddx_error, "`jacobi_ndiis` must be" // &
+            & " non-negative")
     if (force .lt. 0 .or. force .gt. 1) &
         & call update_error(ddx_error, "`force` must be 0 or 1")
     if (fmm .lt. 0 .or. fmm .gt. 1) &
         & call update_error(ddx_error, "`fmm` must be 0 or 1")
     if (pm .lt. 0 .or. pl .lt. 0) &
-        & call update_error(ddx_error, "`pm` and `pl` must be non-negative")
+        & call update_error(ddx_error, "`pm` and `pl` must be" // &
+            & " non-negative")
     if (ddx_error % flag .ne. 0) return
 
     ! The default switching shift depends on the model
@@ -272,7 +290,8 @@ subroutine ddfromfile(fname, ddx_data, tol, charges, ddx_error)
         & jacobi_ndiis=jacobi_ndiis, enable_fmm=fmm, pm=pm, pl=pl, &
         & nproc=nproc, logfile=output_filename, switching=switching)
     if (ddx_error % flag .ne. 0) then
-        call update_error(ddx_error, "ddinit returned an error, exiting")
+        call update_error(ddx_error, "ddinit returned an error," // &
+            & " exiting")
         return
     end if
 end subroutine ddfromfile
@@ -307,7 +326,7 @@ subroutine ddfromfile_legacy(fname, ddx_data, tol, charges, ddx_error)
 
     !! Read all the parameters from the file
     ! Open a configuration file
-    open(unit=100, file=fname, form='formatted', access='sequential')
+    open(unit=100, file=fname, form="formatted", access="sequential")
     ! Printing flag
     read(100, *) output_filename
     ! Number of OpenMP threads to be used
@@ -452,7 +471,7 @@ subroutine ddfromfile_legacy(fname, ddx_data, tol, charges, ddx_error)
     ! adjust ngrid
     call closest_supported_lebedev_grid(ngrid)
 
-    !! Initialize ddx_data object
+    ! Initialize ddx_data object
     call ddinit(model, nsph, csph, radii, eps, ddx_data, ddx_error, &
         & force=force, kappa=kappa, eta=eta, shift=se, lmax=lmax, &
         & ngrid=ngrid, incore=matvecmem, maxiter=maxiter, &

@@ -7,7 +7,7 @@ eta 0.1
 fmm 0
 nsph 3
 force 1
-switching 0
+switching 1
 atoms
  1.09581   0.0 0.0 0.0 2.0
  1.17352   0.99 0.0 0.0 3.0
