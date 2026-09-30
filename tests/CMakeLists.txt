@@ -78,7 +78,10 @@ endfunction(ddx_add_test)
 ddx_add_test("ddx_core.f90")
 ddx_add_test("ddx_operators.f90")
 ddx_add_test("bessel.f90")
-ddx_add_test("force.f90" "${CMAKE_CURRENT_SOURCE_DIR}/Input_force.txt")
+ddx_add_test("force.f90"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Input_force.txt"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Input_cosmo_small.txt"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Input_cosmo_small_new_switching.txt")
 ddx_add_test("ddx_driver.f90"
     "${CMAKE_CURRENT_SOURCE_DIR}/data/ddpcm_force_fmm.in
     ${CMAKE_CURRENT_SOURCE_DIR}/data/ddpcm_force_fmm.out 1E-12"
@@ -92,7 +95,9 @@ ddx_add_test("ddlpb_esolv.f90" "${CMAKE_CURRENT_SOURCE_DIR}/data/ddlpb_force.txt
 ddx_add_test("matrix_derivatives.f90" "${CMAKE_CURRENT_SOURCE_DIR}/data/ddlpb_force.txt")
 ddx_add_test("matrix_adjoint.f90" "${CMAKE_CURRENT_SOURCE_DIR}/data/ddlpb_force.txt")
 ddx_add_test("matrix_solvers.f90" "${CMAKE_CURRENT_SOURCE_DIR}/data/ddlpb_force.txt")
-ddx_add_test("test_gradients.f90" "${CMAKE_CURRENT_SOURCE_DIR}/Input_cosmo_small.txt" "${CMAKE_CURRENT_SOURCE_DIR}/Input_cosmo_small_new_switching.txt")
+ddx_add_test("test_gradients.f90"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Input_cosmo_small.txt"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Input_cosmo_small_new_switching.txt")
 ddx_add_test("m2l.f90")
 ddx_add_test("multipolar_solutes.f90")
 ddx_add_test("error.f90")
