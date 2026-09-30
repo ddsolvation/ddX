@@ -718,7 +718,6 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
 
       end do
     else
-        fx = zero
         dr_local = zero
         do ig = 1, params % ngrid
             xi_w_v_i = xi(ig,isph)*constants%wgrid(ig)*phi(ig,isph)

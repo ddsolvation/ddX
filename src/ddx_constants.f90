@@ -599,7 +599,7 @@ subroutine build_l(constants, params, ddx_error)
     integer :: isph, ij, jsph, igrid, l, m, ind, info
     real(dp), dimension(3) :: vij, sij
     real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
-        & fac, tt, thigh
+        & fac, tt, thigh, d_i, f_i
     real(dp), dimension(constants % nbasis) :: vylm, vplm
     real(dp), dimension(params % lmax + 1) :: vcos, vsin
     real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
@@ -614,52 +614,100 @@ subroutine build_l(constants, params, ddx_error)
 
     thigh = one + pt5*(params % se + one)*params % eta
 
-    t = omp_get_wtime()
-    !$omp parallel do default(none) shared(params,constants,thigh) &
-    !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
-    !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,l,fac,ind,m,tt)
-    do isph = 1, params % nsph
-        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
-            jsph = constants % nl(ij)
-            scratch = zero
-            do igrid = 1, params % ngrid
-                if (constants % ui(igrid, isph).eq.one) cycle
-                vij = params % csph(:, isph) &
-                    & + params % rsph(isph)*constants % cgrid(:,igrid) &
-                    & - params % csph(:, jsph)
-                vvij = sqrt(dot_product(vij, vij))
-                tij = vvij/params % rsph(jsph)
-                if (tij.lt.thigh) then
-                    if (tij.ne.zero) then
-                        sij = vij/vvij
-                    else
-                        sij = one
-                    end if
-                    xij = fsw(tij, params % se, params % eta)
-                    if (constants % fi(igrid, isph).gt.one) then
-                        oij = xij/constants % fi(igrid, isph)
-                    else
-                        oij = xij
-                    end if
-                    call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
-                        & params % lmax, constants % vscales, vylm, vplm, &
-                        & vcos, vsin)
-                    tt = oij
-                    do l = 0, params % lmax
-                        ind = l*l + l + 1
-                        fac = - tt/(constants % vscales(ind)**2)
-                        do m = -l, l
-                            scratch(ind + m, igrid) = fac*vylm(ind + m)
+    if (params%switching.eq.0) then
+        !$omp parallel do default(none) shared(params,constants,thigh) &
+        !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
+        !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,l,fac,ind,m,tt)
+        do isph = 1, params % nsph
+            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+                jsph = constants % nl(ij)
+                scratch = zero
+                do igrid = 1, params % ngrid
+                    if (constants % ui(igrid, isph).eq.one) cycle
+                    vij = params % csph(:, isph) &
+                        & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                        & - params % csph(:, jsph)
+                    vvij = sqrt(dot_product(vij, vij))
+                    tij = vvij/params % rsph(jsph)
+                    if (tij.lt.thigh) then
+                        if (tij.ne.zero) then
+                            sij = vij/vvij
+                        else
+                            sij = one
+                        end if
+                        xij = fsw(tij, params % se, params % eta)
+                        if (constants % fi(igrid, isph).gt.one) then
+                            oij = xij/constants % fi(igrid, isph)
+                        else
+                            oij = xij
+                        end if
+                        call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                            & params % lmax, constants % vscales, vylm, vplm, &
+                            & vcos, vsin)
+                        tt = oij
+                        do l = 0, params % lmax
+                            ind = l*l + l + 1
+                            fac = - tt/(constants % vscales(ind)**2)
+                            do m = -l, l
+                                scratch(ind + m, igrid) = fac*vylm(ind + m)
+                            end do
+                            tt = tt*tij
                         end do
-                        tt = tt*tij
-                    end do
-                end if
+                    end if
+                end do
+                call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
+                    & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
+                    & constants % nbasis, zero, constants % l(:,:,ij), constants % nbasis)
             end do
-            call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
-                & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
-                & constants % nbasis, zero, constants % l(:,:,ij), constants % nbasis)
         end do
-    end do
+    else
+        !$omp parallel do default(none) shared(params,constants,thigh) &
+        !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij, &
+        !$omp oij,rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,l, &
+        !$omp d_i,f_i,fac,ind,m,tt)
+        do isph = 1, params % nsph
+            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+                jsph = constants % nl(ij)
+                scratch = zero
+                do igrid = 1, params % ngrid
+                    d_i = constants%switching%d_ni(igrid,isph)
+                    f_i = constants%switching%f_ni(igrid,isph)
+                    if (constants % ui(igrid, isph).eq.one) cycle
+                    vij = params % csph(:, isph) &
+                        & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                        & - params % csph(:, jsph)
+                    vvij = sqrt(dot_product(vij, vij))
+                    tij = vvij/params % rsph(jsph)
+                    if (tij.lt.thigh) then
+                        if (tij.ne.zero) then
+                            sij = vij/vvij
+                        else
+                            sij = one
+                        end if
+                        xij = fsw(tij, params % se, params % eta)
+                        oij = xij/(d_i + f_i)
+                        if (oij.ne.zero) then ! TODO: possibly not needed
+                            call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                                & params % lmax, constants % vscales, vylm, vplm, &
+                                & vcos, vsin)
+                            tt = oij
+                            do l = 0, params % lmax
+                                ind = l*l + l + 1
+                                fac = - tt/(constants % vscales(ind)**2)
+                                do m = -l, l
+                                    scratch(ind + m, igrid) = fac*vylm(ind + m)
+                                end do
+                                tt = tt*tij
+                            end do
+                        end if
+                    end if
+                end do
+                call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
+                    & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
+                    & constants % nbasis, zero, constants % l(:,:,ij), constants % nbasis)
+            end do
+        end do
+    end if
 end subroutine build_l
 
 !> Allocate and build the HSP sparse matrix, only if incore is set
@@ -2221,7 +2269,6 @@ subroutine switching_init(params, constants, switching, ddx_error)
     do isph = 1, params%nsph
         do n = 1, params%ngrid
             u_ni = compute_u(params, constants, isph, n)
-            !write(6,*) isph, n, u_ni, constants%ui(n, isph)
             if (u_ni.ne.zero) ncav = ncav + 1
         end do
     end do

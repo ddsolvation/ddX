@@ -1463,28 +1463,51 @@ subroutine adjrhs(params, constants, isph, xi, vlm, work)
     real(dp), dimension(params % lmax+1), intent(inout) :: work
 
     integer :: ij, jsph, ig
-    real(dp)  :: vji(3), vvji, tji, xji, oji, fac
+    real(dp)  :: vji(3), vvji, tji, xji, oji, fac, d_j, f_j
 
-    do ij = constants % inl(isph), constants % inl(isph+1)-1
-      jsph = constants % nl(ij)
-      do ig = 1, params % ngrid
-        vji  = params % csph(:,jsph) + params % rsph(jsph)* &
-            & constants % cgrid(:,ig) - params % csph(:,isph)
-        vvji = sqrt(dot_product(vji,vji))
-        tji  = vvji/params % rsph(isph)
-        if ( tji.lt.( one + (params % se+one)/two*params % eta ) ) then
-          xji = fsw( tji, params % se, params % eta )
-          if ( constants % fi(ig,jsph).gt.one ) then
-            oji = xji/ constants % fi(ig,jsph)
-          else
-            oji = xji
-          endif
-          fac = constants % wgrid(ig) * xi(ig,jsph) * oji
-          call fmm_l2p_adj_work(vji, fac, params % rsph(isph), &
-              & params % lmax, constants % vscales_rel, one, vlm, work)
-        endif
-      enddo
-    enddo
+    if (params%switching.eq.0) then
+        do ij = constants % inl(isph), constants % inl(isph+1)-1
+            jsph = constants % nl(ij)
+            do ig = 1, params % ngrid
+                vji = params % csph(:,jsph) + params % rsph(jsph)* &
+                    & constants % cgrid(:,ig) - params % csph(:,isph)
+                vvji = sqrt(dot_product(vji,vji))
+                tji  = vvji/params % rsph(isph)
+                if (tji.lt.(one + (params % se+one)/two*params % eta)) then
+                    xji = fsw(tji, params % se, params % eta)
+                    if ( constants % fi(ig,jsph).gt.one ) then
+                        oji = xji/ constants % fi(ig,jsph)
+                    else
+                        oji = xji
+                    end if
+                    fac = constants % wgrid(ig) * xi(ig,jsph) * oji
+                    call fmm_l2p_adj_work(vji, fac, params % rsph(isph), &
+                        & params % lmax, constants % vscales_rel, one, vlm, work)
+                end if
+            end do
+        end do
+    else
+        do ij = constants % inl(isph), constants % inl(isph+1)-1
+            jsph = constants % nl(ij)
+            do ig = 1, params % ngrid
+                vji = params % csph(:,jsph) + params % rsph(jsph)* &
+                    & constants % cgrid(:,ig) - params % csph(:,isph)
+                vvji = sqrt(dot_product(vji,vji))
+                tji  = vvji/params % rsph(isph)
+                if (tji.lt.(one + (params % se+one)/two*params % eta)) then
+                    d_j = constants%switching%d_ni(ig,jsph)
+                    f_j = constants%switching%f_ni(ig,jsph)
+                    xji = fsw(tji, params % se, params % eta)
+                    oji = xji/(d_j+f_j)
+                    if (oji.ne.zero) then !TODO: possibly not needed
+                        fac = constants % wgrid(ig) * xi(ig,jsph) * oji
+                        call fmm_l2p_adj_work(vji, fac, params % rsph(isph), &
+                            & params % lmax, constants % vscales_rel, one, vlm, work)
+                    end if
+                end if
+            end do
+        end do
+    end if
 end subroutine adjrhs
 
 subroutine calcv(params, constants, isph, pot, sigma, work)
@@ -1502,6 +1525,7 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
 
     thigh = one + pt5*(params % se + one)*params % eta
     pot(:) = zero
+
 
     if (params%switching.eq.0) then
         ! loop over grid points
@@ -1535,7 +1559,7 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
         ! loop over grid points
         do its = 1, params % ngrid
             ! contribution from integration point present
-            if (constants % ui(its,isph).lt.one) then
+            if (constants%ui(its,isph).lt.one) then
                 d_i = constants%switching%d_ni(its,isph)
                 f_i = constants%switching%f_ni(its,isph)
                 ! loop over neighbors of i-sphere
@@ -1550,7 +1574,7 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
                     if (tij.lt.thigh) then
                         xij = fsw(tij, params % se, params % eta)
                         oij = xij/(d_i + f_i)
-                        if (oij.ne.zero) then
+                        if (oij.ne.zero) then !TODO: possibly not needed
                             call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
                                 & constants % vscales_rel, oij, sigma(:, jsph), one, &
                                 & pot(its), work)
