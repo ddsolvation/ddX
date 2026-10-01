@@ -48,8 +48,14 @@ call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
 call ddsolve_legacy(ddx_data, state, phi_cav, -gradphi_cav, hessianphi_cav, psi, &
     & tol, esolv1, force, ddx_error)
 call check_error(ddx_error)
-call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, charges, force, ddx_error)
+if (ddx_data % params % model.eq.3) then
+    call grad_e_for_charges(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, charges, force, ddx_error)
+else
+    call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, charges, force, ddx_error)
+end if
+
 call check_error(ddx_error)
 
 ddx_data % params % force = 0

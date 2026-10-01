@@ -1463,7 +1463,9 @@ subroutine adjrhs(params, constants, isph, xi, vlm, work)
     real(dp), dimension(params % lmax+1), intent(inout) :: work
 
     integer :: ij, jsph, ig
-    real(dp)  :: vji(3), vvji, tji, xji, oji, fac, d_j, f_j
+    real(dp) :: vji(3), vvji, tji, xji, oji, fac, d_j, f_j, thigh
+
+    thigh = one + (params % se+one)/two*params % eta
 
     if (params%switching.eq.0) then
         do ij = constants % inl(isph), constants % inl(isph+1)-1
@@ -1473,9 +1475,9 @@ subroutine adjrhs(params, constants, isph, xi, vlm, work)
                     & constants % cgrid(:,ig) - params % csph(:,isph)
                 vvji = sqrt(dot_product(vji,vji))
                 tji  = vvji/params % rsph(isph)
-                if (tji.lt.(one + (params % se+one)/two*params % eta)) then
+                if (tji.lt.thigh) then
                     xji = fsw(tji, params % se, params % eta)
-                    if ( constants % fi(ig,jsph).gt.one ) then
+                    if (constants % fi(ig,jsph).gt.one) then
                         oji = xji/ constants % fi(ig,jsph)
                     else
                         oji = xji
@@ -1494,7 +1496,7 @@ subroutine adjrhs(params, constants, isph, xi, vlm, work)
                     & constants % cgrid(:,ig) - params % csph(:,isph)
                 vvji = sqrt(dot_product(vji,vji))
                 tji  = vvji/params % rsph(isph)
-                if (tji.lt.(one + (params % se+one)/two*params % eta)) then
+                if (tji.lt.thigh) then
                     d_j = constants%switching%d_ni(ig,jsph)
                     f_j = constants%switching%f_ni(ig,jsph)
                     xji = fsw(tji, params % se, params % eta)
