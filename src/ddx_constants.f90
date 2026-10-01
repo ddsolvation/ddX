@@ -25,10 +25,20 @@ implicit none
 
 type ddx_switching_type
     integer :: ncav
+    !> Characteristic function U, 1 if exposed, 0 if buried, with
+    !! a smooth switching in between
     real(dp), allocatable :: u_ni(:,:)
+    !> Characteristic function U, only at the points where it is
+    !! different from zero
     real(dp), allocatable :: u_i_cav(:)
+    !> Auxiliary function d, for the construction of U and omega
     real(dp), allocatable :: d_ni(:,:)
+    !> Auxiliary function f, for the construction of U and omega
     real(dp), allocatable :: f_ni(:,:)
+    !> Diagonal derivative of the characteristic function U
+    !! \grad_i U_i. The off diagonal case \grad_i U_j is not precomputed
+    real(dp), allocatable :: grad_u_ni(:,:,:)
+    real(dp), allocatable :: dr_u_ni(:,:)
 end type ddx_switching_type
 
 !> Container for precomputed constants
@@ -1069,6 +1079,10 @@ subroutine constants_geometry_init(params, constants, ddx_error)
     if (params%switching.eq.1) then
         call switching_init(params, constants, constants%switching, ddx_error)
         constants % ui = constants%switching%u_ni
+        if (params%force.eq.1) then
+            constants % zi = constants%switching%grad_u_ni
+            constants % zi_dr = constants%switching%dr_u_ni
+        end if
     end if
     if (ddx_error % flag .ne. 0) then
         call update_error(ddx_error, "switching_init returned an " // &
@@ -2293,6 +2307,25 @@ subroutine switching_init(params, constants, switching, ddx_error)
         end do
     end do
 
+    if (params%force.eq.1) then
+        allocate(switching%grad_u_ni(3, params%ngrid, params%nsph), &
+            & switching%dr_u_ni(params%ngrid, params%nsph), &
+            & stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Allocation failed in switching_init")
+            return
+        end if
+
+        do isph = 1, params%nsph
+            do n = 1, params%ngrid
+                call compute_grad_i_u_i(params, constants, isph, n, &
+                    & switching%grad_u_ni(:, n, isph), &
+                    & switching%dr_u_ni(n, isph))
+            end do
+        end do
+    end if
+
 end subroutine switching_init
 
 subroutine switching_free(switching, ddx_error)
@@ -2322,7 +2355,7 @@ subroutine switching_free(switching, ddx_error)
                 & "Deallocation failed in switching_free")
             return
         end if
-   end if
+    end if
     if (allocated(switching%f_ni)) then
         deallocate(switching%f_ni, stat=info)
         if (info.ne.0) then
@@ -2330,7 +2363,23 @@ subroutine switching_free(switching, ddx_error)
                 & "Deallocation failed in switching_free")
             return
         end if
-   end if
+    end if
+    if (allocated(switching%grad_u_ni)) then
+        deallocate(switching%grad_u_ni, stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Deallocation failed in switching_free")
+            return
+        end if
+    end if
+    if (allocated(switching%dr_u_ni)) then
+        deallocate(switching%dr_u_ni, stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Deallocation failed in switching_free")
+            return
+        end if
+    end if
 end subroutine switching_free
 
 real(dp) function compute_t(params, constants, isph, jsph, n)
@@ -2427,6 +2476,45 @@ real(dp) function compute_u(params, constants, isph, n)
     ! making the checks more robust, but this suffices for now.
     if (abs(compute_u) .le. 1d-15) compute_u = zero
 end function compute_u
+
+subroutine compute_grad_i_u_i(params, constants, isph, n, grad, dr)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(out) :: grad(3), dr
+    integer, intent(in) :: isph, n
+    integer :: ij, jsph
+    real(dp) :: vij(3), vvij, tij, sij(3), grad_tij(3), dr_tij, &
+        & d_i, f_i, chi_ij, a, b, c, grad_p
+
+    grad(:) = zero
+    dr = zero
+    d_i = constants%switching%d_ni(n, isph)
+    f_i = constants%switching%f_ni(n, isph)
+    a = one/(d_i + f_i)**2
+    b = f_i*d_i
+    do ij = constants%inl(isph), constants%inl(isph + 1) - 1
+        jsph = constants%nl(ij)
+        vij = params % csph(:,isph) + &
+            & params % rsph(isph)*constants % cgrid(:,n) - &
+            & params % csph(:,jsph)
+        vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) + vij(3)*vij(3))
+        tij = vvij/params % rsph(jsph)
+        sij = vij/vvij
+
+        grad_tij(:) = sij(:)/params%rsph(jsph)
+        dr_tij = dot_product(vij, constants%cgrid(:,n)) &
+            & /(vvij*params%rsph(jsph))
+
+        grad_p = dfsw(tij, params % se, params % eta)
+        chi_ij = fsw(tij, params % se, params % eta)
+
+        c = a*(d_i + b/(one - chi_ij))*grad_p
+
+        grad(:) = grad(:) + c*grad_tij(:)
+        dr = dr + c*dr_tij
+    end do
+
+end subroutine compute_grad_i_u_i
 
 end module ddx_constants
 

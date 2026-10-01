@@ -2199,6 +2199,7 @@ subroutine gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
     real(dp) b, vvik, tik, qik, tlow, thigh, duj
     real(dp) :: rho, ctheta, stheta, cphi, sphi
     real(dp), external :: dnrm2
+    real(dp) :: d_k, f_k, chi_ki, grad_p
 
     tlow  = one - pt5*(one - params % se)*params % eta
     thigh = one + pt5*(one + params % se)*params % eta
@@ -2294,7 +2295,17 @@ subroutine gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
                 !    & g(:, isph), one, gg)
 
                 ! common step, product with grad i uj
-                duj = dfsw(tki,params % se, params % eta)/params % rsph(isph)
+                if (params%switching.eq.0) then
+                    duj = dfsw(tki,params % se, params % eta)/params % rsph(isph)
+                else
+                    d_k = constants%switching%d_ni(its, ksph)
+                    f_k = constants%switching%f_ni(its, ksph)
+                    chi_ki = fsw(tki,params%se,params%eta)
+                    grad_p = dfsw(tki,params%se,params%eta)
+                    duj = one/(d_k + f_k)**2 &
+                        & *(d_k + d_k*f_k/(one - chi_ki)) &
+                        & *grad_p/params%rsph(isph)
+                end if
                 fjj = duj*constants % wgrid(its)*gg*ygrid(its,ksph)
                 fx(1) = fx(1) - fjj*ski(1)
                 fx(2) = fx(2) - fjj*ski(2)
