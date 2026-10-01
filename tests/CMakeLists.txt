@@ -84,7 +84,9 @@ ddx_add_test("force.f90"
     "${CMAKE_CURRENT_SOURCE_DIR}/Input_cosmo_small_new_switching.txt"
     "${CMAKE_CURRENT_SOURCE_DIR}/Input_pcm_small.txt"
     "${CMAKE_CURRENT_SOURCE_DIR}/Input_pcm_small_new_switching.txt"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Input_pcm_small_new_switching_fmm.txt")
+    "${CMAKE_CURRENT_SOURCE_DIR}/Input_pcm_small_new_switching_fmm.txt"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Input_lpb_small.txt"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Input_lpb_small_new_switching.txt")
 ddx_add_test("ddx_driver.f90"
     "${CMAKE_CURRENT_SOURCE_DIR}/data/ddpcm_force_fmm.in
     ${CMAKE_CURRENT_SOURCE_DIR}/data/ddpcm_force_fmm.out 1E-12"

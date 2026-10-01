@@ -25,7 +25,7 @@ type(ddx_state_type) :: state
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
     & hessianphi_cav(:, :, :), psi(:, :), &
     & force(:, :), force_num(:, :), charges(:)
-real(dp) :: tol, esolv1, esolv2, step=0.0001, relerr
+real(dp) :: tol, esolv1, esolv2, step=2e-5, relerr
 integer :: isph, i
 real(dp), external :: dnrm2
 character(len=255) :: dummy_file_name = ''
@@ -49,6 +49,8 @@ call ddsolve_legacy(ddx_data, state, phi_cav, -gradphi_cav, hessianphi_cav, psi,
     & tol, esolv1, force, ddx_error)
 call check_error(ddx_error)
 if (ddx_data % params % model.eq.3) then
+    call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, charges, force, ddx_error)
     call grad_e_for_charges(ddx_data % params, ddx_data % constants, &
         & ddx_data % workspace, state, charges, force, ddx_error)
 else
