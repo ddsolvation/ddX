@@ -1,7 +1,7 @@
 program fpm_wrapper
 implicit none
 integer :: i, status, failed
-integer, parameter :: ncommands = 12
+integer, parameter :: ncommands = 14
 character(len=1000) :: commands(ncommands)
 character(len=8) :: status_string
 integer :: results(ncommands)
@@ -10,6 +10,8 @@ commands = [character(len=1000) :: &
     "fpm run --target force -- tests/Input_force.txt", &
     "fpm run --target force -- tests/Input_cosmo_small.txt", &
     "fpm run --target force -- tests/Input_cosmo_small_new_switching.txt", &
+    "fpm run --target force -- tests/Input_pcm_small.txt", &
+    "fpm run --target force -- tests/Input_pcm_small_new_switching.txt", &
     "fpm run --target test_ddx_driver -- tests/data/ddpcm_force_fmm.in tests/data/ddpcm_force_fmm.out 1E-12", &
     "fpm run --target test_ddx_driver -- tests/data/ddcosmo_force_fmm.in tests/data/ddcosmo_force_fmm.out 1E-12", &
     "fpm run --target force_ddlpb -- tests/data/ddlpb_force.txt", &

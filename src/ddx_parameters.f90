@@ -313,7 +313,7 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
 
     if (switching.eq.0 .or. switching.eq.1) then
         params % switching = switching
-        if (params%switching.eq.1 .and. (params%model.eq.1)) then
+        if (params%switching.eq.1 .and. (params%model.eq.3)) then
             call update_error(ddx_error, "params_init: the new " // &
                 & "switching is not yet available for ddLPB")
         end if
