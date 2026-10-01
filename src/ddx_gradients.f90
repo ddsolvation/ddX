@@ -2506,6 +2506,7 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
         & jsph, jsph_node
     integer :: inear, inode, jnode
     real(dp) :: gg, c(3), vki(3), vvki, tki, gg3(3), tmp_gg, tmp_c(3)
+    real(dp) :: d_k, f_k, chi_ki, grad_p, duj
     real(dp) :: tlow, thigh
     real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
     real(dp), external :: ddot, dnrm2
@@ -2654,9 +2655,20 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
                 !    & dfsw(tki, params % se, params % eta)/ &
                 !    & params % rsph(isph)*constants % wgrid(igrid)*gg* &
                 !    & ygrid(igrid, ksph)*(vki/vvki)
-                fx(:, isph) = fx(:, isph) - &
-                    & dfsw(tki, params % se, params % eta)/ &
-                    & params % rsph(isph)*gg*(vki/vvki)
+                if (params%switching.eq.0) then
+                    fx(:, isph) = fx(:, isph) - &
+                        & dfsw(tki, params % se, params % eta)/ &
+                        & params % rsph(isph)*gg*(vki/vvki)
+                else
+                    d_k = constants%switching%d_ni(igrid, ksph)
+                    f_k = constants%switching%f_ni(igrid, ksph)
+                    chi_ki = fsw(tki,params%se,params%eta)
+                    grad_p = dfsw(tki,params%se,params%eta)
+                    duj = one/(d_k + f_k)**2 &
+                        & *(d_k + d_k*f_k/(one - chi_ki)) &
+                        & *grad_p/params%rsph(isph)
+                    fx(:, isph) = fx(:, isph) - gg*duj*(vki/vvki)
+                end if
             end do
             ! contribution from the sphere itself
             if((constants % ui(igrid,isph).gt.zero) .and. &

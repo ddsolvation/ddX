@@ -10,7 +10,8 @@ test_sources = [
        join_paths(project_dir, 'Input_cosmo_small.txt'),
        join_paths(project_dir, 'Input_cosmo_small_new_switching.txt'),
        join_paths(project_dir, 'Input_pcm_small.txt'),
-       join_paths(project_dir, 'Input_pcm_small_new_switching.txt')
+       join_paths(project_dir, 'Input_pcm_small_new_switching.txt'),
+       join_paths(project_dir, 'Input_pcm_small_new_switching_fmm.txt')
    ]],
    ['ddx_driver.f90', [
       join_paths(project_dir, 'data/ddpcm_force_fmm.in') + ' ' + join_paths(project_dir, 'data/ddpcm_force_fmm.out') + ' 1E-12',
