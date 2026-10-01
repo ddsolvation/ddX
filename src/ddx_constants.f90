@@ -696,20 +696,18 @@ subroutine build_l(constants, params, ddx_error)
                         end if
                         xij = fsw(tij, params % se, params % eta)
                         oij = xij/(d_i + f_i)
-                        if (oij.ne.zero) then ! TODO: possibly not needed
-                            call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
-                                & params % lmax, constants % vscales, vylm, vplm, &
-                                & vcos, vsin)
-                            tt = oij
-                            do l = 0, params % lmax
-                                ind = l*l + l + 1
-                                fac = - tt/(constants % vscales(ind)**2)
-                                do m = -l, l
-                                    scratch(ind + m, igrid) = fac*vylm(ind + m)
-                                end do
-                                tt = tt*tij
+                        call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                            & params % lmax, constants % vscales, vylm, vplm, &
+                            & vcos, vsin)
+                        tt = oij
+                        do l = 0, params % lmax
+                            ind = l*l + l + 1
+                            fac = - tt/(constants % vscales(ind)**2)
+                            do m = -l, l
+                                scratch(ind + m, igrid) = fac*vylm(ind + m)
                             end do
-                        end if
+                            tt = tt*tij
+                        end do
                     end if
                 end do
                 call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &

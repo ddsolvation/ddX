@@ -1499,11 +1499,9 @@ subroutine adjrhs(params, constants, isph, xi, vlm, work)
                     f_j = constants%switching%f_ni(ig,jsph)
                     xji = fsw(tji, params % se, params % eta)
                     oji = xji/(d_j+f_j)
-                    if (oji.ne.zero) then !TODO: possibly not needed
-                        fac = constants % wgrid(ig) * xi(ig,jsph) * oji
-                        call fmm_l2p_adj_work(vji, fac, params % rsph(isph), &
-                            & params % lmax, constants % vscales_rel, one, vlm, work)
-                    end if
+                    fac = constants % wgrid(ig) * xi(ig,jsph) * oji
+                    call fmm_l2p_adj_work(vji, fac, params % rsph(isph), &
+                        & params % lmax, constants % vscales_rel, one, vlm, work)
                 end if
             end do
         end do
@@ -1574,11 +1572,9 @@ subroutine calcv(params, constants, isph, pot, sigma, work)
                     if (tij.lt.thigh) then
                         xij = fsw(tij, params % se, params % eta)
                         oij = xij/(d_i + f_i)
-                        if (oij.ne.zero) then !TODO: possibly not needed
-                            call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
-                                & constants % vscales_rel, oij, sigma(:, jsph), one, &
-                                & pot(its), work)
-                        end if
+                        call fmm_l2p_work(vij, params % rsph(jsph), params % lmax, &
+                            & constants % vscales_rel, oij, sigma(:, jsph), one, &
+                            & pot(its), work)
                     end if
                 end do
             end if
