@@ -13,6 +13,7 @@ use ddx
 use ddx_core
 use ddx_operators
 use ddx_lpb
+use ddx_input
 implicit none
 
 character(len=255) :: fname

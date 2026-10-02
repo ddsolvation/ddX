@@ -159,40 +159,69 @@ subroutine calcv2_lpb (params, constants, isph, pot, x)
     real(dp), dimension(params % ngrid), intent(inout) :: pot
     complex(dp) :: work_complex(params % lmax+1)
     real(dp) :: work(params % lmax+1)
-    real(dp), dimension(params % ngrid) :: pot2
     integer :: its, ij, jsph
     real(dp) :: vij(3), vtij(3)
-    real(dp) :: vvij, tij, xij, oij
-
+    real(dp) :: vvij, tij, xij, oij, thigh
+    thigh = one + (params % se+one)/two*params % eta
     pot = zero
-    pot2 = zero
-    do its = 1, params % ngrid
-        if (constants % ui(its,isph).lt.one) then
-            do ij = constants % inl(isph), constants % inl(isph+1)-1
-                jsph = constants % nl(ij)
+    if (params%switching.eq.0) then
+        do its = 1, params % ngrid
+            if (constants % ui(its,isph).lt.one) then
+                do ij = constants % inl(isph), constants % inl(isph+1)-1
+                    jsph = constants % nl(ij)
 
-                ! compute geometrical variables
-                vij  = params % csph(:,isph) + params % rsph(isph)*constants % cgrid(:,its) - params % csph(:,jsph)
-                vvij = sqrt(dot_product(vij,vij))
-                tij  = vvij/params % rsph(jsph)
+                    ! compute geometrical variables
+                    vij = params % csph(:,isph) + params % rsph(isph) &
+                        & *constants % cgrid(:,its) - params % csph(:,jsph)
+                    vvij = sqrt(dot_product(vij,vij))
+                    tij = vvij/params % rsph(jsph)
 
-                if ( tij.lt.( one + (params % se+one)/two*params % eta ) ) then
-                    xij = fsw(tij, params % se, params % eta)
-                    if (constants % fi(its,isph).gt.one) then
-                        oij = xij/constants % fi(its, isph)
-                    else
-                        oij = xij
+                    if (tij.lt.thigh) then
+                        xij = fsw(tij, params % se, params % eta)
+                        if (constants % fi(its,isph).gt.one) then
+                            oij = xij/constants % fi(its, isph)
+                        else
+                            oij = xij
+                        end if
+                        vtij = vij*params % kappa
+                        call fmm_l2p_bessel_work(vtij, &
+                            & params % lmax, constants % vscales, &
+                            & constants % SI_ri(:, jsph), oij, x(:, jsph), one, &
+                            & pot(its), work_complex, work)
                     end if
-                    vtij = vij*params % kappa
-                    call fmm_l2p_bessel_work(vtij, &
-                        & params % lmax, constants % vscales, &
-                        & constants % SI_ri(:, jsph), oij, x(:, jsph), one, &
-                        & pot(its), work_complex, work)
-                end if
-            end do
-        end if
-    end do
-endsubroutine calcv2_lpb
+                end do
+            end if
+        end do
+    else
+        ! loop over grid points
+        do its = 1, params % ngrid
+            ! contribution from integration point present
+            if (constants%ui(its,isph).lt.one) then
+                d_i = constants%switching%d_ni(its,isph)
+                f_i = constants%switching%f_ni(its,isph)
+                ! loop over neighbors of i-sphere
+                do ij = constants % inl(isph), constants % inl(isph+1)-1
+                    jsph = constants % nl(ij)
+
+                    vij = params % csph(:,isph) + params % rsph(isph)* &
+                        & constants % cgrid(:,its) - params % csph(:,jsph)
+                    vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) + vij(3)*vij(3))
+                    tij = vvij / params % rsph(jsph)
+
+                    if (tij.lt.thigh) then
+                        xij = fsw(tij, params % se, params % eta)
+                        oij = xij/(d_i + f_i)
+                        vtij = vij*params % kappa
+                        call fmm_l2p_bessel_work(vtij, &
+                            & params % lmax, constants % vscales, &
+                            & constants % SI_ri(:, jsph), oij, x(:, jsph), one, &
+                            & pot(its), work_complex, work)
+                    end if
+                end do
+            end if
+        end do
+    end if
+end subroutine calcv2_lpb
 
 !> Scale the ddCOSMO solution vector
 !!
@@ -290,53 +319,94 @@ subroutine adjrhs_lpb(params, constants, isph, xi, vlm, basloc, &
     real(dp) :: vji(3), vvji, tji, sji(3), xji, oji, fac
     real(dp) :: rho, ctheta, stheta, cphi, sphi
     real(dp), dimension(constants % nbasis) :: fac_hsp
+    real(dp) :: thigh, d_j, f_j
+    thigh = one + (params % se+one)/two*params % eta
 
-    !loop over neighbors of i-sphere
-    do ij = constants % inl(isph), constants % inl(isph+1)-1
-      !j-sphere is neighbor
-      jsph = constants % nl(ij)
-      !loop over integration points
-      do ig = 1, params % ngrid
-        !compute t_n^ji = | r_j + \rho_j s_n - r_i | / \rho_i
-        vji  = params % csph(:,jsph) + params % rsph(jsph)* &
-              & constants % cgrid(:,ig) - params % csph(:,isph)
-        vvji = sqrt(dot_product(vji,vji))
-        tji  = vvji/params % rsph(isph)
-        !point is INSIDE i-sphere (+ transition layer)
-        if ( tji.lt.( one + (params % se+one)/two*params % eta ) ) then
-          !compute s_n^ji
-          if (tji.ne.zero) then
-              sji = vji/vvji
-          else
-              sji = one
-          end if
-          call ylmbas(sji, rho, ctheta, stheta, cphi, &
+    if (params%switching.eq.0) then
+        !loop over neighbors of i-sphere
+        do ij = constants % inl(isph), constants % inl(isph+1)-1
+            !j-sphere is neighbor
+            jsph = constants % nl(ij)
+            !loop over integration points
+            do ig = 1, params % ngrid
+                !compute t_n^ji = | r_j + \rho_j s_n - r_i | / \rho_i
+                vji = params % csph(:,jsph) + params % rsph(jsph)* &
+                    & constants % cgrid(:,ig) - params % csph(:,isph)
+                vvji = sqrt(dot_product(vji,vji))
+                tji = vvji/params % rsph(isph)
+                !point is INSIDE i-sphere (+ transition layer)
+                if (tji.lt.thigh) then
+                    !compute s_n^ji
+                    if (tji.ne.zero) then
+                        sji = vji/vvji
+                    else
+                        sji = one
+                    end if
+                    call ylmbas(sji, rho, ctheta, stheta, cphi, &
                         & sphi, params % lmax, &
                         & constants % vscales, basloc, &
                         & vplm, vcos, vsin)
-          call inthsp_adj(params, constants, vvji, isph, basloc, fac_hsp, &
-              & tmp_bessel)
-          !compute \chi( t_n^ji )
-          xji = fsw( tji, params % se, params % eta )
-          !compute W_n^ji
-          if ( constants % fi(ig,jsph).gt.one ) then
-            oji = xji/ constants % fi(ig,jsph)
-          else
-            oji = xji
-          endif
-          !compute w_n * xi(n,j) * W_n^ji
-          fac = constants % wgrid(ig) * xi(ig,jsph) * oji
-          !loop over l
-          do l = 0, params % lmax
-            ind  = l*l + l + 1
-            !loop over m
-              do m = -l,l
-                vlm(ind+m) = vlm(ind+m) + fac*fac_hsp(ind+m)
-              enddo
-          enddo
-        endif
-      enddo
-    enddo
+                    call inthsp_adj(params, constants, vvji, isph, basloc, fac_hsp, &
+                        & tmp_bessel)
+                    !compute \chi( t_n^ji )
+                    xji = fsw(tji, params % se, params % eta)
+                    !compute W_n^ji
+                    if ( constants % fi(ig,jsph).gt.one ) then
+                        oji = xji/ constants % fi(ig,jsph)
+                    else
+                        oji = xji
+                    end if
+                    !compute w_n * xi(n,j) * W_n^ji
+                    fac = constants % wgrid(ig) * xi(ig,jsph) * oji
+                    !loop over l
+                    do l = 0, params % lmax
+                        ind  = l*l + l + 1
+                        !loop over m
+                        do m = -l,l
+                            vlm(ind+m) = vlm(ind+m) + fac*fac_hsp(ind+m)
+                        end do
+                    end do
+                end if
+            end do
+        end do
+    else
+        do ij = constants % inl(isph), constants % inl(isph+1)-1
+            jsph = constants % nl(ij)
+            do ig = 1, params % ngrid
+                vji = params % csph(:,jsph) + params % rsph(jsph)* &
+                    & constants % cgrid(:,ig) - params % csph(:,isph)
+                vvji = sqrt(dot_product(vji,vji))
+                tji = vvji/params % rsph(isph)
+                if (tji.lt.thigh) then
+                    if (tji.ne.zero) then
+                        sji = vji/vvji
+                    else
+                        sji = one
+                    end if
+
+                    call ylmbas(sji, rho, ctheta, stheta, cphi, &
+                        & sphi, params % lmax, &
+                        & constants % vscales, basloc, &
+                        & vplm, vcos, vsin)
+                    call inthsp_adj(params, constants, vvji, isph, &
+                        & basloc, fac_hsp, tmp_bessel)
+
+                    d_j = constants%switching%d_ni(ig,jsph)
+                    f_j = constants%switching%f_ni(ig,jsph)
+                    xji = fsw(tji, params % se, params % eta)
+                    oji = xji/(d_j+f_j)
+
+                    fac = constants % wgrid(ig) * xi(ig,jsph) * oji
+                    do l = 0, params % lmax
+                        ind  = l*l + l + 1
+                        do m = -l,l
+                            vlm(ind+m) = vlm(ind+m) + fac*fac_hsp(ind+m)
+                        end do
+                    end do
+                end if
+            end do
+        end do
+    end if
 end subroutine adjrhs_lpb
 
 

@@ -1,4 +1,4 @@
-model 1
+model 2
 lmax 10
 ngrid 302
 eps 78.3553

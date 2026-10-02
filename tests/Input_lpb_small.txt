@@ -1,4 +1,4 @@
-model 1
+model 3
 lmax 10
 ngrid 302
 eps 78.3553
@@ -7,6 +7,7 @@ eta 0.1
 fmm 0
 force 1
 switching 0
+kappa 0.104
 nsph 4
 atoms
  0.09581   1.64052   0.26811   0.00079   4.00253

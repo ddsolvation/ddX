@@ -1,13 +1,20 @@
 program fpm_wrapper
 implicit none
 integer :: i, status, failed
-integer, parameter :: ncommands = 9
+integer, parameter :: ncommands = 17
 character(len=1000) :: commands(ncommands)
 character(len=8) :: status_string
 integer :: results(ncommands)
 
 commands = [character(len=1000) :: &
     "fpm run --target force -- tests/Input_force.txt", &
+    "fpm run --target force -- tests/Input_cosmo_small.txt", &
+    "fpm run --target force -- tests/Input_cosmo_small_new_switching.txt", &
+    "fpm run --target force -- tests/Input_pcm_small.txt", &
+    "fpm run --target force -- tests/Input_pcm_small_new_switching.txt", &
+    "fpm run --target force -- tests/Input_pcm_small_new_switching_fmm.txt", &
+    "fpm run --target force -- tests/Input_lpb_small.txt", &
+    "fpm run --target force -- tests/Input_lpb_small_new_switching.txt", &
     "fpm run --target test_ddx_driver -- tests/data/ddpcm_force_fmm.in tests/data/ddpcm_force_fmm.out 1E-12", &
     "fpm run --target test_ddx_driver -- tests/data/ddcosmo_force_fmm.in tests/data/ddcosmo_force_fmm.out 1E-12", &
     "fpm run --target force_ddlpb -- tests/data/ddlpb_force.txt", &
@@ -15,7 +22,8 @@ commands = [character(len=1000) :: &
     "fpm run --target matrix_derivatives -- tests/data/ddlpb_force.txt", &
     "fpm run --target matrix_adjoint -- tests/data/ddlpb_force.txt", &
     "fpm run --target matrix_solvers -- tests/data/ddlpb_force.txt", &
-    "fpm run --target test_gradients -- tests/Input_cosmo_small.txt"]
+    "fpm run --target test_gradients -- tests/Input_cosmo_small.txt", &
+    "fpm run --target test_gradients -- tests/Input_cosmo_small_new_switching.txt"]
 
 
 results(:) = 0
