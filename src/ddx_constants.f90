@@ -613,7 +613,6 @@ subroutine build_l(constants, params, ddx_error)
     real(dp), dimension(constants % nbasis) :: vylm, vplm
     real(dp), dimension(params % lmax + 1) :: vcos, vsin
     real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
-    real(dp) :: t
 
     allocate(constants % l(constants % nbasis, constants % nbasis, &
         & constants % inl(params % nsph + 1)), stat=info)
@@ -733,8 +732,8 @@ subroutine build_b(constants, params, ddx_error)
     complex(dp), dimension(max(2, params % lmax + 1)) :: bessel_work
     real(dp), dimension(0:params % lmax) :: SI_rijn, DI_rijn
     real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
-    real(dp) :: t
     integer :: info
+    real(dp) :: f_i, d_i
 
     allocate(constants % b(constants % nbasis, constants % nbasis, &
         & constants % inl(params % nsph + 1)), stat=info)
@@ -745,56 +744,105 @@ subroutine build_b(constants, params, ddx_error)
 
     thigh = one + pt5*(params % se + one)*params % eta
 
-    t = omp_get_wtime()
-    !$omp parallel do default(none) shared(params,constants,thigh) &
-    !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
-    !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,si_rijn,di_rijn, &
-    !$omp vvtij,l,fac,ind,m,bessel_work)
-    do isph = 1, params % nsph
-        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
-            jsph = constants % nl(ij)
-            scratch = zero
-            do igrid = 1, params % ngrid
-                if (constants % ui(igrid, isph).eq.one) cycle
-                vij = params % csph(:, isph) &
-                    & + params % rsph(isph)*constants % cgrid(:,igrid) &
-                    & - params % csph(:, jsph)
-                vvij = sqrt(dot_product(vij, vij))
-                tij = vvij/params % rsph(jsph)
-                if (tij.lt.thigh) then
-                    if (tij.ne.zero) then
-                        sij = vij/vvij
-                    else
-                        sij = one
-                    end if
-                    xij = fsw(tij, params % se, params % eta)
-                    if (constants % fi(igrid, isph).gt.one) then
-                        oij = xij/constants % fi(igrid, isph)
-                    else
-                        oij = xij
-                    end if
-                    call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
-                        & params % lmax, constants % vscales, vylm, vplm, &
-                        & vcos, vsin)
-                    SI_rijn = 0
-                    DI_rijn = 0
-                    vvtij = vvij*params % kappa
-                    call modified_spherical_bessel_first_kind(params % lmax, &
-                        & vvtij, SI_rijn, DI_rijn, bessel_work)
-                    do l = 0, params % lmax
-                        fac = - oij*SI_rijn(l)/constants % SI_ri(l, jsph)
-                        ind = l*l + l + 1
-                        do m = -l, l
-                            scratch(ind + m, igrid) = fac*vylm(ind + m)
+    if (params%switching.eq.0) then
+        !$omp parallel do default(none) shared(params,constants,thigh) &
+        !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
+        !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,si_rijn,di_rijn, &
+        !$omp vvtij,l,fac,ind,m,bessel_work)
+        do isph = 1, params % nsph
+            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+                jsph = constants % nl(ij)
+                scratch = zero
+                do igrid = 1, params % ngrid
+                    if (constants % ui(igrid, isph).eq.one) cycle
+                    vij = params % csph(:, isph) &
+                        & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                        & - params % csph(:, jsph)
+                    vvij = sqrt(dot_product(vij, vij))
+                    tij = vvij/params % rsph(jsph)
+                    if (tij.lt.thigh) then
+                        if (tij.ne.zero) then
+                            sij = vij/vvij
+                        else
+                            sij = one
+                        end if
+                        xij = fsw(tij, params % se, params % eta)
+                        if (constants % fi(igrid, isph).gt.one) then
+                            oij = xij/constants % fi(igrid, isph)
+                        else
+                            oij = xij
+                        end if
+                        call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                            & params % lmax, constants % vscales, vylm, vplm, &
+                            & vcos, vsin)
+                        SI_rijn = 0
+                        DI_rijn = 0
+                        vvtij = vvij*params % kappa
+                        call modified_spherical_bessel_first_kind(params % lmax, &
+                            & vvtij, SI_rijn, DI_rijn, bessel_work)
+                        do l = 0, params % lmax
+                            fac = - oij*SI_rijn(l)/constants % SI_ri(l, jsph)
+                            ind = l*l + l + 1
+                            do m = -l, l
+                                scratch(ind + m, igrid) = fac*vylm(ind + m)
+                            end do
                         end do
-                    end do
-                end if
+                    end if
+                end do
+                call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
+                    & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
+                    & constants % nbasis, zero, constants % b(:,:,ij), constants % nbasis)
             end do
-            call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
-                & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
-                & constants % nbasis, zero, constants % b(:,:,ij), constants % nbasis)
         end do
-    end do
+    else
+        !$omp parallel do default(none) shared(params,constants,thigh) &
+        !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
+        !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,si_rijn,di_rijn, &
+        !$omp vvtij,l,fac,ind,m,bessel_work,d_i,f_i)
+        do isph = 1, params % nsph
+            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+                jsph = constants % nl(ij)
+                scratch = zero
+                do igrid = 1, params % ngrid
+                    d_i = constants%switching%d_ni(igrid,isph)
+                    f_i = constants%switching%f_ni(igrid,isph)
+                    if (constants % ui(igrid, isph).eq.one) cycle
+                    vij = params % csph(:, isph) &
+                        & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                        & - params % csph(:, jsph)
+                    vvij = sqrt(dot_product(vij, vij))
+                    tij = vvij/params % rsph(jsph)
+                    if (tij.lt.thigh) then
+                        if (tij.ne.zero) then
+                            sij = vij/vvij
+                        else
+                            sij = one
+                        end if
+                        xij = fsw(tij, params % se, params % eta)
+                        oij = xij/(d_i + f_i)
+                        call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                            & params % lmax, constants % vscales, vylm, vplm, &
+                            & vcos, vsin)
+                        SI_rijn = 0
+                        DI_rijn = 0
+                        vvtij = vvij*params % kappa
+                        call modified_spherical_bessel_first_kind(params % lmax, &
+                            & vvtij, SI_rijn, DI_rijn, bessel_work)
+                        do l = 0, params % lmax
+                            fac = - oij*SI_rijn(l)/constants % SI_ri(l, jsph)
+                            ind = l*l + l + 1
+                            do m = -l, l
+                                scratch(ind + m, igrid) = fac*vylm(ind + m)
+                            end do
+                        end do
+                    end if
+                end do
+                call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
+                    & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
+                    & constants % nbasis, zero, constants % b(:,:,ij), constants % nbasis)
+            end do
+        end do
+    end if
 end subroutine build_b
 
 !> Computation of P_chi
