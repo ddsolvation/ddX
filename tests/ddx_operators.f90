@@ -22,7 +22,7 @@ real(dp) :: alpha(4)=(/1d0, -1d0, 1d-100, 1d+100/)
 type(ddx_type) :: ddx_data
 type(ddx_error_type) :: ddx_error
 integer, parameter :: nsph=10, lmax=7, force=1, matvecmem=0, &
-    & maxiter=1000, jacobi_ndiis=25
+    & maxiter=1000, jacobi_ndiis=25, switching=0
 real(dp), parameter :: se=0d0, eta=0.1d0, eps=78d0, kappa=0d0
 real(dp) :: gcsph(3, nsph), csph(3, nsph), grsph(nsph), rsph(nsph), &
     & gcharge(nsph), charge(nsph)
@@ -48,7 +48,7 @@ do i = 1, size(alpha)
     call allocate_model(nsph, csph(1, :), csph(2, :), csph(3, :), rsph, 2, &
         lmax, ngrid, force, 0, -1, -1, se, eta, eps, kappa, &
         & matvecmem, maxiter, jacobi_ndiis, &
-        & nproc, dummy_file_name, ddx_data, ddx_error)
+        & nproc, dummy_file_name, switching, ddx_data, ddx_error)
     call check_mkrhs(ddx_data, 0, 0, 1d-1, charge)
     call check_mkrhs(ddx_data, 1, 1, 1d-2, charge)
     call check_mkrhs(ddx_data, 3, 3, 1d-3, charge)
@@ -96,7 +96,7 @@ subroutine check_mkrhs(ddx_data, pm, pl, threshold, charges)
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % matvecmem, &
         & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, &
-        & dummy_file_name, ddx_data_fmm, ddx_error)
+        & dummy_file_name, ddx_data % params % switching, ddx_data_fmm, ddx_error)
     ! Allocate resources
     allocate(phi_cav(ddx_data % constants % ncav), &
         & phi2_cav(ddx_data % constants % ncav), &
@@ -163,7 +163,7 @@ subroutine check_dx(ddx_data, pm, pl, threshold)
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % matvecmem, &
         & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, &
-        & dummy_file_name, ddx_data_fmm, ddx_error)
+        & dummy_file_name, ddx_data % params % switching, ddx_data_fmm, ddx_error)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.
     ! Get random x
@@ -250,7 +250,7 @@ subroutine check_gradr(ddx_data, pm, pl, threshold)
         & ddx_data % params % eps, ddx_data % params % kappa, ddx_data % params % matvecmem, &
         & ddx_data % params % maxiter, ddx_data % params % jacobi_ndiis, &
         & ddx_data % params % nproc, &
-        & dummy_file_name, ddx_data_fmm, ddx_error)
+        & dummy_file_name, ddx_data % params % switching, ddx_data_fmm, ddx_error)
     ! Dense operator dx is trusted to have no errors, this must be somehow
     ! checked in the future.
     allocate(ygrid(ddx_data % params % ngrid, ddx_data % params % nsph), &

@@ -14,6 +14,7 @@ use ddx_core
 !
 contains
 
+
 !> Compute the gradients of the ddCOSMO matrix
 subroutine contract_grad_L(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx, dr)
 type(ddx_params_type), intent(in) :: params
@@ -38,12 +39,352 @@ type(ddx_params_type), intent(in) :: params
 
       dr_local = zero
 
-      call contract_gradi_Lik(params, constants, isph, sigma, xi(:, isph), basloc, dbsloc, vplm, vcos, vsin, fx, dr_local)
-      call contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx, dr_local)
+      if (params%switching.eq.0) then
+          call contract_gradi_Lik(params, constants, isph, sigma, xi(:, isph), basloc, dbsloc, vplm, vcos, vsin, fx, dr_local)
+          call contract_gradi_Lji(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx, dr_local)
+      else
+          call contract_grad_L_new(params, constants, isph, sigma, xi, &
+              & basloc, dbsloc, vplm, vcos, vsin, fx, dr_local)
+      end if
 
       if (do_dr) dr = dr_local
 
 end subroutine contract_grad_L
+
+subroutine contract_grad_L_new(params, constants, isph, x, xi, &
+        & basloc, dbsloc, vplm, vcos, vsin, fx, dr)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: x
+    real(dp), dimension(params % ngrid, params % nsph), intent(in) :: xi
+    real(dp), dimension(3), intent(inout) :: fx
+    real(dp), intent(inout) :: dr
+    ! passed scratch TODO: find a better solution
+    real(dp), dimension(constants % nbasis), intent(inout) :: basloc, vplm
+    real(dp), dimension(3, constants % nbasis), intent(inout) :: dbsloc
+    real(dp), dimension(params % lmax+1), intent(inout) :: vcos, vsin
+    ! local variables
+    real(dp) :: tlow, thigh
+    integer :: ig, ij, ji, jsph, icomp, jcomp, l, m, ind, ki, ksph, kj
+    real(dp) :: vij(3), vvij, sij(3), tij, oij, qij, grad_tij(3), &
+        & dr_sij(3), dr_tij, f_i, d_i, xij
+    real(dp) :: vji(3), vvji, sji(3), tji, oji, qji, grad_tji(3), &
+        & dr_sji(3), dr_tji, f_j, d_j, xji
+    real(dp) :: fl, a, b, c, d1, d2, e, tmp_fx(3), sjac_dylm(3), &
+        & sjac(3,3), tmp_dr, dr_s_dylm, grad_p, bj
+    real(dp) :: vik(3), vvik, sik(3), tik, grad_tik(3), dr_tik, xik
+    real(dp) :: vjk(3), vvjk, sjk(3), tjk, xjk
+    real(dp) :: rho, ctheta, stheta, cphi, sphi
+
+    tlow  = one - pt5*(one - params % se)*params % eta
+    thigh = one + pt5*(one + params % se)*params % eta
+
+    ! ij cases
+    do ig = 1, params % ngrid
+        do ij = constants % inl(isph), constants % inl(isph+1) - 1
+            jsph = constants % nl(ij)
+
+            ! compute the required geometrical quantities
+            oij = compute_omega(params, constants, isph, jsph, ig)
+            if (oij.eq.zero) cycle
+            vij = params % csph(:,isph) + &
+                & params % rsph(isph)*constants % cgrid(:,ig) - &
+                & params % csph(:,jsph)
+            vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) + vij(3)*vij(3))
+            tij = vvij/params % rsph(jsph)
+            sij = vij/vvij
+
+            ! compute the differentiated geometrical quantities
+            ! wrt the nuclear position
+            grad_tij(:) = sij(:)/params%rsph(jsph)
+            sjac = zero
+            sjac(1,1) = one
+            sjac(2,2) = one
+            sjac(3,3) = one
+            qij = one/vvij
+            do icomp = 1, 3
+                do jcomp = 1, 3
+                sjac(icomp,jcomp) = qij*(sjac(icomp,jcomp) &
+                    & - sij(icomp)*sij(jcomp))
+                end do
+            end do
+
+            ! compute the differentiated geometrical quantities
+            ! wrt the radius
+            dr_sij = constants%cgrid(:,ig)/vvij &
+               & - vij*dot_product(vij, constants%cgrid(:,ig))/(vvij**3)
+            dr_tij = dot_product(vij, constants%cgrid(:,ig)) &
+                & /(vvij*params%rsph(jsph))
+
+            ! compute the basis of spherical harmonics and its gradient
+            call dbasis(params, constants, sij, basloc, dbsloc, vplm, &
+                & vcos, vsin)
+
+            ! accumulate the derivative
+            e = zero
+            a = xi(ig,isph)*constants%wgrid(ig)*oij
+            tmp_fx(:) = zero
+            tmp_dr = zero
+            do l = 0, params % lmax
+                ind = l*l + l + 1
+                fl = dble(l)
+                b = a*fourpi/(two*fl + one)*tij**(l-1)
+                do m = -l, l
+
+                    ! product of the jacobian of sij with the spherical
+                    ! harmonics gradient
+                    sjac_dylm(1) = sjac(1,1)*dbsloc(1,ind+m) + &
+                        & sjac(1,2)*dbsloc(2,ind+m)+sjac(1,3) &
+                        & *dbsloc(3,ind+m)
+                    sjac_dylm(2) = sjac(2,1)*dbsloc(1,ind+m) + &
+                        & sjac(2,2)*dbsloc(2,ind+m)+sjac(2,3)* &
+                        & dbsloc(3,ind+m)
+                    sjac_dylm(3) = sjac(3,1)*dbsloc(1,ind+m) + &
+                        & sjac(3,2)*dbsloc(2,ind+m)+sjac(3,3) &
+                        & *dbsloc(3,ind+m)
+
+                    ! product of the radial derivative of sij
+                    ! with the spherical harmonics gradient
+                    dr_s_dylm = dr_sij(1)*dbsloc(1,ind+m) &
+                        & + dr_sij(2)*dbsloc(2,ind+m) &
+                        & + dr_sij(3)*dbsloc(3,ind+m)
+
+                    c = b*x(ind+m,jsph)
+                    d1 = c*fl*basloc(ind+m)
+                    d2 = c*tij
+                    tmp_fx(:) = tmp_fx(:) &
+                        & - c*fl*basloc(ind+m)*grad_tij(:) &
+                        & - c*tij*sjac_dylm(:)
+                    dr = dr - c*fl*basloc(ind+m)*dr_tij &
+                        & - c*tij*dr_s_dylm
+                    e = e + b*x(ind+m,jsph)*basloc(ind+m)*tij
+                end do
+            end do
+            e = e/oij
+
+            ! add the switching derivative for the ij case
+            d_i = constants%switching%d_ni(ig,isph)
+            f_i = constants%switching%f_ni(ig,isph)
+            a = e/(d_i + f_i)
+            if (tij.ge.tlow .and. tij.le.thigh) then
+                grad_p = dfsw(tij, params % se, params % eta)
+                b = a*grad_p
+                tmp_fx(:) = tmp_fx(:) - b*grad_tij(:)
+                tmp_dr = tmp_dr - b*dr_tij
+            end if
+            xij = fsw(tij, params % se, params % eta)
+            if (xij .ne. zero) then
+                b = a*xij/(d_i + f_i)
+                do ki = constants % inl(isph), constants % inl(isph+1) - 1
+                    ksph = constants % nl(ki)
+                    vik = params%csph(:,isph) + &
+                        & params%rsph(isph)*constants%cgrid(:,ig) - &
+                        & params%csph(:,ksph)
+                    vvik = sqrt(vik(1)*vik(1) + vik(2)*vik(2) &
+                        & + vik(3)*vik(3))
+                    tik = vvik/params % rsph(ksph)
+                    if (tik.ge.tlow .and. tik.le.thigh) then
+                        xik = fsw(tik, params % se, params % eta)
+                        sik = vik/vvik
+                        grad_tik(:) = sik(:)/params%rsph(ksph)
+                        dr_tik = dot_product(vik, constants%cgrid(:,ig)) &
+                            & /(vvik*params%rsph(ksph))
+                        grad_p = dfsw(tik, params % se, params % eta)
+
+                        if (grad_p.ne.zero) then
+                            c = b*(one - d_i/(one - xik))*grad_p
+                        else
+                            c = zero
+                        end if
+
+                        tmp_fx(:) = tmp_fx(:) + c*grad_tik
+                        tmp_dr = tmp_dr + c*dr_tik
+                    end if
+                end do
+            end if
+
+            dr = dr + tmp_dr
+            fx(:) = fx(:) + tmp_fx(:)
+        end do
+    end do
+
+    ! ji cases
+    do ig = 1, params % ngrid
+        do ji = constants % inl(isph), constants % inl(isph+1) - 1
+            jsph = constants % nl(ji)
+
+            ! compute the geometrical quantites required
+            oji = compute_omega(params, constants, jsph, isph, ig)
+            if (oji.eq.zero) cycle
+            vji  = params % csph(:,jsph) + &
+                & params % rsph(jsph)*constants % cgrid(:,ig) - &
+                & params % csph(:,isph)
+            vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) + vji(3)*vji(3))
+            tji = vvji/params % rsph(isph)
+            sji = vji/vvji
+
+            ! computed the differentiated geometrical quantities
+            ! wrt the nuclear position
+            grad_tji(:) = -sji/params % rsph(isph)
+            sjac = zero
+            sjac(1,1) = - one
+            sjac(2,2) = - one
+            sjac(3,3) = - one
+            qji = one/vvji
+            do icomp = 1, 3
+                do jcomp = 1, 3
+                    sjac(icomp,jcomp) = qji*(sjac(icomp,jcomp) &
+                        & + sji(icomp)*sji(jcomp))
+                end do
+            end do
+
+            ! computed the differentiated geometrical quantities
+            ! wrt the radius
+            dr_sji = zero
+            dr_tji = -tji/params%rsph(isph)
+
+            ! compute the basis of spherical harmonics and its gradient
+            call dbasis(params, constants, sji, basloc, dbsloc, vplm, &
+                & vcos, vsin)
+
+            ! accumulate the derivative
+            e = zero
+            a = xi(ig,jsph)*constants%wgrid(ig)*oji
+            tmp_fx(:) = zero
+            tmp_dr = zero
+            do l = 0, params % lmax
+                ind = l*l + l + 1
+                fl = dble(l)
+                b = a*fourpi/(two*fl + one)*tji**(l-1)
+                do m = -l, l
+
+                    ! product of the jacobian of sji with the spherical
+                    ! harmonics gradient
+                    sjac_dylm(1) = sjac(1,1)*dbsloc(1,ind+m) + &
+                        & sjac(1,2)*dbsloc(2,ind+m)+sjac(1,3)*dbsloc(3,ind+m)
+                    sjac_dylm(2) = sjac(2,1)*dbsloc(1,ind+m) + &
+                        & sjac(2,2)*dbsloc(2,ind+m)+sjac(2,3)*dbsloc(3,ind+m)
+                    sjac_dylm(3) = sjac(3,1)*dbsloc(1,ind+m) + &
+                        & sjac(3,2)*dbsloc(2,ind+m)+sjac(3,3)*dbsloc(3,ind+m)
+
+                    ! product of the radial derivative of sji
+                    ! with the spherical harmonics gradient
+                    dr_s_dylm = dr_sji(1)*dbsloc(1,ind+m) &
+                        & + dr_sji(2)*dbsloc(2,ind+m) &
+                        & + dr_sji(3)*dbsloc(3,ind+m)
+
+                    c = b*x(ind+m,isph)
+                    d1 = c*fl*basloc(ind+m)
+                    d2 = c*tji
+                    tmp_fx(:) = tmp_fx(:) &
+                        & - c*fl*basloc(ind+m)*grad_tji(:) &
+                        & - c*tji*sjac_dylm(:)
+                    tmp_dr = tmp_dr - c*fl*basloc(ind+m)*dr_tji &
+                        & - c*tji*dr_s_dylm
+                    e = e + b*x(ind+m,isph)*basloc(ind+m)*tji
+                end do
+            end do
+            e = e/oji
+
+            ! add the switching derivative for the ji case
+            d_j = constants%switching%d_ni(ig,jsph)
+            f_j = constants%switching%f_ni(ig,jsph)
+            a = e/(d_j + f_j)
+            if (tji.ge.tlow .and. tji.le.thigh) then
+                grad_p = dfsw(tji, params % se, params % eta)
+                b = a*grad_p
+                tmp_fx(:) = tmp_fx(:) - b*grad_tji(:)
+                tmp_dr = tmp_dr - b*dr_tji
+            end if
+
+            fx(:) = fx(:) + tmp_fx(:)
+            dr = dr + tmp_dr
+        end do
+    end do
+
+    ! additional switching contributions, jk with j and k neighbors of i
+    tmp_fx = zero
+    tmp_dr = zero
+    do ig = 1, params % ngrid
+        do ij = constants % inl(isph), constants % inl(isph+1) - 1
+            jsph = constants % nl(ij)
+
+            ! compute ij geometrical quantities
+            vji = params % csph(:,jsph) + &
+                & params % rsph(jsph)*constants % cgrid(:,ig) - &
+                & params % csph(:,isph)
+            vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) + vji(3)*vji(3))
+            tji = vvji/params % rsph(isph)
+            sji = vji/vvji
+
+            if (.not.(tji.ge.tlow .and. tji.le.thigh)) cycle
+
+            ! computed the differentiated geometrical quantities
+            ! wrt the nuclear position
+            grad_tji(:) = -sji/params % rsph(isph)
+
+            ! computed the differentiated geometrical quantities
+            ! wrt the radius
+            dr_tji = -tji/params%rsph(isph)
+
+            xji = fsw(tji, params % se, params % eta)
+
+            d_j = constants%switching%d_ni(ig,jsph)
+            f_j = constants%switching%f_ni(ig,jsph)
+            grad_p = dfsw(tji, params % se, params % eta)
+
+            if (grad_p.eq.zero) cycle
+
+            bj = zero
+            do kj = constants % inl(jsph), constants % inl(jsph+1) - 1
+                ksph = constants % nl(kj)
+                if (jsph.eq.ksph) cycle
+
+                ! compute the remaining geometrical quantities
+                vjk = params % csph(:,jsph) + &
+                    & params % rsph(jsph)*constants % cgrid(:,ig) - &
+                    & params % csph(:,ksph)
+                vvjk = sqrt(vjk(1)*vjk(1) + vjk(2)*vjk(2) &
+                    & + vjk(3)*vjk(3))
+                tjk = vvjk/params % rsph(ksph)
+                sjk = vjk/vvjk
+
+                xjk = fsw(tjk, params % se, params % eta)
+                if (xjk.eq.zero) cycle
+
+                ! compute the basis of spherical harmonics
+                call ylmbas(sjk, rho, ctheta, stheta, cphi, sphi, &
+                    & params % lmax, constants % vscales, basloc, &
+                    & vplm, vcos, vsin)
+
+                ! accumulate the derivative
+                e = zero
+                a = xi(ig,jsph)*constants%wgrid(ig)
+                do l = 0, params % lmax
+                    ind = l*l + l + 1
+                    fl = dble(l)
+                    b = a*fourpi/(two*fl + one)*tjk**l
+                    do m = -l, l
+                        e = e + b*x(ind+m,ksph)*basloc(ind+m)
+                    end do
+                end do
+
+                bj = bj + e*xjk
+
+            end do
+
+            c = bj/(d_j + f_j)**2*(one - d_j/(one - xji))*grad_p
+            tmp_fx(:) = tmp_fx(:) + c*grad_tji
+            tmp_dr = tmp_dr + c*dr_tji
+        end do
+    end do
+
+    fx(:) = fx(:) + tmp_fx(:)
+    dr = dr + tmp_dr
+
+end subroutine contract_grad_L_new
 
 !> Contribution to the gradients of the ddCOSMO matrix
 subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc, vplm, vcos, vsin, fx, dr)
@@ -57,7 +398,7 @@ subroutine contract_gradi_Lik(params, constants, isph, sigma, xi, basloc, dbsloc
       real(dp),  dimension(params % lmax+1),      intent(inout) :: vcos, vsin
       real(dp),  dimension(3),           intent(inout) :: fx
       integer :: ig, ij, jsph, l, ind, m
-      real(dp)  :: vvij, tij, xij, oij, t, fac, fl, f1, fr1, f2, fr2, f3, fr3, beta, tlow, thigh
+      real(dp)  :: vvij, tij, xij, oij, t, fac, fl, f1, f2, f3, beta, tlow, thigh
       real(dp)  :: vij(3), sij(3), alp(3), va(3)
       real(dp) :: dsij, dtij(3), alp1(3), alp2(3), alp_rad, dsij_rad(3), dtij_rad, alp1_rad, alp2_rad, va_rad
       real(dp), external :: dnrm2
@@ -330,26 +671,23 @@ end subroutine contract_gradi_Lji
 
 !> Gradient of the characteristic function U
 subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
+    implicit none
     type(ddx_params_type), intent(in) :: params
     type(ddx_constants_type), intent(in) :: constants
-      integer,                        intent(in)    :: isph
-      real(dp),  dimension(params % ngrid, params % nsph), intent(in)    :: xi, phi
-      real(dp),  dimension(3),          intent(inout) :: fx
-      real(dp),  optional, intent(inout) :: dr
-      integer :: ig, ji, jsph
-      real(dp)  :: vvji, tji, fac, swthr
-      real(dp)  :: alp(3), vji(3), sji(3), dtji(3)
-      real(dp) :: dtji_rad, alp_rad
-      real(dp), external :: dnrm2
-      logical :: do_dr
-      real(dp) :: dr_local
+    integer, intent(in) :: isph
+    real(dp), dimension(params % ngrid, params % nsph), intent(in)    :: xi, phi
+    real(dp), dimension(3), intent(inout) :: fx
+    real(dp), optional, intent(inout) :: dr
+    integer :: ig, ji, jsph
+    real(dp) :: vvji, tji, fac, swthr
+    real(dp) :: alp(3), vji(3), sji(3), dtji(3)
+    real(dp) :: dtji_rad, alp_rad
+    real(dp), external :: dnrm2
+    real(dp) :: dr_local
+    real(dp) :: xi_w_v_i, d_i, f_i, xi_w_v_j, d_j, f_j, grad_p, &
+        & chi_ij, chi_ji, grad_t(3), a, vij(3), vvij, tij, sij(3), dr_t
 
-      if (present(dr)) then
-          do_dr = .true.
-      else
-          do_dr = .false.
-      end if
-
+    if (params%switching.eq.0) then
       dr_local = zero
       do ig = 1, params % ngrid
         alp = zero
@@ -379,8 +717,69 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
         dr_local = dr_local - constants % wgrid(ig)*alp_rad
 
       end do
+    else
+        dr_local = zero
+        do ig = 1, params % ngrid
+            xi_w_v_i = xi(ig,isph)*constants%wgrid(ig)*phi(ig,isph)
+            d_i = constants%switching%d_ni(ig,isph)
+            f_i = constants%switching%f_ni(ig,isph)
+            do ji = constants % inl(isph), constants % inl(isph+1) - 1
+                jsph = constants % nl(ji)
+                vji = params % csph(:,jsph) + &
+                    & params % rsph(jsph)*constants % cgrid(:,ig) - &
+                    & params % csph(:,isph)
+                vvji = sqrt(vji(1)*vji(1) + vji(2)*vji(2) &
+                    & + vji(3)*vji(3))
+                sji = vji/vvji
+                tji = vvji/params % rsph(isph)
 
-    if (do_dr) dr = dr_local
+                vij = params % csph(:,isph) + &
+                    & params % rsph(isph)*constants % cgrid(:,ig) - &
+                    & params % csph(:,jsph)
+                vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) &
+                    & + vij(3)*vij(3))
+                sij = vij/vvij
+                tij = vvij/params % rsph(jsph)
+
+                swthr = one + (params % se + one)*params % eta/two
+
+                xi_w_v_j = xi(ig,jsph)*constants%wgrid(ig)*phi(ig,jsph)
+                d_j = constants%switching%d_ni(ig,jsph)
+                f_j = constants%switching%f_ni(ig,jsph)
+
+                if (tij.lt.swthr .and. tij.gt.swthr-params % eta) then
+                    ! diagonal terms (i with its neighbors j)
+                    ! \partial \chi_{ij} / \partial x_i
+                    grad_p = dfsw(tij, params % se, params % eta)
+                    chi_ij = fsw(tij, params % se, params % eta)
+                    grad_t = sij/params%rsph(jsph)
+                    dr_t = (constants%cgrid(1,ig)*sij(1) &
+                        & + constants%cgrid(2,ig)*sij(2) &
+                        & + constants%cgrid(3,ig)*sij(3)) &
+                        & /params%rsph(jsph)
+                    a = xi_w_v_i/(f_i+d_i)**2 &
+                        & *(-d_i - f_i*d_i/(one-chi_ij))*grad_p
+                    fx = fx + a*grad_t
+                    dr_local = dr_local + a*dr_t
+                end if
+
+                if (tji.lt.swthr .and. tji.gt.swthr-params % eta) then
+                    ! off-diagonal terms (neighbors of i)
+                    ! \partial \chi_{ij} / \partial x_j
+                    grad_p = dfsw(tji, params % se, params % eta)
+                    chi_ji = fsw(tji, params % se, params % eta)
+                    grad_t = -sji/params%rsph(isph)
+                    dr_t = -tji/params%rsph(isph)
+                    a = xi_w_v_j/(f_j+d_j)**2 &
+                        & *(-d_j - f_j*d_j/(one-chi_ji))*grad_p
+                    fx = fx + a*grad_t
+                    dr_local = dr_local + a*dr_t
+                end if
+            end do
+        end do
+    end if
+
+    if (present(dr)) dr = dr_local
 end subroutine contract_grad_U
 
 !> Subroutine to compute contraction of B matrix
@@ -400,12 +799,262 @@ subroutine contract_grad_B(params, constants, isph, Xe, Xadj_e, force)
     real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xe
     real(dp), dimension(params % ngrid, params % nsph), intent(in) :: Xadj_e
     real(dp), dimension(3), intent(inout) :: force
+    real(dp) :: dr
 
-    call contract_gradi_Bik(params, constants, isph, Xe(:,:), &
-        & Xadj_e(:, isph), force)
-    call contract_gradi_Bji(params, constants, isph, Xe(:,:), Xadj_e, force)
+    if (params%switching.eq.0) then
+        call contract_gradi_Bik(params, constants, isph, Xe(:,:), &
+            & Xadj_e(:, isph), force)
+        call contract_gradi_Bji(params, constants, isph, Xe(:,:), Xadj_e, force)
+    else
+        call contract_grad_B_new(params, constants, isph, Xe(:,:), Xadj_e, force, dr)
+    end if
 
 end subroutine contract_grad_B
+
+!> Contribution to the gradients of the ddLPB B matrix (new switching).
+!!
+!! @param[in]    params   : Input parameters
+!! @param[in]    constants: Input constants
+!! @param[in]    isph     : Index of the sphere
+!! @param[in]    Xe       : Solution vector Xe
+!! @param[in]    Xadj_e   : Adjoint solution evaluated on the grid points
+!! @param[inout] force    : Force on the center of sphere isph
+!! @param[inout] dr       : Derivative with respect to the radius of isph
+subroutine contract_grad_B_new(params, constants, isph, Xe, Xadj_e, force, dr)
+    implicit none
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph
+    real(dp), dimension(constants % nbasis, params % nsph), intent(in) :: Xe
+    real(dp), dimension(params % ngrid, params % nsph), intent(in) :: Xadj_e
+    real(dp), dimension(3), intent(inout) :: force
+    real(dp), intent(inout) :: dr
+    ! local variables
+    real(dp) :: tlow, thigh
+    integer :: ig, ij, ji, jsph, l, ind, ki, ksph, kj
+    real(dp) :: vij(3), vvij, sij(3), tij, oij, grad_tij(3), d_i, f_i, xij
+    real(dp) :: vji(3), vvji, sji(3), tji, oji, grad_tji(3), dr_tji, &
+        & d_j, f_j, xji
+    real(dp) :: vik(3), vvik, sik(3), tik, grad_tik(3), xik
+    real(dp) :: vjk(3), vvjk, tjk, xjk
+    real(dp) :: vtij(3), vtji(3), vtjk(3), alpha(3)
+    real(dp) :: beta, beta_dr, beta_jk, fac
+    real(dp) :: Xe_dr(constants % nbasis)
+    real(dp) :: a, b, c, e, bj, grad_p, tmp_fx(3), tmp_dr
+    real(dp), external :: dnrm2
+    real(dp) :: work(params % lmax+1)
+    complex(dp) :: work_complex(params % lmax+1)
+
+    tlow  = one - pt5*(one - params % se)*params % eta
+    thigh = one + pt5*(one + params % se)*params % eta
+
+    do l = 0, params % lmax
+        ind = l*l + l + 1
+        fac = - params % kappa * constants % DI_ri(l, isph) &
+            & / constants % SI_ri(l, isph)
+        Xe_dr(ind-l:ind+l) = fac * Xe(ind-l:ind+l, isph)
+    end do
+
+    ! ij case
+    do ig = 1, params % ngrid
+        do ij = constants % inl(isph), constants % inl(isph+1) - 1
+            jsph = constants % nl(ij)
+
+            ! compute the required geometrical quantities
+            oij = compute_omega(params, constants, isph, jsph, ig)
+            if (oij.eq.zero) cycle
+            vij = params % csph(:,isph) + &
+                & params % rsph(isph)*constants % cgrid(:,ig) - &
+                & params % csph(:,jsph)
+            vvij = dnrm2(3, vij, 1)
+            tij = vvij/params % rsph(jsph)
+            sij = vij/vvij
+            vtij = vij*params % kappa
+
+            ! differentiated geometrical quantity wrt the nuclear position
+            grad_tij(:) = sij(:)/params % rsph(jsph)
+
+            ! gradient of F_ij with respect to vij (Bessel analogue of the
+            ! sum of the t^l*Y_lm(s) derivatives in the ddCOSMO case)
+            call fmm_l2p_bessel_grad(vtij, params % rsph(jsph)*params % kappa, &
+                & params % lmax, constants % vscales, params % kappa, &
+                & Xe(:, jsph), zero, alpha)
+
+            ! value of F_ij
+            call fmm_l2p_bessel_work(vtij, params % lmax, constants % vscales, &
+                & constants % SI_ri(:, jsph), one, Xe(:, jsph), zero, beta, &
+                & work_complex, work)
+
+            a = Xadj_e(ig,isph)*constants % wgrid(ig)
+            tmp_fx(:) = - a*oij*alpha(:)
+            e = a*beta
+
+            ! add the switching derivative for the ij case
+            d_i = constants % switching % d_ni(ig,isph)
+            f_i = constants % switching % f_ni(ig,isph)
+            a = e/(d_i + f_i)
+            if (tij.ge.tlow .and. tij.le.thigh) then
+                grad_p = dfsw(tij, params % se, params % eta)
+                b = a*grad_p
+                tmp_fx(:) = tmp_fx(:) - b*grad_tij(:)
+            end if
+            xij = fsw(tij, params % se, params % eta)
+            if (xij .ne. zero) then
+                b = a*xij/(d_i + f_i)
+                do ki = constants % inl(isph), constants % inl(isph+1) - 1
+                    ksph = constants % nl(ki)
+                    vik = params % csph(:,isph) + &
+                        & params % rsph(isph)*constants % cgrid(:,ig) - &
+                        & params % csph(:,ksph)
+                    vvik = dnrm2(3, vik, 1)
+                    tik = vvik/params % rsph(ksph)
+                    if (tik.ge.tlow .and. tik.le.thigh) then
+                        xik = fsw(tik, params % se, params % eta)
+                        sik = vik/vvik
+                        grad_tik(:) = sik(:)/params % rsph(ksph)
+                        grad_p = dfsw(tik, params % se, params % eta)
+
+                        if (grad_p.ne.zero) then
+                            c = b*(one - d_i/(one - xik))*grad_p
+                        else
+                            c = zero
+                        end if
+
+                        tmp_fx(:) = tmp_fx(:) + c*grad_tik
+                    end if
+                end do
+            end if
+
+            force(:) = force(:) + tmp_fx(:)
+            dr = dr + dot_product(tmp_fx, constants % cgrid(:,ig))
+        end do
+    end do
+
+    ! ji cases
+    do ig = 1, params % ngrid
+        do ji = constants % inl(isph), constants % inl(isph+1) - 1
+            jsph = constants % nl(ji)
+
+            ! compute the geometrical quantites required
+            oji = compute_omega(params, constants, jsph, isph, ig)
+            if (oji.eq.zero) cycle
+            vji  = params % csph(:,jsph) + &
+                & params % rsph(jsph)*constants % cgrid(:,ig) - &
+                & params % csph(:,isph)
+            vvji = dnrm2(3, vji, 1)
+            tji = vvji/params % rsph(isph)
+            sji = vji/vvji
+            vtji = vji*params % kappa
+
+            ! differentiated geometrical quantities wrt the nuclear position
+            grad_tji(:) = -sji/params % rsph(isph)
+
+            ! differentiated geometrical quantities wrt the radius
+            dr_tji = -tji/params % rsph(isph)
+
+            ! gradient of F_ji with respect to vji
+            call fmm_l2p_bessel_grad(vtji, params % rsph(isph)*params % kappa, &
+                & params % lmax, constants % vscales, params % kappa, &
+                & Xe(:, isph), zero, alpha)
+
+            ! value of F_ji
+            call fmm_l2p_bessel_work(vtji, params % lmax, constants % vscales, &
+                & constants % SI_ri(:, isph), one, Xe(:, isph), zero, beta, &
+                & work_complex, work)
+
+            ! derivative of F_ji with respect to r_i (normalization only)
+            call fmm_l2p_bessel_work(vtji, params % lmax, constants % vscales, &
+                & constants % SI_ri(:, isph), one, Xe_dr, zero, beta_dr, &
+                & work_complex, work)
+
+            a = Xadj_e(ig,jsph)*constants % wgrid(ig)
+            tmp_fx(:) = a*oji*alpha(:)
+            tmp_dr = - a*oji*beta_dr
+            e = a*beta
+
+            ! add the switching derivative for the ji case
+            d_j = constants % switching % d_ni(ig,jsph)
+            f_j = constants % switching % f_ni(ig,jsph)
+            a = e/(d_j + f_j)
+            if (tji.ge.tlow .and. tji.le.thigh) then
+                grad_p = dfsw(tji, params % se, params % eta)
+                b = a*grad_p
+                tmp_fx(:) = tmp_fx(:) - b*grad_tji(:)
+                tmp_dr = tmp_dr - b*dr_tji
+            end if
+
+            force(:) = force(:) + tmp_fx(:)
+            dr = dr + tmp_dr
+        end do
+    end do
+
+    ! additional switching contributions
+    tmp_fx = zero
+    tmp_dr = zero
+    do ig = 1, params % ngrid
+        do ij = constants % inl(isph), constants % inl(isph+1) - 1
+            jsph = constants % nl(ij)
+
+            ! compute ji geometrical quantities
+            vji = params % csph(:,jsph) + &
+                & params % rsph(jsph)*constants % cgrid(:,ig) - &
+                & params % csph(:,isph)
+            vvji = dnrm2(3, vji, 1)
+            tji = vvji/params % rsph(isph)
+            sji = vji/vvji
+
+            if (.not.(tji.ge.tlow .and. tji.le.thigh)) cycle
+
+            ! differentiated geometrical quantities wrt the nuclear position
+            grad_tji(:) = -sji/params % rsph(isph)
+
+            ! differentiated geometrical quantities wrt the radius
+            dr_tji = -tji/params % rsph(isph)
+
+            xji = fsw(tji, params % se, params % eta)
+
+            d_j = constants % switching % d_ni(ig,jsph)
+            f_j = constants % switching % f_ni(ig,jsph)
+            grad_p = dfsw(tji, params % se, params % eta)
+
+            if (grad_p.eq.zero) cycle
+
+            bj = zero
+            do kj = constants % inl(jsph), constants % inl(jsph+1) - 1
+                ksph = constants % nl(kj)
+                if (jsph.eq.ksph) cycle
+
+                ! compute the remaining geometrical quantities
+                vjk = params % csph(:,jsph) + &
+                    & params % rsph(jsph)*constants % cgrid(:,ig) - &
+                    & params % csph(:,ksph)
+                vvjk = dnrm2(3, vjk, 1)
+                tjk = vvjk/params % rsph(ksph)
+
+                xjk = fsw(tjk, params % se, params % eta)
+                if (xjk.eq.zero) cycle
+
+                ! value of F_jk (Bessel expansion of sphere k at the point
+                ! of sphere j)
+                vtjk = vjk*params % kappa
+                call fmm_l2p_bessel_work(vtjk, params % lmax, &
+                    & constants % vscales, constants % SI_ri(:, ksph), one, &
+                    & Xe(:, ksph), zero, beta_jk, work_complex, work)
+
+                e = Xadj_e(ig,jsph)*constants % wgrid(ig)*beta_jk
+                bj = bj + e*xjk
+            end do
+
+            c = bj/(d_j + f_j)**2*(one - d_j/(one - xji))*grad_p
+            tmp_fx(:) = tmp_fx(:) + c*grad_tji
+            tmp_dr = tmp_dr + c*dr_tji
+        end do
+    end do
+
+    force(:) = force(:) + tmp_fx(:)
+    dr = dr + tmp_dr
+
+end subroutine contract_grad_B_new
 
 !> Subroutine to compute contraction of C matrix
 !!
@@ -1800,6 +2449,7 @@ subroutine gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
     real(dp) b, vvik, tik, qik, tlow, thigh, duj
     real(dp) :: rho, ctheta, stheta, cphi, sphi
     real(dp), external :: dnrm2
+    real(dp) :: d_k, f_k, chi_ki, grad_p
 
     tlow  = one - pt5*(one - params % se)*params % eta
     thigh = one + pt5*(one + params % se)*params % eta
@@ -1895,7 +2545,17 @@ subroutine gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
                 !    & g(:, isph), one, gg)
 
                 ! common step, product with grad i uj
-                duj = dfsw(tki,params % se, params % eta)/params % rsph(isph)
+                if (params%switching.eq.0) then
+                    duj = dfsw(tki,params % se, params % eta)/params % rsph(isph)
+                else
+                    d_k = constants%switching%d_ni(its, ksph)
+                    f_k = constants%switching%f_ni(its, ksph)
+                    chi_ki = fsw(tki,params%se,params%eta)
+                    grad_p = dfsw(tki,params%se,params%eta)
+                    duj = one/(d_k + f_k)**2 &
+                        & *(d_k + d_k*f_k/(one - chi_ki)) &
+                        & *grad_p/params%rsph(isph)
+                end if
                 fjj = duj*constants % wgrid(its)*gg*ygrid(its,ksph)
                 fx(1) = fx(1) - fjj*ski(1)
                 fx(2) = fx(2) - fjj*ski(2)
@@ -2096,6 +2756,7 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
         & jsph, jsph_node
     integer :: inear, inode, jnode
     real(dp) :: gg, c(3), vki(3), vvki, tki, gg3(3), tmp_gg, tmp_c(3)
+    real(dp) :: d_k, f_k, chi_ki, grad_p, duj
     real(dp) :: tlow, thigh
     real(dp), dimension(3, 3) :: zx_coord_transform, zy_coord_transform
     real(dp), external :: ddot, dnrm2
@@ -2244,9 +2905,20 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
                 !    & dfsw(tki, params % se, params % eta)/ &
                 !    & params % rsph(isph)*constants % wgrid(igrid)*gg* &
                 !    & ygrid(igrid, ksph)*(vki/vvki)
-                fx(:, isph) = fx(:, isph) - &
-                    & dfsw(tki, params % se, params % eta)/ &
-                    & params % rsph(isph)*gg*(vki/vvki)
+                if (params%switching.eq.0) then
+                    fx(:, isph) = fx(:, isph) - &
+                        & dfsw(tki, params % se, params % eta)/ &
+                        & params % rsph(isph)*gg*(vki/vvki)
+                else
+                    d_k = constants%switching%d_ni(igrid, ksph)
+                    f_k = constants%switching%f_ni(igrid, ksph)
+                    chi_ki = fsw(tki,params%se,params%eta)
+                    grad_p = dfsw(tki,params%se,params%eta)
+                    duj = one/(d_k + f_k)**2 &
+                        & *(d_k + d_k*f_k/(one - chi_ki)) &
+                        & *grad_p/params%rsph(isph)
+                    fx(:, isph) = fx(:, isph) - gg*duj*(vki/vvki)
+                end if
             end do
             ! contribution from the sphere itself
             if((constants % ui(igrid,isph).gt.zero) .and. &

@@ -5,7 +5,16 @@ test_sources = [
    ['ddx_core.f90', []],
    ['ddx_operators.f90', []],
    ['bessel.f90', []],
-   ['force.f90', [join_paths(project_dir, 'Input_force.txt')]],
+   ['force.f90', [
+       join_paths(project_dir, 'Input_force.txt'),
+       join_paths(project_dir, 'Input_cosmo_small.txt'),
+       join_paths(project_dir, 'Input_cosmo_small_new_switching.txt'),
+       join_paths(project_dir, 'Input_pcm_small.txt'),
+       join_paths(project_dir, 'Input_pcm_small_new_switching.txt'),
+       join_paths(project_dir, 'Input_pcm_small_new_switching_fmm.txt'),
+       join_paths(project_dir, 'Input_lpb_small.txt'),
+       join_paths(project_dir, 'Input_lpb_small_new_switching.txt')
+   ]],
    ['ddx_driver.f90', [
       join_paths(project_dir, 'data/ddpcm_force_fmm.in') + ' ' + join_paths(project_dir, 'data/ddpcm_force_fmm.out') + ' 1E-12',
       join_paths(project_dir, 'data/ddcosmo_force_fmm.in') + ' ' + join_paths(project_dir, 'data/ddcosmo_force_fmm.out') + ' 1E-12'
@@ -18,7 +27,10 @@ test_sources = [
    ['m2l.f90', []],
    ['multipolar_solutes.f90', []],
    ['error.f90', []],
-   ['test_gradients.f90', [join_paths(project_dir, 'Input_cosmo_small.txt')]]
+   ['test_gradients.f90', [
+       join_paths(project_dir, 'Input_cosmo_small.txt'),
+       join_paths(project_dir, 'Input_cosmo_small_new_switching.txt')
+   ]]
 ]
 
 # Create test executables and add tests

@@ -11,12 +11,16 @@ standalone_tests = [
    'cosmo',
    'cosmo_fmm',
    'cosmo_incore',
+   'cosmo_new_switching',
    'pcm',
    'pcm_fmm',
    'pcm_incore',
+   'pcm_new_switching',
    'lpb',
    'lpb_fmm',
-   'lpb_incore'
+   'lpb_incore',
+   'lpb_new_switching',
+   'lpb_new_switching_incore'
 ]
 
 foreach t : standalone_tests

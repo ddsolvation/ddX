@@ -15,6 +15,7 @@ use ddx_operators
 use ddx_solvers
 use ddx
 use ddx_legacy
+use ddx_input
 implicit none
 
 character(len=255) :: fname
@@ -24,7 +25,7 @@ type(ddx_state_type) :: state
 real(dp), allocatable :: phi_cav(:), gradphi_cav(:, :), &
     & hessianphi_cav(:, :, :), psi(:, :), &
     & force(:, :), force_num(:, :), charges(:)
-real(dp) :: tol, esolv1, esolv2, step=0.0001, relerr
+real(dp) :: tol, esolv1, esolv2, step=2e-5, relerr
 integer :: isph, i
 real(dp), external :: dnrm2
 character(len=255) :: dummy_file_name = ''
@@ -47,8 +48,16 @@ call mkrhs(ddx_data % params, ddx_data % constants, ddx_data % workspace, 1, &
 call ddsolve_legacy(ddx_data, state, phi_cav, -gradphi_cav, hessianphi_cav, psi, &
     & tol, esolv1, force, ddx_error)
 call check_error(ddx_error)
-call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
-    & ddx_data % workspace, state, charges, force, ddx_error)
+if (ddx_data % params % model.eq.3) then
+    call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, charges, force, ddx_error)
+    call grad_e_for_charges(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, charges, force, ddx_error)
+else
+    call grad_phi_for_charges(ddx_data % params, ddx_data % constants, &
+        & ddx_data % workspace, state, charges, force, ddx_error)
+end if
+
 call check_error(ddx_error)
 
 ddx_data % params % force = 0
@@ -102,7 +111,7 @@ subroutine test_solve(ddx_data, state, tol, esolv, phi_cav, gradphi_cav, &
         & ddx_data % params % eta, ddx_data % params % eps, ddx_data % params % kappa, &
         & ddx_data % params % matvecmem, ddx_data % params % maxiter, &
         & ddx_data % params % jacobi_ndiis, &
-        & ddx_data % params % nproc, dummy_file_name, ddx_data2, error2)
+        & ddx_data % params % nproc, dummy_file_name, ddx_data % params % switching, ddx_data2, error2)
     call mkrhs(ddx_data2 % params, ddx_data2 % constants, ddx_data2 % workspace, &
         & 1, phi_cav, 1, gradphi_cav, 1, hessianphi_cav, psi, charges)
     call ddsolve_legacy(ddx_data2, state, phi_cav, -gradphi_cav, hessianphi_cav, psi, tol, esolv, &

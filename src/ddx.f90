@@ -6,202 +6,13 @@ use ddx_cosmo
 use ddx_pcm
 ! Get ddlpb-module
 use ddx_lpb
+
+use ddx_defaults
 implicit none
 
 contains
 
 !> @defgroup Fortran_interface_core Fortran interface: core routines
-
-!> Read the configuration from ddX input file and return a ddx_data
-!! structure
-!!
-!> @ingroup Fortran_interface_core
-!! @param[in] fname: Filename containing all the required info
-!! @param[out] ddx_data: Object containing all inputs
-!! @param[out] tol: tolerance for iterative solvers
-!! @param[out] charges: charge array, size(nsph)
-!! @param[inout] ddx_error: ddX error
-!!
-subroutine ddfromfile(fname, ddx_data, tol, charges, ddx_error)
-    implicit none
-    character(len=*), intent(in) :: fname
-    type(ddx_type), intent(out) :: ddx_data
-    type(ddx_error_type), intent(inout) :: ddx_error
-    real(dp), intent(out) :: tol
-    real(dp), allocatable, intent(out) :: charges(:)
-    ! Local variables
-    integer :: nproc, model, lmax, ngrid, force, fmm, pm, pl, &
-        & nsph, i, matvecmem, maxiter, jacobi_ndiis, &
-        & istatus
-    real(dp) :: eps, se, eta, kappa
-    real(dp), allocatable :: csph(:, :), radii(:)
-    character(len=255) :: output_filename
-    !! Read all the parameters from the file
-    ! Open a configuration file
-    open(unit=100, file=fname, form='formatted', access='sequential')
-    ! Printing flag
-    read(100, *) output_filename
-    ! Number of OpenMP threads to be used
-    read(100, *) nproc
-    if(nproc .lt. 0) then
-        call update_error(ddx_error, "Error on the 2nd line of a config " // &
-            & "file " // trim(fname) // ": `nproc` must be a positive " // &
-            & "integer value.")
-    end if
-    ! Model to be used: 1 for COSMO, 2 for PCM and 3 for LPB
-    read(100, *) model
-    if((model .lt. 1) .or. (model .gt. 3)) then
-        call update_error(ddx_error, "Error on the 3rd line of a config file " // &
-            & trim(fname) // ": `model` must be an integer of a value " // &
-            & "1, 2 or 3.")
-    end if
-    ! Max degree of modeling spherical harmonics
-    read(100, *) lmax
-    if(lmax .lt. 0) then
-        call update_error(ddx_error, "Error on the 4th line of a config file " // &
-            & trim(fname) // ": `lmax` must be a non-negative integer value.")
-    end if
-    ! Approximate number of Lebedev points
-    read(100, *) ngrid
-    if(ngrid .lt. 0) then
-        call update_error(ddx_error, "Error on the 5th line of a config file " // &
-            & trim(fname) // ": `ngrid` must be a non-negative integer value.")
-    end if
-    ! Dielectric permittivity constant of the solvent
-    read(100, *) eps
-    if(eps .lt. zero) then
-        call update_error(ddx_error, "Error on the 6th line of a config file " // &
-            & trim(fname) // ": `eps` must be a non-negative floating " // &
-            & "point value.")
-    end if
-    ! Shift of the regularized characteristic function
-    read(100, *) se
-    if((se .lt. -one) .or. (se .gt. one)) then
-        call update_error(ddx_error, "Error on the 7th line of a config file " // &
-            & trim(fname) // ": `se` must be a floating point value in a " // &
-            & " range [-1, 1].")
-    end if
-    ! Regularization parameter
-    read(100, *) eta
-    if((eta .lt. zero) .or. (eta .gt. one)) then
-        call update_error(ddx_error, "Error on the 8th line of a config file " // &
-            & trim(fname) // ": `eta` must be a floating point value " // &
-            & "in a range [0, 1].")
-    end if
-    ! Debye H\"{u}ckel parameter
-    read(100, *) kappa
-    if(kappa .lt. zero) then
-        call update_error(ddx_error, "Error on the 9th line of a config file " // &
-            & trim(fname) // ": `kappa` must be a non-negative floating " // &
-            & "point value.")
-    end if
-    ! whether the (sparse) matrices are precomputed and kept in memory (1)
-    ! or not (0).
-    read(100, *) matvecmem 
-    if((matvecmem.lt. 0) .or. (matvecmem .gt. 1)) then
-        call update_error(ddx_error, "Error on the 10th line of a config " // &
-            & "file " // trim(fname) // ": `matvecmem` must be an " // &
-            & "integer value of a value 0 or 1.")
-    end if
-    ! Relative convergence threshold for the iterative solver
-    read(100, *) tol
-    if((tol .lt. 1d-14) .or. (tol .gt. one)) then
-        call update_error(ddx_error, "Error on the 12th line of a config " // &
-            & "file " // trim(fname) // ": `tol` must be a floating " // &
-            & "point value in a range [1d-14, 1].")
-    end if
-    ! Maximum number of iterations for the iterative solver
-    read(100, *) maxiter
-    if((maxiter .le. 0)) then
-        call update_error(ddx_error, "Error on the 13th line of a config " // &
-            & "file " // trim(fname) // ": `maxiter` must be a positive " // &
-            & " integer value.")
-    end if
-    ! Number of extrapolation points for Jacobi/DIIS solver
-    read(100, *) jacobi_ndiis
-    if((jacobi_ndiis .lt. 0)) then
-        call update_error(ddx_error, "Error on the 14th line of a config " // &
-            & "file " // trim(fname) // ": `jacobi_ndiis` must be a " // &
-            & "non-negative integer value.")
-    end if
-    ! Whether to compute (1) or not (0) forces as analytical gradients
-    read(100, *) force
-    if((force .lt. 0) .or. (force .gt. 1)) then
-        call update_error(ddx_error, "Error on the 17th line of a config " // &
-            & "file " // trim(fname) // ": `force` must be an integer " // &
-            "value of a value 0 or 1.")
-    end if
-    ! Whether to use (1) or not (0) the FMM to accelerate computations
-    read(100, *) fmm
-    if((fmm .lt. 0) .or. (fmm .gt. 1)) then
-        call update_error(ddx_error, "Error on the 18th line of a config " // &
-            & "file " // trim(fname) // ": `fmm` must be an integer " // &
-            & "value of a value 0 or 1.")
-    end if
-    ! Max degree of multipole spherical harmonics for the FMM
-    read(100, *) pm
-    if(pm .lt. 0) then
-        call update_error(ddx_error, "Error on the 19th line of a config " // &
-            & "file " // trim(fname) // ": `pm` must be a non-negative " // &
-            & "integer value.")
-    end if
-    ! Max degree of local spherical harmonics for the FMM
-    read(100, *) pl
-    if(pl .lt. 0) then
-        call update_error(ddx_error, "Error on the 20th line of a config " // &
-            & "file " // trim(fname) // ": `pl` must be a non-negative " // &
-            & "integer value.")
-    end if
-    ! Number of input spheres
-    read(100, *) nsph
-    if(nsph .le. 0) then
-        call update_error(ddx_error, "Error on the 21th line of a config " // &
-            & "file " // trim(fname) // ": `nsph` must be a positive " // &
-            & "integer value.")
-    end if
-
-    ! return in case of errors in the parameters
-    if (ddx_error % flag .ne. 0) return
-
-    ! Coordinates, radii and charges
-    allocate(charges(nsph), csph(3, nsph), radii(nsph), stat=istatus)
-    if(istatus .ne. 0) then
-        call update_error(ddx_error, "Could not allocate space for " // &
-            & "coordinates, radii and charges of atoms.")
-        return
-    end if
-    do i = 1, nsph
-        read(100, *) charges(i), csph(1, i), csph(2, i), csph(3, i), radii(i)
-    end do
-    ! Finish reading
-    close(100)
-    !! Convert Angstrom input into Bohr units
-    csph = csph * tobohr
-    radii = radii * tobohr
-    kappa = kappa / tobohr
-
-    ! adjust ngrid
-    call closest_supported_lebedev_grid(ngrid)
-
-    !! Initialize ddx_data object
-    call ddinit(model, nsph, csph, radii, eps, ddx_data, ddx_error, &
-        & force=force, kappa=kappa, eta=eta, shift=se, lmax=lmax, &
-        & ngrid=ngrid, incore=matvecmem, maxiter=maxiter, &
-        & jacobi_ndiis=jacobi_ndiis, enable_fmm=fmm, pm=pm, pl=pl, &
-        & nproc=nproc, logfile=output_filename)
-
-    if (ddx_error % flag .ne. 0) then
-        call update_error(ddx_error, "ddinit returned an error, exiting")
-        return
-    end if
-    !! Clean local temporary data
-    deallocate(radii, csph, stat=istatus)
-    if(istatus .ne. 0) then
-        call update_error(ddx_error, "Could not deallocate space for " // &
-            & "coordinates, radii and charges of atoms")
-        return
-    end if
-end subroutine ddfromfile
 
 !> Wrapper to the initialization routine which supports optional arguments.
 !! This will make future maintenance easier.
@@ -239,10 +50,12 @@ end subroutine ddfromfile
 !!                     far-field FMM interactions are computed, `pl` >= -1
 !! @param[in,optional] nproc: Number of OpenMP threads, nproc >= 0.
 !! @param[in,optional] logfile: file name for log information.
+!! @param[in,optional] switching: kind of switching, 0 legacy, 1 new version.
 !!
 subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
         & force, kappa, eta, shift, lmax, ngrid, incore, maxiter, &
-        & jacobi_ndiis, enable_fmm, pm, pl, nproc, logfile, adjoint, eps_int)
+        & jacobi_ndiis, enable_fmm, pm, pl, nproc, logfile, adjoint, &
+        & eps_int, switching)
 
     ! mandatory arguments
     integer, intent(in) :: model, nsph
@@ -253,31 +66,41 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
 
     ! optional arguments
     integer, intent(in), optional :: force, adjoint, lmax, ngrid, incore, &
-        & maxiter, jacobi_ndiis, enable_fmm, pm, pl, nproc
+        & maxiter, jacobi_ndiis, enable_fmm, pm, pl, nproc, switching
     real(dp), intent(in), optional :: kappa, eta, shift, eps_int
     character(len=255), intent(in), optional :: logfile
 
-    ! local copies of the optional arguments with dummy default values
-    integer :: local_force = 0
-    integer :: local_adjoint = 0
-    integer :: local_lmax = 6
-    integer :: local_ngrid = 302
-    integer :: local_incore = 0
-    integer :: local_maxiter = 100
-    integer :: local_jacobi_ndiis = 20
-    integer :: local_enable_fmm = 1
-    integer :: local_pm = 8
-    integer :: local_pl = 8
-    integer :: local_nproc = 1
-    real(dp) :: local_kappa = 0.0d0
-    real(dp) :: local_eta = 0.1d0
+    ! local copies of the optional arguments with default values
+    integer :: local_force = default_force
+    integer :: local_adjoint = default_adjoint
+    integer :: local_lmax = default_lmax
+    integer :: local_ngrid = default_ngrid
+    integer :: local_incore = default_incore
+    integer :: local_maxiter = default_maxiter
+    integer :: local_jacobi_ndiis = default_jacobi_ndiis
+    integer :: local_enable_fmm = default_enable_fmm
+    integer :: local_pm = default_pm
+    integer :: local_pl = default_pl
+    integer :: local_nproc = default_nproc
+    integer :: local_switching = default_switching
+
+    real(dp) :: local_kappa = default_kappa
+    real(dp) :: local_eta = default_eta
     real(dp) :: local_shift
-    real(dp) :: local_eps_int = 1.0d0
-    character(len=255) :: local_logfile = ""
+    real(dp) :: local_eps_int = default_eps_int
+
+    character(len=255) :: local_logfile = default_logfile
 
     ! arrays for x, y, z coordinates
     real(dp), allocatable :: x(:), y(:), z(:)
     integer :: info
+
+    ! The default switching shift depends on the model
+    if (model.lt.1 .or. model.gt.3) then
+        call update_error(ddx_error, "ddinit: wrong value of `model`")
+        return
+    end if
+    local_shift = default_se(model)
 
     ! Update local variables with provided optional arguments
     if (present(force)) local_force = force
@@ -293,18 +116,8 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
     if (present(kappa)) local_kappa = kappa
     if (present(eta)) local_eta = eta
     if (present(logfile)) local_logfile = logfile
-
-    ! for the shift eta the default value depends on the model
-    ! ddCOSMO has an interal shift, ddPCM and ddLPB a symmetric shift
-    if (present(shift)) then
-        local_shift = shift
-    else
-        if (model.eq.1) then
-            local_shift = -one
-        else
-            local_shift = zero
-        end if
-    end if
+    if (present(switching)) local_switching = switching
+    if (present(shift)) local_shift = shift
 
     ! this are not yet supported, but they will probably
     if (present(adjoint)) then
@@ -332,7 +145,8 @@ subroutine ddinit(model, nsph, coords, radii, eps, ddx_data, ddx_error, &
     call allocate_model(nsph, x, y, z, radii, model, local_lmax, local_ngrid, &
         & local_force, local_enable_fmm, local_pm, local_pl, local_shift, &
         & local_eta, eps, local_kappa, local_incore, local_maxiter, &
-        & local_jacobi_ndiis, local_nproc, local_logfile, ddx_data, ddx_error)
+        & local_jacobi_ndiis, local_nproc, local_logfile, local_switching, &
+        & ddx_data, ddx_error)
 
     deallocate(x, y, z, stat=info)
     if (info.ne.0) then

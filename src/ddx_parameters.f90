@@ -75,6 +75,8 @@ type ddx_params_type
     logical :: verbose
     !> output unit
     integer :: iunit
+    !> kind of switching: 0 legacy, 1 new version.
+    integer :: switching
 end type ddx_params_type
 
 contains
@@ -115,11 +117,12 @@ contains
 !! @param[in] csph: Coordinates of atoms. Dimension is `(3, nsph)`.
 !! @param[in] rsph: Van-der-Waals radii of atoms. Dimension is `(nsph)`.
 !! @param[in] output_filename: file name of log file.
+!! @param[in] switching: kind of switching, 0 legacy, 1 new version.
 !! @param[out] params: Object containing all inputs.
 !! @param[inout] ddx_error: ddX error
 subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         & matvecmem, maxiter, jacobi_ndiis, fmm, pm, pl, nproc, nsph, &
-        & csph, rsph, output_filename, params, ddx_error)
+        & csph, rsph, output_filename, switching, params, ddx_error)
     !! Inputs
     ! Model to use 1 for COSMO, 2 for PCM, 3 for LPB.
     integer, intent(in) :: model
@@ -166,6 +169,8 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
     real(dp), intent(in) :: rsph(nsph)
     ! log file name
     character(len=255) :: output_filename
+    ! switching: kind of switching, 0 legacy, 1 new version.
+    integer, intent(in) :: switching
     !! Outputs
     type(ddx_params_type), intent(out) :: params
     type(ddx_error_type), intent(inout) :: ddx_error
@@ -304,6 +309,12 @@ subroutine params_init(model, force, eps, kappa, eta, se, lmax, ngrid, &
         params % matvecmem = matvecmem
     else
         call update_error(ddx_error, "params_init: invalid value of `matvecmem`")
+    end if
+
+    if (switching.eq.0 .or. switching.eq.1) then
+        params % switching = switching
+    else
+        call update_error(ddx_error, "params_init: invalid value of `switching`")
     end if
 
     if (ddx_error % flag .ne. 0) return

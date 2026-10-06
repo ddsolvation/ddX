@@ -23,6 +23,23 @@ use omp_lib, only : omp_get_wtime
 
 implicit none
 
+type ddx_switching_type
+    integer :: ncav
+    !> Characteristic function U, 1 if exposed, 0 if buried, with
+    !! a smooth switching in between
+    real(dp), allocatable :: u_ni(:,:)
+    !> Characteristic function U, only at the points where it is
+    !! different from zero
+    real(dp), allocatable :: u_i_cav(:)
+    !> Auxiliary function d, for the construction of U and omega
+    real(dp), allocatable :: d_ni(:,:)
+    !> Auxiliary function f, for the construction of U and omega
+    real(dp), allocatable :: f_ni(:,:)
+    !> Diagonal derivative of the characteristic function U
+    !! \grad_i U_i. The off diagonal case \grad_i U_j is not precomputed
+    real(dp), allocatable :: grad_u_ni(:,:,:)
+    real(dp), allocatable :: dr_u_ni(:,:)
+end type ddx_switching_type
 
 !> Container for precomputed constants
 type ddx_constants_type
@@ -226,6 +243,9 @@ type ddx_constants_type
     !> Whether the diagonal of the matrices has to be used in the mvp for
     !! ddCOSMO, ddPCM or inner ddLPB iterations
     logical  :: dodiag
+    !> new switching
+    type(ddx_switching_type) :: switching
+
 end type ddx_constants_type
 
 contains
@@ -552,6 +572,7 @@ subroutine constants_init(params, constants, ddx_error)
             return
         end if
     end if
+
 end subroutine constants_init
 
 !> Build the transposed neighbor list
@@ -588,11 +609,10 @@ subroutine build_l(constants, params, ddx_error)
     integer :: isph, ij, jsph, igrid, l, m, ind, info
     real(dp), dimension(3) :: vij, sij
     real(dp) :: vvij, tij, xij, oij, rho, ctheta, stheta, cphi, sphi, &
-        & fac, tt, thigh
+        & fac, tt, thigh, d_i, f_i
     real(dp), dimension(constants % nbasis) :: vylm, vplm
     real(dp), dimension(params % lmax + 1) :: vcos, vsin
     real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
-    real(dp) :: t
 
     allocate(constants % l(constants % nbasis, constants % nbasis, &
         & constants % inl(params % nsph + 1)), stat=info)
@@ -603,52 +623,98 @@ subroutine build_l(constants, params, ddx_error)
 
     thigh = one + pt5*(params % se + one)*params % eta
 
-    t = omp_get_wtime()
-    !$omp parallel do default(none) shared(params,constants,thigh) &
-    !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
-    !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,l,fac,ind,m,tt)
-    do isph = 1, params % nsph
-        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
-            jsph = constants % nl(ij)
-            scratch = zero
-            do igrid = 1, params % ngrid
-                if (constants % ui(igrid, isph).eq.one) cycle
-                vij = params % csph(:, isph) &
-                    & + params % rsph(isph)*constants % cgrid(:,igrid) &
-                    & - params % csph(:, jsph)
-                vvij = sqrt(dot_product(vij, vij))
-                tij = vvij/params % rsph(jsph)
-                if (tij.lt.thigh) then
-                    if (tij.ne.zero) then
-                        sij = vij/vvij
-                    else
-                        sij = one
-                    end if
-                    xij = fsw(tij, params % se, params % eta)
-                    if (constants % fi(igrid, isph).gt.one) then
-                        oij = xij/constants % fi(igrid, isph)
-                    else
-                        oij = xij
-                    end if
-                    call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
-                        & params % lmax, constants % vscales, vylm, vplm, &
-                        & vcos, vsin)
-                    tt = oij
-                    do l = 0, params % lmax
-                        ind = l*l + l + 1
-                        fac = - tt/(constants % vscales(ind)**2)
-                        do m = -l, l
-                            scratch(ind + m, igrid) = fac*vylm(ind + m)
+    if (params%switching.eq.0) then
+        !$omp parallel do default(none) shared(params,constants,thigh) &
+        !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
+        !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,l,fac,ind,m,tt)
+        do isph = 1, params % nsph
+            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+                jsph = constants % nl(ij)
+                scratch = zero
+                do igrid = 1, params % ngrid
+                    if (constants % ui(igrid, isph).eq.one) cycle
+                    vij = params % csph(:, isph) &
+                        & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                        & - params % csph(:, jsph)
+                    vvij = sqrt(dot_product(vij, vij))
+                    tij = vvij/params % rsph(jsph)
+                    if (tij.lt.thigh) then
+                        if (tij.ne.zero) then
+                            sij = vij/vvij
+                        else
+                            sij = one
+                        end if
+                        xij = fsw(tij, params % se, params % eta)
+                        if (constants % fi(igrid, isph).gt.one) then
+                            oij = xij/constants % fi(igrid, isph)
+                        else
+                            oij = xij
+                        end if
+                        call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                            & params % lmax, constants % vscales, vylm, vplm, &
+                            & vcos, vsin)
+                        tt = oij
+                        do l = 0, params % lmax
+                            ind = l*l + l + 1
+                            fac = - tt/(constants % vscales(ind)**2)
+                            do m = -l, l
+                                scratch(ind + m, igrid) = fac*vylm(ind + m)
+                            end do
+                            tt = tt*tij
                         end do
-                        tt = tt*tij
-                    end do
-                end if
+                    end if
+                end do
+                call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
+                    & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
+                    & constants % nbasis, zero, constants % l(:,:,ij), constants % nbasis)
             end do
-            call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
-                & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
-                & constants % nbasis, zero, constants % l(:,:,ij), constants % nbasis)
         end do
-    end do
+    else
+        !$omp parallel do default(none) shared(params,constants,thigh) &
+        !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij, &
+        !$omp oij,rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,l, &
+        !$omp d_i,f_i,fac,ind,m,tt)
+        do isph = 1, params % nsph
+            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+                jsph = constants % nl(ij)
+                scratch = zero
+                do igrid = 1, params % ngrid
+                    d_i = constants%switching%d_ni(igrid,isph)
+                    f_i = constants%switching%f_ni(igrid,isph)
+                    if (constants % ui(igrid, isph).eq.one) cycle
+                    vij = params % csph(:, isph) &
+                        & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                        & - params % csph(:, jsph)
+                    vvij = sqrt(dot_product(vij, vij))
+                    tij = vvij/params % rsph(jsph)
+                    if (tij.lt.thigh) then
+                        if (tij.ne.zero) then
+                            sij = vij/vvij
+                        else
+                            sij = one
+                        end if
+                        xij = fsw(tij, params % se, params % eta)
+                        oij = xij/(d_i + f_i)
+                        call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                            & params % lmax, constants % vscales, vylm, vplm, &
+                            & vcos, vsin)
+                        tt = oij
+                        do l = 0, params % lmax
+                            ind = l*l + l + 1
+                            fac = - tt/(constants % vscales(ind)**2)
+                            do m = -l, l
+                                scratch(ind + m, igrid) = fac*vylm(ind + m)
+                            end do
+                            tt = tt*tij
+                        end do
+                    end if
+                end do
+                call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
+                    & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
+                    & constants % nbasis, zero, constants % l(:,:,ij), constants % nbasis)
+            end do
+        end do
+    end if
 end subroutine build_l
 
 !> Allocate and build the HSP sparse matrix, only if incore is set
@@ -666,8 +732,8 @@ subroutine build_b(constants, params, ddx_error)
     complex(dp), dimension(max(2, params % lmax + 1)) :: bessel_work
     real(dp), dimension(0:params % lmax) :: SI_rijn, DI_rijn
     real(dp), dimension(constants % nbasis, params % ngrid) :: scratch
-    real(dp) :: t
     integer :: info
+    real(dp) :: f_i, d_i
 
     allocate(constants % b(constants % nbasis, constants % nbasis, &
         & constants % inl(params % nsph + 1)), stat=info)
@@ -678,56 +744,105 @@ subroutine build_b(constants, params, ddx_error)
 
     thigh = one + pt5*(params % se + one)*params % eta
 
-    t = omp_get_wtime()
-    !$omp parallel do default(none) shared(params,constants,thigh) &
-    !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
-    !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,si_rijn,di_rijn, &
-    !$omp vvtij,l,fac,ind,m,bessel_work)
-    do isph = 1, params % nsph
-        do ij = constants % inl(isph), constants % inl(isph + 1) - 1
-            jsph = constants % nl(ij)
-            scratch = zero
-            do igrid = 1, params % ngrid
-                if (constants % ui(igrid, isph).eq.one) cycle
-                vij = params % csph(:, isph) &
-                    & + params % rsph(isph)*constants % cgrid(:,igrid) &
-                    & - params % csph(:, jsph)
-                vvij = sqrt(dot_product(vij, vij))
-                tij = vvij/params % rsph(jsph)
-                if (tij.lt.thigh) then
-                    if (tij.ne.zero) then
-                        sij = vij/vvij
-                    else
-                        sij = one
-                    end if
-                    xij = fsw(tij, params % se, params % eta)
-                    if (constants % fi(igrid, isph).gt.one) then
-                        oij = xij/constants % fi(igrid, isph)
-                    else
-                        oij = xij
-                    end if
-                    call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
-                        & params % lmax, constants % vscales, vylm, vplm, &
-                        & vcos, vsin)
-                    SI_rijn = 0
-                    DI_rijn = 0
-                    vvtij = vvij*params % kappa
-                    call modified_spherical_bessel_first_kind(params % lmax, &
-                        & vvtij, SI_rijn, DI_rijn, bessel_work)
-                    do l = 0, params % lmax
-                        fac = - oij*SI_rijn(l)/constants % SI_ri(l, jsph)
-                        ind = l*l + l + 1
-                        do m = -l, l
-                            scratch(ind + m, igrid) = fac*vylm(ind + m)
+    if (params%switching.eq.0) then
+        !$omp parallel do default(none) shared(params,constants,thigh) &
+        !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
+        !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,si_rijn,di_rijn, &
+        !$omp vvtij,l,fac,ind,m,bessel_work)
+        do isph = 1, params % nsph
+            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+                jsph = constants % nl(ij)
+                scratch = zero
+                do igrid = 1, params % ngrid
+                    if (constants % ui(igrid, isph).eq.one) cycle
+                    vij = params % csph(:, isph) &
+                        & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                        & - params % csph(:, jsph)
+                    vvij = sqrt(dot_product(vij, vij))
+                    tij = vvij/params % rsph(jsph)
+                    if (tij.lt.thigh) then
+                        if (tij.ne.zero) then
+                            sij = vij/vvij
+                        else
+                            sij = one
+                        end if
+                        xij = fsw(tij, params % se, params % eta)
+                        if (constants % fi(igrid, isph).gt.one) then
+                            oij = xij/constants % fi(igrid, isph)
+                        else
+                            oij = xij
+                        end if
+                        call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                            & params % lmax, constants % vscales, vylm, vplm, &
+                            & vcos, vsin)
+                        SI_rijn = 0
+                        DI_rijn = 0
+                        vvtij = vvij*params % kappa
+                        call modified_spherical_bessel_first_kind(params % lmax, &
+                            & vvtij, SI_rijn, DI_rijn, bessel_work)
+                        do l = 0, params % lmax
+                            fac = - oij*SI_rijn(l)/constants % SI_ri(l, jsph)
+                            ind = l*l + l + 1
+                            do m = -l, l
+                                scratch(ind + m, igrid) = fac*vylm(ind + m)
+                            end do
                         end do
-                    end do
-                end if
+                    end if
+                end do
+                call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
+                    & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
+                    & constants % nbasis, zero, constants % b(:,:,ij), constants % nbasis)
             end do
-            call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
-                & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
-                & constants % nbasis, zero, constants % b(:,:,ij), constants % nbasis)
         end do
-    end do
+    else
+        !$omp parallel do default(none) shared(params,constants,thigh) &
+        !$omp private(isph,ij,jsph,scratch,igrid,vij,vvij,tij,sij,xij,oij, &
+        !$omp rho,ctheta,stheta,cphi,sphi,vylm,vplm,vcos,vsin,si_rijn,di_rijn, &
+        !$omp vvtij,l,fac,ind,m,bessel_work,d_i,f_i)
+        do isph = 1, params % nsph
+            do ij = constants % inl(isph), constants % inl(isph + 1) - 1
+                jsph = constants % nl(ij)
+                scratch = zero
+                do igrid = 1, params % ngrid
+                    d_i = constants%switching%d_ni(igrid,isph)
+                    f_i = constants%switching%f_ni(igrid,isph)
+                    if (constants % ui(igrid, isph).eq.one) cycle
+                    vij = params % csph(:, isph) &
+                        & + params % rsph(isph)*constants % cgrid(:,igrid) &
+                        & - params % csph(:, jsph)
+                    vvij = sqrt(dot_product(vij, vij))
+                    tij = vvij/params % rsph(jsph)
+                    if (tij.lt.thigh) then
+                        if (tij.ne.zero) then
+                            sij = vij/vvij
+                        else
+                            sij = one
+                        end if
+                        xij = fsw(tij, params % se, params % eta)
+                        oij = xij/(d_i + f_i)
+                        call ylmbas(sij, rho, ctheta, stheta, cphi, sphi, &
+                            & params % lmax, constants % vscales, vylm, vplm, &
+                            & vcos, vsin)
+                        SI_rijn = 0
+                        DI_rijn = 0
+                        vvtij = vvij*params % kappa
+                        call modified_spherical_bessel_first_kind(params % lmax, &
+                            & vvtij, SI_rijn, DI_rijn, bessel_work)
+                        do l = 0, params % lmax
+                            fac = - oij*SI_rijn(l)/constants % SI_ri(l, jsph)
+                            ind = l*l + l + 1
+                            do m = -l, l
+                                scratch(ind + m, igrid) = fac*vylm(ind + m)
+                            end do
+                        end do
+                    end if
+                end do
+                call dgemm('n', 't', constants % nbasis, constants % nbasis, params % ngrid, &
+                    & one, constants % vwgrid, constants % vgrid_nbasis, scratch, &
+                    & constants % nbasis, zero, constants % b(:,:,ij), constants % nbasis)
+            end do
+        end do
+    end if
 end subroutine build_b
 
 !> Computation of P_chi
@@ -961,6 +1076,7 @@ subroutine constants_geometry_init(params, constants, ddx_error)
         endif
         constants % zi_dr = zero
     end if
+
     ! Build arrays fi, ui, zi
     !$omp parallel do default(none) shared(params,constants,swthr) &
     !$omp private(isph,igrid,jsph,v,maxv,ssqv,vv,t) schedule(dynamic)
@@ -1005,6 +1121,21 @@ subroutine constants_geometry_init(params, constants, ddx_error)
             end if
         enddo
     enddo
+
+    if (params%switching.eq.1) then
+        call switching_init(params, constants, constants%switching, ddx_error)
+        constants % ui = constants%switching%u_ni
+        if (params%force.eq.1) then
+            constants % zi = constants%switching%grad_u_ni
+            constants % zi_dr = constants%switching%dr_u_ni
+        end if
+    end if
+    if (ddx_error % flag .ne. 0) then
+        call update_error(ddx_error, "switching_init returned an " // &
+            & "error, exiting")
+        return
+    end if
+
     ! Build cavity array. At first get total count for each sphere
     allocate(constants % ncav_sph(params % nsph), stat=info)
     if (info .ne. 0) then
@@ -2163,7 +2294,273 @@ subroutine constants_free(constants, ddx_error)
                 & "deallocation failed!")
         end if
     end if
+
+    call switching_free(constants%switching, ddx_error)
+
 end subroutine constants_free
+
+subroutine switching_init(params, constants, switching, ddx_error)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    type(ddx_switching_type), intent(inout) :: switching
+    type(ddx_error_type), intent(inout) :: ddx_error
+    integer :: info, isph, n, icav, ncav
+    real(dp) :: d_ni, f_ni, u_ni
+
+    allocate(switching%u_ni(params%ngrid, params%nsph), &
+        & switching%d_ni(params%ngrid, params%nsph), &
+        & switching%f_ni(params%ngrid, params%nsph), &
+        & stat=info)
+    if (info.ne.0) then
+        call update_error(ddx_error, &
+            & "Allocation failed in switching_init")
+        return
+    end if
+
+    do isph = 1, params%nsph
+        do n = 1, params%ngrid
+            call compute_d_and_f(params, constants, isph, n, d_ni, f_ni)
+            switching%d_ni(n, isph) = d_ni
+            switching%f_ni(n, isph) = f_ni
+        end do
+    end do
+
+    ncav = 0
+    do isph = 1, params%nsph
+        do n = 1, params%ngrid
+            u_ni = compute_u(params, constants, isph, n)
+            if (u_ni.ne.zero) ncav = ncav + 1
+        end do
+    end do
+    switching%ncav = ncav
+
+    allocate(switching%u_i_cav(switching%ncav), stat=info)
+    if (info.ne.0) then
+        call update_error(ddx_error, &
+            & "Allocation failed in switching_init")
+        return
+    end if
+
+    icav = 0
+    do isph = 1, params%nsph
+        do n = 1, params%ngrid
+            u_ni = compute_u(params, constants, isph, n)
+            switching%u_ni(n, isph) = u_ni
+            if (u_ni.ne.zero) then
+                icav = icav + 1
+                switching%u_i_cav(icav) = u_ni
+            end if
+        end do
+    end do
+
+    if (params%force.eq.1) then
+        allocate(switching%grad_u_ni(3, params%ngrid, params%nsph), &
+            & switching%dr_u_ni(params%ngrid, params%nsph), &
+            & stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Allocation failed in switching_init")
+            return
+        end if
+
+        do isph = 1, params%nsph
+            do n = 1, params%ngrid
+                call compute_grad_i_u_i(params, constants, isph, n, &
+                    & switching%grad_u_ni(:, n, isph), &
+                    & switching%dr_u_ni(n, isph))
+            end do
+        end do
+    end if
+
+end subroutine switching_init
+
+subroutine switching_free(switching, ddx_error)
+    type(ddx_switching_type), intent(inout) :: switching
+    type(ddx_error_type), intent(inout) :: ddx_error
+    integer :: info
+    if (allocated(switching%u_ni)) then
+        deallocate(switching%u_ni, stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Deallocation failed in switching_free")
+            return
+        end if
+    end if
+    if (allocated(switching%u_i_cav)) then
+        deallocate(switching%u_i_cav, stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Deallocation failed in switching_free")
+            return
+        end if
+    end if
+    if (allocated(switching%d_ni)) then
+        deallocate(switching%d_ni, stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Deallocation failed in switching_free")
+            return
+        end if
+    end if
+    if (allocated(switching%f_ni)) then
+        deallocate(switching%f_ni, stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Deallocation failed in switching_free")
+            return
+        end if
+    end if
+    if (allocated(switching%grad_u_ni)) then
+        deallocate(switching%grad_u_ni, stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Deallocation failed in switching_free")
+            return
+        end if
+    end if
+    if (allocated(switching%dr_u_ni)) then
+        deallocate(switching%dr_u_ni, stat=info)
+        if (info.ne.0) then
+            call update_error(ddx_error, &
+                & "Deallocation failed in switching_free")
+            return
+        end if
+    end if
+end subroutine switching_free
+
+real(dp) function compute_t(params, constants, isph, jsph, n)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph, jsph, n
+    associate(cgrid => constants%cgrid, rsph => params%rsph, &
+            & csph => params%csph)
+        compute_t = sqrt((cgrid(1,n)*rsph(isph) + csph(1,isph) &
+            & - csph(1,jsph))**2 + (cgrid(2,n)*rsph(isph) &
+            & + csph(2,isph) - csph(2,jsph))**2 &
+            & + (cgrid(3,n)*rsph(isph) + csph(3,isph) &
+            & - csph(3,jsph))**2)/rsph(jsph)
+    end associate
+end function compute_t
+
+real(dp) function compute_chi(params, constants, isph, jsph, n)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph, jsph, n
+    real(dp) :: t_ijn
+    t_ijn = compute_t(params, constants, isph, jsph, n)
+    compute_chi = fsw(t_ijn, params%se, params%eta)
+end function compute_chi
+
+subroutine compute_d_and_f(params, constants, isph, n, d, f)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph, n
+    real(dp), intent(out) :: d, f
+    integer :: ij, jsph
+    real(dp) :: chi_ijn
+    d = one
+    f = zero
+    do ij = constants%inl(isph), constants%inl(isph + 1) - 1
+        jsph = constants%nl(ij)
+        chi_ijn = compute_chi(params, constants, isph, jsph, n)
+        d = d*(one - chi_ijn)
+        f = f + chi_ijn
+    end do
+end subroutine compute_d_and_f
+
+real(dp) function compute_d(params, constants, isph, n)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph, n
+    integer :: ij, jsph
+    real(dp) :: chi_ijn
+    compute_d = one
+    do ij = constants%inl(isph), constants%inl(isph + 1) - 1
+        jsph = constants%nl(ij)
+        chi_ijn = compute_chi(params, constants, isph, jsph, n)
+        compute_d = compute_d*(one - chi_ijn)
+    end do
+end function
+
+real(dp) function compute_f(params, constants, isph, n)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph, n
+    integer :: ij, jsph
+
+    compute_f = zero
+    do ij = constants%inl(isph), constants%inl(isph + 1) - 1
+        jsph = constants%nl(ij)
+        compute_f = compute_f + compute_chi(params, constants, isph, jsph, n)
+    end do
+end function compute_f
+
+real(dp) function compute_omega(params, constants, isph, jsph, n)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph, jsph, n
+    real(dp) :: chi_nij, d_ni, f_ni
+
+    chi_nij = compute_chi(params, constants, isph, jsph, n)
+    d_ni = constants%switching%d_ni(n, isph)
+    f_ni = constants%switching%f_ni(n, isph)
+    compute_omega = chi_nij/(d_ni + f_ni)
+end function compute_omega
+
+real(dp) function compute_u(params, constants, isph, n)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    integer, intent(in) :: isph, n
+    integer :: ij, jsph
+    compute_u = one
+    do ij = constants%inl(isph), constants%inl(isph + 1) - 1
+        jsph = constants%nl(ij)
+        compute_u = compute_u - compute_omega(params, constants, isph, jsph, n)
+    end do
+    ! A little hack here: we have plenty of checks `if (u(n, isph).eq.zero)`,
+    ! which we don't want to trigger with a noisy u. Better would be
+    ! making the checks more robust, but this suffices for now.
+    if (abs(compute_u) .le. 1d-15) compute_u = zero
+end function compute_u
+
+subroutine compute_grad_i_u_i(params, constants, isph, n, grad, dr)
+    type(ddx_params_type), intent(in) :: params
+    type(ddx_constants_type), intent(in) :: constants
+    real(dp), intent(out) :: grad(3), dr
+    integer, intent(in) :: isph, n
+    integer :: ij, jsph
+    real(dp) :: vij(3), vvij, tij, sij(3), grad_tij(3), dr_tij, &
+        & d_i, f_i, chi_ij, a, b, c, grad_p
+
+    grad(:) = zero
+    dr = zero
+    d_i = constants%switching%d_ni(n, isph)
+    f_i = constants%switching%f_ni(n, isph)
+    a = one/(d_i + f_i)**2
+    b = f_i*d_i
+    do ij = constants%inl(isph), constants%inl(isph + 1) - 1
+        jsph = constants%nl(ij)
+        vij = params % csph(:,isph) + &
+            & params % rsph(isph)*constants % cgrid(:,n) - &
+            & params % csph(:,jsph)
+        vvij = sqrt(vij(1)*vij(1) + vij(2)*vij(2) + vij(3)*vij(3))
+        tij = vvij/params % rsph(jsph)
+        sij = vij/vvij
+
+        grad_tij(:) = sij(:)/params%rsph(jsph)
+        dr_tij = dot_product(vij, constants%cgrid(:,n)) &
+            & /(vvij*params%rsph(jsph))
+
+        grad_p = dfsw(tij, params % se, params % eta)
+        chi_ij = fsw(tij, params % se, params % eta)
+
+        c = a*(d_i + b/(one - chi_ij))*grad_p
+
+        grad(:) = grad(:) + c*grad_tij(:)
+        dr = dr + c*dr_tij
+    end do
+
+end subroutine compute_grad_i_u_i
 
 end module ddx_constants
 

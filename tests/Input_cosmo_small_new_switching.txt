@@ -6,7 +6,7 @@ se  0.0
 eta 0.1
 fmm 0
 force 1
-switching 0
+switching 1
 nsph 4
 atoms
  0.09581   1.64052   0.26811   0.00079   4.00253
