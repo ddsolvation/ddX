@@ -1,5 +1,6 @@
 var ddx__constants_8f90 =
 [
+    [ "ddx_constants::ddx_switching_type", "structddx__constants_1_1ddx__switching__type.html", "structddx__constants_1_1ddx__switching__type" ],
     [ "ddx_constants::ddx_constants_type", "structddx__constants_1_1ddx__constants__type.html", "structddx__constants_1_1ddx__constants__type" ],
     [ "constants_init", "ddx__constants_8f90.html#a6e92b4f30453727bdb2f9ba7b6faae9b", null ],
     [ "build_itrnl", "ddx__constants_8f90.html#a23c5f32bf10f2cef9efb98249d23af15", null ],

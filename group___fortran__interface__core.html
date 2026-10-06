@@ -98,12 +98,9 @@ $(document).ready(function(){initNavTree('group___fortran__interface__core.html'
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:ga0f65e54e06247f84e41ef5f20bd12737"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga0f65e54e06247f84e41ef5f20bd12737">ddx::ddfromfile</a> (fname, ddx_data, tol, charges, ddx_error)</td></tr>
-<tr class="memdesc:ga0f65e54e06247f84e41ef5f20bd12737"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the configuration from ddX input file and return a ddx_data structure.  <a href="group___fortran__interface__core.html#ga0f65e54e06247f84e41ef5f20bd12737">More...</a><br /></td></tr>
-<tr class="separator:ga0f65e54e06247f84e41ef5f20bd12737"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga92bd3467f03a54aa7d3fbe061649324f"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga92bd3467f03a54aa7d3fbe061649324f">ddx::ddinit</a> (model, nsph, coords, radii, eps, ddx_data, ddx_error, force, kappa, eta, shift, lmax, ngrid, incore, maxiter, jacobi_ndiis, enable_fmm, pm, pl, nproc, logfile, adjoint, eps_int)</td></tr>
-<tr class="memdesc:ga92bd3467f03a54aa7d3fbe061649324f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrapper to the initialization routine which supports optional arguments. This will make future maintenance easier.  <a href="group___fortran__interface__core.html#ga92bd3467f03a54aa7d3fbe061649324f">More...</a><br /></td></tr>
-<tr class="separator:ga92bd3467f03a54aa7d3fbe061649324f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8abb0b85d729ca4f901f662d40dd07b2"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#ga8abb0b85d729ca4f901f662d40dd07b2">ddx::ddinit</a> (model, nsph, coords, radii, eps, ddx_data, ddx_error, force, kappa, eta, shift, lmax, ngrid, incore, maxiter, jacobi_ndiis, enable_fmm, pm, pl, nproc, logfile, adjoint, eps_int, switching)</td></tr>
+<tr class="memdesc:ga8abb0b85d729ca4f901f662d40dd07b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrapper to the initialization routine which supports optional arguments. This will make future maintenance easier.  <a href="group___fortran__interface__core.html#ga8abb0b85d729ca4f901f662d40dd07b2">More...</a><br /></td></tr>
+<tr class="separator:ga8abb0b85d729ca4f901f662d40dd07b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaea083a63e910836005c08f3d8ed8f5aa"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gaea083a63e910836005c08f3d8ed8f5aa">ddx::ddrun</a> (ddx_data, state, electrostatics, psi, tol, esolv, ddx_error, force, read_guess)</td></tr>
 <tr class="memdesc:gaea083a63e910836005c08f3d8ed8f5aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main solver routine.  <a href="group___fortran__interface__core.html#gaea083a63e910836005c08f3d8ed8f5aa">More...</a><br /></td></tr>
 <tr class="separator:gaea083a63e910836005c08f3d8ed8f5aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -143,71 +140,17 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:gaf7818bc26493b4749c2b8656c9a772d5"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gaf7818bc26493b4749c2b8656c9a772d5">ddx_core::get_banner</a> (string)</td></tr>
 <tr class="memdesc:gaf7818bc26493b4749c2b8656c9a772d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print the ddX logo.  <a href="group___fortran__interface__core.html#gaf7818bc26493b4749c2b8656c9a772d5">More...</a><br /></td></tr>
 <tr class="separator:gaf7818bc26493b4749c2b8656c9a772d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa90148c92acba31091ff837c8f9a7b7a"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gaa90148c92acba31091ff837c8f9a7b7a">ddx_input::ddfromfile</a> (fname, ddx_data, tol, charges, ddx_error)</td></tr>
+<tr class="memdesc:gaa90148c92acba31091ff837c8f9a7b7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the configuration from ddX input file and return a ddx_data structure.  <a href="group___fortran__interface__core.html#gaa90148c92acba31091ff837c8f9a7b7a">More...</a><br /></td></tr>
+<tr class="separator:gaa90148c92acba31091ff837c8f9a7b7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae6e0616717a0dcb5b67e82f82a896cb9"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___fortran__interface__core.html#gae6e0616717a0dcb5b67e82f82a896cb9">ddx_input::ddfromfile_legacy</a> (fname, ddx_data, tol, charges, ddx_error)</td></tr>
+<tr class="memdesc:gae6e0616717a0dcb5b67e82f82a896cb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the configuration from ddX input file and return a ddx_data structure.  <a href="group___fortran__interface__core.html#gae6e0616717a0dcb5b67e82f82a896cb9">More...</a><br /></td></tr>
+<tr class="separator:gae6e0616717a0dcb5b67e82f82a896cb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a id="ga0f65e54e06247f84e41ef5f20bd12737" name="ga0f65e54e06247f84e41ef5f20bd12737"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga0f65e54e06247f84e41ef5f20bd12737">&#9670;&nbsp;</a></span>ddfromfile()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">subroutine ddx::ddfromfile </td>
-          <td>(</td>
-          <td class="paramtype">character(len=*), intent(in)&#160;</td>
-          <td class="paramname"><em>fname</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__type.html">ddx_type</a>), intent(out)&#160;</td>
-          <td class="paramname"><em>ddx_data</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), intent(out)&#160;</td>
-          <td class="paramname"><em>tol</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">real(dp), dimension(:), intent(out), allocatable&#160;</td>
-          <td class="paramname"><em>charges</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
-          <td class="paramname"><em>ddx_error</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Read the configuration from ddX input file and return a ddx_data structure. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">fname</td><td>Filename containing all the required info </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">ddx_data</td><td>Object containing all inputs </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">tol</td><td>tolerance for iterative solvers </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">charges</td><td>charge array, size(nsph) </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">ddx_error</td><td>ddX error </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00025">25</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
-
-</div>
-</div>
-<a id="ga92bd3467f03a54aa7d3fbe061649324f" name="ga92bd3467f03a54aa7d3fbe061649324f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga92bd3467f03a54aa7d3fbe061649324f">&#9670;&nbsp;</a></span>ddinit()</h2>
+<a id="ga8abb0b85d729ca4f901f662d40dd07b2" name="ga8abb0b85d729ca4f901f662d40dd07b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8abb0b85d729ca4f901f662d40dd07b2">&#9670;&nbsp;</a></span>ddinit()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -348,7 +291,13 @@ Functions/Subroutines</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">real(dp), intent(in), optional&#160;</td>
-          <td class="paramname"><em>eps_int</em>&#160;</td>
+          <td class="paramname"><em>eps_int</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">integer, intent(in), optional&#160;</td>
+          <td class="paramname"><em>switching</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -382,11 +331,12 @@ Functions/Subroutines</h2></td></tr>
     <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>pl: Maximal degree of local spherical harmonics. Ignored in the case <code>fmm=0</code>. Value -1 means no far-field FMM interactions are computed, <code>pl</code> &gt;= -1 </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>nproc: Number of OpenMP threads, nproc &gt;= 0. </td></tr>
     <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>logfile: file name for log information. </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">[in,optional]</td><td>switching: kind of switching, 0 legacy, 1 new version. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00243">243</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00055">55</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
 
 </div>
 </div>
@@ -475,7 +425,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00362">362</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00176">176</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
 
 </div>
 </div>
@@ -549,7 +499,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00471">471</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00285">285</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
 
 </div>
 </div>
@@ -616,7 +566,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00509">509</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00323">323</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
 
 </div>
 </div>
@@ -683,7 +633,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00552">552</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00366">366</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
 
 </div>
 </div>
@@ -750,7 +700,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00595">595</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00409">409</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
 
 </div>
 </div>
@@ -817,7 +767,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00641">641</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00455">455</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
 
 </div>
 </div>
@@ -884,7 +834,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00688">688</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00502">502</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
 
 </div>
 </div>
@@ -958,7 +908,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00738">738</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx_8f90_source.html#l00552">552</a> of file <a class="el" href="ddx_8f90_source.html">ddx.f90</a>.</p>
 
 </div>
 </div>
@@ -1011,7 +961,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00348">348</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00351">351</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1050,7 +1000,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00414">414</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00417">417</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1103,7 +1053,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00454">454</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00457">457</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1142,7 +1092,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00789">789</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l00792">792</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
 
 </div>
 </div>
@@ -1170,7 +1120,131 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02803">2803</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__core_8f90_source.html#l02859">2859</a> of file <a class="el" href="ddx__core_8f90_source.html">ddx_core.f90</a>.</p>
+
+</div>
+</div>
+<a id="gaa90148c92acba31091ff837c8f9a7b7a" name="gaa90148c92acba31091ff837c8f9a7b7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa90148c92acba31091ff837c8f9a7b7a">&#9670;&nbsp;</a></span>ddfromfile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_input::ddfromfile </td>
+          <td>(</td>
+          <td class="paramtype">character(len=*), intent(in)&#160;</td>
+          <td class="paramname"><em>fname</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__type.html">ddx_type</a>), intent(out)&#160;</td>
+          <td class="paramname"><em>ddx_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(out)&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(:), intent(out), allocatable&#160;</td>
+          <td class="paramname"><em>charges</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>ddx_error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read the configuration from ddX input file and return a ddx_data structure. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">fname</td><td>Filename containing all the required info </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ddx_data</td><td>Object containing all inputs </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">tol</td><td>tolerance for iterative solvers </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">charges</td><td>charge array, size(nsph) </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">ddx_error</td><td>ddX error</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>Read a ddX input file, either in the legacy line-based format or in the keyword format.</p>
+<p >The format is detected from the first non-blank, non-comment line: a legacy file starts with a single value (the output filename), a keyword file starts with a <code>key value</code> pair.</p>
+<p >Keyword format: <code>key value</code>, <code>key = value</code> (with or without spaces). <code>#</code> or <code>!</code> start a comment, keys are case-insensitive, unknown keys are errors. Everything after the <code>atoms</code> leader is one sphere per line: charge x y z radius.</p>
+<p >Lengths are in Angstrom, kappa in inverse Angstrom. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__input_8f90_source.html#l00037">37</a> of file <a class="el" href="ddx__input_8f90_source.html">ddx_input.f90</a>.</p>
+
+</div>
+</div>
+<a id="gae6e0616717a0dcb5b67e82f82a896cb9" name="gae6e0616717a0dcb5b67e82f82a896cb9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae6e0616717a0dcb5b67e82f82a896cb9">&#9670;&nbsp;</a></span>ddfromfile_legacy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">subroutine ddx_input::ddfromfile_legacy </td>
+          <td>(</td>
+          <td class="paramtype">character(len=*), intent(in)&#160;</td>
+          <td class="paramname"><em>fname</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__core_1_1ddx__type.html">ddx_type</a>), intent(out)&#160;</td>
+          <td class="paramname"><em>ddx_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(out)&#160;</td>
+          <td class="paramname"><em>tol</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), dimension(:), intent(out), allocatable&#160;</td>
+          <td class="paramname"><em>charges</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">type(<a class="el" href="structddx__errors_1_1ddx__error__type.html">ddx_error_type</a>), intent(inout)&#160;</td>
+          <td class="paramname"><em>ddx_error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read the configuration from ddX input file and return a ddx_data structure. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">fname</td><td>Filename containing all the required info </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ddx_data</td><td>Object containing all inputs </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">tol</td><td>tolerance for iterative solvers </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">charges</td><td>charge array, size(nsph) </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">ddx_error</td><td>ddX error </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ddx__input_8f90_source.html#l00309">309</a> of file <a class="el" href="ddx__input_8f90_source.html">ddx_input.f90</a>.</p>
 
 </div>
 </div>

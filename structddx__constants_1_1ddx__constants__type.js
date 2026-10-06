@@ -68,5 +68,6 @@ var structddx__constants_1_1ddx__constants__type =
     [ "m2p_nbasis", "structddx__constants_1_1ddx__constants__type.html#aed70d3ebd199989fce11847a8a43709a", null ],
     [ "grad_nbasis", "structddx__constants_1_1ddx__constants__type.html#abb5604ad358c7fa12ecb58a01df52bcc", null ],
     [ "inner_tol", "structddx__constants_1_1ddx__constants__type.html#a7d0520826e9c6979b3650ec1ecde2215", null ],
-    [ "dodiag", "structddx__constants_1_1ddx__constants__type.html#a29e5917b78fc6f61fb02f19dc058c18a", null ]
+    [ "dodiag", "structddx__constants_1_1ddx__constants__type.html#a29e5917b78fc6f61fb02f19dc058c18a", null ],
+    [ "switching", "structddx__constants_1_1ddx__constants__type.html#a0d5a7671643a9c58f3ac1f3cc0bf5bf4", null ]
 ];

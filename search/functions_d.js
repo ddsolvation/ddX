@@ -1,7 +1,7 @@
 var searchData=
 [
   ['params_5ffree_0',['params_free',['../namespaceddx__parameters.html#a7c77867cd6eb7a281bc23f4206a223de',1,'ddx_parameters']]],
-  ['params_5finit_1',['params_init',['../namespaceddx__parameters.html#ae789c1c100e377b19dd6b1d8b83effc5',1,'ddx_parameters']]],
+  ['params_5finit_1',['params_init',['../namespaceddx__parameters.html#a926552a57f33b200250cc972e57cd492',1,'ddx_parameters']]],
   ['pcm_5fderivative_5fsetup_2',['pcm_derivative_setup',['../namespaceddx__pcm.html#a55bd385ab5da7c223b61c0df59573897',1,'ddx_pcm']]],
   ['pcm_5fenergy_3',['pcm_energy',['../group___fortran__interface__ddpcm.html#ga61f82b7dae6ad94468a6783899dd20f9',1,'ddx_pcm']]],
   ['pcm_5fguess_4',['pcm_guess',['../group___fortran__interface__ddpcm.html#ga276e83f4c79d0e92ea826ed655a6e2a9',1,'ddx_pcm']]],

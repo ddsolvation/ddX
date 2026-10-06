@@ -1,8 +1,7 @@
 var namespaces_dup =
 [
     [ "ddx", "namespaceddx.html", [
-      [ "ddfromfile", "group___fortran__interface__core.html#ga0f65e54e06247f84e41ef5f20bd12737", null ],
-      [ "ddinit", "group___fortran__interface__core.html#ga92bd3467f03a54aa7d3fbe061649324f", null ],
+      [ "ddinit", "group___fortran__interface__core.html#ga8abb0b85d729ca4f901f662d40dd07b2", null ],
       [ "ddrun", "group___fortran__interface__core.html#gaea083a63e910836005c08f3d8ed8f5aa", null ],
       [ "setup", "group___fortran__interface__core.html#ga11cab72b7131d6813962c81a1c2cf231", null ],
       [ "fill_guess", "group___fortran__interface__core.html#ga5eaf8d73e1bf0c0288757931c817759c", null ],
@@ -25,6 +24,7 @@ var namespaces_dup =
       [ "cosmo_solvation_force_dr_terms", "group___fortran__interface__ddcosmo.html#ga6c9cc6bbfbe84ae7d00e9a66fde4645f", null ],
       [ "cosmo_derivative_setup", "namespaceddx__cosmo.html#a50ff9ab9cd9522a209d6bc5d4edd079f", null ]
     ] ],
+    [ "ddx_defaults", "namespaceddx__defaults.html", null ],
     [ "ddx_definitions", "namespaceddx__definitions.html", [
       [ "dp", "namespaceddx__definitions.html#a6e62179e6ac303908858a873e4db49c2", null ],
       [ "nllg", "namespaceddx__definitions.html#ae550955ff555b222abaed24c541cde67", null ],
@@ -37,6 +37,7 @@ var namespaces_dup =
       [ "contract_gradi_lji", "namespaceddx__gradients.html#a8adb774f8e43a1130ab00e464b110764", null ],
       [ "contract_grad_u", "namespaceddx__gradients.html#a4e977c1dd87b6d18f3c43dda430ede6e", null ],
       [ "contract_grad_b", "namespaceddx__gradients.html#a260eabcd4aae98089d7ef6d1857615e6", null ],
+      [ "contract_grad_b_new", "namespaceddx__gradients.html#a125cbcdeaa1a5e89780e93ad6f60727c", null ],
       [ "contract_grad_c", "namespaceddx__gradients.html#a16de7fddb1b67f1fa73aa3adccb7a288", null ],
       [ "contract_grad_f", "namespaceddx__gradients.html#a3a9612c199c37d48e0572ad868475ddf", null ],
       [ "contract_gradi_bik", "namespaceddx__gradients.html#ad379dee7e9faa47f7a2647fc2009e736", null ],
@@ -138,6 +139,10 @@ var namespaces_dup =
       [ "fmm_m2l_bessel_ztranslate_adj_work", "namespaceddx__harmonics.html#aa151005ec26bae9d6abe15f427d6a51f", null ],
       [ "fmm_m2l_rotation_adj", "namespaceddx__harmonics.html#a8cfe4104aac6bb08df2fa15d2df2ba1a", null ],
       [ "fmm_m2l_rotation_adj_work", "namespaceddx__harmonics.html#abbb798594959e90b6d60588e88a7a12e", null ]
+    ] ],
+    [ "ddx_input", "namespaceddx__input.html", [
+      [ "ddfromfile", "group___fortran__interface__core.html#gaa90148c92acba31091ff837c8f9a7b7a", null ],
+      [ "ddfromfile_legacy", "group___fortran__interface__core.html#gae6e0616717a0dcb5b67e82f82a896cb9", null ]
     ] ],
     [ "ddx_legacy", "namespaceddx__legacy.html", [
       [ "mkrhs", "namespaceddx__legacy.html#aae5d5249fce08ad610ff745b4a865147", null ],

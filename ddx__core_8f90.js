@@ -3,7 +3,7 @@ var ddx__core_8f90 =
     [ "ddx_core::ddx_state_type", "structddx__core_1_1ddx__state__type.html", "structddx__core_1_1ddx__state__type" ],
     [ "ddx_core::ddx_electrostatics_type", "structddx__core_1_1ddx__electrostatics__type.html", "structddx__core_1_1ddx__electrostatics__type" ],
     [ "ddx_core::ddx_type", "structddx__core_1_1ddx__type.html", null ],
-    [ "allocate_model", "ddx__core_8f90.html#ae3baeb2709ca74da4e5d10ec0f6f322e", null ],
+    [ "allocate_model", "ddx__core_8f90.html#a835b5801c365e251c6be1cf0a67e1d78", null ],
     [ "deallocate_model", "ddx__core_8f90.html#a0ab2cb4e36ac5aac47cf646c1ecae038", null ],
     [ "allocate_electrostatics", "ddx__core_8f90.html#ga3384ba8a6e7a373c05e90b28b20f9c1f", null ],
     [ "deallocate_electrostatics", "ddx__core_8f90.html#ga5f9155be15f446c78e8b66000f8ad741", null ],

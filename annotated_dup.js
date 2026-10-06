@@ -4,7 +4,8 @@ var annotated_dup =
       [ "ddx_setup_type", "structddx__cinterface_1_1ddx__setup__type.html", null ]
     ] ],
     [ "ddx_constants", "namespaceddx__constants.html", [
-      [ "ddx_constants_type", "structddx__constants_1_1ddx__constants__type.html", "structddx__constants_1_1ddx__constants__type" ]
+      [ "ddx_constants_type", "structddx__constants_1_1ddx__constants__type.html", "structddx__constants_1_1ddx__constants__type" ],
+      [ "ddx_switching_type", "structddx__constants_1_1ddx__switching__type.html", "structddx__constants_1_1ddx__switching__type" ]
     ] ],
     [ "ddx_core", "namespaceddx__core.html", [
       [ "ddx_electrostatics_type", "structddx__core_1_1ddx__electrostatics__type.html", "structddx__core_1_1ddx__electrostatics__type" ],

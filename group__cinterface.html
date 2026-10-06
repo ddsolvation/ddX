@@ -119,8 +119,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="separator:ga9d1aa34ba5e219c3cd2f02d80721c0c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader">Allocate and manage the ddx model object</h2></td></tr>
-<tr class="memitem:gad6d6aee891c68a6eea2b4341c30adc3e"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gad6d6aee891c68a6eea2b4341c30adc3e">ddx_allocate_model</a> (int model, int enable_force, double solvent_epsilon, double solvent_kappa, double eta, double shift, int lmax, int n_lebedev, int incore, int maxiter, int jacobi_n_diis, int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax, int n_proc, int n_spheres, const double *sphere_centres, const double *sphere_radii, int length_logfile, const char *logfile, void *error)</td></tr>
-<tr class="separator:gad6d6aee891c68a6eea2b4341c30adc3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacf12fd830195aa02fdbdf9b6af3f5f63"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gacf12fd830195aa02fdbdf9b6af3f5f63">ddx_allocate_model</a> (int model, int enable_force, double solvent_epsilon, double solvent_kappa, double eta, double shift, int lmax, int n_lebedev, int incore, int maxiter, int jacobi_n_diis, int enable_fmm, int fmm_multipole_lmax, int fmm_local_lmax, int n_proc, int n_spheres, const double *sphere_centres, const double *sphere_radii, int length_logfile, const char *logfile, int switching, void *error)</td></tr>
+<tr class="separator:gacf12fd830195aa02fdbdf9b6af3f5f63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9f6d8e4d59d1e673e278508c6e7771ce"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga9f6d8e4d59d1e673e278508c6e7771ce">ddx_deallocate_model</a> (void *ddx, void *error)</td></tr>
 <tr class="separator:ga9f6d8e4d59d1e673e278508c6e7771ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -151,6 +151,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 <tr class="separator:gaf662fb5dd5f9aa527dc9602d768d64e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf660dc1d32759923ce44c38d44c0410e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaf660dc1d32759923ce44c38d44c0410e">ddx_get_fmm_multipole_lmax</a> (const void *ddx)</td></tr>
 <tr class="separator:gaf660dc1d32759923ce44c38d44c0410e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa0a804544fe08d61f979a966fb26a81e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaa0a804544fe08d61f979a966fb26a81e">ddx_get_switching</a> (const void *ddx)</td></tr>
+<tr class="separator:gaa0a804544fe08d61f979a966fb26a81e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga473b035b636a51f2c1e23ef873102e98"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#ga473b035b636a51f2c1e23ef873102e98">ddx_get_solvent_epsilon</a> (const void *ddx)</td></tr>
 <tr class="separator:ga473b035b636a51f2c1e23ef873102e98"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaae11bc5a4bb04f438c6db20c7d7dde21"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__cinterface.html#gaae11bc5a4bb04f438c6db20c7d7dde21">ddx_get_eta</a> (const void *ddx)</td></tr>
@@ -560,8 +562,8 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
 
 </div>
 </div>
-<a id="gad6d6aee891c68a6eea2b4341c30adc3e" name="gad6d6aee891c68a6eea2b4341c30adc3e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gad6d6aee891c68a6eea2b4341c30adc3e">&#9670;&nbsp;</a></span>ddx_allocate_model()</h2>
+<a id="gacf12fd830195aa02fdbdf9b6af3f5f63" name="gacf12fd830195aa02fdbdf9b6af3f5f63"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacf12fd830195aa02fdbdf9b6af3f5f63">&#9670;&nbsp;</a></span>ddx_allocate_model()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -685,6 +687,12 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
           <td></td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>logfile</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>switching</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1018,6 +1026,25 @@ $(document).ready(function(){initNavTree('group__cinterface.html',''); initResiz
       </table>
 </div><div class="memdoc">
 <p >Return the current value of fmm_multipole_lmax stored in the model. </p>
+
+</div>
+</div>
+<a id="gaa0a804544fe08d61f979a966fb26a81e" name="gaa0a804544fe08d61f979a966fb26a81e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa0a804544fe08d61f979a966fb26a81e">&#9670;&nbsp;</a></span>ddx_get_switching()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ddx_get_switching </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>ddx</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Return the current value of switching stored in the model. </p>
 
 </div>
 </div>

@@ -12,5 +12,6 @@ var searchData=
   ['sk_5fri_9',['sk_ri',['../structddx__constants_1_1ddx__constants__type.html#a4d003e524a00cb32d950212429455968',1,'ddx_constants::ddx_constants_type']]],
   ['sk_5frnode_10',['sk_rnode',['../structddx__constants_1_1ddx__constants__type.html#a99f316059b3996cedfb85c459cedb478',1,'ddx_constants::ddx_constants_type']]],
   ['snear_11',['snear',['../structddx__constants_1_1ddx__constants__type.html#aaed03088419058747039a86bb256ed51',1,'ddx_constants::ddx_constants_type']]],
-  ['snode_12',['snode',['../structddx__constants_1_1ddx__constants__type.html#acf8f02c845a47be22bdb2eb7613f29cf',1,'ddx_constants::ddx_constants_type']]]
+  ['snode_12',['snode',['../structddx__constants_1_1ddx__constants__type.html#acf8f02c845a47be22bdb2eb7613f29cf',1,'ddx_constants::ddx_constants_type']]],
+  ['switching_13',['switching',['../structddx__constants_1_1ddx__constants__type.html#a0d5a7671643a9c58f3ac1f3cc0bf5bf4',1,'ddx_constants::ddx_constants_type::switching()'],['../structddx__parameters_1_1ddx__params__type.html#a06687b556c4bbeaeb101849e539cebb4',1,'ddx_parameters::ddx_params_type::switching()']]]
 ];

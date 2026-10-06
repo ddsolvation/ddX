@@ -22,5 +22,6 @@ var structddx__parameters_1_1ddx__params__type =
     [ "output_filename", "structddx__parameters_1_1ddx__params__type.html#af4814958be9a90bfd2c6b338f4ec5ec2", null ],
     [ "len_output_filename", "structddx__parameters_1_1ddx__params__type.html#afd9b77a7b4cc51a498df7e76ac89ba1b", null ],
     [ "verbose", "structddx__parameters_1_1ddx__params__type.html#a1e4e35a45c9743c4fd01c22d72a51dc0", null ],
-    [ "iunit", "structddx__parameters_1_1ddx__params__type.html#a1ae55f771a5aacd6feaaad38155ccf07", null ]
+    [ "iunit", "structddx__parameters_1_1ddx__params__type.html#a1ae55f771a5aacd6feaaad38155ccf07", null ],
+    [ "switching", "structddx__parameters_1_1ddx__params__type.html#a06687b556c4bbeaeb101849e539cebb4", null ]
 ];

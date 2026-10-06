@@ -16,5 +16,6 @@ var searchData=
   ['snode_13',['snode',['../structddx__constants_1_1ddx__constants__type.html#acf8f02c845a47be22bdb2eb7613f29cf',1,'ddx_constants::ddx_constants_type']]],
   ['solvation_5fforce_5fterms_14',['solvation_force_terms',['../group___fortran__interface__core.html#ga5e9dc5ac48fa369d47243490a5ddfdb0',1,'ddx']]],
   ['solve_15',['solve',['../group___fortran__interface__core.html#gaeb639653db4877a4b84c0cb921c1aea6',1,'ddx']]],
-  ['solve_5fadjoint_16',['solve_adjoint',['../group___fortran__interface__core.html#ga5c34c305a9efa2f801f5bb4bc8a55933',1,'ddx']]]
+  ['solve_5fadjoint_16',['solve_adjoint',['../group___fortran__interface__core.html#ga5c34c305a9efa2f801f5bb4bc8a55933',1,'ddx']]],
+  ['switching_17',['switching',['../structddx__constants_1_1ddx__constants__type.html#a0d5a7671643a9c58f3ac1f3cc0bf5bf4',1,'ddx_constants::ddx_constants_type::switching()'],['../structddx__parameters_1_1ddx__params__type.html#a06687b556c4bbeaeb101849e539cebb4',1,'ddx_parameters::ddx_params_type::switching()']]]
 ];

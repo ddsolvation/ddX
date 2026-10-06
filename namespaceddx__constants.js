@@ -1,6 +1,7 @@
 var namespaceddx__constants =
 [
     [ "ddx_constants_type", "structddx__constants_1_1ddx__constants__type.html", "structddx__constants_1_1ddx__constants__type" ],
+    [ "ddx_switching_type", "structddx__constants_1_1ddx__switching__type.html", "structddx__constants_1_1ddx__switching__type" ],
     [ "constants_init", "namespaceddx__constants.html#a6e92b4f30453727bdb2f9ba7b6faae9b", null ],
     [ "build_itrnl", "namespaceddx__constants.html#a23c5f32bf10f2cef9efb98249d23af15", null ],
     [ "build_l", "namespaceddx__constants.html#a4bc82a98de791c899b8a5853d26048fa", null ],

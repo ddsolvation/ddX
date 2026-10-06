@@ -11,9 +11,10 @@ var searchData=
   ['grad_5fnbasis_8',['grad_nbasis',['../structddx__constants_1_1ddx__constants__type.html#abb5604ad358c7fa12ecb58a01df52bcc',1,'ddx_constants::ddx_constants_type']]],
   ['grad_5fphi_9',['grad_phi',['../namespaceddx__multipolar__solutes.html#ae56077ea63e7fd54b4b648db35d68a0c',1,'ddx_multipolar_solutes']]],
   ['grad_5fphi_5ffor_5fcharges_10',['grad_phi_for_charges',['../namespaceddx__multipolar__solutes.html#a366173b66c0801e15b2bac14d93195fc',1,'ddx_multipolar_solutes']]],
-  ['gradphi_5fcav_11',['gradphi_cav',['../structddx__core_1_1ddx__state__type.html#a9dd8508c33c2249e719c18024c84d5ac',1,'ddx_core::ddx_state_type']]],
-  ['gradr_12',['gradr',['../namespaceddx__gradients.html#a590caca0108d9dfa9f2b7ec68015ccbd',1,'ddx_gradients']]],
-  ['gradr_5fdense_13',['gradr_dense',['../namespaceddx__gradients.html#a0992df69c893c3febf16dd28cbac2c7d',1,'ddx_gradients']]],
-  ['gradr_5ffmm_14',['gradr_fmm',['../namespaceddx__gradients.html#af8d17825330c3a1e528bf554c847df45',1,'ddx_gradients']]],
-  ['gradr_5fsph_15',['gradr_sph',['../namespaceddx__gradients.html#a099adde40b533e515b5a647719440cdc',1,'ddx_gradients']]]
+  ['grad_5fu_5fni_11',['grad_u_ni',['../structddx__constants_1_1ddx__switching__type.html#a2d3587b70ee232973d1a8f810c668930',1,'ddx_constants::ddx_switching_type']]],
+  ['gradphi_5fcav_12',['gradphi_cav',['../structddx__core_1_1ddx__state__type.html#a9dd8508c33c2249e719c18024c84d5ac',1,'ddx_core::ddx_state_type']]],
+  ['gradr_13',['gradr',['../namespaceddx__gradients.html#a590caca0108d9dfa9f2b7ec68015ccbd',1,'ddx_gradients']]],
+  ['gradr_5fdense_14',['gradr_dense',['../namespaceddx__gradients.html#a0992df69c893c3febf16dd28cbac2c7d',1,'ddx_gradients']]],
+  ['gradr_5ffmm_15',['gradr_fmm',['../namespaceddx__gradients.html#af8d17825330c3a1e528bf554c847df45',1,'ddx_gradients']]],
+  ['gradr_5fsph_16',['gradr_sph',['../namespaceddx__gradients.html#a099adde40b533e515b5a647719440cdc',1,'ddx_gradients']]]
 ];

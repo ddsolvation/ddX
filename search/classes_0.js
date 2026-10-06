@@ -6,6 +6,7 @@ var searchData=
   ['ddx_5fparams_5ftype_3',['ddx_params_type',['../structddx__parameters_1_1ddx__params__type.html',1,'ddx_parameters']]],
   ['ddx_5fsetup_5ftype_4',['ddx_setup_type',['../structddx__cinterface_1_1ddx__setup__type.html',1,'ddx_cinterface']]],
   ['ddx_5fstate_5ftype_5',['ddx_state_type',['../structddx__core_1_1ddx__state__type.html',1,'ddx_core']]],
-  ['ddx_5ftype_6',['ddx_type',['../structddx__core_1_1ddx__type.html',1,'ddx_core']]],
-  ['ddx_5fworkspace_5ftype_7',['ddx_workspace_type',['../structddx__workspace_1_1ddx__workspace__type.html',1,'ddx_workspace']]]
+  ['ddx_5fswitching_5ftype_6',['ddx_switching_type',['../structddx__constants_1_1ddx__switching__type.html',1,'ddx_constants']]],
+  ['ddx_5ftype_7',['ddx_type',['../structddx__core_1_1ddx__type.html',1,'ddx_core']]],
+  ['ddx_5fworkspace_5ftype_8',['ddx_workspace_type',['../structddx__workspace_1_1ddx__workspace__type.html',1,'ddx_workspace']]]
 ];
