@@ -1495,21 +1495,14 @@ real(dp) function dfsw(t, se, eta)
     endif
 end function dfsw
 
-!> Ratio of the auxiliary function d and one of its factors, d/(1 - chi_j)
+!> Bounded evaluation of d/(1 - chi_j) with \f$ d = \prod_k (1 - \chi_k) \f$
 !!
-!! The auxiliary function is \f$ d = \prod_k (1 - \chi_k) \f$, so that the
-!! ratio is \f$ \prod_{k \neq j} (1 - \chi_k) \f$ and lies in \f$ [0, 1] \f$.
-!! Close to the edge of the switching region where \f$ \chi_j \f$ is one, fsw
-!! can round to exactly one while dfsw is still different from zero. Then
-!! \f$ 1 - \chi_j \f$ is zero and the plain division gives 0/0 = NaN. Since d
-!! and \f$ \chi_j \f$ are not necessarily evaluated with the same rounding, d
-!! can also be small but not zero, and the division would be huge. In this
-!! situation the factor that multiplies the ratio, dfsw, is vanishingly small,
-!! so the ratio is restricted to its bounds: it is zero for d = 0 and at most
-!! one, which is reached if d is not smaller than 1 - chi_j.
-!!
-!! @param[in] d: auxiliary function d, 0 <= d <= 1
-!! @param[in] chi: characteristic function \f$ \chi_j \f$, 0 <= chi <= 1
+!! The exact ratio is \f$ \prod_{k \neq j} (1 - \chi_k) \in [0, 1] \f$. Close
+!! to the edge of the switching region, \f$ \chi_j \f$ can round to one while
+!! dfsw is not zero, or d and \f$ \chi_j \f$ can be rounded differently, so
+!! that the plain division gives 0/0 or a huge value. The ratio is therefore
+!! clamped to [0, 1]. This is an approximation there, but its error is
+!! bounded by the vanishing factor dfsw that multiplies the ratio.
 real(dp) function ratio_d(d, chi)
     real(dp), intent(in) :: d, chi
     real(dp) :: den
@@ -2545,11 +2538,9 @@ real(dp) function compute_u(params, constants, isph, n)
         jsph = constants%nl(ij)
         compute_u = compute_u - compute_omega(params, constants, isph, jsph, n)
     end do
-    ! A little hack here: we have plenty of checks `if (u(n, isph).eq.zero)`,
-    ! which we don't want to trigger with a noisy u. Better would be
-    ! making the checks more robust, but this suffices for now. The exact u
-    ! is in [0, 1], so a negative u is noise too. It must not survive: the
-    ! cavity points are counted with `u.gt.zero` but stored for `u.ne.zero`.
+    ! Remove roundoff so that the `u.eq.zero` checks are reliable. The exact u
+    ! is in [0, 1], so a negative u is removed too: the cavity points are
+    ! counted with `u.gt.zero` but stored for `u.ne.zero`.
     if (compute_u .le. 1d-15) compute_u = zero
 end function compute_u
 
