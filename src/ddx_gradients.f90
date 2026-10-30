@@ -194,7 +194,7 @@ subroutine contract_grad_L_new(params, constants, isph, x, xi, &
                         grad_p = dfsw(tik, params % se, params % eta)
 
                         if (grad_p.ne.zero) then
-                            c = b*(one - d_i/(one - xik))*grad_p
+                            c = b*(one - ratio_d(d_i, xik))*grad_p
                         else
                             c = zero
                         end if
@@ -375,7 +375,7 @@ subroutine contract_grad_L_new(params, constants, isph, x, xi, &
 
             end do
 
-            c = bj/(d_j + f_j)**2*(one - d_j/(one - xji))*grad_p
+            c = bj/(d_j + f_j)**2*(one - ratio_d(d_j, xji))*grad_p
             tmp_fx(:) = tmp_fx(:) + c*grad_tji
             tmp_dr = tmp_dr + c*dr_tji
         end do
@@ -758,7 +758,7 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
                         & + constants%cgrid(3,ig)*sij(3)) &
                         & /params%rsph(jsph)
                     a = xi_w_v_i/(f_i+d_i)**2 &
-                        & *(-d_i - f_i*d_i/(one-chi_ij))*grad_p
+                        & *(-d_i - f_i*ratio_d(d_i, chi_ij))*grad_p
                     fx = fx + a*grad_t
                     dr_local = dr_local + a*dr_t
                 end if
@@ -771,7 +771,7 @@ subroutine contract_grad_U(params, constants, isph, xi, phi, fx, dr)
                     grad_t = -sji/params%rsph(isph)
                     dr_t = -tji/params%rsph(isph)
                     a = xi_w_v_j/(f_j+d_j)**2 &
-                        & *(-d_j - f_j*d_j/(one-chi_ji))*grad_p
+                        & *(-d_j - f_j*ratio_d(d_j, chi_ji))*grad_p
                     fx = fx + a*grad_t
                     dr_local = dr_local + a*dr_t
                 end if
@@ -915,7 +915,7 @@ subroutine contract_grad_B_new(params, constants, isph, Xe, Xadj_e, force, dr)
                         grad_p = dfsw(tik, params % se, params % eta)
 
                         if (grad_p.ne.zero) then
-                            c = b*(one - d_i/(one - xik))*grad_p
+                            c = b*(one - ratio_d(d_i, xik))*grad_p
                         else
                             c = zero
                         end if
@@ -1045,7 +1045,7 @@ subroutine contract_grad_B_new(params, constants, isph, Xe, Xadj_e, force, dr)
                 bj = bj + e*xjk
             end do
 
-            c = bj/(d_j + f_j)**2*(one - d_j/(one - xji))*grad_p
+            c = bj/(d_j + f_j)**2*(one - ratio_d(d_j, xji))*grad_p
             tmp_fx(:) = tmp_fx(:) + c*grad_tji
             tmp_dr = tmp_dr + c*dr_tji
         end do
@@ -2553,7 +2553,7 @@ subroutine gradr_sph(params, constants, isph, vplm, vcos, vsin, basloc, &
                     chi_ki = fsw(tki,params%se,params%eta)
                     grad_p = dfsw(tki,params%se,params%eta)
                     duj = one/(d_k + f_k)**2 &
-                        & *(d_k + d_k*f_k/(one - chi_ki)) &
+                        & *(d_k + f_k*ratio_d(d_k, chi_ki)) &
                         & *grad_p/params%rsph(isph)
                 end if
                 fjj = duj*constants % wgrid(its)*gg*ygrid(its,ksph)
@@ -2915,7 +2915,7 @@ subroutine gradr_fmm(params, constants, workspace, g, ygrid, fx)
                     chi_ki = fsw(tki,params%se,params%eta)
                     grad_p = dfsw(tki,params%se,params%eta)
                     duj = one/(d_k + f_k)**2 &
-                        & *(d_k + d_k*f_k/(one - chi_ki)) &
+                        & *(d_k + f_k*ratio_d(d_k, chi_ki)) &
                         & *grad_p/params%rsph(isph)
                     fx(:, isph) = fx(:, isph) - gg*duj*(vki/vvki)
                 end if
