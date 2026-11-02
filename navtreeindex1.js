@@ -1,5 +1,6 @@
 var NAVTREEINDEX1 =
 {
+"group___fortran__interface__core.html#gae238bb920d27ff43e7b645dbbed2a7ae":[9,0,11],
 "group___fortran__interface__core.html#gae6e0616717a0dcb5b67e82f82a896cb9":[9,0,15],
 "group___fortran__interface__core.html#gaea083a63e910836005c08f3d8ed8f5aa":[9,0,1],
 "group___fortran__interface__core.html#gaeb639653db4877a4b84c0cb921c1aea6":[9,0,5],
@@ -164,20 +165,21 @@ var NAVTREEINDEX1 =
 "namespaceddx__constants.html":[10,0,1],
 "namespaceddx__constants.html#a23c5f32bf10f2cef9efb98249d23af15":[10,0,1,3],
 "namespaceddx__constants.html#a2c17b7de5b75b3123c33fb48da2017d2":[10,0,1,5],
-"namespaceddx__constants.html#a3e9f0301398a1007b912f94c7239dffd":[10,0,1,15],
+"namespaceddx__constants.html#a3e9f0301398a1007b912f94c7239dffd":[10,0,1,16],
 "namespaceddx__constants.html#a3f00ff09bdd03bfcb77c12678b088aac":[10,0,1,8],
-"namespaceddx__constants.html#a42e14753989ec5f572237370884dc57e":[10,0,1,12],
+"namespaceddx__constants.html#a42e14753989ec5f572237370884dc57e":[10,0,1,13],
 "namespaceddx__constants.html#a4bc82a98de791c899b8a5853d26048fa":[10,0,1,4],
+"namespaceddx__constants.html#a54db6638fd68eeab3e5a12d01d90e881":[10,0,1,12],
 "namespaceddx__constants.html#a66fd73de84672f0f78f4c9c4e2c620b5":[10,0,1,11],
 "namespaceddx__constants.html#a6e92b4f30453727bdb2f9ba7b6faae9b":[10,0,1,2],
 "namespaceddx__constants.html#a75e67c88896a03e0463dbc1518b3ace9":[10,0,1,9],
 "namespaceddx__constants.html#a94adb04b3b8d45127c71d5b60d9de6f1":[10,0,1,7],
-"namespaceddx__constants.html#a97df3171ca5347f984551fe3a1bc7ed2":[10,0,1,17],
-"namespaceddx__constants.html#ab5425f991454fc8f92fd24f1577212a4":[10,0,1,13],
+"namespaceddx__constants.html#a97df3171ca5347f984551fe3a1bc7ed2":[10,0,1,18],
+"namespaceddx__constants.html#ab5425f991454fc8f92fd24f1577212a4":[10,0,1,14],
 "namespaceddx__constants.html#abb0c060445e3b2d40b770eda26d20fdb":[10,0,1,10],
-"namespaceddx__constants.html#ad7f84bf2e8fe2a577dfbc403fb174c8a":[10,0,1,14],
+"namespaceddx__constants.html#ad7f84bf2e8fe2a577dfbc403fb174c8a":[10,0,1,15],
 "namespaceddx__constants.html#af5826bc847008b2eb36949c6b05b3e5d":[10,0,1,6],
-"namespaceddx__constants.html#afa4961d4e2731a6ade2dd395d00a87d9":[10,0,1,16],
+"namespaceddx__constants.html#afa4961d4e2731a6ade2dd395d00a87d9":[10,0,1,17],
 "namespaceddx__core.html":[10,0,2],
 "namespaceddx__core.html#a02e2c9f1fe4c143bba50d01f1b4d338f":[10,0,2,39],
 "namespaceddx__core.html#a0ab2cb4e36ac5aac47cf646c1ecae038":[10,0,2,4],
@@ -247,7 +249,5 @@ var NAVTREEINDEX1 =
 "namespaceddx__gradients.html#a1f8ca6720e192dbc0f5bc2c4ba813b3d":[10,0,6,11],
 "namespaceddx__gradients.html#a260eabcd4aae98089d7ef6d1857615e6":[10,0,6,4],
 "namespaceddx__gradients.html#a3a9612c199c37d48e0572ad868475ddf":[10,0,6,7],
-"namespaceddx__gradients.html#a4e977c1dd87b6d18f3c43dda430ede6e":[10,0,6,3],
-"namespaceddx__gradients.html#a4fabae3a616233473710abf5635d0e4d":[10,0,6,17],
-"namespaceddx__gradients.html#a590caca0108d9dfa9f2b7ec68015ccbd":[10,0,6,15]
+"namespaceddx__gradients.html#a4e977c1dd87b6d18f3c43dda430ede6e":[10,0,6,3]
 };

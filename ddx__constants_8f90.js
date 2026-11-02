@@ -12,6 +12,7 @@ var ddx__constants_8f90 =
     [ "neighbor_list_init_fmm", "ddx__constants_8f90.html#a75e67c88896a03e0463dbc1518b3ace9", null ],
     [ "fsw", "ddx__constants_8f90.html#abb0c060445e3b2d40b770eda26d20fdb", null ],
     [ "dfsw", "ddx__constants_8f90.html#a66fd73de84672f0f78f4c9c4e2c620b5", null ],
+    [ "ratio_d", "ddx__constants_8f90.html#a54db6638fd68eeab3e5a12d01d90e881", null ],
     [ "mkprec", "ddx__constants_8f90.html#a42e14753989ec5f572237370884dc57e", null ],
     [ "tree_rib_build", "ddx__constants_8f90.html#ab5425f991454fc8f92fd24f1577212a4", null ],
     [ "tree_rib_node_bisect", "ddx__constants_8f90.html#ad7f84bf2e8fe2a577dfbc403fb174c8a", null ],

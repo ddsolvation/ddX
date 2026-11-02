@@ -140,6 +140,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:a66fd73de84672f0f78f4c9c4e2c620b5"><td class="memItemLeft" align="right" valign="top">real(dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__constants.html#a66fd73de84672f0f78f4c9c4e2c620b5">dfsw</a> (t, se, eta)</td></tr>
 <tr class="memdesc:a66fd73de84672f0f78f4c9c4e2c620b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Derivative of a switching function.  <a href="namespaceddx__constants.html#a66fd73de84672f0f78f4c9c4e2c620b5">More...</a><br /></td></tr>
 <tr class="separator:a66fd73de84672f0f78f4c9c4e2c620b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54db6638fd68eeab3e5a12d01d90e881"><td class="memItemLeft" align="right" valign="top">real(dp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__constants.html#a54db6638fd68eeab3e5a12d01d90e881">ratio_d</a> (d, chi)</td></tr>
+<tr class="memdesc:a54db6638fd68eeab3e5a12d01d90e881"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bounded evaluation of d/(1 - chi_j) with \( d = \prod_k (1 - \chi_k) \).  <a href="namespaceddx__constants.html#a54db6638fd68eeab3e5a12d01d90e881">More...</a><br /></td></tr>
+<tr class="separator:a54db6638fd68eeab3e5a12d01d90e881"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a42e14753989ec5f572237370884dc57e"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceddx__constants.html#a42e14753989ec5f572237370884dc57e">mkprec</a> (lmax, nbasis, nsph, ngrid, eps, ui, wgrid, vgrid, vgrid_nbasis, rx_prc, ddx_error)</td></tr>
 <tr class="memdesc:a42e14753989ec5f572237370884dc57e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute preconditioner assemble the diagonal blocks of the reps matrix then invert them to build the preconditioner.  <a href="namespaceddx__constants.html#a42e14753989ec5f572237370884dc57e">More...</a><br /></td></tr>
 <tr class="separator:a42e14753989ec5f572237370884dc57e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -628,6 +631,39 @@ Functions/Subroutines</h2></td></tr>
 
 </div>
 </div>
+<a id="a54db6638fd68eeab3e5a12d01d90e881" name="a54db6638fd68eeab3e5a12d01d90e881"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54db6638fd68eeab3e5a12d01d90e881">&#9670;&nbsp;</a></span>ratio_d()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">real(dp) function ddx_constants::ratio_d </td>
+          <td>(</td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>d</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">real(dp), intent(in)&#160;</td>
+          <td class="paramname"><em>chi</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Bounded evaluation of d/(1 - chi_j) with \( d = \prod_k (1 - \chi_k) \). </p>
+<p >The exact ratio is \( \prod_{k \neq j} (1 - \chi_k) \in [0, 1] \). Close to the edge of the switching region, \( \chi_j \) can round to one while dfsw is not zero, or d and \( \chi_j \) can be rounded differently, so that the plain division gives 0/0 or a huge value. The ratio is therefore clamped to [0, 1]. This is an approximation there, but its error is bounded by the vanishing factor dfsw that multiplies the ratio. </p>
+
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01506">1506</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+
+</div>
+</div>
 <a id="a42e14753989ec5f572237370884dc57e" name="a42e14753989ec5f572237370884dc57e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a42e14753989ec5f572237370884dc57e">&#9670;&nbsp;</a></span>mkprec()</h2>
 
@@ -710,7 +746,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Compute preconditioner assemble the diagonal blocks of the reps matrix then invert them to build the preconditioner. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01501">1501</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01522">1522</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -813,7 +849,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01592">1592</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01613">1613</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -880,7 +916,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01719">1719</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01740">1740</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -989,7 +1025,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01827">1827</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01848">1848</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1081,7 +1117,7 @@ Functions/Subroutines</h2></td></tr>
 
 <p>Get near and far admissible pairs from work array of tree_get_farnear_work Works only for binary tree. </p>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01920">1920</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01941">1941</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1120,7 +1156,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l01979">1979</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02000">2000</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1162,7 +1198,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02302">2302</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02323">2323</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1192,7 +1228,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02377">2377</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02398">2398</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1240,7 +1276,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02431">2431</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02452">2452</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1288,7 +1324,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02445">2445</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02466">2466</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1342,7 +1378,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02454">2454</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02475">2475</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1384,7 +1420,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02471">2471</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02492">2492</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1426,7 +1462,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02485">2485</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02506">2506</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1474,7 +1510,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02498">2498</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02519">2519</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1516,7 +1552,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02510">2510</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02531">2531</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>
@@ -1570,7 +1606,7 @@ Functions/Subroutines</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02526">2526</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ddx__constants_8f90_source.html#l02547">2547</a> of file <a class="el" href="ddx__constants_8f90_source.html">ddx_constants.f90</a>.</p>
 
 </div>
 </div>

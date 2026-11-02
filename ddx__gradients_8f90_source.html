@@ -280,7 +280,7 @@ $(document).ready(function(){initNavTree('ddx__gradients_8f90_source.html',''); 
 <div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>                        grad_p = dfsw(tik, params % se, params % eta)</div>
 <div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span> </div>
 <div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>                        <span class="keywordflow">if</span> (grad_p.ne.zero) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>                            c = b*(one - d_i/(one - xik))*grad_p</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>                            c = b*(one - ratio_d(d_i, xik))*grad_p</div>
 <div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>                        <span class="keywordflow">else</span></div>
 <div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>                            c = zero</div>
 <div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span><span class="keywordflow">                        end if</span></div>
@@ -461,7 +461,7 @@ $(document).ready(function(){initNavTree('ddx__gradients_8f90_source.html',''); 
 <div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span> </div>
 <div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span><span class="keywordflow">            end do</span></div>
 <div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span> </div>
-<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>            c = bj/(d_j + f_j)**2*(one - d_j/(one - xji))*grad_p</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>            c = bj/(d_j + f_j)**2*(one - ratio_d(d_j, xji))*grad_p</div>
 <div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>            tmp_fx(:) = tmp_fx(:) + c*grad_tji</div>
 <div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>            tmp_dr = tmp_dr + c*dr_tji</div>
 <div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span><span class="keywordflow">        end do</span></div>
@@ -841,7 +841,7 @@ $(document).ready(function(){initNavTree('ddx__gradients_8f90_source.html',''); 
 <div class="line"><a id="l00758" name="l00758"></a><span class="lineno">  758</span>                        &amp; + constants%cgrid(3,ig)*sij(3)) &amp;</div>
 <div class="line"><a id="l00759" name="l00759"></a><span class="lineno">  759</span>                        &amp; /params%rsph(jsph)</div>
 <div class="line"><a id="l00760" name="l00760"></a><span class="lineno">  760</span>                    a = xi_w_v_i/(f_i+d_i)**2 &amp;</div>
-<div class="line"><a id="l00761" name="l00761"></a><span class="lineno">  761</span>                        &amp; *(-d_i - f_i*d_i/(one-chi_ij))*grad_p</div>
+<div class="line"><a id="l00761" name="l00761"></a><span class="lineno">  761</span>                        &amp; *(-d_i - f_i*ratio_d(d_i, chi_ij))*grad_p</div>
 <div class="line"><a id="l00762" name="l00762"></a><span class="lineno">  762</span>                    fx = fx + a*grad_t</div>
 <div class="line"><a id="l00763" name="l00763"></a><span class="lineno">  763</span>                    dr_local = dr_local + a*dr_t</div>
 <div class="line"><a id="l00764" name="l00764"></a><span class="lineno">  764</span><span class="keywordflow">                end if</span></div>
@@ -854,7 +854,7 @@ $(document).ready(function(){initNavTree('ddx__gradients_8f90_source.html',''); 
 <div class="line"><a id="l00771" name="l00771"></a><span class="lineno">  771</span>                    grad_t = -sji/params%rsph(isph)</div>
 <div class="line"><a id="l00772" name="l00772"></a><span class="lineno">  772</span>                    dr_t = -tji/params%rsph(isph)</div>
 <div class="line"><a id="l00773" name="l00773"></a><span class="lineno">  773</span>                    a = xi_w_v_j/(f_j+d_j)**2 &amp;</div>
-<div class="line"><a id="l00774" name="l00774"></a><span class="lineno">  774</span>                        &amp; *(-d_j - f_j*d_j/(one-chi_ji))*grad_p</div>
+<div class="line"><a id="l00774" name="l00774"></a><span class="lineno">  774</span>                        &amp; *(-d_j - f_j*ratio_d(d_j, chi_ji))*grad_p</div>
 <div class="line"><a id="l00775" name="l00775"></a><span class="lineno">  775</span>                    fx = fx + a*grad_t</div>
 <div class="line"><a id="l00776" name="l00776"></a><span class="lineno">  776</span>                    dr_local = dr_local + a*dr_t</div>
 <div class="line"><a id="l00777" name="l00777"></a><span class="lineno">  777</span><span class="keywordflow">                end if</span></div>
@@ -981,7 +981,7 @@ $(document).ready(function(){initNavTree('ddx__gradients_8f90_source.html',''); 
 <div class="line"><a id="l00915" name="l00915"></a><span class="lineno">  915</span>                        grad_p = dfsw(tik, params % se, params % eta)</div>
 <div class="line"><a id="l00916" name="l00916"></a><span class="lineno">  916</span> </div>
 <div class="line"><a id="l00917" name="l00917"></a><span class="lineno">  917</span>                        <span class="keywordflow">if</span> (grad_p.ne.zero) <span class="keywordflow">then</span></div>
-<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span>                            c = b*(one - d_i/(one - xik))*grad_p</div>
+<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span>                            c = b*(one - ratio_d(d_i, xik))*grad_p</div>
 <div class="line"><a id="l00919" name="l00919"></a><span class="lineno">  919</span>                        <span class="keywordflow">else</span></div>
 <div class="line"><a id="l00920" name="l00920"></a><span class="lineno">  920</span>                            c = zero</div>
 <div class="line"><a id="l00921" name="l00921"></a><span class="lineno">  921</span><span class="keywordflow">                        end if</span></div>
@@ -1111,7 +1111,7 @@ $(document).ready(function(){initNavTree('ddx__gradients_8f90_source.html',''); 
 <div class="line"><a id="l01045" name="l01045"></a><span class="lineno"> 1045</span>                bj = bj + e*xjk</div>
 <div class="line"><a id="l01046" name="l01046"></a><span class="lineno"> 1046</span><span class="keywordflow">            end do</span></div>
 <div class="line"><a id="l01047" name="l01047"></a><span class="lineno"> 1047</span> </div>
-<div class="line"><a id="l01048" name="l01048"></a><span class="lineno"> 1048</span>            c = bj/(d_j + f_j)**2*(one - d_j/(one - xji))*grad_p</div>
+<div class="line"><a id="l01048" name="l01048"></a><span class="lineno"> 1048</span>            c = bj/(d_j + f_j)**2*(one - ratio_d(d_j, xji))*grad_p</div>
 <div class="line"><a id="l01049" name="l01049"></a><span class="lineno"> 1049</span>            tmp_fx(:) = tmp_fx(:) + c*grad_tji</div>
 <div class="line"><a id="l01050" name="l01050"></a><span class="lineno"> 1050</span>            tmp_dr = tmp_dr + c*dr_tji</div>
 <div class="line"><a id="l01051" name="l01051"></a><span class="lineno"> 1051</span><span class="keywordflow">        end do</span></div>
@@ -2533,7 +2533,7 @@ $(document).ready(function(){initNavTree('ddx__gradients_8f90_source.html',''); 
 <div class="line"><a id="l02553" name="l02553"></a><span class="lineno"> 2553</span>                    chi_ki = fsw(tki,params%se,params%eta)</div>
 <div class="line"><a id="l02554" name="l02554"></a><span class="lineno"> 2554</span>                    grad_p = dfsw(tki,params%se,params%eta)</div>
 <div class="line"><a id="l02555" name="l02555"></a><span class="lineno"> 2555</span>                    duj = one/(d_k + f_k)**2 &amp;</div>
-<div class="line"><a id="l02556" name="l02556"></a><span class="lineno"> 2556</span>                        &amp; *(d_k + d_k*f_k/(one - chi_ki)) &amp;</div>
+<div class="line"><a id="l02556" name="l02556"></a><span class="lineno"> 2556</span>                        &amp; *(d_k + f_k*ratio_d(d_k, chi_ki)) &amp;</div>
 <div class="line"><a id="l02557" name="l02557"></a><span class="lineno"> 2557</span>                        &amp; *grad_p/params%rsph(isph)</div>
 <div class="line"><a id="l02558" name="l02558"></a><span class="lineno"> 2558</span><span class="keywordflow">                end if</span></div>
 <div class="line"><a id="l02559" name="l02559"></a><span class="lineno"> 2559</span>                fjj = duj*constants % wgrid(its)*gg*ygrid(its,ksph)</div>
@@ -2894,7 +2894,7 @@ $(document).ready(function(){initNavTree('ddx__gradients_8f90_source.html',''); 
 <div class="line"><a id="l02915" name="l02915"></a><span class="lineno"> 2915</span>                    chi_ki = fsw(tki,params%se,params%eta)</div>
 <div class="line"><a id="l02916" name="l02916"></a><span class="lineno"> 2916</span>                    grad_p = dfsw(tki,params%se,params%eta)</div>
 <div class="line"><a id="l02917" name="l02917"></a><span class="lineno"> 2917</span>                    duj = one/(d_k + f_k)**2 &amp;</div>
-<div class="line"><a id="l02918" name="l02918"></a><span class="lineno"> 2918</span>                        &amp; *(d_k + d_k*f_k/(one - chi_ki)) &amp;</div>
+<div class="line"><a id="l02918" name="l02918"></a><span class="lineno"> 2918</span>                        &amp; *(d_k + f_k*ratio_d(d_k, chi_ki)) &amp;</div>
 <div class="line"><a id="l02919" name="l02919"></a><span class="lineno"> 2919</span>                        &amp; *grad_p/params%rsph(isph)</div>
 <div class="line"><a id="l02920" name="l02920"></a><span class="lineno"> 2920</span>                    fx(:, isph) = fx(:, isph) - gg*duj*(vki/vvki)</div>
 <div class="line"><a id="l02921" name="l02921"></a><span class="lineno"> 2921</span><span class="keywordflow">                end if</span></div>
