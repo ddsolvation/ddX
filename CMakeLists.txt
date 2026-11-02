@@ -9,7 +9,7 @@ endif()
 
 project(ddX
         DESCRIPTION "Fast continuum solvation based on domain decomposition"
-        VERSION "1.0.1"
+        VERSION "1.0.2"
         LANGUAGES Fortran CXX)
 
 # If ddX is a subproject, append ddx_ prefix to all targets.
