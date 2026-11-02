@@ -5,7 +5,7 @@
 !! @file src/ddx_core.f90
 !! Core routines and parameters of the entire ddX software
 !!
-!! @version 1.0.0
+!! @version 1.0.1
 !! @author Aleksandr Mikhalev
 !! @date 2021-02-25
 
@@ -2860,7 +2860,7 @@ subroutine get_banner(string)
     implicit none
     character (len=2047), intent(out) :: string
     character (len=10) :: vstr
-    write(vstr, *) "1.0.0"
+    write(vstr, *) "1.0.1"
     write(string, *) &
         & " +----------------------------------------------------------------+", &
         & NEW_LINE('a'), &
