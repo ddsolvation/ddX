@@ -10,15 +10,15 @@ jobs:
     name: Publish 📦 to PyPI
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install libblas-dev liblapack-dev
-          python -m pip install --user wheel pybind11 pytest
+          python -m pip install --user wheel setuptools pybind11 pytest
           python -m pip install --user -r requirements.txt
       - name: Run tests
         run: |
