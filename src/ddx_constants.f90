@@ -1495,6 +1495,27 @@ real(dp) function dfsw(t, se, eta)
     endif
 end function dfsw
 
+!> Bounded evaluation of d/(1 - chi_j) with \f$ d = \prod_k (1 - \chi_k) \f$
+!!
+!! The exact ratio is \f$ \prod_{k \neq j} (1 - \chi_k) \in [0, 1] \f$. Close
+!! to the edge of the switching region, \f$ \chi_j \f$ can round to one while
+!! dfsw is not zero, or d and \f$ \chi_j \f$ can be rounded differently, so
+!! that the plain division gives 0/0 or a huge value. The ratio is therefore
+!! clamped to [0, 1]. This is an approximation there, but its error is
+!! bounded by the vanishing factor dfsw that multiplies the ratio.
+real(dp) function ratio_d(d, chi)
+    real(dp), intent(in) :: d, chi
+    real(dp) :: den
+    den = one - chi
+    if (d .le. zero) then
+        ratio_d = zero
+    else if (den .le. d) then
+        ratio_d = one
+    else
+        ratio_d = d/den
+    end if
+end function ratio_d
+
 !> Compute preconditioner
 !! assemble the diagonal blocks of the reps matrix
 !! then invert them to build the preconditioner
@@ -2517,10 +2538,10 @@ real(dp) function compute_u(params, constants, isph, n)
         jsph = constants%nl(ij)
         compute_u = compute_u - compute_omega(params, constants, isph, jsph, n)
     end do
-    ! A little hack here: we have plenty of checks `if (u(n, isph).eq.zero)`,
-    ! which we don't want to trigger with a noisy u. Better would be
-    ! making the checks more robust, but this suffices for now.
-    if (abs(compute_u) .le. 1d-15) compute_u = zero
+    ! Remove roundoff so that the `u.eq.zero` checks are reliable. The exact u
+    ! is in [0, 1], so a negative u is removed too: the cavity points are
+    ! counted with `u.gt.zero` but stored for `u.ne.zero`.
+    if (compute_u .le. 1d-15) compute_u = zero
 end function compute_u
 
 subroutine compute_grad_i_u_i(params, constants, isph, n, grad, dr)
@@ -2530,14 +2551,13 @@ subroutine compute_grad_i_u_i(params, constants, isph, n, grad, dr)
     integer, intent(in) :: isph, n
     integer :: ij, jsph
     real(dp) :: vij(3), vvij, tij, sij(3), grad_tij(3), dr_tij, &
-        & d_i, f_i, chi_ij, a, b, c, grad_p
+        & d_i, f_i, chi_ij, a, c, grad_p
 
     grad(:) = zero
     dr = zero
     d_i = constants%switching%d_ni(n, isph)
     f_i = constants%switching%f_ni(n, isph)
     a = one/(d_i + f_i)**2
-    b = f_i*d_i
     do ij = constants%inl(isph), constants%inl(isph + 1) - 1
         jsph = constants%nl(ij)
         vij = params % csph(:,isph) + &
@@ -2554,7 +2574,7 @@ subroutine compute_grad_i_u_i(params, constants, isph, n, grad, dr)
         grad_p = dfsw(tij, params % se, params % eta)
         chi_ij = fsw(tij, params % se, params % eta)
 
-        c = a*(d_i + b/(one - chi_ij))*grad_p
+        c = a*(d_i + f_i*ratio_d(d_i, chi_ij))*grad_p
 
         grad(:) = grad(:) + c*grad_tij(:)
         dr = dr + c*dr_tij

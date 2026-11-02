@@ -34,6 +34,7 @@ else
     select case(testname)
         case ('all')
         case ('init')
+        case ('switching_edge')
         case ('polleg')
         case ('ylmbas')
         case ('m2p')
@@ -89,6 +90,11 @@ x(:, 13) = (/-2d-1, 4d-1, 3d-1/)
 ! Check correctness of info for valid and invalid input parameters of allocate_model
 if ((testname .eq. 'all') .or. (testname .eq. 'init')) then
     call check_allocate_model_args()
+end if
+
+! Check the gradient of U at the edge of the switching region
+if ((testname .eq. 'all') .or. (testname .eq. 'switching_edge')) then
+    call check_switching_edge()
 end if
 
 ! Check polleg (Legendre polynomials)
@@ -980,6 +986,60 @@ subroutine check_allocate_model_args()
     call deallocate_model(ddx_data, ddx_error)
     call reset_error(ddx_error)
 end subroutine check_allocate_model_args
+
+!> Check that the gradient of U is finite near the switching edge
+!!
+!! Sweep a grid point across the region where fsw can round to one while dfsw
+!! is not zero, which makes d = 0 and the ratio d/(1 - chi) a 0/0.
+subroutine check_switching_edge()
+    use, intrinsic :: ieee_arithmetic, only: ieee_is_finite
+    real(dp), parameter :: eta_sw = 0.1d0, rsph = 2d0, step = 1d-9
+    integer, parameter :: nstep = 1000
+    real(dp) :: ses(3) = [-1d0, 0d0, 1d0]
+    type(ddx_type) :: ddx_data
+    type(ddx_error_type) :: ddx_error
+    character(len=255) :: dummy_file_name = ''
+    real(dp) :: tedge, c2(3), g(3), zi(4)
+    integer :: ise, k
+    logical :: reached_zero
+    ! Contract of ratio_d: bounded in [0, 1] and equal to d/(1 - chi) otherwise
+    if (ratio_d(zero, one) .ne. zero .or. ratio_d(1d-10, one) .ne. one .or. &
+        & abs(ratio_d(0.25d0, 0.5d0) - 0.5d0) .gt. 1d-15) &
+        & call test_error(-1, "ratio_d is wrong in check_switching_edge()")
+    reached_zero = .false.
+    call allocate_model(2, [0d0, 0d0], [0d0, 0d0], [0d0, 5d0], [rsph, rsph], &
+        & 1, 4, 302, 0, 0, 0, 0, 0d0, eta_sw, 78.3553d0, 0d0, 1, 100, 25, 1, &
+        & dummy_file_name, 1, ddx_data, ddx_error)
+    if (ddx_error % flag .ne. 0) call test_error(-1, "allocate_model failed " // &
+        & "in check_switching_edge()")
+    g = ddx_data % constants % cgrid(:, 1)
+    call deallocate_model(ddx_data, ddx_error)
+    do ise = 1, size(ses)
+        tedge = 1d0 - 0.5d0*(1d0 - ses(ise))*eta_sw
+        do k = 0, nstep - 1
+            ! Move sphere 2 across the switching edge of the first grid point
+            c2 = (rsph + (tedge + dble(k)*step)*rsph) * g
+            call allocate_model(2, [0d0, c2(1)], [0d0, c2(2)], [0d0, c2(3)], &
+                & [rsph, rsph], 1, 4, 302, 1, 0, 0, 0, ses(ise), eta_sw, &
+                & 78.3553d0, 0d0, 1, 100, 25, 1, dummy_file_name, 1, ddx_data, &
+                & ddx_error)
+            if (ddx_error % flag .ne. 0) call test_error(-1, "allocate_model " // &
+                & "failed in check_switching_edge()")
+            reached_zero = reached_zero .or. &
+                & (ddx_data % constants % switching % d_ni(1, 1) .eq. zero)
+            zi(1:3) = ddx_data % constants % zi(:, 1, 1)
+            zi(4) = ddx_data % constants % zi_dr(1, 1)
+            if (.not. all(ieee_is_finite(zi)) .or. any(abs(zi) .gt. 1d-6)) &
+                & call test_error(-1, "gradient of U is not finite or not " // &
+                & "small in check_switching_edge()")
+            call deallocate_model(ddx_data, ddx_error)
+        end do
+    end do
+    ! The window depends on the rounding of the compiler, so it only has to
+    ! be reached for one of the shifts
+    if (.not. reached_zero) call test_error(-1, "d = 0 was not reached in " // &
+        & "check_switching_edge()")
+end subroutine check_switching_edge
 
 ! Check Legendre polynomials
 subroutine check_polleg(p)
